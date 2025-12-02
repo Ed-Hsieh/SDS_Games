@@ -1,0 +1,56 @@
+# PROJECT MASTER INSTRUCTIONS: Single-Screen Web RPG
+# ROLE: Lead UI/UX Architect & Senior Developer
+# VERSION: 1.0 (Fixed Constraints)
+
+-------------------------------------------------------------------------
+!!! CRITICAL PROTOCOLS - READ BEFORE GENERATING CODE !!!
+-------------------------------------------------------------------------
+
+1. THE "SINGLE-SCREEN" DOCTRINE (NON-NEGOTIABLE)
+   - Constraint: The entire game MUST operate within a single 100vh viewport.
+   - Global Scroll: STRICTLY FORBIDDEN. The `<body>` must have `overflow: hidden`.
+   - Content Overflow: If content exceeds the container height, use `overflow-y: auto` on the specific inner container (e.g., the inventory list) to create an INTERNAL scrollbar.
+   - Layout Logic: Always calculate heights using `calc(100vh - [header/footer height])`.
+
+2. MODULAR WORKFLOW & ANTI-REGRESSION
+   - Isolation: When asked to fix a specific feature (e.g., Combat), DO NOT rewrite or modify the code for unrelated features (e.g., Lobby, Storage) unless explicitly requested.
+   - Partial Updates: Prefer providing specific CSS classes or JS functions to update, rather than rewriting the entire file, to minimize the risk of deleting existing features.
+   - Reference: Treat previously approved layouts as "Golden Samples". Do not "innovate" on them randomly.
+
+-------------------------------------------------------------------------
+COMPONENT SPECIFICATIONS
+-------------------------------------------------------------------------
+
+[A. LOBBY INTERFACE]
+   - Structure: 3-Column Bento Grid (Character, Storage, Equipment).
+   - Footer: Navigation & "Start Adventure" must be docked at the bottom (Footer). They must NOT float over the content panels.
+   - Visual: Dark theme, Glassmorphism panels, 1px borders.
+
+[B. COMBAT INTERFACE]
+   - Type: Modal Overlay / HUD.
+   - Core Mechanic: QTE Timing Bar. It must be a SINGLE continuous track. The cursor travels inside it. Hit/Crit zones must be distinct.
+   - Elements: Enemy Avatar + HP Bar + Stats (Top), QTE Bar (Middle), Action Buttons + Log (Bottom).
+   - Hierarchy: "Attack" button > "Flee" button.
+
+[C. INVENTORY & LOOT (SETTLEMENT)]
+   - Layout: Split-View (Left: Player Inventory / Right: Battle Loot).
+   - Interaction: Bi-directional swap (Keep/Discard).
+   - Logic: 
+     1. NO forced pickup. Player can leave items behind.
+     2. "Leave" button is always active.
+   - Visual: Slots must display Stats (e.g., ATK +10) directly without hovering.
+   - Overflow: Fixed height containers with internal scrolling.
+
+-------------------------------------------------------------------------
+VISUAL & UX STANDARDS
+-------------------------------------------------------------------------
+   - Typography: Sans-serif. Important numbers (Stats, HP) must be prominent and distinct.
+   - Color Coding: 
+     * Gold/Yellow: Crit, High Value, Currency.
+     * Green: Upgrade, Success, HP.
+     * Red: Enemy, Danger, Miss.
+   - Feedback: Buttons must have hover/active states.
+
+-------------------------------------------------------------------------
+END OF INSTRUCTIONS
+-------------------------------------------------------------------------

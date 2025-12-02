@@ -1,0 +1,203 @@
+<div class="hall-scene">
+    
+    <!-- 主要佈局 -->
+    <div class="hall-layout">
+        <!-- 左側面板：角色資訊 -->
+        <div class="hall-left-panel">
+            <!-- 角色資訊卡 -->
+            <div class="card character-info">
+                <div class="card-header">⚔️ CHARACTER</div>
+                <div class="card-body">
+                    <!-- LV & Gold 上排 -->
+                    <div class="character-header">
+                        <div class="character-level">
+                            <div class="character-level-label">LV</div>
+                            <div class="character-level-value" id="character-level">1</div>
+                        </div>
+                        <div class="character-gold">
+                            <div class="character-gold-label">💰 Gold</div>
+                            <div class="character-gold-value" id="character-gold">1000</div>
+                        </div>
+                    </div>
+                    
+                    <!-- HP 進度條 -->
+                    <div class="stat-row">
+                        <span class="stat-label">HP</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;">
+                            <span class="progress-bar-text" id="hp-text">100 / 100</span>
+                        </div>
+                    </div>
+                    
+                    <!-- EXP 進度條 -->
+                    <div class="stat-row">
+                        <span class="stat-label">EXP</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;">
+                            <span class="progress-bar-text" id="exp-text">0 / 100</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 屬性面板 -->
+                    <div class="attributes-panel">
+                        <div class="attribute-box">
+                            <div class="attribute-label">⚔️ ATK</div>
+                            <div class="attribute-value" id="character-atk">10</div>
+                        </div>
+                        <div class="attribute-box">
+                            <div class="attribute-label">🛡️ DEF</div>
+                            <div class="attribute-value" id="character-def">5</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中央面板：倉庫 -->
+        <div class="hall-center-panel">
+            <!-- 倉庫資訊卡 -->
+            <div class="card warehouse-info">
+                <div class="card-header">
+                    <span>🏪 STORAGE</span>
+                    <div class="warehouse-controls">
+                        <!-- 排序選單 -->
+                        <select class="warehouse-sort" id="warehouse-sort">
+                            <option value="time-desc">最新獲得</option>
+                            <option value="time-asc">最舊獲得</option>
+                            <option value="rarity-desc">稀有度 ↓</option>
+                            <option value="rarity-asc">稀有度 ↑</option>
+                        </select>
+                        <!-- 倉庫分類篩選 - INLINE -->
+                        <div class="warehouse-filters">
+                            <button class="warehouse-filter active" data-filter="all">ALL</button>
+                            <button class="warehouse-filter" data-filter="weapon">⚔️</button>
+                            <button class="warehouse-filter" data-filter="armor">🛡️</button>
+                            <button class="warehouse-filter" data-filter="accessory">💍</button>
+                            <button class="warehouse-filter" data-filter="potion">🧪</button>
+                            <button class="warehouse-filter" data-filter="material">⛏️</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- 倉庫物品列表 -->
+                    <div class="warehouse-list" id="warehouse-list">
+                        <!-- 動態生成物品卡片 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右側面板：角色裝備 & 背包 -->
+        <div class="hall-right-panel">
+            <!-- 角色裝備資訊卡 -->
+            <div class="card character-equipment">
+                <div class="card-header">👤 EQUIPMENT</div>
+                <div class="card-body">
+                    <div class="equipment-slots">
+                        <!-- 武器槽 -->
+                        <div class="equipment-slot empty" id="slot-weapon" data-slot-type="weapon">
+                            <div class="equipment-slot-label">武器</div>
+                            <div class="equipment-slot-icon">⚔️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        
+                        <!-- 防具槽 -->
+                        <div class="equipment-slot empty" id="slot-armor" data-slot-type="armor">
+                            <div class="equipment-slot-label">防具</div>
+                            <div class="equipment-slot-icon">🛡️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        
+                        <!-- 飾品槽 -->
+                        <div class="equipment-slot empty" id="slot-accessory" data-slot-type="accessory">
+                            <div class="equipment-slot-label">飾品</div>
+                            <div class="equipment-slot-icon">💍</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 背包區域 -->
+            <div class="card inventory-section">
+                <div class="card-header">
+                    <div class="inventory-header-info">
+                        <span>🎒 INVENTORY</span>
+                        <span class="inventory-capacity">
+                            <span id="inventory-used">0</span> / <span id="inventory-max">10</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="inventory-list" id="inventory-list">
+                        <!-- 動態生成背包物品卡片 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 功能按鈕列 + 冒險按鈕 - 統一控制台 -->
+    <div class="card menu-bar">
+        <div class="card-body">
+            <div class="menu-buttons">
+                <button class="menu-btn" id="btn-go-shop">
+                    <div class="menu-btn-icon">🛒</div>
+                    <div class="menu-btn-text">Shop</div>
+                </button>
+                <button class="menu-btn" id="btn-go-forge">
+                    <div class="menu-btn-icon">⚒️</div>
+                    <div class="menu-btn-text">Forge</div>
+                </button>
+                <button class="menu-btn" id="btn-go-gamble">
+                    <div class="menu-btn-icon">🎲</div>
+                    <div class="menu-btn-text">Gamble</div>
+                </button>
+                <button class="menu-btn" id="btn-go-quest">
+                    <div class="menu-btn-icon">📜</div>
+                    <div class="menu-btn-text">Quest</div>
+                </button>
+            </div>
+            
+            <!-- 開始冒險按鈕 - 右側高亮 -->
+            <div class="adventure-section">
+                <button class="adventure-btn" id="btn-start-adventure">
+                    ⚔️ START ADVENTURE
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 物品詳情彈窗 -->
+<div class="modal item-detail-modal" id="item-detail-modal">
+    <div class="modal-content">
+        <div class="modal-header">物品詳情</div>
+        <div class="modal-body">
+            <div class="item-detail-header">
+                <div class="item-detail-icon" id="modal-item-icon">⚔️</div>
+                <div class="item-detail-title">
+                    <div class="item-detail-name" id="modal-item-name">物品名稱</div>
+                    <div class="item-detail-type" id="modal-item-type">類型</div>
+                </div>
+            </div>
+            
+            <div class="item-detail-stats" id="modal-item-stats">
+                <!-- 動態顯示物品屬性 -->
+            </div>
+            
+            <div class="item-detail-description" id="modal-item-description">
+                物品描述
+            </div>
+            
+            <div class="item-detail-actions" id="modal-item-actions">
+                <!-- 動態生成操作按鈕 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="btn-close-item-modal">關閉</button>
+        </div>
+    </div>
+</div>

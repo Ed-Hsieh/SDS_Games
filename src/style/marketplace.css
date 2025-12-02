@@ -1,0 +1,739 @@
+/* ===== 市集介面 - 戰術地圖風格 ===== */
+
+/* 全局 Box Sizing */
+* {
+    box-sizing: border-box;
+}
+
+/* 強制單一螢幕 - 無全域捲動 */
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #0b1120 0%, #1a1f35 100%);
+    font-family: 'Arial', sans-serif;
+    color: #ffffff;
+}
+
+/* ===== 頂部戰術地圖網格 (15vh) ===== */
+.market-tactical-grid {
+    position: relative;
+    height: 15vh;
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 8px;
+    padding: 10px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3));
+    border-bottom: 2px solid rgba(79, 172, 254, 0.5);
+}
+
+/* 地圖格子 - 棋盤風格 */
+.grid-tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.grid-tile.locked {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.grid-tile.locked .tile-floor {
+    background: linear-gradient(135deg, rgba(50, 50, 50, 0.8), rgba(30, 30, 30, 0.9));
+}
+
+/* 格子地板紋理 */
+.tile-floor {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(135deg, rgba(30, 40, 60, 0.9), rgba(20, 30, 50, 0.95));
+    background-size: 10px 10px, 10px 10px, 10px 10px, 10px 10px, 100% 100%;
+    background-position: 0 0, 5px 0, 5px -5px, 0 5px, 0 0;
+    border: 2px solid rgba(79, 172, 254, 0.3);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s ease;
+}
+
+.grid-tile:hover:not(.locked) .tile-floor {
+    border-color: rgba(79, 172, 254, 0.8);
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 12px rgba(79, 172, 254, 0.6);
+    transform: translateY(-2px);
+}
+
+.grid-tile.active .tile-floor {
+    border-color: #ffd700;
+    box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.5),
+        0 0 16px rgba(255, 215, 0, 0.8);
+    background: 
+        linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%),
+        linear-gradient(135deg, rgba(50, 60, 30, 0.9), rgba(40, 50, 20, 0.95));
+}
+
+/* 商店圖示 */
+.shop-icon {
+    font-size: 32px;
+    margin-bottom: 4px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+}
+
+.shop-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+/* 玩家標記 - 物理定位於格子上 */
+.player-token {
+    position: absolute;
+    width: calc(12.5% - 4px); /* 1/8 寬度 */
+    height: calc(100% - 16px);
+    top: 8px;
+    left: 8px; /* 初始位置 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 10;
+    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.token-avatar {
+    font-size: 48px;
+    filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.8));
+    animation: tokenFloat 2s ease-in-out infinite;
+}
+
+@keyframes tokenFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ===== 主要內容區 (85vh) ===== */
+.market-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* ===== 左側：NPC互動面板 (40%) ===== */
+.npc-panel {
+    width: 40%;
+    height: 100%;
+    position: relative;
+    background: linear-gradient(145deg, rgba(11, 17, 32, 0.6), rgba(13, 23, 38, 0.8));
+    border-right: 2px solid rgba(79, 172, 254, 0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* NPC肖像容器 - 拖放目標 */
+.npc-portrait-container {
+    flex: 1; /* Takes remaining space */
+    min-height: 350px; /* Prevent compression */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, rgba(30, 40, 60, 0.5), rgba(10, 15, 25, 0.9));
+    border-bottom: 2px solid rgba(79, 172, 254, 0.2);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.npc-portrait-container.drag-over-valid {
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.1));
+    box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.5);
+}
+
+.npc-portrait-container.drag-over-invalid {
+    background: radial-gradient(circle, rgba(255, 0, 0, 0.3), rgba(139, 0, 0, 0.1));
+    box-shadow: inset 0 0 40px rgba(255, 0, 0, 0.5);
+    animation: shake 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.npc-portrait {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 3px solid rgba(79, 172, 254, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    transition: all 0.3s ease;
+}
+
+.npc-portrait-container.drag-over-valid .npc-portrait {
+    border-color: #ffd700;
+    box-shadow: 0 0 32px rgba(255, 215, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.drop-hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.npc-portrait-container.drag-over-valid .drop-hint,
+.npc-portrait-container.drag-over-invalid .drop-hint {
+    opacity: 1;
+}
+
+/* NPC對話框 */
+.npc-dialogue {
+    height: 150px; /* Fixed height for dialogue */
+    padding: 16px;
+    background: rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+}
+
+.dialogue-box {
+    height: 100%;
+    background: rgba(20, 30, 50, 0.8);
+    border: 2px solid rgba(79, 172, 254, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #e0e0e0;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.dialogue-box p {
+    margin: 0;
+}
+
+/* ===== 右側：交易面板 (60%) ===== */
+.trade-panel {
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(145deg, rgba(13, 23, 38, 0.8), rgba(11, 17, 32, 0.6));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* 交易區塊 (上下分割) */
+.trade-section {
+    flex: 1;
+    min-height: 0; /* Prevent flex item from overflowing */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.trade-section.vendor-section {
+    border-bottom: 2px solid rgba(79, 172, 254, 0.3);
+}
+
+.trade-section.player-section {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* 區塊標題 */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(79, 172, 254, 0.2);
+    flex-shrink: 0;
+    min-height: 44px; /* Ensure consistent height */
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 14px;
+    color: #4facfe;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.gold-display {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Consolas', monospace;
+}
+
+/* 商店物品網格 - 內部捲動 */
+.shop-inventory {
+    flex: 1;
+    min-height: 0; /* Allow flex item to shrink */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    align-content: start;
+    position: relative;
+    transition: background 0.3s;
+}
+
+/* 拖放提示 */
+.shop-inventory.drag-over {
+    background: rgba(79, 172, 254, 0.1);
+    box-shadow: inset 0 0 20px rgba(79, 172, 254, 0.3);
+}
+
+.empty-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.1);
+    font-size: 20px;
+    font-weight: bold;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* 玩家物品列表 - 內部捲動 */
+.player-inventory-list {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 捲軸樣式 */
+.shop-inventory::-webkit-scrollbar,
+.player-inventory-list::-webkit-scrollbar,
+.dialogue-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.shop-inventory::-webkit-scrollbar-track,
+.player-inventory-list::-webkit-scrollbar-track,
+.dialogue-box::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+}
+
+.shop-inventory::-webkit-scrollbar-thumb,
+.player-inventory-list::-webkit-scrollbar-thumb,
+.dialogue-box::-webkit-scrollbar-thumb {
+    background: rgba(79, 172, 254, 0.5);
+    border-radius: 3px;
+}
+
+/* 商店物品卡片 */
+.shop-item {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.shop-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+}
+
+.shop-item.common { border-color: rgba(158, 158, 158, 0.5); }
+.shop-item.uncommon { border-color: rgba(30, 255, 0, 0.5); }
+.shop-item.rare { border-color: rgba(0, 112, 221, 0.5); }
+.shop-item.epic { border-color: rgba(163, 53, 238, 0.5); }
+.shop-item.legendary { border-color: rgba(255, 128, 0, 0.5); }
+
+.shop-item-icon {
+    font-size: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.shop-item-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.shop-item-stats {
+    font-size: 10px;
+    color: #4facfe;
+    font-family: 'Consolas', monospace;
+}
+
+.shop-item-price {
+    font-size: 12px;
+    color: #ffd700;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+}
+
+/* 玩家物品 - 可拖曳 */
+.player-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    border-left: 4px solid;
+    cursor: pointer; /* Changed from grab to pointer for click interaction */
+    transition: all 0.2s ease;
+}
+
+.player-item:active {
+    transform: scale(0.98);
+}
+
+.player-item:hover {
+    background: rgba(79, 172, 254, 0.2);
+    transform: translateX(3px);
+}
+
+.player-item.common { border-left-color: rgba(158, 158, 158, 0.8); }
+.player-item.uncommon { border-left-color: rgba(30, 255, 0, 0.8); }
+.player-item.rare { border-left-color: rgba(0, 112, 221, 0.8); }
+.player-item.epic { border-left-color: rgba(163, 53, 238, 0.8); }
+.player-item.legendary { border-left-color: rgba(255, 128, 0, 0.8); }
+
+.player-item-icon {
+    font-size: 24px;
+    min-width: 30px;
+    text-align: center;
+}
+
+.player-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.player-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 2px;
+}
+
+.player-item-stats {
+    font-size: 11px;
+    color: #4facfe;
+}
+
+.player-item-price {
+    font-size: 13px;
+    color: #ffd700;
+    font-weight: 700;
+    font-family: 'Consolas', monospace;
+}
+
+/* ===== 物品詳情模態視窗 (Glassmorphism) ===== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-card {
+    width: 320px;
+    background: linear-gradient(145deg, rgba(20, 30, 50, 0.95), rgba(10, 15, 25, 0.98));
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(79, 172, 254, 0.2);
+    padding: 24px;
+    position: relative;
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-overlay.active .modal-card {
+    transform: translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 24px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #fff;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(79, 172, 254, 0.3);
+}
+
+.modal-icon {
+    font-size: 40px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.modal-title-group {
+    flex: 1;
+}
+
+.modal-title {
+    margin: 0 0 4px 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+.modal-rarity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Rarity Colors for Modal */
+.modal-card[data-rarity="common"] .modal-icon-wrapper { border-color: #9e9e9e; }
+.modal-card[data-rarity="common"] .modal-rarity-badge { color: #9e9e9e; border: 1px solid #9e9e9e; }
+
+.modal-card[data-rarity="uncommon"] .modal-icon-wrapper { border-color: #1eff00; }
+.modal-card[data-rarity="uncommon"] .modal-rarity-badge { color: #1eff00; border: 1px solid #1eff00; }
+
+.modal-card[data-rarity="rare"] .modal-icon-wrapper { border-color: #0070dd; }
+.modal-card[data-rarity="rare"] .modal-rarity-badge { color: #0070dd; border: 1px solid #0070dd; }
+
+.modal-card[data-rarity="epic"] .modal-icon-wrapper { border-color: #a335ee; }
+.modal-card[data-rarity="epic"] .modal-rarity-badge { color: #a335ee; border: 1px solid #a335ee; }
+
+.modal-card[data-rarity="legendary"] .modal-icon-wrapper { border-color: #ff8000; }
+.modal-card[data-rarity="legendary"] .modal-rarity-badge { color: #ff8000; border: 1px solid #ff8000; }
+
+.modal-body {
+    margin-bottom: 24px;
+}
+
+.modal-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.stat-row {
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    color: #4facfe;
+    background: rgba(79, 172, 254, 0.1);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.modal-description {
+    font-size: 13px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    font-style: italic;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: center;
+}
+
+.action-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+.action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* Buy Button Style */
+.action-btn.buy-btn {
+    background: linear-gradient(90deg, #11998e, #38ef7d);
+    color: #000;
+    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
+}
+
+.action-btn.buy-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 239, 125, 0.6);
+}
+
+/* Sell Button Style */
+.action-btn.sell-btn {
+    background: linear-gradient(90deg, #cb2d3e, #ef473a);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(239, 71, 58, 0.4);
+}
+
+.action-btn.sell-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 71, 58, 0.6);
+}
+
+/* ===== 可拖曳物品視覺提示 ===== */
+.draggable-item {
+    position: relative;
+    animation: dragPulse 2s ease-in-out infinite;
+}
+
+.draggable-item::after {
+    content: '🔑';
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    font-size: 16px;
+    filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.8));
+    animation: keyFloat 2s ease-in-out infinite;
+}
+
+@keyframes dragPulse {
+    0%, 100% { 
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+    50% { 
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+    }
+}
+
+@keyframes keyFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* 拖放區域增強視覺反饋 */
+.npc-portrait-container.drag-over-valid {
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.4), rgba(255, 165, 0, 0.2));
+    box-shadow: inset 0 0 60px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.8);
+    border: 3px solid rgba(255, 215, 0, 0.8);
+}
+
+.npc-portrait-container.drag-over-valid .npc-portrait {
+    border-color: #ffd700;
+    box-shadow: 0 0 40px rgba(255, 215, 0, 1);
+    transform: scale(1.1);
+    filter: brightness(1.3);
+}
+
+.npc-portrait-container.drag-over-valid .drop-hint {
+    opacity: 1;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffd700;
+    background: rgba(0, 0, 0, 0.8);
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+.npc-portrait-container.drag-over-invalid .drop-hint {
+    opacity: 1;
+    color: #f44336;
+}
