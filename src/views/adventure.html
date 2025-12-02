@@ -114,33 +114,83 @@
                         <div class="needle-tip"></div>
                     </div>
                 </div>
-                <div class="rhythm-instruction">
-                    <span class="instruction-text">⚡ TIMING IS EVERYTHING ⚡</span>
-                </div>
             </div>
 
-            <!-- 戰鬥控制 - ACTION TRIGGERS -->
-            <div class="battle-controls">
-                <button class="btn-combat-primary" id="btn-attack">
-                    <div class="btn-combat-bg"></div>
-                    <div class="btn-combat-content">
-                        <span class="btn-text">ATTACK</span>
-                        <span class="btn-hotkey">PRESS SPACE</span>
+            <!-- 統一戰鬥控制台 - UNIFIED COMBAT PANEL -->
+            <div class="combat-panel-bottom">
+                <!-- 上排：玩家狀態資訊列 -->
+                <div class="player-info-bar">
+                    <div class="info-identity">
+                        <div class="info-level">LV.<span id="hud-player-level">1</span></div>
+                        <div class="info-name" id="hud-player-name">Adventurer</div>
                     </div>
-                    <div class="btn-combat-shine"></div>
-                </button>
-                <button class="btn-flee-ghost" id="btn-flee">FLEE</button>
-            </div>
-        </div>
+                    <div class="info-vital-bars">
+                        <div class="vital-row">
+                            <span class="vital-label">HP</span>
+                            <div class="vital-bar-track">
+                                <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
+                            </div>
+                            <span class="vital-text" id="hud-hp-text">100/100</span>
+                        </div>
+                        <div class="vital-row">
+                            <span class="vital-label">MP</span>
+                            <div class="vital-bar-track">
+                                <div class="vital-bar-fill mp-fill" id="hud-mp-bar" style="width: 100%;"></div>
+                            </div>
+                            <span class="vital-text" id="hud-mp-text">50/50</span>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- 戰鬥終端日誌 - COMBAT CONSOLE -->
-        <div class="battle-footer">
-            <div class="terminal-header">
-                <span class="terminal-title">COMBAT LOG</span>
-                <span class="terminal-indicator"></span>
-            </div>
-            <div class="battle-log-terminal" id="battle-log">
-                <div class="log-entry">// ENEMY ENCOUNTER DETECTED</div>
+                <!-- 下排：行動按鈕組 -->
+                <div class="action-deck">
+                    <!-- Slot A: 武器卡片 -->
+                    <div class="action-card weapon-card" id="action-weapon">
+                        <div class="card-header">
+                            <span class="card-key">[A]</span>
+                            <span class="card-title">WEAPON</span>
+                        </div>
+                        <div class="card-icon" id="weapon-icon">⚔️</div>
+                        <div class="card-name" id="weapon-name">舊劍</div>
+                        <div class="card-stats">
+                            <div class="stat-box">
+                                <span class="stat-label">ATK</span>
+                                <span class="stat-value" id="weapon-damage">15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slot B: 藥水卡片 -->
+                    <div class="action-card potion-card" id="action-potion">
+                        <div class="card-header">
+                            <span class="card-key">[B]</span>
+                            <span class="card-title">POTION</span>
+                        </div>
+                        <div class="card-icon" id="potion-icon">🧪</div>
+                        <div class="card-name" id="potion-name">小紅水</div>
+                        <div class="card-stats">
+                            <div class="stat-box">
+                                <span class="stat-label">USE</span>
+                                <span class="stat-value" id="potion-quantity">(x5)</span>
+                            </div>
+                            <div class="stat-box heal">
+                                <span class="stat-label">HP</span>
+                                <span class="stat-value" id="potion-heal">+50</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slot C: 逃跑卡片 -->
+                    <div class="action-card flee-card" id="action-flee">
+                        <div class="card-header">
+                            <span class="card-key">[C]</span>
+                            <span class="card-title">FLEE</span>
+                        </div>
+                        <div class="card-icon">🏃</div>
+                        <div class="card-name">ESCAPE</div>
+                        <div class="card-subtitle">逃跑</div>
+                    </div>
+                </div>
             </div>
         </div>
 

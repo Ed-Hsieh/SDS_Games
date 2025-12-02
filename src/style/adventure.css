@@ -165,8 +165,9 @@
 }
 
 .battle-modal .modal-content {
-    max-width: 700px;
+    max-width: 900px;
     width: 90%;
+    max-height: 90vh;
     background: linear-gradient(145deg, rgba(11, 17, 32, 0.95), rgba(13, 23, 38, 0.98));
     backdrop-filter: blur(30px) saturate(150%);
     -webkit-backdrop-filter: blur(30px) saturate(150%);
@@ -179,6 +180,8 @@
     animation: battleCardSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 @keyframes battleCardSlideIn {
@@ -195,20 +198,24 @@
 .battle-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 20px;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
     position: relative;
     z-index: 1;
 }
 
-/* ===== 敵人狀態卡 - THE TARGET ===== */
+/* ===== 敵人狀態HUD - ROW 1: ENEMY ZONE (Fixed Height) ===== */
 .battle-header {
+    flex: 0 0 auto;
     position: relative;
-    padding: 20px;
+    padding: 16px 20px;
     background: linear-gradient(135deg, rgba(79, 172, 254, 0.08) 0%, rgba(79, 172, 254, 0.03) 100%);
     border: 1px solid rgba(79, 172, 254, 0.3);
-    border-radius: 16px;
-    overflow: hidden;
+    border-bottom: 2px solid rgba(79, 172, 254, 0.4);
+    border-radius: 0;
+    overflow: visible;
+    z-index: 20;
 }
 
 .combat-card-glow {
@@ -433,9 +440,15 @@
     filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.5));
 }
 
-/* ===== 精準計時系統 - PRECISION GAUGE ===== */
+/* ===== ROW 2: BATTLE SCENE ZONE (Flexible Height) ===== */
 .battle-body {
-    padding: 0 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
 }
 
 /* 節奏條容器 */
@@ -673,22 +686,6 @@
     height: 12px;
     background: radial-gradient(circle, rgba(255, 0, 0, 0.8) 0%, transparent 70%);
     border-radius: 50%;
-}
-
-/* 計時指示文字 */
-.rhythm-instruction {
-    text-align: center;
-    margin-top: 16px;
-}
-
-.instruction-text {
-    font-size: 11px;
-    font-weight: 700;
-    color: rgba(79, 172, 254, 0.9);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    animation: instructionPulse 2s ease-in-out infinite;
-    display: inline-block;
 }
 
 @keyframes instructionPulse {
@@ -1768,4 +1765,475 @@
         transform: translate(-50%, -50%) scale(3);
         opacity: 0;
     }
+}
+
+/* ===== ROW 3 + 4: UNIFIED COMBAT PANEL (Fixed Height) ===== */
+.combat-panel-bottom {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: linear-gradient(135deg, rgba(15, 25, 40, 0.96), rgba(8, 12, 20, 0.98));
+    border-top: 2px solid rgba(79, 172, 254, 0.3);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(79, 172, 254, 0.15);
+    backdrop-filter: blur(10px);
+    z-index: 15;
+}
+
+/* 上排：玩家資訊列 */
+.player-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(20, 30, 50, 0.8), rgba(10, 15, 25, 0.9));
+    border: 2px solid rgba(79, 172, 254, 0.4);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.info-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.info-level {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Rajdhani', sans-serif;
+    text-shadow: 0 2px 8px rgba(255, 215, 0, 0.6);
+}
+
+.info-level span {
+    font-size: 22px;
+}
+
+.info-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.info-vital-bars {
+    display: flex;
+    gap: 16px;
+    flex: 1;
+}
+
+.vital-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vital-label {
+    width: 28px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.vital-bar-track {
+    flex: 1;
+    height: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 150px;
+}
+
+.vital-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease-out;
+    will-change: width;
+}
+
+.vital-bar-fill.hp-fill {
+    background: linear-gradient(90deg, #ef5350, #f44336);
+    box-shadow: 0 0 10px rgba(244, 67, 54, 0.6);
+}
+
+.vital-bar-fill.mp-fill {
+    background: linear-gradient(90deg, #42a5f5, #1e88e5);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
+}
+
+.vital-text {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Consolas', monospace;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* 右側：行動卡片組 */
+.action-deck {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.action-card {
+    flex: 1;
+    max-width: 160px;
+    background: linear-gradient(135deg, rgba(20, 30, 50, 0.9), rgba(10, 15, 25, 0.95));
+    border: 2px solid rgba(79, 172, 254, 0.4);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card:hover:not(.disabled) {
+    transform: translateY(-4px);
+    border-color: rgba(79, 172, 254, 0.8);
+    box-shadow: 0 8px 24px rgba(79, 172, 254, 0.4), 0 0 20px rgba(79, 172, 254, 0.3);
+}
+
+.action-card.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    filter: grayscale(60%);
+}
+
+.card-header {
+    /* display: flex; */
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 6px;
+    background-color: #ffffff00;
+}
+
+.card-key {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Consolas', monospace;
+    background: rgba(255, 215, 0, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.card-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.card-icon {
+    font-size: 36px;
+    text-align: center;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+    line-height: 1;
+    margin: 4px 0;
+}
+
+.card-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.card-subtitle {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.card-stats {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: auto;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-box.heal {
+    border-color: rgba(102, 187, 106, 0.3);
+    background: rgba(102, 187, 106, 0.1);
+}
+
+.stat-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #4facfe;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.stat-box.heal .stat-value {
+    color: #66bb6a;
+    text-shadow: 0 2px 8px rgba(102, 187, 106, 0.6);
+}
+
+/* 武器卡片特殊樣式 */
+.weapon-card {
+    border-color: rgba(239, 83, 80, 0.5);
+}
+
+.weapon-card:hover:not(.disabled) {
+    border-color: rgba(239, 83, 80, 0.9);
+    box-shadow: 0 8px 24px rgba(239, 83, 80, 0.4), 0 0 20px rgba(239, 83, 80, 0.3);
+}
+
+.weapon-card .stat-value {
+    color: #ef5350;
+    text-shadow: 0 2px 8px rgba(239, 83, 80, 0.6);
+}
+
+/* 藥水卡片特殊樣式 */
+.potion-card {
+    border-color: rgba(102, 187, 106, 0.5);
+}
+
+.potion-card:hover:not(.disabled) {
+    border-color: rgba(102, 187, 106, 0.9);
+    box-shadow: 0 8px 24px rgba(102, 187, 106, 0.4), 0 0 20px rgba(102, 187, 106, 0.3);
+}
+
+/* 逃跑卡片特殊樣式 */
+.flee-card {
+    border-color: rgba(255, 167, 38, 0.5);
+}
+
+.flee-card:hover {
+    border-color: rgba(255, 167, 38, 0.9);
+    box-shadow: 0 8px 24px rgba(255, 167, 38, 0.4), 0 0 20px rgba(255, 167, 38, 0.3);
+}
+
+.card-value-display {
+    align-items: baseline;
+    gap: 4px;
+    margin-top: auto;
+}
+
+.value-label {
+    font-size: 9px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 600;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.value-number {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.damage-value .value-number {
+    color: #ef5350;
+    text-shadow: 0 2px 8px rgba(239, 83, 80, 0.6);
+}
+
+.heal-value .value-number {
+    color: #66bb6a;
+    text-shadow: 0 2px 8px rgba(102, 187, 106, 0.6);
+}
+
+.card-quantity {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffd700;
+    font-family: 'Consolas', monospace;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.card-key-hint {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    font-size: 8px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.3);
+    font-family: 'Consolas', monospace;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+/* 武器卡片特殊樣式 */
+.weapon-card {
+    border-color: rgba(239, 83, 80, 0.5);
+}
+
+.weapon-card:hover:not(.disabled) {
+    border-color: rgba(239, 83, 80, 0.9);
+    box-shadow: 0 8px 24px rgba(239, 83, 80, 0.4), 0 0 20px rgba(239, 83, 80, 0.3);
+}
+
+/* 藥水卡片特殊樣式 */
+.potion-card {
+    border-color: rgba(102, 187, 106, 0.5);
+}
+
+.potion-card:hover:not(.disabled) {
+    border-color: rgba(102, 187, 106, 0.9);
+    box-shadow: 0 8px 24px rgba(102, 187, 106, 0.4), 0 0 20px rgba(102, 187, 106, 0.3);
+}
+
+/* 逃跑卡片特殊樣式 */
+.flee-card {
+    border-color: rgba(255, 167, 38, 0.5);
+}
+
+.flee-card:hover {
+    border-color: rgba(255, 167, 38, 0.9);
+    box-shadow: 0 8px 24px rgba(255, 167, 38, 0.4), 0 0 20px rgba(255, 167, 38, 0.3);
+}
+
+/* ===== �ˮ`�B�ʼƦr�t�� ===== */
+.damage-number {
+    position: absolute;
+    font-size: 32px;
+    font-weight: 900;
+    font-family: 'Rajdhani', sans-serif;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 1000;
+    transform: translate(-50%, -50%);
+    animation: damageFloat 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.damage-number.critical {
+    font-size: 48px;
+    color: #ff5252;
+    text-shadow: 0 0 12px rgba(255, 82, 82, 0.8), 0 0 20px rgba(255, 82, 82, 0.6), 0 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.damage-number.miss {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.5);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes damageFloat {
+    0% {
+        transform: translate(-50%, -50%) scale(1.3);
+        opacity: 1;
+    }
+    10% {
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    30% {
+        transform: translate(-50%, -60%) scale(1.0);
+    }
+    100% {
+        transform: translate(-50%, -80%) scale(1.0);
+        opacity: 0;
+    }
+}
+
+/* ===== ���a�������X�ĪG ===== */
+.hit-vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at center, transparent 40%, rgba(255, 0, 0, 0) 60%, rgba(255, 0, 0, 0.4) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+    z-index: 999;
+}
+
+.hit-vignette.active {
+    opacity: 1;
+    transition: opacity 0.1s ease-in;
+}
+
+.hit-vignette.high {
+    background: radial-gradient(circle at center, transparent 30%, rgba(255, 0, 0, 0.2) 50%, rgba(255, 0, 0, 0.7) 100%);
+}
+
+/* ���Y�_�ʮĪG */
+@keyframes shake-small {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-2px, 1px); }
+    20% { transform: translate(2px, -1px); }
+    30% { transform: translate(-1px, 2px); }
+    40% { transform: translate(1px, -2px); }
+    50% { transform: translate(-2px, 1px); }
+    60% { transform: translate(2px, -1px); }
+    70% { transform: translate(-1px, 1px); }
+    80% { transform: translate(1px, -1px); }
+    90% { transform: translate(-1px, 1px); }
+}
+
+@keyframes shake-medium {
+    0%, 100% { transform: translate(0, 0); }
+    10% { transform: translate(-4px, 3px); }
+    20% { transform: translate(4px, -3px); }
+    30% { transform: translate(-3px, 4px); }
+    40% { transform: translate(3px, -4px); }
+    50% { transform: translate(-4px, 2px); }
+    60% { transform: translate(4px, -2px); }
+    70% { transform: translate(-2px, 3px); }
+    80% { transform: translate(2px, -3px); }
+    90% { transform: translate(-2px, 2px); }
+}
+
+@keyframes shake-large {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    10% { transform: translate(-8px, 6px) rotate(-1deg); }
+    20% { transform: translate(8px, -6px) rotate(1deg); }
+    30% { transform: translate(-6px, 8px) rotate(-1deg); }
+    40% { transform: translate(6px, -8px) rotate(1deg); }
+    50% { transform: translate(-8px, 4px) rotate(-0.5deg); }
+    60% { transform: translate(8px, -4px) rotate(0.5deg); }
+    70% { transform: translate(-4px, 6px) rotate(-0.5deg); }
+    80% { transform: translate(4px, -6px) rotate(0.5deg); }
+    90% { transform: translate(-4px, 4px) rotate(0deg); }
+}
+
+.shake-small {
+    animation: shake-small 0.4s ease-in-out;
+}
+
+.shake-medium {
+    animation: shake-medium 0.4s ease-in-out;
+}
+
+.shake-large {
+    animation: shake-large 0.4s ease-in-out;
 }

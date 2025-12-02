@@ -83,7 +83,6 @@ export default class AdventureScene {
             
             // Battle Modal
             battleModal: this.container.querySelector('#battle-modal'),
-            battleLog: this.container.querySelector('#battle-log'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
             
@@ -135,6 +134,16 @@ export default class AdventureScene {
             });
         }
         
+        // 新：行動卡片事件
+        const weaponCard = this.container.querySelector('#action-weapon');
+        const potionCard = this.container.querySelector('#action-potion');
+        const fleeCard = this.container.querySelector('#action-flee');
+        
+        if (weaponCard) weaponCard.addEventListener('click', () => this.handleAttackClick());
+        if (potionCard) potionCard.addEventListener('click', () => this.handlePotionUse());
+        if (fleeCard) fleeCard.addEventListener('click', () => this.handleFleeClick());
+        
+        // 保留舊按鈕兼容性
         if (this.dom.attackBtn) this.dom.attackBtn.addEventListener('click', () => this.handleAttackClick());
         
         const returnBtn = this.container.querySelector('#btn-return-to-lobby');
@@ -292,10 +301,10 @@ export default class AdventureScene {
         
         this.currentBattle = new BattleController(GameManager.getCharacter(), monster, this);
         this.dom.battleModal.style.display = 'flex';
-        this.dom.battleLog.innerHTML = '';
         
         this.updateMonsterDisplay();
-        this.addBattleLog(`遇到 ${monster.icon} ${monster.name}！`);
+        this.updatePlayerHUD();
+        this.updateActionDeck();
         
         this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
@@ -326,6 +335,42 @@ export default class AdventureScene {
         this.currentBattle.flee();
     }
 
+    handlePotionUse() {
+        if (!this.currentBattle || this.currentBattle.battleEnded) return;
+        
+        const inventory = GameManager.state.inventory;
+        const potionStack = inventory.find(stack => stack.item.type === 'potion');
+        
+        if (!potionStack || potionStack.quantity <= 0) {
+            return;
+        }
+        
+        const potion = potionStack.item;
+        const char = GameManager.getCharacter();
+        
+        // 使用藥水
+        if (potion.effect?.hp) {
+            const healAmount = Math.min(potion.effect.hp, char.maxHp - char.hp);
+            char.hp += healAmount;
+        }
+        if (potion.effect?.mp) {
+            const mpAmount = Math.min(potion.effect.mp, char.maxMp - char.mp);
+            char.mp += mpAmount;
+        }
+        
+        // 減少數量
+        potionStack.quantity--;
+        if (potionStack.quantity <= 0) {
+            const index = inventory.indexOf(potionStack);
+            if (index > -1) inventory.splice(index, 1);
+        }
+        
+        // 更新UI
+        this.updatePlayerHUD();
+        this.updateActionDeck();
+        this.updateUI();
+    }
+
     updateMonsterDisplay() {
         if (!this.currentBattle) return;
         const monster = this.currentBattle.monster;
@@ -341,12 +386,89 @@ export default class AdventureScene {
         this.container.querySelector('#battle-monster-hp-bar').style.width = hpPercent + '%';
     }
 
-    addBattleLog(msg, className = '') {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry ' + className;
-        entry.textContent = msg;
-        this.dom.battleLog.appendChild(entry);
-        this.dom.battleLog.scrollTop = this.dom.battleLog.scrollHeight;
+    updatePlayerHUD() {
+        const char = GameManager.getCharacter();
+        
+        // 更新等級
+        const levelEl = this.container.querySelector('#hud-player-level');
+        if (levelEl) levelEl.textContent = char.level;
+        
+        // 更新玩家名稱
+        const nameEl = this.container.querySelector('#hud-player-name');
+        if (nameEl) nameEl.textContent = char.name || 'Adventurer';
+        
+        // 更新HP條
+        const hpBarEl = this.container.querySelector('#hud-hp-bar');
+        const hpTextEl = this.container.querySelector('#hud-hp-text');
+        if (hpBarEl) {
+            const hpPercent = (char.hp / char.maxHp) * 100;
+            hpBarEl.style.width = hpPercent + '%';
+        }
+        if (hpTextEl) hpTextEl.textContent = `${char.hp}/${char.maxHp}`;
+        
+        // 更新MP條
+        const mpBarEl = this.container.querySelector('#hud-mp-bar');
+        const mpTextEl = this.container.querySelector('#hud-mp-text');
+        if (mpBarEl) {
+            const mpPercent = (char.mp / char.maxMp) * 100;
+            mpBarEl.style.width = mpPercent + '%';
+        }
+        if (mpTextEl) mpTextEl.textContent = `${char.mp}/${char.maxMp}`;
+    }
+
+    updateActionDeck() {
+        const char = GameManager.getCharacter();
+        const inventory = GameManager.state.inventory;
+        
+        // Slot A: 武器卡片
+        const weapon = char.equipment.weapon;
+        const weaponIconEl = this.container.querySelector('#weapon-icon');
+        const weaponNameEl = this.container.querySelector('#weapon-name');
+        const weaponDamageEl = this.container.querySelector('#weapon-damage');
+        
+        if (weapon) {
+            if (weaponIconEl) {
+                if (weapon.image) {
+                    weaponIconEl.innerHTML = `<img src="${weapon.image}" alt="${weapon.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                } else {
+                    weaponIconEl.textContent = weapon.icon || '⚔️';
+                }
+            }
+            if (weaponNameEl) weaponNameEl.textContent = weapon.name;
+        } else {
+            if (weaponIconEl) weaponIconEl.textContent = '✊';
+            if (weaponNameEl) weaponNameEl.textContent = '拳頭';
+        }
+        if (weaponDamageEl) weaponDamageEl.textContent = char.getTotalAtk();
+        
+        // Slot B: 藥水快捷槽
+        const potionStack = inventory.find(stack => stack.item.type === 'potion');
+        const potionIconEl = this.container.querySelector('#potion-icon');
+        const potionNameEl = this.container.querySelector('#potion-name');
+        const potionHealEl = this.container.querySelector('#potion-heal');
+        const potionQtyEl = this.container.querySelector('#potion-quantity');
+        const potionCard = this.container.querySelector('#action-potion');
+        
+        if (potionStack) {
+            const potion = potionStack.item;
+            if (potionIconEl) {
+                if (potion.image) {
+                    potionIconEl.innerHTML = `<img src="${potion.image}" alt="${potion.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                } else {
+                    potionIconEl.textContent = potion.icon || '🧪';
+                }
+            }
+            if (potionNameEl) potionNameEl.textContent = potion.name;
+            if (potionHealEl) potionHealEl.textContent = `+${potion.effect?.hp || 0}`;
+            if (potionQtyEl) potionQtyEl.textContent = `x${potionStack.quantity}`;
+            if (potionCard) potionCard.classList.remove('disabled');
+        } else {
+            if (potionIconEl) potionIconEl.textContent = '🧪';
+            if (potionNameEl) potionNameEl.textContent = 'No Potion';
+            if (potionHealEl) potionHealEl.textContent = '+0';
+            if (potionQtyEl) potionQtyEl.textContent = 'x0';
+            if (potionCard) potionCard.classList.add('disabled');
+        }
     }
 
     showLoot(exp, gold, items) {
@@ -396,29 +518,28 @@ class BattleController {
 
         const playerAtk = this.player.getTotalAtk();
         let damage = 0;
-        let msg = '';
+        let isCrit = false;
         
         if (hitType === 'miss') {
-            msg = '攻擊落空！';
+            // 顯示MISS文字
+            this.showDamageNumber(0, false, true);
         } else if (hitType === 'crit') {
             damage = Math.floor(playerAtk * this.player.getCritDamage());
-            msg = `暴擊！造成 ${damage} 點傷害！`;
+            isCrit = true;
+            this.showDamageNumber(damage, true, false);
         } else {
             damage = playerAtk;
-            msg = `攻擊命中，造成 ${damage} 點傷害`;
+            this.showDamageNumber(damage, false, false);
         }
 
         if (damage > 0) {
             this.monster.takeDamage(damage);
             this.scene.updateMonsterDisplay();
             if (this.monster.isDead()) {
-                this.scene.addBattleLog(msg, 'crit');
                 this.handleVictory();
                 return;
             }
         }
-        
-        this.scene.addBattleLog(msg, hitType === 'miss' ? 'miss' : 'player-action');
         
         // 開始冷卻倒數
         const cooldownTime = this.player.getAttackInterval(); // 秒數
@@ -428,9 +549,46 @@ class BattleController {
         setTimeout(() => this.monsterAttack(), 1000);
     }
     
+    showDamageNumber(damage, isCrit, isMiss) {
+        const battleHeader = this.scene.container.querySelector('.battle-header');
+        if (!battleHeader) return;
+        
+        const damageEl = document.createElement('div');
+        damageEl.className = 'damage-number';
+        
+        if (isMiss) {
+            damageEl.textContent = 'MISS';
+            damageEl.classList.add('miss');
+        } else if (isCrit) {
+            damageEl.textContent = `-${damage}!!`;
+            damageEl.classList.add('critical');
+        } else {
+            damageEl.textContent = `-${damage}`;
+        }
+        
+        // 定位在怪物HP條上方中心
+        const hpContainer = battleHeader.querySelector('.monster-hp-container');
+        if (hpContainer) {
+            const rect = hpContainer.getBoundingClientRect();
+            const headerRect = battleHeader.getBoundingClientRect();
+            
+            damageEl.style.left = (rect.left - headerRect.left + rect.width / 2) + 'px';
+            damageEl.style.top = (rect.top - headerRect.top - 10) + 'px';
+        }
+        
+        battleHeader.appendChild(damageEl);
+        
+        // 0.8秒後移除
+        setTimeout(() => {
+            if (damageEl.parentNode) {
+                damageEl.parentNode.removeChild(damageEl);
+            }
+        }, 800);
+    }
+    
     startCooldown(duration) {
         this.attackCooldown = true;
-        const attackBtn = this.scene.container.querySelector('#btn-attack');
+        const attackBtn = this.scene.container.querySelector('#action-weapon');
         
         // 禁用按鈕
         attackBtn.disabled = true;
@@ -489,17 +647,60 @@ class BattleController {
         if (this.battleEnded) return;
         const damage = Math.max(1, this.monster.attack - this.player.getTotalDef());
         this.player.hp = Math.max(0, this.player.hp - damage);
-        this.scene.addBattleLog(`${this.monster.name} 攻擊造成 ${damage} 點傷害！`, 'monster-action');
         this.scene.updateUI();
+        this.scene.updatePlayerHUD(); // Update combat HUD bars
+        
+        // 玩家受擊反饋
+        this.showPlayerHitFeedback(damage);
         
         if (this.player.hp <= 0) {
             this.handleDefeat();
         }
     }
+    
+    showPlayerHitFeedback(damage) {
+        const battleModal = this.scene.container.querySelector('.battle-modal');
+        if (!battleModal) return;
+        
+        // 計算傷害百分比
+        const damagePercent = (damage / this.player.maxHp) * 100;
+        
+        // 1. 紅色vignette效果
+        let vignetteEl = battleModal.querySelector('.hit-vignette');
+        if (!vignetteEl) {
+            vignetteEl = document.createElement('div');
+            vignetteEl.className = 'hit-vignette';
+            battleModal.appendChild(vignetteEl);
+        }
+        
+        // 低血量時強度提高
+        const hpPercent = (this.player.hp / this.player.maxHp) * 100;
+        const intensity = hpPercent < 30 ? 'high' : 'normal';
+        
+        vignetteEl.className = 'hit-vignette active ' + intensity;
+        setTimeout(() => {
+            vignetteEl.classList.remove('active');
+        }, 100);
+        
+        // 2. 鏡頭震動效果
+        const battleContent = battleModal.querySelector('.battle-content');
+        if (battleContent) {
+            let shakeClass = 'shake-small';
+            if (damagePercent > 40) {
+                shakeClass = 'shake-large';
+            } else if (damagePercent > 15) {
+                shakeClass = 'shake-medium';
+            }
+            
+            battleContent.classList.add(shakeClass);
+            setTimeout(() => {
+                battleContent.classList.remove(shakeClass);
+            }, 400);
+        }
+    }
 
     handleVictory() {
         this.battleEnded = true;
-        this.scene.addBattleLog(`擊敗了 ${this.monster.name}！`, 'player-action');
         
         const drops = this.monster.getDrops();
         this.player.exp += this.monster.exp;
@@ -514,7 +715,6 @@ class BattleController {
 
     handleDefeat() {
         this.battleEnded = true;
-        this.scene.addBattleLog('你被擊敗了...', 'monster-action');
         const penalty = Math.floor(this.player.gold * 0.1);
         GameManager.removeGold(penalty);
         this.player.hp = Math.floor(this.player.maxHp * 0.3);
@@ -528,11 +728,7 @@ class BattleController {
     flee() {
         if (Math.random() < 0.5) {
             this.battleEnded = true;
-            this.scene.addBattleLog('成功逃跑！');
-            setTimeout(() => this.scene.endBattle(false), 1000);
-        } else {
-            this.scene.addBattleLog('逃跑失敗！');
-            setTimeout(() => this.monsterAttack(), 1000);
+            setTimeout(() => this.scene.endBattle(false), 200);
         }
     }
 }
