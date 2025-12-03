@@ -108,7 +108,7 @@ export class Character {
         this._exp = 0;
         this._maxExp = 100;
         this.gold = 1250;
-        this.baseAtk = 10;
+        this.baseAtk = 100;
         this.baseDef = 5;
         this._attack = 10;
         this._defense = 5;

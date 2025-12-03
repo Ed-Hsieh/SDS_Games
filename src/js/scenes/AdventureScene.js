@@ -111,8 +111,8 @@ export default class AdventureScene {
     }
 
     initCanvas() {
-        const containerWidth = Math.min(1000, window.innerWidth - 40);
-        const containerHeight = Math.min(600, window.innerHeight - 200);
+        const containerWidth = Math.min(window.innerWidth, window.innerWidth - 40);
+        const containerHeight = Math.min(window.innerHeight, window.innerHeight - 100);
         this.canvas.width = containerWidth;
         this.canvas.height = containerHeight;
     }
@@ -162,8 +162,8 @@ export default class AdventureScene {
 
     handleResize() {
         if (this.canvas && this.worldMap) {
-            const containerWidth = Math.min(1000, window.innerWidth - 40);
-            const containerHeight = Math.min(600, window.innerHeight - 200);
+            const containerWidth = Math.min(window.innerWidth, window.innerWidth - 40);
+            const containerHeight = Math.min(window.innerHeight, window.innerHeight - 100);
             this.canvas.width = containerWidth;
             this.canvas.height = containerHeight;
             

@@ -93,8 +93,8 @@
 /* ===== 操作提示 ===== */
 .controls-hint {
     position: absolute;
-    bottom: 80px;
-    left: 20px;
+    bottom: 20px;
+    right: 20px;
     background: rgba(0, 0, 0, 0.8);
     padding: 12px 16px;
     border-radius: 8px;
@@ -107,10 +107,14 @@
     margin: 4px 0;
 }
 
+.noshow {
+    visibility: hidden;
+}
+
 /* ===== 圖例 ===== */
 .map-legend {
     position: absolute;
-    top: 80px;
+    top: 100px;
     right: 20px;
     background: rgba(0, 0, 0, 0.8);
     padding: 16px;
@@ -166,7 +170,7 @@
 
 .battle-modal .modal-content {
     max-width: 900px;
-    width: 90%;
+    width: 80%;
     max-height: 90vh;
     background: linear-gradient(145deg, rgba(11, 17, 32, 0.95), rgba(13, 23, 38, 0.98));
     backdrop-filter: blur(30px) saturate(150%);
@@ -179,7 +183,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.1);
     animation: battleCardSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
-    overflow: hidden;
+    overflow: auto;
     display: flex;
     flex-direction: column;
 }
@@ -282,7 +286,7 @@
 }
 
 .monster-icon {
-    font-size: 64px;
+    font-size: 24px;
     filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
     animation: monsterFloat 3s ease-in-out infinite;
     position: relative;
@@ -1016,8 +1020,9 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
+    /* display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; */
 }
 
 .loot-modal .modal-content {
@@ -1031,9 +1036,10 @@
 }
 
 .loot-summary {
+    max-height: 5vh;
     display: flex;
+    justify-content: space-around;
     gap: 30px;
-    justify-content: center;
     margin: 20px 0;
     padding: 20px;
     background: rgba(0, 0, 0, 0.3);
@@ -1041,14 +1047,16 @@
 }
 
 .loot-stat {
+    display: flex;
+    flex-direction: row;
     text-align: center;
+    align-items: center;
 }
 
 .loot-label {
     display: block;
     font-size: 14px;
     color: #aaa;
-    margin-bottom: 8px;
 }
 
 .loot-value {
@@ -1069,12 +1077,12 @@
 .loot-exchange-container {
     display: grid;
     grid-template-columns: 1fr 80px 1fr;
-    gap: 16px;
     margin: 20px 0;
-    height: 420px;
+    max-height: 300px;
 }
 
 .exchange-panel {
+    max-height: 300px;
     background: linear-gradient(145deg, rgba(11, 17, 32, 0.6), rgba(13, 23, 38, 0.8));
     border: 2px solid rgba(79, 172, 254, 0.3);
     border-radius: 12px;
@@ -1310,17 +1318,6 @@
 @keyframes hintPulse {
     0%, 100% { opacity: 0.3; }
     50% { opacity: 1; }
-}
-
-.loot-hint {
-    text-align: center;
-    font-size: 12px;
-    color: #ffd700;
-    margin-top: 12px;
-    padding: 10px;
-    background: rgba(255, 215, 0, 0.1);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 8px;
 }
 
 /* ===== 冒險地圖背包 - 同樣固定高度 ===== */
@@ -1596,7 +1593,7 @@
     }
 
     .monster-icon {
-        font-size: 60px;
+        font-size: 24px;
     }
 
     .rhythm-bar {

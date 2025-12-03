@@ -461,8 +461,6 @@
     justify-content: center;
 }
 
-.monster-icon { font-size: 64px; }
-
 .monster-info { flex: 1; }
 .monster-info h3 { margin: 0 0 8px 0; color: #fff; }
 
