@@ -1883,16 +1883,18 @@
 
 .action-card {
     flex: 1;
-    max-width: 160px;
+    max-width: 300px;
+    height: 100px;
     background: linear-gradient(135deg, rgba(20, 30, 50, 0.9), rgba(10, 15, 25, 0.95));
     border: 2px solid rgba(79, 172, 254, 0.4);
     border-radius: 12px;
-    padding: 12px;
+    padding: 6px 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
-    flex-direction: row;
-    gap: 8px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     position: relative;
     overflow: hidden;
@@ -1911,83 +1913,78 @@
 }
 
 .card-header {
-    /* display: flex; */
+    display: flex;
     align-items: center;
     gap: 6px;
-    padding-bottom: 6px;
-    background-color: #ffffff00;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 .card-key {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     color: #ffd700;
     font-family: 'Consolas', monospace;
     background: rgba(255, 215, 0, 0.15);
-    padding: 2px 6px;
+    padding: 1px 5px;
     border-radius: 4px;
 }
 
 .card-title {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-family: 'Rajdhani', sans-serif;
 }
 
+.card-body-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 0; /* Prevent overflow */
+    justify-content: space-evenly;
+}
+
 .card-icon {
-    font-size: 36px;
+    font-size: 24px;
     text-align: center;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
     line-height: 1;
-    margin: 4px 0;
+    margin: 0;
+    flex-shrink: 0;
 }
 
 .card-name {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.9);
-    text-align: center;
     font-family: 'Rajdhani', sans-serif;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0; /* Critical for text-overflow in flex item */
+    text-align: left;
 }
 
 .card-subtitle {
     font-size: 10px;
     color: rgba(255, 255, 255, 0.5);
-    text-align: center;
+    text-align: left;
     font-family: 'Rajdhani', sans-serif;
-}
-
-.card-stats {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    margin-top: auto;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-    padding: 6px 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.stat-box.heal {
-    border-color: rgba(102, 187, 106, 0.3);
-    background: rgba(102, 187, 106, 0.1);
+    flex: 1;
 }
 
 .stat-label {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.6);
     font-family: 'Rajdhani', sans-serif;
+    flex-shrink: 0;
 }
 
 .stat-value {
@@ -1995,11 +1992,39 @@
     font-weight: 700;
     color: #4facfe;
     font-family: 'Rajdhani', sans-serif;
+    flex-shrink: 0;
 }
 
 .stat-box.heal .stat-value {
     color: #66bb6a;
     text-shadow: 0 2px 8px rgba(102, 187, 106, 0.6);
+}
+
+/* Cooldown Overlay - Fan Scan */
+.cooldown-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: conic-gradient(
+        from 0deg at 50% 50%,
+        rgba(0, 0, 0, 0.85) var(--cooldown-progress, 0%),
+        transparent 0%
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.cooldown-timer {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    font-family: 'Rajdhani', sans-serif;
 }
 
 /* 武器卡片特殊樣式 */

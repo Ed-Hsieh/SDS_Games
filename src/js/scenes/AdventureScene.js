@@ -592,33 +592,27 @@ class BattleController {
         
         // 禁用按鈕
         attackBtn.disabled = true;
-        attackBtn.style.opacity = '0.5';
         
-        // 創建冷卻圈
-        let cooldownCircle = attackBtn.querySelector('.cooldown-circle');
-        if (!cooldownCircle) {
-            cooldownCircle = document.createElement('div');
-            cooldownCircle.className = 'cooldown-circle';
-            cooldownCircle.innerHTML = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"></circle></svg><span class="cooldown-timer"></span>';
-            attackBtn.appendChild(cooldownCircle);
+        // 創建冷卻遮罩 (Fan Scan Mode)
+        let cooldownOverlay = attackBtn.querySelector('.cooldown-overlay');
+        if (!cooldownOverlay) {
+            cooldownOverlay = document.createElement('div');
+            cooldownOverlay.className = 'cooldown-overlay';
+            cooldownOverlay.innerHTML = '<span class="cooldown-timer"></span>';
+            attackBtn.appendChild(cooldownOverlay);
         }
         
-        const circle = cooldownCircle.querySelector('circle');
-        const timer = cooldownCircle.querySelector('.cooldown-timer');
-        const circumference = 2 * Math.PI * 45;
-        
-        circle.style.strokeDasharray = circumference;
-        circle.style.strokeDashoffset = '0';
-        cooldownCircle.style.display = 'flex';
+        const timer = cooldownOverlay.querySelector('.cooldown-timer');
+        cooldownOverlay.style.display = 'flex';
         
         const startTime = Date.now();
         const updateCooldown = () => {
             const elapsed = (Date.now() - startTime) / 1000;
             const remaining = Math.max(0, duration - elapsed);
-            const progress = remaining / duration;
+            const progress = (remaining / duration) * 100; // 100% -> 0%
             
-            // 更新圓圈
-            circle.style.strokeDashoffset = circumference * (1 - progress);
+            // 更新 CSS 變數以驅動扇形掃描
+            attackBtn.style.setProperty('--cooldown-progress', `${progress}%`);
             
             // 更新數字
             timer.textContent = remaining.toFixed(1);
@@ -626,10 +620,10 @@ class BattleController {
             if (remaining > 0) {
                 requestAnimationFrame(updateCooldown);
             } else {
-                // 冷卻結束：恢復按鈕、恢復節奏條、生成新區域
-                cooldownCircle.style.display = 'none';
+                // 冷卻結束
+                cooldownOverlay.style.display = 'none';
                 attackBtn.disabled = false;
-                attackBtn.style.opacity = '1';
+                attackBtn.style.removeProperty('--cooldown-progress');
                 this.attackCooldown = false;
                 
                 // 恢復節奏條並生成新的隨機區域
