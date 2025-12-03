@@ -82,22 +82,19 @@ export default class LobbyScene {
         
         if (this.dom.btnGoForge) {
             this.dom.btnGoForge.addEventListener('click', () => {
-                console.log('Forge not yet implemented');
-                // this.app.loadScene('forge');
+                this.app.loadScene('forge');
             });
         }
         
         if (this.dom.btnGoGamble) {
             this.dom.btnGoGamble.addEventListener('click', () => {
-                console.log('Gamble not yet implemented');
-                // this.app.loadScene('gamble');
+                this.app.loadScene('casino');
             });
         }
         
         if (this.dom.btnGoQuest) {
             this.dom.btnGoQuest.addEventListener('click', () => {
-                console.log('Quest not yet implemented');
-                // this.app.loadScene('quest');
+                this.app.loadScene('quest');
             });
         }
         

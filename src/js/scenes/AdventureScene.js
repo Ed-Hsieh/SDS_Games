@@ -1,9 +1,13 @@
 /**
  * AdventureScene.js
- * Logic for the Adventure scene (Map, Battle, etc.)
+ * Logic for the Adventure scene (Map, Battle, Events, etc.)
  */
 import GameManager from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
+import { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
+import { eventSystem } from './EventSystem.js';
+import { questSystem } from './QuestSystem.js';
+import { ObjectiveType } from '../data/Quests.js';
 
 export default class AdventureScene {
     constructor(container, app) {
@@ -15,6 +19,7 @@ export default class AdventureScene {
         this.currentBattle = null;
         this.rhythmSystem = null;
         this.animationFrameId = null;
+        this.battleLog = [];  // 新增：戰鬥日誌
         
         // Bindings
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -85,6 +90,28 @@ export default class AdventureScene {
             battleModal: this.container.querySelector('#battle-modal'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
+            battleLog: this.container.querySelector('#battle-log'),
+            skillDeck: this.container.querySelector('#skill-deck'),
+            buffIndicators: this.container.querySelector('#buff-indicators'),
+            
+            // Event Modal (新增)
+            eventModal: this.container.querySelector('#event-modal'),
+            eventIcon: this.container.querySelector('#event-icon'),
+            eventTitle: this.container.querySelector('#event-title'),
+            eventDescription: this.container.querySelector('#event-description'),
+            eventResult: this.container.querySelector('#event-result'),
+            btnCloseEvent: this.container.querySelector('#btn-close-event'),
+            
+            // Story Event Modal (Slay the Spire 風格)
+            storyEventModal: this.container.querySelector('#story-event-modal'),
+            storyEventIcon: this.container.querySelector('#story-event-icon'),
+            storyEventTitle: this.container.querySelector('#story-event-title'),
+            storyEventType: this.container.querySelector('#story-event-type'),
+            storyEventDescription: this.container.querySelector('#story-event-description'),
+            storyEventChoices: this.container.querySelector('#story-event-choices'),
+            storyEventResult: this.container.querySelector('#story-event-result'),
+            storyResultMessages: this.container.querySelector('#story-result-messages'),
+            btnCloseStoryEvent: this.container.querySelector('#btn-close-story-event'),
             
             // Loot Modal
             lootModal: this.container.querySelector('#loot-modal'),
@@ -131,6 +158,20 @@ export default class AdventureScene {
         if (this.dom.btnCloseInventory) {
             this.dom.btnCloseInventory.addEventListener('click', () => {
                 this.closeInventoryModal();
+            });
+        }
+        
+        // Event modal close button (新增)
+        if (this.dom.btnCloseEvent) {
+            this.dom.btnCloseEvent.addEventListener('click', () => {
+                this.closeEventModal();
+            });
+        }
+        
+        // Story Event modal close button
+        if (this.dom.btnCloseStoryEvent) {
+            this.dom.btnCloseStoryEvent.addEventListener('click', () => {
+                this.closeStoryEventModal();
             });
         }
         
@@ -181,6 +222,12 @@ export default class AdventureScene {
                 event.preventDefault();
                 this.handleAttackClick();
             }
+            // 技能快捷鍵 1-3
+            if (event.key >= '1' && event.key <= '3') {
+                event.preventDefault();
+                const skillIndex = parseInt(event.key) - 1;
+                this.handleSkillUse(skillIndex);
+            }
             return;
         }
 
@@ -203,6 +250,8 @@ export default class AdventureScene {
             
             if (result === 'battle') {
                 this.startBattle();
+            } else if (result === 'event') {
+                this.handleMapEvent();
             }
         }
     }
@@ -248,7 +297,7 @@ export default class AdventureScene {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
-        const terrainIcons = { 'monster': '👾', 'player': '🧙' };
+        const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓' };
 
         const visibleCells = this.worldMap.getVisibleCells();
         
@@ -273,6 +322,14 @@ export default class AdventureScene {
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
                 ctx.fillText(terrainIcons.monster, x + gridSize / 2, y + gridSize / 2);
+            } else if (cell.data.type === 'event') {
+                // 顯示事件圖示
+                ctx.font = `${gridSize * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fff';
+                const eventIcon = cell.data.eventData ? cell.data.eventData.icon : terrainIcons.event;
+                ctx.fillText(eventIcon, x + gridSize / 2, y + gridSize / 2);
             }
         });
         
@@ -293,18 +350,226 @@ export default class AdventureScene {
         ctx.fillText(terrainIcons.player, playerX + gridSize / 2, playerY + gridSize / 2);
     }
 
+    // ===== 地圖事件處理 =====
+    
+    handleMapEvent() {
+        const event = this.worldMap.getCurrentEvent();
+        if (!event) return;
+        
+        const char = GameManager.getCharacter();
+        let resultHTML = '';
+        
+        switch (event.type) {
+            case 'treasure':
+                const gold = Math.floor(Math.random() * (event.goldMax - event.goldMin + 1)) + event.goldMin;
+                GameManager.addGold(gold);
+                resultHTML = `<div class="event-reward">💰 獲得 ${gold} 金幣！</div>`;
+                
+                // 根據機率掉落物品
+                if (Math.random() < event.itemChance) {
+                    const item = this.generateTreasureItem(event.zone);
+                    if (item) {
+                        GameManager.addToInventory(item);
+                        resultHTML += `<div class="event-reward">🎁 獲得 ${item.name}！</div>`;
+                    }
+                }
+                
+                this.showEventModal(event.icon, event.name, '你打開了寶箱，發現了寶物！', resultHTML);
+                break;
+                
+            case 'healing':
+                const healAmount = Math.floor(char.maxHp * event.healPercent);
+                const actualHeal = Math.min(healAmount, char.maxHp - char.hp);
+                char.hp += actualHeal;
+                resultHTML = `<div class="event-heal">💚 恢復了 ${actualHeal} 點生命！</div>`;
+                this.showEventModal(event.icon, event.name, '你發現了一處神秘的治療之泉，泉水散發著淡淡的光芒。', resultHTML);
+                break;
+                
+            case 'trap':
+                const damage = Math.floor(Math.random() * (event.damageMax - event.damageMin + 1)) + event.damageMin;
+                const actualDamage = Math.max(1, damage - char.getTotalDef());
+                char.hp = Math.max(1, char.hp - actualDamage); // 陷阱不會殺死玩家
+                resultHTML = `<div class="event-damage">💔 受到 ${actualDamage} 點傷害！</div>`;
+                this.showEventModal(event.icon, event.name, '糟糕！你觸發了陷阱！', resultHTML);
+                break;
+                
+            case 'story':
+                // 觸發劇情事件 (Slay the Spire 風格)
+                this.triggerStoryEvent();
+                // 任務系統：觸發事件
+                questSystem.updateProgress(ObjectiveType.EVENT, 'random', 1);
+                return; // 不要清除事件，讓玩家選擇後再清除
+        }
+        
+        this.worldMap.clearCurrentEvent();
+        this.updateUI();
+    }
+    
+    // ===== 劇情事件系統 (Slay the Spire 風格) =====
+    
+    triggerStoryEvent() {
+        const zone = this.worldMap.getCurrentZone();
+        const event = eventSystem.triggerRandomEvent(zone);
+        
+        if (!event) {
+            this.worldMap.clearCurrentEvent();
+            return;
+        }
+        
+        this.showStoryEventModal(event);
+    }
+    
+    showStoryEventModal(event) {
+        if (!this.dom.storyEventModal) return;
+        
+        // 設置標題和描述
+        if (this.dom.storyEventIcon) this.dom.storyEventIcon.textContent = event.icon;
+        if (this.dom.storyEventTitle) this.dom.storyEventTitle.textContent = event.name;
+        if (this.dom.storyEventType) this.dom.storyEventType.textContent = event.type.toUpperCase();
+        if (this.dom.storyEventDescription) this.dom.storyEventDescription.textContent = event.description;
+        
+        // 生成選項按鈕
+        if (this.dom.storyEventChoices) {
+            this.dom.storyEventChoices.innerHTML = '';
+            
+            event.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'story-choice-btn';
+                
+                let costText = '';
+                if (choice.cost) {
+                    if (choice.cost.gold) costText += `💰 -${choice.cost.gold}G `;
+                    if (choice.cost.hp) {
+                        const hpCost = choice.cost.isPercent 
+                            ? `${Math.floor(choice.cost.hp * 100)}% HP`
+                            : `${choice.cost.hp} HP`;
+                        costText += `❤️ -${hpCost} `;
+                    }
+                }
+                
+                let chanceText = '';
+                if (choice.chance !== undefined) {
+                    chanceText = `<span class="choice-chance">(${Math.floor(choice.chance * 100)}% 成功)</span>`;
+                }
+                
+                btn.innerHTML = `
+                    <span class="choice-text">${choice.text}</span>
+                    ${costText ? `<span class="choice-cost">${costText}</span>` : ''}
+                    ${chanceText}
+                `;
+                
+                btn.addEventListener('click', () => this.executeStoryChoice(index));
+                this.dom.storyEventChoices.appendChild(btn);
+            });
+        }
+        
+        // 隱藏結果區域
+        if (this.dom.storyEventResult) {
+            this.dom.storyEventResult.style.display = 'none';
+        }
+        
+        // 顯示選項區域
+        if (this.dom.storyEventChoices) {
+            this.dom.storyEventChoices.style.display = 'flex';
+        }
+        
+        this.dom.storyEventModal.style.display = 'flex';
+    }
+    
+    executeStoryChoice(choiceIndex) {
+        const result = eventSystem.executeChoice(choiceIndex);
+        
+        // 隱藏選項，顯示結果
+        if (this.dom.storyEventChoices) {
+            this.dom.storyEventChoices.style.display = 'none';
+        }
+        
+        if (this.dom.storyEventResult && this.dom.storyResultMessages) {
+            this.dom.storyResultMessages.innerHTML = result.messages.map(msg => 
+                `<div class="result-message-item">${msg}</div>`
+            ).join('');
+            
+            if (result.messages.length === 0) {
+                this.dom.storyResultMessages.innerHTML = '<div class="result-message-item">什麼都沒發生...</div>';
+            }
+            
+            this.dom.storyEventResult.style.display = 'block';
+        }
+        
+        this.updateUI();
+    }
+    
+    closeStoryEventModal() {
+        if (this.dom.storyEventModal) {
+            this.dom.storyEventModal.style.display = 'none';
+        }
+        this.worldMap.clearCurrentEvent();
+        this.updateUI();
+    }
+    
+    generateTreasureItem(zone) {
+        const rarityByZone = {
+            'low': [ItemRarity.COMMON, ItemRarity.UNCOMMON],
+            'medium': [ItemRarity.UNCOMMON, ItemRarity.RARE],
+            'high': [ItemRarity.RARE, ItemRarity.EPIC],
+            'boss': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
+        };
+        
+        const possibleRarities = rarityByZone[zone] || [ItemRarity.COMMON];
+        const rarity = possibleRarities[Math.floor(Math.random() * possibleRarities.length)];
+        
+        // 隨機生成物品類型
+        const itemType = Math.random();
+        const timestamp = Date.now();
+        
+        if (itemType < 0.3) {
+            // 生成藥水
+            const potions = [
+                new Consumable(`treasure_hp_${timestamp}`, '生命藥水', ItemType.POTION, rarity, '🧪', '恢復生命值的藥水', 50, { hp: 50 }),
+                new Consumable(`treasure_mp_${timestamp}`, '魔力藥水', ItemType.POTION, rarity, '💙', '恢復魔力值的藥水', 60, { mp: 30 })
+            ];
+            return potions[Math.floor(Math.random() * potions.length)];
+        } else if (itemType < 0.6) {
+            // 生成材料
+            return new Item(`treasure_material_${timestamp}`, '神秘寶石', ItemType.MATERIAL, rarity, '💎', '從寶箱中發現的神秘寶石', 100);
+        }
+        
+        return null;
+    }
+    
+    showEventModal(icon, title, description, resultHTML) {
+        if (!this.dom.eventModal) return;
+        
+        if (this.dom.eventIcon) this.dom.eventIcon.textContent = icon;
+        if (this.dom.eventTitle) this.dom.eventTitle.textContent = title;
+        if (this.dom.eventDescription) this.dom.eventDescription.textContent = description;
+        if (this.dom.eventResult) this.dom.eventResult.innerHTML = resultHTML;
+        
+        this.dom.eventModal.style.display = 'flex';
+    }
+    
+    closeEventModal() {
+        if (this.dom.eventModal) {
+            this.dom.eventModal.style.display = 'none';
+        }
+    }
+
     // ===== Battle Logic =====
 
     startBattle() {
         const monster = this.worldMap.getCurrentMonster();
         console.log('Encounter:', monster);
         
+        this.battleLog = []; // 清空戰鬥日誌
         this.currentBattle = new BattleController(GameManager.getCharacter(), monster, this);
         this.dom.battleModal.style.display = 'flex';
         
         this.updateMonsterDisplay();
         this.updatePlayerHUD();
         this.updateActionDeck();
+        this.updateSkillDeck();
+        this.updateBuffIndicators();
+        this.addBattleLog(`遭遇了 ${monster.name}！`);
         
         this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
@@ -318,6 +583,11 @@ export default class AdventureScene {
         }
         this.worldMap.clearCurrentMonster();
         this.currentBattle = null;
+        
+        // 清除戰鬥結束時的 Buff
+        const char = GameManager.getCharacter();
+        char.clearAllBuffs();
+        
         this.updateUI();
     }
 
@@ -327,12 +597,17 @@ export default class AdventureScene {
         
         const hitType = this.rhythmSystem.judgeHit();
         this.currentBattle.playerAttack(hitType);
-        // 不在這裡生成新區域，等冷卻結束後才生成
     }
 
     handleFleeClick() {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
         this.currentBattle.flee();
+    }
+    
+    // 新增：技能使用
+    handleSkillUse(skillIndex) {
+        if (!this.currentBattle || this.currentBattle.battleEnded) return;
+        this.currentBattle.useSkill(skillIndex);
     }
 
     handlePotionUse() {
@@ -342,6 +617,7 @@ export default class AdventureScene {
         const potionStack = inventory.find(stack => stack.item.type === 'potion');
         
         if (!potionStack || potionStack.quantity <= 0) {
+            this.addBattleLog('沒有可用的藥水！');
             return;
         }
         
@@ -352,10 +628,20 @@ export default class AdventureScene {
         if (potion.effect?.hp) {
             const healAmount = Math.min(potion.effect.hp, char.maxHp - char.hp);
             char.hp += healAmount;
+            this.addBattleLog(`使用 ${potion.name}，恢復 ${healAmount} HP！`);
         }
         if (potion.effect?.mp) {
             const mpAmount = Math.min(potion.effect.mp, char.maxMp - char.mp);
             char.mp += mpAmount;
+            this.addBattleLog(`使用 ${potion.name}，恢復 ${mpAmount} MP！`);
+        }
+        
+        // 處理 Buff 藥水
+        if (potion.buff) {
+            char.addBuff(potion.buff.type, potion.buff.value, potion.buff.duration);
+            const buffNames = { 'atk': '攻擊力', 'def': '防禦力', 'critChance': '爆擊率' };
+            this.addBattleLog(`使用 ${potion.name}，${buffNames[potion.buff.type] || potion.buff.type} +${potion.buff.value}！`);
+            this.updateBuffIndicators();
         }
         
         // 減少數量
@@ -369,6 +655,74 @@ export default class AdventureScene {
         this.updatePlayerHUD();
         this.updateActionDeck();
         this.updateUI();
+    }
+    
+    // 新增：戰鬥日誌
+    addBattleLog(message) {
+        this.battleLog.push(message);
+        if (this.battleLog.length > 10) {
+            this.battleLog.shift();
+        }
+        this.renderBattleLog();
+    }
+    
+    renderBattleLog() {
+        if (!this.dom.battleLog) return;
+        this.dom.battleLog.innerHTML = this.battleLog.map(msg => 
+            `<div class="log-entry">${msg}</div>`
+        ).join('');
+        this.dom.battleLog.scrollTop = this.dom.battleLog.scrollHeight;
+    }
+    
+    // 新增：更新技能面板
+    updateSkillDeck() {
+        if (!this.dom.skillDeck) return;
+        
+        const char = GameManager.getCharacter();
+        this.dom.skillDeck.innerHTML = '';
+        
+        char.skills.forEach((skill, index) => {
+            const skillEl = document.createElement('div');
+            const canUse = skill.canUse(char);
+            skillEl.className = `skill-card ${canUse ? '' : 'disabled'}`;
+            skillEl.innerHTML = `
+                <div class="skill-key">[${index + 1}]</div>
+                <div class="skill-icon">${skill.icon}</div>
+                <div class="skill-name">${skill.name}</div>
+                <div class="skill-cost">MP: ${skill.mpCost}</div>
+                ${skill.currentCooldown > 0 ? `<div class="skill-cooldown">CD: ${skill.currentCooldown}</div>` : ''}
+            `;
+            skillEl.addEventListener('click', () => {
+                if (canUse) this.handleSkillUse(index);
+            });
+            this.dom.skillDeck.appendChild(skillEl);
+        });
+    }
+    
+    // 新增：更新 Buff 顯示
+    updateBuffIndicators() {
+        if (!this.dom.buffIndicators) return;
+        
+        const char = GameManager.getCharacter();
+        this.dom.buffIndicators.innerHTML = '';
+        
+        const buffIcons = {
+            'atk': '⚔️',
+            'def': '🛡️',
+            'critChance': '🎯',
+            'critDamage': '💥'
+        };
+        
+        char.activeBuffs.forEach(buff => {
+            const buffEl = document.createElement('div');
+            buffEl.className = 'buff-indicator';
+            buffEl.innerHTML = `
+                <span class="buff-icon">${buffIcons[buff.type] || '✨'}</span>
+                <span class="buff-duration">${buff.duration}</span>
+            `;
+            buffEl.title = `${buff.type} +${buff.value} (${buff.duration}回合)`;
+            this.dom.buffIndicators.appendChild(buffEl);
+        });
     }
 
     updateMonsterDisplay() {
@@ -511,6 +865,7 @@ class BattleController {
         this.scene = scene;
         this.battleEnded = false;
         this.attackCooldown = false;
+        this.turnCount = 0;
     }
 
     playerAttack(hitType) {
@@ -521,15 +876,17 @@ class BattleController {
         let isCrit = false;
         
         if (hitType === 'miss') {
-            // 顯示MISS文字
             this.showDamageNumber(0, false, true);
+            this.scene.addBattleLog('攻擊落空！MISS');
         } else if (hitType === 'crit') {
             damage = Math.floor(playerAtk * this.player.getCritDamage());
             isCrit = true;
             this.showDamageNumber(damage, true, false);
+            this.scene.addBattleLog(`爆擊！造成 ${damage} 點傷害！`);
         } else {
             damage = playerAtk;
             this.showDamageNumber(damage, false, false);
+            this.scene.addBattleLog(`攻擊命中，造成 ${damage} 點傷害。`);
         }
 
         if (damage > 0) {
@@ -542,11 +899,57 @@ class BattleController {
         }
         
         // 開始冷卻倒數
-        const cooldownTime = this.player.getAttackInterval(); // 秒數
+        const cooldownTime = this.player.getAttackInterval();
         this.startCooldown(cooldownTime);
         
         // 怪物反擊延遲
         setTimeout(() => this.monsterAttack(), 1000);
+    }
+    
+    // 新增：技能使用
+    useSkill(skillIndex) {
+        if (this.battleEnded) return;
+        
+        const skill = this.player.skills[skillIndex];
+        if (!skill || !skill.canUse(this.player)) {
+            this.scene.addBattleLog('無法使用該技能！');
+            return;
+        }
+        
+        const result = skill.use(this.player, this.monster);
+        if (!result) return;
+        
+        this.scene.addBattleLog(result.message);
+        
+        // 處理攻擊技能
+        if (result.damage > 0) {
+            this.monster.takeDamage(result.damage);
+            this.showDamageNumber(result.damage, false, false);
+            this.scene.updateMonsterDisplay();
+            
+            if (this.monster.isDead()) {
+                this.handleVictory();
+                return;
+            }
+        }
+        
+        // 處理治療技能
+        if (result.heal > 0) {
+            this.scene.updatePlayerHUD();
+        }
+        
+        // 處理 Buff 技能
+        if (result.buff) {
+            this.player.addBuff(result.buff.type, result.buff.value, result.buff.duration);
+            this.scene.updateBuffIndicators();
+        }
+        
+        // 更新技能面板（顯示冷卻）
+        this.scene.updateSkillDeck();
+        this.scene.updatePlayerHUD();
+        
+        // 使用技能後怪物反擊
+        setTimeout(() => this.monsterAttack(), 800);
     }
     
     showDamageNumber(damage, isCrit, isMiss) {
@@ -639,17 +1042,36 @@ class BattleController {
 
     monsterAttack() {
         if (this.battleEnded) return;
+        
         const damage = Math.max(1, this.monster.attack - this.player.getTotalDef());
         this.player.hp = Math.max(0, this.player.hp - damage);
+        
+        this.scene.addBattleLog(`${this.monster.name} 發動攻擊，造成 ${damage} 點傷害！`);
         this.scene.updateUI();
-        this.scene.updatePlayerHUD(); // Update combat HUD bars
+        this.scene.updatePlayerHUD();
         
         // 玩家受擊反饋
         this.showPlayerHitFeedback(damage);
         
+        // 回合結束處理
+        this.endTurn();
+        
         if (this.player.hp <= 0) {
             this.handleDefeat();
         }
+    }
+    
+    // 新增：回合結束處理
+    endTurn() {
+        this.turnCount++;
+        
+        // 減少 Buff 持續時間
+        this.player.tickBuffs();
+        this.scene.updateBuffIndicators();
+        
+        // 減少技能冷卻
+        this.player.tickSkillCooldowns();
+        this.scene.updateSkillDeck();
     }
     
     showPlayerHitFeedback(damage) {
@@ -695,11 +1117,15 @@ class BattleController {
 
     handleVictory() {
         this.battleEnded = true;
+        this.scene.addBattleLog(`擊敗了 ${this.monster.name}！`);
         
         const drops = this.monster.getDrops();
         this.player.exp += this.monster.exp;
         this.player.checkLevelUp();
         GameManager.addGold(drops.gold);
+        
+        // 任務系統：更新擊殺進度
+        questSystem.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
         
         setTimeout(() => {
             this.scene.endBattle(true);
@@ -709,9 +1135,14 @@ class BattleController {
 
     handleDefeat() {
         this.battleEnded = true;
+        this.scene.addBattleLog('你被擊敗了...');
+        
         const penalty = Math.floor(this.player.gold * 0.1);
         GameManager.removeGold(penalty);
         this.player.hp = Math.floor(this.player.maxHp * 0.3);
+        
+        // 任務系統：更新死亡統計
+        questSystem.updateStats('death');
         
         setTimeout(() => {
             this.scene.endBattle(false);
@@ -722,7 +1153,11 @@ class BattleController {
     flee() {
         if (Math.random() < 0.5) {
             this.battleEnded = true;
+            this.scene.addBattleLog('成功逃跑！');
             setTimeout(() => this.scene.endBattle(false), 200);
+        } else {
+            this.scene.addBattleLog('逃跑失敗！');
+            setTimeout(() => this.monsterAttack(), 500);
         }
     }
 }

@@ -1,0 +1,126 @@
+    <div id="scene-container" class="scene-casino">
+        <!-- 頂部資訊列 -->
+        <header class="casino-header">
+            <div class="player-info">
+                <span class="gold-display">💰 <span id="casino-gold">0</span>G</span>
+                <span class="luck-display">🍀 幸運: <span id="casino-luck">0</span></span>
+            </div>
+            <h1 class="casino-title">🎰 幸運賭場 🎰</h1>
+            <div class="header-actions">
+                <button id="btn-daily-bonus" class="bonus-btn">🎁 每日簽到</button>
+                <button id="btn-back-lobby" class="back-btn">🚪 離開</button>
+            </div>
+        </header>
+
+        <!-- 主要內容 -->
+        <main class="casino-main">
+            <!-- 遊戲選擇標籤 -->
+            <nav class="game-tabs">
+                <button class="game-tab active" data-game="slots">🎰 老虎機</button>
+                <button class="game-tab" data-game="roulette">🎡 輪盤</button>
+                <button class="game-tab" data-game="dice">🎲 骰子</button>
+            </nav>
+
+            <!-- 遊戲區域 -->
+            <div class="game-area">
+                <!-- 老虎機 -->
+                <div id="game-slots" class="game-panel active">
+                    <div class="slots-machine">
+                        <div class="slots-display">
+                            <div class="slot-reel" id="reel-1">🎰</div>
+                            <div class="slot-reel" id="reel-2">🎰</div>
+                            <div class="slot-reel" id="reel-3">🎰</div>
+                        </div>
+                        <div class="slots-lever"></div>
+                    </div>
+                    
+                    <div class="bet-controls">
+                        <label>下注金額:</label>
+                        <div class="bet-buttons">
+                            <button class="bet-btn" data-amount="10">10G</button>
+                            <button class="bet-btn" data-amount="50">50G</button>
+                            <button class="bet-btn" data-amount="100">100G</button>
+                            <button class="bet-btn" data-amount="500">500G</button>
+                        </div>
+                        <input type="number" id="slots-bet" min="10" max="1000" value="10">
+                    </div>
+                    
+                    <button id="btn-spin" class="action-btn spin-btn">🎰 拉霸！</button>
+                    
+                    <div class="paytable">
+                        <h4>賠率表</h4>
+                        <div class="payout-row">7️⃣7️⃣7️⃣ = x100</div>
+                        <div class="payout-row">💎💎💎 = x50</div>
+                        <div class="payout-row">⭐⭐⭐ = x20</div>
+                        <div class="payout-row">🍇🍇🍇 = x12</div>
+                        <div class="payout-row">兩個相同 = x0.5</div>
+                    </div>
+                </div>
+
+                <!-- 輪盤 -->
+                <div id="game-roulette" class="game-panel">
+                    <div class="roulette-wheel">
+                        <div class="wheel-container">
+                            <div class="wheel" id="roulette-wheel"></div>
+                            <div class="wheel-pointer">▼</div>
+                        </div>
+                        <div class="result-display" id="roulette-result">-</div>
+                    </div>
+                    
+                    <div class="roulette-betting">
+                        <div class="bet-type-selector">
+                            <button class="bet-type-btn active" data-type="color">顏色</button>
+                            <button class="bet-type-btn" data-type="oddeven">奇偶</button>
+                            <button class="bet-type-btn" data-type="half">前後半</button>
+                        </div>
+                        
+                        <div class="bet-options" id="roulette-options">
+                            <!-- 動態生成 -->
+                        </div>
+                        
+                        <div class="bet-controls">
+                            <input type="number" id="roulette-bet" min="10" max="500" value="10">
+                            <button id="btn-roulette-spin" class="action-btn">🎡 轉盤！</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 骰子 -->
+                <div id="game-dice" class="game-panel">
+                    <div class="dice-area">
+                        <div class="dice-display">
+                            <div class="dice" id="dice-1">⚀</div>
+                            <div class="dice" id="dice-2">⚁</div>
+                            <div class="dice" id="dice-3">⚂</div>
+                        </div>
+                        <div class="dice-total">總和: <span id="dice-total">-</span></div>
+                    </div>
+                    
+                    <div class="dice-betting">
+                        <div class="bet-option-group">
+                            <button class="dice-bet-btn active" data-type="big">大 (11-18)</button>
+                            <button class="dice-bet-btn" data-type="small">小 (3-10)</button>
+                            <button class="dice-bet-btn" data-type="triple">三豹 (x30)</button>
+                        </div>
+                        
+                        <div class="bet-controls">
+                            <input type="number" id="dice-bet" min="10" max="500" value="10">
+                            <button id="btn-dice-roll" class="action-btn">🎲 擲骰！</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 結果訊息 -->
+            <div class="result-message" id="result-message"></div>
+
+            <!-- 統計面板 -->
+            <div class="stats-panel">
+                <h4>📊 今日統計</h4>
+                <div class="stat-row">總下注: <span id="stat-total-bet">0</span>G</div>
+                <div class="stat-row">總獲勝: <span id="stat-total-win">0</span>G</div>
+                <div class="stat-row">淨盈虧: <span id="stat-net">0</span>G</div>
+                <div class="stat-row">遊戲次數: <span id="stat-games">0</span></div>
+            </div>
+        </main>
+    </div>

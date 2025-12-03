@@ -19,6 +19,7 @@ export const ItemType = {
     MATERIAL: 'material',
     KEY: 'key',
     GEM: 'gem',
+    SOCKET_GEM: 'socket_gem',
     SCROLL: 'scroll',
     BOOK: 'book',
     QUEST: 'quest'
@@ -27,6 +28,137 @@ export const ItemType = {
 export const ItemCategory = {
     EQUIPMENT: 'equipment',
     ITEMS: 'items'
+};
+
+// ===== 技能系統 =====
+export const SkillType = {
+    ATTACK: 'attack',      // 攻擊技能
+    HEAL: 'heal',          // 治療技能
+    BUFF: 'buff',          // 增益技能
+    DEBUFF: 'debuff'       // 減益技能
+};
+
+export class Skill {
+    constructor(id, name, type, icon, description, mpCost, cooldown = 0) {
+        this.id = id;
+        this.name = name;
+        this.type = type;
+        this.icon = icon;
+        this.description = description;
+        this.mpCost = mpCost;
+        this.cooldown = cooldown;       // 冷卻回合數
+        this.currentCooldown = 0;       // 當前剩餘冷卻
+    }
+    
+    canUse(character) {
+        return character.mp >= this.mpCost && this.currentCooldown === 0;
+    }
+    
+    use(character, target) {
+        if (!this.canUse(character)) return null;
+        character.mp -= this.mpCost;
+        this.currentCooldown = this.cooldown;
+        return this.execute(character, target);
+    }
+    
+    execute(character, target) {
+        // 子類別覆寫
+        return { damage: 0, heal: 0, message: '' };
+    }
+    
+    reduceCooldown() {
+        if (this.currentCooldown > 0) {
+            this.currentCooldown--;
+        }
+    }
+}
+
+export class AttackSkill extends Skill {
+    constructor(id, name, icon, description, mpCost, cooldown, damageMultiplier, bonusDamage = 0) {
+        super(id, name, SkillType.ATTACK, icon, description, mpCost, cooldown);
+        this.damageMultiplier = damageMultiplier;  // 傷害倍率
+        this.bonusDamage = bonusDamage;            // 額外固定傷害
+    }
+    
+    execute(character, target) {
+        const baseDamage = character.getTotalAtk();
+        const totalDamage = Math.floor(baseDamage * this.damageMultiplier) + this.bonusDamage;
+        return { 
+            damage: totalDamage, 
+            heal: 0, 
+            message: `使用 ${this.name}，造成 ${totalDamage} 點傷害！` 
+        };
+    }
+}
+
+export class HealSkill extends Skill {
+    constructor(id, name, icon, description, mpCost, cooldown, healAmount, healPercent = 0) {
+        super(id, name, SkillType.HEAL, icon, description, mpCost, cooldown);
+        this.healAmount = healAmount;      // 固定治療量
+        this.healPercent = healPercent;    // 百分比治療（基於最大HP）
+    }
+    
+    execute(character, target) {
+        const percentHeal = Math.floor(character.maxHp * this.healPercent);
+        const totalHeal = this.healAmount + percentHeal;
+        const actualHeal = Math.min(totalHeal, character.maxHp - character.hp);
+        character.hp += actualHeal;
+        return { 
+            damage: 0, 
+            heal: actualHeal, 
+            message: `使用 ${this.name}，恢復 ${actualHeal} 點生命！` 
+        };
+    }
+}
+
+export class BuffSkill extends Skill {
+    constructor(id, name, icon, description, mpCost, cooldown, buffType, buffValue, duration) {
+        super(id, name, SkillType.BUFF, icon, description, mpCost, cooldown);
+        this.buffType = buffType;    // 'atk', 'def', 'critChance' 等
+        this.buffValue = buffValue;  // 增益值
+        this.duration = duration;    // 持續回合數
+    }
+    
+    execute(character, target) {
+        // 返回 buff 資訊讓戰鬥系統處理
+        return { 
+            damage: 0, 
+            heal: 0, 
+            buff: {
+                type: this.buffType,
+                value: this.buffValue,
+                duration: this.duration
+            },
+            message: `使用 ${this.name}，${this.getBuffDescription()}！` 
+        };
+    }
+    
+    getBuffDescription() {
+        const buffNames = {
+            'atk': '攻擊力',
+            'def': '防禦力',
+            'critChance': '爆擊率',
+            'critDamage': '爆擊傷害'
+        };
+        return `${buffNames[this.buffType] || this.buffType} +${this.buffValue}`;
+    }
+}
+
+// 預設技能列表
+export const DefaultSkills = {
+    // 攻擊技能
+    fireball: new AttackSkill('fireball', '火球術', '🔥', '發射一顆火球攻擊敵人', 15, 0, 1.5, 10),
+    powerStrike: new AttackSkill('power_strike', '重擊', '💥', '用全力發動一次強力攻擊', 10, 1, 2.0, 0),
+    thunderBolt: new AttackSkill('thunder_bolt', '雷電術', '⚡', '召喚雷電攻擊敵人', 25, 2, 2.5, 20),
+    
+    // 治療技能
+    heal: new HealSkill('heal', '治療術', '💚', '恢復自身生命值', 20, 1, 30, 0.1),
+    firstAid: new HealSkill('first_aid', '急救', '🩹', '快速恢復少量生命', 8, 0, 15, 0),
+    
+    // 增益技能
+    battleCry: new BuffSkill('battle_cry', '戰吼', '📢', '提升自身攻擊力', 15, 3, 'atk', 20, 3),
+    ironSkin: new BuffSkill('iron_skin', '鐵皮術', '🛡️', '提升自身防禦力', 12, 3, 'def', 15, 3),
+    sharpEye: new BuffSkill('sharp_eye', '銳眼', '👁️', '提升爆擊率', 18, 4, 'critChance', 0.2, 3)
 };
 
 export class Item {
@@ -118,13 +250,30 @@ export class Character {
             armor: null,
             accessory: null
         };
+        
+        // 新增：技能系統
+        this.skills = [];
+        this.initDefaultSkills();
+        
+        // 新增：Buff 系統
+        this.activeBuffs = [];  // { type, value, duration }
+    }
+    
+    // 初始化預設技能
+    initDefaultSkills() {
+        // 創建技能的新實例，避免共用同一個物件
+        this.skills = [
+            new AttackSkill('fireball', '火球術', '🔥', '發射一顆火球攻擊敵人', 15, 0, 1.5, 10),
+            new HealSkill('heal', '治療術', '💚', '恢復自身生命值', 20, 1, 30, 0.1),
+            new BuffSkill('battle_cry', '戰吼', '📢', '提升自身攻擊力', 15, 3, 'atk', 20, 3)
+        ];
     }
     
     // Getters and setters to keep properties in sync
     get hp() { return this._hp; }
     set hp(value) { 
-        this._hp = value; 
-        this.currentHP = value;
+        this._hp = Math.max(0, Math.min(value, this._maxHp)); 
+        this.currentHP = this._hp;
     }
     
     get maxHp() { return this._maxHp; }
@@ -133,10 +282,10 @@ export class Character {
     }
     
     get currentHP() { return this._hp; }
-    set currentHP(value) { this._hp = value; }
+    set currentHP(value) { this._hp = Math.max(0, Math.min(value, this._maxHp)); }
     
     get mp() { return this._mp; }
-    set mp(value) { this._mp = value; }
+    set mp(value) { this._mp = Math.max(0, Math.min(value, this._maxMp)); }
     
     get maxMp() { return this._maxMp; }
     set maxMp(value) { this._maxMp = value; }
@@ -170,7 +319,9 @@ export class Character {
         Object.values(this.equipment).forEach(item => {
             if (item && item.atk) total += item.atk;
         });
-        this._attack = total; // Keep attack in sync
+        // 加上 Buff 加成
+        total += this.getBuffValue('atk');
+        this._attack = total;
         return total;
     }
 
@@ -179,42 +330,44 @@ export class Character {
         Object.values(this.equipment).forEach(item => {
             if (item && item.def) total += item.def;
         });
-        this._defense = total; // Keep defense in sync
+        // 加上 Buff 加成
+        total += this.getBuffValue('def');
+        this._defense = total;
         return total;
     }
 
     getCritChance() {
-        // 累加所有裝備的爆擊率（影響節奏條上的爆擊區域大小）
-        let totalCritChance = 0.05; // 基礎爆擊率
+        let totalCritChance = 0.05;
         Object.values(this.equipment).forEach(item => {
             if (item && item.critChance) {
                 totalCritChance += item.critChance;
             }
         });
-        return Math.min(totalCritChance, 1.0); // 最高100%
+        // 加上 Buff 加成
+        totalCritChance += this.getBuffValue('critChance');
+        return Math.min(totalCritChance, 1.0);
     }
 
     getCritDamage() {
-        // 累加所有裝備的爆擊傷害倍率
-        let totalCritDamage = 1.5; // 基礎爆擊傷害
+        let totalCritDamage = 1.5;
         let additionalCritDamage = 0;
         Object.values(this.equipment).forEach(item => {
             if (item && item.critDamage) {
-                additionalCritDamage += (item.critDamage - 1.5); // 額外的爆傷加成
+                additionalCritDamage += (item.critDamage - 1.5);
             }
         });
+        // 加上 Buff 加成
+        additionalCritDamage += this.getBuffValue('critDamage');
         return totalCritDamage + additionalCritDamage;
     }
 
     getWeaponSpeed() {
         const weapon = this.equipment.weapon;
-        // 只有武器有 weaponSpeed，防具和飾品沒有
         return (weapon && weapon.weaponSpeed) ? weapon.weaponSpeed : 1.0;
     }
 
     getAttackSpeed() {
         const weapon = this.equipment.weapon;
-        // 只有武器有 attackSpeed，防具和飾品沒有
         return (weapon && weapon.attackSpeed) ? weapon.attackSpeed : 1.0;
     }
 
@@ -222,17 +375,55 @@ export class Character {
         return 1 / this.getAttackSpeed();
     }
 
+    // ===== Buff 系統 =====
+    
+    addBuff(buffType, buffValue, duration) {
+        // 檢查是否已有同類型 Buff，如果有則刷新
+        const existingBuff = this.activeBuffs.find(b => b.type === buffType);
+        if (existingBuff) {
+            existingBuff.value = Math.max(existingBuff.value, buffValue);
+            existingBuff.duration = Math.max(existingBuff.duration, duration);
+        } else {
+            this.activeBuffs.push({ type: buffType, value: buffValue, duration: duration });
+        }
+    }
+    
+    getBuffValue(buffType) {
+        const buff = this.activeBuffs.find(b => b.type === buffType);
+        return buff ? buff.value : 0;
+    }
+    
+    tickBuffs() {
+        // 每回合結束時減少 Buff 持續時間
+        this.activeBuffs = this.activeBuffs.filter(buff => {
+            buff.duration--;
+            return buff.duration > 0;
+        });
+    }
+    
+    clearAllBuffs() {
+        this.activeBuffs = [];
+    }
+    
+    // ===== 技能系統 =====
+    
+    useSkill(skillIndex, target) {
+        if (skillIndex < 0 || skillIndex >= this.skills.length) return null;
+        const skill = this.skills[skillIndex];
+        return skill.use(this, target);
+    }
+    
+    tickSkillCooldowns() {
+        this.skills.forEach(skill => skill.reduceCooldown());
+    }
+
     equip(item) {
         if (!item.isEquipment()) return false;
         
-        const slot = item.type; // Assumes type matches slot name (weapon, armor, accessory)
-        // If type is 'weapon', slot is 'weapon'.
-        // If type is 'armor', slot is 'armor'.
-        // If type is 'accessory', slot is 'accessory'.
+        const slot = item.type;
         
         if (this.equipment.hasOwnProperty(slot)) {
              this.equipment[slot] = item;
-             // Update attack/defense after equipping
              this.getTotalAtk();
              this.getTotalDef();
              return true;
@@ -243,7 +434,6 @@ export class Character {
     unequip(slotType) {
         const item = this.equipment[slotType];
         this.equipment[slotType] = null;
-        // Update attack/defense after unequipping
         this.getTotalAtk();
         this.getTotalDef();
         return item;
@@ -276,12 +466,11 @@ export class Character {
             this.mp = this.maxMp;
             this.baseAtk += 2;
             this.baseDef += 1;
-            this.getTotalAtk(); // Update total attack
-            this.getTotalDef(); // Update total defense
+            this.getTotalAtk();
+            this.getTotalDef();
         }
     }
 
-    // Method to keep properties in sync when hp/exp is modified externally
     syncProperties() {
         this._attack = this.getTotalAtk();
         this._defense = this.getTotalDef();

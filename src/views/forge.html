@@ -1,0 +1,107 @@
+    <div id="scene-container" class="scene-forge">
+        <!-- 頂部資訊列 -->
+        <header class="forge-header">
+            <div class="player-info">
+                <span class="gold-display">💰 <span id="forge-gold">0</span>G</span>
+            </div>
+            <h1 class="forge-title">⚒️ 鍛造工坊 ⚒️</h1>
+            <button id="btn-back-lobby" class="back-btn">🚪 返回大廳</button>
+        </header>
+
+        <!-- 主要內容 -->
+        <main class="forge-main">
+            <!-- 左側：裝備選擇 -->
+            <section class="equipment-panel">
+                <h3>📦 選擇裝備</h3>
+                <div class="equipment-list" id="equipment-list">
+                    <!-- 動態生成 -->
+                </div>
+            </section>
+
+            <!-- 中間：強化區域 -->
+            <section class="enhance-panel">
+                <div class="selected-equipment" id="selected-equipment">
+                    <div class="empty-slot">
+                        <span class="empty-icon">⚔️</span>
+                        <span class="empty-text">選擇要強化的裝備</span>
+                    </div>
+                </div>
+
+                <!-- 強化資訊 -->
+                <div class="enhance-info" id="enhance-info" style="display: none;">
+                    <div class="current-stats">
+                        <h4>當前屬性</h4>
+                        <div id="current-stats-display"></div>
+                    </div>
+                    
+                    <div class="enhance-arrow">⬇️</div>
+                    
+                    <div class="preview-stats">
+                        <h4>強化後預覽</h4>
+                        <div id="preview-stats-display"></div>
+                    </div>
+
+                    <div class="enhance-details">
+                        <div class="detail-row">
+                            <span>成功率:</span>
+                            <span id="success-rate" class="rate-value">100%</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>費用:</span>
+                            <span id="enhance-cost" class="cost-value">50G</span>
+                        </div>
+                    </div>
+
+                    <button id="btn-enhance" class="action-btn enhance-btn">⚒️ 強化！</button>
+                    
+                    <div class="enhance-options">
+                        <label class="option-checkbox">
+                            <input type="checkbox" id="use-protection">
+                            <span>使用保護符 (防止降級)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 強化結果動畫 -->
+                <div class="enhance-result" id="enhance-result" style="display: none;">
+                    <div class="result-icon"></div>
+                    <div class="result-text"></div>
+                </div>
+            </section>
+
+            <!-- 右側：寶石鑲嵌 -->
+            <section class="gem-panel">
+                <h3>💎 寶石鑲嵌</h3>
+                
+                <div class="gem-slots" id="gem-slots">
+                    <div class="gem-slot empty" data-slot="0">
+                        <span class="slot-icon">◇</span>
+                        <span class="slot-label">空槽位</span>
+                    </div>
+                    <div class="gem-slot empty" data-slot="1">
+                        <span class="slot-icon">◇</span>
+                        <span class="slot-label">空槽位</span>
+                    </div>
+                    <div class="gem-slot locked" data-slot="2">
+                        <span class="slot-icon">🔒</span>
+                        <span class="slot-label">未解鎖</span>
+                    </div>
+                </div>
+
+                <h4>可用寶石</h4>
+                <div class="gem-inventory" id="gem-inventory">
+                    <!-- 動態生成 -->
+                </div>
+
+                <button id="btn-socket-gem" class="action-btn socket-btn" disabled>💎 鑲嵌寶石</button>
+            </section>
+        </main>
+
+        <!-- 強化歷史 -->
+        <aside class="history-panel">
+            <h4>📜 強化紀錄</h4>
+            <div class="history-list" id="enhance-history">
+                <!-- 動態生成 -->
+            </div>
+        </aside>
+    </div>

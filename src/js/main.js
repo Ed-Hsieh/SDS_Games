@@ -5,6 +5,9 @@
 import LobbyScene from './scenes/LobbyScene.js';
 import ShopScene from './scenes/ShopScene.js';
 import AdventureScene from './scenes/AdventureScene.js';
+import CasinoScene from './scenes/CasinoScene.js';
+import ForgeScene from './scenes/ForgeScene.js';
+import QuestScene from './scenes/QuestScene.js';
 
 class App {
     constructor() {
@@ -16,7 +19,10 @@ class App {
         this.routes = {
             'lobby': LobbyScene,
             'shop': ShopScene,
-            'adventure': AdventureScene
+            'adventure': AdventureScene,
+            'casino': CasinoScene,
+            'forge': ForgeScene,
+            'quest': QuestScene
         };
 
         // Initialize

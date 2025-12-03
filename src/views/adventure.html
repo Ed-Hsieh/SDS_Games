@@ -140,6 +140,10 @@
                             <span class="vital-text" id="hud-mp-text">50/50</span>
                         </div>
                     </div>
+                    <!-- 新增：Buff 狀態顯示 -->
+                    <div class="buff-indicators" id="buff-indicators">
+                        <!-- 動態生成 Buff 圖示 -->
+                    </div>
                 </div>
 
                 <!-- 下排：行動按鈕組 -->
@@ -191,6 +195,19 @@
                             <div class="card-name">ESCAPE</div>
                             <div class="card-subtitle">逃跑</div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- 新增：技能列表 -->
+                <div class="skill-deck" id="skill-deck">
+                    <!-- 動態生成技能按鈕 -->
+                </div>
+                
+                <!-- 新增：戰鬥日誌 -->
+                <div class="battle-log-container">
+                    <div class="battle-log-header">📜 戰鬥日誌</div>
+                    <div class="battle-log" id="battle-log">
+                        <!-- 動態生成戰鬥記錄 -->
                     </div>
                 </div>
             </div>
@@ -270,6 +287,51 @@
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" id="btn-close-inventory">關閉</button>
+        </div>
+    </div>
+</div>
+
+<!-- 地圖事件彈窗 -->
+<div class="modal event-modal" id="event-modal" style="display: none;">
+    <div class="modal-content event-content">
+        <div class="modal-header">
+            <span class="event-icon" id="event-icon">📦</span>
+            <h2 id="event-title">發現了寶箱！</h2>
+        </div>
+        <div class="modal-body">
+            <p class="event-description" id="event-description">你在探索時發現了一個寶箱。</p>
+            <div class="event-result" id="event-result">
+                <!-- 動態顯示事件結果 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" id="btn-close-event">繼續探索</button>
+        </div>
+    </div>
+</div>
+
+<!-- 隨機劇情事件彈窗 (Slay the Spire 風格) -->
+<div class="modal story-event-modal" id="story-event-modal" style="display: none;">
+    <div class="modal-content story-event-content">
+        <div class="story-event-header">
+            <span class="story-event-icon" id="story-event-icon">🔮</span>
+            <h2 class="story-event-title" id="story-event-title">神秘事件</h2>
+            <span class="story-event-type" id="story-event-type">MYSTERY</span>
+        </div>
+        <div class="story-event-body">
+            <p class="story-event-description" id="story-event-description">
+                一個神秘的事件正在等待著你...
+            </p>
+            <div class="story-event-choices" id="story-event-choices">
+                <!-- 動態生成選項按鈕 -->
+            </div>
+        </div>
+        <div class="story-event-result" id="story-event-result" style="display: none;">
+            <h3>結果</h3>
+            <div class="result-messages" id="story-result-messages">
+                <!-- 動態顯示結果訊息 -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-story-event">繼續</button>
         </div>
     </div>
 </div>
