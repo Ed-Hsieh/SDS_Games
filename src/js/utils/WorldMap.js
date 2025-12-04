@@ -622,7 +622,20 @@ export default class WorldMap {
             }
         }
         
-        data[this.playerPos.y][this.playerPos.x] = { type: 'empty', zone: 'low' };
+        // 設置出生點為「家」
+        data[this.playerPos.y][this.playerPos.x] = { 
+            type: 'home', 
+            zone: 'low',
+            homeData: {
+                name: '溫暖的家',
+                icon: '🏠',
+                description: '回到大廳並完全恢復所有狀態'
+            }
+        };
+        
+        // 記錄家的位置（玩家出生點）
+        this.homePos = { x: this.playerPos.x, y: this.playerPos.y };
+        
         return data;
     }
 
@@ -663,6 +676,11 @@ export default class WorldMap {
                 };
                 // 副本入口不會消失，可以重複進入
                 return 'dungeon';
+            }
+            
+            // 回到家
+            if (cell.type === 'home') {
+                return 'home';
             }
         }
         return null;

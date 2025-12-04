@@ -10,6 +10,8 @@ import ForgeScene from './scenes/ForgeScene.js';
 import QuestScene from './scenes/QuestScene.js';
 import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
+// 導入共用的節奏條系統
+import './utils/RhythmBarSystem.js';
 
 class App {
     constructor() {

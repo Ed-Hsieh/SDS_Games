@@ -275,18 +275,79 @@
 
 <!-- 背包彈窗 -->
 <div class="modal inventory-modal" id="inventory-modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content inventory-content">
         <div class="modal-header">
-            <h2>🎒 背包</h2>
+            <h2>🎒 背包與裝備</h2>
             <span class="inventory-capacity" id="inventory-capacity">5/10</span>
         </div>
         <div class="modal-body inventory-body">
-            <div class="adventure-inventory-list" id="adventure-inventory-list">
-                <!-- 背包物品動態插入 -->
+            <div class="inventory-layout">
+                <!-- 左側：角色裝備 -->
+                <div class="equipment-panel">
+                    <div class="panel-title">👤 已裝備</div>
+                    <div class="equipment-slots" id="adv-equipment-slots">
+                        <!-- 武器槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-weapon" data-slot-type="weapon">
+                            <div class="equipment-slot-label">武器</div>
+                            <div class="equipment-slot-icon">⚔️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        <!-- 防具槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-armor" data-slot-type="armor">
+                            <div class="equipment-slot-label">防具</div>
+                            <div class="equipment-slot-icon">🛡️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        <!-- 飾品槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-accessory" data-slot-type="accessory">
+                            <div class="equipment-slot-label">飾品</div>
+                            <div class="equipment-slot-icon">💍</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 右側：背包物品 -->
+                <div class="inventory-panel">
+                    <div class="panel-title">🎒 背包</div>
+                    <div class="adventure-inventory-list" id="adventure-inventory-list">
+                        <!-- 背包物品動態插入 -->
+                    </div>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" id="btn-close-inventory">關閉</button>
+        </div>
+    </div>
+</div>
+
+<!-- 物品詳情彈窗 (與大廳一致) -->
+<div class="modal item-detail-modal" id="adv-item-detail-modal">
+    <div class="modal-content">
+        <div class="modal-header">物品詳情</div>
+        <div class="modal-body">
+            <div class="item-detail-header">
+                <div class="item-detail-icon" id="adv-modal-item-icon">⚔️</div>
+                <div class="item-detail-title">
+                    <div class="item-detail-name" id="adv-modal-item-name">物品名稱</div>
+                    <div class="item-detail-type" id="adv-modal-item-type">類型</div>
+                </div>
+            </div>
+            
+            <div class="item-detail-stats" id="adv-modal-item-stats">
+                <!-- 動態顯示物品屬性 -->
+            </div>
+            
+            <div class="item-detail-description" id="adv-modal-item-description">
+                物品描述
+            </div>
+            
+            <div class="item-detail-actions" id="adv-modal-item-actions">
+                <!-- 動態生成操作按鈕 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="btn-close-adv-item-modal">關閉</button>
         </div>
     </div>
 </div>

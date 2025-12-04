@@ -126,8 +126,15 @@ export default class AdventureScene {
             inventoryCapacity: this.container.querySelector('#inventory-capacity'),
             btnCloseInventory: this.container.querySelector('#btn-close-inventory'),
             
+            // Equipment Slots in Inventory
+            equipmentSlots: this.container.querySelector('#adv-equipment-slots'),
+            slotWeapon: this.container.querySelector('#adv-slot-weapon'),
+            slotArmor: this.container.querySelector('#adv-slot-armor'),
+            slotAccessory: this.container.querySelector('#adv-slot-accessory'),
+            
             // Item Detail Modal (for equipment interaction in inventory)
-            itemModal: this.container.querySelector('#item-detail-modal')
+            itemModal: this.container.querySelector('#adv-item-detail-modal'),
+            btnCloseItemModal: this.container.querySelector('#btn-close-adv-item-modal')
         };
         
         if (!this.dom.canvas) {
@@ -159,6 +166,33 @@ export default class AdventureScene {
         if (this.dom.btnCloseInventory) {
             this.dom.btnCloseInventory.addEventListener('click', () => {
                 this.closeInventoryModal();
+            });
+        }
+        
+        // Item Detail Modal close button
+        if (this.dom.btnCloseItemModal) {
+            this.dom.btnCloseItemModal.addEventListener('click', () => {
+                this.closeItemDetailModal();
+            });
+        }
+        
+        // Equipment slot click events
+        if (this.dom.slotWeapon) {
+            this.dom.slotWeapon.addEventListener('click', () => {
+                const weapon = GameManager.state.character.equipment.weapon;
+                if (weapon) this.showEquipmentModal(weapon, 'weapon');
+            });
+        }
+        if (this.dom.slotArmor) {
+            this.dom.slotArmor.addEventListener('click', () => {
+                const armor = GameManager.state.character.equipment.armor;
+                if (armor) this.showEquipmentModal(armor, 'armor');
+            });
+        }
+        if (this.dom.slotAccessory) {
+            this.dom.slotAccessory.addEventListener('click', () => {
+                const accessory = GameManager.state.character.equipment.accessory;
+                if (accessory) this.showEquipmentModal(accessory, 'accessory');
             });
         }
         
@@ -267,6 +301,9 @@ export default class AdventureScene {
             } else if (result === 'dungeon') {
                 this.isLocked = true;
                 this.handleDungeonEntrance();
+            } else if (result === 'home') {
+                this.isLocked = true;
+                this.handleReturnHome();
             }
         }
     }
@@ -360,6 +397,19 @@ export default class AdventureScene {
                 ctx.shadowBlur = 10;
                 ctx.fillStyle = '#fff';
                 ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
+                ctx.restore();
+            } else if (cell.data.type === 'home') {
+                // 顯示家的圖示
+                ctx.font = `${gridSize * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 家有特殊溫暖發光效果
+                ctx.save();
+                ctx.shadowColor = '#ffb347';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#fff';
+                ctx.fillText('🏠', x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             }
         });
@@ -563,6 +613,86 @@ export default class AdventureScene {
         return mechanics[mechanic] || { name: '未知', description: '未知的副本機制' };
     }
     
+    // ===== 返回家處理 =====
+    
+    handleReturnHome() {
+        // 顯示確認彈窗
+        const modalHTML = `
+            <div class="home-modal" id="home-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+                <div class="home-card" style="background: linear-gradient(145deg, #2d1f1a, #3d2b20); padding: 24px; border-radius: 16px; max-width: 400px; width: 90%; border: 2px solid #ffb347; box-shadow: 0 0 30px rgba(255, 179, 71, 0.4);">
+                    <div class="home-header" style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 64px; margin-bottom: 10px;">🏠</div>
+                        <h2 style="color: #ffb347; margin: 0 0 8px 0; font-size: 24px;">溫暖的家</h2>
+                        <div style="color: #aaa; font-size: 14px;">回到這裡可以完全恢復</div>
+                    </div>
+                    
+                    <div class="home-info" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <p style="color: #ccc; font-size: 14px; margin: 0 0 12px 0; text-align: center;">
+                            返回大廳將會：
+                        </p>
+                        <ul style="color: #8cc63f; font-size: 13px; margin: 0; padding-left: 20px;">
+                            <li style="margin-bottom: 6px;">💚 完全恢復生命值</li>
+                            <li style="margin-bottom: 6px;">💙 完全恢復魔力值</li>
+                            <li>✨ 清除所有負面狀態</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="home-actions" style="display: flex; gap: 12px; justify-content: center;">
+                        <button id="btn-return-home" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 16px; background: linear-gradient(145deg, #ffb347, #ff8c00); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
+                            🏠 回家休息
+                        </button>
+                        <button id="btn-cancel-home" class="btn btn-secondary" style="flex: 1; padding: 12px; font-size: 16px; background: #444; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                            ❌ 繼續探索
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 綁定按鈕事件
+        const modal = document.getElementById('home-modal');
+        const returnBtn = document.getElementById('btn-return-home');
+        const cancelBtn = document.getElementById('btn-cancel-home');
+        
+        returnBtn.addEventListener('click', () => {
+            modal.remove();
+            
+            // 恢復玩家所有狀態
+            const char = GameManager.getCharacter();
+            if (char) {
+                char.hp = char.maxHp || 100;
+                char.currentHP = char.maxHp || 100;
+                char.mp = char.maxMp || 50;
+                char.currentMP = char.maxMp || 50;
+                
+                // 清除負面狀態（如果有的話）
+                if (char.debuffs) {
+                    char.debuffs = [];
+                }
+                if (char.statusEffects) {
+                    char.statusEffects = char.statusEffects.filter(e => e.positive);
+                }
+            }
+            // 返回大廳
+            this.app.loadScene('lobby');
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.remove();
+            this.isLocked = false;
+        });
+        
+        // 點擊背景關閉
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                this.isLocked = false;
+            }
+        });
+    }
+    
     // ===== 劇情事件系統 (Slay the Spire 風格) =====
     
     triggerStoryEvent() {
@@ -760,8 +890,17 @@ export default class AdventureScene {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
         if (!this.rhythmSystem) return;
         
-        const hitType = this.rhythmSystem.judgeHit();
-        this.currentBattle.playerAttack(hitType);
+        // judgeHit() 返回 { type: 'crit'|'hit'|'miss'|'cooldown', damage: number }
+        const result = this.rhythmSystem.judgeHit();
+        
+        // 冷卻中無法攻擊
+        if (result.type === 'cooldown') {
+            this.addBattleLog('攻擊冷卻中...');
+            return;
+        }
+        
+        // 傳遞 hitType 給戰鬥系統
+        this.currentBattle.playerAttack(result.type);
     }
 
     handleFleeClick() {
@@ -1063,9 +1202,10 @@ class BattleController {
             }
         }
         
-        // 開始冷卻倒數
-        const cooldownTime = this.player.getAttackInterval();
-        this.startCooldown(cooldownTime);
+        // 注意：節奏條冷卻由 RhythmBarSystem 自己處理
+        // 這裡只處理武器卡片的視覺冷卻效果（可選）
+        // const cooldownTime = this.player.getAttackInterval();
+        // this.startCooldown(cooldownTime);
         
         // 怪物反擊延遲
         setTimeout(() => this.monsterAttack(), 1000);
@@ -1327,6 +1467,16 @@ class BattleController {
     }
 }
 
+/**
+ * RhythmBarSystem - 動態攻擊判定條系統
+ * 
+ * 規則說明：
+ * 1. 游標在長條內左右來回移動，速度由 weaponSpeed 決定
+ * 2. 爆擊區(Crit Zone)：寬度 = critChance * 100%，位置隨機
+ * 3. 有效區(Hit Zone)：寬度根據武器稀有度從20%到40%線性增加
+ * 4. 兩區域不可重疊
+ * 5. 攻擊後進入冷卻，冷卻時間 = attackSpeed 秒
+ */
 class RhythmBarSystem {
     constructor(character, container) {
         this.character = character;
@@ -1337,70 +1487,179 @@ class RhythmBarSystem {
         this.hitZoneElement = container.querySelector('#hit-zone');
         this.attackBtn = container.querySelector('#btn-attack');
         
+        // 節奏條總寬度（百分比）
         this.barWidth = 100;
-        this.needlePosition = 0;
-        this.needleDirection = 1;
-        this.weaponSpeed = character.getWeaponSpeed();
+        
+        // 指針狀態
+        this.needlePosition = 0;      // 當前位置 (0-100%)
+        this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
+        
+        // 從角色/武器獲取數據
+        this.updateEquipmentStats();
+        
+        // 動畫控制
         this.animationId = null;
         this.lastTime = 0;
         this.isRunning = false;
         this.isPaused = false;
+        
+        // 擊中標記
         this.hitMarker = null;
         
+        // 生成判定區域
         this.generateZones();
     }
 
+    /**
+     * 從角色裝備更新節奏條參數
+     */
+    updateEquipmentStats() {
+        // 取得武器速度（控制指針移動速度）
+        // weaponSpeed 越高，指針移動越快
+        this.weaponSpeed = this.character.getWeaponSpeed() || 1.0;
+        
+        // 取得攻擊速度（控制冷卻時間）
+        // attackSpeed 是冷卻秒數
+        this.attackSpeed = this.character.getAttackSpeed() || 1.0;
+        
+        // 取得爆擊機率（決定 Crit Zone 寬度）
+        this.critChance = this.character.getCritChance() || 0.05;
+        
+        // 取得爆擊傷害倍率
+        this.critDamage = this.character.getCritDamage() || 1.5;
+        
+        // 取得攻擊力（使用 getTotalAtk 方法）
+        this.attackPower = this.character.getTotalAtk() || 10;
+        
+        // 取得武器稀有度（決定 Hit Zone 寬度）
+        this.weaponRarity = this._getWeaponRarity();
+        
+        // 冷卻系統
+        this.isOnCooldown = false;
+        this.cooldownTimer = null;
+    }
+
+    /**
+     * 取得武器稀有度
+     * @returns {string} 稀有度名稱
+     */
+    _getWeaponRarity() {
+        const weapon = this.character.equipment?.weapon;
+        if (weapon && weapon.rarity) {
+            return weapon.rarity;
+        }
+        return 'common';
+    }
+
+    /**
+     * 根據稀有度計算 Hit Zone 寬度
+     * common: 20%, uncommon: 24%, rare: 28%, epic: 32%, legendary: 36%, mythic: 40%
+     */
+    _calculateHitZoneWidth() {
+        const rarityWidths = {
+            'common': 20,
+            'uncommon': 24,
+            'rare': 28,
+            'epic': 32,
+            'legendary': 36,
+            'mythic': 40
+        };
+        return rarityWidths[this.weaponRarity] || 20;
+    }
+
+    /**
+     * 生成判定區域位置
+     * Crit Zone 和 Hit Zone 隨機放置，但不可重疊
+     */
     generateZones() {
-        // 爆擊區域大小受 critChance 影響（5% ~ 30% critChance → 8% ~ 20% 寬度）
-        const critChance = this.character.getCritChance();
-        const critWidth = Math.max(8, Math.min(20, critChance * 60)); // 8-20%寬度
+        // ===== 計算區域寬度 =====
+        // Crit Zone 寬度 = critChance * 100%（例：12% 暴擊率 = 12% 寬度）
+        const critWidth = Math.max(5, Math.min(30, this.critChance * 100));
         
-        // Hit區域固定寬度
-        const hitWidth = 25;
-        const safeGap = 5; // 安全間距，確保不重疊
+        // Hit Zone 寬度根據武器稀有度（20% ~ 40%）
+        const hitWidth = this._calculateHitZoneWidth();
         
-        // 隨機決定左右順序
+        // 安全間距，確保區域不重疊
+        const safeGap = 3;
+        
+        // 可用範圍（留出兩端邊距）
+        const marginLeft = 3;
+        const marginRight = 3;
+        const availableWidth = 100 - marginLeft - marginRight;
+        
+        // ===== 隨機決定區域位置 =====
+        // 隨機決定哪個區域在左邊
         const critOnLeft = Math.random() > 0.5;
+        
         let critStart, hitStart;
         
         if (critOnLeft) {
-            // Crit在左，Hit在右
-            // Crit區域：5% ~ (75% - critWidth)
-            const critMaxStart = 75 - critWidth;
-            critStart = 5 + Math.random() * Math.max(0, critMaxStart - 5);
+            // Crit 在左，Hit 在右
+            const maxCritStart = availableWidth - critWidth - safeGap - hitWidth;
+            critStart = marginLeft + Math.random() * Math.max(0, maxCritStart);
             
-            // Hit區域：Crit結束後 + 安全間距
+            // Hit 區域在 Crit 區域右側
             const hitMinStart = critStart + critWidth + safeGap;
-            const hitMaxStart = Math.min(90 - hitWidth, hitMinStart + 30);
+            const hitMaxStart = 100 - marginRight - hitWidth;
             hitStart = hitMinStart + Math.random() * Math.max(0, hitMaxStart - hitMinStart);
         } else {
-            // Hit在左，Crit在右
-            // Hit區域：5% ~ (65% - hitWidth)
-            const hitMaxStart = 65 - hitWidth;
-            hitStart = 5 + Math.random() * Math.max(0, hitMaxStart - 5);
+            // Hit 在左，Crit 在右
+            const maxHitStart = availableWidth - hitWidth - safeGap - critWidth;
+            hitStart = marginLeft + Math.random() * Math.max(0, maxHitStart);
             
-            // Crit區域：Hit結束後 + 安全間距
+            // Crit 區域在 Hit 區域右側
             const critMinStart = hitStart + hitWidth + safeGap;
-            const critMaxStart = Math.min(90 - critWidth, critMinStart + 30);
+            const critMaxStart = 100 - marginRight - critWidth;
             critStart = critMinStart + Math.random() * Math.max(0, critMaxStart - critMinStart);
         }
         
+        // 保存區域資料
         this.critZone = { start: critStart, width: critWidth };
         this.hitZone = { start: hitStart, width: hitWidth };
         
-        this.critZoneElement.style.left = this.critZone.start + '%';
-        this.critZoneElement.style.width = this.critZone.width + '%';
-        this.hitZoneElement.style.left = this.hitZone.start + '%';
-        this.hitZoneElement.style.width = this.hitZone.width + '%';
+        // 更新 DOM
+        if (this.critZoneElement) {
+            this.critZoneElement.style.left = this.critZone.start + '%';
+            this.critZoneElement.style.width = this.critZone.width + '%';
+        }
+        if (this.hitZoneElement) {
+            this.hitZoneElement.style.left = this.hitZone.start + '%';
+            this.hitZoneElement.style.width = this.hitZone.width + '%';
+        }
+        
+        // Debug log
+        console.log(`[RhythmBar] Zones generated - Crit: ${critWidth.toFixed(1)}% at ${critStart.toFixed(1)}%, Hit: ${hitWidth}% at ${hitStart.toFixed(1)}%`);
     }
 
+    /**
+     * 創建冷卻環 UI
+     * 注意：使用 CSS 的旋轉動畫來顯示冷卻狀態
+     */
+    createCooldownRing() {
+        // 舊版使用 CSS ::before 偽元素顯示旋轉冷卻環
+        // 不需要額外創建 DOM 元素
+    }
+
+    /**
+     * 開始節奏條動畫
+     */
     start() {
-        if (this.isRunning) return; // Prevent multiple loops
+        if (this.isRunning) return;
+        
+        // 更新裝備參數
+        this.updateEquipmentStats();
+        
         this.isRunning = true;
+        this.isPaused = false;
         this.lastTime = performance.now();
         this.animate();
+        
+        console.log(`[RhythmBar] Started - Speed: ${this.weaponSpeed}, Cooldown: ${this.attackSpeed}s`);
     }
 
+    /**
+     * 停止節奏條動畫
+     */
     stop() {
         this.isRunning = false;
         if (this.animationId) {
@@ -1409,23 +1668,29 @@ class RhythmBarSystem {
         }
     }
 
+    /**
+     * 動畫循環 - 更新指針位置
+     */
     animate() {
-        if (!this.isRunning) return; // Exit if stopped
+        if (!this.isRunning) return;
         
         const currentTime = performance.now();
-        const deltaTime = (currentTime - this.lastTime) / 1000;
+        const deltaTime = (currentTime - this.lastTime) / 1000; // 轉換為秒
         this.lastTime = currentTime;
         
-        // 暫停時不更新位置
-        if (!this.isPaused) {
-            // Correct formula: pointer_speed = base_length / wep_speed
-            // wep_speed 1.0 = 1 second for full bar
-            // wep_speed 2.0 = 0.5 second for full bar
-            // wep_speed 0.5 = 2 seconds for full bar
-            const pixelsPerSecond = this.barWidth / this.weaponSpeed;
-            const speed = pixelsPerSecond * deltaTime;
-            this.needlePosition += speed * this.needleDirection;
+        // 暫停或冷卻中不更新位置
+        if (!this.isPaused && !this.isOnCooldown) {
+            // 計算指針移動速度
+            // 公式：指針速度 = (barWidth * weaponSpeed) per second
+            // weaponSpeed = 1.0 表示 1 秒走完整個條
+            // weaponSpeed = 2.0 表示 0.5 秒走完
+            // weaponSpeed = 0.5 表示 2 秒走完
+            const pixelsPerSecond = this.barWidth * this.weaponSpeed;
+            const movement = pixelsPerSecond * deltaTime;
             
+            this.needlePosition += movement * this.needleDirection;
+            
+            // 邊界反彈
             if (this.needlePosition >= this.barWidth) {
                 this.needlePosition = this.barWidth;
                 this.needleDirection = -1;
@@ -1434,6 +1699,7 @@ class RhythmBarSystem {
                 this.needleDirection = 1;
             }
             
+            // 更新指針 DOM
             if (this.needleElement) {
                 this.needleElement.style.left = this.needlePosition + '%';
             }
@@ -1442,40 +1708,71 @@ class RhythmBarSystem {
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
+    /**
+     * 判定攻擊結果
+     * @returns {object} { type: 'crit'|'hit'|'miss', damage: number }
+     */
     judgeHit() {
-        // 暫停節奏條
-        this.isPaused = true;
+        // 冷卻中無法攻擊
+        if (this.isOnCooldown) {
+            return { type: 'cooldown', damage: 0 };
+        }
         
         const pos = this.needlePosition;
         let hitType = 'miss';
+        let damage = 0;
         
-        // 精準判定：指針位置必須在區域內
+        // ===== 判定邏輯（Crit 優先） =====
+        // Condition A: Crit - 游標在 Crit Zone 內
         if (pos >= this.critZone.start && pos <= this.critZone.start + this.critZone.width) {
             hitType = 'crit';
-        } else if (pos >= this.hitZone.start && pos <= this.hitZone.start + this.hitZone.width) {
+            damage = Math.floor(this.attackPower * this.critDamage);
+        }
+        // Condition B: Hit - 游標在 Hit Zone 內（且不在 Crit 內）
+        else if (pos >= this.hitZone.start && pos <= this.hitZone.start + this.hitZone.width) {
             hitType = 'hit';
+            damage = this.attackPower;
+        }
+        // Condition C: Miss - 其他區域
+        else {
+            hitType = 'miss';
+            damage = 0;
         }
         
-        // 顯示按下位置標記
+        // 顯示擊中標記
         this.showHitMarker(pos, hitType);
         
-        return hitType;
+        // 顯示判定文字特效
+        this.showJudgmentText(hitType, damage);
+        
+        // 啟動冷卻
+        this.startCooldown();
+        
+        console.log(`[RhythmBar] Judge: ${hitType} at ${pos.toFixed(1)}%, Damage: ${damage}`);
+        
+        return { type: hitType, damage: damage };
     }
     
+    /**
+     * 顯示擊中位置標記
+     */
     showHitMarker(position, hitType) {
         // 移除舊標記
         if (this.hitMarker) {
             this.hitMarker.remove();
         }
         
-        // 創建新標記（只顯示短暫特效）
+        // 創建新標記
         this.hitMarker = document.createElement('div');
         this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
         this.hitMarker.style.left = position + '%';
         this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
-        this.barElement.appendChild(this.hitMarker);
         
-        // 特效播放完後移除（脈衝動畫0.8秒）
+        if (this.barElement) {
+            this.barElement.appendChild(this.hitMarker);
+        }
+        
+        // 特效播放完後移除
         setTimeout(() => {
             if (this.hitMarker) {
                 this.hitMarker.remove();
@@ -1484,9 +1781,117 @@ class RhythmBarSystem {
         }, 800);
     }
     
+    /**
+     * 顯示判定文字特效
+     */
+    showJudgmentText(hitType, damage) {
+        const textConfig = {
+            'crit': { text: 'CRITICAL!', color: '#4caf50', size: '28px' },
+            'hit': { text: 'HIT', color: '#ffd700', size: '22px' },
+            'miss': { text: 'MISS', color: '#ff4444', size: '20px' }
+        };
+        
+        const config = textConfig[hitType];
+        if (!config) return;
+        
+        const textEl = document.createElement('div');
+        textEl.className = `judgment-text judgment-${hitType}`;
+        textEl.textContent = config.text;
+        textEl.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: ${config.size};
+            font-weight: 900;
+            color: ${config.color};
+            text-shadow: 0 0 20px ${config.color}, 0 0 40px ${config.color};
+            z-index: 100;
+            pointer-events: none;
+            animation: judgmentPop 0.8s ease-out forwards;
+        `;
+        
+        if (this.barElement) {
+            this.barElement.appendChild(textEl);
+        }
+        
+        // 動畫結束後移除
+        setTimeout(() => textEl.remove(), 800);
+    }
+
+    /**
+     * 啟動冷卻系統
+     */
+    startCooldown() {
+        if (this.isOnCooldown) return;
+        
+        this.isOnCooldown = true;
+        
+        // 添加冷卻樣式（使用 CSS 的旋轉動畫）
+        if (this.barElement) {
+            this.barElement.classList.add('cooldown');
+        }
+        
+        // 冷卻時間結束後恢復
+        const cooldownDuration = this.attackSpeed * 1000; // 轉換為毫秒
+        
+        this.cooldownTimer = setTimeout(() => {
+            this.endCooldown();
+        }, cooldownDuration);
+    }
+
+    /**
+     * 結束冷卻
+     */
+    endCooldown() {
+        this.isOnCooldown = false;
+        
+        // 移除冷卻樣式
+        if (this.barElement) {
+            this.barElement.classList.remove('cooldown');
+        }
+        
+        // 重新隨機化區域位置
+        this.generateZones();
+        
+        // 取消冷卻計時器
+        if (this.cooldownTimer) {
+            clearTimeout(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
+        
+        console.log('[RhythmBar] Cooldown ended, zones regenerated');
+    }
+    
+    /**
+     * 暫停節奏條
+     */
+    pause() {
+        this.isPaused = true;
+    }
+    
+    /**
+     * 恢復節奏條
+     */
     resume() {
-        // 恢復節奏條運行
         this.isPaused = false;
+    }
+    
+    /**
+     * 重置節奏條
+     */
+    reset() {
+        this.needlePosition = 0;
+        this.needleDirection = 1;
+        this.isPaused = false;
+        this.isOnCooldown = false;
+        
+        if (this.barElement) {
+            this.barElement.classList.remove('cooldown');
+        }
+        
+        this.updateEquipmentStats();
+        this.generateZones();
     }
 }
 
@@ -1511,8 +1916,6 @@ AdventureScene.prototype.closeInventoryModal = function() {
 };
 
 AdventureScene.prototype.renderInventory = function() {
-    if (!this.dom.inventoryList) return;
-    
     const state = GameManager.state;
     
     // Update capacity
@@ -1520,7 +1923,12 @@ AdventureScene.prototype.renderInventory = function() {
         this.dom.inventoryCapacity.textContent = `${state.inventory.length}/${state.inventoryCapacity}`;
     }
     
-    // Render items
+    // Render equipment slots
+    this.renderEquipmentSlots();
+    
+    // Render inventory items
+    if (!this.dom.inventoryList) return;
+    
     this.dom.inventoryList.innerHTML = '';
     if (state.inventory && state.inventory.length > 0) {
         state.inventory.forEach(stack => {
@@ -1530,18 +1938,18 @@ AdventureScene.prototype.renderInventory = function() {
             
             let iconHTML;
             if (item.image) {
-                iconHTML = `<img src=\"${item.image}\" alt=\"${item.name}\" style=\"width: 100%; height: 100%; object-fit: contain;\">`;
+                iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
             } else {
-                iconHTML = item.icon || '\ud83d\udce6';
+                iconHTML = item.icon || '📦';
             }
             
             itemEl.innerHTML = `
-                <div class=\"item-icon\">
+                <div class="item-icon">
                     ${iconHTML}
-                    ${stack.quantity > 1 ? `<span class=\"quantity-badge\">x${stack.quantity}</span>` : ''}
+                    ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
                 </div>
-                <div class=\"item-info\">
-                    <div class=\"item-name\">${item.name}</div>
+                <div class="item-info">
+                    <div class="item-name">${item.name}</div>
                 </div>
             `;
             
@@ -1552,57 +1960,306 @@ AdventureScene.prototype.renderInventory = function() {
             this.dom.inventoryList.appendChild(itemEl);
         });
     } else {
-        this.dom.inventoryList.innerHTML = '<div class=\"empty-hint\">\u80cc\u5305\u7a7a\u7a7a\u5982\u4e5f...</div>';
+        this.dom.inventoryList.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+    }
+};
+
+AdventureScene.prototype.renderEquipmentSlots = function() {
+    const state = GameManager.state;
+    const equipment = state.character.equipment;
+    
+    // Weapon slot
+    if (this.dom.slotWeapon) {
+        const weapon = equipment.weapon;
+        if (weapon) {
+            this.dom.slotWeapon.classList.remove('empty');
+            this.dom.slotWeapon.classList.add('equipped');
+            const iconEl = this.dom.slotWeapon.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotWeapon.querySelector('.equipment-slot-name');
+            if (iconEl) {
+                if (weapon.image) {
+                    iconEl.innerHTML = `<img src="${weapon.image}" alt="${weapon.name}">`;
+                } else {
+                    iconEl.textContent = weapon.icon || '⚔️';
+                }
+            }
+            if (nameEl) nameEl.textContent = weapon.name;
+        } else {
+            this.dom.slotWeapon.classList.add('empty');
+            this.dom.slotWeapon.classList.remove('equipped');
+            const iconEl = this.dom.slotWeapon.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotWeapon.querySelector('.equipment-slot-name');
+            if (iconEl) iconEl.textContent = '⚔️';
+            if (nameEl) nameEl.textContent = '未裝備';
+        }
+    }
+    
+    // Armor slot
+    if (this.dom.slotArmor) {
+        const armor = equipment.armor;
+        if (armor) {
+            this.dom.slotArmor.classList.remove('empty');
+            this.dom.slotArmor.classList.add('equipped');
+            const iconEl = this.dom.slotArmor.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotArmor.querySelector('.equipment-slot-name');
+            if (iconEl) {
+                if (armor.image) {
+                    iconEl.innerHTML = `<img src="${armor.image}" alt="${armor.name}">`;
+                } else {
+                    iconEl.textContent = armor.icon || '🛡️';
+                }
+            }
+            if (nameEl) nameEl.textContent = armor.name;
+        } else {
+            this.dom.slotArmor.classList.add('empty');
+            this.dom.slotArmor.classList.remove('equipped');
+            const iconEl = this.dom.slotArmor.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotArmor.querySelector('.equipment-slot-name');
+            if (iconEl) iconEl.textContent = '🛡️';
+            if (nameEl) nameEl.textContent = '未裝備';
+        }
+    }
+    
+    // Accessory slot
+    if (this.dom.slotAccessory) {
+        const accessory = equipment.accessory;
+        if (accessory) {
+            this.dom.slotAccessory.classList.remove('empty');
+            this.dom.slotAccessory.classList.add('equipped');
+            const iconEl = this.dom.slotAccessory.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotAccessory.querySelector('.equipment-slot-name');
+            if (iconEl) {
+                if (accessory.image) {
+                    iconEl.innerHTML = `<img src="${accessory.image}" alt="${accessory.name}">`;
+                } else {
+                    iconEl.textContent = accessory.icon || '💍';
+                }
+            }
+            if (nameEl) nameEl.textContent = accessory.name;
+        } else {
+            this.dom.slotAccessory.classList.add('empty');
+            this.dom.slotAccessory.classList.remove('equipped');
+            const iconEl = this.dom.slotAccessory.querySelector('.equipment-slot-icon');
+            const nameEl = this.dom.slotAccessory.querySelector('.equipment-slot-name');
+            if (iconEl) iconEl.textContent = '💍';
+            if (nameEl) nameEl.textContent = '未裝備';
+        }
     }
 };
 
 AdventureScene.prototype.showInventoryItemModal = function(stack) {
-    // Create a temporary modal for adventure scene
     const item = stack.item;
+    const modal = this.dom.itemModal;
+    if (!modal) return;
+    
     const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
     const isConsumable = item.type === 'potion' || item.type === 'scroll';
     
-    let actions = '';
+    // Update modal content
+    const modalIcon = this.container.querySelector('#adv-modal-item-icon');
+    const modalName = this.container.querySelector('#adv-modal-item-name');
+    const modalType = this.container.querySelector('#adv-modal-item-type');
+    const modalDesc = this.container.querySelector('#adv-modal-item-description');
+    const modalStats = this.container.querySelector('#adv-modal-item-stats');
+    const modalActions = this.container.querySelector('#adv-modal-item-actions');
     
-    if (isEquipment) {
-        actions += `<button class=\"btn btn-primary\" onclick=\"window.adventureEquipItem('${stack.instanceId}')\">✅ 裝備</button>`;
+    if (modalIcon) {
+        if (item.image) {
+            modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+        } else {
+            modalIcon.textContent = item.icon || '📦';
+        }
+    }
+    if (modalName) modalName.textContent = item.name;
+    if (modalType) modalType.textContent = this.getItemTypeText(item.type);
+    if (modalDesc) modalDesc.textContent = item.desc || item.description || '無描述';
+    
+    // Render stats
+    if (modalStats) {
+        modalStats.innerHTML = '';
+        
+        if (item.atk || item.attack) {
+            const atk = item.atk || item.attack;
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
+        }
+        if (item.def || item.defense) {
+            const def = item.def || item.defense;
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
+        }
+        if (item.critChance) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+        }
+        if (item.critDamage) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        }
+        if (item.weaponSpeed) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
+        }
+        if (item.attackSpeed) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+        }
+        if (item.hp) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
+        }
+        if (item.mp) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
+        }
     }
     
-    if (isConsumable) {
-        actions += `<button class=\"btn btn-info\" onclick=\"window.adventureUseItem('${stack.instanceId}')\">✅ 使用</button>`;
+    // Render actions
+    if (modalActions) {
+        modalActions.innerHTML = '';
+        
+        if (isEquipment) {
+            const equipBtn = document.createElement('button');
+            equipBtn.className = 'btn btn-primary';
+            equipBtn.textContent = '✅ 裝備';
+            equipBtn.addEventListener('click', () => {
+                GameManager.equipItem(stack.instanceId, false);
+                this.closeItemDetailModal();
+                this.renderInventory();
+            });
+            modalActions.appendChild(equipBtn);
+        }
+        
+        if (isConsumable) {
+            const useBtn = document.createElement('button');
+            useBtn.className = 'btn btn-info';
+            useBtn.textContent = '✅ 使用';
+            useBtn.addEventListener('click', () => {
+                GameManager.useConsumable(stack.instanceId, false);
+                this.closeItemDetailModal();
+                this.renderInventory();
+            });
+            modalActions.appendChild(useBtn);
+        }
+        
+        const sellBtn = document.createElement('button');
+        sellBtn.className = 'btn btn-warning';
+        sellBtn.textContent = '💰 販售';
+        sellBtn.addEventListener('click', () => {
+            const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+            if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
+                GameManager.sellItem(stack.instanceId, false);
+                this.closeItemDetailModal();
+                this.renderInventory();
+            }
+        });
+        modalActions.appendChild(sellBtn);
+        
+        const discardBtn = document.createElement('button');
+        discardBtn.className = 'btn btn-danger';
+        discardBtn.textContent = '🗑️ 丟棄';
+        discardBtn.addEventListener('click', () => {
+            if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
+                const index = GameManager.state.inventory.findIndex(s => s.instanceId === stack.instanceId);
+                if (index > -1) {
+                    GameManager.state.inventory.splice(index, 1);
+                    GameManager.notify('inventory');
+                }
+                this.closeItemDetailModal();
+                this.renderInventory();
+            }
+        });
+        modalActions.appendChild(discardBtn);
     }
     
-    // In adventure, can't move to warehouse, only sell or discard
-    actions += `<button class=\"btn btn-warning\" onclick=\"window.adventureSellItem('${stack.instanceId}')\">✅ 販售</button>`;
-    actions += `<button class=\"btn btn-danger\" onclick=\"window.adventureDiscardItem('${stack.instanceId}')\">✅ 丟棄</button>`;
-    
-    // Simple modal display
-    const modalHTML = `
-        <div class=\"adventure-item-modal\" id=\"temp-item-modal\" style=\"position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000;\">
-            <div class=\"modal-card\" style=\"background: #1a1f2e; padding: 20px; border-radius: 12px; max-width: 400px; width: 90%;\">
-                <h3 style=\"text-align: center;\">${item.name}</h3>
-                <p style=\"text-align: center; color: #888;\">${item.desc || item.description || ''}</p>
-                <div style=\"margin: 20px 0; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;\">
-                    ${actions}
-                </div>
-                <button class=\"btn btn-secondary\" onclick=\"document.getElementById('temp-item-modal').remove(); window.adventureRefreshInventory();\">關閉</button>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    modal.classList.add('active');
 };
 
-// Global functions for adventure item actions
+AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
+    const modal = this.dom.itemModal;
+    if (!modal) return;
+    
+    // Update modal content
+    const modalIcon = this.container.querySelector('#adv-modal-item-icon');
+    const modalName = this.container.querySelector('#adv-modal-item-name');
+    const modalType = this.container.querySelector('#adv-modal-item-type');
+    const modalDesc = this.container.querySelector('#adv-modal-item-description');
+    const modalStats = this.container.querySelector('#adv-modal-item-stats');
+    const modalActions = this.container.querySelector('#adv-modal-item-actions');
+    
+    if (modalIcon) {
+        if (item.image) {
+            modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+        } else {
+            modalIcon.textContent = item.icon || '📦';
+        }
+    }
+    if (modalName) modalName.textContent = item.name;
+    if (modalType) modalType.textContent = this.getItemTypeText(item.type);
+    if (modalDesc) modalDesc.textContent = item.desc || item.description || '無描述';
+    
+    // Render stats
+    if (modalStats) {
+        modalStats.innerHTML = '';
+        
+        if (item.atk || item.attack) {
+            const atk = item.atk || item.attack;
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
+        }
+        if (item.def || item.defense) {
+            const def = item.def || item.defense;
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
+        }
+        if (item.critChance) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+        }
+        if (item.critDamage) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        }
+        if (item.weaponSpeed) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
+        }
+        if (item.attackSpeed) {
+            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+        }
+    }
+    
+    // Render unequip button
+    if (modalActions) {
+        modalActions.innerHTML = '';
+        const unequipBtn = document.createElement('button');
+        unequipBtn.className = 'btn btn-warning';
+        unequipBtn.textContent = '🔓 卸下裝備';
+        unequipBtn.addEventListener('click', () => {
+            GameManager.unequipItem(slotType, false);
+            this.closeItemDetailModal();
+            this.renderInventory();
+        });
+        modalActions.appendChild(unequipBtn);
+    }
+    
+    modal.classList.add('active');
+};
+
+AdventureScene.prototype.closeItemDetailModal = function() {
+    const modal = this.dom.itemModal;
+    if (!modal) return;
+    
+    modal.classList.remove('active');
+};
+
+AdventureScene.prototype.getItemTypeText = function(type) {
+    const typeMap = {
+        'weapon': '武器',
+        'armor': '防具',
+        'accessory': '飾品',
+        'potion': '藥水',
+        'scroll': '卷軸',
+        'material': '素材'
+    };
+    return typeMap[type] || type || '未知';
+};
+
+// Global functions for adventure item actions (for backward compatibility)
 window.adventureEquipItem = function(instanceId) {
     GameManager.equipItem(instanceId, false);
-    document.getElementById('temp-item-modal').remove();
     window.adventureRefreshInventory();
 };
 
 window.adventureUseItem = function(instanceId) {
     GameManager.useConsumable(instanceId, false);
-    document.getElementById('temp-item-modal').remove();
     window.adventureRefreshInventory();
 };
 
@@ -1613,7 +2270,6 @@ window.adventureSellItem = function(instanceId) {
     const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
     if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
         GameManager.sellItem(instanceId, false);
-        document.getElementById('temp-item-modal').remove();
         window.adventureRefreshInventory();
     }
 };
@@ -1622,22 +2278,17 @@ window.adventureDiscardItem = function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
     
-    const result = GameManager.discardItem(instanceId, false);
-    if (result === 'confirm') {
-        if (confirm(`「${stack.item.name}」是 ${stack.item.rarity} 稀有度物品！\n確定要丟棄嗎？`)) {
-            const index = GameManager.state.inventory.findIndex(s => s.instanceId === instanceId);
-            if (index > -1) {
-                GameManager.state.inventory.splice(index, 1);
-                GameManager.notify('inventory');
-            }
+    if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
+        const index = GameManager.state.inventory.findIndex(s => s.instanceId === instanceId);
+        if (index > -1) {
+            GameManager.state.inventory.splice(index, 1);
+            GameManager.notify('inventory');
         }
     }
-    document.getElementById('temp-item-modal').remove();
     window.adventureRefreshInventory();
 };
 
 window.adventureRefreshInventory = function() {
-    // Find adventure scene instance and refresh
     const adventureScene = window.currentAdventureScene;
     if (adventureScene && adventureScene.renderInventory) {
         adventureScene.renderInventory();

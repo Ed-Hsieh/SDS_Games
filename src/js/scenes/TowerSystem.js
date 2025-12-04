@@ -170,30 +170,54 @@ export default class TowerSystem {
         let message = '';
         
         if (action.type === 'attack') {
-            // 普通攻擊
-            const atk = character.getTotalAtk();
-            const def = monster.def || 0;
-            
-            // 計算傷害
-            damage = Math.max(1, atk - def * 0.5);
-            
-            // 暴擊判定
-            const critRoll = Math.random();
-            const isCrit = critRoll < character.getCritChance();
-            if (isCrit) {
-                damage = Math.floor(damage * character.getCritDamage());
-                message = `你發動暴擊，對 ${monster.name} 造成 ${damage} 點傷害！`;
+            // 檢查是否有節奏條判定結果
+            if (action.hitType && action.damage !== undefined) {
+                // 使用節奏條判定的結果
+                damage = action.damage;
+                const def = monster.def || 0;
+                
+                // 根據判定類型生成訊息
+                if (action.hitType === 'crit') {
+                    // 暴擊：使用節奏條傳來的傷害，再扣除部分防禦
+                    damage = Math.max(1, Math.floor(damage - def * 0.3));
+                    message = `💥 暴擊！你對 ${monster.name} 造成 ${damage} 點傷害！`;
+                } else if (action.hitType === 'hit') {
+                    // 命中：正常傷害計算
+                    damage = Math.max(1, Math.floor(damage - def * 0.5));
+                    message = `⚔️ 你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
+                } else {
+                    // Miss：無傷害
+                    damage = 0;
+                    message = `❌ 攻擊落空！${monster.name} 躲開了攻擊。`;
+                }
             } else {
-                damage = Math.floor(damage);
-                message = `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
+                // 備用邏輯：沒有節奏條時使用原始計算
+                const atk = character.getTotalAtk();
+                const def = monster.def || 0;
+                
+                // 計算傷害
+                damage = Math.max(1, atk - def * 0.5);
+                
+                // 暴擊判定
+                const critRoll = Math.random();
+                const isCrit = critRoll < character.getCritChance();
+                if (isCrit) {
+                    damage = Math.floor(damage * character.getCritDamage());
+                    message = `你發動暴擊，對 ${monster.name} 造成 ${damage} 點傷害！`;
+                } else {
+                    damage = Math.floor(damage);
+                    message = `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
+                }
             }
             
-            // 生命偷取
-            const lifesteal = character.equipment.weapon?.lifesteal || 0;
-            if (lifesteal > 0) {
-                const healAmount = Math.floor(damage * lifesteal);
-                character.hp = Math.min(character.maxHp, character.hp + healAmount);
-                message += ` 偷取 ${healAmount} 點生命。`;
+            // 生命偷取（僅在造成傷害時觸發）
+            if (damage > 0) {
+                const lifesteal = character.equipment.weapon?.lifesteal || 0;
+                if (lifesteal > 0) {
+                    const healAmount = Math.floor(damage * lifesteal);
+                    character.hp = Math.min(character.maxHp, character.hp + healAmount);
+                    message += ` 偷取 ${healAmount} 點生命。`;
+                }
             }
             
         } else if (action.type === 'skill') {

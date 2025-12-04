@@ -56,7 +56,11 @@ export const QuestDatabase = {
             rewards: {
                 gold: 100,
                 exp: 50,
-                items: ['starter_sword']
+                items: ['starter_sword'],
+                materials: [
+                    { id: 'slime_jelly', quantity: 5 },
+                    { id: 'beast_hide', quantity: 3 }
+                ]
             },
             unlocks: ['main_002'], // 完成後解鎖
             dialogue: {
@@ -77,7 +81,10 @@ export const QuestDatabase = {
             rewards: {
                 gold: 150,
                 exp: 80,
-                items: ['health_potion_s']
+                items: ['health_potion_s'],
+                materials: [
+                    { id: 'iron_ore', quantity: 5 }
+                ]
             },
             unlocks: ['main_003', 'bounty_001'],
             dialogue: {
@@ -98,7 +105,11 @@ export const QuestDatabase = {
             rewards: {
                 gold: 100,
                 exp: 60,
-                items: ['enhance_stone']
+                items: ['enhance_stone'],
+                materials: [
+                    { id: 'wolf_pelt', quantity: 3 },
+                    { id: 'wolf_fang', quantity: 3 }
+                ]
             },
             unlocks: ['main_004', 'commission_forge_001'],
             dialogue: {
@@ -141,7 +152,12 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 150,
-                items: ['rare_gem_box']
+                items: ['rare_gem_box'],
+                materials: [
+                    { id: 'spider_silk', quantity: 5 },
+                    { id: 'poison_gland', quantity: 3 },
+                    { id: 'bone_fragment', quantity: 5 }
+                ]
             },
             unlocks: ['main_006', 'bounty_002'],
             dialogue: {
@@ -184,7 +200,12 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 200,
-                items: ['lich_phylactery']
+                items: ['lich_phylactery'],
+                materials: [
+                    { id: 'dark_crystal', quantity: 2 },
+                    { id: 'ancient_bark', quantity: 5 },
+                    { id: 'life_seed', quantity: 2 }
+                ]
             },
             unlocks: ['main_008'],
             requiredLevel: 8,

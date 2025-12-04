@@ -13,6 +13,7 @@ class TowerScene {
         this.initialized = false;
         this.selectedFloor = 1;
         this.app = null; // 由 main.js 設定
+        this.rhythmSystem = null; // 節奏條系統
     }
     
     // 設定 app 參考
@@ -101,6 +102,13 @@ class TowerScene {
         this.playerStatGoldEl = document.getElementById('player-stat-gold');
         this.skillsListEl = document.getElementById('skills-list');
         this.quickItemsEl = document.getElementById('quick-items');
+        
+        // 節奏條元素
+        this.rhythmBarContainer = document.getElementById('tower-rhythm-bar-container');
+        this.rhythmBarEl = document.getElementById('tower-rhythm-bar');
+        this.rhythmNeedleEl = document.getElementById('tower-rhythm-needle');
+        this.critZoneEl = document.getElementById('tower-crit-zone');
+        this.hitZoneEl = document.getElementById('tower-hit-zone');
     }
 
     bindEvents() {
@@ -111,8 +119,8 @@ class TowerScene {
         // 開始戰鬥
         this.btnStartBattle?.addEventListener('click', () => this.startBattle());
 
-        // 戰鬥操作
-        this.btnAttack?.addEventListener('click', () => this.executeAction({ type: 'attack' }));
+        // 戰鬥操作 - 使用節奏條系統
+        this.btnAttack?.addEventListener('click', () => this.handleAttackClick());
         this.btnSkill?.addEventListener('click', () => this.showSkillMenu());
         this.btnItem?.addEventListener('click', () => this.showItemMenu());
         this.btnFlee?.addEventListener('click', () => this.fleeBattle());
@@ -121,6 +129,96 @@ class TowerScene {
         this.btnNextFloor?.addEventListener('click', () => this.goNextFloor());
         this.btnRetry?.addEventListener('click', () => this.retryBattle());
         this.btnExit?.addEventListener('click', () => this.exitTower());
+    }
+    
+    /**
+     * 處理攻擊按鈕點擊 - 使用節奏條判定
+     */
+    handleAttackClick() {
+        const status = towerSystem.getStatus();
+        if (status.state !== TowerState.IN_BATTLE) {
+            return;
+        }
+        
+        // 使用節奏條系統判定攻擊
+        if (this.rhythmSystem) {
+            const result = this.rhythmSystem.judgeHit();
+            
+            // 冷卻中不執行攻擊
+            if (result.type === 'cooldown') {
+                return;
+            }
+            
+            // 根據判定結果執行攻擊
+            this.executeAction({
+                type: 'attack',
+                hitType: result.type,
+                damage: result.damage
+            });
+        } else {
+            // 備用方案：沒有節奏條時使用原始邏輯
+            this.executeAction({ type: 'attack' });
+        }
+    }
+    
+    /**
+     * 初始化節奏條系統
+     */
+    initRhythmSystem() {
+        // 檢查節奏條元素是否存在
+        if (!this.rhythmBarEl || !window.RhythmBarSystem) {
+            console.warn('[TowerScene] Rhythm bar elements or system not available');
+            return;
+        }
+        
+        const char = GameManager.getCharacter();
+        
+        // 創建一個包裝容器對象，提供正確的元素選擇
+        const containerWrapper = {
+            querySelector: (selector) => {
+                // 將標準選擇器映射到 tower 專用的 ID
+                if (selector.includes('rhythm-bar') && !selector.includes('tower')) {
+                    return this.rhythmBarEl;
+                }
+                if (selector.includes('rhythm-needle') && !selector.includes('tower')) {
+                    return this.rhythmNeedleEl;
+                }
+                if (selector.includes('crit-zone') && !selector.includes('tower')) {
+                    return this.critZoneEl;
+                }
+                if (selector.includes('hit-zone') && !selector.includes('tower')) {
+                    return this.hitZoneEl;
+                }
+                if (selector.includes('btn-attack')) {
+                    return this.btnAttack;
+                }
+                // 直接嘗試查詢
+                return this.battleStateEl?.querySelector(selector);
+            }
+        };
+        
+        // 創建節奏條系統實例
+        this.rhythmSystem = new window.RhythmBarSystem(char, containerWrapper);
+        
+        console.log('[TowerScene] Rhythm system initialized');
+    }
+    
+    /**
+     * 啟動節奏條
+     */
+    startRhythmBar() {
+        if (this.rhythmSystem) {
+            this.rhythmSystem.start();
+        }
+    }
+    
+    /**
+     * 停止節奏條
+     */
+    stopRhythmBar() {
+        if (this.rhythmSystem) {
+            this.rhythmSystem.stop();
+        }
     }
 
     subscribeToSystems() {
@@ -420,6 +518,7 @@ class TowerScene {
 
     fleeBattle() {
         if (confirm('確定要逃跑嗎？進度將會重置。')) {
+            this.stopRhythmBar();
             towerSystem.abandonChallenge();
             this.showIdleState();
             this.renderFloorsList();
@@ -444,6 +543,7 @@ class TowerScene {
     }
 
     exitTower() {
+        this.stopRhythmBar();
         towerSystem.abandonChallenge();
         if (this.app) {
             this.app.loadScene('lobby');
@@ -497,6 +597,10 @@ class TowerScene {
         if (this.battlePlayerLevelEl) {
             this.battlePlayerLevelEl.textContent = char.level;
         }
+        
+        // 初始化並啟動節奏條系統
+        this.initRhythmSystem();
+        this.startRhythmBar();
 
         this.clearBattleLog();
         this.addBattleLog(`遭遇了 ${data.monster.name}！`);
@@ -510,10 +614,12 @@ class TowerScene {
     }
 
     onBattleVictory(data) {
+        this.stopRhythmBar();
         this.showResultState(true, data);
     }
 
     onBattleDefeat(data) {
+        this.stopRhythmBar();
         this.showResultState(false, data);
     }
 

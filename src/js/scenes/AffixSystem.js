@@ -424,10 +424,16 @@ export default class AffixSystem {
     /**
      * 為裝備生成隨機詞綴
      * @param {Object} equipment - 裝備對象
+     * @param {boolean} forceRegenerate - 是否強制重新生成（清除現有詞綴）
      * @returns {Object} 帶有詞綴的裝備
      */
-    generateAffixes(equipment) {
+    generateAffixes(equipment, forceRegenerate = false) {
         if (!equipment || !equipment.type) return equipment;
+        
+        // 如果不是強制重新生成且已有詞綴，直接返回
+        if (!forceRegenerate && equipment.affixes && equipment.affixes.length > 0) {
+            return equipment;
+        }
         
         const equipmentType = equipment.type;
         const equipmentRarity = equipment.rarity || ItemRarity.COMMON;
@@ -563,6 +569,27 @@ export default class AffixSystem {
         }
         
         return desc + parts.join(', ');
+    }
+    
+    /**
+     * 根據裝備稀有度獲取可用的詞綴槽位數量
+     */
+    getAffixSlots(rarity) {
+        const slotsByRarity = {
+            [ItemRarity.COMMON]: { prefix: 0, suffix: 0 },
+            [ItemRarity.UNCOMMON]: { prefix: 1, suffix: 0 },
+            [ItemRarity.RARE]: { prefix: 1, suffix: 1 },
+            [ItemRarity.EPIC]: { prefix: 2, suffix: 1 },
+            [ItemRarity.LEGENDARY]: { prefix: 2, suffix: 2 },
+            // 字串對應（小寫）
+            'common': { prefix: 0, suffix: 0 },
+            'uncommon': { prefix: 1, suffix: 0 },
+            'rare': { prefix: 1, suffix: 1 },
+            'epic': { prefix: 2, suffix: 1 },
+            'legendary': { prefix: 2, suffix: 2 }
+        };
+        
+        return slotsByRarity[rarity] || { prefix: 0, suffix: 0 };
     }
     
     /**

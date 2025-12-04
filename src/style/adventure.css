@@ -458,6 +458,27 @@
 /* 節奏條容器 */
 .rhythm-bar-container {
     margin: 16px 0 20px 0;
+    position: relative;
+}
+
+/* 節奏條武器資訊提示 */
+.rhythm-bar-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    padding: 0 4px;
+    font-size: 11px;
+    color: rgba(160, 170, 200, 0.8);
+}
+
+.rhythm-bar-info .info-label {
+    color: rgba(120, 130, 160, 0.6);
+    margin-right: 4px;
+}
+
+.rhythm-bar-info .info-value {
+    color: rgba(79, 172, 254, 0.9);
+    font-weight: 600;
 }
 
 .rhythm-bar {
@@ -1390,6 +1411,339 @@
     background: rgba(79, 172, 254, 0.7);
 }
 
+/* ===== 背包彈窗左右佈局 ===== */
+.inventory-content {
+    max-width: 700px;
+    width: 95%;
+}
+
+.inventory-layout {
+    display: flex;
+    gap: 20px;
+    min-height: 350px;
+}
+
+.equipment-panel {
+    flex: 0 0 200px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid rgba(79, 172, 254, 0.2);
+}
+
+.inventory-panel {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid rgba(79, 172, 254, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4facfe;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(79, 172, 254, 0.3);
+}
+
+/* 冒險場景裝備槽 */
+#adv-equipment-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#adv-equipment-slots .equipment-slot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    padding-top: 18px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#adv-equipment-slots .equipment-slot:hover {
+    border-color: rgba(79, 172, 254, 0.5);
+    background: rgba(79, 172, 254, 0.1);
+}
+
+#adv-equipment-slots .equipment-slot.empty {
+    opacity: 0.6;
+}
+
+#adv-equipment-slots .equipment-slot.equipped {
+    border-color: rgba(76, 175, 80, 0.5);
+    background: rgba(76, 175, 80, 0.1);
+}
+
+#adv-equipment-slots .equipment-slot-label {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    position: absolute;
+    top: 2px;
+    left: 8px;
+}
+
+#adv-equipment-slots .equipment-slot-icon {
+    font-size: 24px;
+    min-width: 32px;
+    text-align: center;
+}
+
+#adv-equipment-slots .equipment-slot-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+#adv-equipment-slots .equipment-slot-name {
+    flex: 1;
+    font-size: 12px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#adv-equipment-slots .equipment-slot.empty .equipment-slot-name {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* 背包物品列表調整 */
+.inventory-panel .adventure-inventory-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 280px;
+}
+
+/* 冒險場景物品卡片 - 與大廳一致 */
+.adventure-inventory-list .item-card {
+    background: linear-gradient(135deg, rgba(11, 17, 32, 0.9) 0%, rgba(13, 23, 38, 0.95) 100%);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    min-height: 50px;
+    position: relative;
+    overflow: hidden;
+    gap: 12px;
+}
+
+.adventure-inventory-list .item-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.1), transparent);
+    transition: left 0.4s ease;
+}
+
+.adventure-inventory-list .item-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.adventure-inventory-list .item-card:hover::before {
+    left: 100%;
+}
+
+/* 稀有度邊框配色 */
+.adventure-inventory-list .item-card.rarity-common {
+    border-color: rgba(158, 158, 158, 0.3);
+}
+.adventure-inventory-list .item-card.rarity-common:hover {
+    border-color: rgba(158, 158, 158, 0.7);
+    box-shadow: 0 4px 16px rgba(158, 158, 158, 0.3);
+}
+
+.adventure-inventory-list .item-card.rarity-uncommon {
+    border-color: rgba(76, 175, 80, 0.5);
+}
+.adventure-inventory-list .item-card.rarity-uncommon:hover {
+    border-color: rgba(76, 175, 80, 1);
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+}
+
+.adventure-inventory-list .item-card.rarity-rare {
+    border-color: rgba(33, 150, 243, 0.5);
+}
+.adventure-inventory-list .item-card.rarity-rare:hover {
+    border-color: rgba(33, 150, 243, 1);
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.5);
+}
+
+.adventure-inventory-list .item-card.rarity-epic {
+    border-color: rgba(156, 39, 176, 0.5);
+}
+.adventure-inventory-list .item-card.rarity-epic:hover {
+    border-color: rgba(156, 39, 176, 1);
+    box-shadow: 0 4px 16px rgba(156, 39, 176, 0.5);
+}
+
+.adventure-inventory-list .item-card.rarity-legendary {
+    border-color: rgba(255, 193, 7, 0.7);
+    box-shadow: 0 0 16px rgba(255, 193, 7, 0.3);
+}
+.adventure-inventory-list .item-card.rarity-legendary:hover {
+    border-color: rgba(255, 193, 7, 1);
+    box-shadow: 0 0 24px rgba(255, 193, 7, 0.6);
+}
+
+.adventure-inventory-list .item-icon {
+    font-size: 28px;
+    min-width: 36px;
+    text-align: center;
+    position: relative;
+}
+
+.adventure-inventory-list .item-icon img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+}
+
+.adventure-inventory-list .quantity-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    border: 2px solid #0B1120;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.adventure-inventory-list .item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.adventure-inventory-list .item-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 冒險場景物品詳情彈窗 */
+#adv-item-detail-modal .modal-content {
+    max-width: 380px;
+}
+
+#adv-item-detail-modal .item-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#adv-item-detail-modal .item-detail-icon {
+    font-size: 48px;
+    min-width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+
+#adv-item-detail-modal .item-detail-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+#adv-item-detail-modal .item-detail-title {
+    flex: 1;
+}
+
+#adv-item-detail-modal .item-detail-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+#adv-item-detail-modal .item-detail-type {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+}
+
+#adv-item-detail-modal .item-detail-stats {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+#adv-item-detail-modal .item-detail-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+}
+
+#adv-item-detail-modal .item-detail-stat:last-child {
+    border-bottom: none;
+}
+
+#adv-item-detail-modal .item-detail-stat .value {
+    color: #4facfe;
+    font-weight: 600;
+}
+
+#adv-item-detail-modal .item-detail-description {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border-left: 3px solid rgba(79, 172, 254, 0.5);
+}
+
+#adv-item-detail-modal .item-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+#adv-item-detail-modal .item-detail-actions .btn {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px 15px;
+    font-size: 13px;
+}
+
 .adventure-inventory-item {
     display: flex;
     align-items: center;
@@ -1761,6 +2115,63 @@
     100% {
         transform: translate(-50%, -50%) scale(3);
         opacity: 0;
+    }
+}
+
+/* ===== 判定文字特效 ===== */
+@keyframes judgmentPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.3);
+    }
+    40% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -70%) scale(0.8);
+    }
+}
+
+.judgment-text {
+    font-family: 'Rajdhani', 'Arial Black', sans-serif;
+    letter-spacing: 3px;
+}
+
+.judgment-crit {
+    animation: judgmentCritPop 0.8s ease-out forwards;
+}
+
+.judgment-hit {
+    animation: judgmentPop 0.8s ease-out forwards;
+}
+
+.judgment-miss {
+    animation: judgmentPop 0.8s ease-out forwards;
+}
+
+@keyframes judgmentCritPop {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5) rotate(-5deg);
+    }
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.5) rotate(3deg);
+    }
+    30% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(-2deg);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.3) rotate(1deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -80%) scale(1) rotate(0deg);
     }
 }
 

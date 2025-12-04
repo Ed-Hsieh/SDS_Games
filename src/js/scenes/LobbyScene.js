@@ -425,7 +425,7 @@ export default class LobbyScene {
         
         if (modalIcon) {
             if (item.image) {
-                modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;z-index: 1;">`;
             } else {
                 modalIcon.textContent = item.icon || '📦';
             }
@@ -525,10 +525,7 @@ export default class LobbyScene {
         }
         
         // Show modal
-        this.dom.itemModal.style.display = 'flex';
-        setTimeout(() => {
-            this.dom.itemModal.classList.add('active');
-        }, 10);
+        this.dom.itemModal.classList.add('active');
     }
     
     getItemTypeText(type) {
@@ -599,7 +596,6 @@ export default class LobbyScene {
     closeItemModal() {
         if (this.dom.itemModal) {
             this.dom.itemModal.classList.remove('active');
-            this.dom.itemModal.style.display = 'none';
         }
         this.selectedItem = null;
         this.selectedItemSource = null;
