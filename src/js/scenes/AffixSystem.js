@@ -221,8 +221,8 @@ export const SuffixDatabase = {
         name: '之烈焰',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
-        stats: { fireDamage: [3, 8] },
-        description: '火焰傷害 +{fireDamage}',
+        stats: { atk: [3, 8],critChance: [0.05, 0.10] },
+        description: '攻擊力 +{atk}，暴擊率 +{critChance}%',
         applicableTo: ['weapon']
     },
     of_ice: {
@@ -230,8 +230,8 @@ export const SuffixDatabase = {
         name: '之冰霜',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
-        stats: { iceDamage: [3, 8], slowChance: [0.05, 0.10] },
-        description: '冰霜傷害 +{iceDamage}，減速機率 +{slowChance}%',
+        stats: { atk: [3, 8], attackSpeed: [0.05, 0.10] },
+        description: '攻擊力 +{atk}，攻擊速度 +{attackSpeed}%',
         applicableTo: ['weapon']
     },
     of_thunder: {
@@ -239,8 +239,8 @@ export const SuffixDatabase = {
         name: '之雷霆',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
-        stats: { thunderDamage: [3, 8], stunChance: [0.03, 0.06] },
-        description: '雷電傷害 +{thunderDamage}，暈眩機率 +{stunChance}%',
+        stats: { atk: [3, 8], stunChance: [0.03, 0.06] },
+        description: '攻擊力 +{atk}，暈眩機率 +{stunChance}%',
         applicableTo: ['weapon']
     },
     of_fortitude: {
@@ -277,7 +277,7 @@ export const SuffixDatabase = {
         name: '之精準',
         rarity: ItemRarity.RARE,
         type: AffixType.SUFFIX,
-        stats: { critChance: [0.06, 0.10], critDamage: [0.10, 0.18] },
+        stats: { critChance: [0.05, 0.10], critDamage: [0.10, 0.20] },
         description: '暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%',
         applicableTo: ['weapon', 'accessory']
     },
@@ -306,8 +306,8 @@ export const SuffixDatabase = {
         name: '之巨龍',
         rarity: ItemRarity.EPIC,
         type: AffixType.SUFFIX,
-        stats: { fireDamage: [10, 20], hp: [50, 80], def: [10, 18] },
-        description: '火焰傷害 +{fireDamage}，生命 +{hp}，防禦力 +{def}',
+        stats: { atk: [10, 20], hp: [50, 80], def: [10, 18] },
+        description: '攻擊力 +{atk}，生命 +{hp}，防禦力 +{def}',
         applicableTo: ['weapon', 'armor']
     },
     of_shadows: {
@@ -335,8 +335,8 @@ export const SuffixDatabase = {
         name: '之虛空',
         rarity: ItemRarity.LEGENDARY,
         type: AffixType.SUFFIX,
-        stats: { voidDamage: [15, 30], armorPenetration: [0.10, 0.18], critChance: [0.08, 0.12] },
-        description: '虛空傷害 +{voidDamage}，穿甲 +{armorPenetration}%，暴擊率 +{critChance}%',
+        stats: { atk: [15, 30], armorPenetration: [0.10, 0.18], critChance: [0.08, 0.12] },
+        description: '攻擊力 +{atk}，穿甲 +{armorPenetration}%，暴擊率 +{critChance}%',
         applicableTo: ['weapon']
     },
     of_eternity: {
@@ -356,6 +356,16 @@ export const SuffixDatabase = {
         stats: { atk: [15, 25], def: [15, 25], hp: [40, 60], critChance: [0.05, 0.08], allStats: [0.03, 0.06] },
         description: '攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，暴擊率 +{critChance}%，全屬性 +{allStats}%',
         applicableTo: ['weapon', 'armor', 'accessory']
+    },
+    // 完美無瑕 - 不會消耗耐久度
+    indestructible: {
+        id: 'indestructible',
+        name: '之不朽',
+        rarity: ItemRarity.LEGENDARY,
+        type: AffixType.SUFFIX,
+        stats: { def: [10, 20], hp: [30, 50], noDurabilityLoss: [1, 1] },
+        description: '【完美無瑕】不會消耗耐久度，防禦力 +{def}，生命 +{hp}',
+        applicableTo: ['weapon', 'armor']
     }
 };
 

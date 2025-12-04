@@ -2672,3 +2672,31 @@
 .shake-large {
     animation: shake-large 0.4s ease-in-out;
 }
+
+/* ===== 耐久度顯示 ===== */
+.durability-display {
+    position: absolute;
+    bottom: 4px;
+    right: 8px;
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.durability-display.warning {
+    color: #ffa726;
+    background: rgba(255, 167, 38, 0.2);
+}
+
+.durability-display.critical {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.2);
+    animation: durability-pulse 1s infinite;
+}
+
+@keyframes durability-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}

@@ -168,8 +168,15 @@ export default class TowerSystem {
     executePlayerAction(character, monster, action) {
         let damage = 0;
         let message = '';
+        let weaponDestroyed = null;
         
         if (action.type === 'attack') {
+            // 武器耐久度消耗
+            weaponDestroyed = GameManager.reduceWeaponDurability();
+            if (weaponDestroyed) {
+                message = `💔 ${weaponDestroyed.name} 已損壞！\n`;
+            }
+            
             // 檢查是否有節奏條判定結果
             if (action.hitType && action.damage !== undefined) {
                 // 使用節奏條判定的結果
@@ -180,15 +187,15 @@ export default class TowerSystem {
                 if (action.hitType === 'crit') {
                     // 暴擊：使用節奏條傳來的傷害，再扣除部分防禦
                     damage = Math.max(1, Math.floor(damage - def * 0.3));
-                    message = `💥 暴擊！你對 ${monster.name} 造成 ${damage} 點傷害！`;
+                    message += `💥 暴擊！你對 ${monster.name} 造成 ${damage} 點傷害！`;
                 } else if (action.hitType === 'hit') {
                     // 命中：正常傷害計算
                     damage = Math.max(1, Math.floor(damage - def * 0.5));
-                    message = `⚔️ 你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
+                    message += `⚔️ 你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
                 } else {
                     // Miss：無傷害
                     damage = 0;
-                    message = `❌ 攻擊落空！${monster.name} 躲開了攻擊。`;
+                    message += `❌ 攻擊落空！${monster.name} 躲開了攻擊。`;
                 }
             } else {
                 // 備用邏輯：沒有節奏條時使用原始計算
@@ -203,10 +210,10 @@ export default class TowerSystem {
                 const isCrit = critRoll < character.getCritChance();
                 if (isCrit) {
                     damage = Math.floor(damage * character.getCritDamage());
-                    message = `你發動暴擊，對 ${monster.name} 造成 ${damage} 點傷害！`;
+                    message += `你發動暴擊，對 ${monster.name} 造成 ${damage} 點傷害！`;
                 } else {
                     damage = Math.floor(damage);
-                    message = `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
+                    message += `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
                 }
             }
             
@@ -274,14 +281,21 @@ export default class TowerSystem {
         // 應用傷害
         character.hp = Math.max(0, character.hp - damage);
         
-        const message = `${monster.name} 攻擊你，造成 ${damage} 點傷害。`;
+        let message = `${monster.name} 攻擊你，造成 ${damage} 點傷害。`;
+        
+        // 防具耐久度消耗
+        const armorDestroyed = GameManager.reduceArmorDurability();
+        if (armorDestroyed) {
+            message += `\n💔 ${armorDestroyed.name} 已損壞！`;
+        }
         
         return {
             actor: 'monster',
             action: 'attack',
             damage,
             message,
-            targetHp: character.hp
+            targetHp: character.hp,
+            armorDestroyed: armorDestroyed
         };
     }
     

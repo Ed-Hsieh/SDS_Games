@@ -100,97 +100,165 @@ class GameManager {
     }
     
     /**
-     * 添加 BOSS 裝備用於套裝測試
+     * 添加帶詞綴的測試裝備 - 每種詞綴各一個
      */
     addBossEquipmentForTesting() {
-        // 地獄騎士套裝（2件套）- 用於測試套裝效果
-        const hellKnightArmor = new Armor(
-            'hell_knight_armor', '地獄騎士鎧甲', ItemRarity.RARE, '🛡️',
-            '來自地獄的騎士鎧甲。', 800, 5, 25, 0.05, 1.3
+        // ========== 普通詞綴測試裝備 ==========
+        const commonSword = new Weapon(
+            'common_affix_sword', '普通測試劍', ItemRarity.COMMON, '🗡️',
+            '帶有普通詞綴的測試劍。', 50, 8, 0, 0.05, 1.5, 1.0, 1.0
         );
-        hellKnightArmor.setId = 'hell_knight_set';
-        hellKnightArmor.hp = 50;
-        hellKnightArmor.fireResist = 0.15;
-        hellKnightArmor.gemSlots = 2;
+        commonSword.durability = 50;
+        commonSword.maxDurability = 50;
+        // 手動添加普通詞綴：鋒利的（+atk）
+        commonSword.affixes = [{
+            id: 'sharp', name: '鋒利的', type: 'prefix', rarity: 'common',
+            stats: { atk: 4 }
+        }];
+        commonSword.affixBonuses = { atk: 4, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0 };
+        commonSword.name = '鋒利的普通測試劍';
+        this.addToWarehouse(commonSword);
         
-        const hellKnightSword = new Weapon(
-            'hell_knight_sword', '地獄騎士之劍', ItemRarity.RARE, '⚔️',
-            '地獄騎士的配劍，燃燒著地獄火焰。', 700, 22, 5, 0.12, 1.8, 1.1, 1.15
+        // ========== 優秀詞綴測試裝備 ==========
+        const uncommonSword = new Weapon(
+            'uncommon_affix_sword', '優秀測試劍', ItemRarity.UNCOMMON, '⚔️',
+            '帶有優秀詞綴的測試劍。', 150, 12, 0, 0.08, 1.6, 1.0, 1.1
         );
-        hellKnightSword.setId = 'hell_knight_set';
-        hellKnightSword.fireDamage = 12;
-        hellKnightSword.gemSlots = 2;
+        uncommonSword.durability = 50;
+        uncommonSword.maxDurability = 50;
+        // 手動添加優秀詞綴：銳利的（+atk +暴擊率）、之烈焰（+火傷 +暴擊率）
+        uncommonSword.affixes = [
+            { id: 'keen', name: '銳利的', type: 'prefix', rarity: 'uncommon', stats: { atk: 8, critChance: 0.03 } },
+            { id: 'of_fire', name: '之烈焰', type: 'suffix', rarity: 'uncommon', stats: { atk: 6, critChance: 0.07 } }
+        ];
+        uncommonSword.affixBonuses = { atk: 14, def: 0, hp: 0, mp: 0, critChance: 0.10, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0 };
+        uncommonSword.name = '銳利的優秀測試劍之烈焰';
+        this.addToWarehouse(uncommonSword);
         
-        this.addToWarehouse(hellKnightArmor);
-        this.addToWarehouse(hellKnightSword);
-        
-        // 深淵套裝（用於生命偷取測試）
-        const abyssBlade = new Weapon(
-            'abyss_blade', '深淵之刃', ItemRarity.EPIC, '⚔️',
-            '深淵魔將的佩劍，帶有吸取生命的詛咒。', 1500, 35, 0, 0.15, 2.0, 1.2, 1.3
+        // ========== 稀有詞綴測試裝備 ==========
+        const rareSword = new Weapon(
+            'rare_affix_sword', '稀有測試劍', ItemRarity.RARE, '⚔️',
+            '帶有稀有詞綴的測試劍。', 400, 18, 0, 0.10, 1.8, 1.1, 1.2
         );
-        abyssBlade.setId = 'abyss_set';
-        abyssBlade.lifesteal = 0.05;
-        abyssBlade.gemSlots = 2;
+        rareSword.durability = 50;
+        rareSword.maxDurability = 50;
+        // 手動添加稀有詞綴：兇猛的（+atk +暴擊傷害）、之狂怒（+暴擊率 +攻速）
+        rareSword.affixes = [
+            { id: 'vicious', name: '兇猛的', type: 'prefix', rarity: 'rare', stats: { atk: 15, critDamage: 0.15 } },
+            { id: 'of_fury', name: '之狂怒', type: 'suffix', rarity: 'rare', stats: { critChance: 0.07, attackSpeed: 0.08 } }
+        ];
+        rareSword.affixBonuses = { atk: 15, def: 0, hp: 0, mp: 0, critChance: 0.07, critDamage: 0.15, attackSpeed: 0.08, lifesteal: 0, damageReduction: 0 };
+        rareSword.name = '兇猛的稀有測試劍之狂怒';
+        this.addToWarehouse(rareSword);
         
-        const abyssArmor = new Armor(
-            'abyss_armor', '深淵戰甲', ItemRarity.EPIC, '🛡️',
-            '深淵的黑暗力量凝聚而成的戰甲。', 1400, 8, 30, 0.08, 1.5
+        // 稀有防具：嗜血的（+吸血）
+        const rareArmor = new Armor(
+            'rare_affix_armor', '稀有測試甲', ItemRarity.RARE, '🛡️',
+            '帶有稀有詞綴的測試甲。', 350, 5, 20, 0.06, 1.4
         );
-        abyssArmor.setId = 'abyss_set';
-        abyssArmor.hp = 80;
-        abyssArmor.lifesteal = 0.03;
-        abyssArmor.gemSlots = 2;
+        rareArmor.durability = 50;
+        rareArmor.maxDurability = 50;
+        rareArmor.affixes = [
+            { id: 'guardian', name: '守護的', type: 'prefix', rarity: 'rare', stats: { def: 14, hp: 40 } },
+            { id: 'of_the_titan', name: '之泰坦', type: 'suffix', rarity: 'rare', stats: { hp: 55, def: 12 } }
+        ];
+        rareArmor.affixBonuses = { atk: 0, def: 26, hp: 95, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0 };
+        rareArmor.name = '守護的稀有測試甲之泰坦';
+        this.addToWarehouse(rareArmor);
         
-        this.addToWarehouse(abyssBlade);
-        this.addToWarehouse(abyssArmor);
-        
-        // 龍族套裝（用於元素傷害測試）
-        const elderDragonFang = new Weapon(
-            'elder_dragon_fang', '古龍牙劍', ItemRarity.EPIC, '🐲',
-            '由古龍牙齒鍛造的神劍。', 2500, 45, 0, 0.18, 2.2, 1.0, 1.1
+        // ========== 史詩詞綴測試裝備 ==========
+        const epicSword = new Weapon(
+            'epic_affix_sword', '史詩測試劍', ItemRarity.EPIC, '⚔️',
+            '帶有史詩詞綴的測試劍。', 1000, 28, 0, 0.12, 2.0, 1.15, 1.25
         );
-        elderDragonFang.setId = 'dragon_set';
-        elderDragonFang.fireDamage = 15;
-        elderDragonFang.gemSlots = 3;
+        epicSword.durability = 50;
+        epicSword.maxDurability = 50;
+        // 手動添加史詩詞綴：殘暴的（+atk +暴擊率 +暴擊傷害）、之毀滅（+暴擊傷害 +atk）
+        epicSword.affixes = [
+            { id: 'brutal', name: '殘暴的', type: 'prefix', rarity: 'epic', stats: { atk: 25, critChance: 0.08, critDamage: 0.20 } },
+            { id: 'of_annihilation', name: '之毀滅', type: 'suffix', rarity: 'epic', stats: { critDamage: 0.28, atk: 15 } }
+        ];
+        epicSword.affixBonuses = { atk: 40, def: 0, hp: 0, mp: 0, critChance: 0.08, critDamage: 0.48, attackSpeed: 0, lifesteal: 0, damageReduction: 0 };
+        epicSword.name = '殘暴的史詩測試劍之毀滅';
+        this.addToWarehouse(epicSword);
         
-        const dragonScaleArmor = new Armor(
-            'dragon_scale_armor', '龍鱗戰甲', ItemRarity.EPIC, '🐉',
-            '以古龍鱗片打造的戰甲。', 2200, 12, 40, 0.10, 1.6
+        // 史詩防具：堅不可摧的 + 之巨龍
+        const epicArmor = new Armor(
+            'epic_affix_armor', '史詩測試甲', ItemRarity.EPIC, '🛡️',
+            '帶有史詩詞綴的測試甲。', 900, 10, 30, 0.08, 1.5
         );
-        dragonScaleArmor.setId = 'dragon_set';
-        dragonScaleArmor.hp = 100;
-        dragonScaleArmor.fireResist = 0.20;
-        dragonScaleArmor.gemSlots = 2;
+        epicArmor.durability = 50;
+        epicArmor.maxDurability = 50;
+        epicArmor.affixes = [
+            { id: 'impenetrable', name: '堅不可摧的', type: 'prefix', rarity: 'epic', stats: { def: 28, hp: 80, damageReduction: 0.05 } },
+            { id: 'of_the_dragon', name: '之巨龍', type: 'suffix', rarity: 'epic', stats: { atk: 15, hp: 65, def: 14 } }
+        ];
+        epicArmor.affixBonuses = { atk: 15, def: 42, hp: 145, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0.05 };
+        epicArmor.name = '堅不可摧的史詩測試甲之巨龍';
+        this.addToWarehouse(epicArmor);
         
-        this.addToWarehouse(elderDragonFang);
-        this.addToWarehouse(dragonScaleArmor);
-        
-        // 額外的測試裝備（不帶套裝，用於詞綴測試）
-        const testWeapon = new Weapon(
-            'test_sword', '測試之劍', ItemRarity.UNCOMMON, '🗡️',
-            '用於測試詞綴系統的劍。', 100, 10, 0, 0.10, 1.6, 1.0, 1.0
+        // ========== 傳說詞綴測試裝備 ==========
+        const legendarySword = new Weapon(
+            'legendary_affix_sword', '傳說測試劍', ItemRarity.LEGENDARY, '⚔️',
+            '帶有傳說詞綴的測試劍。', 3000, 40, 0, 0.15, 2.2, 1.2, 1.3
         );
-        testWeapon.canEnhance = true;
-        testWeapon.gemSlots = 1;
+        legendarySword.durability = 50;
+        legendarySword.maxDurability = 50;
+        // 手動添加傳說詞綴：弒神的 + 之虛空
+        legendarySword.affixes = [
+            { id: 'godslayer', name: '弒神的', type: 'prefix', rarity: 'legendary', stats: { atk: 42, critChance: 0.12, critDamage: 0.35, bossBonus: 0.15 } },
+            { id: 'of_the_void', name: '之虛空', type: 'suffix', rarity: 'legendary', stats: { atk: 22, armorPenetration: 0.14, critChance: 0.10 } }
+        ];
+        legendarySword.affixBonuses = { atk: 64, def: 0, hp: 0, mp: 0, critChance: 0.22, critDamage: 0.35, attackSpeed: 0, lifesteal: 0, damageReduction: 0, armorPenetration: 0.14, bossBonus: 0.15 };
+        legendarySword.name = '弒神的傳說測試劍之虛空';
+        this.addToWarehouse(legendarySword);
         
-        const testArmor = new Armor(
-            'test_armor', '測試護甲', ItemRarity.UNCOMMON, '🛡️',
-            '用於測試詞綴系統的護甲。', 100, 0, 10, 0.05, 1.3
+        // 傳說防具：不朽的 + 之永恆
+        const legendaryArmor = new Armor(
+            'legendary_affix_armor', '傳說測試甲', ItemRarity.LEGENDARY, '🛡️',
+            '帶有傳說詞綴的測試甲。', 2800, 15, 45, 0.10, 1.6
         );
-        testArmor.canEnhance = true;
-        testArmor.gemSlots = 1;
+        legendaryArmor.durability = 50;
+        legendaryArmor.maxDurability = 50;
+        legendaryArmor.affixes = [
+            { id: 'immortal', name: '不朽的', type: 'prefix', rarity: 'legendary', stats: { def: 45, hp: 125, hpRegen: 0.03, damageReduction: 0.08 } },
+            { id: 'of_eternity', name: '之永恆', type: 'suffix', rarity: 'legendary', stats: { hp: 100, def: 32, hpRegen: 0.04, damageReduction: 0.06 } }
+        ];
+        legendaryArmor.affixBonuses = { atk: 0, def: 77, hp: 225, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0.14, hpRegen: 0.07 };
+        legendaryArmor.name = '不朽的傳說測試甲之永恆';
+        this.addToWarehouse(legendaryArmor);
         
-        const testAccessory = new Accessory(
-            'test_ring', '測試戒指', ItemRarity.RARE, '💍',
-            '用於測試詞綴系統的戒指。', 150, 5, 5, 0.08, 1.5
+        // ========== 特殊詞綴測試：完美無瑕（不損耐久）==========
+        const perfectSword = new Weapon(
+            'perfect_sword', '完美之劍', ItemRarity.LEGENDARY, '✨',
+            '帶有完美無瑕詞綴的武器，不會損耗耐久度。', 5000, 35, 0, 0.12, 2.0, 1.1, 1.2
         );
-        testAccessory.canEnhance = true;
-        testAccessory.gemSlots = 1;
+        perfectSword.durability = 50;
+        perfectSword.maxDurability = 50;
+        perfectSword.affixes = [
+            { id: 'primordial', name: '原始的', type: 'prefix', rarity: 'legendary', stats: { atk: 28, def: 28, hp: 65, allStats: 0.08 } },
+            { id: 'indestructible', name: '之不朽', type: 'suffix', rarity: 'legendary', stats: { def: 15, hp: 40, noDurabilityLoss: 1 } }
+        ];
+        perfectSword.affixBonuses = { atk: 28, def: 43, hp: 105, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0, damageReduction: 0, allStats: 0.08, noDurabilityLoss: 1 };
+        perfectSword.name = '原始的完美之劍之不朽';
+        this.addToWarehouse(perfectSword);
         
-        this.addToWarehouse(testWeapon);
-        this.addToWarehouse(testArmor);
-        this.addToWarehouse(testAccessory);
+        // ========== 吸血測試裝備 ==========
+        const vampiricSword = new Weapon(
+            'vampiric_sword', '嗜血之劍', ItemRarity.RARE, '🩸',
+            '帶有生命偷取詞綴的武器。', 600, 20, 0, 0.10, 1.8, 1.0, 1.1
+        );
+        vampiricSword.durability = 50;
+        vampiricSword.maxDurability = 50;
+        vampiricSword.affixes = [
+            { id: 'vampiric', name: '嗜血的', type: 'prefix', rarity: 'rare', stats: { lifesteal: 0.05 } },
+            { id: 'sanguine', name: '鮮血的', type: 'prefix', rarity: 'epic', stats: { lifesteal: 0.08, atk: 12 } }
+        ];
+        vampiricSword.affixBonuses = { atk: 12, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0.13, damageReduction: 0 };
+        vampiricSword.name = '嗜血的鮮血之劍';
+        this.addToWarehouse(vampiricSword);
+        
+        console.log('測試裝備已添加：每種詞綴稀有度各一個');
     }
 
     static getInstance() {
@@ -673,6 +741,138 @@ class GameManager {
         
         this.notify('all');
         return true;
+    }
+    
+    /**
+     * 卸下裝備並放入背包或倉庫
+     * @param {string} slotType - 裝備槽位類型 (weapon, armor, accessory)
+     * @param {boolean} toWarehouse - 是否放入倉庫（預設放入背包）
+     * @returns {boolean} 是否成功卸下
+     */
+    unequipItem(slotType, toWarehouse = false) {
+        const item = this.state.character.equipment[slotType];
+        if (!item) return false;
+        
+        const target = toWarehouse ? this.state.warehouse : this.state.inventory;
+        
+        // 檢查背包容量（倉庫無限）
+        if (!toWarehouse && this.state.inventory.length >= this.state.inventoryCapacity) {
+            console.warn('背包已滿，無法卸下裝備');
+            return false;
+        }
+        
+        // 卸下裝備
+        this.state.character.equipment[slotType] = null;
+        
+        // 放入目標位置
+        target.push({
+            item: item,
+            quantity: 1,
+            instanceId: item.instanceId || `unequipped_${Date.now()}`
+        });
+        
+        this.notify('all');
+        return true;
+    }
+    
+    // ===== 耐久度系統 =====
+    
+    /**
+     * 檢查裝備是否有「完美無瑕」詞綴（不會損失耐久度）
+     */
+    hasNoDurabilityLossAffix(equipment) {
+        if (!equipment) return false;
+        
+        // 檢查 affixBonuses
+        if (equipment.affixBonuses && equipment.affixBonuses.noDurabilityLoss) {
+            return true;
+        }
+        
+        // 檢查 affixes 數組
+        if (equipment.affixes) {
+            return equipment.affixes.some(affix => 
+                affix.stats && (affix.stats.noDurabilityLoss === 1 || affix.stats.noDurabilityLoss === true || affix.stats.noDurabilityLoss >= 1)
+            );
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 減少武器耐久度（攻擊時調用）
+     * @returns {Object|null} 如果裝備損壞返回裝備資訊，否則返回 null
+     */
+    reduceWeaponDurability() {
+        const weapon = this.state.character.equipment.weapon;
+        if (!weapon) return null;
+        
+        // 檢查是否有「完美無瑕」詞綴
+        if (this.hasNoDurabilityLossAffix(weapon)) {
+            return null;
+        }
+        
+        // 如果沒有耐久度屬性，初始化
+        if (weapon.durability === undefined) {
+            weapon.durability = 50;
+            weapon.maxDurability = 50;
+        }
+        
+        weapon.durability = Math.max(0, weapon.durability - 1);
+        
+        // 耐久度歸零，裝備消失
+        if (weapon.durability <= 0) {
+            const destroyedWeapon = { ...weapon };
+            this.state.character.equipment.weapon = null;
+            this.notify('equipment');
+            return destroyedWeapon;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 減少防具耐久度（被攻擊時調用）
+     * @returns {Object|null} 如果裝備損壞返回裝備資訊，否則返回 null
+     */
+    reduceArmorDurability() {
+        const armor = this.state.character.equipment.armor;
+        if (!armor) return null;
+        
+        // 檢查是否有「完美無瑕」詞綴
+        if (this.hasNoDurabilityLossAffix(armor)) {
+            return null;
+        }
+        
+        // 如果沒有耐久度屬性，初始化
+        if (armor.durability === undefined) {
+            armor.durability = 50;
+            armor.maxDurability = 50;
+        }
+        
+        armor.durability = Math.max(0, armor.durability - 1);
+        
+        // 耐久度歸零，裝備消失
+        if (armor.durability <= 0) {
+            const destroyedArmor = { ...armor };
+            this.state.character.equipment.armor = null;
+            this.notify('equipment');
+            return destroyedArmor;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * 獲取裝備耐久度資訊
+     */
+    getEquipmentDurability(slotType) {
+        const equipment = this.state.character.equipment[slotType];
+        if (!equipment) return null;
+        
+        return {
+            current: equipment.durability ?? 50,
+            max: equipment.maxDurability ?? 50
+        };
     }
     
     // Character methods

@@ -194,6 +194,27 @@ export class Equipment extends Item {
         this.def = def;
         this.critChance = critChance; // 所有裝備都有爆擊率
         this.critDamage = critDamage; // 所有裝備都有爆擊傷害
+        // 耐久度系統 - 武器和防具才有
+        this.maxDurability = 50;      // 最大耐久度
+        this.durability = 50;          // 當前耐久度
+    }
+    
+    // 檢查是否有完美無瑕詞綴（不消耗耐久度）
+    hasIndestructible() {
+        if (!this.affixes) return false;
+        return this.affixes.some(affix => affix.id === 'indestructible');
+    }
+    
+    // 消耗耐久度
+    reduceDurability(amount = 1) {
+        if (this.hasIndestructible()) return false; // 不消耗
+        this.durability = Math.max(0, this.durability - amount);
+        return this.durability <= 0; // 返回是否損壞
+    }
+    
+    // 檢查是否損壞
+    isBroken() {
+        return this.durability <= 0;
     }
 }
 
@@ -202,6 +223,9 @@ export class Weapon extends Equipment {
         super(id, name, ItemType.WEAPON, rarity, icon, description, price, atk, def, critChance, critDamage);
         this.weaponSpeed = weaponSpeed;   // 只有武器有武器速度
         this.attackSpeed = attackSpeed;   // 只有武器有攻擊速度
+        // 武器耐久度
+        this.maxDurability = 50;
+        this.durability = 50;
     }
     
     getAttackInterval() {
@@ -212,14 +236,18 @@ export class Weapon extends Equipment {
 export class Armor extends Equipment {
     constructor(id, name, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.03, critDamage = 1.2) {
         super(id, name, ItemType.ARMOR, rarity, icon, description, price, atk, def, critChance, critDamage);
-        // 防具沒有 weaponSpeed 和 attackSpeed
+        // 防具耐久度
+        this.maxDurability = 50;
+        this.durability = 50;
     }
 }
 
 export class Accessory extends Equipment {
     constructor(id, name, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.05, critDamage = 1.3) {
         super(id, name, ItemType.ACCESSORY, rarity, icon, description, price, atk, def, critChance, critDamage);
-        // 飾品沒有 weaponSpeed 和 attackSpeed
+        // 飾品沒有耐久度
+        this.maxDurability = null;
+        this.durability = null;
     }
 }
 
@@ -318,6 +346,10 @@ export class Character {
         let total = this.baseAtk;
         Object.values(this.equipment).forEach(item => {
             if (item && item.atk) total += item.atk;
+            // 加上詞綴加成
+            if (item && item.affixBonuses && item.affixBonuses.atk) {
+                total += item.affixBonuses.atk;
+            }
         });
         // 加上 Buff 加成
         total += this.getBuffValue('atk');
@@ -329,6 +361,10 @@ export class Character {
         let total = this.baseDef;
         Object.values(this.equipment).forEach(item => {
             if (item && item.def) total += item.def;
+            // 加上詞綴加成
+            if (item && item.affixBonuses && item.affixBonuses.def) {
+                total += item.affixBonuses.def;
+            }
         });
         // 加上 Buff 加成
         total += this.getBuffValue('def');
@@ -341,6 +377,10 @@ export class Character {
         Object.values(this.equipment).forEach(item => {
             if (item && item.critChance) {
                 totalCritChance += item.critChance;
+            }
+            // 加上詞綴加成
+            if (item && item.affixBonuses && item.affixBonuses.critChance) {
+                totalCritChance += item.affixBonuses.critChance;
             }
         });
         // 加上 Buff 加成
@@ -355,6 +395,10 @@ export class Character {
             if (item && item.critDamage) {
                 additionalCritDamage += (item.critDamage - 1.5);
             }
+            // 加上詞綴加成
+            if (item && item.affixBonuses && item.affixBonuses.critDamage) {
+                additionalCritDamage += item.affixBonuses.critDamage;
+            }
         });
         // 加上 Buff 加成
         additionalCritDamage += this.getBuffValue('critDamage');
@@ -367,12 +411,63 @@ export class Character {
     }
 
     getAttackSpeed() {
+        let baseSpeed = 1.0;
         const weapon = this.equipment.weapon;
-        return (weapon && weapon.attackSpeed) ? weapon.attackSpeed : 1.0;
+        if (weapon && weapon.attackSpeed) {
+            baseSpeed = weapon.attackSpeed;
+        }
+        // 加上詞綴攻擊速度加成
+        Object.values(this.equipment).forEach(item => {
+            if (item && item.affixBonuses && item.affixBonuses.attackSpeed) {
+                baseSpeed += item.affixBonuses.attackSpeed;
+            }
+        });
+        return baseSpeed;
     }
 
     getAttackInterval() {
         return 1 / this.getAttackSpeed();
+    }
+    
+    /**
+     * 獲取生命偷取率
+     */
+    getLifesteal() {
+        let lifesteal = 0;
+        Object.values(this.equipment).forEach(item => {
+            if (item && item.lifesteal) lifesteal += item.lifesteal;
+            if (item && item.affixBonuses && item.affixBonuses.lifesteal) {
+                lifesteal += item.affixBonuses.lifesteal;
+            }
+        });
+        return lifesteal;
+    }
+    
+    /**
+     * 獲取傷害減免率
+     */
+    getDamageReduction() {
+        let reduction = 0;
+        Object.values(this.equipment).forEach(item => {
+            if (item && item.damageReduction) reduction += item.damageReduction;
+            if (item && item.affixBonuses && item.affixBonuses.damageReduction) {
+                reduction += item.affixBonuses.damageReduction;
+            }
+        });
+        return Math.min(reduction, 0.75); // 最大 75% 減傷
+    }
+    
+    /**
+     * 獲取詞綴帶來的額外生命值
+     */
+    getAffixHpBonus() {
+        let bonus = 0;
+        Object.values(this.equipment).forEach(item => {
+            if (item && item.affixBonuses && item.affixBonuses.hp) {
+                bonus += item.affixBonuses.hp;
+            }
+        });
+        return bonus;
     }
 
     // ===== Buff 系統 =====

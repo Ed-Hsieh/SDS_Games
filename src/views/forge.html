@@ -11,7 +11,7 @@
         <!-- 功能切換標籤 -->
         <nav class="forge-tabs">
             <button class="tab-btn active" data-tab="craft">🔨 鍛造製作</button>
-            <button class="tab-btn" data-tab="enhance">⚒️ 裝備強化</button>
+            <button class="tab-btn" data-tab="affix">✨ 詞綴重鑄</button>
             <button class="tab-btn" data-tab="gem">💎 寶石鑲嵌</button>
         </nav>
 
@@ -88,71 +88,65 @@
                 </section>
             </div>
 
-            <!-- ========== 裝備強化面板 ========== -->
-            <div id="enhance-panel" class="tab-content">
+            <!-- ========== 詞綴重鑄面板 ========== -->
+            <div id="affix-panel" class="tab-content">
                 <!-- 左側：裝備選擇 -->
                 <section class="equipment-panel">
                     <h3>📦 選擇裝備</h3>
-                    <div class="equipment-list" id="equipment-list">
+                    <div class="equipment-list" id="affix-equipment-list">
                         <!-- 動態生成 -->
                     </div>
                 </section>
 
-                <!-- 中間：強化區域 -->
-                <section class="enhance-panel">
-                    <div class="selected-equipment" id="selected-equipment">
+                <!-- 中間：重鑄區域 -->
+                <section class="affix-area">
+                    <div class="selected-equipment" id="selected-affix-equipment">
                         <div class="empty-slot">
                             <span class="empty-icon">⚔️</span>
-                            <span class="empty-text">選擇要強化的裝備</span>
+                            <span class="empty-text">選擇要重鑄詞綴的裝備</span>
                         </div>
                     </div>
 
-                    <!-- 強化資訊 -->
-                    <div class="enhance-info" id="enhance-info" style="display: none;">
-                        <div class="current-stats">
-                            <h4>當前屬性</h4>
-                            <div id="current-stats-display"></div>
-                        </div>
-                        
-                        <div class="enhance-arrow">⬇️</div>
-                        
-                        <div class="preview-stats">
-                            <h4>強化後預覽</h4>
-                            <div id="preview-stats-display"></div>
-                        </div>
-
-                        <div class="enhance-details">
-                            <div class="detail-row">
-                                <span>成功率:</span>
-                                <span id="success-rate" class="rate-value">100%</span>
+                    <!-- 詞綴資訊 -->
+                    <div class="affix-info" id="affix-info" style="display: none;">
+                        <div class="current-affixes">
+                            <h4>當前詞綴</h4>
+                            <div id="current-affixes-display" class="affixes-display">
+                                <!-- 動態顯示當前詞綴 -->
                             </div>
-                            <div class="detail-row">
-                                <span>費用:</span>
-                                <span id="enhance-cost" class="cost-value">50G</span>
+                        </div>
+                        
+                        <div class="affix-slots-info">
+                            <h4>詞綴槽位</h4>
+                            <div id="affix-slots-display" class="slots-display">
+                                <!-- 顯示前綴/後綴槽位數量 -->
                             </div>
                         </div>
 
-                        <button id="btn-enhance" class="action-btn enhance-btn">⚒️ 強化！</button>
-                        
-                        <div class="enhance-options">
-                            <label class="option-checkbox">
-                                <input type="checkbox" id="use-protection">
-                                <span>使用保護符 (防止降級)</span>
-                            </label>
+                        <div class="reroll-details">
+                            <div class="detail-row">
+                                <span>重鑄費用:</span>
+                                <span id="reroll-cost" class="cost-value">100G</span>
+                            </div>
+                            <div class="detail-row warning-text">
+                                ⚠️ 重鑄將隨機更換所有詞綴
+                            </div>
                         </div>
+
+                        <button id="btn-reroll-affix" class="action-btn reroll-btn">✨ 重鑄詞綴！</button>
                     </div>
 
-                    <!-- 強化結果動畫 -->
-                    <div class="enhance-result" id="enhance-result" style="display: none;">
+                    <!-- 重鑄結果動畫 -->
+                    <div class="reroll-result" id="reroll-result" style="display: none;">
                         <div class="result-icon"></div>
                         <div class="result-text"></div>
                     </div>
                 </section>
 
-                <!-- 右側：強化歷史 -->
-                <section class="enhance-history-panel">
-                    <h4>📜 強化紀錄</h4>
-                    <div class="history-list" id="enhance-history">
+                <!-- 右側：重鑄歷史 -->
+                <section class="reroll-history-panel">
+                    <h4>📜 重鑄紀錄</h4>
+                    <div class="history-list" id="reroll-history">
                         <!-- 動態生成 -->
                     </div>
                 </section>

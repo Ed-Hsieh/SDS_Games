@@ -3737,3 +3737,154 @@
 .dungeon-hell .mechanic-info .hud-value {
     color: #ff6b6b;
 }
+
+/* ===== 鍛造結果：詞綴和耐久度顯示 ===== */
+.result-affixes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.affix-tag {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.affix-tag.common {
+    background: rgba(180, 180, 180, 0.3);
+    color: #b4b4b4;
+    border: 1px solid rgba(180, 180, 180, 0.5);
+}
+
+.affix-tag.uncommon {
+    background: rgba(76, 175, 80, 0.3);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.affix-tag.rare {
+    background: rgba(33, 150, 243, 0.3);
+    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.5);
+}
+
+.affix-tag.epic {
+    background: rgba(156, 39, 176, 0.3);
+    color: #9c27b0;
+    border: 1px solid rgba(156, 39, 176, 0.5);
+}
+
+.affix-tag.legendary {
+    background: rgba(255, 152, 0, 0.3);
+    color: #ff9800;
+    border: 1px solid rgba(255, 152, 0, 0.5);
+    text-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
+}
+
+.result-durability {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 6px;
+}
+
+.result-item.legendary {
+    color: #ff9800;
+    text-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+}
+
+.result-item.epic {
+    color: #9c27b0;
+    text-shadow: 0 0 8px rgba(156, 39, 176, 0.6);
+}
+
+.result-item.rare {
+    color: #2196f3;
+    text-shadow: 0 0 8px rgba(33, 150, 243, 0.6);
+}
+
+.result-item.uncommon {
+    color: #4caf50;
+}
+
+/* ===== 物品詳情 Modal 詞綴和耐久度樣式 ===== */
+.item-detail-stat.warning .value {
+    color: #ffa726;
+}
+
+.item-detail-stat.critical .value {
+    color: #ef5350;
+    animation: pulse-text 1s infinite;
+}
+
+@keyframes pulse-text {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.item-affixes-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.affixes-title {
+    font-size: 12px;
+    color: #ffd700;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.item-affix {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    margin: 4px 0;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.item-affix.common {
+    background: rgba(180, 180, 180, 0.15);
+    border-left: 2px solid #b4b4b4;
+}
+
+.item-affix.uncommon {
+    background: rgba(76, 175, 80, 0.15);
+    border-left: 2px solid #4caf50;
+}
+
+.item-affix.rare {
+    background: rgba(33, 150, 243, 0.15);
+    border-left: 2px solid #2196f3;
+}
+
+.item-affix.epic {
+    background: rgba(156, 39, 176, 0.15);
+    border-left: 2px solid #9c27b0;
+}
+
+.item-affix.legendary {
+    background: rgba(255, 152, 0, 0.15);
+    border-left: 2px solid #ff9800;
+}
+
+.affix-name {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.item-affix.common .affix-name { color: #b4b4b4; }
+.item-affix.uncommon .affix-name { color: #4caf50; }
+.item-affix.rare .affix-name { color: #2196f3; }
+.item-affix.epic .affix-name { color: #9c27b0; }
+.item-affix.legendary .affix-name { color: #ff9800; }
+
+.affix-stats {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.7);
+}
