@@ -4,6 +4,40 @@
  */
 import { Equipment, Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 
+// ===== 副本入口配置 =====
+export const DungeonEntranceConfig = {
+    cave: { 
+        name: '幽暗洞窟', 
+        icon: '🏔️', 
+        zones: ['low', 'medium'],
+        description: '一個被黑暗籠罩的地下洞穴'
+    },
+    snow: { 
+        name: '冰封雪峰', 
+        icon: '❄️', 
+        zones: ['medium', 'high'],
+        description: '終年積雪的山峰'
+    },
+    ruins: { 
+        name: '遠古遺跡', 
+        icon: '🏛️', 
+        zones: ['medium', 'high'],
+        description: '失落文明的遺跡'
+    },
+    jungle: { 
+        name: '迷霧叢林', 
+        icon: '🌴', 
+        zones: ['high'],
+        description: '被迷霧籠罩的神秘叢林'
+    },
+    hell: { 
+        name: '煉獄深淵', 
+        icon: '🔥', 
+        zones: ['boss'],
+        description: '通往地獄的裂縫'
+    }
+};
+
 // ===== 地圖事件系統 =====
 export class MapEventFactory {
     static createEvent(zoneType) {
@@ -496,7 +530,8 @@ export default class WorldMap {
         this.cameraOffsetX = 0;
         this.cameraOffsetY = 0;
         this.currentMonster = null;
-        this.currentEvent = null; // 新增：當前事件
+        this.currentEvent = null;
+        this.currentDungeon = null; // 新增：當前副本入口
         this.updateCamera();
     }
 
@@ -514,6 +549,7 @@ export default class WorldMap {
             data.push(row);
         }
         
+        // 先設置區域
         for (let r = 0; r < this.rows; r++) {
             for (let c = 0; c < this.cols; c++) {
                 const dx = c - this.playerPos.x;
@@ -527,19 +563,61 @@ export default class WorldMap {
                 else zone = 'boss';
                 
                 data[r][c].zone = zone;
+            }
+        }
+        
+        // 生成副本入口（每種副本只生成一個）
+        const dungeonTypes = Object.keys(DungeonEntranceConfig);
+        const placedDungeons = new Set();
+        
+        for (const dungeonType of dungeonTypes) {
+            const config = DungeonEntranceConfig[dungeonType];
+            const validCells = [];
+            
+            // 找出符合條件的格子
+            for (let r = 0; r < this.rows; r++) {
+                for (let c = 0; c < this.cols; c++) {
+                    // 跳過玩家起點附近
+                    const dx = c - this.playerPos.x;
+                    const dy = r - this.playerPos.y;
+                    if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
+                    
+                    // 檢查區域是否符合
+                    if (config.zones.includes(data[r][c].zone) && data[r][c].type === 'empty') {
+                        validCells.push({ r, c });
+                    }
+                }
+            }
+            
+            // 隨機選擇一個格子放置副本入口
+            if (validCells.length > 0) {
+                const randomIndex = Math.floor(Math.random() * validCells.length);
+                const cell = validCells[randomIndex];
+                data[cell.r][cell.c].type = 'dungeon';
+                data[cell.r][cell.c].dungeonType = dungeonType;
+                data[cell.r][cell.c].dungeonData = config;
+                placedDungeons.add(dungeonType);
+            }
+        }
+        
+        // 生成其他內容（牆壁、怪物、事件）
+        for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+                // 跳過已經放置了副本入口的格子
+                if (data[r][c].type === 'dungeon') continue;
                 
                 const random = Math.random();
                 let cellType;
                 if (random < 0.15) cellType = 'wall';
                 else if (random < 0.30) cellType = 'monster';
-                else if (random < 0.38) cellType = 'event'; // 新增：事件格子
+                else if (random < 0.38) cellType = 'event';
                 else cellType = 'empty';
                 
                 data[r][c].type = cellType;
                 
                 // 為事件格子生成具體事件
                 if (cellType === 'event') {
-                    data[r][c].eventData = MapEventFactory.createEvent(zone);
+                    data[r][c].eventData = MapEventFactory.createEvent(data[r][c].zone);
                 }
             }
         }
@@ -577,6 +655,15 @@ export default class WorldMap {
                 cell.type = 'empty';
                 return 'event';
             }
+            
+            if (cell.type === 'dungeon') {
+                this.currentDungeon = {
+                    type: cell.dungeonType,
+                    data: cell.dungeonData
+                };
+                // 副本入口不會消失，可以重複進入
+                return 'dungeon';
+            }
         }
         return null;
     }
@@ -585,6 +672,8 @@ export default class WorldMap {
     clearCurrentMonster() { this.currentMonster = null; }
     getCurrentEvent() { return this.currentEvent; }
     clearCurrentEvent() { this.currentEvent = null; }
+    getCurrentDungeon() { return this.currentDungeon; }
+    clearCurrentDungeon() { this.currentDungeon = null; }
     getCurrentZone() { return this.mapData[this.playerPos.y][this.playerPos.x].zone; }
 
     getVisibleCells() {

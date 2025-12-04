@@ -20,6 +20,7 @@ export default class AdventureScene {
         this.rhythmSystem = null;
         this.animationFrameId = null;
         this.battleLog = [];  // 新增：戰鬥日誌
+        this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
         
         // Bindings
         this.handleKeyPress = this.handleKeyPress.bind(this);
@@ -230,6 +231,11 @@ export default class AdventureScene {
             }
             return;
         }
+        
+        // 如果被鎖定（事件/副本入口彈窗開啟時），不允許移動
+        if (this.isLocked) {
+            return;
+        }
 
         let dx = 0;
         let dy = 0;
@@ -248,10 +254,19 @@ export default class AdventureScene {
             this.renderMap();
             this.updateUI();
             
+            // 追蹤探索進度（任務系統）
+            const zone = this.worldMap.getCurrentZone();
+            questSystem.updateProgress(ObjectiveType.EXPLORE, zone, 1);
+            
             if (result === 'battle') {
+                this.isLocked = true;
                 this.startBattle();
             } else if (result === 'event') {
+                this.isLocked = true;
                 this.handleMapEvent();
+            } else if (result === 'dungeon') {
+                this.isLocked = true;
+                this.handleDungeonEntrance();
             }
         }
     }
@@ -297,7 +312,7 @@ export default class AdventureScene {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
-        const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓' };
+        const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓', 'dungeon': '🏰' };
 
         const visibleCells = this.worldMap.getVisibleCells();
         
@@ -330,6 +345,22 @@ export default class AdventureScene {
                 ctx.fillStyle = '#fff';
                 const eventIcon = cell.data.eventData ? cell.data.eventData.icon : terrainIcons.event;
                 ctx.fillText(eventIcon, x + gridSize / 2, y + gridSize / 2);
+            } else if (cell.data.type === 'dungeon') {
+                // 顯示副本入口圖示
+                ctx.font = `${gridSize * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // 副本入口有特殊發光效果
+                const dungeonIcon = cell.data.dungeonData?.icon || terrainIcons.dungeon;
+                
+                // 繪製發光背景
+                ctx.save();
+                ctx.shadowColor = cell.data.dungeonData?.color || '#ff6b6b';
+                ctx.shadowBlur = 10;
+                ctx.fillStyle = '#fff';
+                ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
+                ctx.restore();
             }
         });
         
@@ -403,6 +434,133 @@ export default class AdventureScene {
         
         this.worldMap.clearCurrentEvent();
         this.updateUI();
+    }
+    
+    // ===== 副本入口處理 =====
+    
+    handleDungeonEntrance() {
+        const dungeon = this.worldMap.getCurrentDungeon();
+        if (!dungeon) return;
+        
+        // 導入副本資料
+        import('../data/Dungeons.js').then(module => {
+            const { DungeonDatabase, DungeonEntranceConfig } = module;
+            const dungeonType = dungeon.type; // 正確讀取 type 屬性
+            const dungeonData = DungeonDatabase[dungeonType];
+            const entranceConfig = DungeonEntranceConfig[dungeonType];
+            
+            if (!dungeonData) {
+                console.error('找不到副本資料:', dungeonType);
+                return;
+            }
+            
+            // 顯示副本入口確認彈窗
+            this.showDungeonEntranceModal(dungeonType, dungeonData, entranceConfig);
+        }).catch(err => {
+            console.error('載入副本資料失敗:', err);
+        });
+    }
+    
+    showDungeonEntranceModal(dungeonType, dungeonData, entranceConfig) {
+        // 建立彈窗 HTML
+        const char = GameManager.getCharacter();
+        const isLevelOK = char.level >= dungeonData.recommendLevel;
+        const mechanicInfo = this.getDungeonMechanicDescription(dungeonData.mechanic?.type || dungeonType);
+        
+        const modalHTML = `
+            <div class="dungeon-entrance-modal" id="dungeon-entrance-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+                <div class="dungeon-entrance-card" style="background: linear-gradient(145deg, #1a1f2e, #252b3d); padding: 24px; border-radius: 16px; max-width: 450px; width: 90%; border: 2px solid ${entranceConfig?.color || '#888'}; box-shadow: 0 0 30px ${entranceConfig?.color || '#888'}40;">
+                    <div class="dungeon-entrance-header" style="text-align: center; margin-bottom: 20px;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">${dungeonData.icon}</div>
+                        <h2 style="color: ${entranceConfig?.color || '#fff'}; margin: 0 0 8px 0; font-size: 24px;">${dungeonData.name}</h2>
+                        <div style="color: #888; font-size: 14px;">等級需求: Lv.${dungeonData.recommendLevel}+ ${isLevelOK ? '✅' : '❌'}</div>
+                    </div>
+                    
+                    <div class="dungeon-entrance-info" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                        <p style="color: #ccc; font-size: 14px; margin: 0 0 12px 0;">${dungeonData.description}</p>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #aaa;">
+                            <span>🏰 樓層數: ${dungeonData.floors || dungeonData.bossFloor || 5}</span>
+                            <span>⚔️ 難度: ${'⭐'.repeat(dungeonData.difficulty || Math.min(5, Math.ceil(dungeonData.recommendLevel / 5)))}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="dungeon-mechanic-info" style="background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+                        <div style="color: #ffa500; font-size: 13px; font-weight: bold; margin-bottom: 6px;">⚠️ 特殊機制: ${mechanicInfo.name}</div>
+                        <div style="color: #ccc; font-size: 12px;">${mechanicInfo.description}</div>
+                    </div>
+                    
+                    <div class="dungeon-entrance-actions" style="display: flex; gap: 12px; justify-content: center;">
+                        <button id="btn-enter-dungeon" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 16px; background: ${entranceConfig?.color || '#4a90d9'}; border: none; border-radius: 8px; color: white; cursor: pointer; ${!isLevelOK ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${!isLevelOK ? 'disabled' : ''}>
+                            ⚔️ 進入副本
+                        </button>
+                        <button id="btn-cancel-dungeon" class="btn btn-secondary" style="flex: 1; padding: 12px; font-size: 16px; background: #444; border: none; border-radius: 8px; color: white; cursor: pointer;">
+                            🚪 離開
+                        </button>
+                    </div>
+                    
+                    ${!isLevelOK ? '<div style="text-align: center; color: #ff6b6b; font-size: 12px; margin-top: 12px;">等級不足，無法進入此副本！</div>' : ''}
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // 綁定按鈕事件
+        const modal = document.getElementById('dungeon-entrance-modal');
+        const enterBtn = document.getElementById('btn-enter-dungeon');
+        const cancelBtn = document.getElementById('btn-cancel-dungeon');
+        
+        enterBtn.addEventListener('click', () => {
+            if (!isLevelOK) return;
+            modal.remove();
+            this.worldMap.clearCurrentDungeon();
+            // 使用 main.js 的 enterDungeon 方法或直接跳轉
+            window.location.hash = `#dungeon-${dungeonType}`;
+        });
+        
+        cancelBtn.addEventListener('click', () => {
+            modal.remove();
+            this.worldMap.clearCurrentDungeon();
+            // 解除移動鎖定
+            this.isLocked = false;
+        });
+        
+        // 點擊背景關閉
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                this.worldMap.clearCurrentDungeon();
+                // 解除移動鎖定
+                this.isLocked = false;
+            }
+        });
+    }
+    
+    getDungeonMechanicDescription(mechanic) {
+        const mechanics = {
+            darkness: {
+                name: '黑暗籠罩',
+                description: '視野受限，可能遭遇突襲。攜帶火把可減輕效果。'
+            },
+            cold: {
+                name: '極寒侵襲',
+                description: '寒氣逐漸累積，滿100點時會造成凍傷。需要定期取暖或使用抗寒藥劑。'
+            },
+            puzzle: {
+                name: '古代謎題',
+                description: '每層都有謎題需要解開才能前進。解題可獲得額外獎勵。'
+            },
+            maze: {
+                name: '迷霧迷宮',
+                description: '濃霧使人迷失方向，需要收集路標才能找到出口。'
+            },
+            burn: {
+                name: '灼熱地獄',
+                description: '持續受到灼燒傷害，HP會逐漸減少。建議攜帶大量治療道具。'
+            }
+        };
+        
+        return mechanics[mechanic] || { name: '未知', description: '未知的副本機制' };
     }
     
     // ===== 劇情事件系統 (Slay the Spire 風格) =====
@@ -504,6 +662,8 @@ export default class AdventureScene {
             this.dom.storyEventModal.style.display = 'none';
         }
         this.worldMap.clearCurrentEvent();
+        // 解除移動鎖定
+        this.isLocked = false;
         this.updateUI();
     }
     
@@ -552,6 +712,8 @@ export default class AdventureScene {
         if (this.dom.eventModal) {
             this.dom.eventModal.style.display = 'none';
         }
+        // 解除移動鎖定
+        this.isLocked = false;
     }
 
     // ===== Battle Logic =====
@@ -587,6 +749,9 @@ export default class AdventureScene {
         // 清除戰鬥結束時的 Buff
         const char = GameManager.getCharacter();
         char.clearAllBuffs();
+        
+        // 解除移動鎖定
+        this.isLocked = false;
         
         this.updateUI();
     }

@@ -31,6 +31,9 @@ export const ObjectiveType = {
     EXPLORE: 'explore',         // 探索區域
     EVENT: 'event',             // 觸發事件
     TALK: 'talk',               // 與 NPC 對話
+    DUNGEON_CLEAR: 'dungeon_clear', // 通關副本
+    DUNGEON_BOSS: 'dungeon_boss',   // 擊敗副本 Boss
+    DUNGEON_FLOOR: 'dungeon_floor', // 到達副本樓層
     CUSTOM: 'custom'            // 自定義條件
 };
 
@@ -176,17 +179,431 @@ export const QuestDatabase = {
             description: '前往 Boss 區域，面對最強大的敵人！',
             objectives: [
                 { type: ObjectiveType.EXPLORE, target: 'boss', count: 1, description: '進入 Boss 區域' },
-                { type: ObjectiveType.KILL, target: 'boss', count: 1, description: '擊敗 Boss' }
+                { type: ObjectiveType.KILL, target: 'lich', count: 1, description: '擊敗巫妖' }
+            ],
+            rewards: {
+                gold: 500,
+                exp: 200,
+                items: ['lich_phylactery']
+            },
+            unlocks: ['main_008'],
+            requiredLevel: 8,
+            dialogue: {
+                start: '遺跡深處潛伏著一個可怕的存在...巫妖。',
+                complete: '巫妖被擊敗了！但這只是開始...'
+            }
+        },
+        // ==================== 第四章：暗影入侵 (Lv.10-14) ====================
+        {
+            id: 'main_008',
+            name: '暗影的氣息',
+            type: QuestType.MAIN,
+            chapter: 4,
+            icon: '🌑',
+            description: '巫妖的死亡引發了更大的危機。暗影軍團開始入侵...',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_soldier', count: 10, description: '擊敗暗影士兵 10 隻' }
+            ],
+            rewards: {
+                gold: 400,
+                exp: 250,
+                items: ['shadow_shard']
+            },
+            unlocks: ['main_009'],
+            requiredLevel: 10,
+            dialogue: {
+                start: '暗影軍團的先鋒部隊已經出現！阻止他們！',
+                complete: '這只是前鋒...更多的敵人正在接近。'
+            }
+        },
+        {
+            id: 'main_009',
+            name: '調查暗影據點',
+            type: QuestType.MAIN,
+            chapter: 4,
+            icon: '🔍',
+            description: '找出暗影軍團的據點，收集情報。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_archer', count: 8, description: '擊敗暗影弓手 8 隻' },
+                { type: ObjectiveType.COLLECT, target: 'shadow_shard', count: 5, description: '收集暗影碎片 5 個' }
+            ],
+            rewards: {
+                gold: 500,
+                exp: 300,
+                items: ['dark_steel']
+            },
+            unlocks: ['main_010'],
+            requiredLevel: 11,
+            dialogue: {
+                start: '敵人的弓手正在掩護主力...先清除他們！',
+                complete: '根據收集的情報，暗影軍團的指揮官就在前方。'
+            }
+        },
+        {
+            id: 'main_010',
+            name: '擊敗暗影指揮官',
+            type: QuestType.MAIN,
+            chapter: 4,
+            icon: '⚔️',
+            description: '暗影軍團的指揮官必須被消滅！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_mage', count: 3, description: '擊敗暗影法師 3 隻' },
+                { type: ObjectiveType.KILL, target: 'shadow_commander', count: 1, description: '擊敗暗影指揮官' }
+            ],
+            rewards: {
+                gold: 800,
+                exp: 400,
+                items: ['commander_blade', 'shadow_core']
+            },
+            unlocks: ['main_011'],
+            requiredLevel: 13,
+            dialogue: {
+                start: '指揮官就在前方...這將是一場硬仗！',
+                complete: '指揮官被擊敗了，但暗影軍團還有更強大的存在...'
+            }
+        },
+        // ==================== 第五章：古代遺跡 (Lv.14-18) ====================
+        {
+            id: 'main_011',
+            name: '遺跡的秘密',
+            type: QuestType.MAIN,
+            chapter: 5,
+            icon: '🏛️',
+            description: '為了找到對抗暗影的力量，你必須深入古代遺跡。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'ancient_guardian', count: 5, description: '擊敗遺跡守衛 5 隻' },
+                { type: ObjectiveType.EXPLORE, target: 'ruins', count: 3, description: '探索古代遺跡 3 次' }
+            ],
+            rewards: {
+                gold: 600,
+                exp: 350,
+                items: ['ancient_gear', 'mithril_ore']
+            },
+            unlocks: ['main_012'],
+            requiredLevel: 14,
+            dialogue: {
+                start: '傳說古代文明留下了強大的力量...去尋找它！',
+                complete: '這些機械守衛保護著什麼秘密？'
+            }
+        },
+        {
+            id: 'main_012',
+            name: '符文的智慧',
+            type: QuestType.MAIN,
+            chapter: 5,
+            icon: '📜',
+            description: '破解古代符文，獲取遠古知識。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'crystal_golem', count: 5, description: '擊敗水晶魔像 5 隻' },
+                { type: ObjectiveType.KILL, target: 'rune_keeper', count: 3, description: '擊敗符文守護者 3 隻' }
+            ],
+            rewards: {
+                gold: 700,
+                exp: 400,
+                items: ['ancient_rune', 'pure_crystal']
+            },
+            unlocks: ['main_013'],
+            requiredLevel: 16,
+            dialogue: {
+                start: '符文守護者掌握著古代的秘密...',
+                complete: '古代符文揭示了泰坦的存在！'
+            }
+        },
+        {
+            id: 'main_013',
+            name: '喚醒泰坦',
+            type: QuestType.MAIN,
+            chapter: 5,
+            icon: '🗽',
+            description: '遠古泰坦被喚醒了！這是獲取力量的考驗。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'ancient_titan', count: 1, description: '擊敗遠古泰坦' }
+            ],
+            rewards: {
+                gold: 1200,
+                exp: 600,
+                items: ['titan_heart', 'titan_gauntlet']
+            },
+            unlocks: ['main_014'],
+            requiredLevel: 17,
+            dialogue: {
+                start: '泰坦甦醒了...這是你的考驗！',
+                complete: '你獲得了泰坦的認可，以及遠古的力量！'
+            }
+        },
+        // ==================== 第六章：元素試煉 (Lv.18-22) ====================
+        {
+            id: 'main_014',
+            name: '火之試煉',
+            type: QuestType.MAIN,
+            chapter: 6,
+            icon: '🔥',
+            description: '要對抗暗影，你需要掌握四大元素。首先是火焰。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'fire_elemental', count: 5, description: '擊敗火元素 5 隻' },
+                { type: ObjectiveType.COLLECT, target: 'fire_essence', count: 3, description: '收集火焰精華 3 個' }
+            ],
+            rewards: {
+                gold: 600,
+                exp: 400,
+                items: ['ember_stone']
+            },
+            unlocks: ['main_015'],
+            requiredLevel: 18,
+            dialogue: {
+                start: '火焰代表著力量與毀滅。掌握它！',
+                complete: '火之試煉通過！'
+            }
+        },
+        {
+            id: 'main_015',
+            name: '冰與雷的試煉',
+            type: QuestType.MAIN,
+            chapter: 6,
+            icon: '❄️',
+            description: '繼續元素試煉：冰霜與雷電。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'ice_elemental', count: 5, description: '擊敗冰元素 5 隻' },
+                { type: ObjectiveType.KILL, target: 'thunder_elemental', count: 5, description: '擊敗雷元素 5 隻' }
+            ],
+            rewards: {
+                gold: 700,
+                exp: 450,
+                items: ['frost_crystal', 'storm_crystal']
+            },
+            unlocks: ['main_016'],
+            requiredLevel: 19,
+            dialogue: {
+                start: '冰霜代表冷靜，雷電代表迅速。兩者缺一不可。',
+                complete: '冰與雷的試煉通過！'
+            }
+        },
+        {
+            id: 'main_016',
+            name: '元素之主',
+            type: QuestType.MAIN,
+            chapter: 6,
+            icon: '🌈',
+            description: '四大元素的考驗結束，面對元素之主！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'earth_elemental', count: 5, description: '擊敗土元素 5 隻' },
+                { type: ObjectiveType.KILL, target: 'elemental_lord', count: 1, description: '擊敗元素之主' }
+            ],
+            rewards: {
+                gold: 1500,
+                exp: 700,
+                items: ['elemental_core', 'elemental_orb']
+            },
+            unlocks: ['main_017'],
+            requiredLevel: 21,
+            dialogue: {
+                start: '元素之主將測試你是否配得上這份力量...',
+                complete: '你已經掌握了元素之力！現在，前往龍之山脈！'
+            }
+        },
+        // ==================== 第七章：龍之山脈 (Lv.22-26) ====================
+        {
+            id: 'main_017',
+            name: '龍的領域',
+            type: QuestType.MAIN,
+            chapter: 7,
+            icon: '🏔️',
+            description: '傳說中的龍族居住在高山之上。踏入他們的領域。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'wyvern', count: 5, description: '擊敗翼龍 5 隻' },
+                { type: ObjectiveType.KILL, target: 'drake', count: 5, description: '擊敗幼龍 5 隻' }
+            ],
+            rewards: {
+                gold: 800,
+                exp: 500,
+                items: ['wyvern_scale', 'drake_scale']
+            },
+            unlocks: ['main_018'],
+            requiredLevel: 22,
+            dialogue: {
+                start: '龍之山脈充滿危險，但也藏著巨大的寶藏。',
+                complete: '你已經證明了自己有資格面對真正的龍！'
+            }
+        },
+        {
+            id: 'main_018',
+            name: '龍騎士的考驗',
+            type: QuestType.MAIN,
+            chapter: 7,
+            icon: '🛡️',
+            description: '龍騎士是龍族的守護者。擊敗他們才能見到古龍。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'dragon_knight', count: 3, description: '擊敗龍騎士 3 隻' },
+                { type: ObjectiveType.COLLECT, target: 'dragon_knight_badge', count: 2, description: '收集龍騎士徽章 2 個' }
+            ],
+            rewards: {
+                gold: 1000,
+                exp: 600,
+                items: ['dragon_scale_armor']
+            },
+            unlocks: ['main_019'],
+            requiredLevel: 24,
+            dialogue: {
+                start: '龍騎士是龍族信任的戰士。擊敗他們是見到古龍的條件。',
+                complete: '你獲得了龍騎士的認可！'
+            }
+        },
+        {
+            id: 'main_019',
+            name: '古龍之戰',
+            type: QuestType.MAIN,
+            chapter: 7,
+            icon: '🐲',
+            description: '終於，你將面對古龍。這是獲取龍之力的最終考驗。',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'elder_dragon', count: 1, description: '擊敗古龍' }
+            ],
+            rewards: {
+                gold: 2500,
+                exp: 1000,
+                items: ['dragon_heart', 'elder_dragon_fang']
+            },
+            unlocks: ['main_020'],
+            requiredLevel: 25,
+            dialogue: {
+                start: '古龍是這片山脈的霸主...準備好最終決戰！',
+                complete: '古龍被擊敗了！你獲得了龍之力！但王都傳來緊急消息...'
+            }
+        },
+        // ==================== 第八章：王都危機 (Lv.26-28) ====================
+        {
+            id: 'main_020',
+            name: '王都告急',
+            type: QuestType.MAIN,
+            chapter: 8,
+            icon: '🏰',
+            description: '暗影軍團趁你在龍之山脈時進攻了王都！快回去！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_assassin', count: 5, description: '擊敗暗影刺客 5 隻' },
+                { type: ObjectiveType.KILL, target: 'shadow_soldier', count: 10, description: '擊敗暗影士兵 10 隻' }
+            ],
+            rewards: {
+                gold: 1000,
+                exp: 650,
+                items: ['assassin_blade']
+            },
+            unlocks: ['main_021'],
+            requiredLevel: 26,
+            dialogue: {
+                start: '王都被攻擊了！那裡有無數無辜的人民！',
+                complete: '前線穩住了，但敵人的將領還在前方！'
+            }
+        },
+        {
+            id: 'main_021',
+            name: '暗影將領',
+            type: QuestType.MAIN,
+            chapter: 8,
+            icon: '⚔️',
+            description: '擊敗暗影軍團的將領，保衛王都！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_general', count: 3, description: '擊敗暗影將領 3 隻' },
+                { type: ObjectiveType.COLLECT, target: 'shadow_insignia', count: 3, description: '收集暗影徽記 3 個' }
+            ],
+            rewards: {
+                gold: 1500,
+                exp: 800,
+                items: ['general_armor']
+            },
+            unlocks: ['main_022'],
+            requiredLevel: 27,
+            dialogue: {
+                start: '將領們正在指揮進攻...必須阻止他們！',
+                complete: '將領被擊敗了！但暗影霸主本人出現了...'
+            }
+        },
+        {
+            id: 'main_022',
+            name: '暗影霸主',
+            type: QuestType.MAIN,
+            chapter: 8,
+            icon: '👹',
+            description: '暗影軍團的統帥親自出馬。這是保衛王都的最後一戰！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'shadow_overlord', count: 1, description: '擊敗暗影霸主' }
+            ],
+            rewards: {
+                gold: 3000,
+                exp: 1200,
+                items: ['overlord_crown', 'overlord_armor']
+            },
+            unlocks: ['main_023'],
+            requiredLevel: 28,
+            dialogue: {
+                start: '暗影霸主...暗影軍團的真正統帥！',
+                complete: '暗影霸主被擊敗了！但他臨死前說...魔王即將降臨！'
+            }
+        },
+        // ==================== 第九章：最終決戰 (Lv.28-30) ====================
+        {
+            id: 'main_023',
+            name: '魔王的軍團',
+            type: QuestType.MAIN,
+            chapter: 9,
+            icon: '😈',
+            description: '魔族軍團開始入侵！為最終決戰做準備！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'demon_soldier', count: 15, description: '擊敗魔族士兵 15 隻' }
+            ],
+            rewards: {
+                gold: 1200,
+                exp: 800,
+                items: ['demon_horn', 'demonic_steel']
+            },
+            unlocks: ['main_024'],
+            requiredLevel: 28,
+            dialogue: {
+                start: '魔族軍團來了...這是真正的最終決戰！',
+                complete: '魔族士兵被擊退了，但魔族將軍正在接近！'
+            }
+        },
+        {
+            id: 'main_024',
+            name: '魔族將軍',
+            type: QuestType.MAIN,
+            chapter: 9,
+            icon: '👿',
+            description: '魔族將軍是魔王的左右手。必須先消滅他們！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'demon_general', count: 2, description: '擊敗魔族將軍 2 隻' }
             ],
             rewards: {
                 gold: 2000,
-                exp: 500,
-                items: ['legendary_weapon_box']
+                exp: 1000,
+                items: ['demon_general_helm', 'abyssal_shard']
+            },
+            unlocks: ['main_025'],
+            requiredLevel: 29,
+            dialogue: {
+                start: '魔族將軍...他們是魔王最信任的部下！',
+                complete: '將軍們被擊敗了！前往魔王的王座！'
+            }
+        },
+        {
+            id: 'main_025',
+            name: '最終決戰：魔王阿薩謝爾',
+            type: QuestType.MAIN,
+            chapter: 9,
+            icon: '👑',
+            description: '這是最終的決戰。面對魔王阿薩謝爾，拯救世界！',
+            objectives: [
+                { type: ObjectiveType.KILL, target: 'demon_lord_asariel', count: 1, description: '擊敗魔王阿薩謝爾' }
+            ],
+            rewards: {
+                gold: 10000,
+                exp: 5000,
+                items: ['demon_lord_sword', 'demon_lord_armor', 'world_shard']
             },
             unlocks: [],
+            requiredLevel: 30,
             dialogue: {
-                start: '這是最終的考驗。準備好了嗎？',
-                complete: '恭喜你！你已經成為了真正的英雄！'
+                start: '魔王阿薩謝爾...世界的命運就在這一戰！',
+                complete: '恭喜你，英雄！魔王被擊敗了，世界恢復了和平！你的傳說將永遠流傳...'
             }
         }
     ],
@@ -258,6 +675,247 @@ export const QuestDatabase = {
                 items: ['assassin_dagger']
             },
             unlocks: []
+        }
+    ],
+
+    // ==================== 副本任務 ====================
+    dungeon: [
+        // 幽暗洞窟系列
+        {
+            id: 'dungeon_cave_001',
+            name: '洞窟初探',
+            type: QuestType.BOUNTY,
+            icon: '🕯️',
+            description: '幽暗洞窟傳出了奇怪的聲音，去探索一下吧。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_FLOOR, target: 'cave', count: 3, description: '在幽暗洞窟到達第 3 層' }
+            ],
+            rewards: {
+                gold: 200,
+                exp: 100,
+                items: ['torch']
+            },
+            unlocks: ['dungeon_cave_002'],
+            dialogue: {
+                start: '那個洞窟裡住著什麼呢？小心黑暗中的危險。',
+                complete: '你成功深入了洞窟！這個火把應該能幫到你。'
+            }
+        },
+        {
+            id: 'dungeon_cave_002',
+            name: '洞窟征服者',
+            type: QuestType.BOUNTY,
+            icon: '🦇',
+            description: '征服整個幽暗洞窟，擊敗深處的 Boss！',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'cave', count: 1, description: '通關幽暗洞窟' },
+                { type: ObjectiveType.DUNGEON_BOSS, target: 'cave_boss', count: 1, description: '擊敗洞窟主人：暗影蝙蝠王' }
+            ],
+            rewards: {
+                gold: 500,
+                exp: 250,
+                items: ['bat_wing_cloak']
+            },
+            unlocks: ['dungeon_snow_001'],
+            dialogue: {
+                start: '洞窟深處有一個強大的存在...準備好了嗎？',
+                complete: '太厲害了！你征服了幽暗洞窟！'
+            }
+        },
+        
+        // 冰封雪峰系列
+        {
+            id: 'dungeon_snow_001',
+            name: '雪山試煉',
+            type: QuestType.BOUNTY,
+            icon: '❄️',
+            description: '冰封雪峰的寒氣非常致命，帶好保暖裝備再去。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_FLOOR, target: 'snow', count: 3, description: '在冰封雪峰到達第 3 層' }
+            ],
+            rewards: {
+                gold: 300,
+                exp: 150,
+                items: ['cold_resist_potion']
+            },
+            unlocks: ['dungeon_snow_002'],
+            dialogue: {
+                start: '那座雪山常年被冰雪覆蓋，寒氣會逐漸侵蝕你的身體。',
+                complete: '你成功抵禦了寒冷！這瓶抗寒藥劑應該有用。'
+            }
+        },
+        {
+            id: 'dungeon_snow_002',
+            name: '冰霜王座',
+            type: QuestType.BOUNTY,
+            icon: '🏔️',
+            description: '傳說雪山頂有一座冰霜王座，那裡住著冰霜巨人。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'snow', count: 1, description: '通關冰封雪峰' },
+                { type: ObjectiveType.DUNGEON_BOSS, target: 'snow_boss', count: 1, description: '擊敗冰霜領主' }
+            ],
+            rewards: {
+                gold: 800,
+                exp: 400,
+                items: ['frost_crown']
+            },
+            unlocks: ['dungeon_ruins_001'],
+            dialogue: {
+                start: '冰霜領主已經統治那座山數百年了...',
+                complete: '難以置信！你打敗了冰霜領主！'
+            }
+        },
+        
+        // 遠古遺跡系列
+        {
+            id: 'dungeon_ruins_001',
+            name: '遺跡探索者',
+            type: QuestType.BOUNTY,
+            icon: '🏛️',
+            description: '遠古遺跡中充滿了謎題和陷阱，考驗你的智慧。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_FLOOR, target: 'ruins', count: 3, description: '在遠古遺跡到達第 3 層' }
+            ],
+            rewards: {
+                gold: 400,
+                exp: 200,
+                items: ['ancient_key']
+            },
+            unlocks: ['dungeon_ruins_002'],
+            dialogue: {
+                start: '那些遺跡是古代文明留下的，充滿了智慧的結晶。',
+                complete: '你的智慧令人佩服！這把古老鑰匙或許能派上用場。'
+            }
+        },
+        {
+            id: 'dungeon_ruins_002',
+            name: '守護者的考驗',
+            type: QuestType.BOUNTY,
+            icon: '🗿',
+            description: '遺跡深處的守護者正在等待挑戰者。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'ruins', count: 1, description: '通關遠古遺跡' },
+                { type: ObjectiveType.DUNGEON_BOSS, target: 'ruins_boss', count: 1, description: '擊敗遺跡守護者' }
+            ],
+            rewards: {
+                gold: 1000,
+                exp: 500,
+                items: ['guardian_shield']
+            },
+            unlocks: ['dungeon_jungle_001'],
+            dialogue: {
+                start: '守護者會考驗所有闖入者，證明你有資格獲得古老的力量！',
+                complete: '你通過了守護者的考驗！'
+            }
+        },
+        
+        // 迷霧叢林系列
+        {
+            id: 'dungeon_jungle_001',
+            name: '叢林迷途',
+            type: QuestType.BOUNTY,
+            icon: '🌿',
+            description: '迷霧叢林讓無數冒險者迷失了方向，小心前進。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_FLOOR, target: 'jungle', count: 3, description: '在迷霧叢林到達第 3 層' }
+            ],
+            rewards: {
+                gold: 500,
+                exp: 250,
+                items: ['compass']
+            },
+            unlocks: ['dungeon_jungle_002'],
+            dialogue: {
+                start: '那片叢林的迷霧會讓人失去方向感，要仔細尋找路標。',
+                complete: '你找到了穿越迷霧的方法！這個指南針能幫你指引方向。'
+            }
+        },
+        {
+            id: 'dungeon_jungle_002',
+            name: '叢林之心',
+            type: QuestType.BOUNTY,
+            icon: '🌺',
+            description: '叢林深處有一朵傳說中的花，守護著整片叢林。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'jungle', count: 1, description: '通關迷霧叢林' },
+                { type: ObjectiveType.DUNGEON_BOSS, target: 'jungle_boss', count: 1, description: '擊敗叢林女王' }
+            ],
+            rewards: {
+                gold: 1200,
+                exp: 600,
+                items: ['jungle_heart']
+            },
+            unlocks: ['dungeon_hell_001'],
+            dialogue: {
+                start: '叢林女王會用自然的力量考驗你...',
+                complete: '你征服了迷霧叢林！'
+            }
+        },
+        
+        // 煉獄深淵系列
+        {
+            id: 'dungeon_hell_001',
+            name: '地獄之門',
+            type: QuestType.BOUNTY,
+            icon: '🔥',
+            description: '煉獄深淵的入口被打開了，灼熱的火焰正在蔓延。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_FLOOR, target: 'hell', count: 3, description: '在煉獄深淵到達第 3 層' }
+            ],
+            rewards: {
+                gold: 600,
+                exp: 300,
+                items: ['fire_resist_potion']
+            },
+            unlocks: ['dungeon_hell_002'],
+            dialogue: {
+                start: '那裡是地獄的入口，火焰會持續灼燒你的身體。',
+                complete: '你承受住了地獄的炙烤！這瓶抗火藥劑能減輕傷害。'
+            }
+        },
+        {
+            id: 'dungeon_hell_002',
+            name: '終焉之戰',
+            type: QuestType.BOUNTY,
+            icon: '👿',
+            description: '煉獄深淵的最深處，惡魔領主正在等待最強的挑戰者。',
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'hell', count: 1, description: '通關煉獄深淵' },
+                { type: ObjectiveType.DUNGEON_BOSS, target: 'hell_boss', count: 1, description: '擊敗煉獄領主' }
+            ],
+            rewards: {
+                gold: 2000,
+                exp: 1000,
+                items: ['demon_slayer']
+            },
+            unlocks: ['hidden_dungeon_master'],
+            dialogue: {
+                start: '這是最終的試煉...只有真正的英雄才能擊敗煉獄領主！',
+                complete: '不可思議！你擊敗了煉獄領主，成為了傳奇！'
+            }
+        },
+        
+        // 每週副本挑戰（可重複）
+        {
+            id: 'dungeon_weekly_challenge',
+            name: '每週副本挑戰',
+            type: QuestType.BOUNTY,
+            icon: '🏆',
+            description: '每週完成一次任意副本，獲得額外獎勵！',
+            repeatable: true,
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'any', count: 1, description: '通關任意副本' }
+            ],
+            rewards: {
+                gold: 300,
+                exp: 150,
+                items: ['dungeon_token']
+            },
+            unlocks: [],
+            dialogue: {
+                start: '每週都有新的副本挑戰等著你！',
+                complete: '本週挑戰完成！繼續保持！'
+            }
         }
     ],
 
@@ -505,6 +1163,34 @@ export const QuestDatabase = {
                 start: '+10 不是終點，只是新的起點...',
                 complete: '你已經超越了凡人的境界。'
             }
+        },
+        {
+            id: 'hidden_dungeon_master',
+            name: '副本征服者',
+            type: QuestType.HIDDEN,
+            icon: '🏆',
+            description: '當你征服了所有副本，傳說中的稱號將屬於你...',
+            trigger: {
+                type: 'dungeon_clear_all',
+                condition: 'equal',
+                value: true
+            },
+            objectives: [
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'cave', count: 1, description: '通關幽暗洞窟' },
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'snow', count: 1, description: '通關冰封雪峰' },
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'ruins', count: 1, description: '通關遠古遺跡' },
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'jungle', count: 1, description: '通關迷霧叢林' },
+                { type: ObjectiveType.DUNGEON_CLEAR, target: 'hell', count: 1, description: '通關煉獄深淵' }
+            ],
+            rewards: {
+                gold: 5000,
+                exp: 2000,
+                items: ['dungeon_master_badge']
+            },
+            dialogue: {
+                start: '五大副本的征服者...這是屬於真正英雄的稱號。',
+                complete: '你已經證明了自己的實力！副本征服者的稱號實至名歸！'
+            }
         }
     ]
 };
@@ -714,6 +1400,165 @@ export const QuestRewardItems = {
         rarity: 'legendary',
         description: '使用後，突破裝備的強化上限 (+10 → +15)。',
         effect: { transcendEnhance: true },
+        isQuestReward: true
+    },
+
+    // ==================== 副本任務獎勵 ====================
+    
+    // 幽暗洞窟獎勵
+    torch: {
+        id: 'torch',
+        name: '永恆火炬',
+        icon: '🔥',
+        type: 'accessory',
+        rarity: 'uncommon',
+        description: '在黑暗副本中提供額外視野，降低被突襲機率。',
+        effect: { darkVision: 0.3 },
+        isQuestReward: true
+    },
+    bat_wing_cloak: {
+        id: 'bat_wing_cloak',
+        name: '蝙蝠翼披風',
+        icon: '🦇',
+        type: 'armor',
+        rarity: 'rare',
+        defense: 8,
+        critChance: 0.1,
+        description: '由洞窟蝙蝠王的翅膀製成，在黑暗中更加敏捷。',
+        effect: { evasion: 0.05, darkBonus: 0.15 },
+        isQuestReward: true
+    },
+    
+    // 冰封雪峰獎勵
+    cold_resist_potion: {
+        id: 'cold_resist_potion',
+        name: '抗寒藥劑',
+        icon: '🧪',
+        type: 'consumable',
+        rarity: 'rare',
+        stackable: true,
+        maxStack: 10,
+        description: '使用後減緩寒氣累積速度 50%，持續整個副本。',
+        effect: { coldResist: 0.5 },
+        isQuestReward: true
+    },
+    frost_crown: {
+        id: 'frost_crown',
+        name: '冰霜王冠',
+        icon: '👑',
+        type: 'accessory',
+        rarity: 'epic',
+        attack: 10,
+        defense: 5,
+        description: '冰霜領主的王冠，賦予冰霜之力。攻擊時有機率凍結敵人。',
+        effect: { freezeChance: 0.15, coldImmune: true },
+        isQuestReward: true
+    },
+    
+    // 遠古遺跡獎勵
+    ancient_key: {
+        id: 'ancient_key',
+        name: '古代鑰匙',
+        icon: '🗝️',
+        type: 'key',
+        rarity: 'rare',
+        description: '可以開啟遺跡中的隱藏寶箱，獲得額外獎勵。',
+        effect: { secretChest: true },
+        isQuestReward: true
+    },
+    guardian_shield: {
+        id: 'guardian_shield',
+        name: '守護者之盾',
+        icon: '🛡️',
+        type: 'armor',
+        rarity: 'epic',
+        defense: 20,
+        description: '遺跡守護者的古老盾牌，能夠抵擋強大的攻擊。',
+        effect: { blockChance: 0.2, puzzleBonus: 0.2 },
+        isQuestReward: true
+    },
+    
+    // 迷霧叢林獎勵
+    compass: {
+        id: 'compass',
+        name: '迷途指南針',
+        icon: '🧭',
+        type: 'accessory',
+        rarity: 'rare',
+        description: '在迷霧叢林中不會迷路，總是指向正確的方向。',
+        effect: { mazeNavigate: true },
+        isQuestReward: true
+    },
+    jungle_heart: {
+        id: 'jungle_heart',
+        name: '叢林之心',
+        icon: '💚',
+        type: 'accessory',
+        rarity: 'epic',
+        attack: 8,
+        defense: 8,
+        description: '叢林女王的心臟結晶，蘊含自然的力量。',
+        effect: { hpRegen: 0.02, natureBonus: 0.15 },
+        isQuestReward: true
+    },
+    
+    // 煉獄深淵獎勵
+    fire_resist_potion: {
+        id: 'fire_resist_potion',
+        name: '抗火藥劑',
+        icon: '🧪',
+        type: 'consumable',
+        rarity: 'rare',
+        stackable: true,
+        maxStack: 10,
+        description: '使用後減少灼燒傷害 50%，持續整個副本。',
+        effect: { fireResist: 0.5 },
+        isQuestReward: true
+    },
+    demon_slayer: {
+        id: 'demon_slayer',
+        name: '弒魔者',
+        icon: '⚔️',
+        type: 'weapon',
+        rarity: 'legendary',
+        attack: 35,
+        critChance: 0.2,
+        critDamage: 2.5,
+        weaponSpeed: 1.2,
+        description: '傳說中能夠斬殺惡魔的神劍。對惡魔類敵人傷害 +50%。',
+        effect: { demonSlayer: 0.5, burnImmune: true },
+        isQuestReward: true
+    },
+    
+    // 每週挑戰獎勵
+    dungeon_token: {
+        id: 'dungeon_token',
+        name: '副本代幣',
+        icon: '🎖️',
+        type: 'currency',
+        rarity: 'uncommon',
+        stackable: true,
+        maxStack: 999,
+        description: '累積足夠的代幣可以兌換稀有道具。',
+        isQuestReward: true
+    },
+    
+    // 隱藏任務獎勵 - 副本征服者
+    dungeon_master_badge: {
+        id: 'dungeon_master_badge',
+        name: '副本征服者徽章',
+        icon: '🏆',
+        type: 'accessory',
+        rarity: 'legendary',
+        attack: 20,
+        defense: 20,
+        critChance: 0.15,
+        description: '征服五大副本的證明。全屬性大幅提升，所有副本獎勵 +25%。',
+        effect: { 
+            allStats: 0.1, 
+            dungeonReward: 0.25,
+            titleUnlock: 'dungeon_master'
+        },
         isQuestReward: true
     }
 };

@@ -245,10 +245,68 @@ class QuestSystem {
             if (this.checkQuestCompletion(questId)) {
                 state.status = QuestStatus.COMPLETED;
                 this.notify('quest_ready', { questId, quest });
+                // 顯示全局 Toast 通知
+                this.showGlobalToast('🎉 任務完成！', `「${quest.name}」可以領取獎勵了！`, 'success');
             }
         }
 
         return updated;
+    }
+    
+    /**
+     * 顯示全局 Toast 通知
+     * @param {string} title - 標題
+     * @param {string} message - 訊息內容
+     * @param {string} type - 類型 (success, info, warning, error)
+     */
+    showGlobalToast(title, message, type = 'info') {
+        const container = document.getElementById('global-toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `global-toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon">${this.getToastIcon(type)}</div>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">×</button>
+        `;
+        
+        // 關閉按鈕
+        toast.querySelector('.toast-close').addEventListener('click', () => {
+            toast.classList.add('toast-hiding');
+            setTimeout(() => toast.remove(), 300);
+        });
+        
+        container.appendChild(toast);
+        
+        // 觸發動畫
+        requestAnimationFrame(() => {
+            toast.classList.add('toast-show');
+        });
+        
+        // 自動關閉
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.classList.add('toast-hiding');
+                setTimeout(() => toast.remove(), 300);
+            }
+        }, 4000);
+    }
+    
+    /**
+     * 獲取 Toast 圖標
+     */
+    getToastIcon(type) {
+        const icons = {
+            success: '✅',
+            info: 'ℹ️',
+            warning: '⚠️',
+            error: '❌'
+        };
+        return icons[type] || icons.info;
     }
 
     /**

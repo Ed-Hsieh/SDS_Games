@@ -43,6 +43,7 @@ export default class LobbyScene {
             btnGoForge: this.container.querySelector('#btn-go-forge'),
             btnGoGamble: this.container.querySelector('#btn-go-gamble'),
             btnGoQuest: this.container.querySelector('#btn-go-quest'),
+            btnGoTower: this.container.querySelector('#btn-go-tower'),
             btnStartAdventure: this.container.querySelector('#btn-start-adventure'),
             
             // Character info
@@ -95,6 +96,12 @@ export default class LobbyScene {
         if (this.dom.btnGoQuest) {
             this.dom.btnGoQuest.addEventListener('click', () => {
                 this.app.loadScene('quest');
+            });
+        }
+        
+        if (this.dom.btnGoTower) {
+            this.dom.btnGoTower.addEventListener('click', () => {
+                this.app.loadScene('tower');
             });
         }
         

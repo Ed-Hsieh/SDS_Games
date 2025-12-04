@@ -1,0 +1,659 @@
+/**
+ * Dungeons.js
+ * 副本資料庫 - 5個獨特副本的完整配置
+ */
+
+// ==================== 副本類型 ====================
+export const DungeonType = {
+    CAVE: 'cave',       // 洞窟
+    SNOW: 'snow',       // 雪山
+    RUINS: 'ruins',     // 遺跡
+    JUNGLE: 'jungle',   // 叢林
+    HELL: 'hell'        // 地獄
+};
+
+// ==================== 副本難度 ====================
+export const DungeonDifficulty = {
+    EASY: 1,      // 洞窟
+    NORMAL: 2,    // 雪山
+    HARD: 3,      // 遺跡
+    EXPERT: 4,    // 叢林
+    NIGHTMARE: 5  // 地獄
+};
+
+// ==================== 副本狀態 ====================
+export const DungeonState = {
+    LOCKED: 'locked',
+    AVAILABLE: 'available',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed'
+};
+
+// ==================== 副本入口配置 ====================
+export const DungeonEntranceConfig = {
+    cave: { 
+        name: '幽暗洞窟', 
+        icon: '🏔️', 
+        color: '#8b7355',
+        zones: ['low', 'medium'],
+        description: '一個被黑暗籠罩的地下洞穴'
+    },
+    snow: { 
+        name: '冰封雪峰', 
+        icon: '❄️', 
+        color: '#87ceeb',
+        zones: ['medium', 'high'],
+        description: '終年積雪的山峰'
+    },
+    ruins: { 
+        name: '遠古遺跡', 
+        icon: '🏛️', 
+        color: '#daa520',
+        zones: ['medium', 'high'],
+        description: '失落文明的遺跡'
+    },
+    jungle: { 
+        name: '迷霧叢林', 
+        icon: '🌴', 
+        color: '#228b22',
+        zones: ['high'],
+        description: '被迷霧籠罩的神秘叢林'
+    },
+    hell: { 
+        name: '煉獄深淵', 
+        icon: '🔥', 
+        color: '#dc143c',
+        zones: ['boss'],
+        description: '通往地獄的裂縫'
+    }
+};
+
+// ==================== 副本資料庫 ====================
+export const DungeonDatabase = {
+    // ========== 1. 洞窟副本 (難度: ★☆☆☆☆) ==========
+    [DungeonType.CAVE]: {
+        id: DungeonType.CAVE,
+        name: '幽暗洞窟',
+        icon: '🏔️',
+        description: '一個被黑暗籠罩的地下洞穴，據說深處藏有古老的寶藏。',
+        difficulty: DungeonDifficulty.EASY,
+        recommendLevel: 3,
+        floors: 3,
+        bossFloor: 4,
+        
+        // 特殊機制：視野受限
+        mechanic: {
+            type: 'darkness',
+            name: '黑暗籠罩',
+            description: '洞窟內一片漆黑，視野範圍縮小為 3x3。',
+            icon: '🌑',
+            effect: {
+                visionRange: 3,  // 視野範圍
+                torchBonus: 2    // 火把增加視野
+            },
+            counterItem: 'torch'  // 火把可以擴大視野
+        },
+        
+        // 環境效果
+        environment: {
+            ambiance: '水滴聲迴盪在洞窟中...',
+            hazards: ['落石', '蝙蝠群'],
+            events: [
+                { type: 'trap', name: '落石陷阱', damage: 15, chance: 0.15 },
+                { type: 'treasure', name: '礦石堆', goldRange: [20, 50], chance: 0.2 },
+                { type: 'rest', name: '安全角落', healPercent: 0.2, chance: 0.1 }
+            ]
+        },
+        
+        // 怪物生態
+        monsters: {
+            common: [
+                { id: 'cave_bat', name: '洞窟蝙蝠', icon: '🦇', hp: 30, atk: 8, def: 2, exp: 15, gold: [5, 15] },
+                { id: 'cave_spider', name: '穴居蜘蛛', icon: '🕷️', hp: 40, atk: 10, def: 4, exp: 20, gold: [8, 20] },
+                { id: 'cave_rat', name: '巨型洞鼠', icon: '🐀', hp: 25, atk: 12, def: 1, exp: 12, gold: [3, 10] }
+            ],
+            elite: [
+                { id: 'shadow_lurker', name: '暗影潛伏者', icon: '👤', hp: 80, atk: 18, def: 8, exp: 50, gold: [30, 60], special: '偷襲：首次攻擊傷害翻倍' }
+            ],
+            boss: {
+                id: 'rock_golem', name: '岩石巨人', icon: '🗿', 
+                hp: 200, atk: 25, def: 20, exp: 150, gold: [100, 200],
+                skills: [
+                    { name: '地震', damage: 30, description: '對全體造成傷害' },
+                    { name: '石化凝視', effect: 'stun', duration: 1, description: '使目標無法行動1回合' }
+                ],
+                dialogue: {
+                    encounter: '入侵者...必須...消滅...',
+                    defeat: '岩石...回歸...大地...'
+                }
+            }
+        },
+        
+        // 獨特寶物
+        treasures: {
+            guaranteed: {
+                id: 'miners_charm',
+                name: '礦工護符',
+                icon: '⛏️',
+                type: 'accessory',
+                rarity: 'rare',
+                description: '古老礦工的護身符，能感應到金幣的氣息。',
+                stats: { atk: 3, def: 5 },
+                special: { goldBonus: 0.25 },  // 金幣掉落 +25%
+                price: 500
+            },
+            random: [
+                { id: 'cave_crystal', name: '洞窟水晶', icon: '💎', type: 'material', rarity: 'uncommon', price: 100 },
+                { id: 'bat_wing', name: '蝙蝠翅膀', icon: '🦇', type: 'material', rarity: 'common', price: 30 },
+                { id: 'glowing_moss', name: '發光苔蘚', icon: '🌿', type: 'material', rarity: 'uncommon', price: 80 }
+            ]
+        },
+        
+        // 視覺主題
+        theme: {
+            primaryColor: '#4a3728',
+            secondaryColor: '#2d2d2d',
+            accentColor: '#8b7355',
+            backgroundGradient: 'linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 50%, #4a3728 100%)'
+        }
+    },
+
+    // ========== 2. 雪山副本 (難度: ★★☆☆☆) ==========
+    [DungeonType.SNOW]: {
+        id: DungeonType.SNOW,
+        name: '冰封雪峰',
+        icon: '❄️',
+        description: '終年積雪的山峰，傳說山頂住著一條遠古冰龍。',
+        difficulty: DungeonDifficulty.NORMAL,
+        recommendLevel: 6,
+        floors: 4,
+        bossFloor: 5,
+        
+        // 特殊機制：寒冷值
+        mechanic: {
+            type: 'cold',
+            name: '極寒環境',
+            description: '每移動 5 步，寒冷值 +10。達到 100 時每步損失 5% HP。',
+            icon: '🥶',
+            effect: {
+                coldPerStep: 2,        // 每步增加寒冷值
+                maxCold: 100,          // 最大寒冷值
+                damagePerStep: 0.05,   // 滿寒冷時每步傷害
+                warmthDecay: 5         // 靠近火堆時每步減少寒冷值
+            },
+            counterItem: 'warm_cloak'  // 保暖披風可減緩寒冷
+        },
+        
+        environment: {
+            ambiance: '刺骨的寒風呼嘯而過...',
+            hazards: ['暴風雪', '冰裂縫'],
+            events: [
+                { type: 'trap', name: '冰裂縫', damage: 20, chance: 0.12 },
+                { type: 'blizzard', name: '暴風雪', coldIncrease: 30, chance: 0.15 },
+                { type: 'campfire', name: '篝火遺跡', coldReset: true, healPercent: 0.15, chance: 0.08 },
+                { type: 'treasure', name: '冰凍寶箱', goldRange: [30, 80], chance: 0.15 }
+            ]
+        },
+        
+        monsters: {
+            common: [
+                { id: 'frost_wolf', name: '冰霜狼', icon: '🐺', hp: 50, atk: 14, def: 6, exp: 25, gold: [10, 25] },
+                { id: 'yeti_scout', name: '雪人斥候', icon: '⛄', hp: 60, atk: 12, def: 10, exp: 30, gold: [15, 30] },
+                { id: 'ice_elemental', name: '冰元素', icon: '❄️', hp: 45, atk: 16, def: 4, exp: 28, gold: [12, 28], special: '冰凍觸碰：攻擊時增加目標寒冷值' }
+            ],
+            elite: [
+                { id: 'frost_giant', name: '霜巨人', icon: '🧊', hp: 120, atk: 22, def: 15, exp: 80, gold: [50, 100], special: '寒冰護甲：受到傷害減少 20%' }
+            ],
+            boss: {
+                id: 'ice_dragon', name: '冰霜巨龍', icon: '🐉',
+                hp: 350, atk: 35, def: 25, exp: 250, gold: [200, 400],
+                skills: [
+                    { name: '冰息', damage: 40, effect: 'freeze', duration: 2, description: '噴出冰冷的龍息' },
+                    { name: '暴風雪', aoe: true, damage: 25, coldIncrease: 50, description: '召喚暴風雪' },
+                    { name: '冰晶護盾', effect: 'shield', value: 50, description: '生成冰盾抵擋傷害' }
+                ],
+                dialogue: {
+                    encounter: '愚蠢的人類，你將永眠於冰雪之中！',
+                    defeat: '不可能...我是永恆的冰霜...'
+                }
+            }
+        },
+        
+        treasures: {
+            guaranteed: {
+                id: 'heart_of_ice',
+                name: '永凍之心',
+                icon: '💙',
+                type: 'accessory',
+                rarity: 'epic',
+                description: '冰龍的心臟結晶，賦予持有者抵禦寒冷的能力。',
+                stats: { atk: 5, def: 10, hp: 30 },
+                special: { coldImmune: true, iceResist: 0.5 },  // 免疫寒冷，冰系傷害 -50%
+                price: 1200
+            },
+            random: [
+                { id: 'frost_shard', name: '霜之碎片', icon: '🧊', type: 'material', rarity: 'rare', price: 150 },
+                { id: 'yeti_fur', name: '雪人皮毛', icon: '🦣', type: 'material', rarity: 'uncommon', price: 80 },
+                { id: 'frozen_tear', name: '冰凍淚珠', icon: '💧', type: 'material', rarity: 'rare', price: 200 }
+            ]
+        },
+        
+        theme: {
+            primaryColor: '#a8d8ea',
+            secondaryColor: '#1e3d59',
+            accentColor: '#87ceeb',
+            backgroundGradient: 'linear-gradient(180deg, #1e3d59 0%, #4a6fa5 50%, #a8d8ea 100%)'
+        }
+    },
+
+    // ========== 3. 遺跡副本 (難度: ★★★☆☆) ==========
+    [DungeonType.RUINS]: {
+        id: DungeonType.RUINS,
+        name: '遠古遺跡',
+        icon: '🏛️',
+        description: '失落文明的遺跡，充滿了機關與謎題。',
+        difficulty: DungeonDifficulty.HARD,
+        recommendLevel: 10,
+        floors: 5,
+        bossFloor: 6,
+        
+        // 特殊機制：解謎系統
+        mechanic: {
+            type: 'puzzle',
+            name: '遺跡機關',
+            description: '每層都有一個謎題機關，解開才能進入下一層。答錯會觸發陷阱。',
+            icon: '🧩',
+            effect: {
+                puzzleTypes: ['sequence', 'symbol', 'riddle'],
+                wrongPenalty: 30,     // 答錯傷害
+                perfectBonus: 1.5     // 完美解謎獎勵倍率
+            },
+            counterItem: 'ancient_codex'  // 古代典籍可提示答案
+        },
+        
+        environment: {
+            ambiance: '古老的齒輪聲在迴廊中迴響...',
+            hazards: ['尖刺陷阱', '毒箭機關', '落石'],
+            events: [
+                { type: 'trap', name: '尖刺陷阱', damage: 25, chance: 0.18 },
+                { type: 'trap', name: '毒箭機關', damage: 15, poison: { damage: 5, duration: 3 }, chance: 0.12 },
+                { type: 'puzzle_bonus', name: '隱藏機關', rewardMultiplier: 2, chance: 0.1 },
+                { type: 'lore', name: '壁畫記載', expBonus: 50, chance: 0.15 },
+                { type: 'treasure', name: '祭壇寶箱', goldRange: [50, 120], chance: 0.12 }
+            ]
+        },
+        
+        monsters: {
+            common: [
+                { id: 'stone_guardian', name: '石像守衛', icon: '🗿', hp: 70, atk: 16, def: 18, exp: 35, gold: [20, 40] },
+                { id: 'animated_armor', name: '活化盔甲', icon: '⚔️', hp: 80, atk: 20, def: 15, exp: 40, gold: [25, 50] },
+                { id: 'phantom', name: '遺跡幽魂', icon: '👻', hp: 50, atk: 22, def: 5, exp: 38, gold: [18, 35], special: '虛體：50% 機率閃避物理攻擊' }
+            ],
+            elite: [
+                { id: 'ancient_mage', name: '遠古法師', icon: '🧙', hp: 100, atk: 30, def: 10, exp: 100, gold: [70, 140], special: '魔法屏障：免疫首次攻擊' }
+            ],
+            boss: {
+                id: 'ancient_guardian', name: '遠古守衛者', icon: '🤖',
+                hp: 500, atk: 40, def: 30, exp: 400, gold: [300, 600],
+                skills: [
+                    { name: '雷射光束', damage: 50, description: '發射致命的光束' },
+                    { name: '機關召喚', effect: 'summon', count: 2, description: '召喚 2 個石像守衛' },
+                    { name: '自我修復', heal: 80, description: '修復自身結構' },
+                    { name: '能量過載', aoe: true, damage: 35, selfDamage: 50, description: '釋放所有能量' }
+                ],
+                phases: [
+                    { hpThreshold: 0.7, message: '啟動防禦協議...' },
+                    { hpThreshold: 0.3, message: '⚠️ 核心過載！進入狂暴模式！', atkBoost: 1.5 }
+                ],
+                dialogue: {
+                    encounter: '【系統啟動】入侵者偵測...執行清除協議...',
+                    defeat: '【系統關閉】守護任務...失敗...'
+                }
+            }
+        },
+        
+        treasures: {
+            guaranteed: {
+                id: 'eye_of_wisdom',
+                name: '智者之眼',
+                icon: '👁️',
+                type: 'accessory',
+                rarity: 'epic',
+                description: '遠古智者的遺物，能看穿一切隱藏。',
+                stats: { atk: 8, def: 8 },
+                special: { revealHidden: true, trapDetect: 0.5, puzzleHint: true },
+                price: 1500
+            },
+            random: [
+                { id: 'ancient_gear', name: '遠古齒輪', icon: '⚙️', type: 'material', rarity: 'rare', price: 180 },
+                { id: 'mana_crystal', name: '魔力水晶', icon: '🔮', type: 'material', rarity: 'rare', price: 220 },
+                { id: 'rune_fragment', name: '符文碎片', icon: '📜', type: 'material', rarity: 'uncommon', price: 100 }
+            ]
+        },
+        
+        theme: {
+            primaryColor: '#c9a227',
+            secondaryColor: '#2c2c2c',
+            accentColor: '#ffd700',
+            backgroundGradient: 'linear-gradient(180deg, #2c2c2c 0%, #4a4a4a 50%, #c9a227 100%)'
+        }
+    },
+
+    // ========== 4. 叢林副本 (難度: ★★★★☆) ==========
+    [DungeonType.JUNGLE]: {
+        id: DungeonType.JUNGLE,
+        name: '迷霧叢林',
+        icon: '🌴',
+        description: '被迷霧籠罩的神秘叢林，無數冒險者在此迷失。',
+        difficulty: DungeonDifficulty.EXPERT,
+        recommendLevel: 15,
+        floors: 6,
+        bossFloor: 7,
+        
+        // 特殊機制：迷路系統
+        mechanic: {
+            type: 'maze',
+            name: '迷霧迷宮',
+            description: '每走 10 步有 30% 機率迷路，回到該層起點。收集 3 個路標可免疫迷路。',
+            icon: '🌫️',
+            effect: {
+                lostChance: 0.3,       // 迷路機率
+                lostCheckInterval: 10, // 每幾步檢查一次
+                markerRequired: 3,     // 需要的路標數量
+                confusionDuration: 2   // 迷路後的混亂回合
+            },
+            counterItem: 'jungle_compass'  // 叢林指南針可降低迷路機率
+        },
+        
+        environment: {
+            ambiance: '蟲鳴鳥叫混雜著不明的低吼聲...',
+            hazards: ['毒沼澤', '藤蔓陷阱', '猛獸突襲'],
+            events: [
+                { type: 'trap', name: '毒沼澤', damage: 20, poison: { damage: 8, duration: 4 }, chance: 0.15 },
+                { type: 'trap', name: '藤蔓陷阱', effect: 'bind', duration: 2, chance: 0.12 },
+                { type: 'marker', name: '古老路標', markerCount: 1, chance: 0.18 },
+                { type: 'ambush', name: '猛獸突襲', monsterType: 'elite', chance: 0.1 },
+                { type: 'treasure', name: '探險家遺物', goldRange: [80, 180], itemChance: 0.3, chance: 0.1 },
+                { type: 'herb', name: '稀有草藥', healPercent: 0.3, removePoisaon: true, chance: 0.12 }
+            ]
+        },
+        
+        monsters: {
+            common: [
+                { id: 'jungle_panther', name: '叢林黑豹', icon: '🐆', hp: 90, atk: 28, def: 12, exp: 50, gold: [30, 60], special: '潛行突襲：首擊必爆擊' },
+                { id: 'poison_frog', name: '劇毒蛙', icon: '🐸', hp: 40, atk: 15, def: 5, exp: 35, gold: [20, 40], special: '劇毒：攻擊附帶中毒效果' },
+                { id: 'vine_beast', name: '藤蔓獸', icon: '🌿', hp: 100, atk: 20, def: 20, exp: 55, gold: [35, 70], special: '纏繞：降低目標速度' },
+                { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, atk: 32, def: 8, exp: 48, gold: [25, 55] }
+            ],
+            elite: [
+                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, atk: 35, def: 25, exp: 150, gold: [100, 200], special: '自然治癒：每回合恢復 10% HP' }
+            ],
+            boss: {
+                id: 'jungle_hydra', name: '叢林九頭蛇', icon: '🐍',
+                hp: 700, atk: 45, def: 20, exp: 600, gold: [500, 1000],
+                heads: 3,  // 多頭機制
+                skills: [
+                    { name: '多重撕咬', hits: 3, damage: 20, description: '每個頭各攻擊一次' },
+                    { name: '劇毒噴吐', aoe: true, damage: 30, poison: { damage: 10, duration: 5 }, description: '噴灑致命毒液' },
+                    { name: '頭部再生', effect: 'regen_head', description: '若有頭被砍斷，長出兩個新頭' },
+                    { name: '狂暴咆哮', effect: 'fear', duration: 2, description: '使目標陷入恐懼' }
+                ],
+                phases: [
+                    { headsDestroyed: 1, message: '一個頭被砍斷了！但是...' },
+                    { headsDestroyed: 2, message: '九頭蛇狂怒地咆哮，毒液四濺！' }
+                ],
+                dialogue: {
+                    encounter: '*嘶嘶嘶* 新鮮的獵物...',
+                    defeat: '*痛苦的哀嚎* 不...我的頭...'
+                }
+            }
+        },
+        
+        treasures: {
+            guaranteed: {
+                id: 'pathfinder_boots',
+                name: '尋路者之靴',
+                icon: '👢',
+                type: 'accessory',
+                rarity: 'legendary',
+                description: '傳說中探險家的遺物，穿上它永遠不會迷路。',
+                stats: { atk: 10, def: 12 },
+                special: { mazeImmune: true, moveSpeed: 1.3, trapEvade: 0.3 },
+                price: 2500
+            },
+            random: [
+                { id: 'exotic_flower', name: '異域奇花', icon: '🌺', type: 'material', rarity: 'epic', price: 300 },
+                { id: 'panther_fang', name: '黑豹獠牙', icon: '🦷', type: 'material', rarity: 'rare', price: 200 },
+                { id: 'ancient_map', name: '古老地圖', icon: '🗺️', type: 'material', rarity: 'rare', price: 250 },
+                { id: 'tribal_mask', name: '部落面具', icon: '🎭', type: 'accessory', rarity: 'rare', stats: { atk: 15 }, price: 400 }
+            ]
+        },
+        
+        theme: {
+            primaryColor: '#228b22',
+            secondaryColor: '#1a3a1a',
+            accentColor: '#90ee90',
+            backgroundGradient: 'linear-gradient(180deg, #1a3a1a 0%, #228b22 50%, #90ee90 100%)'
+        }
+    },
+
+    // ========== 5. 地獄副本 (難度: ★★★★★) ==========
+    [DungeonType.HELL]: {
+        id: DungeonType.HELL,
+        name: '煉獄深淵',
+        icon: '🔥',
+        description: '通往地獄的裂縫，只有最強大的勇者才能生還。',
+        difficulty: DungeonDifficulty.NIGHTMARE,
+        recommendLevel: 20,
+        floors: 7,
+        bossFloor: 8,
+        
+        // 特殊機制：灼燒傷害
+        mechanic: {
+            type: 'burn',
+            name: '煉獄烈焰',
+            description: '每步損失 2% 最大 HP。裝備「烈焰護符」可免疫。',
+            icon: '🔥',
+            effect: {
+                damagePerStep: 0.02,    // 每步傷害
+                fireDamageBonus: 1.5,   // 火系怪物傷害加成
+                healingReduction: 0.5,  // 治療效果減半
+                cooldownIncrease: 1     // 技能冷卻增加
+            },
+            counterItem: 'flame_amulet',  // 烈焰護符可免疫
+            alternativeCounter: 'fire_resist_potion'  // 或使用抗火藥水
+        },
+        
+        environment: {
+            ambiance: '岩漿沸騰的聲音和亡魂的哀號交織...',
+            hazards: ['岩漿噴發', '惡魔突襲', '詛咒領域'],
+            events: [
+                { type: 'lava', name: '岩漿噴發', damage: 50, chance: 0.15 },
+                { type: 'trap', name: '惡魔突襲', monsterType: 'elite', chance: 0.12 },
+                { type: 'curse', name: '詛咒領域', effect: 'curse', debuff: { atk: -10, def: -10 }, duration: 10, chance: 0.1 },
+                { type: 'soul_well', name: '靈魂之井', healPercent: 0.5, mpRestore: 1.0, chance: 0.05 },
+                { type: 'treasure', name: '惡魔寶庫', goldRange: [200, 500], chance: 0.08 },
+                { type: 'contract', name: '惡魔契約', choice: true, chance: 0.1 }  // 可選擇簽訂或拒絕
+            ]
+        },
+        
+        monsters: {
+            common: [
+                { id: 'imp', name: '小惡魔', icon: '😈', hp: 80, atk: 35, def: 10, exp: 70, gold: [50, 100], special: '火焰彈：遠程攻擊' },
+                { id: 'hell_hound', name: '地獄犬', icon: '🐕‍🦺', hp: 120, atk: 40, def: 15, exp: 85, gold: [60, 120], special: '烈焰吐息：附帶灼燒效果' },
+                { id: 'tormented_soul', name: '受難亡魂', icon: '💀', hp: 60, atk: 45, def: 5, exp: 75, gold: [40, 80], special: '生命汲取：傷害的 30% 轉為自身 HP' },
+                { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, atk: 30, def: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
+            ],
+            elite: [
+                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, atk: 55, def: 25, exp: 250, gold: [200, 400], special: '地獄火：每回合對全體造成 15 點傷害' }
+            ],
+            boss: {
+                id: 'demon_king', name: '魔王·炎獄', icon: '👹',
+                hp: 1000, atk: 60, def: 35, exp: 1000, gold: [1000, 2000],
+                skills: [
+                    { name: '末日審判', aoe: true, damage: 80, description: '召喚地獄之火焚燒一切' },
+                    { name: '深淵凝視', effect: 'fear', duration: 3, atkDebuff: 0.5, description: '凝視使目標陷入極度恐懼' },
+                    { name: '惡魔召喚', effect: 'summon', monsterIds: ['imp', 'imp', 'hell_hound'], description: '召喚惡魔僕從' },
+                    { name: '煉獄領域', effect: 'field', burnDamageBoost: 2, duration: 5, description: '強化煉獄環境' },
+                    { name: '魔王之怒', damage: 100, selfHeal: 200, cooldown: 5, description: '全力一擊並恢復生命' }
+                ],
+                phases: [
+                    { hpThreshold: 0.75, message: '「可笑...這就是凡人的力量嗎？」' },
+                    { hpThreshold: 0.5, message: '「有點意思...那就讓你見識真正的地獄！」', summon: true },
+                    { hpThreshold: 0.25, message: '「不可能！區區凡人竟然...！」', atkBoost: 2, defBoost: 0.5 }
+                ],
+                dialogue: {
+                    encounter: '愚蠢的凡人，你踏入了不該來的地方。在這裡，你將體會到永恆的痛苦！',
+                    defeat: '不...這不可能！我是魔王...我是...不朽的...'
+                }
+            }
+        },
+        
+        treasures: {
+            guaranteed: {
+                id: 'crown_of_hell',
+                name: '地獄王冠',
+                icon: '👑',
+                type: 'accessory',
+                rarity: 'legendary',
+                description: '魔王的王冠，蘊含著煉獄的力量。',
+                stats: { atk: 30, def: 20, hp: 100 },
+                special: { 
+                    burnImmune: true, 
+                    fireAbsorb: 0.3,     // 吸收 30% 火系傷害轉為 HP
+                    demonSlayer: 1.5,    // 對惡魔類傷害 +50%
+                    intimidate: 0.1      // 10% 機率使敵人恐懼跳過回合
+                },
+                price: 5000
+            },
+            random: [
+                { id: 'demon_horn', name: '惡魔之角', icon: '🦯', type: 'material', rarity: 'legendary', price: 500 },
+                { id: 'soul_essence', name: '靈魂精華', icon: '✨', type: 'material', rarity: 'epic', price: 350 },
+                { id: 'lava_core', name: '熔岩核心', icon: '🔴', type: 'material', rarity: 'epic', price: 400 },
+                { id: 'infernal_blade', name: '煉獄之刃', icon: '🗡️', type: 'weapon', rarity: 'legendary', stats: { atk: 50, critChance: 0.2, critDamage: 2.0 }, special: { burnOnHit: { damage: 10, duration: 3 } }, price: 3000 }
+            ]
+        },
+        
+        theme: {
+            primaryColor: '#8b0000',
+            secondaryColor: '#2d0000',
+            accentColor: '#ff4500',
+            backgroundGradient: 'linear-gradient(180deg, #2d0000 0%, #8b0000 50%, #ff4500 100%)'
+        }
+    }
+};
+
+// ==================== 副本入口生成配置 ====================
+export const DungeonSpawnConfig = {
+    // 每種副本只會在地圖上存在一個
+    maxInstancesPerType: 1,
+    
+    // 副本入口重新生成間隔（完成後多久才會再出現）
+    respawnCooldown: {
+        [DungeonType.CAVE]: 0,        // 洞窟：立即可重複
+        [DungeonType.SNOW]: 300000,   // 雪山：5分鐘
+        [DungeonType.RUINS]: 600000,  // 遺跡：10分鐘
+        [DungeonType.JUNGLE]: 900000, // 叢林：15分鐘
+        [DungeonType.HELL]: 1800000   // 地獄：30分鐘
+    },
+    
+    // 副本在地圖上的生成區域
+    spawnZones: {
+        [DungeonType.CAVE]: ['low', 'medium'],      // 洞窟：安全/普通區
+        [DungeonType.SNOW]: ['medium', 'high'],     // 雪山：普通/危險區
+        [DungeonType.RUINS]: ['medium', 'high'],    // 遺跡：普通/危險區
+        [DungeonType.JUNGLE]: ['high'],             // 叢林：危險區
+        [DungeonType.HELL]: ['boss']                // 地獄：Boss區
+    }
+};
+
+// ==================== 輔助函數 ====================
+
+/**
+ * 根據類型獲取副本資料
+ */
+export function getDungeonByType(type) {
+    return DungeonDatabase[type] || null;
+}
+
+/**
+ * 獲取所有副本列表
+ */
+export function getAllDungeons() {
+    return Object.values(DungeonDatabase);
+}
+
+/**
+ * 根據難度獲取副本列表
+ */
+export function getDungeonsByDifficulty(difficulty) {
+    return Object.values(DungeonDatabase).filter(d => d.difficulty === difficulty);
+}
+
+/**
+ * 獲取副本的推薦等級範圍
+ */
+export function getRecommendedDungeons(playerLevel) {
+    return Object.values(DungeonDatabase).filter(d => {
+        return playerLevel >= d.recommendLevel - 3 && playerLevel <= d.recommendLevel + 5;
+    });
+}
+
+/**
+ * 生成副本隨機怪物
+ */
+export function generateDungeonMonster(dungeonType, floor, isElite = false) {
+    const dungeon = DungeonDatabase[dungeonType];
+    if (!dungeon) return null;
+    
+    const pool = isElite ? dungeon.monsters.elite : dungeon.monsters.common;
+    const monster = pool[Math.floor(Math.random() * pool.length)];
+    
+    // 根據樓層調整屬性
+    const floorMultiplier = 1 + (floor - 1) * 0.15;
+    
+    return {
+        ...monster,
+        hp: Math.floor(monster.hp * floorMultiplier),
+        maxHp: Math.floor(monster.hp * floorMultiplier),
+        atk: Math.floor(monster.atk * floorMultiplier),
+        def: Math.floor(monster.def * floorMultiplier),
+        exp: Math.floor(monster.exp * floorMultiplier),
+        gold: monster.gold.map(g => Math.floor(g * floorMultiplier))
+    };
+}
+
+/**
+ * 生成副本 Boss
+ */
+export function generateDungeonBoss(dungeonType) {
+    const dungeon = DungeonDatabase[dungeonType];
+    if (!dungeon) return null;
+    
+    return {
+        ...dungeon.monsters.boss,
+        maxHp: dungeon.monsters.boss.hp,
+        isBoss: true
+    };
+}
+
+/**
+ * 生成樓層事件
+ */
+export function generateFloorEvent(dungeonType) {
+    const dungeon = DungeonDatabase[dungeonType];
+    if (!dungeon) return null;
+    
+    const events = dungeon.environment.events;
+    const roll = Math.random();
+    let cumulative = 0;
+    
+    for (const event of events) {
+        cumulative += event.chance;
+        if (roll < cumulative) {
+            return { ...event };
+        }
+    }
+    
+    return null; // 沒有事件
+}

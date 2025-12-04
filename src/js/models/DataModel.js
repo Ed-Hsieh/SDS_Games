@@ -233,17 +233,17 @@ export class Consumable extends Item {
 export class Character {
     constructor() {
         this.level = 1;
-        this._hp = 100;
-        this._maxHp = 100;
+        this._hp = 120;  // 100 + (1 * 20) = 120
+        this._maxHp = 120;
         this._mp = 50;
         this._maxMp = 50;
         this._exp = 0;
         this._maxExp = 100;
-        this.gold = 1250;
-        this.baseAtk = 100;
-        this.baseDef = 5;
-        this._attack = 10;
-        this._defense = 5;
+        this.gold = 100;
+        this.baseAtk = 5;   // 基礎攻擊力（較低，主要靠裝備）
+        this.baseDef = 2;   // 基礎防禦力（較低，主要靠裝備）
+        this._attack = 5;
+        this._defense = 2;
         
         this.equipment = {
             weapon: null,
@@ -459,16 +459,37 @@ export class Character {
         while (this.exp >= this.maxExp) {
             this.level++;
             this.exp -= this.maxExp;
-            this.maxExp = Math.floor(this.maxExp * 1.5);
-            this.maxHp += 20;
+            // 經驗需求遞增
+            this.maxExp = Math.floor(100 * Math.pow(1.2, this.level - 1));
+            // HP = 100 + (等級 × 20)
+            this.maxHp = 100 + (this.level * 20);
             this.hp = this.maxHp;
-            this.maxMp += 10;
+            // MP 小幅成長
+            this.maxMp = 50 + (this.level * 5);
             this.mp = this.maxMp;
-            this.baseAtk += 2;
-            this.baseDef += 1;
+            // 基礎攻防不變（依賴裝備）
             this.getTotalAtk();
             this.getTotalDef();
         }
+    }
+    
+    /**
+     * 獲得經驗值
+     * @param {number} amount - 經驗值數量
+     * @returns {boolean} 是否升級
+     */
+    gainExp(amount) {
+        const oldLevel = this.level;
+        this.exp += amount;
+        this.checkLevelUp();
+        return this.level > oldLevel;
+    }
+    
+    /**
+     * 計算當前等級的最大HP
+     */
+    calculateMaxHp() {
+        return 100 + (this.level * 20);
     }
 
     syncProperties() {

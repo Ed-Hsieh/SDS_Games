@@ -42,8 +42,150 @@ class GameManager {
         this.addToWarehouse(new Consumable('mana_potion', '魔力藥水', ItemType.POTION, ItemRarity.UNCOMMON, '💙', '恢復魔力值。', 40, { mp: 50 }), 2);
         this.addToWarehouse(new Item('iron_ore', '鐵礦石', ItemType.MATERIAL, ItemRarity.COMMON, '⛏️', '用於鍛造的鐵礦石。', 10), 5);
         
+        // === 測試材料：用於鍛造和套裝測試 ===
+        this.addTestMaterials();
+        
         // Debug: Log initial state
         console.log('GameManager initialized with state:', this.state);
+    }
+    
+    /**
+     * 添加測試材料 - 用於鍛造、詞綴和套裝測試
+     */
+    addTestMaterials() {
+        // 基礎材料
+        this.addToWarehouse(new Item('slime_jelly', '史萊姆凝膠', ItemType.MATERIAL, ItemRarity.COMMON, '🟢', '史萊姆的身體凝膠。', 5), 20);
+        this.addToWarehouse(new Item('beast_hide', '獸皮', ItemType.MATERIAL, ItemRarity.COMMON, '🟤', '野獸的皮毛。', 8), 15);
+        this.addToWarehouse(new Item('iron_ore', '鐵礦石', ItemType.MATERIAL, ItemRarity.COMMON, '⛏️', '基礎鍛造材料。', 15), 30);
+        this.addToWarehouse(new Item('bone_fragment', '骨頭碎片', ItemType.MATERIAL, ItemRarity.COMMON, '🦴', '骷髏的骨頭碎片。', 12), 20);
+        
+        // 優秀材料
+        this.addToWarehouse(new Item('wolf_pelt', '狼皮', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🐺', '品質優良的狼皮。', 25), 10);
+        this.addToWarehouse(new Item('spider_silk', '蜘蛛絲', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🕸️', '堅韌的蜘蛛絲。', 18), 12);
+        this.addToWarehouse(new Item('ancient_gear', '古代齒輪', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⚙️', '古代機械的零件。', 60), 8);
+        
+        // 稀有材料
+        this.addToWarehouse(new Item('forest_essence', '森林精華', ItemType.MATERIAL, ItemRarity.RARE, '✨', '森林的純淨精華。', 200), 5);
+        this.addToWarehouse(new Item('dark_crystal', '暗黑水晶', ItemType.MATERIAL, ItemRarity.RARE, '🔮', '充滿黑暗能量的水晶。', 150), 5);
+        this.addToWarehouse(new Item('mithril_ore', '秘銀礦', ItemType.MATERIAL, ItemRarity.RARE, '🔘', '珍貴的秘銀礦石。', 200), 5);
+        this.addToWarehouse(new Item('dragon_tooth', '龍牙', ItemType.MATERIAL, ItemRarity.RARE, '🦷', '龍的牙齒。', 250), 3);
+        
+        // 史詩材料
+        this.addToWarehouse(new Item('lich_phylactery', '巫妖命匣', ItemType.MATERIAL, ItemRarity.EPIC, '💀', '巫妖靈魂的容器。', 500), 2);
+        this.addToWarehouse(new Item('ancient_rune', '古代符文', ItemType.MATERIAL, ItemRarity.EPIC, '📜', '記載古代力量的符文。', 350), 3);
+        this.addToWarehouse(new Item('commander_blade', '指揮官之劍', ItemType.MATERIAL, ItemRarity.EPIC, '⚔️', '暗影指揮官的配劍碎片。', 600), 2);
+        
+        // 傳說材料
+        this.addToWarehouse(new Item('titan_heart', '泰坦之心', ItemType.MATERIAL, ItemRarity.LEGENDARY, '❤️', '泰坦的心臟，蘊含遠古之力。', 1000), 1);
+        this.addToWarehouse(new Item('dragon_heart', '龍心', ItemType.MATERIAL, ItemRarity.LEGENDARY, '💜', '龍的心臟，蘊含龍之力。', 1500), 1);
+        this.addToWarehouse(new Item('legendary_shard', '傳說碎片', ItemType.MATERIAL, ItemRarity.LEGENDARY, '✨', '可用於製作任何傳說裝備。', 1500), 2);
+        
+        // 元素材料
+        this.addToWarehouse(new Item('fire_essence', '火焰精華', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🔥', '純粹的火焰能量。', 80), 8);
+        this.addToWarehouse(new Item('ice_essence', '冰霜精華', ItemType.MATERIAL, ItemRarity.UNCOMMON, '❄️', '純粹的冰霜能量。', 80), 8);
+        this.addToWarehouse(new Item('thunder_essence', '雷電精華', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⚡', '純粹的雷電能量。', 80), 8);
+        
+        // 測試用金幣
+        this.state.character.gold = 50000;
+        
+        // 測試用 BOSS 裝備（套裝測試）
+        this.addBossEquipmentForTesting();
+        
+        console.log('Test materials added for forging and set bonus testing.');
+    }
+    
+    /**
+     * 添加 BOSS 裝備用於套裝測試
+     */
+    addBossEquipmentForTesting() {
+        // 地獄騎士套裝（2件套）- 用於測試套裝效果
+        const hellKnightArmor = new Armor(
+            'hell_knight_armor', '地獄騎士鎧甲', ItemRarity.RARE, '🛡️',
+            '來自地獄的騎士鎧甲。', 800, 5, 25, 0.05, 1.3
+        );
+        hellKnightArmor.setId = 'hell_knight_set';
+        hellKnightArmor.hp = 50;
+        hellKnightArmor.fireResist = 0.15;
+        hellKnightArmor.gemSlots = 2;
+        
+        const hellKnightSword = new Weapon(
+            'hell_knight_sword', '地獄騎士之劍', ItemRarity.RARE, '⚔️',
+            '地獄騎士的配劍，燃燒著地獄火焰。', 700, 22, 5, 0.12, 1.8, 1.1, 1.15
+        );
+        hellKnightSword.setId = 'hell_knight_set';
+        hellKnightSword.fireDamage = 12;
+        hellKnightSword.gemSlots = 2;
+        
+        this.addToWarehouse(hellKnightArmor);
+        this.addToWarehouse(hellKnightSword);
+        
+        // 深淵套裝（用於生命偷取測試）
+        const abyssBlade = new Weapon(
+            'abyss_blade', '深淵之刃', ItemRarity.EPIC, '⚔️',
+            '深淵魔將的佩劍，帶有吸取生命的詛咒。', 1500, 35, 0, 0.15, 2.0, 1.2, 1.3
+        );
+        abyssBlade.setId = 'abyss_set';
+        abyssBlade.lifesteal = 0.05;
+        abyssBlade.gemSlots = 2;
+        
+        const abyssArmor = new Armor(
+            'abyss_armor', '深淵戰甲', ItemRarity.EPIC, '🛡️',
+            '深淵的黑暗力量凝聚而成的戰甲。', 1400, 8, 30, 0.08, 1.5
+        );
+        abyssArmor.setId = 'abyss_set';
+        abyssArmor.hp = 80;
+        abyssArmor.lifesteal = 0.03;
+        abyssArmor.gemSlots = 2;
+        
+        this.addToWarehouse(abyssBlade);
+        this.addToWarehouse(abyssArmor);
+        
+        // 龍族套裝（用於元素傷害測試）
+        const elderDragonFang = new Weapon(
+            'elder_dragon_fang', '古龍牙劍', ItemRarity.EPIC, '🐲',
+            '由古龍牙齒鍛造的神劍。', 2500, 45, 0, 0.18, 2.2, 1.0, 1.1
+        );
+        elderDragonFang.setId = 'dragon_set';
+        elderDragonFang.fireDamage = 15;
+        elderDragonFang.gemSlots = 3;
+        
+        const dragonScaleArmor = new Armor(
+            'dragon_scale_armor', '龍鱗戰甲', ItemRarity.EPIC, '🐉',
+            '以古龍鱗片打造的戰甲。', 2200, 12, 40, 0.10, 1.6
+        );
+        dragonScaleArmor.setId = 'dragon_set';
+        dragonScaleArmor.hp = 100;
+        dragonScaleArmor.fireResist = 0.20;
+        dragonScaleArmor.gemSlots = 2;
+        
+        this.addToWarehouse(elderDragonFang);
+        this.addToWarehouse(dragonScaleArmor);
+        
+        // 額外的測試裝備（不帶套裝，用於詞綴測試）
+        const testWeapon = new Weapon(
+            'test_sword', '測試之劍', ItemRarity.UNCOMMON, '🗡️',
+            '用於測試詞綴系統的劍。', 100, 10, 0, 0.10, 1.6, 1.0, 1.0
+        );
+        testWeapon.canEnhance = true;
+        testWeapon.gemSlots = 1;
+        
+        const testArmor = new Armor(
+            'test_armor', '測試護甲', ItemRarity.UNCOMMON, '🛡️',
+            '用於測試詞綴系統的護甲。', 100, 0, 10, 0.05, 1.3
+        );
+        testArmor.canEnhance = true;
+        testArmor.gemSlots = 1;
+        
+        const testAccessory = new Accessory(
+            'test_ring', '測試戒指', ItemRarity.RARE, '💍',
+            '用於測試詞綴系統的戒指。', 150, 5, 5, 0.08, 1.5
+        );
+        testAccessory.canEnhance = true;
+        testAccessory.gemSlots = 1;
+        
+        this.addToWarehouse(testWeapon);
+        this.addToWarehouse(testArmor);
+        this.addToWarehouse(testAccessory);
     }
 
     static getInstance() {
@@ -424,6 +566,58 @@ class GameManager {
         
         this.notify('all');
         return sellPrice;
+    }
+    
+    /**
+     * 添加物品到背包（通用方法，用於鍛造等系統）
+     */
+    addItem(itemData, quantity = 1) {
+        return this.addToInventory(itemData, quantity);
+    }
+    
+    /**
+     * 移除指定數量的材料（從背包和倉庫中）
+     * @param {string} materialId - 材料ID
+     * @param {number} quantity - 數量
+     * @returns {boolean} 是否成功移除
+     */
+    removeMaterial(materialId, quantity) {
+        let remaining = quantity;
+        
+        // 先從背包移除
+        for (let i = this.state.inventory.length - 1; i >= 0 && remaining > 0; i--) {
+            const stack = this.state.inventory[i];
+            if (stack.item.id === materialId) {
+                if (stack.quantity <= remaining) {
+                    remaining -= stack.quantity;
+                    this.state.inventory.splice(i, 1);
+                } else {
+                    stack.quantity -= remaining;
+                    remaining = 0;
+                }
+            }
+        }
+        
+        // 如果背包不夠，從倉庫移除
+        for (let i = this.state.warehouse.length - 1; i >= 0 && remaining > 0; i--) {
+            const stack = this.state.warehouse[i];
+            if (stack.item.id === materialId) {
+                if (stack.quantity <= remaining) {
+                    remaining -= stack.quantity;
+                    this.state.warehouse.splice(i, 1);
+                } else {
+                    stack.quantity -= remaining;
+                    remaining = 0;
+                }
+            }
+        }
+        
+        if (remaining === 0) {
+            this.notify('all');
+            return true;
+        }
+        
+        return false;
     }
     
     discardItem(instanceId, fromWarehouse = false) {
