@@ -189,7 +189,7 @@ export const SuffixDatabase = {
     // ===== 普通後綴 (Common) =====
     of_strength: {
         id: 'of_strength',
-        name: '之力量',
+        name: '力量',
         rarity: ItemRarity.COMMON,
         type: AffixType.SUFFIX,
         stats: { atk: [1, 4] },
@@ -198,7 +198,7 @@ export const SuffixDatabase = {
     },
     of_protection: {
         id: 'of_protection',
-        name: '之守護',
+        name: '守護',
         rarity: ItemRarity.COMMON,
         type: AffixType.SUFFIX,
         stats: { def: [1, 4] },
@@ -207,7 +207,7 @@ export const SuffixDatabase = {
     },
     of_vitality: {
         id: 'of_vitality',
-        name: '之活力',
+        name: '活力',
         rarity: ItemRarity.COMMON,
         type: AffixType.SUFFIX,
         stats: { hp: [5, 15] },
@@ -218,7 +218,7 @@ export const SuffixDatabase = {
     // ===== 優秀後綴 (Uncommon) =====
     of_fire: {
         id: 'of_fire',
-        name: '之烈焰',
+        name: '烈焰',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
         stats: { atk: [3, 8],critChance: [0.05, 0.10] },
@@ -227,7 +227,7 @@ export const SuffixDatabase = {
     },
     of_ice: {
         id: 'of_ice',
-        name: '之冰霜',
+        name: '冰霜',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
         stats: { atk: [3, 8], attackSpeed: [0.05, 0.10] },
@@ -236,7 +236,7 @@ export const SuffixDatabase = {
     },
     of_thunder: {
         id: 'of_thunder',
-        name: '之雷霆',
+        name: '迅雷',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
         stats: { atk: [3, 8], stunChance: [0.03, 0.06] },
@@ -245,7 +245,7 @@ export const SuffixDatabase = {
     },
     of_fortitude: {
         id: 'of_fortitude',
-        name: '之堅毅',
+        name: '堅毅',
         rarity: ItemRarity.UNCOMMON,
         type: AffixType.SUFFIX,
         stats: { hp: [15, 30], def: [3, 6] },
@@ -256,7 +256,7 @@ export const SuffixDatabase = {
     // ===== 稀有後綴 (Rare) =====
     of_fury: {
         id: 'of_fury',
-        name: '之狂怒',
+        name: '狂怒',
         rarity: ItemRarity.RARE,
         type: AffixType.SUFFIX,
         stats: { critChance: [0.05, 0.08], attackSpeed: [0.05, 0.10] },
@@ -265,7 +265,7 @@ export const SuffixDatabase = {
     },
     of_the_titan: {
         id: 'of_the_titan',
-        name: '之泰坦',
+        name: '泰坦',
         rarity: ItemRarity.RARE,
         type: AffixType.SUFFIX,
         stats: { hp: [40, 70], def: [8, 15] },
@@ -274,7 +274,7 @@ export const SuffixDatabase = {
     },
     of_precision: {
         id: 'of_precision',
-        name: '之精準',
+        name: '精準',
         rarity: ItemRarity.RARE,
         type: AffixType.SUFFIX,
         stats: { critChance: [0.05, 0.10], critDamage: [0.10, 0.20] },
@@ -283,7 +283,7 @@ export const SuffixDatabase = {
     },
     of_mana: {
         id: 'of_mana',
-        name: '之魔力',
+        name: '魔力',
         rarity: ItemRarity.RARE,
         type: AffixType.SUFFIX,
         stats: { mp: [20, 40], mpRegen: [0.01, 0.03] },
@@ -294,7 +294,7 @@ export const SuffixDatabase = {
     // ===== 史詩後綴 (Epic) =====
     of_annihilation: {
         id: 'of_annihilation',
-        name: '之毀滅',
+        name: '毀滅',
         rarity: ItemRarity.EPIC,
         type: AffixType.SUFFIX,
         stats: { critDamage: [0.20, 0.35], atk: [10, 20] },
@@ -303,7 +303,7 @@ export const SuffixDatabase = {
     },
     of_the_dragon: {
         id: 'of_the_dragon',
-        name: '之巨龍',
+        name: '龍威',
         rarity: ItemRarity.EPIC,
         type: AffixType.SUFFIX,
         stats: { atk: [10, 20], hp: [50, 80], def: [10, 18] },
@@ -312,7 +312,7 @@ export const SuffixDatabase = {
     },
     of_shadows: {
         id: 'of_shadows',
-        name: '之暗影',
+        name: '暗影',
         rarity: ItemRarity.EPIC,
         type: AffixType.SUFFIX,
         stats: { critChance: [0.08, 0.12], dodgeChance: [0.03, 0.06] },
@@ -321,7 +321,7 @@ export const SuffixDatabase = {
     },
     of_restoration: {
         id: 'of_restoration',
-        name: '之回復',
+        name: '生機',
         rarity: ItemRarity.EPIC,
         type: AffixType.SUFFIX,
         stats: { hpRegen: [0.02, 0.04], mpRegen: [0.02, 0.04], hp: [30, 50] },
@@ -332,7 +332,7 @@ export const SuffixDatabase = {
     // ===== 傳說後綴 (Legendary) =====
     of_the_void: {
         id: 'of_the_void',
-        name: '之虛空',
+        name: '虛空',
         rarity: ItemRarity.LEGENDARY,
         type: AffixType.SUFFIX,
         stats: { atk: [15, 30], armorPenetration: [0.10, 0.18], critChance: [0.08, 0.12] },
@@ -341,7 +341,7 @@ export const SuffixDatabase = {
     },
     of_eternity: {
         id: 'of_eternity',
-        name: '之永恆',
+        name: '永恆',
         rarity: ItemRarity.LEGENDARY,
         type: AffixType.SUFFIX,
         stats: { hp: [80, 120], def: [25, 40], hpRegen: [0.03, 0.05], damageReduction: [0.05, 0.08] },
@@ -350,7 +350,7 @@ export const SuffixDatabase = {
     },
     of_omnipotence: {
         id: 'of_omnipotence',
-        name: '之全能',
+        name: '全能',
         rarity: ItemRarity.LEGENDARY,
         type: AffixType.SUFFIX,
         stats: { atk: [15, 25], def: [15, 25], hp: [40, 60], critChance: [0.05, 0.08], allStats: [0.03, 0.06] },
@@ -360,7 +360,7 @@ export const SuffixDatabase = {
     // 完美無瑕 - 不會消耗耐久度
     indestructible: {
         id: 'indestructible',
-        name: '之不朽',
+        name: '不朵',
         rarity: ItemRarity.LEGENDARY,
         type: AffixType.SUFFIX,
         stats: { def: [10, 20], hp: [30, 50], noDurabilityLoss: [1, 1] },
@@ -524,6 +524,7 @@ export default class AffixSystem {
     
     /**
      * 更新裝備名稱（加上詞綴）
+     * 格式：「前綴」裝備名-後綴1、後綴2
      */
     updateEquipmentName(equipment) {
         if (!equipment.affixes || equipment.affixes.length === 0) return;
@@ -534,15 +535,20 @@ export default class AffixSystem {
         }
         
         // 找出前綴和後綴
-        const prefix = equipment.affixes.find(a => a.type === AffixType.PREFIX);
-        const suffix = equipment.affixes.find(a => a.type === AffixType.SUFFIX);
+        const prefixes = equipment.affixes.filter(a => a.type === AffixType.PREFIX);
+        const suffixes = equipment.affixes.filter(a => a.type === AffixType.SUFFIX);
         
         let newName = equipment._baseName;
-        if (prefix) {
-            newName = prefix.name + newName;
+        
+        // 前綴加在前面
+        if (prefixes.length > 0) {
+            newName = prefixes[0].name + newName;
         }
-        if (suffix) {
-            newName = newName + suffix.name;
+        
+        // 後綴用減號開頭，頓號連接
+        if (suffixes.length > 0) {
+            const suffixNames = suffixes.map(s => s.name).join('、');
+            newName = newName + '-' + suffixNames;
         }
         
         equipment.name = newName;

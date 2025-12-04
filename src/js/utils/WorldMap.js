@@ -522,16 +522,15 @@ export default class WorldMap {
         this.playerPos = { x: Math.floor(cols / 2), y: Math.floor(rows / 2) };
         this.mapData = this.generateMap();
         
-        while (this.mapData[this.playerPos.y][this.playerPos.x].type !== 'empty') {
-            this.playerPos.x = Math.floor(cols / 2) + Math.floor(Math.random() * 3) - 1;
-            this.playerPos.y = Math.floor(rows / 2) + Math.floor(Math.random() * 3) - 1;
-        }
+        // 玩家出生在家的位置（由 generateMap 設定）
+        // homePos 在 generateMap 中被設定
         
         this.cameraOffsetX = 0;
         this.cameraOffsetY = 0;
         this.currentMonster = null;
         this.currentEvent = null;
         this.currentDungeon = null; // 新增：當前副本入口
+        this.hasLeftHome = false; // 新增：玩家是否已經離開過家（用於判斷是否觸發回家事件）
         this.updateCamera();
     }
 
@@ -678,9 +677,18 @@ export default class WorldMap {
                 return 'dungeon';
             }
             
-            // 回到家
+            // 回到家 - 只有離開過家之後再回來才觸發
             if (cell.type === 'home') {
-                return 'home';
+                if (this.hasLeftHome) {
+                    return 'home';
+                }
+                // 如果還沒離開過家，不觸發事件
+                return null;
+            }
+            
+            // 檢查是否離開了家（用於之後回家觸發事件）
+            if (this.homePos && (newX !== this.homePos.x || newY !== this.homePos.y)) {
+                this.hasLeftHome = true;
             }
         }
         return null;
