@@ -65,52 +65,69 @@ class ItemDetailModal {
         this.descEl.textContent = opts.description || item.desc || item.description || '';
 
         // stats: support structured `opts.stats` (array) OR `opts.statsHtml` (raw HTML)
-        // If neither provided, but item has stats (atk/def/critChance) we'll auto-build a structured view
-        if (!Array.isArray(opts.stats) && !opts.statsHtml && item) {
-            const inferred = [];
-            const bonuses = item.affixBonuses || {};
+        // We'll auto-build a structured view if item has stats or affixes, overriding statsHtml if needed.
+        // This ensures the aggregated base + (+bonus) format is always shown.
+        if (!Array.isArray(opts.stats) && item) {
+            const percentKeys = new Set(['critChance', 'critDamage', 'attackSpeed', 'lifesteal', 'damageReduction', 'allStats']);
+            const labelMap = { atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力', durability: '耐久度', critChance: '爆擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度' };
 
-            // helper to push with a consistent shape and include key for merging
-            const pushStat = (key, icon, label, baseVal, bonusVal, isPercent) => {
-                const base = (baseVal !== undefined && baseVal !== null)
-                    ? (isPercent ? (Number(baseVal) * 100) : baseVal)
-                    : undefined;
-                const bonus = (bonusVal !== undefined && bonusVal !== null)
-                    ? (isPercent ? (Number(bonusVal) * 100) : bonusVal)
-                    : 0;
-                inferred.push({ key, icon, label, base, bonus, suffix: isPercent ? '%' : '' });
-            };
+            // Compute affix contributions per-stat from `item.affixes` (preferred) or fallback to `item.affixBonuses`.
+            const affixContribs = {};
+            if (Array.isArray(item.affixes) && item.affixes.length > 0) {
+                item.affixes.forEach(aff => {
+                    if (!aff || !aff.stats) return;
+                    for (const [k, v] of Object.entries(aff.stats)) {
+                        if (v === undefined || v === null) continue;
+                        const isPercent = percentKeys.has(k);
+                        const displayVal = isPercent ? (Number(v) * 100) : Number(v);
+                        affixContribs[k] = (affixContribs[k] || 0) + displayVal;
+                    }
+                });
+            }
 
-            // Common stats
-            if (item.atk || item.attack || bonuses.atk) pushStat('atk', '⚔️', '攻擊力', item.atk || item.attack || 0, bonuses.atk || 0, false);
-            if (item.def || item.defense || bonuses.def) pushStat('def', '🛡️', '防禦力', item.def || item.defense || 0, bonuses.def || 0, false);
-            if (item.hp || bonuses.hp) pushStat('hp', '❤️', '生命', item.hp || 0, bonuses.hp || 0, false);
-            if (item.mp || bonuses.mp) pushStat('mp', '💙', '魔力', item.mp || 0, bonuses.mp || 0, false);
-
-            // Percent-style stats
-            if (item.critChance || bonuses.critChance) pushStat('critChance', '💥', '爆擊率', item.critChance || 0, bonuses.critChance || 0, true);
-            if (item.critDamage || bonuses.critDamage) pushStat('critDamage', '🔥', '暴擊傷害', item.critDamage || 0, bonuses.critDamage || 0, true);
-            if (item.attackSpeed || bonuses.attackSpeed) pushStat('attackSpeed', '⚡', '攻擊速度', item.attackSpeed || 0, bonuses.attackSpeed || 0, true);
-
-            // If affixBonuses contain extra keys not in inferred, they'll be merged below
-            if (inferred.length > 0) opts.stats = inferred;
-
-            // Merge any remaining affixBonuses into the inferred stats (convert percent keys to display units)
-            if (item.affixBonuses) {
-                const percentKeys = new Set(['critChance', 'critDamage', 'attackSpeed', 'lifesteal', 'damageReduction', 'allStats']);
-                const labelMap = { atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力', critChance: '爆擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度' };
-
+            // If no individual affixes, but shorthand affixBonuses exist, use them as contributions
+            if (Object.keys(affixContribs).length === 0 && item.affixBonuses) {
                 for (const [k, v] of Object.entries(item.affixBonuses)) {
                     if (!v || v === 0) continue;
                     const displayVal = percentKeys.has(k) ? (Number(v) * 100) : v;
-                    const entry = (opts.stats || []).find(s => s.key === k);
-                    if (entry) {
-                        entry.bonus = (entry.bonus || 0) + displayVal;
-                        if (percentKeys.has(k)) entry.suffix = '%';
-                    } else {
-                        // push a new stat row for this affix bonus
-                        (opts.stats = opts.stats || []).push({ key: k, icon: '', label: labelMap[k] || k, base: undefined, bonus: displayVal, suffix: percentKeys.has(k) ? '%' : '' });
+                    affixContribs[k] = (affixContribs[k] || 0) + displayVal;
+                }
+            }
+
+            // Check if item has any base stats or affix contributions
+            const hasBaseStats = item.atk || item.attack || item.def || item.defense || item.hp || item.mp || item.durability || item.dur || item.durabilityMax || item.critChance || item.critDamage || item.attackSpeed;
+            const hasAffixContribs = Object.keys(affixContribs).length > 0;
+
+            // Build structured stats if we have base stats or affix contributions
+            if (hasBaseStats || hasAffixContribs) {
+                const built = [];
+                const push = (key, icon, label, baseVal, isPercent) => {
+                    const base = (baseVal !== undefined && baseVal !== null) ? (isPercent ? (Number(baseVal) * 100) : baseVal) : undefined;
+                    const bonus = affixContribs[key] || 0;
+                    // Only add row if base > 0 or bonus > 0
+                    if ((base !== undefined && base !== 0) || bonus !== 0) {
+                        built.push({ key, icon, label, base: base || 0, bonus, suffix: isPercent ? '%' : '' });
                     }
+                };
+
+                push('atk', '⚔️', '攻擊力', item.atk || item.attack, false);
+                push('def', '🛡️', '防禦力', item.def || item.defense, false);
+                push('durability', '🔧', '耐久度', item.durability || item.dur || item.durabilityMax, false);
+                push('hp', '❤️', '生命', item.hp, false);
+                push('mp', '💙', '魔力', item.mp, false);
+                push('critChance', '💥', '爆擊率', item.critChance, true);
+                push('critDamage', '🔥', '暴擊傷害', item.critDamage, true);
+                push('attackSpeed', '⚡', '攻擊速度', item.attackSpeed, true);
+
+                // Add any other affix-contributed keys not already included
+                for (const [k, v] of Object.entries(affixContribs)) {
+                    if (built.find(b => b.key === k)) continue;
+                    if (!v || v === 0) continue;
+                    built.push({ key: k, icon: '', label: labelMap[k] || k, base: 0, bonus: v, suffix: percentKeys.has(k) ? '%' : '' });
+                }
+
+                if (built.length > 0) {
+                    opts.stats = built;
                 }
             }
         }
@@ -131,12 +148,14 @@ class ItemDetailModal {
             const rows = opts.stats.map(s => {
                 const iconHtml = s.icon ? `<span class="stat-icon">${s.icon}</span>` : '';
                 const labelHtml = `<div class="stat-left"><div class="stat-label">${iconHtml}<span>${s.label}</span></div></div>`;
-                const baseVal = (s.base !== undefined && s.base !== null) ? s.base : 0;
-                const basePart = `<span class="stat-base">${formatValue(baseVal, s.suffix)}</span>`;
-                const bonusPart = (s.bonus !== undefined && s.bonus !== 0)
-                    ? `<span class="stat-bonus" style="color:${highlightColor};font-weight:800;margin-left:8px;">(+${formatValue(s.bonus, s.suffix)})</span>`
+                const baseVal = (s.base !== undefined && s.base !== null) ? Number(s.base) : 0;
+                const bonusVal = (s.bonus !== undefined && s.bonus !== null) ? Number(s.bonus) : 0;
+                const totalVal = baseVal + bonusVal;
+                const totalPart = `<span class="stat-base" style="color:#ffffff;font-weight:700;">${formatValue(totalVal, s.suffix)}</span>`;
+                const bonusPart = (bonusVal !== 0)
+                    ? `<span class="stat-bonus" style="color:${highlightColor};font-weight:800;margin-left:8px;">(+${formatValue(bonusVal, s.suffix)})</span>`
                     : '';
-                const valueHtml = `<div class="stat-right">${basePart}${bonusPart}</div>`;
+                const valueHtml = `<div class="stat-right">${totalPart}${bonusPart}</div>`;
                 return `<div class="stat-row">${labelHtml}${valueHtml}</div>`;
             }).join('');
             this.statsEl.innerHTML = `<div class="stats-compare">${rows}</div>`;
