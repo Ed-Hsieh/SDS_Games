@@ -227,6 +227,59 @@ body {
     border-left: 4px solid #e74c3c;
 }
 
+/* Item Detail Modal Specific Styles (Dark glassmorphism) */
+.component-item-detail-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(2,6,23,0.5);
+    backdrop-filter: blur(6px) saturate(120%);
+}
+.component-item-detail-modal.active { display:flex; }
+.component-item-detail-modal .modal-content {
+    width: 560px;
+    max-width: calc(100% - 40px);
+    border-radius: 14px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(24,32,48,0.7), rgba(8,12,20,0.75));
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.component-item-detail-modal .modal-header { margin-bottom: 8px; }
+.item-detail-header { display:flex; gap:12px; align-items:center; }
+.item-detail-icon { width:64px; height:64px; border-radius:10px; background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.06)); display:flex; align-items:center; justify-content:center; font-size:28px; }
+.item-detail-title { display:flex; flex-direction:column; }
+.item-detail-name { font-weight:800; font-size:20px; color:var(--text-light); }
+.item-detail-name .item-title { display:inline-block; }
+.item-detail-type { font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px; }
+
+/* Rarity color helpers */
+.item-detail-name.rarity-common { color: var(--rarity-common); }
+.item-detail-name.rarity-uncommon { color: var(--rarity-uncommon); }
+.item-detail-name.rarity-rare { color: var(--rarity-rare); }
+.item-detail-name.rarity-epic { color: var(--rarity-epic); }
+.item-detail-name.rarity-legendary { color: var(--rarity-legendary); }
+
+.item-detail-stats { padding:12px; border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); margin-bottom:8px; }
+.stats-compare { display:flex; flex-direction:column; gap:6px; }
+.stat-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
+.stat-left { width:58%; display:flex; align-items:center; gap:8px; overflow:hidden; }
+.stat-icon { font-size:16px; margin-right:6px; }
+.stat-label { font-size:14px; color:rgba(255,255,255,0.9); }
+.stat-right { width:42%; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:6px; }
+.stat-base { color: #e6eef8; font-weight:700; }
+.stat-bonus { color: #4ade80; font-weight:800; }
+
+.item-detail-affixes { display:block; margin-bottom:8px; overflow-x:auto; white-space:nowrap; padding:6px 4px; gap:8px; }
+.affix-pill { display:inline-block; vertical-align:middle; }
+
+.modal-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
+.modal-close-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; color:rgba(255,255,255,0.9); border-radius:8px; }
+
+
 .global-toast.toast-error .toast-title {
     color: #e74c3c;
 }

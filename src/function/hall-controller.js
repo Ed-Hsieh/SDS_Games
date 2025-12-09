@@ -358,25 +358,33 @@ function getItemTypeIcon(type) {
 // ===== 物品詳情彈窗 =====
 
 /**
- * 顯示物品詳情
-    showItemDetail(stack, source) {
-        const item = stack.item;
+ * 顯示物品詳情（支援傳入 stack 或直接傳入 Item 實例）
+ */
+function showItemDetail(entry, source) {
+    // entry 可能是 { item, quantity } 的 stack，也可能是直接的 Item
+    const item = (entry && entry.item) ? entry.item : entry;
 
-        let statsHtml = '';
-        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
-        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance*100).toFixed(0)}%</span></div>`;
+    const btns = getItemActionButtons(item, source);
 
-        const btns = getItemActionButtons(item, source);
+    const typeTextMap = {
+        [ItemType.WEAPON]: '武器',
+        [ItemType.ARMOR]: '防具',
+        [ItemType.ACCESSORY]: '飾品',
+        [ItemType.POTION]: '消耗品',
+        [ItemType.MATERIAL]: '材料'
+    };
 
-        if (window.ItemDetailModal) {
-            window.ItemDetailModal.open(item, {
-                typeText: this.getItemTypeText(item.type),
-                description: item.description || item.desc || '沒有描述',
-                statsHtml: statsHtml,
-                actions: btns
-            });
-        }
+    const typeText = typeTextMap[item.type] || (item.type || '');
+    const description = item.description || item.desc || item.name || '沒有描述';
+
+    if (window.ItemDetailModal) {
+        window.ItemDetailModal.open(item, {
+            typeText: typeText,
+            description: description,
+            actions: btns
+        });
+    } else {
+        console.warn('ItemDetailModal not available to open item detail.');
     }
 }
 
