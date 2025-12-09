@@ -90,7 +90,6 @@ export default class AdventureScene {
             battleModal: this.container.querySelector('#battle-modal'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
-            skillDeck: this.container.querySelector('#skill-deck'),
             buffIndicators: this.container.querySelector('#buff-indicators'),
             
             // Event Modal (新增)
@@ -254,12 +253,6 @@ export default class AdventureScene {
             if (event.code === 'Space') {
                 event.preventDefault();
                 this.handleAttackClick();
-            }
-            // 技能快捷鍵 1-3
-            if (event.key >= '1' && event.key <= '3') {
-                event.preventDefault();
-                const skillIndex = parseInt(event.key) - 1;
-                this.handleSkillUse(skillIndex);
             }
             return;
         }
@@ -968,7 +961,6 @@ export default class AdventureScene {
         this.updateMonsterDisplay();
         this.updatePlayerHUD();
         this.updateActionDeck();
-        this.updateSkillDeck();
         this.updateBuffIndicators();
         // battle log removed
         
@@ -1017,11 +1009,7 @@ export default class AdventureScene {
         this.currentBattle.flee();
     }
     
-    // 新增：技能使用
-    handleSkillUse(skillIndex) {
-        if (!this.currentBattle || this.currentBattle.battleEnded) return;
-        this.currentBattle.useSkill(skillIndex);
-    }
+    // 技能使用：已由 UI 移除（保留空位以避免破壞原本結構）
 
     handlePotionUse() {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
@@ -1073,30 +1061,7 @@ export default class AdventureScene {
     // battle log UI removed - method kept as noop for compatibility
     addBattleLog(message) { /* removed */ }
     
-    // 新增：更新技能面板
-    updateSkillDeck() {
-        if (!this.dom.skillDeck) return;
-        
-        const char = GameManager.getCharacter();
-        this.dom.skillDeck.innerHTML = '';
-        
-        char.skills.forEach((skill, index) => {
-            const skillEl = document.createElement('div');
-            const canUse = skill.canUse(char);
-            skillEl.className = `skill-card ${canUse ? '' : 'disabled'}`;
-            skillEl.innerHTML = `
-                <div class="skill-key">[${index + 1}]</div>
-                <div class="skill-icon">${skill.icon}</div>
-                <div class="skill-name">${skill.name}</div>
-                <div class="skill-cost">MP: ${skill.mpCost}</div>
-                ${skill.currentCooldown > 0 ? `<div class="skill-cooldown">CD: ${skill.currentCooldown}</div>` : ''}
-            `;
-            skillEl.addEventListener('click', () => {
-                if (canUse) this.handleSkillUse(index);
-            });
-            this.dom.skillDeck.appendChild(skillEl);
-        });
-    }
+    // 技能面板 UI 已移除 - 不再在 DOM 中渲染技能卡
     
     // 新增：更新 Buff 顯示
     updateBuffIndicators() {
@@ -1363,51 +1328,7 @@ class BattleController {
         setTimeout(() => this.monsterAttack(), 1000);
     }
     
-    // 新增：技能使用
-    useSkill(skillIndex) {
-        if (this.battleEnded) return;
-        
-        const skill = this.player.skills[skillIndex];
-        if (!skill || !skill.canUse(this.player)) {
-            this.scene.addBattleLog('無法使用該技能！');
-            return;
-        }
-        
-        const result = skill.use(this.player, this.monster);
-        if (!result) return;
-        
-        this.scene.addBattleLog(result.message);
-        
-        // 處理攻擊技能
-        if (result.damage > 0) {
-            this.monster.takeDamage(result.damage);
-            this.showDamageNumber(result.damage, false, false);
-            this.scene.updateMonsterDisplay();
-            
-            if (this.monster.isDead()) {
-                this.handleVictory();
-                return;
-            }
-        }
-        
-        // 處理治療技能
-        if (result.heal > 0) {
-            this.scene.updatePlayerHUD();
-        }
-        
-        // 處理 Buff 技能
-        if (result.buff) {
-            this.player.addBuff(result.buff.type, result.buff.value, result.buff.duration);
-            this.scene.updateBuffIndicators();
-        }
-        
-        // 更新技能面板（顯示冷卻）
-        this.scene.updateSkillDeck();
-        this.scene.updatePlayerHUD();
-        
-        // 使用技能後怪物反擊
-        setTimeout(() => this.monsterAttack(), 800);
-    }
+    // 技能戰鬥 API 已移除（Adventure 的 BattleController 中）
     
     showDamageNumber(damage, isCrit, isMiss) {
         const battleHeader = this.scene.container.querySelector('.battle-header');
@@ -1540,7 +1461,7 @@ class BattleController {
         
         // 減少技能冷卻
         this.player.tickSkillCooldowns();
-        this.scene.updateSkillDeck();
+        // 技能面板已移除，無需更新 UI
     }
     
     showPlayerHitFeedback(damage) {
