@@ -279,6 +279,15 @@ body {
 .modal-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
 .modal-close-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; color:rgba(255,255,255,0.9); border-radius:8px; }
 
+/* Responsive: keep modal width unchanged; constrain stats block height and enable vertical scrolling on narrower screens */
+@media (max-width: 1280px) {
+    .component-item-detail-modal .item-detail-stats {
+        height: 220px; /* fixed height */
+        overflow-y: auto; /* vertical scroll when content exceeds height */
+        overflow-x: visible; /* keep width behavior as original */
+    }
+}
+
 
 .global-toast.toast-error .toast-title {
     color: #e74c3c;
