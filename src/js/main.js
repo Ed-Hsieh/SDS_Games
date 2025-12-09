@@ -12,6 +12,7 @@ import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
 // 導入共用的節奏條系統
 import './utils/RhythmBarSystem.js';
+import './components/ItemDetailModal.js';
 
 class App {
     constructor() {

@@ -359,61 +359,32 @@ function getItemTypeIcon(type) {
 
 /**
  * 顯示物品詳情
- */
-function showItemDetail(item, source) {
-    selectedItem = item;
-    selectedItemSource = source;
-    
-    const modal = document.getElementById('item-detail-modal');
-    
-    // 更新物品資訊
-    document.getElementById('modal-item-icon').textContent = item.icon;
-    document.getElementById('modal-item-name').textContent = item.name;
-    document.getElementById('modal-item-type').textContent = getItemTypeText(item.type);
-    document.getElementById('modal-item-description').textContent = item.description;
-    
-    // 顯示物品屬性
-    const statsContainer = document.getElementById('modal-item-stats');
-    statsContainer.innerHTML = '';
-    
-    if (item.isEquipment()) {
-        if (item.atk > 0) {
-            statsContainer.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk}</span></div>`;
-        }
-        if (item.def > 0) {
-            statsContainer.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def}</span></div>`;
-        }
-    } else if (item.effect) {
-        if (item.effect.hp) {
-            statsContainer.innerHTML += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.effect.hp}</span></div>`;
-        }
-        if (item.effect.exp) {
-            statsContainer.innerHTML += `<div class="item-detail-stat"><span>✨ 獲得經驗</span><span class="value">+${item.effect.exp}</span></div>`;
+    showItemDetail(stack, source) {
+        const item = stack.item;
+
+        let statsHtml = '';
+        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
+        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
+        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance*100).toFixed(0)}%</span></div>`;
+
+        const btns = getItemActionButtons(item, source);
+
+        if (window.ItemDetailModal) {
+            window.ItemDetailModal.open(item, {
+                typeText: this.getItemTypeText(item.type),
+                description: item.description || item.desc || '沒有描述',
+                statsHtml: statsHtml,
+                actions: btns
+            });
         }
     }
-    
-    statsContainer.innerHTML += `<div class="item-detail-stat"><span>💰 售價</span><span class="value">${item.price}</span></div>`;
-    statsContainer.innerHTML += `<div class="item-detail-stat"><span>✨ 稀有度</span><span class="value">${getRarityText(item.rarity)}</span></div>`;
-    
-    // 生成操作按鈕
-    const actionsContainer = document.getElementById('modal-item-actions');
-    actionsContainer.innerHTML = '';
-    
-    const buttons = getItemActionButtons(item, source);
-    buttons.forEach(btn => {
-        actionsContainer.appendChild(btn);
-    });
-    
-    // 顯示彈窗
-    modal.classList.add('active');
 }
 
 /**
  * 關閉物品詳情彈窗
  */
 function closeItemModal() {
-    const modal = document.getElementById('item-detail-modal');
-    modal.classList.remove('active');
+    if (window.ItemDetailModal) window.ItemDetailModal.close();
     selectedItem = null;
     selectedItemSource = null;
 }
@@ -641,36 +612,24 @@ function showEquipmentDetail(slotType) {
     
     selectedItem = item;
     selectedItemSource = 'equipment';
-    
-    const modal = document.getElementById('item-detail-modal');
-    
-    // 更新物品資訊
-    document.getElementById('modal-item-icon').textContent = item.icon;
-    document.getElementById('modal-item-name').textContent = item.name;
-    document.getElementById('modal-item-type').textContent = getItemTypeText(item.type);
-    document.getElementById('modal-item-description').textContent = item.description;
-    
-    // 顯示物品屬性
-    const statsContainer = document.getElementById('modal-item-stats');
-    statsContainer.innerHTML = '';
-    
-    if (item.atk > 0) {
-        statsContainer.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk}</span></div>`;
+    // Build stats HTML
+    let statsHtml = '';
+    if (item.atk > 0) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk}</span></div>`;
+    if (item.def > 0) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def}</span></div>`;
+    statsHtml += `<div class="item-detail-stat"><span>✨ 稀有度</span><span class="value">${getRarityText(item.rarity)}</span></div>`;
+
+    const unequipBtn = createButton('卸下', 'btn-warning', () => {
+        unequipItem(slotType);
+    });
+
+    if (window.ItemDetailModal) {
+        window.ItemDetailModal.open(item, {
+            typeText: getItemTypeText(item.type),
+            description: item.description || '',
+            statsHtml: statsHtml,
+            actions: [unequipBtn]
+        });
     }
-    if (item.def > 0) {
-        statsContainer.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def}</span></div>`;
-    }
-    statsContainer.innerHTML += `<div class="item-detail-stat"><span>✨ 稀有度</span><span class="value">${getRarityText(item.rarity)}</span></div>`;
-    
-    // 生成操作按鈕（只有卸下）
-    const actionsContainer = document.getElementById('modal-item-actions');
-    actionsContainer.innerHTML = '';
-    
-    const unequipBtn = createButton('卸下', 'btn-warning', () => unequipItem(slotType));
-    actionsContainer.appendChild(unequipBtn);
-    
-    // 顯示彈窗
-    modal.classList.add('active');
 }
 
 /**

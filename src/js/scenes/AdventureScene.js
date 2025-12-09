@@ -2128,205 +2128,129 @@ AdventureScene.prototype.renderEquipmentSlots = function() {
 
 AdventureScene.prototype.showInventoryItemModal = function(stack) {
     const item = stack.item;
-    const modal = this.dom.itemModal;
-    if (!modal) return;
-    
     const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
     const isConsumable = item.type === 'potion' || item.type === 'scroll';
-    
-    // Update modal content
-    const modalIcon = this.container.querySelector('#adv-modal-item-icon');
-    const modalName = this.container.querySelector('#adv-modal-item-name');
-    const modalType = this.container.querySelector('#adv-modal-item-type');
-    const modalDesc = this.container.querySelector('#adv-modal-item-description');
-    const modalStats = this.container.querySelector('#adv-modal-item-stats');
-    const modalActions = this.container.querySelector('#adv-modal-item-actions');
-    
-    if (modalIcon) {
-        if (item.image) {
-            modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-        } else {
-            modalIcon.textContent = item.icon || '📦';
-        }
-    }
-    if (modalName) modalName.textContent = item.name;
-    if (modalType) modalType.textContent = this.getItemTypeText(item.type);
-    if (modalDesc) modalDesc.textContent = item.desc || item.description || '無描述';
-    
-    // Render stats
-    if (modalStats) {
-        modalStats.innerHTML = '';
-        
-        if (item.atk || item.attack) {
-            const atk = item.atk || item.attack;
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
-        }
-        if (item.def || item.defense) {
-            const def = item.def || item.defense;
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
-        }
-        if (item.critChance) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-        }
-        if (item.critDamage) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
-        }
-        if (item.weaponSpeed) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-        }
-        if (item.attackSpeed) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-        }
-        if (item.hp) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
-        }
-        if (item.mp) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
-        }
-    }
-    
-    // Render actions
-    if (modalActions) {
-        modalActions.innerHTML = '';
-        
-        if (isEquipment) {
-            const equipBtn = document.createElement('button');
-            equipBtn.className = 'btn btn-primary';
-            equipBtn.textContent = '✅ 裝備';
-            equipBtn.addEventListener('click', () => {
-                GameManager.equipItem(stack.instanceId, false);
-                this.closeItemDetailModal();
-                this.renderInventory();
-            });
-            modalActions.appendChild(equipBtn);
-        }
-        
-        if (isConsumable) {
-            const useBtn = document.createElement('button');
-            useBtn.className = 'btn btn-info';
-            useBtn.textContent = '✅ 使用';
-            useBtn.addEventListener('click', () => {
-                GameManager.useConsumable(stack.instanceId, false);
-                this.closeItemDetailModal();
-                this.renderInventory();
-            });
-            modalActions.appendChild(useBtn);
-        }
-        
-        const sellBtn = document.createElement('button');
-        sellBtn.className = 'btn btn-warning';
-        sellBtn.textContent = '💰 販售';
-        sellBtn.addEventListener('click', () => {
-            const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
-            if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
-                GameManager.sellItem(stack.instanceId, false);
-                this.closeItemDetailModal();
-                this.renderInventory();
-            }
-        });
-        modalActions.appendChild(sellBtn);
-        
-        const discardBtn = document.createElement('button');
-        discardBtn.className = 'btn btn-danger';
-        discardBtn.textContent = '🗑️ 丟棄';
-        discardBtn.addEventListener('click', () => {
-            if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
-                const index = GameManager.state.inventory.findIndex(s => s.instanceId === stack.instanceId);
-                if (index > -1) {
-                    GameManager.state.inventory.splice(index, 1);
-                    GameManager.notify('inventory');
-                }
-                this.closeItemDetailModal();
-                this.renderInventory();
-            }
-        });
-        modalActions.appendChild(discardBtn);
-    }
-    
-    modal.classList.add('active');
-};
 
-AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
-    const modal = this.dom.itemModal;
-    if (!modal) return;
-    
-    // Update modal content
-    const modalIcon = this.container.querySelector('#adv-modal-item-icon');
-    const modalName = this.container.querySelector('#adv-modal-item-name');
-    const modalType = this.container.querySelector('#adv-modal-item-type');
-    const modalDesc = this.container.querySelector('#adv-modal-item-description');
-    const modalStats = this.container.querySelector('#adv-modal-item-stats');
-    const modalActions = this.container.querySelector('#adv-modal-item-actions');
-    
-    if (modalIcon) {
-        if (item.image) {
-            modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-        } else {
-            modalIcon.textContent = item.icon || '📦';
-        }
+    // Build statsHtml
+    let statsHtml = '';
+    if (item.atk || item.attack) {
+        const atk = item.atk || item.attack;
+        statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
     }
-    if (modalName) modalName.textContent = item.name;
-    if (modalType) modalType.textContent = this.getItemTypeText(item.type);
-    if (modalDesc) modalDesc.textContent = item.desc || item.description || '無描述';
-    
-    // Render stats
-    if (modalStats) {
-        modalStats.innerHTML = '';
-        
-        if (item.atk || item.attack) {
-            const atk = item.atk || item.attack;
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
-        }
-        if (item.def || item.defense) {
-            const def = item.def || item.defense;
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
-        }
-        if (item.critChance) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-        }
-        if (item.critDamage) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
-        }
-        if (item.weaponSpeed) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-        }
-        if (item.attackSpeed) {
-            modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-        }
-        
-        // 顯示耐久度
-        if (item.durability !== undefined) {
-            const durPercent = (item.durability / (item.maxDurability || 50)) * 100;
-            const durClass = durPercent <= 20 ? 'critical' : durPercent <= 50 ? 'warning' : '';
-            modalStats.innerHTML += `<div class="item-detail-stat ${durClass}"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
-        }
-        
-        // 顯示詞綴
-        if (item.affixes && item.affixes.length > 0) {
-            modalStats.innerHTML += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
-            item.affixes.forEach(affix => {
-                const affixDesc = this.formatAffixStats(affix.stats);
-                modalStats.innerHTML += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
-            });
-            modalStats.innerHTML += `</div>`;
-        }
+    if (item.def || item.defense) {
+        const def = item.def || item.defense;
+        statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
     }
-    
-    // Render unequip button
-    if (modalActions) {
-        modalActions.innerHTML = '';
-        const unequipBtn = document.createElement('button');
-        unequipBtn.className = 'btn btn-warning';
-        unequipBtn.textContent = '🔓 卸下裝備';
-        unequipBtn.addEventListener('click', () => {
-            GameManager.unequipItem(slotType, false);
+    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
+    if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+    if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
+    if (item.mp) statsHtml += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
+
+    // Actions
+    const actions = [];
+    if (isEquipment) {
+        const equipBtn = document.createElement('button');
+        equipBtn.className = 'btn btn-primary';
+        equipBtn.textContent = '✅ 裝備';
+        equipBtn.addEventListener('click', () => {
+            GameManager.equipItem(stack.instanceId, false);
             this.closeItemDetailModal();
             this.renderInventory();
         });
-        modalActions.appendChild(unequipBtn);
+        actions.push(equipBtn);
     }
-    
-    modal.classList.add('active');
+    if (isConsumable) {
+        const useBtn = document.createElement('button');
+        useBtn.className = 'btn btn-info';
+        useBtn.textContent = '✅ 使用';
+        useBtn.addEventListener('click', () => {
+            GameManager.useConsumable(stack.instanceId, false);
+            this.closeItemDetailModal();
+            this.renderInventory();
+        });
+        actions.push(useBtn);
+    }
+
+    const sellBtn = document.createElement('button');
+    sellBtn.className = 'btn btn-warning';
+    sellBtn.textContent = '💰 販售';
+    sellBtn.addEventListener('click', () => {
+        const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+        if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
+            GameManager.sellItem(stack.instanceId, false);
+            this.closeItemDetailModal();
+            this.renderInventory();
+        }
+    });
+    actions.push(sellBtn);
+
+    const discardBtn = document.createElement('button');
+    discardBtn.className = 'btn btn-danger';
+    discardBtn.textContent = '🗑️ 丟棄';
+    discardBtn.addEventListener('click', () => {
+        if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
+            const index = GameManager.state.inventory.findIndex(s => s.instanceId === stack.instanceId);
+            if (index > -1) {
+                GameManager.state.inventory.splice(index, 1);
+                GameManager.notify('inventory');
+            }
+            this.closeItemDetailModal();
+            this.renderInventory();
+        }
+    });
+    actions.push(discardBtn);
+
+    if (window.ItemDetailModal) {
+        window.ItemDetailModal.open(item, {
+            typeText: this.getItemTypeText(item.type),
+            description: item.desc || item.description || '無描述',
+            statsHtml: statsHtml,
+            actions: actions
+        });
+    }
+};
+
+AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
+    // Build statsHtml
+    let statsHtml = '';
+    if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
+    if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
+    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
+    if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+    if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
+
+    if (item.affixes && item.affixes.length > 0) {
+        statsHtml += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
+        item.affixes.forEach(affix => {
+            const affixDesc = this.formatAffixStats(affix.stats);
+            statsHtml += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
+        });
+        statsHtml += `</div>`;
+    }
+
+    const actions = [];
+    const unequipBtn = document.createElement('button');
+    unequipBtn.className = 'btn btn-warning';
+    unequipBtn.textContent = '🔓 卸下裝備';
+    unequipBtn.addEventListener('click', () => {
+        GameManager.unequipItem(slotType, false);
+        this.closeItemDetailModal();
+        this.renderInventory();
+    });
+    actions.push(unequipBtn);
+
+    if (window.ItemDetailModal) {
+        window.ItemDetailModal.open(item, {
+            typeText: this.getItemTypeText(item.type),
+            description: item.desc || item.description || '無描述',
+            statsHtml: statsHtml,
+            actions: actions
+        });
+    }
 };
 
 AdventureScene.prototype.closeItemDetailModal = function() {
