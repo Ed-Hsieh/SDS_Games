@@ -26,6 +26,7 @@ class ItemDetailModal {
                         <div class="item-detail-description"></div>
                 </div>
                 <div class="modal-footer">
+                    <div class="item-detail-price" style="margin-right:auto;font-weight:800;color:#ffd166;"></div>
                     <div class="item-detail-actions"></div>
                     <button class="btn btn-secondary modal-close-btn">關閉</button>
                 </div>
@@ -38,6 +39,7 @@ class ItemDetailModal {
         this.typeEl = this.container.querySelector('.item-detail-type');
         this.statsEl = this.container.querySelector('.item-detail-stats');
         this.affixesEl = this.container.querySelector('.item-detail-affixes');
+        this.priceEl = this.container.querySelector('.item-detail-price');
         this.descEl = this.container.querySelector('.item-detail-description');
         this.actionsEl = this.container.querySelector('.item-detail-actions');
         this.closeBtn = this.container.querySelector('.modal-close-btn');
@@ -137,6 +139,26 @@ class ItemDetailModal {
 
         const highlightColor = '#4ade80';
 
+        // helper to render effect objects (avoid [object Object])
+        const renderEffectHtml = (eff) => {
+            if (eff === undefined || eff === null) return '';
+            if (typeof eff === 'string' || typeof eff === 'number') return String(eff);
+            if (typeof eff === 'object') {
+                const parts = [];
+                if (eff.hp) parts.push(`<span style="font-weight:700;">❤️ 恢復 ${eff.hp} 生命</span>`);
+                if (eff.mp) parts.push(`<span style="font-weight:700;">💙 恢復 ${eff.mp} 魔力</span>`);
+                if (eff.exp) parts.push(`<span style="font-weight:700;">✨ 經驗 +${eff.exp}</span>`);
+                if (eff.duration) parts.push(`<span style="font-weight:700;">⏳ 持續 ${eff.duration}s</span>`);
+                // generic remaining keys
+                for (const [k, v] of Object.entries(eff)) {
+                    if (['hp','mp','exp','duration'].includes(k)) continue;
+                    parts.push(`<span style="font-weight:700;">${k.replace(/([A-Z])/g, ' $1')}: ${v}</span>`);
+                }
+                return parts.join(' • ');
+            }
+            return String(eff);
+        };
+
         if (Array.isArray(opts.stats)) {
             // build comparison rows with aligned label/value columns
             // helper to format numbers and percentages
@@ -182,9 +204,28 @@ class ItemDetailModal {
                 const valueHtml = `<div class="stat-right">${totalPart}${bonusPart}</div>`;
                 return `<div class="stat-row">${labelHtml}${valueHtml}</div>`;
             }).join('');
-            this.statsEl.innerHTML = `<div class="stats-compare">${rows}</div>`;
+            // prepend potion rows (if any) so consumable effects appear in the same place
+            const isPotion = (item && (item.type === 'potion' || item.type === 'consumable')) || (opts && opts.typeText && String(opts.typeText).toLowerCase().includes('potion'));
+            let potionRowsHtml = '';
+            if (isPotion && (item.hp || item.mp || item.effect)) {
+                if (item.hp) potionRowsHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">❤️ <span>生命</span></div></div><div class="stat-right"><span class="stat-base" style="color:#ffffff;font-weight:700;">+${item.hp}</span></div></div>`;
+                if (item.mp) potionRowsHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">💙 <span>魔力</span></div></div><div class="stat-right"><span class="stat-base" style="color:#ffffff;font-weight:700;">+${item.mp}</span></div></div>`;
+                if (item.effect) potionRowsHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">✨ <span>效果</span></div></div><div class="stat-right"><span style="font-weight:700;color:${highlightColor};">${renderEffectHtml(item.effect)}</span></div></div>`;
+            }
+
+            this.statsEl.innerHTML = potionRowsHtml + `<div class="stats-compare">${rows}</div>`;
         } else if (opts.statsHtml !== undefined) {
-            this.statsEl.innerHTML = opts.statsHtml || '';
+            // If the caller provided raw stats HTML (shop does this for potions), make sure potion lines
+            // are included at the top so the displayed position matches the shop layout.
+            const isPotion = (item && (item.type === 'potion' || item.type === 'consumable')) || (opts && opts.typeText && String(opts.typeText).toLowerCase().includes('potion'));
+            let potionHtml = '';
+            if (isPotion && (item.hp || item.mp || item.effect)) {
+                if (item.hp) potionHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">❤️ <span>生命</span></div></div><div class="stat-right"><span class="stat-base" style="color:#ffffff;font-weight:700;">+${item.hp}</span></div></div>`;
+                if (item.mp) potionHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">💙 <span>魔力</span></div></div><div class="stat-right"><span class="stat-base" style="color:#ffffff;font-weight:700;">+${item.mp}</span></div></div>`;
+                if (item.effect) potionHtml += `<div class="stat-row"><div class="stat-left"><div class="stat-label">✨ <span>效果</span></div></div><div class="stat-right"><span style="font-weight:700;color:${highlightColor};">${renderEffectHtml(item.effect)}</span></div></div>`;
+            }
+
+            this.statsEl.innerHTML = (potionHtml || '') + (opts.statsHtml || '');
         } else {
             this.statsEl.innerHTML = '';
         }
@@ -244,6 +285,43 @@ class ItemDetailModal {
             });
         }
 
+        // Price logic:
+        // - compute canonical sellPrice (item.sellPrice or floor(item.price/2))
+        // - if opts.action === 'sell' -> show sellPrice
+        // - else if opts.action === 'buy' -> show item.price
+        // - else if opts.price provided -> show opts.price
+        // - otherwise default to sellPrice (prioritize showing sell price)
+        const canonicalSellPrice = (item && typeof item.sellPrice === 'number')
+            ? item.sellPrice
+            : (item && typeof item.price === 'number' ? Math.floor(item.price / 2) : null);
+        const canonicalBuyPrice = (item && typeof item.price === 'number') ? item.price : null;
+
+        let priceToShow = null;
+        if (opts && opts.action === 'sell') {
+            priceToShow = canonicalSellPrice;
+        } else if (opts && opts.action === 'buy') {
+            priceToShow = canonicalBuyPrice;
+        } else if (opts && opts.price !== undefined) {
+            priceToShow = opts.price;
+        } else {
+            priceToShow = canonicalSellPrice;
+        }
+
+        if (this.priceEl) {
+            if (priceToShow !== null && priceToShow !== undefined) {
+                // Determine label
+                let priceLabel = '價格';
+                if (opts && opts.priceLabel) priceLabel = opts.priceLabel;
+                else if (opts && opts.action === 'sell') priceLabel = '出售';
+                else if (opts && opts.action === 'buy') priceLabel = '購買';
+                else priceLabel = (item && item.sellPrice !== undefined) ? '售價' : '價格';
+
+                this.priceEl.innerHTML = `💰 ${priceToShow} <span style="font-weight:600;font-size:12px;margin-left:8px;color:rgba(255,255,255,0.7);">${priceLabel}</span>`;
+            } else {
+                this.priceEl.innerHTML = '';
+            }
+        }
+
         // show
         this.container.style.display = 'flex';
         requestAnimationFrame(() => this.container.classList.add('active'));
@@ -255,6 +333,7 @@ class ItemDetailModal {
             this.container.style.display = 'none';
             // clear content to avoid stale handlers
             this.actionsEl.innerHTML = '';
+            if (this.priceEl) this.priceEl.innerHTML = '';
         }, 240);
     }
 
