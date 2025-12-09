@@ -19,7 +19,6 @@ export default class AdventureScene {
         this.currentBattle = null;
         this.rhythmSystem = null;
         this.animationFrameId = null;
-        this.battleLog = [];  // 新增：戰鬥日誌
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
         
         // Bindings
@@ -91,7 +90,6 @@ export default class AdventureScene {
             battleModal: this.container.querySelector('#battle-modal'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
-            battleLog: this.container.querySelector('#battle-log'),
             skillDeck: this.container.querySelector('#skill-deck'),
             buffIndicators: this.container.querySelector('#buff-indicators'),
             
@@ -304,6 +302,9 @@ export default class AdventureScene {
             } else if (result === 'home') {
                 this.isLocked = true;
                 this.handleReturnHome();
+            } else if (result === 'rift') {
+                this.isLocked = true;
+                this.handleRiftInteraction();
             }
         }
     }
@@ -397,6 +398,18 @@ export default class AdventureScene {
                 ctx.shadowBlur = 10;
                 ctx.fillStyle = '#fff';
                 ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
+                ctx.restore();
+            } else if (cell.data.type === 'rift') {
+                // 顯示裂縫圖示
+                ctx.font = `${gridSize * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.save();
+                ctx.shadowColor = '#7b61ff';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = '#fff';
+                const riftIcon = cell.data.riftData?.icon || '🌀';
+                ctx.fillText(riftIcon, x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             } else if (cell.data.type === 'home') {
                 // 顯示家的圖示
@@ -509,6 +522,102 @@ export default class AdventureScene {
         }).catch(err => {
             console.error('載入副本資料失敗:', err);
         });
+    }
+
+    // ===== 裂縫互動 (傳送 UI) =====
+    handleRiftInteraction() {
+        const rift = this.worldMap.getCurrentRift();
+        const options = this.worldMap.getRiftOptions();
+
+        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'boss': 'Boss區' };
+
+        const modalHTML = `
+            <div class="rift-modal" id="rift-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:11000;">
+                <div style="background: linear-gradient(145deg,#1a1f2e,#252b3d); padding:20px; border-radius:12px; width: 380px; max-width:94%;">
+                    <h3 style="margin:0 0 8px 0; color:#9aa;">🌀 裂縫傳送</h3>
+                    <p style="color:#ccc; margin:0 0 12px 0;">你站在裂縫旁，裂縫可以將你傳送到其他已解鎖的區域。選擇目的地：</p>
+                    <div id="rift-options" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+                    </div>
+                    <div style="display:flex; gap:8px; justify-content:flex-end;">
+                        <button id="rift-cancel" class="btn btn-secondary" style="padding:8px 12px;">取消</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = document.getElementById('rift-modal');
+        const optionsContainer = document.getElementById('rift-options');
+
+        if (options.length === 0) {
+            optionsContainer.innerHTML = `<div style="color:#ccc;">目前沒有其他已解鎖的區域可供傳送。</div>`;
+        } else {
+            options.forEach(zone => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.style.padding = '10px';
+                btn.style.textAlign = 'left';
+                btn.textContent = zoneNames[zone] || zone;
+                btn.addEventListener('click', () => {
+                    modal.remove();
+                    this.teleportPlayerToZone(zone);
+                });
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        const cancelBtn = document.getElementById('rift-cancel');
+        cancelBtn.addEventListener('click', () => {
+            modal.remove();
+            this.worldMap.clearCurrentRift();
+            this.isLocked = false;
+        });
+
+        // 點擊背景關閉
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+                this.worldMap.clearCurrentRift();
+                this.isLocked = false;
+            }
+        });
+    }
+
+    teleportPlayerToZone(zone) {
+        const target = this.findRandomEmptyCellInZone(zone);
+        if (!target) {
+            alert('找不到可傳送的位置。');
+            this.worldMap.clearCurrentRift();
+            this.isLocked = false;
+            return;
+        }
+
+        this.worldMap.playerPos.x = target.c;
+        this.worldMap.playerPos.y = target.r;
+        // 抵達目的地視為解鎖
+        this.worldMap.unlockedZones.add(zone);
+        if (typeof this.worldMap._saveMapState === 'function') this.worldMap._saveMapState();
+        this.worldMap.updateCamera();
+        this.renderMap();
+        this.updateUI();
+        this.worldMap.clearCurrentRift();
+        this.isLocked = false;
+    }
+
+    findRandomEmptyCellInZone(zone) {
+        const cells = [];
+        for (let r = 0; r < this.worldMap.rows; r++) {
+            for (let c = 0; c < this.worldMap.cols; c++) {
+                const cell = this.worldMap.mapData[r][c];
+                if (cell.zone === zone && cell.type === 'empty') {
+                    // 避免傳到玩家出生點或副本
+                    if (this.worldMap.homePos && c === this.worldMap.homePos.x && r === this.worldMap.homePos.y) continue;
+                    cells.push({ r, c });
+                }
+            }
+        }
+        if (cells.length === 0) return null;
+        return cells[Math.floor(Math.random() * cells.length)];
     }
     
     showDungeonEntranceModal(dungeonType, dungeonData, entranceConfig) {
@@ -861,7 +970,7 @@ export default class AdventureScene {
         this.updateActionDeck();
         this.updateSkillDeck();
         this.updateBuffIndicators();
-        this.addBattleLog(`遭遇了 ${monster.name}！`);
+        // battle log removed
         
         this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
@@ -895,7 +1004,7 @@ export default class AdventureScene {
         
         // 冷卻中無法攻擊
         if (result.type === 'cooldown') {
-            this.addBattleLog('攻擊冷卻中...');
+            // battle log removed
             return;
         }
         
@@ -921,7 +1030,7 @@ export default class AdventureScene {
         const potionStack = inventory.find(stack => stack.item.type === 'potion');
         
         if (!potionStack || potionStack.quantity <= 0) {
-            this.addBattleLog('沒有可用的藥水！');
+            // battle log removed
             return;
         }
         
@@ -932,19 +1041,19 @@ export default class AdventureScene {
         if (potion.effect?.hp) {
             const healAmount = Math.min(potion.effect.hp, char.maxHp - char.hp);
             char.hp += healAmount;
-            this.addBattleLog(`使用 ${potion.name}，恢復 ${healAmount} HP！`);
+            // battle log removed
         }
         if (potion.effect?.mp) {
             const mpAmount = Math.min(potion.effect.mp, char.maxMp - char.mp);
             char.mp += mpAmount;
-            this.addBattleLog(`使用 ${potion.name}，恢復 ${mpAmount} MP！`);
+            // battle log removed
         }
         
         // 處理 Buff 藥水
         if (potion.buff) {
             char.addBuff(potion.buff.type, potion.buff.value, potion.buff.duration);
             const buffNames = { 'atk': '攻擊力', 'def': '防禦力', 'critChance': '爆擊率' };
-            this.addBattleLog(`使用 ${potion.name}，${buffNames[potion.buff.type] || potion.buff.type} +${potion.buff.value}！`);
+            // battle log removed
             this.updateBuffIndicators();
         }
         
@@ -961,22 +1070,8 @@ export default class AdventureScene {
         this.updateUI();
     }
     
-    // 新增：戰鬥日誌
-    addBattleLog(message) {
-        this.battleLog.push(message);
-        if (this.battleLog.length > 10) {
-            this.battleLog.shift();
-        }
-        this.renderBattleLog();
-    }
-    
-    renderBattleLog() {
-        if (!this.dom.battleLog) return;
-        this.dom.battleLog.innerHTML = this.battleLog.map(msg => 
-            `<div class="log-entry">${msg}</div>`
-        ).join('');
-        this.dom.battleLog.scrollTop = this.dom.battleLog.scrollHeight;
-    }
+    // battle log UI removed - method kept as noop for compatibility
+    addBattleLog(message) { /* removed */ }
     
     // 新增：更新技能面板
     updateSkillDeck() {

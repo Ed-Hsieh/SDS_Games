@@ -460,6 +460,49 @@ body {
     margin-bottom: 2px;
 }
 
+/* ===== Potion layout: show effect (stats) at top, price at bottom ===== */
+.shop-item[data-type="potion"] {
+    /* ensure vertical stacking */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+}
+
+.shop-item[data-type="potion"] .shop-item-stats {
+    order: -1; /* show above icon and name */
+    font-size: 12px;
+    color: #9be3ff;
+    text-align: center;
+    width: 100%;
+}
+
+.shop-item[data-type="potion"] .shop-item-price {
+    order: 2; /* ensure price stays at bottom */
+    margin-top: 6px;
+}
+
+/* Player inventory variant */
+.player-item[data-type="potion"] {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.player-item[data-type="potion"] .player-item-stats {
+    order: -1;
+    font-size: 12px;
+    color: #9be3ff;
+    text-align: center;
+    width: 100%;
+}
+
+.player-item[data-type="potion"] .player-item-price {
+    order: 2;
+    margin-top: 6px;
+}
+
 .player-item-stats {
     font-size: 11px;
     color: #4facfe;

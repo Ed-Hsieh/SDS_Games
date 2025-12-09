@@ -75,7 +75,7 @@ class TowerScene {
         this.monsterDefEl = document.getElementById('monster-def');
         this.monsterHpFillEl = document.getElementById('monster-hp-fill');
         this.monsterHpTextEl = document.getElementById('monster-hp-text');
-        this.battleLogEl = document.getElementById('battle-log');
+        this.battleLogEl = null; // battle log removed
         this.battlePlayerLevelEl = document.getElementById('battle-player-level');
 
         // 戰鬥按鈕
@@ -739,19 +739,11 @@ class TowerScene {
     }
 
     addBattleLog(message) {
-        if (!this.battleLogEl) return;
-
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.textContent = message;
-        this.battleLogEl.appendChild(entry);
-        this.battleLogEl.scrollTop = this.battleLogEl.scrollHeight;
+        // battle log UI removed
     }
 
     clearBattleLog() {
-        if (this.battleLogEl) {
-            this.battleLogEl.innerHTML = '';
-        }
+        // battle log UI removed
     }
 
     showMessage(message) {

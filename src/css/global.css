@@ -122,61 +122,56 @@ body {
 
 /* Centralized scrollbar styles (template: .warehouse-list) */
 /* Applies the warehouse-list visual to common scrollable components */
-.warehouse-list::-webkit-scrollbar,
-.inventory-list::-webkit-scrollbar,
-.player-inventory-list::-webkit-scrollbar,
-.shop-inventory::-webkit-scrollbar,
-.dialogue-box::-webkit-scrollbar,
-.battle-log-terminal::-webkit-scrollbar,
-.item-detail-affixes::-webkit-scrollbar,
-.item-detail-stats::-webkit-scrollbar {
+    .warehouse-list::-webkit-scrollbar,
+    .inventory-list::-webkit-scrollbar,
+    .player-inventory-list::-webkit-scrollbar,
+    .shop-inventory::-webkit-scrollbar,
+    .dialogue-box::-webkit-scrollbar,
+    .item-detail-affixes::-webkit-scrollbar,
+    .item-detail-stats::-webkit-scrollbar {
     width: var(--scrollbar-width);
 }
 
-.warehouse-list::-webkit-scrollbar-track,
-.inventory-list::-webkit-scrollbar-track,
-.player-inventory-list::-webkit-scrollbar-track,
-.shop-inventory::-webkit-scrollbar-track,
-.dialogue-box::-webkit-scrollbar-track,
-.battle-log-terminal::-webkit-scrollbar-track,
-.item-detail-affixes::-webkit-scrollbar-track,
-.item-detail-stats::-webkit-scrollbar-track {
+    .warehouse-list::-webkit-scrollbar-track,
+    .inventory-list::-webkit-scrollbar-track,
+    .player-inventory-list::-webkit-scrollbar-track,
+    .shop-inventory::-webkit-scrollbar-track,
+    .dialogue-box::-webkit-scrollbar-track,
+    .item-detail-affixes::-webkit-scrollbar-track,
+    .item-detail-stats::-webkit-scrollbar-track {
     background: var(--scrollbar-track);
     border-radius: var(--scrollbar-radius);
 }
 
-.warehouse-list::-webkit-scrollbar-thumb,
-.inventory-list::-webkit-scrollbar-thumb,
-.player-inventory-list::-webkit-scrollbar-thumb,
-.shop-inventory::-webkit-scrollbar-thumb,
-.dialogue-box::-webkit-scrollbar-thumb,
-.battle-log-terminal::-webkit-scrollbar-thumb,
-.item-detail-affixes::-webkit-scrollbar-thumb,
-.item-detail-stats::-webkit-scrollbar-thumb {
+    .warehouse-list::-webkit-scrollbar-thumb,
+    .inventory-list::-webkit-scrollbar-thumb,
+    .player-inventory-list::-webkit-scrollbar-thumb,
+    .shop-inventory::-webkit-scrollbar-thumb,
+    .dialogue-box::-webkit-scrollbar-thumb,
+    .item-detail-affixes::-webkit-scrollbar-thumb,
+    .item-detail-stats::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, var(--scrollbar-thumb-start), var(--scrollbar-thumb-end));
     border-radius: var(--scrollbar-radius);
 }
 
-.warehouse-list::-webkit-scrollbar-thumb:hover,
-.inventory-list::-webkit-scrollbar-thumb:hover,
-.player-inventory-list::-webkit-scrollbar-thumb:hover,
-.shop-inventory::-webkit-scrollbar-thumb:hover,
-.dialogue-box::-webkit-scrollbar-thumb:hover,
-.battle-log-terminal::-webkit-scrollbar-thumb:hover,
-.item-detail-affixes::-webkit-scrollbar-thumb:hover,
-.item-detail-stats::-webkit-scrollbar-thumb:hover {
+    .warehouse-list::-webkit-scrollbar-thumb:hover,
+    .inventory-list::-webkit-scrollbar-thumb:hover,
+    .player-inventory-list::-webkit-scrollbar-thumb:hover,
+    .shop-inventory::-webkit-scrollbar-thumb:hover,
+    .dialogue-box::-webkit-scrollbar-thumb:hover,
+    .item-detail-affixes::-webkit-scrollbar-thumb:hover,
+    .item-detail-stats::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--scrollbar-thumb-hover-start), var(--scrollbar-thumb-hover-end));
 }
 
 /* Firefox fallback */
-.warehouse-list,
-.inventory-list,
-.player-inventory-list,
-.shop-inventory,
-.dialogue-box,
-.battle-log-terminal,
-.item-detail-affixes,
-.item-detail-stats {
+    .warehouse-list,
+    .inventory-list,
+    .player-inventory-list,
+    .shop-inventory,
+    .dialogue-box,
+    .item-detail-affixes,
+    .item-detail-stats {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb-start) var(--scrollbar-track);
 }

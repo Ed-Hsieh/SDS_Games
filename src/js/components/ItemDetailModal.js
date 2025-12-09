@@ -21,6 +21,7 @@ class ItemDetailModal {
                         </div>
                     </div>
                         <div class="item-detail-stats" style="padding:12px;border-radius:10px;background:linear-gradient(135deg,rgba(255,255,255,0.02),rgba(0,0,0,0.04));margin-bottom:8px;"></div>
+                        <div class="item-detail-potion-effects" style="display:none;margin-bottom:8px;"></div>
                         <div class="item-detail-affixes" style="display:none;margin-bottom:8px;white-space:nowrap;padding:6px 4px;gap:8px;"></div>
                         <div class="item-detail-description"></div>
                 </div>

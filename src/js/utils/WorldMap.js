@@ -3,19 +3,20 @@
  * Handles map generation, movement, monster encounters, and map events.
  */
 import { Equipment, Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
+import GameManager from '../managers/GameManager.js';
 
 // ===== 副本入口配置 =====
 export const DungeonEntranceConfig = {
     cave: { 
         name: '幽暗洞窟', 
         icon: '🏔️', 
-        zones: ['low', 'medium'],
+        zones: ['low'],
         description: '一個被黑暗籠罩的地下洞穴'
     },
     snow: { 
         name: '冰封雪峰', 
         icon: '❄️', 
-        zones: ['medium', 'high'],
+        zones: ['medium'],
         description: '終年積雪的山峰'
     },
     ruins: { 
@@ -516,10 +517,18 @@ export default class WorldMap {
         this.cols = cols;
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
-        this.mapWidth = cols * gridSize;
-        this.mapHeight = rows * gridSize;
+        // 每向外一個圓環增加的格數（固定為 10）
+        this.ringIncrement = 10;
+        // 確保地圖尺寸至少能容納三個向外圈（low/medium/high）
+        const highRadius = this.ringIncrement * 3;
+        const minSize = highRadius * 2 + 1;
+        if (this.rows < minSize) this.rows = minSize;
+        if (this.cols < minSize) this.cols = minSize;
+
+        this.mapWidth = this.cols * gridSize;
+        this.mapHeight = this.rows * gridSize;
         
-        this.playerPos = { x: Math.floor(cols / 2), y: Math.floor(rows / 2) };
+        this.playerPos = { x: Math.floor(this.cols / 2), y: Math.floor(this.rows / 2) };
         this.mapData = this.generateMap();
         
         // 玩家出生在家的位置（由 generateMap 設定）
@@ -531,13 +540,38 @@ export default class WorldMap {
         this.currentEvent = null;
         this.currentDungeon = null; // 新增：當前副本入口
         this.hasLeftHome = false; // 新增：玩家是否已經離開過家（用於判斷是否觸發回家事件）
+        this.currentRift = null; // 當前互動的裂縫
+        this.rifts = [];
+        // 記錄已解鎖的區域（玩家抵達過即視為解鎖）
+        this.unlockedZones = new Set(['low']);
+
+        // 嘗試從 GameManager 載入持久化的地圖狀態（rifts / unlockedZones）
+        try {
+            const gm = GameManager.getInstance();
+            const persisted = gm.state.mapState;
+            if (persisted) {
+                if (Array.isArray(persisted.unlockedZones)) {
+                    this.unlockedZones = new Set(persisted.unlockedZones);
+                }
+                // 暫存已儲存的 rifts 供 generateMap 使用
+                if (Array.isArray(persisted.rifts)) {
+                    this._persistedRifts = persisted.rifts.slice();
+                }
+            }
+        } catch (e) {
+            console.warn('無法讀取 GameManager mapState:', e);
+        }
         this.updateCamera();
     }
 
     generateMap() {
-        const lowMaxSq = 6 * 6;
-        const mediumMaxSq = 9 * 9;
-        const highMaxSq = 12 * 12;
+        // 使用 ringIncrement 決定各圈半徑
+        const lowRadius = this.ringIncrement * 1;
+        const mediumRadius = this.ringIncrement * 2;
+        const highRadius = this.ringIncrement * 3;
+        const lowMaxSq = lowRadius * lowRadius;
+        const mediumMaxSq = mediumRadius * mediumRadius;
+        const highMaxSq = highRadius * highRadius;
         
         const data = [];
         for (let r = 0; r < this.rows; r++) {
@@ -634,8 +668,70 @@ export default class WorldMap {
         
         // 記錄家的位置（玩家出生點）
         this.homePos = { x: this.playerPos.x, y: this.playerPos.y };
+
+        // 生成裂縫（每個 Layer 一個），避免覆蓋副本或出生點
+        this._generateRifts(data);
         
         return data;
+    }
+
+    _generateRifts(data) {
+        this.rifts = [];
+        const zoneLayers = ['low', 'medium', 'high', 'boss'];
+
+        // 如果有持久化的 rifts，優先使用它們（並做基本的有效性檢查）
+        if (Array.isArray(this._persistedRifts) && this._persistedRifts.length > 0) {
+            for (const rift of this._persistedRifts) {
+                const { x, y, zone } = rift;
+                if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
+                    // 只在該格仍為 empty 且 zone 相符時還原裂縫
+                    if (data[y][x].type === 'empty' && data[y][x].zone === zone) {
+                        data[y][x].type = 'rift';
+                        data[y][x].riftData = { zone };
+                        this.rifts.push({ x, y, zone });
+                    }
+                }
+            }
+        } else {
+            for (const zone of zoneLayers) {
+                const validCells = [];
+                for (let r = 0; r < this.rows; r++) {
+                    for (let c = 0; c < this.cols; c++) {
+                        // 跳過玩家起點附近與家
+                        const dx = c - this.playerPos.x;
+                        const dy = r - this.playerPos.y;
+                        if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
+                        // 只放在空格，避免蓋到副本或事件或牆
+                        if (data[r][c].zone === zone && data[r][c].type === 'empty') {
+                            validCells.push({ r, c });
+                        }
+                    }
+                }
+
+                if (validCells.length > 0) {
+                    const idx = Math.floor(Math.random() * validCells.length);
+                    const cell = validCells[idx];
+                    data[cell.r][cell.c].type = 'rift';
+                    data[cell.r][cell.c].riftData = { zone };
+                    this.rifts.push({ x: cell.c, y: cell.r, zone });
+                }
+            }
+            // 儲存新生成的裂縫到 GameManager
+            this._saveMapState();
+        }
+    }
+
+    _saveMapState() {
+        try {
+            const gm = GameManager.getInstance();
+            gm.state.mapState = {
+                rifts: this.rifts.slice(),
+                unlockedZones: Array.from(this.unlockedZones)
+            };
+            gm.notify('mapState');
+        } catch (e) {
+            console.warn('無法儲存 mapState 到 GameManager:', e);
+        }
     }
 
     updateCamera() {
@@ -653,6 +749,16 @@ export default class WorldMap {
             this.playerPos.x = newX;
             this.playerPos.y = newY;
             this.updateCamera();
+            // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
+            try {
+                const arrivedZone = this.mapData[newY][newX].zone;
+                if (arrivedZone && !this.unlockedZones.has(arrivedZone)) {
+                    this.unlockedZones.add(arrivedZone);
+                    this._saveMapState();
+                }
+            } catch (e) {
+                // ignore
+            }
             
             const cell = this.mapData[newY][newX];
             
@@ -675,6 +781,17 @@ export default class WorldMap {
                 };
                 // 副本入口不會消失，可以重複進入
                 return 'dungeon';
+            }
+
+            // 裂縫互動
+            if (cell.type === 'rift') {
+                this.currentRift = cell.riftData || { zone: cell.zone };
+                // 當玩家抵達該區域，也視為已解鎖
+                if (this.currentRift && this.currentRift.zone) {
+                    this.unlockedZones.add(this.currentRift.zone);
+                    this._saveMapState();
+                }
+                return 'rift';
             }
             
             // 回到家 - 只有離開過家之後再回來才觸發
@@ -701,6 +818,16 @@ export default class WorldMap {
     getCurrentDungeon() { return this.currentDungeon; }
     clearCurrentDungeon() { this.currentDungeon = null; }
     getCurrentZone() { return this.mapData[this.playerPos.y][this.playerPos.x].zone; }
+
+    // 裂縫相關 API
+    getCurrentRift() { return this.currentRift; }
+    clearCurrentRift() { this.currentRift = null; }
+    // 回傳玩家可以傳送到的已解鎖區域（排除當前區域）
+    getRiftOptions() {
+        const current = this.getCurrentZone();
+        return Array.from(this.unlockedZones).filter(z => z !== current);
+    }
+    getUnlockedZones() { return Array.from(this.unlockedZones); }
 
     getVisibleCells() {
         const visibleCells = [];

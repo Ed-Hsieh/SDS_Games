@@ -176,6 +176,7 @@ function updateShopInventory(items) {
         window.PerformanceUtils.processInChunks(items, (item) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = `shop-item ${item.rarity}`;
+            itemDiv.dataset.type = item.type || '';
 
             const stats = getItemStats(item);
 
@@ -197,6 +198,7 @@ function updateShopInventory(items) {
         items.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = `shop-item ${item.rarity}`;
+            itemDiv.dataset.type = item.type || '';
 
             const stats = getItemStats(item);
 
@@ -217,6 +219,7 @@ function updateShopInventory(items) {
     playerInventory.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.className = `player-item ${item.rarity}`;
+        itemDiv.dataset.type = item.type || '';
         itemDiv.draggable = true; // 僅用於秘密觸發
         itemDiv.dataset.itemId = item.id;
         

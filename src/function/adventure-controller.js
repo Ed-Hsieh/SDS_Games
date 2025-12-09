@@ -312,8 +312,7 @@ function closeBattleModal() {
     worldMap.clearCurrentMonster();
     currentBattle = null;
     
-    // 清空戰鬥日誌
-    document.getElementById('battle-log').innerHTML = '';
+    // battle log UI removed
 }
 
 /**
@@ -753,14 +752,7 @@ function updateMonsterDisplay() {
  * 添加戰鬥日誌
  */
 function addBattleLog(message, className = '') {
-    const log = document.getElementById('battle-log');
-    const entry = document.createElement('div');
-    entry.className = 'log-entry ' + className;
-    entry.textContent = message;
-    log.appendChild(entry);
-    
-    // 自動滾動到底部
-    log.scrollTop = log.scrollHeight;
+    // battle log UI removed
 }
 
 /**

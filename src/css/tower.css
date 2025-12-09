@@ -382,29 +382,7 @@
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-/* 戰鬥日誌 */
-.battle-log {
-    flex: 1;
-    min-height: 150px;
-    max-height: 200px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    padding: 15px;
-    overflow-y: auto;
-    margin: 20px 0;
-}
-
-.log-entry {
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.9rem;
-    color: #ccc;
-}
-
-.log-entry:last-child {
-    border-bottom: none;
-    color: #fff;
-}
+/* battle log removed */
 
 /* 戰鬥操作 */
 .battle-actions {
@@ -1201,26 +1179,4 @@
     color: #95a5a6;
 }
 
-/* 戰鬥日誌容器 */
-.tower-battle-log-container {
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.tower-battle-log-container .battle-log-header {
-    padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.3);
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #ffd700;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.tower-battle-log-container .battle-log {
-    min-height: 100px;
-    max-height: 150px;
-    padding: 10px 15px;
-    overflow-y: auto;
-    margin: 0;
-}
+/* battle log removed */
