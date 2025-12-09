@@ -623,12 +623,20 @@ class RhythmBarSystem {
             width: hitWidth
         };
         
-        // 更新DOM元素位置
-        this.critZoneElement.style.left = this.critZone.start + '%';
-        this.critZoneElement.style.width = this.critZone.width + '%';
-        
-        this.hitZoneElement.style.left = this.hitZone.start + '%';
-        this.hitZoneElement.style.width = this.hitZone.width + '%';
+        // 更新DOM元素位置 - 使用 transform 以避免觸發重排
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+        if (this.critZoneElement) {
+            const critTranslate = (this.critZone.start / 100) * parentWidth;
+            this.critZoneElement.style.transform = `translateX(${critTranslate}px)`;
+            this.critZoneElement.style.width = this.critZone.width + '%';
+            this.critZoneElement.style.willChange = 'transform';
+        }
+        if (this.hitZoneElement) {
+            const hitTranslate = (this.hitZone.start / 100) * parentWidth;
+            this.hitZoneElement.style.transform = `translateX(${hitTranslate}px)`;
+            this.hitZoneElement.style.width = this.hitZone.width + '%';
+            this.hitZoneElement.style.willChange = 'transform';
+        }
     }
     
     /**
@@ -691,8 +699,12 @@ class RhythmBarSystem {
                 this.needleDirection = 1;
             }
             
-            // 更新DOM
-            this.needleElement.style.left = this.needlePosition + '%';
+            // 更新DOM - 使用 transform 以避免觸發重排
+            if (this.needleElement && this.barElement) {
+                const parentWidth = this.barElement.offsetWidth || 1;
+                const translateX = (this.needlePosition / 100) * parentWidth;
+                this.needleElement.style.transform = `translateX(${translateX}px)`;
+            }
         }
         
         this.animationId = requestAnimationFrame(() => this.animate());

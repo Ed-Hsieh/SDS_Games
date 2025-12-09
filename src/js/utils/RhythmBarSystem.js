@@ -146,14 +146,19 @@ class RhythmBarSystem {
         this.critZone = { start: critStart, width: critWidth };
         this.hitZone = { start: hitStart, width: hitWidth };
         
-        // 更新 DOM
+        // 更新 DOM - 使用 transform 以避免觸發重排
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
         if (this.critZoneElement) {
-            this.critZoneElement.style.left = this.critZone.start + '%';
+            const critTranslate = (this.critZone.start / 100) * parentWidth;
+            this.critZoneElement.style.transform = `translateX(${critTranslate}px)`;
             this.critZoneElement.style.width = this.critZone.width + '%';
+            this.critZoneElement.style.willChange = 'transform';
         }
         if (this.hitZoneElement) {
-            this.hitZoneElement.style.left = this.hitZone.start + '%';
+            const hitTranslate = (this.hitZone.start / 100) * parentWidth;
+            this.hitZoneElement.style.transform = `translateX(${hitTranslate}px)`;
             this.hitZoneElement.style.width = this.hitZone.width + '%';
+            this.hitZoneElement.style.willChange = 'transform';
         }
         
         // Debug log
@@ -219,9 +224,12 @@ class RhythmBarSystem {
                 this.needleDirection = 1;
             }
             
-            // 更新指針 DOM
+            // 更新指針 DOM - 使用 transform 實現 GPU 加速（避免改動 left）
             if (this.needleElement) {
-                this.needleElement.style.left = this.needlePosition + '%';
+                const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+                // needlePosition 是百分比（0-100）
+                const translateX = (this.needlePosition / 100) * parentWidth;
+                this.needleElement.style.transform = `translateX(${translateX}px)`;
             }
         }
         
@@ -285,7 +293,10 @@ class RhythmBarSystem {
         // 創建新標記
         this.hitMarker = document.createElement('div');
         this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
-        this.hitMarker.style.left = position + '%';
+        // 使用 transform 以避免重排
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+        const translateX = (position / 100) * parentWidth;
+        this.hitMarker.style.transform = `translateX(${translateX}px)`;
         this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
         
         if (this.barElement) {
@@ -411,7 +422,7 @@ class RhythmBarSystem {
         }
         
         if (this.needleElement) {
-            this.needleElement.style.left = '0%';
+            this.needleElement.style.transform = 'translateX(0)';
         }
         
         this.generateZones();

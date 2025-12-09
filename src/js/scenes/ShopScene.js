@@ -160,7 +160,10 @@ export default class ShopScene {
         const relativeLeft = tileRect.left - gridRect.left + (tileRect.width / 2) - 20;
 
         this.dom.playerToken.style.top = `${relativeTop}px`;
-        this.dom.playerToken.style.left = `${relativeLeft}px`;
+        // Use transform to move token for compositor-only animations
+        if (this.dom.playerToken) {
+            this.dom.playerToken.style.transform = `translateX(${relativeLeft}px)`;
+        }
     }
 
     selectShop(shopId) {

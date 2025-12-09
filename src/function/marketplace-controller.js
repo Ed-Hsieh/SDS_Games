@@ -133,7 +133,10 @@ function movePlayerToken(shopId) {
     
     // 移動玩家標記 (每個格子 12.5% 寬度 + 間隙)
     const leftPosition = tileIndex * 12.5;
-    playerToken.style.left = `calc(${leftPosition}% + ${tileIndex * 4}px + 8px)`;
+    // 使用 transform 實現 GPU 加速動畫，計算像素位移
+    const parentWidth = playerToken.parentElement ? playerToken.parentElement.offsetWidth : playerToken.offsetWidth;
+    const translateX = (leftPosition / 100) * parentWidth + (tileIndex * 4) + 8;
+    playerToken.style.transform = `translateX(${translateX}px)`;
     
     currentShop = shopId;
 }

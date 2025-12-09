@@ -36,7 +36,8 @@ body {
     position: relative;
     aspect-ratio: 1 / 1;
     cursor: pointer;
-    transition: all 0.3s ease;
+    /* 優化：只動畫 GPU 友善屬性 */
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     border-radius: 4px;
     overflow: hidden;
 }
@@ -68,7 +69,8 @@ body {
     background-position: 0 0, 5px 0, 5px -5px, 0 5px, 0 0;
     border: 2px solid rgba(79, 172, 254, 0.3);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease;
+    /* 優化：使用 transform 與邊框/box-shadow 專屬過渡 */
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .grid-tile:hover:not(.locked) .tile-floor {
@@ -114,13 +116,15 @@ body {
     width: calc(12.5% - 4px); /* 1/8 寬度 */
     height: calc(100% - 16px);
     top: 8px;
-    left: 8px; /* 初始位置 */
+    left: 8px; /* 初始位置，實際位移用 transform */
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
     z-index: 10;
-    transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(0);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
 }
 
 .token-avatar {
@@ -166,7 +170,8 @@ body {
     justify-content: center;
     background: radial-gradient(circle, rgba(30, 40, 60, 0.5), rgba(10, 15, 25, 0.9));
     border-bottom: 2px solid rgba(79, 172, 254, 0.2);
-    transition: all 0.3s ease;
+    /* 優化：只動畫背景變化 */
+    transition: background 0.3s ease;
     overflow: hidden;
 }
 
@@ -194,7 +199,9 @@ body {
     border-radius: 12px;
     border: 3px solid rgba(79, 172, 254, 0.4);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-    transition: all 0.3s ease;
+    /* 優化：只動畫 transform 與邊框顏色 */
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    will-change: transform;
 }
 
 .npc-portrait-container.drag-over-valid .npc-portrait {

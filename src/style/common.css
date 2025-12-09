@@ -21,27 +21,32 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.3s ease;
+    /* 優化：只動畫 GPU 友善屬性 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     position: relative;
     overflow: hidden;
+    will-change: transform;
 }
 
 .btn::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
     width: 100%;
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.4s ease;
+    /* 使用 transform 代替 left 動畫 */
+    transform: translateX(-100%);
+    transition: transform 0.4s ease;
+    will-change: transform;
 }
 
 .btn:hover::before {
-    left: 100%;
+    transform: translateX(100%);
 }
 
 .btn:hover {

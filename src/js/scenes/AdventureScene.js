@@ -1337,8 +1337,12 @@ class BattleController {
             const rect = hpContainer.getBoundingClientRect();
             const headerRect = battleHeader.getBoundingClientRect();
             
-            damageEl.style.left = (rect.left - headerRect.left + rect.width / 2) + 'px';
-            damageEl.style.top = (rect.top - headerRect.top - 10) + 'px';
+            const dx = (rect.left - headerRect.left + rect.width / 2);
+            const dy = (rect.top - headerRect.top - 10);
+            damageEl.style.left = '0px';
+            damageEl.style.top = '0px';
+            damageEl.style.transform = `translate(${dx}px, ${dy}px)`;
+            damageEl.style.willChange = 'transform';
         }
         
         battleHeader.appendChild(damageEl);
@@ -1682,14 +1686,19 @@ class RhythmBarSystem {
         this.critZone = { start: critStart, width: critWidth };
         this.hitZone = { start: hitStart, width: hitWidth };
         
-        // 更新 DOM
+        // 更新 DOM - 使用 transform 以避免觸發重排
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
         if (this.critZoneElement) {
-            this.critZoneElement.style.left = this.critZone.start + '%';
+            const critTranslate = (this.critZone.start / 100) * parentWidth;
+            this.critZoneElement.style.transform = `translateX(${critTranslate}px)`;
             this.critZoneElement.style.width = this.critZone.width + '%';
+            this.critZoneElement.style.willChange = 'transform';
         }
         if (this.hitZoneElement) {
-            this.hitZoneElement.style.left = this.hitZone.start + '%';
+            const hitTranslate = (this.hitZone.start / 100) * parentWidth;
+            this.hitZoneElement.style.transform = `translateX(${hitTranslate}px)`;
             this.hitZoneElement.style.width = this.hitZone.width + '%';
+            this.hitZoneElement.style.willChange = 'transform';
         }
         
         // Debug log
@@ -1764,9 +1773,11 @@ class RhythmBarSystem {
                 this.needleDirection = 1;
             }
             
-            // 更新指針 DOM
-            if (this.needleElement) {
-                this.needleElement.style.left = this.needlePosition + '%';
+            // 更新指針 DOM - 使用 transform
+            if (this.needleElement && this.barElement) {
+                const parentWidth = this.barElement.offsetWidth || 1;
+                const translateX = (this.needlePosition / 100) * parentWidth;
+                this.needleElement.style.transform = `translateX(${translateX}px)`;
             }
         }
         
@@ -1830,7 +1841,10 @@ class RhythmBarSystem {
         // 創建新標記
         this.hitMarker = document.createElement('div');
         this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
-        this.hitMarker.style.left = position + '%';
+        // 使用 transform 定位以避免觸發重排
+        const parentW = this.barElement ? this.barElement.offsetWidth : 1;
+        const hitTranslate = (position / 100) * parentW;
+        this.hitMarker.style.transform = `translateX(${hitTranslate}px)`;
         this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
         
         if (this.barElement) {
