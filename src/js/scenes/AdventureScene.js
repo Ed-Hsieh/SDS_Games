@@ -1339,8 +1339,8 @@ class BattleController {
             
             const dx = (rect.left - headerRect.left + rect.width / 2);
             const dy = (rect.top - headerRect.top - 10);
-            damageEl.style.left = '0px';
-            damageEl.style.top = '0px';
+            // Use transform instead of left/top to avoid layout thrash
+            damageEl.style.transform = `translate(0px, 0px)`;
             damageEl.style.transform = `translate(${dx}px, ${dy}px)`;
             damageEl.style.willChange = 'transform';
         }

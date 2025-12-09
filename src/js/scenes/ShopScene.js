@@ -149,10 +149,9 @@ export default class ShopScene {
         const relativeTop = tileRect.top - gridRect.top + (tileRect.height / 2) - 20; // -20 for half token size
         const relativeLeft = tileRect.left - gridRect.left + (tileRect.width / 2) - 20;
 
-        this.dom.playerToken.style.top = `${relativeTop}px`;
-        // Use transform to move token for compositor-only animations
+        // Use transform to move token for compositor-only animations (x,y)
         if (this.dom.playerToken) {
-            this.dom.playerToken.style.transform = `translateX(${relativeLeft}px)`;
+            this.dom.playerToken.style.transform = `translate(${relativeLeft}px, ${relativeTop}px)`;
         }
     }
 
@@ -190,24 +189,34 @@ export default class ShopScene {
     }
 
     renderPlayerInventory(inventory) {
-        this.dom.playerInventory.innerHTML = '';
-        inventory.forEach(item => {
-            const itemEl = this.createItemElement(item, 'sell');
-            
-            // Make draggable
-            itemEl.draggable = true;
-            itemEl.addEventListener('dragstart', (e) => {
-                this.draggedItem = item;
-                e.dataTransfer.setData('text/plain', JSON.stringify(item));
-                // Visual feedback
-                itemEl.style.opacity = '0.5';
-            });
-            itemEl.addEventListener('dragend', () => {
-                itemEl.style.opacity = '1';
-            });
+        const container = this.dom.playerInventory;
+        container.innerHTML = '';
 
-            this.dom.playerInventory.appendChild(itemEl);
-        });
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+            window.PerformanceUtils.processInChunks(inventory, (item) => {
+                const itemEl = this.createItemElement(item, 'sell');
+                itemEl.draggable = true;
+                itemEl.addEventListener('dragstart', (e) => {
+                    this.draggedItem = item;
+                    e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                    itemEl.style.opacity = '0.5';
+                });
+                itemEl.addEventListener('dragend', () => { itemEl.style.opacity = '1'; });
+                container.appendChild(itemEl);
+            }, {chunkSize: 40});
+        } else {
+            inventory.forEach(item => {
+                const itemEl = this.createItemElement(item, 'sell');
+                itemEl.draggable = true;
+                itemEl.addEventListener('dragstart', (e) => {
+                    this.draggedItem = item;
+                    e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                    itemEl.style.opacity = '0.5';
+                });
+                itemEl.addEventListener('dragend', () => { itemEl.style.opacity = '1'; });
+                container.appendChild(itemEl);
+            });
+        }
     }
 
     createItemElement(itemData, mode) {

@@ -362,64 +362,71 @@ export default class LobbyScene {
     renderWarehouse() {
         const state = GameManager.state;
         if (!this.dom.warehouseList || !state.warehouse) return;
-        
         let filteredItems = [...state.warehouse];
-        
+
         // Apply filter
         if (this.currentWarehouseFilter !== 'all') {
-            filteredItems = filteredItems.filter(stack => {
-                const item = stack.item;
-                return item.type === this.currentWarehouseFilter;
-            });
+            filteredItems = filteredItems.filter(stack => stack.item.type === this.currentWarehouseFilter);
         }
-        
+
         // Apply sort
+        const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
         filteredItems.sort((a, b) => {
-            if (this.currentWarehouseSort === 'time-desc') {
-                return b.item.instanceId.localeCompare(a.item.instanceId);
-            } else if (this.currentWarehouseSort === 'time-asc') {
-                return a.item.instanceId.localeCompare(b.item.instanceId);
-            } else if (this.currentWarehouseSort === 'rarity-desc') {
-                const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-                return (rarityOrder[b.item.rarity] || 0) - (rarityOrder[a.item.rarity] || 0);
-            } else if (this.currentWarehouseSort === 'rarity-asc') {
-                const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-                return (rarityOrder[a.item.rarity] || 0) - (rarityOrder[b.item.rarity] || 0);
+            switch (this.currentWarehouseSort) {
+                case 'time-desc': return (b.item.acquiredTime || 0) - (a.item.acquiredTime || 0);
+                case 'time-asc': return (a.item.acquiredTime || 0) - (b.item.acquiredTime || 0);
+                case 'rarity-desc': return (rarityOrder[b.item.rarity] || 0) - (rarityOrder[a.item.rarity] || 0);
+                case 'rarity-asc': return (rarityOrder[a.item.rarity] || 0) - (rarityOrder[b.item.rarity] || 0);
+                default: return 0;
             }
-            return 0;
         });
-        
-        // Render
-        this.dom.warehouseList.innerHTML = '';
-        if (filteredItems.length > 0) {
+
+        // Chunked rendering using PerformanceUtils
+        const container = this.dom.warehouseList;
+        container.innerHTML = '';
+        if (!filteredItems || filteredItems.length === 0) {
+            container.innerHTML = '<div class="empty-hint">倉庫空空如也...</div>';
+            return;
+        }
+
+        // Use processInChunks to avoid long main-thread tasks
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+            window.PerformanceUtils.processInChunks(filteredItems, (stack) => {
+                const item = stack.item;
+                const itemEl = document.createElement('div');
+                itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
+
+                let iconHTML;
+                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                else iconHTML = item.icon || '📦';
+
+                itemEl.innerHTML = `
+                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
+                    <div class="item-info"><div class="item-name">${item.name}</div></div>
+                `;
+                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
+                container.appendChild(itemEl);
+            }, {chunkSize: 40}).then(() => {
+                // done
+            });
+        } else {
+            // Fallback synchronous render
             filteredItems.forEach(stack => {
                 const item = stack.item;
                 const itemEl = document.createElement('div');
                 itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
-                
+
                 let iconHTML;
-                if (item.image) {
-                    iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    iconHTML = item.icon || '📦';
-                }
-                
+                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                else iconHTML = item.icon || '📦';
+
                 itemEl.innerHTML = `
-                    <div class="item-icon">
-                        ${iconHTML}
-                        ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
-                    </div>
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                    </div>
+                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
+                    <div class="item-info"><div class="item-name">${item.name}</div></div>
                 `;
-                itemEl.addEventListener('click', () => {
-                    this.showItemModal(stack, 'warehouse');
-                });
-                this.dom.warehouseList.appendChild(itemEl);
+                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
+                container.appendChild(itemEl);
             });
-        } else {
-            this.dom.warehouseList.innerHTML = '<div class="empty-hint">倉庫空空如也...</div>';
         }
     }
     

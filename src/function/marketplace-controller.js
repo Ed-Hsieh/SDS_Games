@@ -171,24 +171,48 @@ function updateShopInventory(items) {
     container.innerHTML = '';
     if (hint) container.appendChild(hint);
 
-    items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = `shop-item ${item.rarity}`;
+    // Use PerformanceUtils to chunk shop item rendering
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+        window.PerformanceUtils.processInChunks(items, (item) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `shop-item ${item.rarity}`;
 
-        const stats = getItemStats(item);
+            const stats = getItemStats(item);
 
-        itemDiv.innerHTML = `
-            <div class="shop-item-icon">${item.icon}</div>
-            <div class="shop-item-info">
-                <div class="shop-item-name">${item.name}</div>
-                ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
-            </div>
-            <div class="shop-item-price">💰 ${item.price || ''}</div>
-        `;
+            itemDiv.innerHTML = `
+                <div class="shop-item-icon">${item.icon}</div>
+                <div class="shop-item-info">
+                    <div class="shop-item-name">${item.name}</div>
+                    ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
+                </div>
+                <div class="shop-item-price">💰 ${item.price || ''}</div>
+            `;
 
-        itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
-        container.appendChild(itemDiv);
-    });
+            itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
+            container.appendChild(itemDiv);
+        }, {chunkSize: 40}).then(() => {
+            // finished
+        });
+    } else {
+        items.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `shop-item ${item.rarity}`;
+
+            const stats = getItemStats(item);
+
+            itemDiv.innerHTML = `
+                <div class="shop-item-icon">${item.icon}</div>
+                <div class="shop-item-info">
+                    <div class="shop-item-name">${item.name}</div>
+                    ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
+                </div>
+                <div class="shop-item-price">💰 ${item.price || ''}</div>
+            `;
+
+            itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
+            container.appendChild(itemDiv);
+        });
+    }
     
     playerInventory.forEach(item => {
         const itemDiv = document.createElement('div');
