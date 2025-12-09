@@ -1,0 +1,264 @@
+<div class="tower-scene">
+    <!-- 頂部資訊欄 -->
+    <div class="tower-header">
+        <div class="tower-title">
+            <span class="tower-icon">🗼</span>
+            <h1>無盡塔</h1>
+        </div>
+        <div class="tower-progress">
+            <span>歷史最高：第 <span id="highest-floor">0</span> 層</span>
+            <span>當前層數：第 <span id="current-floor">1</span> 層</span>
+        </div>
+        <button class="btn-back" id="btn-back-lobby">← 返回大廳</button>
+    </div>
+
+    <!-- 主要內容區 -->
+    <div class="tower-content">
+        <!-- 左側：塔層列表 -->
+        <div class="tower-floors-panel">
+            <h2>塔層列表</h2>
+            <div class="floors-list" id="floors-list">
+                <!-- 動態生成塔層按鈕 -->
+            </div>
+        </div>
+
+        <!-- 中間：戰鬥區域 -->
+        <div class="tower-battle-panel">
+            <div class="battle-area" id="battle-area">
+                <!-- 待機狀態 -->
+                <div class="idle-state" id="idle-state">
+                    <div class="floor-preview" id="floor-preview">
+                        <h2>第 <span id="preview-floor">1</span> 層</h2>
+                        <div class="monster-preview" id="monster-preview">
+                            <div class="monster-icon">🟢</div>
+                            <div class="monster-name">史萊姆王</div>
+                            <div class="monster-stats">
+                                <span>HP: 100</span>
+                                <span>ATK: 8</span>
+                            </div>
+                        </div>
+                        <div class="floor-rewards" id="floor-rewards">
+                            <h3>通關獎勵</h3>
+                            <div class="rewards-list"></div>
+                        </div>
+                        <button class="btn-start-battle" id="btn-start-battle">開始戰鬥</button>
+                    </div>
+                </div>
+
+                <!-- 戰鬥狀態 - 參考 Adventure 風格 -->
+                <div class="battle-state hidden" id="battle-state">
+                    <!-- 頂部樓層資訊 -->
+                    <div class="tower-battle-header">
+                        <h2>🗼 第 <span id="battle-floor">1</span> 層</h2>
+                        <span class="boss-indicator hidden" id="boss-indicator">⭐ BOSS 戰</span>
+                    </div>
+                    
+                    <!-- 敵人狀態卡 - 仿 Adventure 風格 -->
+                    <div class="tower-monster-card">
+                        <div class="monster-avatar-frame">
+                            <div class="avatar-hexagon">
+                                <div class="monster-icon" id="monster-icon">🟢</div>
+                            </div>
+                            <div class="avatar-glow"></div>
+                        </div>
+                        <div class="monster-info">
+                            <div class="monster-name-bar">
+                                <div class="monster-name" id="monster-name">史萊姆王</div>
+                                <div class="monster-level">LV.<span id="monster-level">1</span></div>
+                            </div>
+                            <div class="monster-hp-container">
+                                <div class="hp-bar-track">
+                                    <div class="hp-bar-fill" id="monster-hp-fill" style="width: 100%;">
+                                        <div class="hp-bar-shine"></div>
+                                    </div>
+                                </div>
+                                <div class="hp-text" id="monster-hp-text">100/100</div>
+                            </div>
+                            <div class="monster-stats">
+                                <span class="stat-badge stat-atk"><span class="stat-icon">⚔️</span><span id="monster-atk">8</span></span>
+                                <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="monster-def">3</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- VS 分隔 -->
+                    <div class="battle-vs-indicator">
+                        <span class="vs-text">⚔️ VS ⚔️</span>
+                    </div>
+                    
+                    <!-- 玩家狀態面板 - 仿 Adventure 風格 -->
+                    <div class="tower-player-battle-panel">
+                        <div class="player-info-bar">
+                            <div class="info-identity">
+                                <div class="info-level">LV.<span id="battle-player-level">1</span></div>
+                                <div class="info-name">冒險者</div>
+                            </div>
+                            <div class="info-vital-bars">
+                                <div class="vital-row">
+                                    <span class="vital-label">HP</span>
+                                    <div class="vital-bar-track">
+                                        <div class="vital-bar-fill hp-fill" id="player-hp-fill" style="width: 100%;"></div>
+                                    </div>
+                                    <span class="vital-text" id="player-hp-text">100/100</span>
+                                </div>
+                                <div class="vital-row">
+                                    <span class="vital-label">MP</span>
+                                    <div class="vital-bar-track">
+                                        <div class="vital-bar-fill mp-fill" id="player-mp-fill" style="width: 100%;"></div>
+                                    </div>
+                                    <span class="vital-text" id="player-mp-text">50/50</span>
+                                </div>
+                            </div>
+                            <!-- Buff 狀態顯示 -->
+                            <div class="buff-indicators" id="tower-buff-indicators">
+                                <!-- 動態生成 Buff 圖示 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 節奏條 - PRECISION GAUGE (與 Adventure 相同) -->
+                    <div class="rhythm-bar-container">
+                        <div class="rhythm-bar" id="tower-rhythm-bar">
+                            <!-- MISS 區域（背景填滿整個軌道） -->
+                            <div class="zone-miss">
+                                <span class="zone-label">MISS</span>
+                            </div>
+                            <!-- HIT 區域（absolute定位） -->
+                            <div class="hit-zone" id="tower-hit-zone">
+                                <div class="zone-glow zone-glow-hit"></div>
+                                <span class="zone-label">HIT</span>
+                            </div>
+                            <!-- CRIT 區域（absolute定位） -->
+                            <div class="crit-zone" id="tower-crit-zone">
+                                <div class="zone-glow zone-glow-crit"></div>
+                                <span class="zone-label">CRIT!</span>
+                            </div>
+                            <!-- 雷射指針 -->
+                            <div class="rhythm-needle" id="tower-rhythm-needle">
+                                <div class="needle-beam"></div>
+                                <div class="needle-tip"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 行動按鈕組 - 卡片風格 -->
+                    <div class="tower-action-deck">
+                        <!-- 攻擊卡片 -->
+                        <div class="action-card attack-card" id="btn-attack">
+                            <div class="card-header">
+                                <span class="card-key">[A]</span>
+                                <span class="card-title">ATTACK</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-icon">⚔️</div>
+                                <div class="card-name">普通攻擊</div>
+                            </div>
+                        </div>
+
+                        <!-- 技能卡片 -->
+                        <div class="action-card skill-card" id="btn-skill">
+                            <div class="card-header">
+                                <span class="card-key">[S]</span>
+                                <span class="card-title">SKILL</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-icon">✨</div>
+                                <div class="card-name">使用技能</div>
+                            </div>
+                        </div>
+
+                        <!-- 道具卡片 -->
+                        <div class="action-card item-card" id="btn-item">
+                            <div class="card-header">
+                                <span class="card-key">[D]</span>
+                                <span class="card-title">ITEM</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-icon">🧪</div>
+                                <div class="card-name">使用道具</div>
+                            </div>
+                        </div>
+
+                        <!-- 逃跑卡片 -->
+                        <div class="action-card flee-card" id="btn-flee">
+                            <div class="card-header">
+                                <span class="card-key">[F]</span>
+                                <span class="card-title">FLEE</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-icon">🏃</div>
+                                <div class="card-name">放棄挑戰</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 戰鬥日誌 -->
+                    <div class="tower-battle-log-container">
+                        <div class="battle-log-header">📜 戰鬥日誌</div>
+                        <div class="battle-log" id="battle-log">
+                            <div class="log-entry">戰鬥開始！</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 結果狀態 -->
+                <div class="result-state hidden" id="result-state">
+                    <div class="result-content">
+                        <div class="result-icon" id="result-icon">🎉</div>
+                        <h2 class="result-title" id="result-title">勝利！</h2>
+                        <div class="result-rewards" id="result-rewards">
+                            <h3>獲得獎勵</h3>
+                            <div class="rewards-detail"></div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-next-floor hidden" id="btn-next-floor">前往下一層 →</button>
+                            <button class="btn-retry hidden" id="btn-retry">重新挑戰</button>
+                            <button class="btn-exit" id="btn-exit">離開無盡塔</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側：玩家狀態 -->
+        <div class="tower-player-panel">
+            <h2>冒險者狀態</h2>
+            <div class="player-info">
+                <div class="player-level">
+                    <span>等級</span>
+                    <span class="level-value" id="player-level">1</span>
+                </div>
+                <div class="player-stat">
+                    <span>❤️ HP</span>
+                    <span id="player-stat-hp">120/120</span>
+                </div>
+                <div class="player-stat">
+                    <span>💙 MP</span>
+                    <span id="player-stat-mp">50/50</span>
+                </div>
+                <div class="player-stat">
+                    <span>⚔️ ATK</span>
+                    <span id="player-stat-atk">10</span>
+                </div>
+                <div class="player-stat">
+                    <span>🛡️ DEF</span>
+                    <span id="player-stat-def">5</span>
+                </div>
+                <div class="player-stat">
+                    <span>💰 金幣</span>
+                    <span id="player-stat-gold">100</span>
+                </div>
+            </div>
+
+            <h3>技能列表</h3>
+            <div class="skills-list" id="skills-list">
+                <!-- 動態生成技能 -->
+            </div>
+
+            <h3>背包道具</h3>
+            <div class="quick-items" id="quick-items">
+                <!-- 動態生成可用道具 -->
+            </div>
+        </div>
+    </div>
+</div>

@@ -43,6 +43,7 @@ export default class LobbyScene {
             btnGoForge: this.container.querySelector('#btn-go-forge'),
             btnGoGamble: this.container.querySelector('#btn-go-gamble'),
             btnGoQuest: this.container.querySelector('#btn-go-quest'),
+            btnGoTower: this.container.querySelector('#btn-go-tower'),
             btnStartAdventure: this.container.querySelector('#btn-start-adventure'),
             
             // Character info
@@ -82,22 +83,25 @@ export default class LobbyScene {
         
         if (this.dom.btnGoForge) {
             this.dom.btnGoForge.addEventListener('click', () => {
-                console.log('Forge not yet implemented');
-                // this.app.loadScene('forge');
+                this.app.loadScene('forge');
             });
         }
         
         if (this.dom.btnGoGamble) {
             this.dom.btnGoGamble.addEventListener('click', () => {
-                console.log('Gamble not yet implemented');
-                // this.app.loadScene('gamble');
+                this.app.loadScene('casino');
             });
         }
         
         if (this.dom.btnGoQuest) {
             this.dom.btnGoQuest.addEventListener('click', () => {
-                console.log('Quest not yet implemented');
-                // this.app.loadScene('quest');
+                this.app.loadScene('quest');
+            });
+        }
+        
+        if (this.dom.btnGoTower) {
+            this.dom.btnGoTower.addEventListener('click', () => {
+                this.app.loadScene('tower');
             });
         }
         
@@ -421,7 +425,7 @@ export default class LobbyScene {
         
         if (modalIcon) {
             if (item.image) {
-                modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;z-index: 1;">`;
             } else {
                 modalIcon.textContent = item.icon || '📦';
             }
@@ -453,6 +457,23 @@ export default class LobbyScene {
             }
             if (item.attackSpeed) {
                 modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+            }
+            
+            // 顯示耐久度
+            if (item.durability !== undefined) {
+                const durPercent = (item.durability / (item.maxDurability || 50)) * 100;
+                const durClass = durPercent <= 20 ? 'critical' : durPercent <= 50 ? 'warning' : '';
+                modalStats.innerHTML += `<div class="item-detail-stat ${durClass}"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
+            }
+            
+            // 顯示詞綴
+            if (item.affixes && item.affixes.length > 0) {
+                modalStats.innerHTML += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
+                item.affixes.forEach(affix => {
+                    const affixDesc = this.formatAffixStats(affix.stats);
+                    modalStats.innerHTML += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
+                });
+                modalStats.innerHTML += `</div>`;
             }
         }
         
@@ -521,10 +542,35 @@ export default class LobbyScene {
         }
         
         // Show modal
-        this.dom.itemModal.style.display = 'flex';
-        setTimeout(() => {
-            this.dom.itemModal.classList.add('active');
-        }, 10);
+        this.dom.itemModal.classList.add('active');
+    }
+    
+    /**
+     * 格式化詞綴屬性為可讀文字
+     */
+    formatAffixStats(stats) {
+        if (!stats) return '';
+        const statNames = {
+            atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
+            critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
+            lifesteal: '生命偷取', damageReduction: '傷害減免', hpRegen: '生命回復', mpRegen: '魔力回復',
+            fireDamage: '火焰傷害', iceDamage: '冰霜傷害', thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
+            slowChance: '減速', stunChance: '暈眩', dodgeChance: '閃避', armorPenetration: '穿甲',
+            bossBonus: 'Boss傷害', allStats: '全屬性', noDurabilityLoss: '不損耐久'
+        };
+        
+        const parts = [];
+        for (const [key, value] of Object.entries(stats)) {
+            const name = statNames[key] || key;
+            if (key === 'noDurabilityLoss') {
+                parts.push('不損耐久');
+            } else if (key.includes('Chance') || key.includes('Reduction') || key.includes('steal')) {
+                parts.push(`${name}+${(value * 100).toFixed(0)}%`);
+            } else {
+                parts.push(`${name}+${typeof value === 'number' ? value.toFixed(value % 1 === 0 ? 0 : 1) : value}`);
+            }
+        }
+        return parts.join(', ');
     }
     
     getItemTypeText(type) {
@@ -595,7 +641,6 @@ export default class LobbyScene {
     closeItemModal() {
         if (this.dom.itemModal) {
             this.dom.itemModal.classList.remove('active');
-            this.dom.itemModal.style.display = 'none';
         }
         this.selectedItem = null;
         this.selectedItemSource = null;
@@ -693,7 +738,11 @@ export default class LobbyScene {
         GameManager.state.character.equipment[slotType] = null;
         GameManager.addToInventory(item, 1);
         
+        // 通知 UI 更新
+        GameManager.notify('all');
+        
         this.closeItemModal();
+        this.updateUI(GameManager.state, 'all');
     }
     
     getItemTypeText(type) {

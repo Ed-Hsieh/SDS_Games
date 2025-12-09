@@ -1,0 +1,449 @@
+/**
+ * RhythmBarSystem - 共用節奏條系統
+ * 用於 AdventureScene 和 TowerScene 的戰鬥節奏條
+ */
+class RhythmBarSystem {
+    constructor(character, container, options = {}) {
+        this.character = character;
+        this.container = container;
+        
+        // 支援自定義選擇器前綴（用於不同場景）
+        const prefix = options.prefix || '';
+        
+        this.barElement = container.querySelector(`${prefix}#rhythm-bar, ${prefix}.rhythm-bar`);
+        this.needleElement = container.querySelector(`${prefix}#rhythm-needle, ${prefix}.rhythm-needle`);
+        this.critZoneElement = container.querySelector(`${prefix}#crit-zone, ${prefix}.crit-zone`);
+        this.hitZoneElement = container.querySelector(`${prefix}#hit-zone, ${prefix}.hit-zone`);
+        this.attackBtn = container.querySelector(`${prefix}#btn-attack, ${prefix}.btn-attack`);
+        
+        // 節奏條總寬度（百分比）
+        this.barWidth = 100;
+        
+        // 指針狀態
+        this.needlePosition = 0;      // 當前位置 (0-100%)
+        this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
+        
+        // 從角色/武器獲取數據
+        this.updateEquipmentStats();
+        
+        // 動畫控制
+        this.animationId = null;
+        this.lastTime = 0;
+        this.isRunning = false;
+        this.isPaused = false;
+        
+        // 擊中標記
+        this.hitMarker = null;
+        
+        // 生成判定區域
+        this.generateZones();
+    }
+
+    /**
+     * 從角色裝備更新節奏條參數
+     */
+    updateEquipmentStats() {
+        // 取得武器速度（控制指針移動速度）
+        // weaponSpeed 越高，指針移動越快
+        this.weaponSpeed = this.character.getWeaponSpeed?.() || 1.0;
+        
+        // 取得攻擊速度（控制冷卻時間）
+        // attackSpeed 是冷卻秒數
+        this.attackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        
+        // 取得爆擊機率（決定 Crit Zone 寬度）
+        this.critChance = this.character.getCritChance?.() || 0.05;
+        
+        // 取得爆擊傷害倍率
+        this.critDamage = this.character.getCritDamage?.() || 1.5;
+        
+        // 取得攻擊力（使用 getTotalAtk 方法）
+        this.attackPower = this.character.getTotalAtk?.() || 10;
+        
+        // 取得武器稀有度（決定 Hit Zone 寬度）
+        this.weaponRarity = this._getWeaponRarity();
+        
+        // 冷卻系統
+        this.isOnCooldown = false;
+        this.cooldownTimer = null;
+    }
+
+    /**
+     * 取得武器稀有度
+     * @returns {string} 稀有度名稱
+     */
+    _getWeaponRarity() {
+        const weapon = this.character.equipment?.weapon;
+        if (weapon && weapon.rarity) {
+            return weapon.rarity;
+        }
+        return 'common';
+    }
+
+    /**
+     * 根據稀有度計算 Hit Zone 寬度
+     * common: 20%, uncommon: 24%, rare: 28%, epic: 32%, legendary: 36%, mythic: 40%
+     */
+    _calculateHitZoneWidth() {
+        const rarityWidths = {
+            'common': 20,
+            'uncommon': 24,
+            'rare': 28,
+            'epic': 32,
+            'legendary': 36,
+            'mythic': 40
+        };
+        return rarityWidths[this.weaponRarity] || 20;
+    }
+
+    /**
+     * 生成判定區域位置
+     * Crit Zone 和 Hit Zone 隨機放置，但不可重疊
+     */
+    generateZones() {
+        // ===== 計算區域寬度 =====
+        // Crit Zone 寬度 = critChance * 100%（例：12% 暴擊率 = 12% 寬度）
+        const critWidth = Math.max(5, Math.min(30, this.critChance * 100));
+        
+        // Hit Zone 寬度根據武器稀有度（20% ~ 40%）
+        const hitWidth = this._calculateHitZoneWidth();
+        
+        // 安全間距，確保區域不重疊
+        const safeGap = 3;
+        
+        // 可用範圍（留出兩端邊距）
+        const marginLeft = 3;
+        const marginRight = 3;
+        const availableWidth = 100 - marginLeft - marginRight;
+        
+        // ===== 隨機決定區域位置 =====
+        // 隨機決定哪個區域在左邊
+        const critOnLeft = Math.random() > 0.5;
+        
+        let critStart, hitStart;
+        
+        if (critOnLeft) {
+            // Crit 在左，Hit 在右
+            const maxCritStart = availableWidth - critWidth - safeGap - hitWidth;
+            critStart = marginLeft + Math.random() * Math.max(0, maxCritStart);
+            
+            // Hit 區域在 Crit 區域右側
+            const hitMinStart = critStart + critWidth + safeGap;
+            const hitMaxStart = 100 - marginRight - hitWidth;
+            hitStart = hitMinStart + Math.random() * Math.max(0, hitMaxStart - hitMinStart);
+        } else {
+            // Hit 在左，Crit 在右
+            const maxHitStart = availableWidth - hitWidth - safeGap - critWidth;
+            hitStart = marginLeft + Math.random() * Math.max(0, maxHitStart);
+            
+            // Crit 區域在 Hit 區域右側
+            const critMinStart = hitStart + hitWidth + safeGap;
+            const critMaxStart = 100 - marginRight - critWidth;
+            critStart = critMinStart + Math.random() * Math.max(0, critMaxStart - critMinStart);
+        }
+        
+        // 保存區域資料
+        this.critZone = { start: critStart, width: critWidth };
+        this.hitZone = { start: hitStart, width: hitWidth };
+        
+        // 更新 DOM
+        if (this.critZoneElement) {
+            this.critZoneElement.style.left = this.critZone.start + '%';
+            this.critZoneElement.style.width = this.critZone.width + '%';
+        }
+        if (this.hitZoneElement) {
+            this.hitZoneElement.style.left = this.hitZone.start + '%';
+            this.hitZoneElement.style.width = this.hitZone.width + '%';
+        }
+        
+        // Debug log
+        console.log(`[RhythmBar] Zones generated - Crit: ${critWidth.toFixed(1)}% at ${critStart.toFixed(1)}%, Hit: ${hitWidth}% at ${hitStart.toFixed(1)}%`);
+    }
+
+    /**
+     * 開始節奏條動畫
+     */
+    start() {
+        if (this.isRunning) return;
+        
+        // 更新裝備參數
+        this.updateEquipmentStats();
+        
+        this.isRunning = true;
+        this.isPaused = false;
+        this.lastTime = performance.now();
+        this.animate();
+        
+        console.log(`[RhythmBar] Started - Speed: ${this.weaponSpeed}, Cooldown: ${this.attackSpeed}s`);
+    }
+
+    /**
+     * 停止節奏條動畫
+     */
+    stop() {
+        this.isRunning = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
+    /**
+     * 動畫循環 - 更新指針位置
+     */
+    animate() {
+        if (!this.isRunning) return;
+        
+        const currentTime = performance.now();
+        const deltaTime = (currentTime - this.lastTime) / 1000; // 轉換為秒
+        this.lastTime = currentTime;
+        
+        // 暫停或冷卻中不更新位置
+        if (!this.isPaused && !this.isOnCooldown) {
+            // 計算指針移動速度
+            // 公式：指針速度 = (barWidth * weaponSpeed) per second
+            // weaponSpeed = 1.0 表示 1 秒走完整個條
+            // weaponSpeed = 2.0 表示 0.5 秒走完
+            // weaponSpeed = 0.5 表示 2 秒走完
+            const pixelsPerSecond = this.barWidth * this.weaponSpeed;
+            const movement = pixelsPerSecond * deltaTime;
+            
+            this.needlePosition += movement * this.needleDirection;
+            
+            // 邊界反彈
+            if (this.needlePosition >= this.barWidth) {
+                this.needlePosition = this.barWidth;
+                this.needleDirection = -1;
+            } else if (this.needlePosition <= 0) {
+                this.needlePosition = 0;
+                this.needleDirection = 1;
+            }
+            
+            // 更新指針 DOM
+            if (this.needleElement) {
+                this.needleElement.style.left = this.needlePosition + '%';
+            }
+        }
+        
+        this.animationId = requestAnimationFrame(() => this.animate());
+    }
+
+    /**
+     * 判定攻擊結果
+     * @returns {object} { type: 'crit'|'hit'|'miss', damage: number }
+     */
+    judgeHit() {
+        // 冷卻中無法攻擊
+        if (this.isOnCooldown) {
+            return { type: 'cooldown', damage: 0 };
+        }
+        
+        const pos = this.needlePosition;
+        let hitType = 'miss';
+        let damage = 0;
+        
+        // ===== 判定邏輯（Crit 優先） =====
+        // Condition A: Crit - 游標在 Crit Zone 內
+        if (pos >= this.critZone.start && pos <= this.critZone.start + this.critZone.width) {
+            hitType = 'crit';
+            damage = Math.floor(this.attackPower * this.critDamage);
+        }
+        // Condition B: Hit - 游標在 Hit Zone 內（且不在 Crit 內）
+        else if (pos >= this.hitZone.start && pos <= this.hitZone.start + this.hitZone.width) {
+            hitType = 'hit';
+            damage = this.attackPower;
+        }
+        // Condition C: Miss - 其他區域
+        else {
+            hitType = 'miss';
+            damage = 0;
+        }
+        
+        // 顯示擊中標記
+        this.showHitMarker(pos, hitType);
+        
+        // 顯示判定文字特效
+        this.showJudgmentText(hitType, damage);
+        
+        // 啟動冷卻
+        this.startCooldown();
+        
+        console.log(`[RhythmBar] Judge: ${hitType} at ${pos.toFixed(1)}%, Damage: ${damage}`);
+        
+        return { type: hitType, damage: damage };
+    }
+    
+    /**
+     * 顯示擊中位置標記
+     */
+    showHitMarker(position, hitType) {
+        // 移除舊標記
+        if (this.hitMarker) {
+            this.hitMarker.remove();
+        }
+        
+        // 創建新標記
+        this.hitMarker = document.createElement('div');
+        this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
+        this.hitMarker.style.left = position + '%';
+        this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
+        
+        if (this.barElement) {
+            this.barElement.appendChild(this.hitMarker);
+        }
+        
+        // 特效播放完後移除
+        setTimeout(() => {
+            if (this.hitMarker) {
+                this.hitMarker.remove();
+                this.hitMarker = null;
+            }
+        }, 800);
+    }
+    
+    /**
+     * 顯示判定文字特效
+     */
+    showJudgmentText(hitType, damage) {
+        const textConfig = {
+            'crit': { text: 'CRITICAL!', color: '#4caf50', size: '28px' },
+            'hit': { text: 'HIT', color: '#ffd700', size: '22px' },
+            'miss': { text: 'MISS', color: '#ff4444', size: '20px' }
+        };
+        
+        const config = textConfig[hitType];
+        if (!config) return;
+        
+        const textEl = document.createElement('div');
+        textEl.className = `judgment-text judgment-${hitType}`;
+        textEl.textContent = config.text;
+        textEl.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: ${config.size};
+            font-weight: 900;
+            color: ${config.color};
+            text-shadow: 0 0 20px ${config.color}, 0 0 40px ${config.color};
+            z-index: 100;
+            pointer-events: none;
+            animation: judgmentPop 0.8s ease-out forwards;
+        `;
+        
+        if (this.barElement) {
+            this.barElement.appendChild(textEl);
+        }
+        
+        // 動畫結束後移除
+        setTimeout(() => textEl.remove(), 800);
+    }
+
+    /**
+     * 啟動冷卻系統
+     */
+    startCooldown() {
+        if (this.isOnCooldown) return;
+        
+        this.isOnCooldown = true;
+        
+        // 添加冷卻樣式（使用 CSS 的旋轉動畫）
+        if (this.barElement) {
+            this.barElement.classList.add('cooldown');
+        }
+        
+        // 冷卻時間結束後恢復
+        const cooldownDuration = this.attackSpeed * 1000; // 轉換為毫秒
+        
+        this.cooldownTimer = setTimeout(() => {
+            this.endCooldown();
+        }, cooldownDuration);
+    }
+
+    /**
+     * 結束冷卻
+     */
+    endCooldown() {
+        this.isOnCooldown = false;
+        
+        // 移除冷卻樣式
+        if (this.barElement) {
+            this.barElement.classList.remove('cooldown');
+        }
+        
+        // 重新隨機化區域位置
+        this.generateZones();
+        
+        // 取消冷卻計時器
+        if (this.cooldownTimer) {
+            clearTimeout(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
+        
+        console.log('[RhythmBar] Cooldown ended, zones regenerated');
+    }
+    
+    /**
+     * 暫停節奏條
+     */
+    pause() {
+        this.isPaused = true;
+    }
+    
+    /**
+     * 恢復節奏條
+     */
+    resume() {
+        this.isPaused = false;
+    }
+    
+    /**
+     * 重置節奏條
+     */
+    reset() {
+        this.needlePosition = 0;
+        this.needleDirection = 1;
+        this.isPaused = false;
+        this.isOnCooldown = false;
+        
+        if (this.barElement) {
+            this.barElement.classList.remove('cooldown');
+        }
+        
+        if (this.needleElement) {
+            this.needleElement.style.left = '0%';
+        }
+        
+        this.generateZones();
+    }
+    
+    /**
+     * 更新角色參考（切換角色時使用）
+     */
+    updateCharacter(character) {
+        this.character = character;
+        this.updateEquipmentStats();
+        this.generateZones();
+    }
+    
+    /**
+     * 銷毀節奏條系統
+     */
+    destroy() {
+        this.stop();
+        if (this.cooldownTimer) {
+            clearTimeout(this.cooldownTimer);
+        }
+        if (this.hitMarker) {
+            this.hitMarker.remove();
+        }
+    }
+}
+
+// 導出供其他模組使用
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = RhythmBarSystem;
+}
+
+// 全域變數（供非模組化使用）
+window.RhythmBarSystem = RhythmBarSystem;

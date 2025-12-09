@@ -1,0 +1,205 @@
+    <div id="scene-container" class="scene-forge">
+        <!-- 頂部資訊列 -->
+        <header class="forge-header">
+            <div class="player-info">
+                <span class="gold-display">💰 <span id="forge-gold">0</span>G</span>
+            </div>
+            <h1 class="forge-title">⚒️ 鍛造工坊 ⚒️</h1>
+            <button id="btn-back-lobby" class="back-btn">🚪 返回大廳</button>
+        </header>
+
+        <!-- 功能切換標籤 -->
+        <nav class="forge-tabs">
+            <button class="tab-btn active" data-tab="craft">🔨 鍛造製作</button>
+            <button class="tab-btn" data-tab="affix">✨ 詞綴重鑄</button>
+            <button class="tab-btn" data-tab="gem">💎 寶石鑲嵌</button>
+        </nav>
+
+        <!-- 主要內容 -->
+        <main class="forge-main">
+            <!-- ========== 鍛造製作面板 ========== -->
+            <div id="craft-panel" class="tab-content active">
+                <!-- 左側：配方列表 -->
+                <section class="recipe-panel">
+                    <h3>📜 可製作配方</h3>
+                    <div class="recipe-filter">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="weapon">武器</button>
+                        <button class="filter-btn" data-filter="armor">防具</button>
+                        <button class="filter-btn" data-filter="accessory">飾品</button>
+                        <button class="filter-btn" data-filter="potion">藥水</button>
+                    </div>
+                    <div class="recipe-list" id="recipe-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+
+                <!-- 中間：製作區域 -->
+                <section class="craft-area">
+                    <div class="selected-recipe" id="selected-recipe">
+                        <div class="empty-slot">
+                            <span class="empty-icon">📜</span>
+                            <span class="empty-text">選擇要製作的配方</span>
+                        </div>
+                    </div>
+
+                    <!-- 配方資訊 -->
+                    <div class="recipe-info" id="recipe-info" style="display: none;">
+                        <div class="result-preview">
+                            <h4>製作結果</h4>
+                            <div id="craft-result-preview" class="item-card"></div>
+                        </div>
+                        
+                        <div class="materials-required">
+                            <h4>所需材料</h4>
+                            <div id="materials-list" class="materials-grid"></div>
+                        </div>
+
+                        <div class="craft-details">
+                            <div class="detail-row">
+                                <span>製作費用:</span>
+                                <span id="craft-cost" class="cost-value">0G</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>成功率:</span>
+                                <span id="craft-success-rate" class="rate-value">100%</span>
+                            </div>
+                        </div>
+
+                        <button id="btn-craft" class="action-btn craft-btn" disabled>🔨 開始鍛造！</button>
+                    </div>
+
+                    <!-- 製作結果動畫 -->
+                    <div class="craft-result" id="craft-result" style="display: none;">
+                        <div class="result-icon"></div>
+                        <div class="result-text"></div>
+                    </div>
+                </section>
+
+                <!-- 右側：材料庫存 -->
+                <section class="materials-panel">
+                    <h3>📦 材料庫存</h3>
+                    <div class="material-search">
+                        <input type="text" id="material-search" placeholder="搜尋材料...">
+                    </div>
+                    <div class="materials-inventory" id="materials-inventory">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ========== 詞綴重鑄面板 ========== -->
+            <div id="affix-panel" class="tab-content">
+                <!-- 左側：裝備選擇 -->
+                <section class="equipment-panel">
+                    <h3>📦 選擇裝備</h3>
+                    <div class="equipment-list" id="affix-equipment-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+
+                <!-- 中間：重鑄區域 -->
+                <section class="affix-area">
+                    <div class="selected-equipment" id="selected-affix-equipment">
+                        <div class="empty-slot">
+                            <span class="empty-icon">⚔️</span>
+                            <span class="empty-text">選擇要重鑄詞綴的裝備</span>
+                        </div>
+                    </div>
+
+                    <!-- 詞綴資訊 -->
+                    <div class="affix-info" id="affix-info" style="display: none;">
+                        <div class="current-affixes">
+                            <h4>當前詞綴</h4>
+                            <div id="current-affixes-display" class="affixes-display">
+                                <!-- 動態顯示當前詞綴 -->
+                            </div>
+                        </div>
+                        
+                        <div class="affix-slots-info">
+                            <h4>詞綴槽位</h4>
+                            <div id="affix-slots-display" class="slots-display">
+                                <!-- 顯示前綴/後綴槽位數量 -->
+                            </div>
+                        </div>
+
+                        <div class="reroll-details">
+                            <div class="detail-row">
+                                <span>重鑄費用:</span>
+                                <span id="reroll-cost" class="cost-value">100G</span>
+                            </div>
+                            <div class="detail-row warning-text">
+                                ⚠️ 重鑄將隨機更換所有詞綴
+                            </div>
+                        </div>
+
+                        <button id="btn-reroll-affix" class="action-btn reroll-btn">✨ 重鑄詞綴！</button>
+                    </div>
+
+                    <!-- 重鑄結果動畫 -->
+                    <div class="reroll-result" id="reroll-result" style="display: none;">
+                        <div class="result-icon"></div>
+                        <div class="result-text"></div>
+                    </div>
+                </section>
+
+                <!-- 右側：重鑄歷史 -->
+                <section class="reroll-history-panel">
+                    <h4>📜 重鑄紀錄</h4>
+                    <div class="history-list" id="reroll-history">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ========== 寶石鑲嵌面板 ========== -->
+            <div id="gem-panel" class="tab-content">
+                <!-- 左側：可鑲嵌裝備 -->
+                <section class="gem-equipment-panel">
+                    <h3>📦 選擇裝備</h3>
+                    <div class="equipment-list" id="gem-equipment-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+
+                <!-- 中間：鑲嵌區域 -->
+                <section class="gem-socket-panel">
+                    <div class="selected-gem-equipment" id="selected-gem-equipment">
+                        <div class="empty-slot">
+                            <span class="empty-icon">⚔️</span>
+                            <span class="empty-text">選擇要鑲嵌的裝備</span>
+                        </div>
+                    </div>
+
+                    <div class="gem-socket-info" id="gem-socket-info" style="display: none;">
+                        <h4>寶石槽位</h4>
+                        <div class="gem-slots" id="gem-slots">
+                            <div class="gem-slot empty" data-slot="0">
+                                <span class="slot-icon">◇</span>
+                                <span class="slot-label">空槽位</span>
+                            </div>
+                            <div class="gem-slot empty" data-slot="1">
+                                <span class="slot-icon">◇</span>
+                                <span class="slot-label">空槽位</span>
+                            </div>
+                            <div class="gem-slot locked" data-slot="2">
+                                <span class="slot-icon">🔒</span>
+                                <span class="slot-label">未解鎖</span>
+                            </div>
+                        </div>
+
+                        <button id="btn-socket-gem" class="action-btn socket-btn" disabled>💎 鑲嵌寶石</button>
+                        <button id="btn-remove-gem" class="action-btn remove-btn" disabled>❌ 移除寶石</button>
+                    </div>
+                </section>
+
+                <!-- 右側：寶石庫存 -->
+                <section class="gem-inventory-panel">
+                    <h3>💎 可用寶石</h3>
+                    <div class="gem-inventory" id="gem-inventory">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>

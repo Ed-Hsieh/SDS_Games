@@ -32,8 +32,8 @@
 
     <!-- 操作提示 -->
     <div class="controls-hint">
-        <div class="hint-item">⬆️⬇️⬅️➡️ 方向鍵移動</div>
-        <div class="hint-item">🟢 安全區 | 🟡 普通區 | 🟠 危險區 | 🔴 Boss區</div>
+        <div class="hint-item"><span class="noshow">⬆️</span>⬆️</div>
+        <div class="hint-item">⬅️⬇️➡️ 移動</div>
     </div>
 
     <!-- 圖例 -->
@@ -114,33 +114,102 @@
                         <div class="needle-tip"></div>
                     </div>
                 </div>
-                <div class="rhythm-instruction">
-                    <span class="instruction-text">⚡ TIMING IS EVERYTHING ⚡</span>
-                </div>
             </div>
 
-            <!-- 戰鬥控制 - ACTION TRIGGERS -->
-            <div class="battle-controls">
-                <button class="btn-combat-primary" id="btn-attack">
-                    <div class="btn-combat-bg"></div>
-                    <div class="btn-combat-content">
-                        <span class="btn-text">ATTACK</span>
-                        <span class="btn-hotkey">PRESS SPACE</span>
+            <!-- 統一戰鬥控制台 - UNIFIED COMBAT PANEL -->
+            <div class="combat-panel-bottom">
+                <!-- 上排：玩家狀態資訊列 -->
+                <div class="player-info-bar">
+                    <div class="info-identity">
+                        <div class="info-level">LV.<span id="hud-player-level">1</span></div>
+                        <div class="info-name" id="hud-player-name">Adventurer</div>
                     </div>
-                    <div class="btn-combat-shine"></div>
-                </button>
-                <button class="btn-flee-ghost" id="btn-flee">FLEE</button>
-            </div>
-        </div>
+                    <div class="info-vital-bars">
+                        <div class="vital-row">
+                            <span class="vital-label">HP</span>
+                            <div class="vital-bar-track">
+                                <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
+                            </div>
+                            <span class="vital-text" id="hud-hp-text">100/100</span>
+                        </div>
+                        <div class="vital-row">
+                            <span class="vital-label">MP</span>
+                            <div class="vital-bar-track">
+                                <div class="vital-bar-fill mp-fill" id="hud-mp-bar" style="width: 100%;"></div>
+                            </div>
+                            <span class="vital-text" id="hud-mp-text">50/50</span>
+                        </div>
+                    </div>
+                    <!-- 新增：Buff 狀態顯示 -->
+                    <div class="buff-indicators" id="buff-indicators">
+                        <!-- 動態生成 Buff 圖示 -->
+                    </div>
+                </div>
 
-        <!-- 戰鬥終端日誌 - COMBAT CONSOLE -->
-        <div class="battle-footer">
-            <div class="terminal-header">
-                <span class="terminal-title">COMBAT LOG</span>
-                <span class="terminal-indicator"></span>
-            </div>
-            <div class="battle-log-terminal" id="battle-log">
-                <div class="log-entry">// ENEMY ENCOUNTER DETECTED</div>
+                <!-- 下排：行動按鈕組 -->
+                <div class="action-deck">
+                    <!-- Slot A: 武器卡片 -->
+                    <div class="action-card weapon-card" id="action-weapon">
+                        <div class="card-header">
+                            <span class="card-key">[A]</span>
+                            <span class="card-title">WEAPON</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div>
+                                <div class="card-icon" id="weapon-icon">⚔️</div>
+                                <div class="card-name" id="weapon-name">舊劍</div>
+                            </div>
+                            <div>
+                                <span class="stat-label">ATK</span>
+                                <span class="stat-value" id="weapon-damage">15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slot B: 藥水卡片 -->
+                    <div class="action-card potion-card" id="action-potion">
+                        <div class="card-header">
+                            <span class="card-key">[B]</span>
+                            <span class="card-title">POTION</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div>
+                                <div class="card-icon" id="potion-icon">🧪</div>
+                                <div class="card-name" id="potion-name">小紅水</div>
+                            </div>
+                            <span class="stat-label">USE</span>
+                            <span class="stat-value" id="potion-quantity">(x5)</span>
+                            <span class="stat-label">HP</span>
+                            <span class="stat-value" id="potion-heal">+50</span>
+                        </div>
+                    </div>
+
+                    <!-- Slot C: 逃跑卡片 -->
+                    <div class="action-card flee-card" id="action-flee">
+                        <div class="card-header">
+                            <span class="card-key">[C]</span>
+                            <span class="card-title">FLEE</span>
+                        </div>
+                        <div class="card-body-row">
+                            <div class="card-icon">🏃</div>
+                            <div class="card-name">ESCAPE</div>
+                            <div class="card-subtitle">逃跑</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 新增：技能列表 -->
+                <div class="skill-deck" id="skill-deck">
+                    <!-- 動態生成技能按鈕 -->
+                </div>
+                
+                <!-- 新增：戰鬥日誌 -->
+                <div class="battle-log-container">
+                    <div class="battle-log-header">📜 戰鬥日誌</div>
+                    <div class="battle-log" id="battle-log">
+                        <!-- 動態生成戰鬥記錄 -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -197,10 +266,6 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="loot-hint">
-                💡 左右點擊自由交換物品，不需要的戰利品可直接離開（自動送入倉庫）
-            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-primary btn-large" id="btn-close-loot">收集並離開</button>
@@ -210,18 +275,124 @@
 
 <!-- 背包彈窗 -->
 <div class="modal inventory-modal" id="inventory-modal" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content inventory-content">
         <div class="modal-header">
-            <h2>🎒 背包</h2>
+            <h2>🎒 背包與裝備</h2>
             <span class="inventory-capacity" id="inventory-capacity">5/10</span>
         </div>
         <div class="modal-body inventory-body">
-            <div class="adventure-inventory-list" id="adventure-inventory-list">
-                <!-- 背包物品動態插入 -->
+            <div class="inventory-layout">
+                <!-- 左側：角色裝備 -->
+                <div class="equipment-panel">
+                    <div class="panel-title">👤 已裝備</div>
+                    <div class="equipment-slots" id="adv-equipment-slots">
+                        <!-- 武器槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-weapon" data-slot-type="weapon">
+                            <div class="equipment-slot-label">武器</div>
+                            <div class="equipment-slot-icon">⚔️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        <!-- 防具槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-armor" data-slot-type="armor">
+                            <div class="equipment-slot-label">防具</div>
+                            <div class="equipment-slot-icon">🛡️</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                        <!-- 飾品槽 -->
+                        <div class="equipment-slot empty" id="adv-slot-accessory" data-slot-type="accessory">
+                            <div class="equipment-slot-label">飾品</div>
+                            <div class="equipment-slot-icon">💍</div>
+                            <div class="equipment-slot-name">未裝備</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 右側：背包物品 -->
+                <div class="inventory-panel">
+                    <div class="panel-title">🎒 背包</div>
+                    <div class="adventure-inventory-list" id="adventure-inventory-list">
+                        <!-- 背包物品動態插入 -->
+                    </div>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-secondary" id="btn-close-inventory">關閉</button>
+        </div>
+    </div>
+</div>
+
+<!-- 物品詳情彈窗 (與大廳一致) -->
+<div class="modal item-detail-modal" id="adv-item-detail-modal">
+    <div class="modal-content">
+        <div class="modal-header">物品詳情</div>
+        <div class="modal-body">
+            <div class="item-detail-header">
+                <div class="item-detail-icon" id="adv-modal-item-icon">⚔️</div>
+                <div class="item-detail-title">
+                    <div class="item-detail-name" id="adv-modal-item-name">物品名稱</div>
+                    <div class="item-detail-type" id="adv-modal-item-type">類型</div>
+                </div>
+            </div>
+            
+            <div class="item-detail-stats" id="adv-modal-item-stats">
+                <!-- 動態顯示物品屬性 -->
+            </div>
+            
+            <div class="item-detail-description" id="adv-modal-item-description">
+                物品描述
+            </div>
+            
+            <div class="item-detail-actions" id="adv-modal-item-actions">
+                <!-- 動態生成操作按鈕 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" id="btn-close-adv-item-modal">關閉</button>
+        </div>
+    </div>
+</div>
+
+<!-- 地圖事件彈窗 -->
+<div class="modal event-modal" id="event-modal" style="display: none;">
+    <div class="modal-content event-content">
+        <div class="modal-header">
+            <span class="event-icon" id="event-icon">📦</span>
+            <h2 id="event-title">發現了寶箱！</h2>
+        </div>
+        <div class="modal-body">
+            <p class="event-description" id="event-description">你在探索時發現了一個寶箱。</p>
+            <div class="event-result" id="event-result">
+                <!-- 動態顯示事件結果 -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" id="btn-close-event">繼續探索</button>
+        </div>
+    </div>
+</div>
+
+<!-- 隨機劇情事件彈窗 (Slay the Spire 風格) -->
+<div class="modal story-event-modal" id="story-event-modal" style="display: none;">
+    <div class="modal-content story-event-content">
+        <div class="story-event-header">
+            <span class="story-event-icon" id="story-event-icon">🔮</span>
+            <h2 class="story-event-title" id="story-event-title">神秘事件</h2>
+            <span class="story-event-type" id="story-event-type">MYSTERY</span>
+        </div>
+        <div class="story-event-body">
+            <p class="story-event-description" id="story-event-description">
+                一個神秘的事件正在等待著你...
+            </p>
+            <div class="story-event-choices" id="story-event-choices">
+                <!-- 動態生成選項按鈕 -->
+            </div>
+        </div>
+        <div class="story-event-result" id="story-event-result" style="display: none;">
+            <h3>結果</h3>
+            <div class="result-messages" id="story-result-messages">
+                <!-- 動態顯示結果訊息 -->
+            </div>
+            <button class="btn btn-primary" id="btn-close-story-event">繼續</button>
         </div>
     </div>
 </div>
