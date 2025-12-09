@@ -68,7 +68,7 @@ class ItemDetailModal {
         // We'll auto-build a structured view if item has stats or affixes, overriding statsHtml if needed.
         // This ensures the aggregated base + (+bonus) format is always shown.
         if (!Array.isArray(opts.stats) && item) {
-            const percentKeys = new Set(['critChance', 'critDamage', 'attackSpeed', 'lifesteal', 'damageReduction', 'allStats']);
+            const percentKeys = new Set(['critChance', 'critDamage', 'lifesteal', 'damageReduction', 'allStats']);
             const labelMap = { atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力', durability: '耐久度', critChance: '爆擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度' };
 
             // Compute affix contributions per-stat from `item.affixes` (preferred) or fallback to `item.affixBonuses`.
@@ -102,11 +102,13 @@ class ItemDetailModal {
             if (hasBaseStats || hasAffixContribs) {
                 const built = [];
                 const push = (key, icon, label, baseVal, isPercent) => {
-                    const base = (baseVal !== undefined && baseVal !== null) ? (isPercent ? (Number(baseVal) * 100) : baseVal) : undefined;
+                    const base = (baseVal !== undefined && baseVal !== null) ? (isPercent ? (Number(baseVal) * 100) : Number(baseVal)) : undefined;
                     const bonus = affixContribs[key] || 0;
                     // Only add row if base > 0 or bonus > 0
                     if ((base !== undefined && base !== 0) || bonus !== 0) {
-                        built.push({ key, icon, label, base: base || 0, bonus, suffix: isPercent ? '%' : '' });
+                        // For attackSpeed we want to display seconds per attack instead of percent
+                        const suffix = (key === 'attackSpeed') ? 's' : (isPercent ? '%' : '');
+                        built.push({ key, icon, label, base: base || 0, bonus, suffix });
                     }
                 };
 
@@ -117,7 +119,7 @@ class ItemDetailModal {
                 push('mp', '💙', '魔力', item.mp, false);
                 push('critChance', '💥', '爆擊率', item.critChance, true);
                 push('critDamage', '🔥', '暴擊傷害', item.critDamage, true);
-                push('attackSpeed', '⚡', '攻擊速度', item.attackSpeed, true);
+                push('attackSpeed', '⚡', '攻擊速度', item.attackSpeed, false);
 
                 // Add any other affix-contributed keys not already included
                 for (const [k, v] of Object.entries(affixContribs)) {
@@ -137,10 +139,16 @@ class ItemDetailModal {
         if (Array.isArray(opts.stats)) {
             // build comparison rows with aligned label/value columns
             // helper to format numbers and percentages
-            const formatValue = (val, suffix) => {
+            const formatValue = (val, suffix, baseValForDiff) => {
                 const v = (val === undefined || val === null) ? 0 : Number(val);
                 if (suffix === '%') {
                     return (Math.abs(v % 1) > 0 ? v.toFixed(2) : v.toFixed(0)) + '%';
+                }
+                if (suffix === 's') {
+                    // val is attacks per second -> convert to seconds per attack
+                    if (v <= 0) return '—';
+                    const sec = 1 / v;
+                    return (Math.abs(sec % 1) > 0 ? sec.toFixed(2) : sec.toFixed(0)) + ' Sec/Hit';
                 }
                 return (Math.abs(v % 1) > 0 ? v.toFixed(2) : v.toFixed(0));
             };
@@ -151,10 +159,25 @@ class ItemDetailModal {
                 const baseVal = (s.base !== undefined && s.base !== null) ? Number(s.base) : 0;
                 const bonusVal = (s.bonus !== undefined && s.bonus !== null) ? Number(s.bonus) : 0;
                 const totalVal = baseVal + bonusVal;
-                const totalPart = `<span class="stat-base" style="color:#ffffff;font-weight:700;">${formatValue(totalVal, s.suffix)}</span>`;
-                const bonusPart = (bonusVal !== 0)
-                    ? `<span class="stat-bonus" style="color:${highlightColor};font-weight:800;margin-left:8px;">(+${formatValue(bonusVal, s.suffix)})</span>`
-                    : '';
+                let totalPart;
+                let bonusPart = '';
+                if (s.suffix === 's') {
+                    // show seconds per attack and delta in seconds
+                    const baseSec = baseVal ? (baseVal === 0 ? Infinity : (1 / Number(baseVal))) : null;
+                    const totalSec = totalVal === 0 ? Infinity : (1 / Number(totalVal));
+                    totalPart = `<span class="stat-base" style="color:#ffffff;font-weight:700;">${formatValue(totalVal, s.suffix)}</span>`;
+                    if (bonusVal !== 0) {
+                        const diffSec = (baseSec !== null && isFinite(baseSec) && isFinite(totalSec)) ? (totalSec - baseSec) : 0;
+                        const sign = diffSec < 0 ? '' : '+'; // negative means faster
+                        const diffStr = (Math.abs(diffSec) % 1 > 0) ? Math.abs(diffSec).toFixed(2) : Math.abs(diffSec).toFixed(0);
+                        bonusPart = `<span class="stat-bonus" style="color:${highlightColor};font-weight:800;margin-left:8px;">(${sign}${diffStr}s)</span>`;
+                    }
+                } else {
+                    totalPart = `<span class="stat-base" style="color:#ffffff;font-weight:700;">${formatValue(totalVal, s.suffix)}</span>`;
+                    bonusPart = (bonusVal !== 0)
+                        ? `<span class="stat-bonus" style="color:${highlightColor};font-weight:800;margin-left:8px;">(+${formatValue(bonusVal, s.suffix)})</span>`
+                        : '';
+                }
                 const valueHtml = `<div class="stat-right">${totalPart}${bonusPart}</div>`;
                 return `<div class="stat-row">${labelHtml}${valueHtml}</div>`;
             }).join('');
