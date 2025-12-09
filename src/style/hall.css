@@ -578,23 +578,7 @@
     margin-top: 8px;
 }
 
-.warehouse-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.warehouse-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
-}
-
-.warehouse-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(79, 172, 254, 0.5), rgba(79, 172, 254, 0.8));
-    border-radius: 2px;
-}
-
-.warehouse-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(79, 172, 254, 0.7), rgba(79, 172, 254, 1));
-}
+/* Scrollbar visuals centralized in `src/css/global.css` (uses .warehouse-list template) */
 
 /* 空狀態 */
 .empty-state {

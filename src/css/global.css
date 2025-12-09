@@ -11,6 +11,14 @@
     --rarity-rare: #2196f3;
     --rarity-epic: #9c27b0;
     --rarity-legendary: #ff9800;
+    /* centralized scrollbar variables (based on .warehouse-list template) */
+    --scrollbar-width: 4px;
+    --scrollbar-track: rgba(0, 0, 0, 0.2);
+    --scrollbar-thumb-start: rgba(79, 172, 254, 0.5);
+    --scrollbar-thumb-end: rgba(79, 172, 254, 0.8);
+    --scrollbar-thumb-hover-start: rgba(79, 172, 254, 0.7);
+    --scrollbar-thumb-hover-end: rgba(79, 172, 254, 1);
+    --scrollbar-radius: 2px;
 }
 
 * {
@@ -110,6 +118,67 @@ body {
 
 .modal-overlay.active .modal-card {
     transform: translateY(0);
+}
+
+/* Centralized scrollbar styles (template: .warehouse-list) */
+/* Applies the warehouse-list visual to common scrollable components */
+.warehouse-list::-webkit-scrollbar,
+.inventory-list::-webkit-scrollbar,
+.player-inventory-list::-webkit-scrollbar,
+.shop-inventory::-webkit-scrollbar,
+.dialogue-box::-webkit-scrollbar,
+.battle-log-terminal::-webkit-scrollbar,
+.item-detail-affixes::-webkit-scrollbar,
+.item-detail-stats::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+.warehouse-list::-webkit-scrollbar-track,
+.inventory-list::-webkit-scrollbar-track,
+.player-inventory-list::-webkit-scrollbar-track,
+.shop-inventory::-webkit-scrollbar-track,
+.dialogue-box::-webkit-scrollbar-track,
+.battle-log-terminal::-webkit-scrollbar-track,
+.item-detail-affixes::-webkit-scrollbar-track,
+.item-detail-stats::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-radius);
+}
+
+.warehouse-list::-webkit-scrollbar-thumb,
+.inventory-list::-webkit-scrollbar-thumb,
+.player-inventory-list::-webkit-scrollbar-thumb,
+.shop-inventory::-webkit-scrollbar-thumb,
+.dialogue-box::-webkit-scrollbar-thumb,
+.battle-log-terminal::-webkit-scrollbar-thumb,
+.item-detail-affixes::-webkit-scrollbar-thumb,
+.item-detail-stats::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-start), var(--scrollbar-thumb-end));
+    border-radius: var(--scrollbar-radius);
+}
+
+.warehouse-list::-webkit-scrollbar-thumb:hover,
+.inventory-list::-webkit-scrollbar-thumb:hover,
+.player-inventory-list::-webkit-scrollbar-thumb:hover,
+.shop-inventory::-webkit-scrollbar-thumb:hover,
+.dialogue-box::-webkit-scrollbar-thumb:hover,
+.battle-log-terminal::-webkit-scrollbar-thumb:hover,
+.item-detail-affixes::-webkit-scrollbar-thumb:hover,
+.item-detail-stats::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-hover-start), var(--scrollbar-thumb-hover-end));
+}
+
+/* Firefox fallback */
+.warehouse-list,
+.inventory-list,
+.player-inventory-list,
+.shop-inventory,
+.dialogue-box,
+.battle-log-terminal,
+.item-detail-affixes,
+.item-detail-stats {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-start) var(--scrollbar-track);
 }
 
 .modal-close {
@@ -263,7 +332,7 @@ body {
 .item-detail-name.rarity-epic { color: var(--rarity-epic); }
 .item-detail-name.rarity-legendary { color: var(--rarity-legendary); }
 
-.item-detail-stats { padding:12px; border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); margin-bottom:8px; }
+.item-detail-stats { padding:12px; border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); margin-bottom:8px; max-height:220px; overflow-y:auto; overflow-x:visible; }
 .stats-compare { display:flex; flex-direction:column; gap:6px; }
 .stat-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
 .stat-left { width:58%; display:flex; align-items:center; gap:8px; overflow:hidden; }

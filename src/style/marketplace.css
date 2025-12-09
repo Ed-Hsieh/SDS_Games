@@ -358,26 +358,7 @@ body {
     gap: 8px;
 }
 
-/* 捲軸樣式 */
-.shop-inventory::-webkit-scrollbar,
-.player-inventory-list::-webkit-scrollbar,
-.dialogue-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.shop-inventory::-webkit-scrollbar-track,
-.player-inventory-list::-webkit-scrollbar-track,
-.dialogue-box::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
-}
-
-.shop-inventory::-webkit-scrollbar-thumb,
-.player-inventory-list::-webkit-scrollbar-thumb,
-.dialogue-box::-webkit-scrollbar-thumb {
-    background: rgba(79, 172, 254, 0.5);
-    border-radius: 3px;
-}
+/* Scrollbar visuals centralized in `src/css/global.css` (uses .warehouse-list template) */
 
 /* 商店物品卡片 */
 .shop-item {

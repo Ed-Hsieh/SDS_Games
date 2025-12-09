@@ -957,23 +957,7 @@
     border: 1px solid rgba(79, 172, 254, 0.2);
 }
 
-.battle-log-terminal::-webkit-scrollbar {
-    width: 6px;
-}
-
-.battle-log-terminal::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
-}
-
-.battle-log-terminal::-webkit-scrollbar-thumb {
-    background: rgba(79, 172, 254, 0.4);
-    border-radius: 3px;
-}
-
-.battle-log-terminal::-webkit-scrollbar-thumb:hover {
-    background: rgba(79, 172, 254, 0.6);
-}
+/* Scrollbar visuals centralized in `src/css/global.css` (uses .warehouse-list template) */
 
 .log-entry {
     margin: 3px 0;
