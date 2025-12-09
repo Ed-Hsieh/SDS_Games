@@ -287,7 +287,7 @@
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .attribute-box::before {
@@ -351,7 +351,7 @@
     align-items: center;
     justify-content: center;
     min-height: 90px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     position: relative;
     cursor: pointer;
     overflow: hidden;
@@ -494,7 +494,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     outline: none;
     font-family: 'Rajdhani', sans-serif;
 }
@@ -533,7 +533,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     position: relative;
     overflow: hidden;
 }
@@ -578,23 +578,7 @@
     margin-top: 8px;
 }
 
-.warehouse-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.warehouse-list::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 2px;
-}
-
-.warehouse-list::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(79, 172, 254, 0.5), rgba(79, 172, 254, 0.8));
-    border-radius: 2px;
-}
-
-.warehouse-list::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(79, 172, 254, 0.7), rgba(79, 172, 254, 1));
-}
+/* Scrollbar visuals centralized in `src/css/global.css` (uses .warehouse-list template) */
 
 /* 空狀態 */
 .empty-state {
@@ -614,7 +598,7 @@
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     border: 2px solid transparent;
     min-height: 60px;
     position: relative;
@@ -941,7 +925,7 @@
     border-radius: 10px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1004,7 +988,7 @@
     border-radius: 12px;
     color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 2px;
     box-shadow: 

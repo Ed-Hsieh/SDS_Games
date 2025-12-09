@@ -358,26 +358,7 @@ body {
     gap: 8px;
 }
 
-/* 捲軸樣式 */
-.shop-inventory::-webkit-scrollbar,
-.player-inventory-list::-webkit-scrollbar,
-.dialogue-box::-webkit-scrollbar {
-    width: 6px;
-}
-
-.shop-inventory::-webkit-scrollbar-track,
-.player-inventory-list::-webkit-scrollbar-track,
-.dialogue-box::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 3px;
-}
-
-.shop-inventory::-webkit-scrollbar-thumb,
-.player-inventory-list::-webkit-scrollbar-thumb,
-.dialogue-box::-webkit-scrollbar-thumb {
-    background: rgba(79, 172, 254, 0.5);
-    border-radius: 3px;
-}
+/* Scrollbar visuals centralized in `src/css/global.css` (uses .warehouse-list template) */
 
 /* 商店物品卡片 */
 .shop-item {
@@ -390,7 +371,7 @@ body {
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .shop-item:hover {
@@ -443,7 +424,7 @@ body {
     border-radius: 6px;
     border-left: 4px solid;
     cursor: pointer; /* Changed from grab to pointer for click interaction */
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .player-item:active {
@@ -477,6 +458,49 @@ body {
     font-weight: 700;
     color: #fff;
     margin-bottom: 2px;
+}
+
+/* ===== Potion layout: show effect (stats) at top, price at bottom ===== */
+.shop-item[data-type="potion"] {
+    /* ensure vertical stacking */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+}
+
+.shop-item[data-type="potion"] .shop-item-stats {
+    order: -1; /* show above icon and name */
+    font-size: 12px;
+    color: #9be3ff;
+    text-align: center;
+    width: 100%;
+}
+
+.shop-item[data-type="potion"] .shop-item-price {
+    order: 2; /* ensure price stays at bottom */
+    margin-top: 6px;
+}
+
+/* Player inventory variant */
+.player-item[data-type="potion"] {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.player-item[data-type="potion"] .player-item-stats {
+    order: -1;
+    font-size: 12px;
+    color: #9be3ff;
+    text-align: center;
+    width: 100%;
+}
+
+.player-item[data-type="potion"] .player-item-price {
+    order: 2;
+    margin-top: 6px;
 }
 
 .player-item-stats {
@@ -652,7 +676,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
     text-transform: uppercase;
 }
 

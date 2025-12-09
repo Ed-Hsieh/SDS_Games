@@ -47,12 +47,6 @@
 
                 <!-- 戰鬥狀態 - 參考 Adventure 風格 -->
                 <div class="battle-state hidden" id="battle-state">
-                    <!-- 頂部樓層資訊 -->
-                    <div class="tower-battle-header">
-                        <h2>🗼 第 <span id="battle-floor">1</span> 層</h2>
-                        <span class="boss-indicator hidden" id="boss-indicator">⭐ BOSS 戰</span>
-                    </div>
-                    
                     <!-- 敵人狀態卡 - 仿 Adventure 風格 -->
                     <div class="tower-monster-card">
                         <div class="monster-avatar-frame">
@@ -79,11 +73,6 @@
                                 <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="monster-def">3</span></span>
                             </div>
                         </div>
-                    </div>
-                    
-                    <!-- VS 分隔 -->
-                    <div class="battle-vs-indicator">
-                        <span class="vs-text">⚔️ VS ⚔️</span>
                     </div>
                     
                     <!-- 玩家狀態面板 - 仿 Adventure 風格 -->
@@ -155,18 +144,6 @@
                             </div>
                         </div>
 
-                        <!-- 技能卡片 -->
-                        <div class="action-card skill-card" id="btn-skill">
-                            <div class="card-header">
-                                <span class="card-key">[S]</span>
-                                <span class="card-title">SKILL</span>
-                            </div>
-                            <div class="card-body">
-                                <div class="card-icon">✨</div>
-                                <div class="card-name">使用技能</div>
-                            </div>
-                        </div>
-
                         <!-- 道具卡片 -->
                         <div class="action-card item-card" id="btn-item">
                             <div class="card-header">
@@ -192,13 +169,7 @@
                         </div>
                     </div>
 
-                    <!-- 戰鬥日誌 -->
-                    <div class="tower-battle-log-container">
-                        <div class="battle-log-header">📜 戰鬥日誌</div>
-                        <div class="battle-log" id="battle-log">
-                            <div class="log-entry">戰鬥開始！</div>
-                        </div>
-                    </div>
+                    <!-- battle log removed -->
                 </div>
 
                 <!-- 結果狀態 -->
@@ -250,10 +221,7 @@
                 </div>
             </div>
 
-            <h3>技能列表</h3>
-            <div class="skills-list" id="skills-list">
-                <!-- 動態生成技能 -->
-            </div>
+            <!-- 技能列表已移除 -->
 
             <h3>背包道具</h3>
             <div class="quick-items" id="quick-items">

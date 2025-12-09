@@ -58,7 +58,7 @@
     border-radius: 5px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-back:hover {
@@ -108,7 +108,7 @@
     border: 1px solid #333;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .floor-item:hover {
@@ -275,7 +275,7 @@
     color: #000;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-start-battle:hover {
@@ -301,14 +301,6 @@
 .battle-header h2 {
     margin: 0;
     color: #ffd700;
-}
-
-.boss-indicator {
-    padding: 5px 15px;
-    background: linear-gradient(135deg, #ff6b6b, #ff4757);
-    border-radius: 20px;
-    font-weight: bold;
-    animation: pulse 2s infinite;
 }
 
 @keyframes pulse {
@@ -382,29 +374,7 @@
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-/* 戰鬥日誌 */
-.battle-log {
-    flex: 1;
-    min-height: 150px;
-    max-height: 200px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 10px;
-    padding: 15px;
-    overflow-y: auto;
-    margin: 20px 0;
-}
-
-.log-entry {
-    padding: 5px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 0.9rem;
-    color: #ccc;
-}
-
-.log-entry:last-child {
-    border-bottom: none;
-    color: #fff;
-}
+/* battle log removed */
 
 /* 戰鬥操作 */
 .battle-actions {
@@ -420,7 +390,7 @@
     border: 2px solid #444;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
     min-width: 100px;
 }
 
@@ -555,7 +525,7 @@
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-next-floor {
@@ -642,53 +612,7 @@
     border-bottom: none;
 }
 
-/* 技能列表 */
-.skills-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.skill-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #333;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.skill-item:hover:not(.disabled) {
-    background: rgba(155, 89, 182, 0.2);
-    border-color: #9b59b6;
-}
-
-.skill-item.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.skill-icon {
-    font-size: 1.3rem;
-}
-
-.skill-name {
-    flex: 1;
-}
-
-.skill-cost {
-    font-size: 0.8rem;
-    color: #3498db;
-}
-
-.skill-cd {
-    font-size: 0.8rem;
-    color: #e74c3c;
-    margin-left: 5px;
-}
+/* Skills list styles removed */
 
 /* 快速道具 */
 .quick-items {
@@ -706,7 +630,7 @@
     border: 1px solid #333;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .quick-item:hover {
@@ -768,7 +692,7 @@
     background: rgba(255, 255, 255, 0.1);
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .popup-content button:hover:not(.disabled) {
@@ -809,24 +733,6 @@
 }
 
 /* ===== 新版戰鬥介面 - Adventure 風格 ===== */
-
-/* 戰鬥頂部標題 */
-.tower-battle-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
-    padding: 15px;
-    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 150, 0, 0.1));
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-.tower-battle-header h2 {
-    margin: 0;
-    color: #ffd700;
-    font-size: 1.5rem;
-}
 
 /* 敵人卡片 */
 .tower-monster-card {
@@ -978,21 +884,6 @@
     color: #3498db;
 }
 
-/* VS 分隔線 */
-.battle-vs-indicator {
-    text-align: center;
-    padding: 10px 0;
-    margin: 10px 0;
-}
-
-.battle-vs-indicator .vs-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #ffd700;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
-    letter-spacing: 5px;
-}
-
 /* 玩家戰鬥面板 */
 .tower-player-battle-panel {
     padding: 15px;
@@ -1089,6 +980,8 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
     margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .tower-action-deck .action-card {
@@ -1097,7 +990,7 @@
     border-radius: 12px;
     padding: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     text-align: center;
 }
 
@@ -1159,20 +1052,6 @@
     color: #e74c3c;
 }
 
-/* 技能卡片 */
-.tower-action-deck .skill-card {
-    border-color: rgba(155, 89, 182, 0.5);
-}
-
-.tower-action-deck .skill-card:hover {
-    border-color: #9b59b6;
-    box-shadow: 0 8px 25px rgba(155, 89, 182, 0.3);
-}
-
-.tower-action-deck .skill-card .card-title {
-    color: #9b59b6;
-}
-
 /* 道具卡片 */
 .tower-action-deck .item-card {
     border-color: rgba(46, 204, 113, 0.5);
@@ -1201,26 +1080,4 @@
     color: #95a5a6;
 }
 
-/* 戰鬥日誌容器 */
-.tower-battle-log-container {
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.tower-battle-log-container .battle-log-header {
-    padding: 10px 15px;
-    background: rgba(0, 0, 0, 0.3);
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #ffd700;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.tower-battle-log-container .battle-log {
-    min-height: 100px;
-    max-height: 150px;
-    padding: 10px 15px;
-    overflow-y: auto;
-    margin: 0;
-}
+/* battle log removed */

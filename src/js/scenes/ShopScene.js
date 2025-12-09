@@ -12,38 +12,25 @@ export default class ShopScene {
         this.app = app;
         this.currentShopId = 'blacksmith';
         this.draggedItem = null;
-        
+
         // Bind methods to preserve 'this'
         this.updateUI = this.updateUI.bind(this);
     }
 
     init() {
-        console.log('Shop Scene Initialized');
-        
+        // Cache DOM and bind
+        this.cacheDOM();
+        this.bindEvents();
+
+        // Subscribe to game state updates
         try {
-            this.cacheDOM();
-            this.bindEvents();
-            this.setupDragAndDrop();
-            
-            // Subscribe to state changes
             GameManager.subscribe(this.updateUI);
-
-            // Initial Render - Force update with current state
-            this.updateUI(GameManager.state, 'all');
-            this.selectShop('blacksmith'); // Default shop
-
-            // Check if secret shop is already unlocked
-            if (GameManager.getFlag('secretShopUnlocked')) {
-                this.unlockSecretVisuals();
-            }
-        } catch (error) {
-            console.error('Error initializing Shop Scene:', error);
+        } catch (e) {
+            // safe fallback if GameManager is not a pub/sub here
         }
-    }
 
-    cleanup() {
-        GameManager.unsubscribe(this.updateUI);
-        console.log('Shop Scene Cleaned up');
+        // Initial render
+        if (GameManager && GameManager.state) this.updateUI(GameManager.state, 'all');
     }
 
     cacheDOM() {
@@ -55,26 +42,29 @@ export default class ShopScene {
             shopInventory: this.container.querySelector('#shop-inventory'),
             playerInventory: this.container.querySelector('#player-inventory'),
             playerGold: this.container.querySelector('#player-gold'),
-            dropZone: this.container.querySelector('#npc-drop-zone'),
-            
-            // Modal
-            modal: this.container.querySelector('#item-modal'),
-            modalClose: this.container.querySelector('#modal-close'),
-            modalIcon: this.container.querySelector('#modal-item-icon'),
-            modalName: this.container.querySelector('#modal-item-name'),
-            modalRarity: this.container.querySelector('#modal-item-rarity'),
-            modalStats: this.container.querySelector('#modal-item-stats'),
-            modalDesc: this.container.querySelector('#modal-item-desc'),
-            modalBtn: this.container.querySelector('#modal-action-btn')
+            dropZone: this.container.querySelector('#npc-drop-zone')
         };
-        
-        // Debug: Check if critical elements exist
-        const criticalElements = ['grid', 'shopInventory', 'playerInventory', 'modal'];
+
+        // Quick debug check
+        const criticalElements = ['grid', 'shopInventory', 'playerInventory'];
         criticalElements.forEach(key => {
-            if (!this.dom[key]) {
-                console.error(`Critical DOM element not found: ${key}`);
-            }
+            if (!this.dom[key]) console.error(`Critical DOM element not found: ${key}`);
         });
+    }
+
+    bindEvents() {
+        if (this.dom.grid) {
+            this.dom.grid.addEventListener('click', (e) => {
+                const tile = e.target.closest('.grid-tile');
+                if (tile) {
+                    const shopId = tile.dataset.shop;
+                    if (shopId === 'exit') this.app.loadScene('lobby');
+                    else if (!tile.classList.contains('locked')) this.selectShop(shopId);
+                }
+            });
+        }
+
+        if (this.dom.dropZone) this.setupDragAndDrop();
     }
 
     bindEvents() {
@@ -159,10 +149,9 @@ export default class ShopScene {
         const relativeTop = tileRect.top - gridRect.top + (tileRect.height / 2) - 20; // -20 for half token size
         const relativeLeft = tileRect.left - gridRect.left + (tileRect.width / 2) - 20;
 
-        this.dom.playerToken.style.top = `${relativeTop}px`;
-        // Use transform to move token for compositor-only animations
+        // Use transform to move token for compositor-only animations (x,y)
         if (this.dom.playerToken) {
-            this.dom.playerToken.style.transform = `translateX(${relativeLeft}px)`;
+            this.dom.playerToken.style.transform = `translate(${relativeLeft}px, ${relativeTop}px)`;
         }
     }
 
@@ -200,24 +189,34 @@ export default class ShopScene {
     }
 
     renderPlayerInventory(inventory) {
-        this.dom.playerInventory.innerHTML = '';
-        inventory.forEach(item => {
-            const itemEl = this.createItemElement(item, 'sell');
-            
-            // Make draggable
-            itemEl.draggable = true;
-            itemEl.addEventListener('dragstart', (e) => {
-                this.draggedItem = item;
-                e.dataTransfer.setData('text/plain', JSON.stringify(item));
-                // Visual feedback
-                itemEl.style.opacity = '0.5';
-            });
-            itemEl.addEventListener('dragend', () => {
-                itemEl.style.opacity = '1';
-            });
+        const container = this.dom.playerInventory;
+        container.innerHTML = '';
 
-            this.dom.playerInventory.appendChild(itemEl);
-        });
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+            window.PerformanceUtils.processInChunks(inventory, (item) => {
+                const itemEl = this.createItemElement(item, 'sell');
+                itemEl.draggable = true;
+                itemEl.addEventListener('dragstart', (e) => {
+                    this.draggedItem = item;
+                    e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                    itemEl.style.opacity = '0.5';
+                });
+                itemEl.addEventListener('dragend', () => { itemEl.style.opacity = '1'; });
+                container.appendChild(itemEl);
+            }, {chunkSize: 40});
+        } else {
+            inventory.forEach(item => {
+                const itemEl = this.createItemElement(item, 'sell');
+                itemEl.draggable = true;
+                itemEl.addEventListener('dragstart', (e) => {
+                    this.draggedItem = item;
+                    e.dataTransfer.setData('text/plain', JSON.stringify(item));
+                    itemEl.style.opacity = '0.5';
+                });
+                itemEl.addEventListener('dragend', () => { itemEl.style.opacity = '1'; });
+                container.appendChild(itemEl);
+            });
+        }
     }
 
     createItemElement(itemData, mode) {
@@ -254,23 +253,8 @@ export default class ShopScene {
     }
 
     openModal(item, mode) {
-        if (!this.dom.modal || !this.dom.modalIcon) {
-            console.error('Modal DOM elements not found');
-            return;
-        }
-        
-        if (item.image) {
-            this.dom.modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-        } else {
-            this.dom.modalIcon.textContent = item.icon || '📦';
-        }
-        this.dom.modalName.textContent = item.name;
-        this.dom.modalRarity.className = `modal-rarity-badge rarity-${item.rarity}`;
-        this.dom.modalRarity.textContent = item.rarity.toUpperCase();
-        this.dom.modalDesc.textContent = item.desc || item.description || '沒有描述';
-
-        // Stats
-        this.dom.modalStats.innerHTML = '';
+        // Build stats HTML
+        let statsHtml = '';
         const stats = [
             { key: 'attack', label: '⚔️ 攻擊', suffix: '' },
             { key: 'atk', label: '⚔️ 攻擊', suffix: '' },
@@ -280,44 +264,34 @@ export default class ShopScene {
             { key: 'mp', label: '💙 魔力', suffix: '' },
             { key: 'critChance', label: '💥 爆擊率', suffix: '%' }
         ];
-        
         stats.forEach(stat => {
             if (item[stat.key]) {
-                const statEl = document.createElement('div');
-                statEl.className = 'modal-stat-row';
                 const value = stat.suffix === '%' ? (item[stat.key] * 100).toFixed(0) : item[stat.key];
-                statEl.innerHTML = `<span>${stat.label}</span> <span class="value">+${value}${stat.suffix}</span>`;
-                this.dom.modalStats.appendChild(statEl);
+                statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${value}${stat.suffix}</span></div>`;
             }
         });
 
-        // Button
+        // Create action button
         const price = mode === 'buy' ? item.price : Math.floor(item.price * 0.5);
-        const btnLabel = mode === 'buy' ? '購買' : '出售';
-        
-        this.dom.modalBtn.innerHTML = `
-            <span class="btn-label">${btnLabel}</span>
-            <span class="btn-price">💰 ${price}</span>
-        `;
-
-        // Clear previous listeners
-        const newBtn = this.dom.modalBtn.cloneNode(true);
-        this.dom.modalBtn.parentNode.replaceChild(newBtn, this.dom.modalBtn);
-        this.dom.modalBtn = newBtn;
-
-        this.dom.modalBtn.addEventListener('click', () => {
-            if (mode === 'buy') {
-                this.handleBuy(item);
-            } else {
-                this.handleSell(item);
-            }
+        const actionBtn = document.createElement('button');
+        actionBtn.className = 'btn btn-primary';
+        actionBtn.textContent = mode === 'buy' ? `購買 💰 ${price}` : `出售 💰 ${price}`;
+        actionBtn.addEventListener('click', () => {
+            if (mode === 'buy') this.handleBuy(item);
+            else this.handleSell(item);
         });
 
-        // Show modal - remove display: none and add active class
-        this.dom.modal.style.display = 'flex';
-        setTimeout(() => {
-            this.dom.modal.classList.add('active');
-        }, 10);
+        // Open centralized modal
+        if (window.ItemDetailModal) {
+            window.ItemDetailModal.open(item, {
+                typeText: item.rarity || '',
+                description: item.desc || item.description || '沒有描述',
+                statsHtml: statsHtml,
+                actions: [actionBtn]
+            });
+        } else {
+            console.error('ItemDetailModal not available');
+        }
     }
 
     handleBuy(item) {

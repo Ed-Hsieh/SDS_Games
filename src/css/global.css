@@ -11,6 +11,14 @@
     --rarity-rare: #2196f3;
     --rarity-epic: #9c27b0;
     --rarity-legendary: #ff9800;
+    /* centralized scrollbar variables (based on .warehouse-list template) */
+    --scrollbar-width: 4px;
+    --scrollbar-track: rgba(0, 0, 0, 0.2);
+    --scrollbar-thumb-start: rgba(79, 172, 254, 0.5);
+    --scrollbar-thumb-end: rgba(79, 172, 254, 0.8);
+    --scrollbar-thumb-hover-start: rgba(79, 172, 254, 0.7);
+    --scrollbar-thumb-hover-end: rgba(79, 172, 254, 1);
+    --scrollbar-radius: 2px;
 }
 
 * {
@@ -56,7 +64,7 @@ body {
     border-radius: 8px;
     cursor: pointer;
     font-size: 14px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -112,6 +120,62 @@ body {
     transform: translateY(0);
 }
 
+/* Centralized scrollbar styles (template: .warehouse-list) */
+/* Applies the warehouse-list visual to common scrollable components */
+    .warehouse-list::-webkit-scrollbar,
+    .inventory-list::-webkit-scrollbar,
+    .player-inventory-list::-webkit-scrollbar,
+    .shop-inventory::-webkit-scrollbar,
+    .dialogue-box::-webkit-scrollbar,
+    .item-detail-affixes::-webkit-scrollbar,
+    .item-detail-stats::-webkit-scrollbar {
+    width: var(--scrollbar-width);
+}
+
+    .warehouse-list::-webkit-scrollbar-track,
+    .inventory-list::-webkit-scrollbar-track,
+    .player-inventory-list::-webkit-scrollbar-track,
+    .shop-inventory::-webkit-scrollbar-track,
+    .dialogue-box::-webkit-scrollbar-track,
+    .item-detail-affixes::-webkit-scrollbar-track,
+    .item-detail-stats::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--scrollbar-radius);
+}
+
+    .warehouse-list::-webkit-scrollbar-thumb,
+    .inventory-list::-webkit-scrollbar-thumb,
+    .player-inventory-list::-webkit-scrollbar-thumb,
+    .shop-inventory::-webkit-scrollbar-thumb,
+    .dialogue-box::-webkit-scrollbar-thumb,
+    .item-detail-affixes::-webkit-scrollbar-thumb,
+    .item-detail-stats::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-start), var(--scrollbar-thumb-end));
+    border-radius: var(--scrollbar-radius);
+}
+
+    .warehouse-list::-webkit-scrollbar-thumb:hover,
+    .inventory-list::-webkit-scrollbar-thumb:hover,
+    .player-inventory-list::-webkit-scrollbar-thumb:hover,
+    .shop-inventory::-webkit-scrollbar-thumb:hover,
+    .dialogue-box::-webkit-scrollbar-thumb:hover,
+    .item-detail-affixes::-webkit-scrollbar-thumb:hover,
+    .item-detail-stats::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--scrollbar-thumb-hover-start), var(--scrollbar-thumb-hover-end));
+}
+
+/* Firefox fallback */
+    .warehouse-list,
+    .inventory-list,
+    .player-inventory-list,
+    .shop-inventory,
+    .dialogue-box,
+    .item-detail-affixes,
+    .item-detail-stats {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb-start) var(--scrollbar-track);
+}
+
 .modal-close {
     position: absolute;
     top: 12px;
@@ -150,7 +214,7 @@ body {
     pointer-events: auto;
     transform: translateX(120%);
     opacity: 0;
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 .global-toast.toast-show {
@@ -226,6 +290,68 @@ body {
 .global-toast.toast-error {
     border-left: 4px solid #e74c3c;
 }
+
+/* Item Detail Modal Specific Styles (Dark glassmorphism) */
+.component-item-detail-modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    background: rgba(2,6,23,0.5);
+    backdrop-filter: blur(6px) saturate(120%);
+}
+.component-item-detail-modal.active { display:flex; }
+.component-item-detail-modal .modal-content {
+    width: 560px;
+    max-width: calc(100% - 40px);
+    border-radius: 14px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(24,32,48,0.7), rgba(8,12,20,0.75));
+    border: 1px solid rgba(255,255,255,0.04);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.component-item-detail-modal .modal-header { margin-bottom: 8px; }
+.item-detail-header { display:flex; gap:12px; align-items:center; }
+.item-detail-icon { width:64px; height:64px; border-radius:10px; background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(0,0,0,0.06)); display:flex; align-items:center; justify-content:center; font-size:28px; }
+.item-detail-title { display:flex; flex-direction:column; }
+.item-detail-name { font-weight:800; font-size:20px; color:var(--text-light); }
+.item-detail-name .item-title { display:inline-block; }
+.item-detail-type { font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px; }
+
+/* Rarity color helpers */
+.item-detail-name.rarity-common { color: var(--rarity-common); }
+.item-detail-name.rarity-uncommon { color: var(--rarity-uncommon); }
+.item-detail-name.rarity-rare { color: var(--rarity-rare); }
+.item-detail-name.rarity-epic { color: var(--rarity-epic); }
+.item-detail-name.rarity-legendary { color: var(--rarity-legendary); }
+
+.item-detail-stats { padding:12px; border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); margin-bottom:8px; max-height:220px; overflow-y:auto; overflow-x:visible; }
+.stats-compare { display:flex; flex-direction:column; gap:6px; }
+.stat-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
+.stat-left { width:58%; display:flex; align-items:center; gap:8px; overflow:hidden; }
+.stat-icon { font-size:16px; margin-right:6px; }
+.stat-label { font-size:14px; color:rgba(255,255,255,0.9); }
+.stat-right { width:42%; text-align:right; display:flex; justify-content:flex-end; align-items:center; gap:6px; }
+.stat-base { color: #e6eef8; font-weight:700; }
+.stat-bonus { color: #4ade80; font-weight:800; }
+
+.item-detail-affixes { display:block; margin-bottom:8px; overflow-x:auto; white-space:nowrap; padding:6px 4px; gap:8px; }
+.affix-pill { display:inline-block; vertical-align:middle; }
+
+.modal-footer { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:12px; }
+.modal-close-btn { background:transparent; border:1px solid rgba(255,255,255,0.06); padding:8px 12px; color:rgba(255,255,255,0.9); border-radius:8px; }
+
+/* Responsive: keep modal width unchanged; constrain stats block height and enable vertical scrolling on narrower screens */
+@media (max-width: 1280px) {
+    .component-item-detail-modal .item-detail-stats {
+        height: 220px; /* fixed height */
+        overflow-y: auto; /* vertical scroll when content exceeds height */
+        overflow-x: visible; /* keep width behavior as original */
+    }
+}
+
 
 .global-toast.toast-error .toast-title {
     color: #e74c3c;

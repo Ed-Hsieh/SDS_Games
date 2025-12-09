@@ -55,7 +55,6 @@ class TowerScene {
 
         // 待機狀態
         this.idleStateEl = document.getElementById('idle-state');
-        this.previewFloorEl = document.getElementById('preview-floor');
         this.monsterPreviewEl = document.getElementById('monster-preview');
         this.floorRewardsEl = document.getElementById('floor-rewards');
         this.btnStartBattle = document.getElementById('btn-start-battle');
@@ -63,7 +62,6 @@ class TowerScene {
         // 戰鬥狀態
         this.battleStateEl = document.getElementById('battle-state');
         this.battleFloorEl = document.getElementById('battle-floor');
-        this.bossIndicatorEl = document.getElementById('boss-indicator');
         this.playerHpFillEl = document.getElementById('player-hp-fill');
         this.playerHpTextEl = document.getElementById('player-hp-text');
         this.playerMpFillEl = document.getElementById('player-mp-fill');
@@ -75,7 +73,7 @@ class TowerScene {
         this.monsterDefEl = document.getElementById('monster-def');
         this.monsterHpFillEl = document.getElementById('monster-hp-fill');
         this.monsterHpTextEl = document.getElementById('monster-hp-text');
-        this.battleLogEl = document.getElementById('battle-log');
+        this.battleLogEl = null; // battle log removed
         this.battlePlayerLevelEl = document.getElementById('battle-player-level');
 
         // 戰鬥按鈕
@@ -100,7 +98,6 @@ class TowerScene {
         this.playerStatAtkEl = document.getElementById('player-stat-atk');
         this.playerStatDefEl = document.getElementById('player-stat-def');
         this.playerStatGoldEl = document.getElementById('player-stat-gold');
-        this.skillsListEl = document.getElementById('skills-list');
         this.quickItemsEl = document.getElementById('quick-items');
         
         // 節奏條元素
@@ -121,7 +118,7 @@ class TowerScene {
 
         // 戰鬥操作 - 使用節奏條系統
         this.btnAttack?.addEventListener('click', () => this.handleAttackClick());
-        this.btnSkill?.addEventListener('click', () => this.showSkillMenu());
+        // Skill UI removed: skill button no longer opens a skill menu
         this.btnItem?.addEventListener('click', () => this.showItemMenu());
         this.btnFlee?.addEventListener('click', () => this.fleeBattle());
 
@@ -330,10 +327,6 @@ class TowerScene {
     updateFloorPreview(floorInfo) {
         if (!floorInfo.monster) return;
 
-        if (this.previewFloorEl) {
-            this.previewFloorEl.textContent = floorInfo.floor;
-        }
-
         if (this.monsterPreviewEl) {
             const monster = floorInfo.monster;
             this.monsterPreviewEl.innerHTML = `
@@ -385,27 +378,13 @@ class TowerScene {
         if (this.playerStatDefEl) this.playerStatDefEl.textContent = char.getTotalDef();
         if (this.playerStatGoldEl) this.playerStatGoldEl.textContent = GameManager.getGold();
 
-        // 更新技能列表
-        this.renderSkillsList(char);
+        // 技能列表已移除
 
         // 更新快速道具
         this.renderQuickItems();
     }
 
-    renderSkillsList(char) {
-        if (!this.skillsListEl) return;
-
-        this.skillsListEl.innerHTML = char.skills.map((skill, index) => `
-            <div class="skill-item ${skill.canUse(char) ? '' : 'disabled'}" 
-                 data-index="${index}"
-                 onclick="towerScene.useSkill(${index})">
-                <span class="skill-icon">${skill.icon}</span>
-                <span class="skill-name">${skill.name}</span>
-                <span class="skill-cost">${skill.mpCost} MP</span>
-                ${skill.currentCooldown > 0 ? `<span class="skill-cd">CD: ${skill.currentCooldown}</span>` : ''}
-            </div>
-        `).join('');
-    }
+    // Skills list UI removed for Tower scene
 
     renderQuickItems() {
         if (!this.quickItemsEl) return;
@@ -452,15 +431,7 @@ class TowerScene {
         }
     }
 
-    useSkill(skillIndex) {
-        const status = towerSystem.getStatus();
-        if (status.state !== TowerState.IN_BATTLE) {
-            this.showMessage('不在戰鬥中！');
-            return;
-        }
-
-        this.executeAction({ type: 'skill', skillIndex });
-    }
+    // Skill usage via TowerScene removed; towerSystem still processes skill actions if invoked programmatically
 
     useItem(instanceId) {
         const result = GameManager.useConsumable(instanceId);
@@ -471,27 +442,7 @@ class TowerScene {
         }
     }
 
-    showSkillMenu() {
-        // 簡化：直接顯示技能列表，點擊技能使用
-        const char = GameManager.getCharacter();
-        const skillsHtml = char.skills.map((skill, index) => 
-            `<button class="skill-btn ${skill.canUse(char) ? '' : 'disabled'}" 
-                     onclick="towerScene.useSkill(${index}); this.parentElement.remove();">
-                ${skill.icon} ${skill.name} (${skill.mpCost} MP)
-            </button>`
-        ).join('');
-
-        const menu = document.createElement('div');
-        menu.className = 'skill-menu-popup';
-        menu.innerHTML = `
-            <div class="popup-content">
-                <h3>選擇技能</h3>
-                ${skillsHtml}
-                <button onclick="this.parentElement.parentElement.remove()">取消</button>
-            </div>
-        `;
-        document.body.appendChild(menu);
-    }
+    // Skill menu UI removed for Tower scene
 
     showItemMenu() {
         const inventory = GameManager.getInventory();
@@ -565,10 +516,6 @@ class TowerScene {
 
         if (this.battleFloorEl) {
             this.battleFloorEl.textContent = data.floor;
-        }
-
-        if (this.bossIndicatorEl) {
-            this.bossIndicatorEl.classList.toggle('hidden', !data.isBoss);
         }
 
         if (this.monsterNameEl) {
@@ -739,19 +686,11 @@ class TowerScene {
     }
 
     addBattleLog(message) {
-        if (!this.battleLogEl) return;
-
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        entry.textContent = message;
-        this.battleLogEl.appendChild(entry);
-        this.battleLogEl.scrollTop = this.battleLogEl.scrollHeight;
+        // battle log UI removed
     }
 
     clearBattleLog() {
-        if (this.battleLogEl) {
-            this.battleLogEl.innerHTML = '';
-        }
+        // battle log UI removed
     }
 
     showMessage(message) {

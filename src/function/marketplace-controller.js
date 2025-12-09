@@ -170,52 +170,56 @@ function updateShopInventory(items) {
     const hint = container.querySelector('.empty-hint');
     container.innerHTML = '';
     if (hint) container.appendChild(hint);
-    
-    items.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = `shop-item ${item.rarity}`;
-        
-        const stats = getItemStats(item);
-        
-        itemDiv.innerHTML = `
-            <div class="shop-item-icon">${item.icon}</div>
-            <div class="shop-item-name">${item.name}</div>
-            ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
-            <div class="shop-item-price">💰 ${item.price}</div>
-        `;
-        
-        // 改為開啟模態視窗
-        itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
-        
-        container.appendChild(itemDiv);
-    });
-}
 
-/**
- * 獲取物品屬性字串
- */
-function getItemStats(item) {
-    const stats = [];
-    if (item.attack) stats.push(`⚔️ ${item.attack}`);
-    if (item.defense) stats.push(`🛡️ ${item.defense}`);
-    if (item.hp) stats.push(`❤️ +${item.hp}`);
-    if (item.mp) stats.push(`💙 +${item.mp}`);
-    if (item.critChance) stats.push(`💥 ${(item.critChance * 100).toFixed(0)}%`);
-    return stats.join(' ');
-}
+    // Use PerformanceUtils to chunk shop item rendering
+    if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+        window.PerformanceUtils.processInChunks(items, (item) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `shop-item ${item.rarity}`;
+            itemDiv.dataset.type = item.type || '';
 
-/**
- * 載入玩家背包
- */
-function loadPlayerInventory() {
-    const container = document.getElementById('player-inventory');
-    updateGoldDisplay();
-    
-    container.innerHTML = '';
+            const stats = getItemStats(item);
+
+            itemDiv.innerHTML = `
+                <div class="shop-item-icon">${item.icon}</div>
+                <div class="shop-item-info">
+                    <div class="shop-item-name">${item.name}</div>
+                    ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
+                </div>
+                <div class="shop-item-price">💰 ${item.price || ''}</div>
+            `;
+
+            itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
+            container.appendChild(itemDiv);
+        }, {chunkSize: 40}).then(() => {
+            // finished
+        });
+    } else {
+        items.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `shop-item ${item.rarity}`;
+            itemDiv.dataset.type = item.type || '';
+
+            const stats = getItemStats(item);
+
+            itemDiv.innerHTML = `
+                <div class="shop-item-icon">${item.icon}</div>
+                <div class="shop-item-info">
+                    <div class="shop-item-name">${item.name}</div>
+                    ${stats ? `<div class="shop-item-stats">${stats}</div>` : ''}
+                </div>
+                <div class="shop-item-price">💰 ${item.price || ''}</div>
+            `;
+
+            itemDiv.addEventListener('click', () => openItemModal(item, 'buy'));
+            container.appendChild(itemDiv);
+        });
+    }
     
     playerInventory.forEach(item => {
         const itemDiv = document.createElement('div');
         itemDiv.className = `player-item ${item.rarity}`;
+        itemDiv.dataset.type = item.type || '';
         itemDiv.draggable = true; // 僅用於秘密觸發
         itemDiv.dataset.itemId = item.id;
         
@@ -251,7 +255,7 @@ function updateGoldDisplay() {
     goldDisplay.textContent = `💰 ${playerGold}`;
     
     // 如果模態視窗開啟中，更新按鈕狀態
-    if (document.getElementById('item-modal').classList.contains('active') && currentModalAction === 'buy') {
+    if (window.ItemDetailModal && window.ItemDetailModal.isOpen() && currentModalAction === 'buy') {
         updateModalButtonState();
     }
 }
@@ -259,42 +263,18 @@ function updateGoldDisplay() {
 // ===== 模態視窗邏輯 =====
 
 function initModal() {
-    const modal = document.getElementById('item-modal');
-    const closeBtn = document.getElementById('modal-close');
-    const actionBtn = document.getElementById('modal-action-btn');
-    
-    // 關閉按鈕
-    closeBtn.addEventListener('click', closeModal);
-    
-    // 點擊背景關閉
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-    
-    // 動作按鈕
-    actionBtn.addEventListener('click', executeTransaction);
+    // Componentized modal (ItemDetailModal) handles its own events.
+    return;
 }
 
 function openItemModal(item, action) {
     currentModalItem = item;
     currentModalAction = action;
-    
-    const modal = document.getElementById('item-modal');
-    const card = modal.querySelector('.modal-card');
-    
-    // 填充資料
-    document.getElementById('modal-item-icon').textContent = item.icon;
-    document.getElementById('modal-item-name').textContent = item.name;
-    document.getElementById('modal-item-rarity').textContent = item.rarity;
-    document.getElementById('modal-item-desc').textContent = item.desc || '沒有描述。';
-    
-    // 設定稀有度顏色
-    card.dataset.rarity = item.rarity;
-    
-    // 填充屬性
-    const statsContainer = document.getElementById('modal-item-stats');
-    statsContainer.innerHTML = '';
-    
+    currentModalItem = item;
+    currentModalAction = action;
+
+    // Build stats HTML
+    let statsHtml = '';
     const stats = [
         { label: '攻擊', value: item.attack, icon: '⚔️' },
         { label: '防禦', value: item.defense, icon: '🛡️' },
@@ -302,62 +282,56 @@ function openItemModal(item, action) {
         { label: '魔力', value: item.mp, icon: '💙' },
         { label: '爆擊', value: item.critChance ? (item.critChance * 100) + '%' : null, icon: '💥' }
     ];
-    
     stats.forEach(stat => {
-        if (stat.value) {
-            const div = document.createElement('div');
-            div.className = 'stat-row';
-            div.innerHTML = `${stat.icon} ${stat.label} <span style="float:right; font-weight:bold;">+${stat.value}</span>`;
-            statsContainer.appendChild(div);
-        }
+        if (stat.value) statsHtml += `<div class="stat-row">${stat.icon} ${stat.label} <span style="float:right; font-weight:bold;">${stat.value}</span></div>`;
     });
-    
-    // 設定按鈕
-    const btn = document.getElementById('modal-action-btn');
-    const btnLabel = btn.querySelector('.btn-label');
-    const btnPrice = btn.querySelector('.btn-price');
-    
-    btn.className = 'action-btn'; // Reset classes
-    
+
+    // Create action button that delegates to existing executeTransaction logic
+    const actionBtn = document.createElement('button');
+    actionBtn.className = 'btn btn-primary modal-action-btn';
     if (action === 'buy') {
-        btn.classList.add('buy-btn');
-        btnLabel.textContent = '購買';
-        btnPrice.textContent = `💰 ${item.price}`;
-        updateModalButtonState();
+        actionBtn.textContent = `購買 💰 ${item.price}`;
+        actionBtn.addEventListener('click', () => {
+            // reuse existing logic
+            if (playerGold >= item.price) {
+                currentModalItem = item;
+                currentModalAction = 'buy';
+                executeTransaction();
+            }
+        });
     } else {
-        btn.classList.add('sell-btn');
-        btnLabel.textContent = '出售';
-        btnPrice.textContent = `💰 ${item.sellPrice}`;
-        btn.disabled = false;
+        actionBtn.textContent = `出售 💰 ${item.sellPrice}`;
+        actionBtn.addEventListener('click', () => {
+            currentModalItem = item;
+            currentModalAction = 'sell';
+            executeTransaction();
+        });
     }
-    
-    // 顯示模態視窗
-    modal.style.display = 'flex';
-    // 強制重繪以觸發 transition
-    requestAnimationFrame(() => {
-        modal.classList.add('active');
-    });
+
+    // Open centralized modal
+    if (window.ItemDetailModal) {
+        window.ItemDetailModal.open(item, {
+            typeText: item.rarity || '',
+            description: item.desc || '沒有描述。',
+            statsHtml: statsHtml,
+            actions: [actionBtn]
+        });
+    } else {
+        console.warn('ItemDetailModal not available');
+    }
 }
 
 function closeModal() {
-    const modal = document.getElementById('item-modal');
-    modal.classList.remove('active');
-    setTimeout(() => {
-        modal.style.display = 'none';
-        currentModalItem = null;
-        currentModalAction = null;
-    }, 300);
+    if (window.ItemDetailModal) window.ItemDetailModal.close();
+    currentModalItem = null;
+    currentModalAction = null;
 }
 
 function updateModalButtonState() {
     if (currentModalAction !== 'buy' || !currentModalItem) return;
-    
-    const btn = document.getElementById('modal-action-btn');
-    if (playerGold >= currentModalItem.price) {
-        btn.disabled = false;
-    } else {
-        btn.disabled = true;
-    }
+    const btn = document.querySelector('.component-item-detail-modal .modal-action-btn');
+    if (!btn) return;
+    btn.disabled = !(playerGold >= currentModalItem.price);
 }
 
 function executeTransaction() {

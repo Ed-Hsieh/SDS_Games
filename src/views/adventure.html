@@ -198,18 +198,9 @@
                     </div>
                 </div>
                 
-                <!-- 新增：技能列表 -->
-                <div class="skill-deck" id="skill-deck">
-                    <!-- 動態生成技能按鈕 -->
-                </div>
+                <!-- 技能面板已移除 -->
                 
-                <!-- 新增：戰鬥日誌 -->
-                <div class="battle-log-container">
-                    <div class="battle-log-header">📜 戰鬥日誌</div>
-                    <div class="battle-log" id="battle-log">
-                        <!-- 動態生成戰鬥記錄 -->
-                    </div>
-                </div>
+                <!-- battle log removed -->
             </div>
         </div>
 
@@ -322,35 +313,7 @@
 </div>
 
 <!-- 物品詳情彈窗 (與大廳一致) -->
-<div class="modal item-detail-modal" id="adv-item-detail-modal">
-    <div class="modal-content">
-        <div class="modal-header">物品詳情</div>
-        <div class="modal-body">
-            <div class="item-detail-header">
-                <div class="item-detail-icon" id="adv-modal-item-icon">⚔️</div>
-                <div class="item-detail-title">
-                    <div class="item-detail-name" id="adv-modal-item-name">物品名稱</div>
-                    <div class="item-detail-type" id="adv-modal-item-type">類型</div>
-                </div>
-            </div>
-            
-            <div class="item-detail-stats" id="adv-modal-item-stats">
-                <!-- 動態顯示物品屬性 -->
-            </div>
-            
-            <div class="item-detail-description" id="adv-modal-item-description">
-                物品描述
-            </div>
-            
-            <div class="item-detail-actions" id="adv-modal-item-actions">
-                <!-- 動態生成操作按鈕 -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" id="btn-close-adv-item-modal">關閉</button>
-        </div>
-    </div>
-</div>
+<!-- Item detail modal provided by centralized ItemDetailModal component -->
 
 <!-- 地圖事件彈窗 -->
 <div class="modal event-modal" id="event-modal" style="display: none;">

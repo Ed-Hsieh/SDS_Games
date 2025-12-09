@@ -67,97 +67,125 @@ export default class LobbyScene {
             slotArmor: this.container.querySelector('#slot-armor'),
             slotAccessory: this.container.querySelector('#slot-accessory'),
             
-            // Modal
-            itemModal: this.container.querySelector('#item-detail-modal'),
-            btnCloseModal: this.container.querySelector('#btn-close-item-modal')
+            // Modal is provided by centralized ItemDetailModal component
         };
     }
 
     bindEvents() {
         // Navigation
         if (this.dom.btnGoShop) {
-            this.dom.btnGoShop.addEventListener('click', () => {
-                this.app.loadScene('shop');
-            });
+            this.dom.btnGoShop.addEventListener('click', () => this.app.loadScene('shop'));
         }
-        
         if (this.dom.btnGoForge) {
-            this.dom.btnGoForge.addEventListener('click', () => {
-                this.app.loadScene('forge');
-            });
+            this.dom.btnGoForge.addEventListener('click', () => this.app.loadScene('forge'));
         }
-        
         if (this.dom.btnGoGamble) {
-            this.dom.btnGoGamble.addEventListener('click', () => {
-                this.app.loadScene('casino');
-            });
+            this.dom.btnGoGamble.addEventListener('click', () => this.app.loadScene('casino'));
         }
-        
         if (this.dom.btnGoQuest) {
-            this.dom.btnGoQuest.addEventListener('click', () => {
-                this.app.loadScene('quest');
-            });
+            this.dom.btnGoQuest.addEventListener('click', () => this.app.loadScene('quest'));
         }
-        
         if (this.dom.btnGoTower) {
-            this.dom.btnGoTower.addEventListener('click', () => {
-                this.app.loadScene('tower');
-            });
+            this.dom.btnGoTower.addEventListener('click', () => this.app.loadScene('tower'));
         }
-        
         if (this.dom.btnStartAdventure) {
-            this.dom.btnStartAdventure.addEventListener('click', () => {
-                this.app.loadScene('adventure');
-            });
+            this.dom.btnStartAdventure.addEventListener('click', () => this.app.loadScene('adventure'));
         }
-        
-        // Modal close
-        if (this.dom.btnCloseModal) {
-            this.dom.btnCloseModal.addEventListener('click', () => {
-                this.closeItemModal();
-            });
-        }
-        
+
         // Warehouse filters
         const warehouseFilters = this.container.querySelectorAll('.warehouse-filter');
         warehouseFilters.forEach(filter => {
-            filter.addEventListener('click', () => {
-                this.switchWarehouseFilter(filter.dataset.filter);
-            });
+            filter.addEventListener('click', () => this.switchWarehouseFilter(filter.dataset.filter));
         });
-        
+
         // Warehouse sort
         const warehouseSort = this.container.querySelector('#warehouse-sort');
-        if (warehouseSort) {
-            warehouseSort.addEventListener('change', (e) => {
-                this.currentWarehouseSort = e.target.value;
-                this.renderWarehouse();
-            });
-        }
-        
+        if (warehouseSort) warehouseSort.addEventListener('change', (e) => {
+            this.currentWarehouseSort = e.target.value;
+            this.renderWarehouse();
+        });
+
         // Equipment slot click events
         if (this.dom.slotWeapon) {
             this.dom.slotWeapon.addEventListener('click', () => {
                 const weapon = GameManager.state.character.equipment.weapon;
-                if (weapon) {
-                    this.showEquipmentModal(weapon, 'weapon');
-                }
+                if (weapon) this.showEquipmentModal(weapon, 'weapon');
             });
         }
         if (this.dom.slotArmor) {
             this.dom.slotArmor.addEventListener('click', () => {
                 const armor = GameManager.state.character.equipment.armor;
-                if (armor) {
-                    this.showEquipmentModal(armor, 'armor');
-                }
+                if (armor) this.showEquipmentModal(armor, 'armor');
             });
         }
         if (this.dom.slotAccessory) {
             this.dom.slotAccessory.addEventListener('click', () => {
                 const accessory = GameManager.state.character.equipment.accessory;
-                if (accessory) {
-                    this.showEquipmentModal(accessory, 'accessory');
-                }
+                if (accessory) this.showEquipmentModal(accessory, 'accessory');
+            });
+        }
+    }
+
+    showItemModal(stack, source) {
+        this.selectedItem = stack;
+        this.selectedItemSource = source;
+
+        const item = stack.item;
+        const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
+        const isConsumable = item.type === 'potion' || item.type === 'scroll';
+
+        // Build statsHtml
+        let statsHtml = '';
+        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
+        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
+        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+        if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${(item.weaponSpeed || 0).toFixed ? item.weaponSpeed.toFixed(1) + 'x' : item.weaponSpeed}</span></div>`;
+        if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${(item.attackSpeed || 0).toFixed ? item.attackSpeed.toFixed(1) + 'x' : item.attackSpeed}</span></div>`;
+        if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
+        if (item.mp) statsHtml += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
+        if (item.price) statsHtml += `<div class="item-detail-stat"><span>💰 售價</span><span class="value">${item.price}</span></div>`;
+
+        // Initial action buttons from shared helper (global) if available
+        let buttons = [];
+        try {
+            if (typeof getItemActionButtons === 'function') buttons = getItemActionButtons(stack, source) || [];
+        } catch (e) {
+            buttons = [];
+        }
+
+        // Add source-specific actions
+        if (source === 'warehouse') {
+            if (isEquipment) {
+                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+            } else {
+                if (isConsumable) buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+            }
+        } else if (source === 'inventory') {
+            if (isEquipment) {
+                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+            } else {
+                if (isConsumable) buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+            }
+        }
+
+        // Open centralized modal
+        if (window.ItemDetailModal) {
+            window.ItemDetailModal.open(item, {
+                typeText: this.getItemTypeText ? this.getItemTypeText(item.type) : (item.type || ''),
+                description: item.description || item.desc || '沒有描述',
+                statsHtml: statsHtml,
+                actions: buttons
             });
         }
     }
@@ -334,64 +362,71 @@ export default class LobbyScene {
     renderWarehouse() {
         const state = GameManager.state;
         if (!this.dom.warehouseList || !state.warehouse) return;
-        
         let filteredItems = [...state.warehouse];
-        
+
         // Apply filter
         if (this.currentWarehouseFilter !== 'all') {
-            filteredItems = filteredItems.filter(stack => {
-                const item = stack.item;
-                return item.type === this.currentWarehouseFilter;
-            });
+            filteredItems = filteredItems.filter(stack => stack.item.type === this.currentWarehouseFilter);
         }
-        
+
         // Apply sort
+        const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
         filteredItems.sort((a, b) => {
-            if (this.currentWarehouseSort === 'time-desc') {
-                return b.item.instanceId.localeCompare(a.item.instanceId);
-            } else if (this.currentWarehouseSort === 'time-asc') {
-                return a.item.instanceId.localeCompare(b.item.instanceId);
-            } else if (this.currentWarehouseSort === 'rarity-desc') {
-                const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-                return (rarityOrder[b.item.rarity] || 0) - (rarityOrder[a.item.rarity] || 0);
-            } else if (this.currentWarehouseSort === 'rarity-asc') {
-                const rarityOrder = { legendary: 5, epic: 4, rare: 3, uncommon: 2, common: 1 };
-                return (rarityOrder[a.item.rarity] || 0) - (rarityOrder[b.item.rarity] || 0);
+            switch (this.currentWarehouseSort) {
+                case 'time-desc': return (b.item.acquiredTime || 0) - (a.item.acquiredTime || 0);
+                case 'time-asc': return (a.item.acquiredTime || 0) - (b.item.acquiredTime || 0);
+                case 'rarity-desc': return (rarityOrder[b.item.rarity] || 0) - (rarityOrder[a.item.rarity] || 0);
+                case 'rarity-asc': return (rarityOrder[a.item.rarity] || 0) - (rarityOrder[b.item.rarity] || 0);
+                default: return 0;
             }
-            return 0;
         });
-        
-        // Render
-        this.dom.warehouseList.innerHTML = '';
-        if (filteredItems.length > 0) {
+
+        // Chunked rendering using PerformanceUtils
+        const container = this.dom.warehouseList;
+        container.innerHTML = '';
+        if (!filteredItems || filteredItems.length === 0) {
+            container.innerHTML = '<div class="empty-hint">倉庫空空如也...</div>';
+            return;
+        }
+
+        // Use processInChunks to avoid long main-thread tasks
+        if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
+            window.PerformanceUtils.processInChunks(filteredItems, (stack) => {
+                const item = stack.item;
+                const itemEl = document.createElement('div');
+                itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
+
+                let iconHTML;
+                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                else iconHTML = item.icon || '📦';
+
+                itemEl.innerHTML = `
+                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
+                    <div class="item-info"><div class="item-name">${item.name}</div></div>
+                `;
+                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
+                container.appendChild(itemEl);
+            }, {chunkSize: 40}).then(() => {
+                // done
+            });
+        } else {
+            // Fallback synchronous render
             filteredItems.forEach(stack => {
                 const item = stack.item;
                 const itemEl = document.createElement('div');
                 itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
-                
+
                 let iconHTML;
-                if (item.image) {
-                    iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    iconHTML = item.icon || '📦';
-                }
-                
+                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+                else iconHTML = item.icon || '📦';
+
                 itemEl.innerHTML = `
-                    <div class="item-icon">
-                        ${iconHTML}
-                        ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
-                    </div>
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                    </div>
+                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
+                    <div class="item-info"><div class="item-name">${item.name}</div></div>
                 `;
-                itemEl.addEventListener('click', () => {
-                    this.showItemModal(stack, 'warehouse');
-                });
-                this.dom.warehouseList.appendChild(itemEl);
+                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
+                container.appendChild(itemEl);
             });
-        } else {
-            this.dom.warehouseList.innerHTML = '<div class="empty-hint">倉庫空空如也...</div>';
         }
     }
     
@@ -412,223 +447,36 @@ export default class LobbyScene {
     }
     
     showEquipmentModal(item, slotType) {
-        const modal = this.dom.itemModal;
-        if (!modal) return;
-        
-        // Update modal content - 使用與背包一致的元素ID
-        const modalIcon = this.container.querySelector('#modal-item-icon');
-        const modalName = this.container.querySelector('#modal-item-name');
-        const modalType = this.container.querySelector('#modal-item-type');
-        const modalDesc = this.container.querySelector('#modal-item-description');
-        const modalStats = this.container.querySelector('#modal-item-stats');
-        const modalActions = this.container.querySelector('#modal-item-actions');
-        
-        if (modalIcon) {
-            if (item.image) {
-                modalIcon.innerHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;z-index: 1;">`;
-            } else {
-                modalIcon.textContent = item.icon || '📦';
-            }
+        // Build statsHtml for centralized modal
+        let statsHtml = '';
+        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
+        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
+        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
+        if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
+        if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
+        if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
+        if (item.affixes && item.affixes.length > 0) {
+            statsHtml += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
+            item.affixes.forEach(affix => {
+                const affixDesc = this.formatAffixStats(affix.stats);
+                statsHtml += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
+            });
+            statsHtml += `</div>`;
         }
-        if (modalName) modalName.textContent = item.name;
-        if (modalType) modalType.textContent = this.getItemTypeText(item.type);
-        if (modalDesc) modalDesc.textContent = item.desc || item.description || '無描述';
-        
-        // Render stats - 使用與背包一致的格式
-        if (modalStats) {
-            modalStats.innerHTML = '';
-            
-            if (item.atk || item.attack) {
-                const atk = item.atk || item.attack;
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
-            }
-            if (item.def || item.defense) {
-                const def = item.def || item.defense;
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
-            }
-            if (item.critChance) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-            }
-            if (item.critDamage) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
-            }
-            if (item.weaponSpeed) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-            }
-            if (item.attackSpeed) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-            }
-            
-            // 顯示耐久度
-            if (item.durability !== undefined) {
-                const durPercent = (item.durability / (item.maxDurability || 50)) * 100;
-                const durClass = durPercent <= 20 ? 'critical' : durPercent <= 50 ? 'warning' : '';
-                modalStats.innerHTML += `<div class="item-detail-stat ${durClass}"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
-            }
-            
-            // 顯示詞綴
-            if (item.affixes && item.affixes.length > 0) {
-                modalStats.innerHTML += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
-                item.affixes.forEach(affix => {
-                    const affixDesc = this.formatAffixStats(affix.stats);
-                    modalStats.innerHTML += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
-                });
-                modalStats.innerHTML += `</div>`;
-            }
+
+        const unequipBtn = this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType));
+
+        if (window.ItemDetailModal) {
+            window.ItemDetailModal.open(item, {
+                typeText: this.getItemTypeText(item.type),
+                description: item.desc || item.description || '無描述',
+                statsHtml: statsHtml,
+                actions: [unequipBtn]
+            });
         }
-        
-        // Render unequip button - 使用與背包一致的按鈕樣式
-        if (modalActions) {
-            modalActions.innerHTML = '';
-            const unequipBtn = this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType));
-            modalActions.appendChild(unequipBtn);
-        }
-        
-        modal.classList.add('active');
     }
     
-    showItemModal(stack, source) {
-        this.selectedItem = stack;
-        this.selectedItemSource = source;
-        
-        const item = stack.item;
-        const modal = this.dom.itemModal;
-        if (!modal) return;
-        
-        // Update modal content
-        const modalIcon = this.container.querySelector('#modal-item-icon');
-        const modalName = this.container.querySelector('#modal-item-name');
-        const modalType = this.container.querySelector('#modal-item-type');
-        const modalDesc = this.container.querySelector('#modal-item-description');
-        const modalStats = this.container.querySelector('#modal-item-stats');
-        const modalActions = this.container.querySelector('#modal-item-actions');
-        
-        if (modalIcon) modalIcon.textContent = item.icon || '📦';
-        if (modalName) modalName.textContent = item.name;
-        if (modalType) modalType.textContent = this.getItemTypeText(item.type);
-        if (modalDesc) modalDesc.textContent = item.description || item.desc || '沒有描述';
-        
-        // Render stats
-        if (modalStats) {
-            modalStats.innerHTML = '';
-            
-            if (item.atk || item.attack) {
-                const atk = item.atk || item.attack;
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
-            }
-            if (item.def || item.defense) {
-                const def = item.def || item.defense;
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
-            }
-            if (item.hp) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
-            }
-            if (item.mp) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
-            }
-            if (item.critChance) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-            }
-            if (item.price) {
-                modalStats.innerHTML += `<div class="item-detail-stat"><span>💰 售價</span><span class="value">${item.price}</span></div>`;
-            }
-        }
-        
-        // Render action buttons
-        if (modalActions) {
-            modalActions.innerHTML = '';
-            const buttons = this.getItemActionButtons(stack, source);
-            buttons.forEach(btn => modalActions.appendChild(btn));
-        }
-        
-        // Show modal
-        this.dom.itemModal.classList.add('active');
-    }
-    
-    /**
-     * 格式化詞綴屬性為可讀文字
-     */
-    formatAffixStats(stats) {
-        if (!stats) return '';
-        const statNames = {
-            atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
-            critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
-            lifesteal: '生命偷取', damageReduction: '傷害減免', hpRegen: '生命回復', mpRegen: '魔力回復',
-            fireDamage: '火焰傷害', iceDamage: '冰霜傷害', thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
-            slowChance: '減速', stunChance: '暈眩', dodgeChance: '閃避', armorPenetration: '穿甲',
-            bossBonus: 'Boss傷害', allStats: '全屬性', noDurabilityLoss: '不損耐久'
-        };
-        
-        const parts = [];
-        for (const [key, value] of Object.entries(stats)) {
-            const name = statNames[key] || key;
-            if (key === 'noDurabilityLoss') {
-                parts.push('不損耐久');
-            } else if (key.includes('Chance') || key.includes('Reduction') || key.includes('steal')) {
-                parts.push(`${name}+${(value * 100).toFixed(0)}%`);
-            } else {
-                parts.push(`${name}+${typeof value === 'number' ? value.toFixed(value % 1 === 0 ? 0 : 1) : value}`);
-            }
-        }
-        return parts.join(', ');
-    }
-    
-    getItemTypeText(type) {
-        const typeMap = {
-            'weapon': '武器',
-            'armor': '防具',
-            'accessory': '飾品',
-            'potion': '藥水',
-            'material': '材料',
-            'key': '鑰匙',
-            'gem': '寶石',
-            'scroll': '捲軸',
-            'book': '書籍',
-            'quest': '任務物品'
-        };
-        return typeMap[type] || '道具';
-    }
-    
-    getItemActionButtons(stack, source) {
-        const item = stack.item;
-        const buttons = [];
-        const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
-        const isConsumable = item.type === 'potion' || item.type === 'scroll';
-        
-        if (source === 'warehouse') {
-            if (isEquipment) {
-                // 倉庫-裝備：裝備 / 放入背包 / 販售
-                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-            } else {
-                // 倉庫-道具：使用(僅消耗品) / 放入背包 / 販售
-                if (isConsumable) {
-                    buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                }
-                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-            }
-        } else if (source === 'inventory') {
-            if (isEquipment) {
-                // 背包-裝備：裝備 / 放入倉庫 / 販售 / 丟棄
-                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
-            } else {
-                // 背包-道具：使用(僅消耗品) / 放入倉庫 / 販售 / 丟棄
-                if (isConsumable) {
-                    buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                }
-                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
-            }
-        }
-        
-        return buttons;
-    }
     
     createButton(text, className, onClick) {
         const btn = document.createElement('button');
