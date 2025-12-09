@@ -232,7 +232,7 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .shop-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4); }
 
@@ -245,7 +245,7 @@
     border-radius: 6px;
     border-left: 4px solid;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 .player-item:hover { background: rgba(79, 172, 254, 0.2); transform: translateX(3px); }
 
@@ -333,7 +333,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
     text-transform: uppercase;
 }
 
@@ -585,7 +585,7 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .loot-slot:hover { transform: scale(1.05); }
@@ -622,7 +622,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     overflow: hidden;
 }
 
@@ -890,7 +890,7 @@
     border-radius: 8px;
     color: #000;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .event-close-btn:hover {
@@ -963,7 +963,7 @@
     border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .game-tab:hover { background: rgba(255, 215, 0, 0.2); }
@@ -1040,7 +1040,7 @@
     border-radius: 6px;
     color: #ffd700;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .bet-btn:hover { background: rgba(255, 215, 0, 0.4); }
@@ -1054,7 +1054,7 @@
     border-radius: 12px;
     color: #1a0a2e;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .spin-btn:hover {
@@ -1127,7 +1127,7 @@
     border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .option-btn:hover { background: rgba(255, 255, 255, 0.2); }
@@ -1312,7 +1312,7 @@
     color: #aaa;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .tab-btn:hover {
@@ -1369,7 +1369,7 @@
     color: #aaa;
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .filter-btn:hover {
@@ -1398,7 +1398,7 @@
     border-radius: 8px;
     border-left: 4px solid;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
     position: relative;
 }
 
@@ -1531,7 +1531,7 @@
     border-radius: 10px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .craft-btn:hover:not(:disabled) {
@@ -1654,7 +1654,7 @@
     border-radius: 8px;
     border-left: 4px solid;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .equipment-card:hover {
@@ -1773,7 +1773,7 @@
     border-radius: 10px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .enhance-btn:hover:not(:disabled) {
@@ -1804,7 +1804,7 @@
     border: 2px dashed rgba(255, 255, 255, 0.3);
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .gem-slot.empty:hover { border-color: #ff9800; }
@@ -1831,7 +1831,7 @@
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .gem-card:hover { background: rgba(255, 255, 255, 0.1); }
@@ -2005,7 +2005,7 @@
     border: 2px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
     text-align: left;
 }
 
@@ -2098,7 +2098,7 @@
     border-radius: 8px;
     color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     font-size: 14px;
     font-weight: 500;
 }
@@ -2194,7 +2194,7 @@
     border-radius: 10px;
     margin-bottom: 10px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .quest-list-item:hover {
@@ -2418,7 +2418,7 @@
     background: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
     margin-bottom: 8px;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .objective-item.completed {
@@ -2517,7 +2517,7 @@
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .quest-btn.hidden { display: none; }
@@ -2579,7 +2579,7 @@
     color: #fff;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .footer-btn:hover {
@@ -2725,7 +2725,7 @@
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-exit:hover {
@@ -2960,7 +2960,7 @@
     border-radius: 8px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .puzzle-btn:hover {
@@ -3025,7 +3025,7 @@
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-explore {
@@ -3140,7 +3140,7 @@
     border-radius: 10px;
     color: #000;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
 }
 
 .btn-claim:hover {
@@ -3467,7 +3467,7 @@
     border: 2px solid;
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .combat-btn:hover:not(:disabled) {
@@ -3560,7 +3560,7 @@
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .btn-primary:hover {
@@ -3577,7 +3577,7 @@
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .btn-secondary:hover {

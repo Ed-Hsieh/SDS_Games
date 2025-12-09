@@ -287,7 +287,7 @@
     text-align: center;
     position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 .attribute-box::before {
@@ -351,7 +351,7 @@
     align-items: center;
     justify-content: center;
     min-height: 90px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     position: relative;
     cursor: pointer;
     overflow: hidden;
@@ -494,7 +494,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     outline: none;
     font-family: 'Rajdhani', sans-serif;
 }
@@ -533,7 +533,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     position: relative;
     overflow: hidden;
 }
@@ -614,7 +614,7 @@
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     border: 2px solid transparent;
     min-height: 60px;
     position: relative;
@@ -941,7 +941,7 @@
     border-radius: 10px;
     color: #fff;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1004,7 +1004,7 @@
     border-radius: 12px;
     color: white;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 2px;
     box-shadow: 
