@@ -156,10 +156,8 @@
     transition: opacity 0.3s ease;
 }
 
-.character-level:hover::before,
-.character-gold:hover::before {
-    opacity: 1;
-}
+
+
 
 .character-level-label,
 .character-gold-label {
@@ -308,9 +306,8 @@
     box-shadow: 0 8px 16px rgba(79, 172, 254, 0.2);
 }
 
-.attribute-box:hover::before {
-    opacity: 1;
-}
+
+
 
 .attribute-label {
     font-size: 9px;
@@ -555,9 +552,8 @@
     color: rgba(79, 172, 254, 1);
 }
 
-.warehouse-filter:hover::before {
-    left: 100%;
-}
+
+
 
 .warehouse-filter.active {
     background: linear-gradient(135deg, #00d9ff 0%, #4facfe 100%);
@@ -621,9 +617,8 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.item-card:hover::before {
-    left: 100%;
-}
+
+
 
 /* 稀有度邊框配色 */
 .item-card.rarity-common {
@@ -864,9 +859,8 @@
     padding-right: 6px;
 }
 
-.inventory-list::-webkit-scrollbar {
-    width: 4px;
-}
+
+
 
 .inventory-list::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.2);
@@ -953,9 +947,8 @@
     box-shadow: 0 6px 16px rgba(79, 172, 254, 0.4);
 }
 
-.menu-btn:hover::before {
-    opacity: 1;
-}
+
+
 
 .menu-btn-icon {
     font-size: 20px;
@@ -1018,9 +1011,8 @@
         inset 0 2px 0 rgba(255, 255, 255, 0.4);
 }
 
-.adventure-btn:hover::before {
-    left: 100%;
-}
+
+
 
 .adventure-btn:active {
     transform: translateY(-2px) scale(1.01);

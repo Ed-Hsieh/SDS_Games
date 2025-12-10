@@ -565,9 +565,8 @@ body {
     transition: color 0.2s;
 }
 
-.modal-close:hover {
-    color: #fff;
-}
+
+
 
 .modal-header {
     display: flex;
@@ -594,9 +593,8 @@ body {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
 }
 
-.modal-title-group {
-    flex: 1;
-}
+
+
 
 .modal-title {
     margin: 0 0 4px 0;
@@ -636,12 +634,8 @@ body {
     margin-bottom: 24px;
 }
 
-.modal-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-}
+
+
 
 .stat-row {
     font-family: 'Consolas', monospace;
