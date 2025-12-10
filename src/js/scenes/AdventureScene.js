@@ -5,6 +5,7 @@
 import GameManager from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
 import { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
+import { SpecialEffectType } from '../data/Equipment.js';
 import { eventSystem } from './EventSystem.js';
 import { questSystem } from './QuestSystem.js';
 import { ObjectiveType } from '../data/Quests.js';
@@ -1082,9 +1083,6 @@ export default class AdventureScene {
         this.updateUI();
     }
     
-    // battle log UI removed - method kept as noop for compatibility
-    addBattleLog(message) { /* removed */ }
-    
     // 技能面板 UI 已移除 - 不再在 DOM 中渲染技能卡
     
     // 新增：更新 Buff 顯示
@@ -1409,26 +1407,111 @@ class BattleController {
         
         if (hitType === 'miss') {
             this.showDamageNumber(0, false, true);
-            this.scene.addBattleLog('攻擊落空！MISS');
-        } else if (hitType === 'crit') {
-            damage = Math.floor(playerAtk * this.player.getCritDamage());
-            isCrit = true;
-            this.showDamageNumber(damage, true, false);
-            this.scene.addBattleLog(`爆擊！造成 ${damage} 點傷害！`);
+            // Miss — no elemental damage applied
         } else {
-            damage = playerAtk;
-            this.showDamageNumber(damage, false, false);
-            this.scene.addBattleLog(`攻擊命中，造成 ${damage} 點傷害。`);
+            if (hitType === 'crit') {
+                damage = Math.floor(playerAtk * this.player.getCritDamage());
+                isCrit = true;
+            } else {
+                damage = playerAtk;
+            }
+
+            // 計算裝備上的火焰加成（百分比），支援 DB 與 instance 命名
+            let elementalPercent = 0;
+            const equipmentSlots = Object.values(this.player.equipment || {});
+            for (const item of equipmentSlots) {
+                if (!item) continue;
+
+                if (item.specialEffects && Array.isArray(item.specialEffects)) {
+                    for (const eff of item.specialEffects) {
+                        if (!eff || !eff.type) continue;
+                        const t = eff.type;
+                        const v = Number(eff.value || 0);
+                        if (t === SpecialEffectType.FIRE || t === 'fire_damage' || t === 'fire') {
+                            elementalPercent += v;
+                        }
+                    }
+                }
+
+                if (item.affixBonuses) {
+                    if (item.affixBonuses.fireDamage) elementalPercent += Number(item.affixBonuses.fireDamage);
+                    if (item.affixBonuses.fire_damage) elementalPercent += Number(item.affixBonuses.fire_damage);
+                }
+
+                if (item.affixes && Array.isArray(item.affixes)) {
+                    for (const a of item.affixes) {
+                        if (!a || !a.stats) continue;
+                        if (a.stats.fireDamage) elementalPercent += Number(a.stats.fireDamage);
+                        if (a.stats.fire_damage) elementalPercent += Number(a.stats.fire_damage);
+                    }
+                }
+            }
+
+            if (elementalPercent > 0 && damage > 0) {
+                const extra = Math.floor(damage * (elementalPercent / 100));
+                damage += extra;
+            }
+
+            this.showDamageNumber(damage, isCrit, false);
         }
 
         // 武器耐久度消耗（無論命中與否都消耗）
         const destroyedWeapon = GameManager.reduceWeaponDurability();
         if (destroyedWeapon) {
-            this.scene.addBattleLog(`💔 ${destroyedWeapon.name} 已損壞！`);
             this.scene.updateEquipmentDisplay();
         }
 
         if (damage > 0) {
+            // THUNDER: 命中後短暫提高玩家攻擊速度（以百分比表示）
+            let thunderPercentTotal = 0;
+            const eqSlots = Object.values(this.player.equipment || {});
+            for (const item of eqSlots) {
+                if (!item) continue;
+                if (item.specialEffects && Array.isArray(item.specialEffects)) {
+                    for (const eff of item.specialEffects) {
+                        if (!eff || !eff.type) continue;
+                        const t = eff.type;
+                        const v = Number(eff.value || 0);
+                        if (t === SpecialEffectType.THUNDER || t === 'thunder_damage' || t === 'thunder') {
+                            thunderPercentTotal += v;
+                        }
+                    }
+                }
+                if (item.affixBonuses) {
+                    if (item.affixBonuses.thunderDamage) thunderPercentTotal += Number(item.affixBonuses.thunderDamage);
+                    if (item.affixBonuses.thunder_damage) thunderPercentTotal += Number(item.affixBonuses.thunder_damage);
+                }
+                if (item.affixes && Array.isArray(item.affixes)) {
+                    for (const a of item.affixes) {
+                        if (!a || !a.stats) continue;
+                        if (a.stats.thunderDamage) thunderPercentTotal += Number(a.stats.thunderDamage);
+                        if (a.stats.thunder_damage) thunderPercentTotal += Number(a.stats.thunder_damage);
+                    }
+                }
+            }
+
+            if (thunderPercentTotal > 0) {
+                // 轉為小數（例如 20 -> 0.2），持續 1 回合
+                const buffVal = thunderPercentTotal / 100;
+                this.player.addBuff('attackSpeed', buffVal, 1);
+                // 顯示短暫提示
+                const header = this.scene.container.querySelector('.battle-header');
+                if (header) {
+                    const el = document.createElement('div');
+                    el.className = 'player-status-thunder';
+                    el.textContent = `⚡ 攻速 +${thunderPercentTotal}%`;
+                    el.style.position = 'absolute';
+                    el.style.right = '12px';
+                    el.style.top = '8px';
+                    el.style.padding = '4px 8px';
+                    el.style.background = 'rgba(255,215,0,0.95)';
+                    el.style.color = '#000';
+                    el.style.borderRadius = '6px';
+                    header.appendChild(el);
+                    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+                }
+            }
+
             this.monster.takeDamage(damage);
             this.scene.updateMonsterDisplay();
             if (this.monster.isDead()) {
@@ -1546,12 +1629,9 @@ class BattleController {
         const damage = Math.max(1, this.monster.attack - this.player.getTotalDef());
         this.player.hp = Math.max(0, this.player.hp - damage);
         
-        this.scene.addBattleLog(`${this.monster.name} 發動攻擊，造成 ${damage} 點傷害！`);
-        
         // 防具耐久度消耗
         const destroyedArmor = GameManager.reduceArmorDurability();
         if (destroyedArmor) {
-            this.scene.addBattleLog(`💔 ${destroyedArmor.name} 已損壞！`);
             this.scene.updateEquipmentDisplay();
         }
         
@@ -1625,7 +1705,6 @@ class BattleController {
 
     handleVictory() {
         this.battleEnded = true;
-        this.scene.addBattleLog(`擊敗了 ${this.monster.name}！`);
         
         const drops = this.monster.getDrops();
         this.player.exp += this.monster.exp;
@@ -1643,7 +1722,6 @@ class BattleController {
 
     handleDefeat() {
         this.battleEnded = true;
-        this.scene.addBattleLog('你被擊敗了...');
         
         const penalty = Math.floor(this.player.gold * 0.1);
         GameManager.removeGold(penalty);
@@ -1661,10 +1739,8 @@ class BattleController {
     flee() {
         if (Math.random() < 0.5) {
             this.battleEnded = true;
-            this.scene.addBattleLog('成功逃跑！');
             setTimeout(() => this.scene.endBattle(false), 200);
         } else {
-            this.scene.addBattleLog('逃跑失敗！');
             setTimeout(() => this.monsterAttack(), 500);
         }
     }

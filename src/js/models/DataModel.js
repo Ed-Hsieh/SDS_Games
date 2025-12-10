@@ -422,6 +422,8 @@ export class Character {
                 baseSpeed += item.affixBonuses.attackSpeed;
             }
         });
+        // 加上 Buff 攻擊速度（以小數表示，例如 0.1 = +10%）
+        baseSpeed += this.getBuffValue('attackSpeed');
         return baseSpeed;
     }
 

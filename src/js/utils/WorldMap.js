@@ -498,8 +498,9 @@ export class Monster {
         return { items, gold };
     }
     
-    takeDamage(damage) {
-        const actualDamage = Math.max(1, damage - this.defense);
+    takeDamage(damage, defenseOverride) {
+        const def = (typeof defenseOverride === 'number') ? defenseOverride : this.defense;
+        const actualDamage = Math.max(1, damage - def);
         this.hp = Math.max(0, this.hp - actualDamage);
         return actualDamage;
     }

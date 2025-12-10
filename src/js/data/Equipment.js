@@ -40,11 +40,11 @@ export const SpecialEffectType = {
     EXECUTE: 'execute',                 // 斬殺（低HP額外傷害）
     
     // 元素類
-    FIRE_DAMAGE: 'fire_damage',         // 火焰傷害
-    ICE_DAMAGE: 'ice_damage',           // 冰霜傷害
-    THUNDER_DAMAGE: 'thunder_damage',   // 雷電傷害
-    POISON_DAMAGE: 'poison_damage',     // 毒素傷害
-    SHADOW_DAMAGE: 'shadow_damage',     // 暗影傷害
+    FIRE: 'fire',         // 火焰（額外傷害百分比）
+    // ICE: 'ice',           // 冰霜（機率降低敵人攻擊速度）
+    THUNDER: 'thunder',   // 雷電（降低敵人防禦）
+    POISON: 'poison',      // 毒素（機率觸發毒素效果 3 秒）
+    LIGHT: 'light',       // 光明（攻擊速度增強）
     
     // 防禦類
     DAMAGE_REFLECT: 'damage_reflect',   // 傷害反彈
@@ -69,11 +69,16 @@ export const SpecialEffectDescriptions = {
     double_strike: (value) => `${value}% 機率發動雙重打擊`,
     execute: (value) => `對低於 30% HP 的敵人造成額外 ${value}% 傷害`,
     
-    fire_damage: (value) => `附加 ${value} 點火焰傷害`,
-    ice_damage: (value) => `附加 ${value} 點冰霜傷害，${Math.floor(value/2)}% 機率減速`,
-    thunder_damage: (value) => `附加 ${value} 點雷電傷害，${Math.floor(value/3)}% 機率麻痺`,
-    poison_damage: (value) => `附加 ${value} 點毒素傷害，持續 3 回合`,
-    shadow_damage: (value) => `附加 ${value} 點暗影傷害，降低敵人命中`,
+    // 火：額外傷害比例（表示為攻擊造成額外 X% 傷害）
+    fire_damage: (value) => `攻擊時造成額外 ${value}% 傷害`,
+    // 冰：攻擊時有機率使目標凍結（暫停行動 / 無法動作），value 表示機率（%）
+    ice_damage: (value) => `${value}% 機率使敵人凍結（持續 2 秒）`,
+    // 雷：命中後降低敵人防禦，value 表示降低的防禦百分比（本次攻擊生效）
+    thunder_damage: (value) => `命中時降低敵人防禦 ${value}%（對此次攻擊生效）`,
+    // 光：命中後短暫提高攻擊速度，value 表示攻速百分比
+    light_damage: (value) => `命中時使攻速提高 ${value}%（持續 3 秒）`,
+    // 毒：造成持續傷害，value 表示每回合/每秒的傷害值
+    poison_damage: (value) => `造成每回合 ${value} 點持續傷害，持續 3 回合`,
     
     damage_reflect: (value) => `反彈 ${value}% 受到的傷害`,
     shield_block: (value) => `${value}% 機率完全格擋攻擊`,
@@ -196,7 +201,7 @@ export const EquipmentDatabase = {
             critDamage: 1.4
         },
         specialEffects: [
-            { type: SpecialEffectType.POISON_DAMAGE, value: 5 }
+            { type: SpecialEffectType.POISON, value: 5 }
         ],
         setId: null,
         description: '由蜘蛛絲編織的手套，帶有微量毒素。',
@@ -287,7 +292,7 @@ export const EquipmentDatabase = {
         },
         specialEffects: [
             { type: SpecialEffectType.SHIELD_BLOCK, value: 8 },
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 8 }
+            
         ],
         setId: 'undead_slayer',
         description: '由靈質編織的斗篷，能讓穿戴者隱匿身形。',
@@ -310,7 +315,7 @@ export const EquipmentDatabase = {
             attackSpeed: 0.9
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 15 },
+            
             { type: SpecialEffectType.LIFE_STEAL, value: 10 },
             { type: SpecialEffectType.EXECUTE, value: 20 }
         ],
@@ -336,7 +341,6 @@ export const EquipmentDatabase = {
             attackSpeed: 1.4
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 12 },
             { type: SpecialEffectType.CRITICAL_BOOST, value: 20 }
         ],
         setId: 'shadow_legion',
@@ -403,7 +407,6 @@ export const EquipmentDatabase = {
             attackSpeed: 1.1
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 20 },
             { type: SpecialEffectType.ARMOR_PIERCE, value: 15 },
             { type: SpecialEffectType.LIFE_STEAL, value: 8 }
         ],
@@ -521,7 +524,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 20 }
+            { type: SpecialEffectType.FIRE, value: 20 }
         ],
         setId: 'elemental_master',
         description: '燃燒著永恆火焰的劍。',
@@ -544,7 +547,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.ICE_DAMAGE, value: 18 }
+            { type: SpecialEffectType.ICE, value: 18 }
         ],
         setId: 'elemental_master',
         description: '凝結著永恆寒冰的劍。',
@@ -567,7 +570,7 @@ export const EquipmentDatabase = {
             attackSpeed: 0.9
         },
         specialEffects: [
-            { type: SpecialEffectType.THUNDER_DAMAGE, value: 22 }
+            { type: SpecialEffectType.THUNDER, value: 22 }
         ],
         setId: 'elemental_master',
         description: '蘊含雷霆之力的戰斧。',
@@ -588,9 +591,9 @@ export const EquipmentDatabase = {
         critDamage: 1.8
     },
     specialEffects: [
-        { type: SpecialEffectType.FIRE_DAMAGE, value: 10 },
-        { type: SpecialEffectType.ICE_DAMAGE, value: 10 },
-        { type: SpecialEffectType.THUNDER_DAMAGE, value: 10 },
+        { type: SpecialEffectType.FIRE, value: 10 },
+        { type: SpecialEffectType.ICE, value: 10 },
+        { type: SpecialEffectType.THUNDER, value: 10 },
         { type: SpecialEffectType.DAMAGE_REDUCE, value: 10 }
     ],
     setId: 'elemental_master',
@@ -612,9 +615,9 @@ export const EquipmentDatabase = {
             critDamage: 1.8
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 10 },
-            { type: SpecialEffectType.ICE_DAMAGE, value: 10 },
-            { type: SpecialEffectType.THUNDER_DAMAGE, value: 10 },
+            { type: SpecialEffectType.FIRE, value: 10 },
+            { type: SpecialEffectType.ICE, value: 10 },
+            { type: SpecialEffectType.THUNDER, value: 10 },
             { type: SpecialEffectType.DAMAGE_REDUCE, value: 10 }
         ],
         setId: 'elemental_master',
@@ -685,7 +688,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 30 },
+            { type: SpecialEffectType.FIRE, value: 30 },
             { type: SpecialEffectType.ARMOR_PIERCE, value: 25 },
             { type: SpecialEffectType.EXECUTE, value: 35 },
             { type: SpecialEffectType.LIFE_STEAL, value: 12 }
@@ -713,7 +716,7 @@ export const EquipmentDatabase = {
         },
         specialEffects: [
             { type: SpecialEffectType.CRITICAL_BOOST, value: 40 },
-            { type: SpecialEffectType.POISON_DAMAGE, value: 15 },
+            { type: SpecialEffectType.POISON, value: 15 },
             { type: SpecialEffectType.DOUBLE_STRIKE, value: 15 }
         ],
         setId: null,
@@ -735,7 +738,6 @@ export const EquipmentDatabase = {
             critDamage: 1.8
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 25 },
             { type: SpecialEffectType.DAMAGE_REDUCE, value: 15 },
             { type: SpecialEffectType.DAMAGE_REFLECT, value: 10 },
             { type: SpecialEffectType.HP_REGEN, value: 10 }
@@ -762,7 +764,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 25 },
+            { type: SpecialEffectType.FIRE, value: 25 },
             { type: SpecialEffectType.LIFE_STEAL, value: 15 },
             { type: SpecialEffectType.EXECUTE, value: 25 }
         ],
@@ -785,7 +787,7 @@ export const EquipmentDatabase = {
             critDamage: 1.9
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 15 },
+            { type: SpecialEffectType.FIRE, value: 15 },
             { type: SpecialEffectType.DAMAGE_REDUCE, value: 18 },
             { type: SpecialEffectType.HP_REGEN, value: 8 }
         ],
@@ -810,8 +812,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 40 },
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 40 },
+            { type: SpecialEffectType.FIRE, value: 40 },
             { type: SpecialEffectType.LIFE_STEAL, value: 20 },
             { type: SpecialEffectType.ARMOR_PIERCE, value: 30 },
             { type: SpecialEffectType.EXECUTE, value: 50 }
@@ -861,7 +862,6 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 35 },
             { type: SpecialEffectType.ARMOR_PIERCE, value: 30 },
             { type: SpecialEffectType.DOUBLE_STRIKE, value: 20 },
             { type: SpecialEffectType.LIFE_STEAL, value: 15 }
@@ -885,7 +885,6 @@ export const EquipmentDatabase = {
             critDamage: 2.2
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 25 },
             { type: SpecialEffectType.DAMAGE_REDUCE, value: 15 },
             { type: SpecialEffectType.REVIVE, value: 30 }
         ],
@@ -908,7 +907,6 @@ export const EquipmentDatabase = {
             critDamage: 1.7
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 18 },
             { type: SpecialEffectType.DAMAGE_REDUCE, value: 12 },
             { type: SpecialEffectType.HP_REGEN, value: 6 }
         ],
@@ -933,7 +931,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 25 },
+            { type: SpecialEffectType.FIRE, value: 25 },
             { type: SpecialEffectType.ARMOR_PIERCE, value: 15 }
         ],
         setId: null,

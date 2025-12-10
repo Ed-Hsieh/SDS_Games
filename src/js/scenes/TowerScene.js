@@ -73,7 +73,6 @@ class TowerScene {
         this.monsterDefEl = document.getElementById('monster-def');
         this.monsterHpFillEl = document.getElementById('monster-hp-fill');
         this.monsterHpTextEl = document.getElementById('monster-hp-text');
-        this.battleLogEl = null; // battle log removed
         this.battlePlayerLevelEl = document.getElementById('battle-player-level');
 
         // 戰鬥按鈕
@@ -438,7 +437,6 @@ class TowerScene {
         if (result) {
             this.updatePlayerStats();
             this.updateBattleUI();
-            this.addBattleLog('使用了道具恢復狀態！');
         }
     }
 
@@ -548,15 +546,9 @@ class TowerScene {
         // 初始化並啟動節奏條系統
         this.initRhythmSystem();
         this.startRhythmBar();
-
-        this.clearBattleLog();
-        this.addBattleLog(`遭遇了 ${data.monster.name}！`);
     }
 
-    onBattleRound(data) {
-        for (const log of data.roundLog) {
-            this.addBattleLog(log.message);
-        }
+    onBattleRound() {
         this.updateBattleUI();
     }
 
@@ -683,14 +675,6 @@ class TowerScene {
 
         // 更新右側面板
         this.updatePlayerStats();
-    }
-
-    addBattleLog(message) {
-        // battle log UI removed
-    }
-
-    clearBattleLog() {
-        // battle log UI removed
     }
 
     showMessage(message) {
