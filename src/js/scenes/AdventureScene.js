@@ -1267,31 +1267,125 @@ export default class AdventureScene {
         this.dom.lootModal.style.display = 'flex';
         this.container.querySelector('#exp-gained').textContent = `+${exp} EXP`;
         this.container.querySelector('#gold-gained').textContent = `+${gold}`;
-        
+
+        // Local lootPool (array of item objects)
+        let lootPool = Array.isArray(items) ? items.slice() : [];
+
         const lootContainer = this.dom.lootItems;
-        lootContainer.innerHTML = '';
-        
-        if (items.length === 0) {
-            lootContainer.innerHTML = '<div class="empty-state">沒有戰利品</div>';
-        } else {
-            items.forEach(item => {
-                const el = document.createElement('div');
-                el.className = `loot-slot ${item.rarity}`;
-                el.innerHTML = `
-                    <div class="slot-icon">${item.icon}</div>
+        const inventoryPanel = this.container.querySelector('#loot-current-inventory');
+        const capacityBadge = this.container.querySelector('#loot-inventory-capacity');
+        const countBadge = this.container.querySelector('#loot-count');
+
+        // Helper to render player's current inventory (left panel)
+        const updatePlayerInventory = () => {
+            const stateInv = GameManager.state.inventory || [];
+            const capacity = GameManager.state.inventoryCapacity || 0;
+
+            if (capacityBadge) capacityBadge.textContent = `${stateInv.length}/${capacity}`;
+
+            if (!inventoryPanel) return;
+            inventoryPanel.innerHTML = '';
+
+            if (stateInv.length === 0) {
+                inventoryPanel.innerHTML = '<div class="empty-state">背包是空的<br><span class="hint-arrow">←</span> 點擊右側戰利品拾取</div>';
+                return;
+            }
+
+            stateInv.forEach(stack => {
+                const it = stack.item || {};
+                const slot = document.createElement('div');
+                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.dataset.instanceId = stack.instanceId || '';
+                slot.innerHTML = `
+                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '📦')}</div>
                     <div class="slot-info">
-                        <div class="slot-name">${item.name}</div>
+                        <div class="slot-name">${it.name || '未知'}</div>
+                        <div class="slot-type">${it.type || ''} ${stack.quantity && stack.quantity > 1 ? ` x${stack.quantity}` : ''}</div>
                     </div>
+                    <div class="slot-action"><div class="action-icon">→</div></div>
                 `;
-                el.onclick = () => {
-                    GameManager.addToInventory(item);
-                    el.remove();
-                    if (lootContainer.children.length === 0) {
-                        lootContainer.innerHTML = '<div class="empty-state">已全部拾取</div>';
+
+                // Move from inventory back to loot pool
+                slot.onclick = () => {
+                    const instanceId = slot.dataset.instanceId;
+                    if (!instanceId) return;
+                    const removed = GameManager.removeItemByInstanceId(instanceId, false);
+                    if (removed) {
+                        // removed is the item instance
+                        lootPool.push(removed);
+                        updatePlayerInventory();
+                        updateLootPool();
                     }
                 };
-                lootContainer.appendChild(el);
+
+                inventoryPanel.appendChild(slot);
             });
+        };
+
+        // Helper to render loot pool (right panel)
+        const updateLootPool = () => {
+            if (countBadge) countBadge.textContent = `${lootPool.length} items`;
+            if (!lootContainer) return;
+            lootContainer.innerHTML = '';
+
+            if (lootPool.length === 0) {
+                lootContainer.innerHTML = '<div class="empty-state">沒有戰利品</div>';
+                return;
+            }
+
+            lootPool.forEach((it, idx) => {
+                const slot = document.createElement('div');
+                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.innerHTML = `
+                    <div class="slot-action"><div class="action-icon">←</div></div>
+                    <div class="slot-info">
+                        <div class="slot-name">${it.name}</div>
+                        <div class="slot-type">${it.type || ''}</div>
+                    </div>
+                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '')}</div>
+                `;
+
+                // Click to take from loot to inventory
+                slot.onclick = () => {
+                    const success = GameManager.addToInventory(it, 1);
+                    if (!success) {
+                        alert('背包已滿！請先將左側物品移回右側或擴充背包');
+                        return;
+                    }
+                    // remove from lootPool
+                    lootPool.splice(idx, 1);
+                    updatePlayerInventory();
+                    updateLootPool();
+                };
+
+                lootContainer.appendChild(slot);
+            });
+        };
+
+        // Initialize panels
+        updatePlayerInventory();
+        updateLootPool();
+
+        // Close button behavior: collect remaining loot into warehouse then close modal
+        const closeBtn = this.dom.lootCloseBtn || this.container.querySelector('#btn-close-loot');
+        if (closeBtn) {
+            const handler = () => {
+                // send remaining loot to warehouse
+                lootPool.forEach(it => {
+                    try { GameManager.addToWarehouse(it, 1); } catch (e) { console.warn('addToWarehouse failed', e); }
+                });
+                // hide modal
+                this.dom.lootModal.style.display = 'none';
+                // cleanup
+                lootPool = [];
+                updatePlayerInventory();
+                updateLootPool();
+                // Remove this listener to avoid duplicates
+                closeBtn.removeEventListener('click', handler);
+            };
+            // ensure we don't add multiple handlers
+            closeBtn.removeEventListener('click', handler);
+            closeBtn.addEventListener('click', handler);
         }
     }
 }
