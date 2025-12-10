@@ -287,8 +287,37 @@ class GameManager {
         this.listeners = this.listeners.filter(listener => listener !== callback);
     }
 
+    // Batch/throttle notify to avoid flooding UI with rapid updates.
+    // Collect event types and schedule a single dispatch on next animation frame.
     notify(eventType) {
-        this.listeners.forEach(listener => listener(this.state, eventType));
+        if (!this._pendingNotifyTypes) this._pendingNotifyTypes = new Set();
+        if (!this._notifyScheduled) this._pendingNotifyTypes.clear();
+
+        this._pendingNotifyTypes.add(eventType);
+
+        if (this._notifyScheduled) return;
+
+        this._notifyScheduled = true;
+        requestAnimationFrame(() => {
+            this._notifyScheduled = false;
+
+            // If multiple different event types accumulated, send a single 'all' update
+            // so listeners can choose to refresh fully. If only one type, forward it.
+            let dispatchedType = 'all';
+            if (this._pendingNotifyTypes.size === 1) {
+                dispatchedType = Array.from(this._pendingNotifyTypes)[0];
+            }
+
+            this.listeners.forEach(listener => {
+                try {
+                    listener(this.state, dispatchedType);
+                } catch (e) {
+                    console.error('Error in listener during notify:', e);
+                }
+            });
+
+            this._pendingNotifyTypes.clear();
+        });
     }
 
     // ===== State Modifiers =====

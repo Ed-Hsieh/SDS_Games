@@ -314,7 +314,7 @@ class ItemDetailModal {
                 if (opts && opts.priceLabel) priceLabel = opts.priceLabel;
                 else if (opts && opts.action === 'sell') priceLabel = '出售';
                 else if (opts && opts.action === 'buy') priceLabel = '購買';
-                else priceLabel = (item && item.sellPrice !== undefined) ? '售價' : '價格';
+                else priceLabel = (item && item.sellPrice !== undefined) ? '價值' : '價格';
 
                 this.priceEl.innerHTML = `💰 ${priceToShow} <span style="font-weight:600;font-size:12px;margin-left:8px;color:rgba(255,255,255,0.7);">${priceLabel}</span>`;
             } else {

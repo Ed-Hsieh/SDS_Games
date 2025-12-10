@@ -48,6 +48,11 @@ export default class AdventureScene {
             );
 
             this.updateUI();
+            // Build static layer cache for map (improves render performance)
+            this.staticCanvas = null;
+            this.staticCtx = null;
+            this.staticDirty = true;
+            this.buildStaticLayer && this.buildStaticLayer();
             this.renderMap();
             this.bindEvents();
         } catch (error) {
@@ -165,6 +170,28 @@ export default class AdventureScene {
                 this.closeInventoryModal();
             });
         }
+
+        // Inventory list virtualization: delegate scroll/click handling
+        if (this.dom.inventoryList) {
+            // Scroll handler for virtualization
+            this.dom.inventoryList.addEventListener('scroll', () => {
+                if (this._invUpdateRAF) return;
+                this._invUpdateRAF = requestAnimationFrame(() => {
+                    this._invUpdateRAF = null;
+                    if (typeof this.updateVisibleInventoryItems === 'function') this.updateVisibleInventoryItems();
+                });
+            });
+
+            // Click delegation
+            this.dom.inventoryList.addEventListener('click', (e) => {
+                const itemEl = e.target.closest && e.target.closest('.inventory-item');
+                if (!itemEl) return;
+                const instanceId = itemEl.dataset.instanceId;
+                if (!instanceId) return;
+                const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
+                if (stack) this.showInventoryItemModal(stack);
+            });
+        }
         
         // Item Detail Modal close button
         if (this.dom.btnCloseItemModal) {
@@ -243,6 +270,9 @@ export default class AdventureScene {
             this.worldMap.screenWidth = containerWidth;
             this.worldMap.screenHeight = containerHeight;
             this.worldMap.updateCamera();
+            // Mark static layer dirty and rebuild
+            this.staticDirty = true;
+            this.buildStaticLayer && this.buildStaticLayer();
             this.renderMap();
         }
     }
@@ -339,37 +369,40 @@ export default class AdventureScene {
         const cameraY = this.worldMap.cameraOffsetY;
         
         // Clear
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw cached static layer (background, grid, walls)
+        if (this.staticCanvas && this.staticCtx) {
+            // Draw portion of staticCanvas corresponding to camera
+            ctx.drawImage(
+                this.staticCanvas,
+                Math.floor(cameraX), Math.floor(cameraY), // sx, sy
+                canvas.width, canvas.height,               // sWidth, sHeight
+                0, 0,                                       // dx, dy
+                canvas.width, canvas.height                // dWidth, dHeight
+            );
+        } else {
+            // fallback: fill background
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
         
         const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
         const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓', 'dungeon': '🏰' };
 
         const visibleCells = this.worldMap.getVisibleCells();
         
+        // Draw dynamic icons (monsters, events, dungeon, rift, home)
         visibleCells.forEach(cell => {
             const x = cell.x * gridSize - cameraX;
             const y = cell.y * gridSize - cameraY;
-            
-            const zone = cell.data.zone;
-            ctx.fillStyle = zoneColors[zone] + '20';
-            ctx.fillRect(x, y, gridSize, gridSize);
-            
-            ctx.strokeStyle = zoneColors[zone] + '40';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, gridSize, gridSize);
-            
-            if (cell.data.type === 'wall') {
-                ctx.fillStyle = '#555';
-                ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-            } else if (cell.data.type === 'monster') {
+            if (cell.data.type === 'monster') {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
                 ctx.fillText(terrainIcons.monster, x + gridSize / 2, y + gridSize / 2);
             } else if (cell.data.type === 'event') {
-                // 顯示事件圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -377,15 +410,10 @@ export default class AdventureScene {
                 const eventIcon = cell.data.eventData ? cell.data.eventData.icon : terrainIcons.event;
                 ctx.fillText(eventIcon, x + gridSize / 2, y + gridSize / 2);
             } else if (cell.data.type === 'dungeon') {
-                // 顯示副本入口圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                // 副本入口有特殊發光效果
                 const dungeonIcon = cell.data.dungeonData?.icon || terrainIcons.dungeon;
-                
-                // 繪製發光背景
                 ctx.save();
                 ctx.shadowColor = cell.data.dungeonData?.color || '#ff6b6b';
                 ctx.shadowBlur = 10;
@@ -393,7 +421,6 @@ export default class AdventureScene {
                 ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             } else if (cell.data.type === 'rift') {
-                // 顯示裂縫圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -405,12 +432,9 @@ export default class AdventureScene {
                 ctx.fillText(riftIcon, x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             } else if (cell.data.type === 'home') {
-                // 顯示家的圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                // 家有特殊溫暖發光效果
                 ctx.save();
                 ctx.shadowColor = '#ffb347';
                 ctx.shadowBlur = 15;
@@ -2021,24 +2045,111 @@ AdventureScene.prototype.renderInventory = function() {
     // Render equipment slots
     this.renderEquipmentSlots();
     
-    // Render inventory items
+    // Render inventory items using simple virtualization + DOM reuse
     if (!this.dom.inventoryList) return;
-    
-    this.dom.inventoryList.innerHTML = '';
-    if (state.inventory && state.inventory.length > 0) {
-        state.inventory.forEach(stack => {
+
+    const container = this.dom.inventoryList;
+    const items = state.inventory || [];
+
+    // Simple fixed height virtualization
+    const ITEM_HEIGHT = 84; // px per item (tweak in CSS if needed)
+    const totalHeight = items.length * ITEM_HEIGHT;
+
+    // Ensure container is set up for virtualization
+    container.style.position = 'relative';
+    container.style.overflowY = 'auto';
+
+    // Spacer element ensures scroll height
+    let spacer = container.querySelector('.inv-spacer');
+    if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.className = 'inv-spacer';
+        container.appendChild(spacer);
+    }
+    spacer.style.height = totalHeight + 'px';
+
+    // Pool wrapper holds reused item nodes
+    let pool = container.querySelector('.inv-pool');
+    if (!pool) {
+        pool = document.createElement('div');
+        pool.className = 'inv-pool';
+        pool.style.position = 'absolute';
+        pool.style.top = '0';
+        pool.style.left = '0';
+        pool.style.right = '0';
+        container.appendChild(pool);
+    }
+
+    // If no items, show empty hint and clear pool
+    if (!items || items.length === 0) {
+        pool.innerHTML = '';
+        spacer.style.height = '0px';
+        container.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+        return;
+    }
+
+    // Store state for updates
+    this._invItems = items;
+    this._invItemHeight = ITEM_HEIGHT;
+    this._invContainer = container;
+    this._invPoolWrapper = pool;
+
+    // Determine number of nodes to create in pool (visible + buffer)
+    const viewportHeight = container.clientHeight || 400;
+    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+    const buffer = 4;
+    const poolSize = visibleCount + buffer * 2;
+
+    // Create or reuse pool nodes
+    if (!this._invPool || this._invPool.length !== poolSize) {
+        // clear existing
+        this._invPool = [];
+        pool.innerHTML = '';
+        for (let i = 0; i < poolSize; i++) {
+            const node = document.createElement('div');
+            node.className = 'item-card inventory-item';
+            node.style.position = 'absolute';
+            node.style.left = '0';
+            node.style.right = '0';
+            node.style.height = ITEM_HEIGHT + 'px';
+            pool.appendChild(node);
+            this._invPool.push(node);
+        }
+    }
+
+    // Initial render of visible items
+    this.updateVisibleInventoryItems();
+};
+
+// Update visible inventory items (virtualization renderer)
+AdventureScene.prototype.updateVisibleInventoryItems = function() {
+    const container = this._invContainer;
+    const items = this._invItems || [];
+    const ITEM_HEIGHT = this._invItemHeight || 84;
+    const pool = this._invPool || [];
+    if (!container || pool.length === 0) return;
+
+    const scrollTop = container.scrollTop || 0;
+    const viewportHeight = container.clientHeight || 400;
+    const firstIndex = Math.floor(scrollTop / ITEM_HEIGHT);
+    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+    const buffer = Math.floor(pool.length - visibleCount > 0 ? (pool.length - visibleCount) / 2 : 2);
+    const start = Math.max(0, firstIndex - buffer);
+
+    for (let i = 0; i < pool.length; i++) {
+        const dataIndex = start + i;
+        const node = pool[i];
+        if (dataIndex >= 0 && dataIndex < items.length) {
+            const stack = items[dataIndex];
             const item = stack.item;
-            const itemEl = document.createElement('div');
-            itemEl.className = `item-card inventory-item rarity-${item.rarity}`;
-            
-            let iconHTML;
-            if (item.image) {
-                iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-            } else {
-                iconHTML = item.icon || '📦';
-            }
-            
-            itemEl.innerHTML = `
+            node.style.display = '';
+            node.dataset.instanceId = stack.instanceId;
+            node.className = `item-card inventory-item rarity-${item.rarity}`;
+            node.style.transform = `translateY(${dataIndex * ITEM_HEIGHT}px)`;
+
+            // Build inner HTML (cheap, but reused nodes minimize layout churn)
+            let iconHTML = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">` : (item.icon || '📦');
+            node.innerHTML = `
                 <div class="item-icon">
                     ${iconHTML}
                     ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
@@ -2047,15 +2158,68 @@ AdventureScene.prototype.renderInventory = function() {
                     <div class="item-name">${item.name}</div>
                 </div>
             `;
-            
-            itemEl.addEventListener('click', () => {
-                this.showInventoryItemModal(stack);
-            });
-            
-            this.dom.inventoryList.appendChild(itemEl);
-        });
-    } else {
-        this.dom.inventoryList.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+        } else {
+            node.style.display = 'none';
+        }
+    }
+};
+
+// Build static layer canvas for the whole map (backgrounds, grid, walls)
+AdventureScene.prototype.buildStaticLayer = function() {
+    if (!this.worldMap) return;
+
+    try {
+        const map = this.worldMap;
+        const gridSize = map.gridSize;
+        const width = map.mapWidth;
+        const height = map.mapHeight;
+
+        // Create offscreen canvas
+        const off = document.createElement('canvas');
+        off.width = width;
+        off.height = height;
+        const octx = off.getContext('2d');
+
+        // Draw background
+        octx.fillStyle = '#0a0a0a';
+        octx.fillRect(0, 0, width, height);
+
+        const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
+
+        // Draw tiles (zones and walls) – avoid dynamic icons
+        for (let r = 0; r < map.rows; r++) {
+            for (let c = 0; c < map.cols; c++) {
+                const cell = map.mapData[r][c];
+                const x = c * gridSize;
+                const y = r * gridSize;
+                const zone = cell.zone;
+
+                // Zone background
+                octx.fillStyle = (zoneColors[zone] || '#666') + '20';
+                octx.fillRect(x, y, gridSize, gridSize);
+
+                // Grid stroke
+                octx.strokeStyle = (zoneColors[zone] || '#666') + '40';
+                octx.lineWidth = 1;
+                octx.strokeRect(x, y, gridSize, gridSize);
+
+                // Walls rendered in static layer
+                if (cell.type === 'wall') {
+                    octx.fillStyle = '#555';
+                    octx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+                }
+            }
+        }
+
+        // Save to instance
+        this.staticCanvas = off;
+        this.staticCtx = octx;
+        this.staticDirty = false;
+    } catch (e) {
+        console.warn('buildStaticLayer failed:', e);
+        this.staticCanvas = null;
+        this.staticCtx = null;
+        this.staticDirty = true;
     }
 };
 
