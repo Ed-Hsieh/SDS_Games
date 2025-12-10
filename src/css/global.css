@@ -272,23 +272,20 @@ body {
 
 
 
-.global-toast.toast-info {
-    border-left: 4px solid #3498db;
-}
 
 
 
 
-.global-toast.toast-warning {
-    border-left: 4px solid #f39c12;
-}
 
 
 
 
-.global-toast.toast-error {
-    border-left: 4px solid #e74c3c;
-}
+
+
+
+
+
+
 
 /* Item Detail Modal Specific Styles (Dark glassmorphism) */
 .component-item-detail-modal {

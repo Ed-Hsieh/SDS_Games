@@ -25,8 +25,18 @@ function escapeRegex(s) {
   return s.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
 }
 
+function pad(n){return n.toString().padStart(2,'0');}
 function timestamp() {
-  return new Date().toISOString().replace(/[:.]/g, '-');
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const MM = pad(d.getMonth()+1);
+  const dd = pad(d.getDate());
+  const hh = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  const ss = pad(d.getSeconds());
+  // Requested format: yyyy-MM-dd hh:mm:ss, but Windows filenames cannot contain ':'
+  // Use hyphens for the time separators when creating folders.
+  return `${yyyy}-${MM}-${dd} ${hh}-${min}-${ss}`;
 }
 
 function findAndRemove(content, ruleText) {
@@ -63,6 +73,18 @@ async function main() {
   const report = readJSON(reportFile);
   const candidates = report.candidates || [];
 
+  // Create an output directory for this run and copy the report into it.
+  const baseOutDir = path.join(__dirname);
+  const runFolder = path.join(baseOutDir, 'unused-cleanup ' + timestamp());
+  fs.mkdirSync(runFolder, { recursive: true });
+  const copypedReport = path.join(runFolder, path.basename(reportFile));
+  try {
+    fs.copyFileSync(reportFile, copypedReport);
+  } catch (err) {
+    console.error('Failed to copy report into run folder:', err);
+    // proceed anyway
+  }
+
   // Group candidates by cssFile
   const byFile = {};
   for (const c of candidates) {
@@ -82,7 +104,7 @@ async function main() {
       continue;
     }
     let content = fs.readFileSync(file, 'utf8');
-    const backupName = file + '.bak.' + timestamp();
+    const backupName = path.join(runFolder, path.basename(file) + '.bak.' + timestamp() + '.css');
     fs.writeFileSync(backupName, content, 'utf8');
     let modified = false;
     const details = [];

@@ -148,7 +148,36 @@ function readFileSyncSafe(file) {
       }
     }
 
-    console.log(JSON.stringify(report, null, 2));
+    // Create an output folder with a readable timestamp so it's easy to manage
+    // Note: Windows forbids colon (:) in file/folder names, so use '-' for time separators.
+    function pad(n){return n.toString().padStart(2,'0');}
+    function timestampFolderName(d){
+      const yyyy = d.getFullYear();
+      const MM = pad(d.getMonth()+1);
+      const dd = pad(d.getDate());
+      const hh = pad(d.getHours());
+      const min = pad(d.getMinutes());
+      const ss = pad(d.getSeconds());
+      // Requested display format: yyyy-MM-dd hh:mm:ss
+      // For filesystem safety (Windows) use hyphens for time separators: yyyy-MM-dd hh-mm-ss
+      return `${yyyy}-${MM}-${dd} ${hh}-${min}-${ss}`;
+    }
+
+    const OUT_BASE = path.join(__dirname);
+    const folder = path.join(OUT_BASE, 'unused-report ' + timestampFolderName(new Date()));
+    fs.mkdirSync(folder, { recursive: true });
+    const outPath = path.join(folder, 'unused-report.json');
+    fs.writeFileSync(outPath, JSON.stringify(report, null, 2), 'utf8');
+    // Also write a fixed-location copy inside `scripts/` so other tools/commands
+    // can reliably find `scripts/unused-report.json` without needing the timestamped folder.
+    const stablePath = path.join(OUT_BASE, 'unused-report.json');
+    try {
+      fs.writeFileSync(stablePath, JSON.stringify(report, null, 2), 'utf8');
+      console.log('Wrote stable report to', stablePath);
+    } catch (err) {
+      console.warn('Failed to write stable report:', err);
+    }
+    console.log('Wrote archived unused-report to', outPath);
   } catch (e) {
     console.error('Error during scan:', e);
     process.exit(2);

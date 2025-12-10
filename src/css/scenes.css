@@ -1566,11 +1566,8 @@
     margin: 10px 0;
 }
 
-.current-stats h4, .preview-stats h4 {
-    color: #ff9800;
-    margin: 0 0 10px 0;
-    font-size: 14px;
-}
+
+
 
 
 
@@ -2693,12 +2690,8 @@
     max-width: 300px;
 }
 
-.combat-area .monster-name {
-    font-size: 20px;
-    color: #fff;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
+
+
 
 .monster-hp-container {
     height: 20px;
@@ -2986,7 +2979,8 @@
     background: linear-gradient(180deg, #1a3a1a 0%, #228b22 50%, #90ee90 100%);
 }
 
-.dungeon-jungle .dungeon-title h1 { color: #90ee90; }
+
+
 .dungeon-jungle .mechanic-bar { background: #90ee90; }
 .dungeon-jungle .mechanic-panel { border-bottom-color: rgba(144, 238, 144, 0.3); }
 
