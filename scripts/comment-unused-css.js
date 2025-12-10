@@ -65,9 +65,35 @@ function looksSafe(ruleText) {
 async function main() {
   const argv = process.argv.slice(2);
   const reportArg = argv.find(a => a.startsWith('--report='));
-  const reportFile = reportArg ? reportArg.split('=')[1] : 'unused-report.json';
-  if (!fs.existsSync(reportFile)) {
-    console.error('Report file not found:', reportFile);
+  let reportFile = null;
+  if (reportArg) {
+    reportFile = reportArg.split('=')[1];
+  } else {
+    // Try stable path first: scripts/unused-report.json
+    const stable = path.join(__dirname, 'unused-report.json');
+    if (fs.existsSync(stable)) {
+      reportFile = stable;
+    } else {
+      // Fallback: find the latest timestamped archive folder `unused-report yyyy-MM-dd hh-mm-ss`
+      try {
+        const entries = fs.readdirSync(__dirname, { withFileTypes: true });
+        const dirs = entries
+          .filter(e => e.isDirectory() && e.name.startsWith('unused-report '))
+          .map(e => e.name)
+          .sort();
+        if (dirs.length) {
+          const latest = dirs[dirs.length - 1];
+          const candidate = path.join(__dirname, latest, 'unused-report.json');
+          if (fs.existsSync(candidate)) reportFile = candidate;
+        }
+      } catch (err) {
+        // ignore and continue to error handling below
+      }
+    }
+  }
+
+  if (!reportFile || !fs.existsSync(reportFile)) {
+    console.error('Report file not found. Provide --report=path or generate scripts/unused-report.json first.');
     process.exit(1);
   }
   const report = readJSON(reportFile);
