@@ -25,9 +25,8 @@
                         <span class="stat-label">HP</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;">
-                            <span class="progress-bar-text" id="hp-text">100 / 100</span>
-                        </div>
+                        <div class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;"></div>
+                        <span class="progress-bar-text" id="hp-text">100 / 100</span>
                     </div>
                     
                     <!-- EXP 進度條 -->
@@ -35,9 +34,8 @@
                         <span class="stat-label">EXP</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;">
-                            <span class="progress-bar-text" id="exp-text">0 / 100</span>
-                        </div>
+                        <div class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;"></div>
+                        <span class="progress-bar-text" id="exp-text">0 / 100</span>
                     </div>
                     
                     <!-- 屬性面板 -->
@@ -51,6 +49,7 @@
                             <div class="attribute-value" id="character-def">5</div>
                         </div>
                     </div>
+                    <div id="character-set-status" class="character-set-status" style="margin-top:8px;font-size:0.9em;color:#ffd966"></div>
                 </div>
             </div>
         </div>
@@ -117,6 +116,7 @@
                             <div class="equipment-slot-name">未裝備</div>
                         </div>
                     </div>
+                    <div id="active-set-bonuses" class="set-bonuses" aria-live="polite" style="margin-top:8px;font-size:0.9em;color:#ffd966"></div>
                 </div>
             </div>
             

@@ -342,13 +342,13 @@ export default class EnhancementSystem {
         const bonuses = { atk: 0, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0 };
         const activeSetDescriptions = [];
         
-        // 獲取已裝備的物品 ID
-        const equippedIds = [];
+        // 獲取已裝備的物品 ID（用來比對套裝 pieces 中的裝備 id）
+        const equippedItemIds = [];
         if (character.equipment) {
             for (const slot in character.equipment) {
                 const item = character.equipment[slot];
-                if (item?.setId) {
-                    equippedIds.push(item.setId);
+                if (item?.id) {
+                    equippedItemIds.push(item.id);
                 }
             }
         }
@@ -356,8 +356,8 @@ export default class EnhancementSystem {
         // 檢查每個套裝
         for (const setId in SetBonuses) {
             const setInfo = SetBonuses[setId];
-            const equippedPieces = setInfo.pieces.filter(pieceId => 
-                equippedIds.includes(pieceId)
+            const equippedPieces = setInfo.pieces.filter(pieceId =>
+                equippedItemIds.includes(pieceId)
             ).length;
 
             // 應用套裝加成

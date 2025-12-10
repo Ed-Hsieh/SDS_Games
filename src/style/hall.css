@@ -259,14 +259,29 @@
         inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
+.progress-bar {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1; /* ensure fill sits below the overlayed text */
+}
+
 .progress-bar-text {
     font-size: 10px;
     font-weight: 700;
     color: white;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    position: relative;
-    z-index: 1;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 2; /* sits above the filled bar */
     letter-spacing: 0.5px;
+    pointer-events: none;
 }
 
 /* 屬性面板 - COMPACT */

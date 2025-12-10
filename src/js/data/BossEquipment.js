@@ -12,7 +12,7 @@ import { ItemType, ItemRarity } from '../models/DataModel.js';
 export const TowerBossEquipment = {
     // ===== 第5層 BOSS - 哥布林首領 =====
     goblin_dagger: {
-        id: 'goblin_dagger',
+        id: 'boss_goblin_dagger',
         name: '哥布林首領匕首',
         icon: '🗡️',
         type: ItemType.WEAPON,
@@ -79,7 +79,7 @@ export const TowerBossEquipment = {
     
     // ===== 第20層 BOSS - 虛空之王 =====
     void_crown: {
-        id: 'void_crown',
+        id: 'boss_void_crown',
         name: '虛空王冠',
         icon: '👑',
         type: ItemType.ACCESSORY,
@@ -130,7 +130,7 @@ export const MainQuestBossEquipment = {
     
     // ===== 第3章 BOSS - 巫妖 =====
     lich_staff: {
-        id: 'lich_staff',
+        id: 'boss_lich_staff',
         name: '巫妖法杖',
         icon: '☠️',
         type: ItemType.WEAPON,
@@ -221,7 +221,7 @@ export const MainQuestBossEquipment = {
     
     // ===== 第7章 BOSS - 古龍 =====
     elder_dragon_fang: {
-        id: 'elder_dragon_fang',
+        id: 'boss_elder_dragon_fang',
         name: '古龍牙劍',
         icon: '🐲',
         type: ItemType.WEAPON,
@@ -266,7 +266,7 @@ export const MainQuestBossEquipment = {
     
     // ===== 第9章 BOSS - 魔王阿薩謝爾 =====
     demon_lord_sword: {
-        id: 'demon_lord_sword',
+        id: 'boss_demon_lord_sword',
         name: '魔王之劍',
         icon: '👑',
         type: ItemType.WEAPON,
@@ -335,47 +335,6 @@ export const EquipmentSets = {
             3: { lifesteal: 0.12, atk: 35, critDamage: 0.3, description: '生命偷取+12%, 攻擊力+35, 暴擊傷害+30%' }
         }
     },
-    
-    void_set: {
-        id: 'void_set',
-        name: '虛空套裝',
-        pieces: ['void_crown', 'void_robe', 'void_staff'],
-        bonuses: {
-            2: { mp: 50, critChance: 0.08, description: '魔力+50, 暴擊率+8%' },
-            3: { mp: 120, critChance: 0.15, allStatsBonus: 0.10, description: '魔力+120, 暴擊率+15%, 全屬性+10%' }
-        }
-    },
-    
-    nature_set: {
-        id: 'nature_set',
-        name: '自然套裝',
-        pieces: ['guardian_staff', 'nature_armor', 'nature_ring'],
-        bonuses: {
-            2: { hpRegen: 0.02, hp: 30, description: '每秒回血+2%, HP+30' },
-            3: { hpRegen: 0.05, hp: 80, def: 15, description: '每秒回血+5%, HP+80, 防禦+15' }
-        }
-    },
-    
-    dragon_set: {
-        id: 'dragon_set',
-        name: '龍族套裝',
-        pieces: ['elder_dragon_fang', 'dragon_scale_armor', 'dragon_ring'],
-        bonuses: {
-            2: { fireDamage: 15, atk: 20, description: '火焰傷害+15, 攻擊力+20' },
-            3: { fireDamage: 35, atk: 50, critDamage: 0.35, description: '火焰傷害+35, 攻擊力+50, 暴擊傷害+35%' }
-        }
-    },
-    
-    demon_lord_set: {
-        id: 'demon_lord_set',
-        name: '魔王套裝',
-        pieces: ['demon_lord_sword', 'demon_lord_armor', 'demon_lord_ring'],
-        bonuses: {
-            2: { darkDamage: 20, bossBonus: 0.10, description: '暗黑傷害+20, BOSS傷害+10%' },
-            3: { darkDamage: 50, bossBonus: 0.25, lifesteal: 0.10, allStatsBonus: 0.08, 
-                 description: '暗黑傷害+50, BOSS傷害+25%, 生命偷取+10%, 全屬性+8%' }
-        }
-    }
 };
 
 /**

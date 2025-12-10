@@ -3,6 +3,8 @@
  * Logic for the Lobby scene (Hall).
  */
 import GameManager from '../managers/GameManager.js';
+import { enhancementSystem } from './EnhancementSystem.js';
+import { SetDatabase } from '../data/Equipment.js';
 
 export default class LobbyScene {
     constructor(container, app) {
@@ -55,6 +57,8 @@ export default class LobbyScene {
             hpText: this.container.querySelector('#hp-text'),
             expBar: this.container.querySelector('#exp-bar'),
             expText: this.container.querySelector('#exp-text'),
+            // Character set status
+            characterSetStatus: this.container.querySelector('#character-set-status'),
             
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
@@ -66,6 +70,8 @@ export default class LobbyScene {
             slotWeapon: this.container.querySelector('#slot-weapon'),
             slotArmor: this.container.querySelector('#slot-armor'),
             slotAccessory: this.container.querySelector('#slot-accessory'),
+            // Active set bonuses display
+            activeSetBonuses: this.container.querySelector('#active-set-bonuses'),
             
             // Modal is provided by centralized ItemDetailModal component
         };
@@ -260,6 +266,67 @@ export default class LobbyScene {
             
             // Update equipment slots
             this.updateEquipmentSlots(state.character.equipment);
+
+            // Compute and render active set bonuses (if any)
+            try {
+                const setResult = enhancementSystem.calculateSetBonuses(state.character);
+                if (this.dom.activeSetBonuses) {
+                    if (setResult.descriptions && setResult.descriptions.length > 0) {
+                        this.dom.activeSetBonuses.innerHTML = setResult.descriptions.map(d => `<div class="set-desc">${d}</div>`).join('');
+                    } else {
+                        this.dom.activeSetBonuses.innerHTML = '';
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to calculate/render set bonuses:', e);
+            }
+
+            // Render per-set status under CHARACTER (name: equipped/total — active effects)
+            try {
+                if (this.dom.characterSetStatus) {
+                    const equippedIds = [];
+                    if (state.character && state.character.equipment) {
+                        for (const slot in state.character.equipment) {
+                            const itm = state.character.equipment[slot];
+                            if (itm && itm.id) equippedIds.push(itm.id);
+                        }
+                    }
+
+                    const lines = [];
+                    for (const setId of Object.keys(SetDatabase)) {
+                        const setInfo = SetDatabase[setId];
+                        if (!setInfo || !Array.isArray(setInfo.pieces)) continue;
+                        const total = setInfo.pieces.length;
+                        const count = setInfo.pieces.filter(pid => equippedIds.includes(pid)).length;
+                        if (count === 0) continue; // only show sets with at least one piece equipped
+
+                        // Title: 套裝名稱 (X/X)
+                        const titleHtml = `<div class="set-line set-title">${setInfo.name} (${count}/${total})</div>`;
+
+                        // Build bonuses (only show active ones). If none active, only show title.
+                        const bonuses = Array.isArray(setInfo.bonuses) ? [...setInfo.bonuses].sort((a, b) => (a.required || 0) - (b.required || 0)) : [];
+                        const activeBonuses = bonuses.filter(b => (b.required || 0) <= count);
+
+                        if (activeBonuses.length > 0) {
+                            const bonusHtml = activeBonuses.map(b => {
+                                const req = b.required || 0;
+                                const name = b.name || (req + '件');
+                                const desc = b.description || b.name || (b.effects ? JSON.stringify(b.effects) : '');
+                                return `<div class="set-bonus set-bonus-active">${name}: ${desc}</div>`;
+                            }).join('');
+
+                            lines.push(titleHtml + bonusHtml);
+                        } else {
+                            // only show the title to notify player they have partial set
+                            lines.push(titleHtml);
+                        }
+                    }
+
+                    this.dom.characterSetStatus.innerHTML = lines.length > 0 ? lines.join('') : '';
+                }
+            } catch (e) {
+                console.warn('Failed to render character set status:', e);
+            }
         }
         
         if (type === 'all' || type === 'gold') {
