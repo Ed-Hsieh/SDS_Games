@@ -468,6 +468,12 @@ export default class AdventureScene {
     handleMapEvent() {
         const event = this.worldMap.getCurrentEvent();
         if (!event) return;
+
+        // If this event is a Slay-the-Spire style event (has choices), show story modal
+        if (event.choices && Array.isArray(event.choices) && event.choices.length > 0) {
+            this.showStoryEventModal(event);
+            return;
+        }
         
         const char = GameManager.getCharacter();
         let resultHTML = '';

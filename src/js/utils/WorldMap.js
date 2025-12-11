@@ -3,98 +3,13 @@
  * Handles map generation, movement, monster encounters, and map events.
  */
 import GameManager from '../managers/GameManager.js';
-import EventManager from '../managers/EventManager.js';
+import EventManager, { eventManager } from '../managers/EventManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
 import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
 
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
 // 這裡重新導出以保持向後相容
 export { DungeonEntranceConfig };
-
-// ===== 地圖事件系統 =====
-export class MapEventFactory {
-    static createEvent(zoneType) {
-        const eventRoll = Math.random();
-        
-        // 根據區域決定事件類型機率 (加入 story 類型)
-        if (zoneType === 'low') {
-            if (eventRoll < 0.4) return this._createTreasureChest('low');
-            else if (eventRoll < 0.6) return this._createHealingSpring();
-            else if (eventRoll < 0.75) return this._createTrap('low');
-            else return this._createStoryEvent('low');
-        } else if (zoneType === 'medium') {
-            if (eventRoll < 0.3) return this._createTreasureChest('medium');
-            else if (eventRoll < 0.45) return this._createHealingSpring();
-            else if (eventRoll < 0.65) return this._createTrap('medium');
-            else return this._createStoryEvent('medium');
-        } else if (zoneType === 'high') {
-            if (eventRoll < 0.25) return this._createTreasureChest('high');
-            else if (eventRoll < 0.35) return this._createHealingSpring();
-            else if (eventRoll < 0.55) return this._createTrap('high');
-            else return this._createStoryEvent('high');
-        } else { // boss
-            if (eventRoll < 0.4) return this._createTreasureChest('boss');
-            else if (eventRoll < 0.5) return this._createTrap('boss');
-            else return this._createStoryEvent('boss');
-        }
-    }
-    
-    static _createStoryEvent(zone) {
-        return {
-            type: 'story',
-            name: '神秘事件',
-            icon: '🔮',
-            zone: zone
-        };
-    }
-    
-    static _createTreasureChest(zone) {
-        const chestTypes = {
-            'low': { name: '木製寶箱', icon: '📦', goldMin: 10, goldMax: 30, itemChance: 0.3 },
-            'medium': { name: '鐵製寶箱', icon: '🗃️', goldMin: 30, goldMax: 80, itemChance: 0.5 },
-            'high': { name: '黃金寶箱', icon: '💰', goldMin: 80, goldMax: 200, itemChance: 0.7 },
-            'boss': { name: '傳說寶箱', icon: '👑', goldMin: 200, goldMax: 500, itemChance: 0.9 }
-        };
-        const chest = chestTypes[zone];
-        return {
-            type: 'treasure',
-            name: chest.name,
-            icon: chest.icon,
-            zone: zone,
-            goldMin: chest.goldMin,
-            goldMax: chest.goldMax,
-            itemChance: chest.itemChance
-        };
-    }
-    
-    static _createHealingSpring() {
-        return {
-            type: 'healing',
-            name: '治療之泉',
-            icon: '⛲',
-            healPercent: 0.3 // 恢復 30% HP
-        };
-    }
-    
-    static _createTrap(zone) {
-        const trapTypes = {
-            'low': { name: '小型陷阱', icon: '⚠️', damageMin: 5, damageMax: 15 },
-            'medium': { name: '尖刺陷阱', icon: '🔺', damageMin: 15, damageMax: 30 },
-            'high': { name: '毒氣陷阱', icon: '☠️', damageMin: 30, damageMax: 50 },
-            'boss': { name: '死亡陷阱', icon: '💀', damageMin: 50, damageMax: 100 }
-        };
-        const trap = trapTypes[zone];
-        return {
-            type: 'trap',
-            name: trap.name,
-            icon: trap.icon,
-            damageMin: trap.damageMin,
-            damageMax: trap.damageMax
-        };
-    }
-}
-
-// NOTE: MonsterFactory 已移除，改用 MonsterManager.createRandomMonsterForZone 從資料庫獲取怪物
 
 export class Monster {
     constructor(template) {
@@ -274,9 +189,9 @@ export default class WorldMap {
                 
                 data[r][c].type = cellType;
                 
-                // 為事件格子生成具體事件（使用本檔的 MapEventFactory，產生 'treasure'/'healing'/'trap'/'story' 等型別）
+                // 為事件格子保留類型，實際事件會在玩家踏上時由 EventManager 生成
                 if (cellType === 'event') {
-                    data[r][c].eventData = MapEventFactory.createEvent(data[r][c].zone);
+                    // no per-cell event data here; use EventManager at encounter time
                 }
             }
         }
@@ -402,7 +317,23 @@ export default class WorldMap {
             }
             
             if (cell.type === 'event') {
-                this.currentEvent = cell.eventData;
+                // Generate the event at encounter time via the EventManager singleton
+                try {
+                    const ev = eventManager.triggerRandomEvent(cell.zone);
+                    this.currentEvent = ev;
+                } catch (e) {
+                    // fallback to stateless getter if triggerRandomEvent isn't available
+                    try {
+                        const ev2 = EventManager.getEventForZone(cell.zone);
+                        this.currentEvent = ev2;
+                        // also set singleton currentEvent if possible
+                        if (eventManager) eventManager.currentEvent = ev2;
+                    } catch (err) {
+                        console.error('Failed to generate event for zone:', cell.zone, err);
+                        this.currentEvent = null;
+                    }
+                }
+
                 cell.type = 'empty';
                 return 'event';
             }
