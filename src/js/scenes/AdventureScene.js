@@ -11,6 +11,14 @@ import { calculateDrops } from '../managers/DropManager.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { getEquipment } from '../managers/EquipmentManager.js';
 
+// Centralized zone color definitions used by both rendering layers
+const ZONE_COLORS = {
+    low:  { hex: '#2e7d32', fill: 'rgba(77, 233, 84, 0.12)', stroke: 'rgba(43, 231, 52, 0.18)' },
+    medium:{ hex: '#2196f3', fill: 'rgba(33,150,243,0.12)', stroke: 'rgba(33,150,243,0.18)' },
+    high: { hex: '#e53935', fill: 'rgba(229,57,53,0.12)', stroke: 'rgba(229,57,53,0.18)' },
+    boss: { hex: '#b71c1c', fill: 'rgba(183,28,28,0.16)', stroke: 'rgba(183,28,28,0.22)' }
+};
+
 export default class AdventureScene {
     constructor(container, app) {
         this.container = container;
@@ -389,8 +397,13 @@ export default class AdventureScene {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
-        const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
+        // Use centralized ZONE_COLORS (defined at module top)
         const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓', 'dungeon': '🏰' };
+        const monsterIcons = {
+            normal: '👾',
+            elite: '👹',
+            boss: '👿'
+        };
 
         const visibleCells = this.worldMap.getVisibleCells();
         
@@ -402,8 +415,28 @@ export default class AdventureScene {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff';
-                ctx.fillText(terrainIcons.monster, x + gridSize / 2, y + gridSize / 2);
+                // choose icon by preselected monster type (template.type)
+                const rank = cell.data.monsterType || 'normal';
+                const icon = monsterIcons[rank] || monsterIcons.normal;
+                // give elites and bosses extra glow
+                if (rank === 'elite') {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(255,165,0,0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                    ctx.restore();
+                } else if (rank === 'boss') {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(183,28,28,0.8)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                }
             } else if (cell.data.type === 'event') {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
@@ -2382,7 +2415,7 @@ AdventureScene.prototype.buildStaticLayer = function() {
         octx.fillStyle = '#0a0a0a';
         octx.fillRect(0, 0, width, height);
 
-        const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
+        // Use centralized ZONE_COLORS (defined at module top)
 
         // Draw tiles (zones and walls) – avoid dynamic icons
         for (let r = 0; r < map.rows; r++) {
@@ -2392,12 +2425,12 @@ AdventureScene.prototype.buildStaticLayer = function() {
                 const y = r * gridSize;
                 const zone = cell.zone;
 
-                // Zone background
-                octx.fillStyle = (zoneColors[zone] || '#666') + '20';
+                // Zone background / stroke using centralized ZONE_COLORS
+                const zInfo = ZONE_COLORS[zone] || { fill: 'rgba(100,100,100,0.08)', stroke: 'rgba(100,100,100,0.14)' };
+                octx.fillStyle = zInfo.fill;
                 octx.fillRect(x, y, gridSize, gridSize);
 
-                // Grid stroke
-                octx.strokeStyle = (zoneColors[zone] || '#666') + '40';
+                octx.strokeStyle = zInfo.stroke;
                 octx.lineWidth = 1;
                 octx.strokeRect(x, y, gridSize, gridSize);
 

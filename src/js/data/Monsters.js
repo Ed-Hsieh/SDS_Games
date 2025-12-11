@@ -1469,10 +1469,15 @@ export const TowerMonsterData = {
     }
 };
 
-// 以每10等為一個區間切分（low: 1-10, mid: 11-20, high: 21-30）
-export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 10 && m.type !== MonsterType.BOSS);
-export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 11 && m.level <= 20 && m.type !== MonsterType.BOSS);
-export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30 && m.type !== MonsterType.BOSS);
+// Level groups: split into four logical groups used by map/manager code.
+// - LowLevelMonster: levels 1-5
+// - MediumLevelMonster: levels 6-12
+// - HighLevelMonster: levels 13-20
+// - BOSSLevelMonster: monsters whose template type is BOSS or WORLD_BOSS
+export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 5);
+export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 6 && m.level <= 12);
+export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 13 && m.level <= 20);
+export const BOSSLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30);
 
 // 匯出所有怪物清單（陣列）供其他模組使用
 export const AllMonsters = Object.values(MonsterDatabase);
