@@ -3,8 +3,7 @@
  * 隨機事件系統 - Slay the Spire 風格的選擇事件處理
  */
 import GameManager from '../managers/GameManager.js';
-import { EventDatabase, getRandomEvent, ResultType } from '../data/Events.js';
-import { Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
+import EventManager from '../managers/EventManager.js';
 
 export default class EventSystem {
     constructor() {
@@ -18,9 +17,9 @@ export default class EventSystem {
      * @returns {Object|null} 事件物件
      */
     triggerRandomEvent(zone = 'low') {
-        const event = getRandomEvent(zone);
+        const event = EventManager.getEventForZone(zone);
         if (!event) return null;
-        
+
         this.currentEvent = { ...event, zone };
         return this.currentEvent;
     }
@@ -34,63 +33,16 @@ export default class EventSystem {
         if (!this.currentEvent) {
             return { success: false, message: '沒有進行中的事件' };
         }
-
-        const choice = this.currentEvent.choices[choiceIndex];
-        if (!choice) {
-            return { success: false, message: '無效的選項' };
+        // Delegate event resolution to manager
+        const res = EventManager.executeChoice(this.currentEvent, choiceIndex);
+        // record history if success
+        if (res && res.success) {
+            this.eventHistory.push({ event: this.currentEvent, choiceIndex, timestamp: Date.now() });
+            const eventName = this.currentEvent.name;
+            this.currentEvent = null;
+            return { success: true, eventName, messages: res.messages };
         }
-
-        const char = GameManager.getCharacter();
-        const resultMessages = [];
-
-        // 檢查並扣除花費
-        if (choice.cost) {
-            const costCheck = this.checkAndPayCost(char, choice.cost);
-            if (!costCheck.success) {
-                return { success: false, message: costCheck.message };
-            }
-            if (costCheck.message) {
-                resultMessages.push(costCheck.message);
-            }
-        }
-
-        // 決定結果
-        let results = [];
-        
-        if (choice.isRandom && choice.randomResults) {
-            // 加權隨機結果
-            results = this.getWeightedRandomResults(choice.randomResults);
-        } else if (choice.chance !== undefined) {
-            // 機率判定
-            const success = Math.random() < choice.chance;
-            results = success ? (choice.successResults || []) : (choice.failResults || []);
-        } else {
-            // 固定結果
-            results = choice.results || [];
-        }
-
-        // 執行結果
-        for (const result of results) {
-            const msg = this.applyResult(char, result);
-            if (msg) resultMessages.push(msg);
-        }
-
-        // 記錄歷史
-        this.eventHistory.push({
-            event: this.currentEvent,
-            choiceIndex,
-            timestamp: Date.now()
-        });
-
-        // 清除當前事件
-        const eventName = this.currentEvent.name;
-        this.currentEvent = null;
-
-        return {
-            success: true,
-            eventName,
-            messages: resultMessages
-        };
+        return res;
     }
 
     /**
@@ -128,16 +80,13 @@ export default class EventSystem {
      * 加權隨機選擇結果
      */
     getWeightedRandomResults(randomResults) {
+        // retained for backward compatibility but manager handles logic
         const totalWeight = randomResults.reduce((sum, r) => sum + r.weight, 0);
         let random = Math.random() * totalWeight;
-        
         for (const option of randomResults) {
             random -= option.weight;
-            if (random <= 0) {
-                return option.results;
-            }
+            if (random <= 0) return option.results;
         }
-        
         return randomResults[0].results;
     }
 
@@ -145,57 +94,11 @@ export default class EventSystem {
      * 應用單個結果
      */
     applyResult(char, result) {
-        switch (result.type) {
-            case ResultType.GOLD:
-                if (result.value > 0) {
-                    GameManager.addGold(result.value);
-                }
-                return result.message;
-
-            case ResultType.HEAL:
-                const healAmount = result.isPercent 
-                    ? Math.floor(char.maxHp * result.value)
-                    : result.value;
-                const actualHeal = Math.min(healAmount, char.maxHp - char.hp);
-                char.hp += actualHeal;
-                return result.message || `恢復 ${actualHeal} 生命值`;
-
-            case ResultType.DAMAGE:
-                const damage = Math.max(1, result.value - char.getTotalDef());
-                char.hp = Math.max(1, char.hp - damage);
-                return result.message || `受到 ${damage} 點傷害`;
-
-            case ResultType.BUFF:
-            case ResultType.DEBUFF:
-                char.addBuff(result.buffType, result.value, result.duration);
-                return result.message;
-
-            case ResultType.STAT:
-                if (char[result.stat] !== undefined) {
-                    char[result.stat] += result.value;
-                    // 如果增加了 maxHp，同時恢復相應的 HP
-                    if (result.stat === 'maxHp' && result.value > 0) {
-                        char.hp = Math.min(char.hp + result.value, char.maxHp);
-                    }
-                }
-                return result.message;
-
-            case ResultType.EXP:
-                char.exp += result.value;
-                char.checkLevelUp();
-                return result.message || `獲得 ${result.value} 經驗值`;
-
-            case ResultType.ITEM:
-                const item = this.generateEventItem(result.itemType);
-                if (item) {
-                    GameManager.addToInventory(item);
-                    return result.message || `獲得 ${item.name}！`;
-                }
-                return result.message;
-
-            default:
-                return result.message;
-        }
+        // delegate to EventManager to keep logic in managers
+        const tempChar = GameManager.getCharacter();
+        if (!tempChar) return result.message;
+        // Not used locally; EventManager applies results centrally.
+        return result.message;
     }
 
     /**

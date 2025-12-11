@@ -258,7 +258,7 @@ export class Consumable extends Item {
     }
 }
 
-export class Character {
+export class CharacterManager {
     constructor() {
         this.level = 1;
         this._hp = 120;  // 100 + (1 * 20) = 120
@@ -296,51 +296,6 @@ export class Character {
             new BuffSkill('battle_cry', '戰吼', '📢', '提升自身攻擊力', 15, 3, 'atk', 20, 3)
         ];
     }
-    
-    // Getters and setters to keep properties in sync
-    get hp() { return this._hp; }
-    set hp(value) { 
-        this._hp = Math.max(0, Math.min(value, this._maxHp)); 
-        this.currentHP = this._hp;
-    }
-    
-    get maxHp() { return this._maxHp; }
-    set maxHp(value) { 
-        this._maxHp = value;
-    }
-    
-    get currentHP() { return this._hp; }
-    set currentHP(value) { this._hp = Math.max(0, Math.min(value, this._maxHp)); }
-    
-    get mp() { return this._mp; }
-    set mp(value) { this._mp = Math.max(0, Math.min(value, this._maxMp)); }
-    
-    get maxMp() { return this._maxMp; }
-    set maxMp(value) { this._maxMp = value; }
-    
-    get exp() { return this._exp; }
-    set exp(value) { 
-        this._exp = value;
-        this.currentEXP = value;
-    }
-    
-    get currentEXP() { return this._exp; }
-    set currentEXP(value) { this._exp = value; }
-    
-    get maxExp() { return this._maxExp; }
-    set maxExp(value) { 
-        this._maxExp = value;
-        this.maxEXP = value;
-    }
-    
-    get maxEXP() { return this._maxExp; }
-    set maxEXP(value) { this._maxExp = value; }
-    
-    get attack() { return this._attack; }
-    set attack(value) { this._attack = value; }
-    
-    get defense() { return this._defense; }
-    set defense(value) { this._defense = value; }
 
     getTotalAtk() {
         let total = this.baseAtk;

@@ -9,7 +9,8 @@ import { ItemType, ItemRarity } from '../models/DataModel.js';
 import { questSystem } from './QuestSystem.js';
 import { ObjectiveType } from '../data/Quests.js';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../data/Recipes.js';
-import { getMaterial, MaterialDatabase } from '../data/Materials.js';
+import { MaterialDatabase } from '../data/Materials.js';
+import { getMaterial } from '../managers/MaterialManager.js';
 
 export default class ForgeScene {
     constructor(container, app) {

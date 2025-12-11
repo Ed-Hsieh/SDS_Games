@@ -3,7 +3,7 @@
  * Singleton class for managing global game state.
  * Uses DataModel classes for robust state management.
  */
-import { Character, Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity } from '../models/DataModel.js';
+import { CharacterManager, Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity } from '../models/DataModel.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 
 class GameManager {
@@ -14,7 +14,7 @@ class GameManager {
         this.listeners = [];
         
         this.state = {
-            character: new Character(),
+            character: new CharacterManager(),
             inventory: [], // Array of stacked items: { item: Item, quantity: number }
             inventoryCapacity: 10,
             warehouse: [], // Array of stacked items (Unlimited capacity)

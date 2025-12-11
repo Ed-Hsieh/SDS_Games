@@ -4,6 +4,8 @@
  */
 import { Equipment, Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 import GameManager from '../managers/GameManager.js';
+import EventManager from '../managers/EventManager.js';
+import MonsterManager from '../managers/MonsterManager.js';
 
 // ===== 副本入口配置 =====
 export const DungeonEntranceConfig = {
@@ -649,9 +651,9 @@ export default class WorldMap {
                 
                 data[r][c].type = cellType;
                 
-                // 為事件格子生成具體事件
+                // 為事件格子生成具體事件（使用 data/Events.js 與 EventManager）
                 if (cellType === 'event') {
-                    data[r][c].eventData = MapEventFactory.createEvent(data[r][c].zone);
+                    data[r][c].eventData = EventManager.getEventForZone(data[r][c].zone);
                 }
             }
         }
@@ -764,7 +766,13 @@ export default class WorldMap {
             const cell = this.mapData[newY][newX];
             
             if (cell.type === 'monster') {
-                this.currentMonster = MonsterFactory.createMonster(cell.zone);
+                // Create monster using data-driven manager and local Monster class
+                const template = MonsterManager.createRandomMonsterForZone(cell.zone);
+                if (template) {
+                    this.currentMonster = new Monster(template);
+                } else {
+                    this.currentMonster = MonsterFactory.createMonster(cell.zone);
+                }
                 cell.type = 'empty';
                 return 'battle';
             }

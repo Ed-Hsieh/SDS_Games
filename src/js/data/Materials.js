@@ -959,15 +959,5 @@ export function getMaterial(materialId) {
 /**
  * 根據稀有度獲取材料列表
  */
-export function getMaterialsByRarity(rarity) {
-    return Object.values(MaterialDatabase).filter(m => m.rarity === rarity);
-}
-
-/**
- * 獲取可用於特定製作的材料
- */
-export function getMaterialsForCraft(craftTarget) {
-    return Object.values(MaterialDatabase).filter(
-        m => m.craftUse && m.craftUse.includes(craftTarget)
-    );
-}
+// NOTE: data module should not contain logic. Material lookups (getMaterial, getMaterialsByRarity,
+// getMaterialsForCraft) have been moved to `src/js/managers/MaterialManager.js`.

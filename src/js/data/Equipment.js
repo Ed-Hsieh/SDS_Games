@@ -1231,43 +1231,8 @@ export function getEquipment(equipmentId) {
 export function getSet(setId) {
     return SetDatabase[setId] || null;
 }
-
-/**
- * 計算當前激活的套裝效果
- */
-export function calculateSetBonuses(equippedItems) {
-    const setBonuses = [];
-    const setPieceCounts = {};
-
-    // 計算每個套裝裝備的數量
-    for (const item of equippedItems) {
-        if (item && item.setId) {
-            setPieceCounts[item.setId] = (setPieceCounts[item.setId] || 0) + 1;
-        }
-    }
-
-    // 檢查每個套裝的獎勵
-    for (const [setId, count] of Object.entries(setPieceCounts)) {
-        const set = getSet(setId);
-        if (!set) continue;
-
-        for (const bonus of set.bonuses) {
-            if (count >= bonus.required) {
-                setBonuses.push({
-                    setId: setId,
-                    setName: set.name,
-                    bonusName: bonus.name,
-                    description: bonus.description,
-                    effects: bonus.effects,
-                    piecesEquipped: count,
-                    piecesRequired: bonus.required
-                });
-            }
-        }
-    }
-
-    return setBonuses;
-}
+// NOTE: Data file should not contain logic. Helper functions have been moved to
+// `src/js/managers/EquipmentManager.js`. Keep this file as pure data only.
 
 /**
  * 獲取裝備的完整特效描述
@@ -1288,22 +1253,13 @@ export function getEquipmentEffectDescription(equipment) {
 /**
  * 根據稀有度獲取裝備列表
  */
-export function getEquipmentByRarity(rarity) {
-    return Object.values(EquipmentDatabase).filter(e => e.rarity === rarity);
-}
 
 /**
  * 根據類型獲取裝備列表
  */
-export function getEquipmentByType(type) {
-    return Object.values(EquipmentDatabase).filter(e => e.type === type);
-}
 
 /**
  * 獲取怪物可能掉落的裝備
  */
-export function getEquipmentDropsForMonster(monsterId) {
-    return Object.values(EquipmentDatabase).filter(
-        e => e.dropFrom && e.dropFrom.includes(monsterId)
-    );
-}
+// NOTE: getEquipmentEffectDescription, getEquipmentByRarity, getEquipmentByType,
+// and getEquipmentDropsForMonster were moved to `src/js/managers/EquipmentManager.js`.

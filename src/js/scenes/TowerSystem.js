@@ -4,9 +4,10 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { getTowerMonster, createMonsterInstance, calculateDrops } from '../data/Monsters.js';
+import { getTowerMonster, createMonsterInstance } from '../managers/MonsterManager.js';
+import { calculateDrops } from '../managers/DropManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
-import { getMaterial } from '../data/Materials.js';
+import { getMaterial } from '../managers/MaterialManager.js';
 
 // 無盡塔狀態
 export const TowerState = {
