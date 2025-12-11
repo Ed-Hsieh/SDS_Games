@@ -205,3 +205,70 @@ function applyResultToCharacter(char, result) {
 export default {
     getEventForZone
 };
+
+/**
+ * EventManager 類 - 事件系統管理器
+ * (原 scenes/EventSystem.js 整合而來)
+ */
+export class EventManagerClass {
+    constructor() {
+        this.currentEvent = null;
+        this.eventHistory = [];
+    }
+
+    /**
+     * 觸發隨機事件
+     * @param {string} zone - 當前區域
+     * @returns {Object|null} 事件物件
+     */
+    triggerRandomEvent(zone = 'low') {
+        const event = getEventForZone(zone);
+        if (!event) return null;
+
+        this.currentEvent = { ...event, zone };
+        return this.currentEvent;
+    }
+
+    /**
+     * 執行選項
+     * @param {number} choiceIndex - 選項索引
+     * @returns {Object} 執行結果
+     */
+    executeChoiceByIndex(choiceIndex) {
+        if (!this.currentEvent) {
+            return { success: false, message: '沒有進行中的事件' };
+        }
+        const res = executeChoice(this.currentEvent, choiceIndex);
+        if (res && res.success) {
+            this.eventHistory.push({ event: this.currentEvent, choiceIndex, timestamp: Date.now() });
+            const eventName = this.currentEvent.name;
+            this.currentEvent = null;
+            return { success: true, eventName, messages: res.messages };
+        }
+        return res;
+    }
+
+    /**
+     * 獲取當前事件
+     */
+    getCurrentEvent() {
+        return this.currentEvent;
+    }
+
+    /**
+     * 取消當前事件
+     */
+    cancelEvent() {
+        this.currentEvent = null;
+    }
+
+    /**
+     * 獲取事件歷史
+     */
+    getEventHistory() {
+        return this.eventHistory;
+    }
+}
+
+// 單例導出
+export const eventManager = new EventManagerClass();

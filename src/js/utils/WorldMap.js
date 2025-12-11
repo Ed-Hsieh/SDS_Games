@@ -6,40 +6,11 @@ import { Equipment, Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRa
 import GameManager from '../managers/GameManager.js';
 import EventManager from '../managers/EventManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
+import { DungeonEntranceConfig } from '../data/Dungeons.js';
 
-// ===== 副本入口配置 =====
-export const DungeonEntranceConfig = {
-    cave: { 
-        name: '幽暗洞窟', 
-        icon: '🏔️', 
-        zones: ['low'],
-        description: '一個被黑暗籠罩的地下洞穴'
-    },
-    snow: { 
-        name: '冰封雪峰', 
-        icon: '❄️', 
-        zones: ['medium'],
-        description: '終年積雪的山峰'
-    },
-    ruins: { 
-        name: '遠古遺跡', 
-        icon: '🏛️', 
-        zones: ['medium', 'high'],
-        description: '失落文明的遺跡'
-    },
-    jungle: { 
-        name: '迷霧叢林', 
-        icon: '🌴', 
-        zones: ['high'],
-        description: '被迷霧籠罩的神秘叢林'
-    },
-    hell: { 
-        name: '煉獄深淵', 
-        icon: '🔥', 
-        zones: ['boss'],
-        description: '通往地獄的裂縫'
-    }
-};
+// NOTE: DungeonEntranceConfig 已移至 data/Dungeons.js
+// 這裡重新導出以保持向後相容
+export { DungeonEntranceConfig };
 
 // ===== 地圖事件系統 =====
 export class MapEventFactory {

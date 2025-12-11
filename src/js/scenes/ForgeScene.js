@@ -3,10 +3,10 @@
  * 鍛造工坊場景控制器
  */
 import GameManager from '../managers/GameManager.js';
-import { enhancementSystem, GemType } from './EnhancementSystem.js';
-import AffixSystem from './AffixSystem.js';
+import { enhancementManager, GemType } from '../managers/EnhancementManager.js';
+import { affixManager } from '../managers/AffixManager.js';
 import { ItemType, ItemRarity } from '../models/DataModel.js';
-import { questSystem } from './QuestSystem.js';
+import { questManager } from '../managers/QuestManager.js';
 import { ObjectiveType } from '../data/Quests.js';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../data/Recipes.js';
 import { MaterialDatabase } from '../data/Materials.js';
@@ -20,7 +20,7 @@ export default class ForgeScene {
         this.selectedGem = null;
         this.selectedGemSlot = null;
         this.rerollHistory = [];
-        this.affixSystem = new AffixSystem();
+        this.affixManager = affixManager;
         
         // 鍛造相關
         this.currentTab = 'craft';
@@ -181,7 +181,7 @@ export default class ForgeScene {
                         <div class="recipe-name">${recipe.name}</div>
                         <div class="recipe-type">${this.getTypeLabel(recipe.type)}</div>
                     </div>
-                    ${craftable ? '<span class="craftable-badge">✓</span>' : '<span class="locked-badge">🔒</span>'}
+                    ${craftable ? '<span class="craftable-badge">可製作</span>' : '<span class="locked-badge">無法製作</span>'}
                 </div>
             `;
         }).join('');
@@ -392,7 +392,7 @@ export default class ForgeScene {
                 }
                 
                 // 生成隨機詞綴
-                this.affixSystem.generateAffixes(newItem, true);
+                this.affixManager.generateAffixes(newItem, true);
                 
                 // 根據最高詞綴稀有度提升裝備稀有度
                 if (newItem.affixes && newItem.affixes.length > 0) {
@@ -422,7 +422,7 @@ export default class ForgeScene {
             this.showCraftResult(true, newItem);
             
             // 任務系統
-            questSystem.updateProgress(ObjectiveType.CRAFT, recipe.type, 1);
+            questManager.updateProgress(ObjectiveType.CRAFT, recipe.type, 1);
         } else {
             this.showCraftResult(false, null);
         }
@@ -575,7 +575,7 @@ export default class ForgeScene {
     showAffixRerollInfo(item) {
         if (!this.dom.affixInfo) return;
         
-        const affixSlots = this.affixSystem.getAffixSlots(item.rarity || 'common');
+        const affixSlots = this.affixManager.getAffixSlots(item.rarity || 'common');
         const currentAffixes = item.affixes || [];
         
         // 顯示當前詞綴
@@ -664,7 +664,7 @@ export default class ForgeScene {
         item.name = item._baseName;
         
         // 重鑄詞綴
-        const result = this.affixSystem.generateAffixes(item, true);
+        const result = this.affixManager.generateAffixes(item, true);
         
         // 根據最高詞綴稀有度更新裝備稀有度
         this.updateEquipmentRarity(item);
@@ -824,7 +824,7 @@ export default class ForgeScene {
     updateGemSlots(item) {
         if (!this.dom.gemSlots) return;
         
-        const maxSlots = enhancementSystem.getGemSlotCount(item);
+        const maxSlots = enhancementManager.getGemSlotCount(item);
         const socketedGems = item.socketedGems || [];
         
         this.dom.gemSlots.innerHTML = '';
@@ -886,7 +886,7 @@ export default class ForgeScene {
             return;
         }
         
-        const result = enhancementSystem.socketGem(
+        const result = enhancementManager.socketGem(
             this.selectedEquipment.item,
             this.selectedGem,
             this.selectedGemSlot
@@ -918,7 +918,7 @@ export default class ForgeScene {
             this.createAffixPanel();
         }
 
-        const affixSlots = this.affixSystem.getAffixSlots(item.rarity || 'common');
+        const affixSlots = this.affixManager.getAffixSlots(item.rarity || 'common');
         const currentAffixes = item.affixes || [];
 
         // 計算重鑄費用
@@ -981,7 +981,7 @@ export default class ForgeScene {
                 <div id="current-affixes" class="current-affixes"></div>
                 <div class="reroll-controls">
                     <span class="cost-label">重鑄費用: <span id="affix-cost">0</span></span>
-                    <button id="btn-reroll-affix" class="btn-reroll">🔄 重鑄詞綴</button>
+                    <button id="btn-reroll-affix" class="btn-reroll">重鑄詞綴</button>
                 </div>
             </div>
         `;
@@ -1054,8 +1054,8 @@ export default class ForgeScene {
 
         await this.sleep(1000);
 
-        // 重鑄詞綴
-        const result = this.affixSystem.generateAffixes(item, true);
+        // 重新生成詞綴
+        const result = this.affixManager.generateAffixes(item, true);
 
         // 更新顯示
         this.showAffixInfo(item);
@@ -1117,7 +1117,7 @@ export default class ForgeScene {
         card.className = `equipment-card ${item.rarity || 'common'}`;
         
         const gemCount = item.socketedGems?.length || 0;
-        const maxSlots = enhancementSystem.getGemSlotCount(item);
+        const maxSlots = enhancementManager.getGemSlotCount(item);
         const equippedBadge = isEquipped ? '<span class="equipped-badge">裝備中</span>' : '';
         
         card.innerHTML = `

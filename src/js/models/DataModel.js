@@ -3,40 +3,9 @@
  * Core data models for the RPG.
  */
 
-export const ItemRarity = {
-    COMMON: 'common',
-    UNCOMMON: 'uncommon',
-    RARE: 'rare',
-    EPIC: 'epic',
-    LEGENDARY: 'legendary'
-};
-
-export const ItemType = {
-    WEAPON: 'weapon',
-    ARMOR: 'armor',
-    ACCESSORY: 'accessory',
-    POTION: 'potion',
-    MATERIAL: 'material',
-    KEY: 'key',
-    GEM: 'gem',
-    SOCKET_GEM: 'socket_gem',
-    SCROLL: 'scroll',
-    BOOK: 'book',
-    QUEST: 'quest'
-};
-
-export const ItemCategory = {
-    EQUIPMENT: 'equipment',
-    ITEMS: 'items'
-};
-
-// ===== 技能系統 =====
-export const SkillType = {
-    ATTACK: 'attack',      // 攻擊技能
-    HEAL: 'heal',          // 治療技能
-    BUFF: 'buff',          // 增益技能
-    DEBUFF: 'debuff'       // 減益技能
-};
+// 從 Enums.js 導入並重新導出（保持向後相容）
+import { ItemRarity, ItemType, ItemCategory, SkillType } from './Enums.js';
+export { ItemRarity, ItemType, ItemCategory, SkillType };
 
 export class Skill {
     constructor(id, name, type, icon, description, mpCost, cooldown = 0) {

@@ -3,8 +3,8 @@
  * 賭場場景控制器
  */
 import GameManager from '../managers/GameManager.js';
-import { casinoSystem } from './CasinoSystem.js';
-import { questSystem } from './QuestSystem.js';
+import { casinoManager } from '../managers/CasinoManager.js';
+import { questManager } from '../managers/QuestManager.js';
 import { ObjectiveType } from '../data/Quests.js';
 
 export default class CasinoScene {
@@ -129,7 +129,7 @@ export default class CasinoScene {
     }
 
     updateStats() {
-        const stats = casinoSystem.getStats();
+        const stats = casinoManager.getStats();
         if (this.dom.statTotalBet) this.dom.statTotalBet.textContent = stats.totalBet;
         if (this.dom.statTotalWin) this.dom.statTotalWin.textContent = stats.totalWin;
         if (this.dom.statNet) {
@@ -181,16 +181,16 @@ export default class CasinoScene {
             if (result.isJackpot) {
                 this.showJackpot();
                 // 任務系統：中頭獎
-                questSystem.updateStats('jackpot');
+                questManager.updateStats('jackpot');
             }
             
             // 任務系統：賭博勝利/失敗
             if (result.winnings > 0) {
-                questSystem.updateProgress(ObjectiveType.GAMBLE_WIN, 'slots', 1);
-                questSystem.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questSystem.updateStats('gamble_win');
+                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'slots', 1);
+                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
+                questManager.updateStats('gamble_win');
             } else {
-                questSystem.updateStats('gamble_loss');
+                questManager.updateStats('gamble_loss');
             }
         } else {
             this.showResult(result.message, false);
@@ -202,7 +202,7 @@ export default class CasinoScene {
     }
 
     async animateSlots() {
-        const symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7️⃣'];
+        const symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7'];
         const duration = 2000;
         const interval = 100;
         const iterations = duration / interval;
@@ -309,11 +309,11 @@ export default class CasinoScene {
             
             // 任務系統：賭博勝利/失敗
             if (result.isWin) {
-                questSystem.updateProgress(ObjectiveType.GAMBLE_WIN, 'roulette', 1);
-                questSystem.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questSystem.updateStats('gamble_win');
+                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'roulette', 1);
+                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
+                questManager.updateStats('gamble_win');
             } else {
-                questSystem.updateStats('gamble_loss');
+                questManager.updateStats('gamble_loss');
             }
         } else {
             this.showResult(result.message, false);
@@ -373,11 +373,11 @@ export default class CasinoScene {
             
             // 任務系統：賭博勝利/失敗
             if (result.isWin) {
-                questSystem.updateProgress(ObjectiveType.GAMBLE_WIN, 'dice', 1);
-                questSystem.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questSystem.updateStats('gamble_win');
+                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'dice', 1);
+                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
+                questManager.updateStats('gamble_win');
             } else {
-                questSystem.updateStats('gamble_loss');
+                questManager.updateStats('gamble_loss');
             }
         } else {
             this.showResult(result.message, false);
@@ -414,7 +414,7 @@ export default class CasinoScene {
     }
 
     claimDailyBonus() {
-        const result = casinoSystem.claimDailyBonus();
+        const result = casinoManager.claimDailyBonus();
         this.showResult(result.message, result.success);
         if (result.success) {
             this.updateUI();

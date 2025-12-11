@@ -6,8 +6,8 @@ import GameManager from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
 import { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 import { SpecialEffectType } from '../data/Equipment.js';
-import { eventSystem } from './EventSystem.js';
-import { questSystem } from './QuestSystem.js';
+import { eventManager } from '../managers/EventManager.js';
+import { questManager } from '../managers/QuestManager.js';
 import { ObjectiveType } from '../data/Quests.js';
 
 export default class AdventureScene {
@@ -312,7 +312,7 @@ export default class AdventureScene {
             
             // 追蹤探索進度（任務系統）
             const zone = this.worldMap.getCurrentZone();
-            questSystem.updateProgress(ObjectiveType.EXPLORE, zone, 1);
+            questManager.updateProgress(ObjectiveType.EXPLORE, zone, 1);
             
             if (result === 'battle') {
                 this.isLocked = true;
@@ -509,7 +509,7 @@ export default class AdventureScene {
                 // 觸發劇情事件 (Slay the Spire 風格)
                 this.triggerStoryEvent();
                 // 任務系統：觸發事件
-                questSystem.updateProgress(ObjectiveType.EVENT, 'random', 1);
+                questManager.updateProgress(ObjectiveType.EVENT, 'random', 1);
                 return; // 不要清除事件，讓玩家選擇後再清除
         }
         
@@ -824,7 +824,7 @@ export default class AdventureScene {
     
     triggerStoryEvent() {
         const zone = this.worldMap.getCurrentZone();
-        const event = eventSystem.triggerRandomEvent(zone);
+        const event = eventManager.triggerRandomEvent(zone);
         
         if (!event) {
             this.worldMap.clearCurrentEvent();
@@ -892,7 +892,7 @@ export default class AdventureScene {
     }
     
     executeStoryChoice(choiceIndex) {
-        const result = eventSystem.executeChoice(choiceIndex);
+        const result = eventManager.executeChoice(choiceIndex);
         
         // 隱藏選項，顯示結果
         if (this.dom.storyEventChoices) {
@@ -1712,7 +1712,7 @@ class BattleController {
         GameManager.addGold(drops.gold);
         
         // 任務系統：更新擊殺進度
-        questSystem.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
+        questManager.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
         
         setTimeout(() => {
             this.scene.endBattle(true);
@@ -1728,7 +1728,7 @@ class BattleController {
         this.player.hp = Math.floor(this.player.maxHp * 0.3);
         
         // 任務系統：更新死亡統計
-        questSystem.updateStats('death');
+        questManager.updateStats('death');
         
         setTimeout(() => {
             this.scene.endBattle(false);

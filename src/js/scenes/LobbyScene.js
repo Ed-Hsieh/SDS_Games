@@ -3,7 +3,7 @@
  * Logic for the Lobby scene (Hall).
  */
 import GameManager from '../managers/GameManager.js';
-import { enhancementSystem } from './EnhancementSystem.js';
+import { enhancementManager } from '../managers/EnhancementManager.js';
 import { SetDatabase } from '../data/Equipment.js';
 
 export default class LobbyScene {
@@ -269,7 +269,7 @@ export default class LobbyScene {
 
             // Compute and render active set bonuses (if any)
             try {
-                const setResult = enhancementSystem.calculateSetBonuses(state.character);
+                const setResult = enhancementManager.calculateSetBonuses(state.character);
                 if (this.dom.activeSetBonuses) {
                     if (setResult.descriptions && setResult.descriptions.length > 0) {
                         this.dom.activeSetBonuses.innerHTML = setResult.descriptions.map(d => `<div class="set-desc">${d}</div>`).join('');

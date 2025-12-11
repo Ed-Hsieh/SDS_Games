@@ -4,7 +4,7 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { towerSystem, TowerState } from './TowerSystem.js';
+import { towerManager, TowerState } from '../managers/TowerManager.js';
 import { getTowerMonster } from '../managers/MonsterManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 
@@ -35,7 +35,7 @@ class TowerScene {
         this.renderFloorsList();
         this.updatePlayerStats();
         
-        const status = towerSystem.getStatus();
+        const status = towerManager.getStatus();
         if (status.state === TowerState.IN_BATTLE) {
             this.showBattleState();
             this.updateBattleUI();
@@ -131,7 +131,7 @@ class TowerScene {
      * 處理攻擊按鈕點擊 - 使用節奏條判定
      */
     handleAttackClick() {
-        const status = towerSystem.getStatus();
+        const status = towerManager.getStatus();
         if (status.state !== TowerState.IN_BATTLE) {
             return;
         }
@@ -219,7 +219,7 @@ class TowerScene {
 
     subscribeToSystems() {
         // 訂閱無盡塔系統事件
-        towerSystem.subscribe((eventType, data) => {
+        towerManager.subscribe((eventType, data) => {
             this.handleTowerEvent(eventType, data);
         });
 
@@ -265,8 +265,8 @@ class TowerScene {
     renderFloorsList() {
         if (!this.floorsListEl) return;
 
-        const status = towerSystem.getStatus();
-        const floors = towerSystem.getAllFloorsInfo();
+        const status = towerManager.getStatus();
+        const floors = towerManager.getAllFloorsInfo();
 
         this.floorsListEl.innerHTML = floors.map(floor => {
             const isUnlocked = floor.isUnlocked;
@@ -303,7 +303,7 @@ class TowerScene {
     }
 
     selectFloor(floor) {
-        const floorInfo = towerSystem.getFloorInfo(floor);
+        const floorInfo = towerManager.getFloorInfo(floor);
         if (!floorInfo.isUnlocked) {
             this.showMessage('此層尚未解鎖！');
             return;
@@ -358,7 +358,7 @@ class TowerScene {
 
         // 更新開始按鈕
         if (this.btnStartBattle) {
-            const status = towerSystem.getStatus();
+            const status = towerManager.getStatus();
             if (status.state === TowerState.IN_BATTLE) {
                 this.btnStartBattle.textContent = '繼續戰鬥';
             } else {
@@ -404,11 +404,11 @@ class TowerScene {
     // ===== 戰鬥控制 =====
 
     startBattle() {
-        const status = towerSystem.getStatus();
+        const status = towerManager.getStatus();
 
         // 如果不在挑戰中，先開始挑戰
         if (status.state === TowerState.IDLE) {
-            const startResult = towerSystem.startChallenge(this.selectedFloor);
+            const startResult = towerManager.startChallenge(this.selectedFloor);
             if (!startResult.success) {
                 this.showMessage(startResult.message);
                 return;
@@ -416,7 +416,7 @@ class TowerScene {
         }
 
         // 進入戰鬥
-        const battleResult = towerSystem.enterBattle();
+        const battleResult = towerManager.enterBattle();
         if (!battleResult.success) {
             this.showMessage(battleResult.message);
             return;
@@ -424,13 +424,13 @@ class TowerScene {
     }
 
     executeAction(action) {
-        const result = towerSystem.executeBattleRound(action);
+        const result = towerManager.executeBattleRound(action);
         if (!result.success && result.message) {
             this.showMessage(result.message);
         }
     }
 
-    // Skill usage via TowerScene removed; towerSystem still processes skill actions if invoked programmatically
+    // Skill usage via TowerScene removed; towerManager still processes skill actions if invoked programmatically
 
     useItem(instanceId) {
         const result = GameManager.useConsumable(instanceId);
@@ -468,32 +468,32 @@ class TowerScene {
     fleeBattle() {
         if (confirm('確定要逃跑嗎？進度將會重置。')) {
             this.stopRhythmBar();
-            towerSystem.abandonChallenge();
+            towerManager.abandonChallenge();
             this.showIdleState();
             this.renderFloorsList();
         }
     }
 
     goNextFloor() {
-        const result = towerSystem.nextFloor();
+        const result = towerManager.nextFloor();
         if (result.success) {
             this.showIdleState();
             this.renderFloorsList();
-            this.selectFloor(towerSystem.getStatus().currentFloor);
+            this.selectFloor(towerManager.getStatus().currentFloor);
         } else {
             this.showMessage(result.message);
         }
     }
 
     retryBattle() {
-        const status = towerSystem.getStatus();
-        towerSystem.startChallenge(status.currentFloor);
+        const status = towerManager.getStatus();
+        towerManager.startChallenge(status.currentFloor);
         this.showIdleState();
     }
 
     exitTower() {
         this.stopRhythmBar();
-        towerSystem.abandonChallenge();
+        towerManager.abandonChallenge();
         if (this.app) {
             this.app.loadScene('lobby');
         } else {
@@ -635,7 +635,7 @@ class TowerScene {
 
         // 顯示/隱藏按鈕
         if (this.btnNextFloor) {
-            const canContinue = isVictory && towerSystem.getStatus().currentFloor < 20;
+            const canContinue = isVictory && towerManager.getStatus().currentFloor < 20;
             this.btnNextFloor.classList.toggle('hidden', !canContinue);
         }
 
@@ -649,7 +649,7 @@ class TowerScene {
 
     updateBattleUI() {
         const char = GameManager.getCharacter();
-        const status = towerSystem.getStatus();
+        const status = towerManager.getStatus();
         const monster = status.currentMonster;
 
         // 更新玩家血量
@@ -685,7 +685,7 @@ class TowerScene {
     refresh() {
         this.renderFloorsList();
         this.updatePlayerStats();
-        const status = towerSystem.getStatus();
+        const status = towerManager.getStatus();
 
         if (status.state === TowerState.IN_BATTLE) {
             this.showBattleState();
