@@ -3,7 +3,7 @@
  * 管理怪物相關的查詢與實例化行為（從 data 中拆分）
  */
 
-import { LowLevelMonster, MediumLevelMonster, HighLevelMonster, AllMonsters } from '../data/Monsters.js';
+import { LowLevelMonster, MediumLevelMonster, HighLevelMonster, AllMonsters, TowerMonsters } from '../data/Monsters.js';
 import { MonsterType } from '../data/Monsters.js';
 
 export function getMonster(monsterId) {
@@ -15,22 +15,61 @@ export function getMonstersByLevelRange(minLevel, maxLevel) {
 }
 
 export function getTowerMonster(floor) {
-    return AllMonsters.find(monster => monster.towerFloor === floor);
+    return TowerMonsters.find(monster => monster.towerFloor === floor);
 }
 
 export function getAllTowerMonsters() {
-    return AllMonsters
+    return TowerMonsters
         .filter(monster => monster.towerFloor)
         .sort((a, b) => a.towerFloor - b.towerFloor);
 }
 
-export function createMonsterInstance(monsterId) {
-    const template = getMonster(monsterId);
+export function createMonsterInstance(monsterOrId) {
+    // Accept either a monster id (string) or a monster template object.
+    if (!monsterOrId) return null;
+
+    let template = null;
+    if (typeof monsterOrId === 'object') {
+        template = monsterOrId;
+    } else {
+        template = getMonster(monsterOrId);
+    }
+
     if (!template) return null;
 
+    // Normalize fields because data may use different keys (attack vs atk, defense vs def, hp vs maxHp)
+    const hpBase = template.hp ?? template.maxHp ?? 0;
+    const maxHp = template.maxHp ?? template.hp ?? hpBase;
+    const atk = template.atk ?? template.attack ?? 0;
+    const def = template.def ?? template.defense ?? 0;
+
     return {
-        ...template,
-        currentHp: template.hp,
+        // base identity
+        id: template.id,
+        name: template.name,
+        icon: template.icon,
+        type: template.type,
+        element: template.element,
+        level: template.level,
+
+        // normalized combat stats (keeps both names for compatibility)
+        hp: hpBase,
+        maxHp: maxHp,
+        currentHp: hpBase,
+        atk: atk,
+        def: def,
+        attack: atk,
+        defense: def,
+
+        // rewards & misc
+        exp: template.exp || 0,
+        gold: template.gold || 0,
+        drops: template.drops || [],
+        skills: template.skills || [],
+
+        // keep original template for debugging
+        _template: template,
+
         buffs: [],
         debuffs: []
     };

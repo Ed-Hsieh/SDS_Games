@@ -966,9 +966,11 @@ export const MonsterDatabase = {
         skills: ['apocalypse', 'void_rupture', 'demon_transformation', 'soul_harvest'],
         description: '企圖毀滅世界的魔王，最終的敵人。'
     },
+};
+
+export const TowerMonsterData = {
 
     // ==================== 無盡塔怪物 ====================
-    
     // 第1層
     tower_slime_king: {
         id: 'tower_slime_king',
@@ -1466,9 +1468,6 @@ export const MonsterDatabase = {
         towerFloor: 20
     }
 };
-// NOTE: this file is pure data. All lookup and behavior functions (getMonster,
-// getTowerMonster, createMonsterInstance, calculateDrops, etc.) have been moved to
-// `src/js/managers/MonsterManager.js` and `src/js/managers/DropManager.js`.
 
 // 以每10等為一個區間切分（low: 1-10, mid: 11-20, high: 21-30）
 export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 10 && m.type !== MonsterType.BOSS);
@@ -1477,3 +1476,4 @@ export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeo
 
 // 匯出所有怪物清單（陣列）供其他模組使用
 export const AllMonsters = Object.values(MonsterDatabase);
+export const TowerMonsters = Object.values(TowerMonsterData);

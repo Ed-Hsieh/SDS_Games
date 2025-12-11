@@ -103,7 +103,11 @@ export default class TowerManager {
             return { success: false, message: '找不到此層的怪物！' };
         }
         
-        this.currentMonster = createMonsterInstance(monsterData.id);
+        // Create instance directly from tower monster template (some tower monsters
+        // are defined in TowerMonsterData and may not exist in the general
+        // MonsterDatabase). Pass the template object so createMonsterInstance
+        // can initialize correctly.
+        this.currentMonster = createMonsterInstance(monsterData);
         this.state = TowerState.IN_BATTLE;
         this.battleLog = [];
         

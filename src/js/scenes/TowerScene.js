@@ -327,14 +327,16 @@ class TowerScene {
 
         if (this.monsterPreviewEl) {
             const monster = floorInfo.monster;
+            console.log(monster);
+            
             this.monsterPreviewEl.innerHTML = `
                 <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${monster.icon}</div>
                 <div class="monster-name">${monster.name}</div>
                 <div class="monster-level">Lv.${monster.level}</div>
                 <div class="monster-stats">
                     <span>❤️ ${monster.hp}</span>
-                    <span>⚔️ ${monster.atk}</span>
-                    <span>🛡️ ${monster.def}</span>
+                    <span>⚔️ ${monster.attack}</span>
+                    <span>🛡️ ${monster.defense}</span>
                 </div>
                 ${floorInfo.isBoss ? '<div class="boss-badge">⭐ BOSS</div>' : ''}
             `;
@@ -510,7 +512,7 @@ class TowerScene {
     onBattleStart(data) {
         this.showBattleState();
         this.updateBattleUI();
-
+        
         if (this.battleFloorEl) {
             this.battleFloorEl.textContent = data.floor;
         }
