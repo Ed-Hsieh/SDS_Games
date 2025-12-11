@@ -274,9 +274,9 @@ export default class WorldMap {
                 
                 data[r][c].type = cellType;
                 
-                // 為事件格子生成具體事件（使用 data/Events.js 與 EventManager）
+                // 為事件格子生成具體事件（使用本檔的 MapEventFactory，產生 'treasure'/'healing'/'trap'/'story' 等型別）
                 if (cellType === 'event') {
-                    data[r][c].eventData = EventManager.getEventForZone(data[r][c].zone);
+                    data[r][c].eventData = MapEventFactory.createEvent(data[r][c].zone);
                 }
             }
         }

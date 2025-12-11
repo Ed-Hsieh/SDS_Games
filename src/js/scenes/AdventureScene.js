@@ -893,7 +893,7 @@ export default class AdventureScene {
     }
     
     executeStoryChoice(choiceIndex) {
-        const result = eventManager.executeChoice(choiceIndex);
+        const result = eventManager.executeChoiceByIndex(choiceIndex);
         
         // 隱藏選項，顯示結果
         if (this.dom.storyEventChoices) {

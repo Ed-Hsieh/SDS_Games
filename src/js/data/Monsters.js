@@ -230,7 +230,7 @@ export const MonsterDatabase = {
         description: '由石頭構成的小型魔像。'
     },
     
-    // NOTE: data module should only contain `MonsterDatabase` (raw data).
+    // NOTE: data module contains raw monster definitions in a local object.
     // Lookup and behavior functions (getMonster, getTowerMonster, createMonsterInstance, etc.)
     // have been moved to `src/js/managers/MonsterManager.js` to keep data files logic-free.
     
@@ -1469,3 +1469,11 @@ export const MonsterDatabase = {
 // NOTE: this file is pure data. All lookup and behavior functions (getMonster,
 // getTowerMonster, createMonsterInstance, calculateDrops, etc.) have been moved to
 // `src/js/managers/MonsterManager.js` and `src/js/managers/DropManager.js`.
+
+// 以每10等為一個區間切分（low: 1-10, mid: 11-20, high: 21-30）
+export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 10 && m.type !== MonsterType.BOSS);
+export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 11 && m.level <= 20 && m.type !== MonsterType.BOSS);
+export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30 && m.type !== MonsterType.BOSS);
+
+// 匯出所有怪物清單（陣列）供其他模組使用
+export const AllMonsters = Object.values(MonsterDatabase);
