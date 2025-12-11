@@ -113,86 +113,74 @@ export default class WorldMap {
         const lowMaxSq = lowRadius * lowRadius;
         const mediumMaxSq = mediumRadius * mediumRadius;
         const highMaxSq = highRadius * highRadius;
-        
-        const data = [];
-        for (let r = 0; r < this.rows; r++) {
-            const row = [];
-            for (let c = 0; c < this.cols; c++) {
-                row.push({ type: 'empty', zone: 'low' });
-            }
-            data.push(row);
-        }
-        
-        // 先設置區域
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                const dx = c - this.playerPos.x;
-                const dy = r - this.playerPos.y;
+
+        const rows = this.rows;
+        const cols = this.cols;
+        const px = this.playerPos.x;
+        const py = this.playerPos.y;
+
+        // 準備資料與各 zone 的候選清單（用於放置副本）
+        const data = new Array(rows);
+        const zoneCandidates = { low: [], medium: [], high: [], boss: [] };
+
+        for (let r = 0; r < rows; r++) {
+            const row = new Array(cols);
+            for (let c = 0; c < cols; c++) {
+                const dx = c - px;
+                const dy = r - py;
                 const distanceSq = dx * dx + dy * dy;
-                
+
                 let zone;
                 if (distanceSq < lowMaxSq) zone = 'low';
                 else if (distanceSq < mediumMaxSq) zone = 'medium';
                 else if (distanceSq < highMaxSq) zone = 'high';
                 else zone = 'boss';
-                
-                data[r][c].zone = zone;
+
+                const cell = { type: 'empty', zone };
+                row[c] = cell;
+
+                // 若不在玩家起點附近，加入 zone 候選（供副本放置）
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    zoneCandidates[zone].push({ r, c });
+                }
             }
+            data[r] = row;
         }
-        
+
         // 生成副本入口（每種副本只生成一個）
         const dungeonTypes = Object.keys(DungeonEntranceConfig);
-        const placedDungeons = new Set();
-        
         for (const dungeonType of dungeonTypes) {
             const config = DungeonEntranceConfig[dungeonType];
+            // 從 config.zones 聚合可放置的候選格
             const validCells = [];
-            
-            // 找出符合條件的格子
-            for (let r = 0; r < this.rows; r++) {
-                for (let c = 0; c < this.cols; c++) {
-                    // 跳過玩家起點附近
-                    const dx = c - this.playerPos.x;
-                    const dy = r - this.playerPos.y;
-                    if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
-                    
-                    // 檢查區域是否符合
-                    if (config.zones.includes(data[r][c].zone) && data[r][c].type === 'empty') {
-                        validCells.push({ r, c });
-                    }
+            for (const z of config.zones) {
+                const list = zoneCandidates[z] || [];
+                for (let i = 0; i < list.length; i++) {
+                    const pos = list[i];
+                    const cell = data[pos.r][pos.c];
+                    if (cell.type === 'empty') validCells.push(pos);
                 }
             }
-            
-            // 隨機選擇一個格子放置副本入口
+
             if (validCells.length > 0) {
                 const randomIndex = Math.floor(Math.random() * validCells.length);
-                const cell = validCells[randomIndex];
-                data[cell.r][cell.c].type = 'dungeon';
-                data[cell.r][cell.c].dungeonType = dungeonType;
-                data[cell.r][cell.c].dungeonData = config;
-                placedDungeons.add(dungeonType);
+                const cellPos = validCells[randomIndex];
+                const target = data[cellPos.r][cellPos.c];
+                target.type = 'dungeon';
+                target.dungeonType = dungeonType;
+                target.dungeonData = config;
             }
         }
-        
-        // 生成其他內容（牆壁、怪物、事件）
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                // 跳過已經放置了副本入口的格子
-                if (data[r][c].type === 'dungeon') continue;
-                
+
+        // 生成其他內容（怪物、事件） — 已移除牆壁生成
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = data[r][c];
+                if (cell.type === 'dungeon') continue;
                 const random = Math.random();
-                let cellType;
-                if (random < 0.15) cellType = 'wall';
-                else if (random < 0.30) cellType = 'monster';
-                else if (random < 0.38) cellType = 'event';
-                else cellType = 'empty';
-                
-                data[r][c].type = cellType;
-                
-                // 為事件格子保留類型，實際事件會在玩家踏上時由 EventManager 生成
-                if (cellType === 'event') {
-                    // no per-cell event data here; use EventManager at encounter time
-                }
+                if (random < 0.30) cell.type = 'monster';
+                else if (random < 0.38) cell.type = 'event';
+                else cell.type = 'empty';
             }
         }
         
@@ -283,13 +271,14 @@ export default class WorldMap {
     }
 
     movePlayer(dx, dy) {
+        // 如果沒有移動，直接返回
+        if (dx === 0 && dy === 0) return null;
         const newX = Math.max(0, Math.min(this.cols - 1, this.playerPos.x + dx));
         const newY = Math.max(0, Math.min(this.rows - 1, this.playerPos.y + dy));
         
-        if (this.mapData[newY][newX].type !== 'wall') {
-            this.playerPos.x = newX;
-            this.playerPos.y = newY;
-            this.updateCamera();
+        this.playerPos.x = newX;
+        this.playerPos.y = newY;
+        this.updateCamera();
             // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
             try {
                 const arrivedZone = this.mapData[newY][newX].zone;
@@ -371,7 +360,6 @@ export default class WorldMap {
             if (this.homePos && (newX !== this.homePos.x || newY !== this.homePos.y)) {
                 this.hasLeftHome = true;
             }
-        }
         return null;
     }
 
@@ -395,16 +383,18 @@ export default class WorldMap {
 
     getVisibleCells() {
         const visibleCells = [];
-        const startCol = Math.floor(this.cameraOffsetX / this.gridSize);
-        const endCol = Math.min(this.cols, Math.ceil((this.cameraOffsetX + this.screenWidth) / this.gridSize));
-        const startRow = Math.floor(this.cameraOffsetY / this.gridSize);
-        const endRow = Math.min(this.rows, Math.ceil((this.cameraOffsetY + this.screenHeight) / this.gridSize));
-        
+        const gs = this.gridSize;
+        const startCol = Math.floor(this.cameraOffsetX / gs);
+        const endCol = Math.min(this.cols, Math.ceil((this.cameraOffsetX + this.screenWidth) / gs));
+        const startRow = Math.floor(this.cameraOffsetY / gs);
+        const endRow = Math.min(this.rows, Math.ceil((this.cameraOffsetY + this.screenHeight) / gs));
+
         for (let r = startRow; r < endRow; r++) {
+            if (r < 0 || r >= this.rows) continue;
+            const row = this.mapData[r];
             for (let c = startCol; c < endCol; c++) {
-                if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-                    visibleCells.push({ x: c, y: r, data: this.mapData[r][c] });
-                }
+                if (c < 0 || c >= this.cols) continue;
+                visibleCells.push({ x: c, y: r, data: row[c] });
             }
         }
         return visibleCells;
