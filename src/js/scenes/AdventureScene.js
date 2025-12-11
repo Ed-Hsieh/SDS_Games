@@ -2,13 +2,14 @@
  * AdventureScene.js
  * Logic for the Adventure scene (Map, Battle, Events, etc.)
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager, { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
-import { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
-import { SpecialEffectType } from '../data/Equipment.js';
+import { SpecialEffectType } from '../managers/EquipmentManager.js';
 import { eventManager } from '../managers/EventManager.js';
-import { questManager } from '../managers/QuestManager.js';
-import { ObjectiveType } from '../data/Quests.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { calculateDrops } from '../managers/DropManager.js';
+import { getMaterial } from '../managers/MaterialManager.js';
+import { getEquipment } from '../managers/EquipmentManager.js';
 
 export default class AdventureScene {
     constructor(container, app) {
@@ -1706,17 +1707,38 @@ class BattleController {
     handleVictory() {
         this.battleEnded = true;
         
-        const drops = this.monster.getDrops();
+        // 使用 DropManager 計算掉落物品
+        const drops = calculateDrops(this.monster);
+        const gold = this.monster.gold || 0;
+        
+        // 將掉落 ID 轉換成物品實例
+        const droppedItems = [];
+        for (const drop of drops) {
+            // 嘗試從材料資料庫獲取
+            let item = getMaterial(drop.itemId);
+            // 如果不是材料，嘗試從裝備資料庫獲取
+            if (!item) {
+                item = getEquipment(drop.itemId);
+            }
+            if (item) {
+                droppedItems.push({
+                    ...item,
+                    quantity: drop.quantity,
+                    instanceId: Date.now() + Math.random().toString(36).substr(2, 9)
+                });
+            }
+        }
+        
         this.player.exp += this.monster.exp;
         this.player.checkLevelUp();
-        GameManager.addGold(drops.gold);
+        GameManager.addGold(gold);
         
         // 任務系統：更新擊殺進度
         questManager.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
         
         setTimeout(() => {
             this.scene.endBattle(true);
-            this.scene.showLoot(this.monster.exp, drops.gold, drops.items);
+            this.scene.showLoot(this.monster.exp, gold, droppedItems);
         }, 1500);
     }
 

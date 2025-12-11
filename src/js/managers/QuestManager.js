@@ -554,3 +554,6 @@ class QuestManager {
 // 單例
 export const questManager = new QuestManager();
 export default QuestManager;
+
+// 重新導出常用的 enum，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { QuestStatus, QuestType, ObjectiveType, QuestRewardItems };

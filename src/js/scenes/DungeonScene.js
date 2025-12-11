@@ -4,7 +4,7 @@
  */
 
 import DungeonMap, { DungeonTileType, DungeonTileIcons } from '../utils/DungeonMap.js';
-import { DungeonDatabase, DungeonEntranceConfig } from '../data/Dungeons.js';
+import { DungeonDatabase, DungeonEntranceConfig } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
 
 class DungeonSceneClass {

@@ -3,7 +3,10 @@
  * 管理與計算裝備相關的系統行為（從 data 中拆分出來）
  */
 
-import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
+import { EquipmentDatabase, SetDatabase, SpecialEffectType } from '../data/Equipment.js';
+
+// 重新導出 enum 和 Database，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { SpecialEffectType, SetDatabase };
 
 /**
  * 特殊效果說明函式

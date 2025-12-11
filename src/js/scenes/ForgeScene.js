@@ -2,15 +2,12 @@
  * ForgeScene.js
  * 鍛造工坊場景控制器
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
 import { enhancementManager, GemType } from '../managers/EnhancementManager.js';
 import { affixManager } from '../managers/AffixManager.js';
-import { ItemType, ItemRarity } from '../models/DataModel.js';
-import { questManager } from '../managers/QuestManager.js';
-import { ObjectiveType } from '../data/Quests.js';
-import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../data/Recipes.js';
-import { MaterialDatabase } from '../data/Materials.js';
-import { getMaterial } from '../managers/MaterialManager.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../managers/RecipeManager.js';
+import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 
 export default class ForgeScene {
     constructor(container, app) {

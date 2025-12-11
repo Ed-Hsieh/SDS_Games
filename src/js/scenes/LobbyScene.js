@@ -4,7 +4,7 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
-import { SetDatabase } from '../data/Equipment.js';
+import { SetDatabase } from '../managers/EquipmentManager.js';
 
 export default class LobbyScene {
     constructor(container, app) {

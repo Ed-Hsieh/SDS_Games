@@ -5,6 +5,9 @@
 
 import { MaterialDatabase } from '../data/Materials.js';
 
+// 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { MaterialDatabase };
+
 export function getMaterial(materialId) {
     return MaterialDatabase[materialId] || null;
 }

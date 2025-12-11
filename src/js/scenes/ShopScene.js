@@ -4,7 +4,7 @@
  * Handles buying, selling, and secret shop unlocking.
  */
 import GameManager from '../managers/GameManager.js';
-import { ShopData, SecretShopItems } from '../data/Items.js';
+import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
 
 export default class ShopScene {
     constructor(container, app) {

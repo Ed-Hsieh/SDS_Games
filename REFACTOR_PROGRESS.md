@@ -24,8 +24,8 @@ index → View → Scenes → Manager → Database → Model
 ### 階段 1：純資料拆分
 
 - [x] **1.1** 建立 `models/Enums.js` - 抽取 enum/type
-- [ ] **1.2** 純化 `DataModel.js` class - 移除邏輯方法至 Manager
-- [ ] **1.3** 建立 `managers/CharacterManager.js` - 從 DataModel 搬移
+- [x] **1.2** 純化 `DataModel.js` class - 移除邏輯方法至 Manager ✅
+- [x] **1.3** 建立 `managers/CharacterManager.js` - 從 DataModel 搬移 ✅
 
 ### 階段 2：資料庫層整理
 
@@ -47,9 +47,60 @@ index → View → Scenes → Manager → Database → Model
 - [x] **4.1** `WorldMap.js` 拆分 - 資料移至 Database ✅ (DungeonEntranceConfig 已移至 Dungeons.js)
 - [x] **4.2** `DungeonMap.js` 純化 - 確保只含工具函式 ✅ (已確認無 Database 引用)
 
+### 階段 5：依賴方向清理 ✅ (新增)
+
+- [x] **5.1** 清理 Scenes 層直接引用 Database/Model 的違規 ✅
+- [x] **5.2** 建立 Manager 重新匯出機制 ✅
+- [x] **5.3** 刪除所有 stub 檔案 ✅
+- [x] **5.4** 建立新的 Manager（RecipeManager, ShopManager）✅
+
 ---
 
 ## 執行記錄
+
+### 2024-XX-XX - 階段 5 依賴方向清理完成
+
+**刪除的 Stub 檔案：**
+- ✅ scenes/CasinoSystem.js
+- ✅ scenes/DungeonSystem.js
+- ✅ scenes/EnhancementSystem.js
+- ✅ scenes/QuestSystem.js
+- ✅ scenes/TowerSystem.js
+- ✅ scenes/EventSystem.js
+- ✅ scenes/AffixSystem.js
+
+**新增 Manager 檔案：**
+- `managers/RecipeManager.js` - 配方查詢
+- `managers/ShopManager.js` - 商店資料
+
+**Manager 重新匯出機制：**
+Scenes 不再直接引用 data/ 或 models/，改由 Manager 層提供重新匯出：
+
+| Manager | 重新匯出的型別/資料 |
+|---------|---------------------|
+| GameManager | ItemType, ItemRarity, Weapon, Armor, Accessory, Consumable, Item, Equipment, CharacterManager |
+| QuestManager | ObjectiveType, QuestStatus, QuestType, QuestRewardItems |
+| EquipmentManager | SpecialEffectType, SetDatabase |
+| DungeonManager | DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig |
+| TowerManager | getBossEquipment |
+| MaterialManager | MaterialDatabase |
+| RecipeManager | RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials |
+| ShopManager | ShopData, SecretShopItems |
+
+**更新的 Scene 檔案：**
+- AdventureScene.js - 改從 GameManager, EquipmentManager 匯入
+- CasinoScene.js - 改從 QuestManager 匯入 ObjectiveType
+- DungeonScene.js - 改從 DungeonManager 匯入
+- ForgeScene.js - 改從 GameManager, QuestManager, RecipeManager, MaterialManager 匯入
+- LobbyScene.js - 改從 EquipmentManager 匯入 SetDatabase
+- QuestScene.js - 改從 QuestManager 匯入所有 Quest 相關型別
+- ShopScene.js - 改從 ShopManager 匯入
+- TowerScene.js - 改從 TowerManager 匯入 getBossEquipment
+
+**更新的 Utils 檔案：**
+- WorldMap.js - 改從 GameManager, DungeonManager 匯入
+
+---
 
 ### 2024-XX-XX - 階段 3 System → Manager 遷移完成
 
@@ -94,23 +145,19 @@ index → View → Scenes → Manager → Database → Model
 
 ## 待完成工作
 
-### 1.2 & 1.3 - CharacterManager 純化
+### 所有重構階段已完成 ✅
 
-**目標：** 將 `DataModel.js` 中的 `CharacterManager` 類別邏輯方法移至獨立的 Manager
+架構已符合：
+```
+index → View → Scenes → Manager → Database → Model
+```
 
-**需移出的方法：**
-- `getTotalAtk()`, `getTotalDef()` → 屬性計算
-- `getCritChance()`, `getCritDamage()` → 暴擊計算
-- `getLifesteal()`, `getDamageReduction()` → 特殊屬性
-- `addBuff()`, `getBuffValue()`, `tickBuffs()` → Buff 系統
-- `useSkill()`, `tickSkillCooldowns()` → 技能系統
-- `equip()`, `unequip()` → 裝備管理
-- `useItem()`, `checkLevelUp()`, `gainExp()` → 角色成長
-
-**建議方案：**
-1. 保留 CharacterManager 的屬性定義
-2. 將邏輯方法移至 `managers/CharacterManager.js`（新建）
-3. 或整合至現有的 `GameManager.js`
+**已完成項目：**
+- ✅ 階段 1：純資料拆分（Enums.js、CharacterManager 純化）
+- ✅ 階段 2：資料庫層整理
+- ✅ 階段 3：System → Manager 遷移
+- ✅ 階段 4：Utils 整理
+- ✅ 階段 5：依賴方向清理
 
 ---
 

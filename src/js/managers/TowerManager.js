@@ -10,6 +10,9 @@ import { calculateDrops } from './DropManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 import { getMaterial } from './MaterialManager.js';
 
+// 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { getBossEquipment };
+
 // 無盡塔狀態
 export const TowerState = {
     IDLE: 'idle',           // 待機

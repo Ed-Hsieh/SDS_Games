@@ -4,8 +4,7 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { casinoManager } from '../managers/CasinoManager.js';
-import { questManager } from '../managers/QuestManager.js';
-import { ObjectiveType } from '../data/Quests.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 
 export default class CasinoScene {
     constructor(container, app) {

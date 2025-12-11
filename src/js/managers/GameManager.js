@@ -832,3 +832,6 @@ class GameManager {
 }
 
 export default GameManager.getInstance();
+
+// 重新導出常用的 Model 類型，供 Scenes 使用（避免 Scenes 直接引用 Model）
+export { Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity };

@@ -4,9 +4,8 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { towerManager, TowerState } from '../managers/TowerManager.js';
+import { towerManager, TowerState, getBossEquipment } from '../managers/TowerManager.js';
 import { getTowerMonster } from '../managers/MonsterManager.js';
-import { getBossEquipment } from '../data/BossEquipment.js';
 
 class TowerScene {
     constructor() {

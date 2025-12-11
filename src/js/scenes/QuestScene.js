@@ -3,8 +3,7 @@
  * 任務公告板場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import GameManager from '../managers/GameManager.js';
-import { questManager } from '../managers/QuestManager.js';
-import { QuestStatus, QuestType, ObjectiveType, QuestRewardItems } from '../data/Quests.js';
+import { questManager, QuestStatus, QuestType, ObjectiveType, QuestRewardItems } from '../managers/QuestManager.js';
 
 export default class QuestScene {
     constructor(container, app) {
