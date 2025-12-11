@@ -415,7 +415,7 @@ export default class AdventureScene {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                // Prefer explicit monster icon preview set by WorldMap; fall back to type->icon mapping
+                // Use unified icons based on monster type/rank only
                 const rank = (cell.data && (cell.data.monsterType || cell.data.rank)) || 'normal';
                 const icon = monsterIcons[rank] || monsterIcons.normal;
                 // give elites and bosses extra glow

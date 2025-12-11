@@ -5,6 +5,7 @@
 import GameManager from '../managers/GameManager.js';
 import EventManager, { eventManager } from '../managers/EventManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
+import { BossMonsterIds } from '../data/Monsters.js';
 import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
 
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
@@ -119,7 +120,7 @@ export default class WorldMap {
         const px = this.playerPos.x;
         const py = this.playerPos.y;
 
-        // 準備資料與各 zone 的候選清單（用於放置副本）
+        // 準備資料與各 zone 的候選清單（用於放置副本和 BOSS）
         const data = new Array(rows);
         const zoneCandidates = { low: [], medium: [], high: [], death: [] };
 
@@ -172,11 +173,61 @@ export default class WorldMap {
             }
         }
 
+        // 生成 BOSS（每種 BOSS 只生成一個），依照怪物等級優先放置到相對應區域
+        // level -> zone 映射，參考 data 等級群組
+        function zonesFromLevel(level) {
+            if (typeof level !== 'number') return ['medium'];
+            if (level <= 5) return ['low'];
+            if (level <= 12) return ['medium'];
+            if (level <= 20) return ['high'];
+            return ['death'];
+        }
+
+        const allBossIds = Array.isArray(BossMonsterIds) ? BossMonsterIds.slice() : [];
+        const allZonesOrder = ['low', 'medium', 'high', 'death'];
+
+        for (const bossId of allBossIds) {
+            const bossTemplate = MonsterManager.getMonster ? MonsterManager.getMonster(bossId) : null;
+            if (!bossTemplate) continue;
+
+            const preferred = zonesFromLevel(bossTemplate.level || 0);
+            // 建立以 preferred 為首的 zone 排序
+            const orderedZones = [];
+            for (const z of preferred) orderedZones.push(z);
+            for (const z of allZonesOrder) if (!orderedZones.includes(z)) orderedZones.push(z);
+
+            let placed = false;
+            for (const z of orderedZones) {
+                const list = zoneCandidates[z] || [];
+                const candidates = [];
+                for (let i = 0; i < list.length; i++) {
+                    const pos = list[i];
+                    const cell = data[pos.r][pos.c];
+                    if (cell.type === 'empty') candidates.push(pos);
+                }
+
+                if (candidates.length > 0) {
+                    const idx = Math.floor(Math.random() * candidates.length);
+                    const pos = candidates[idx];
+                    const target = data[pos.r][pos.c];
+                    target.type = 'monster';
+                    target.monsterType = bossTemplate.type || 'boss';
+                    target.monsterTemplateId = bossTemplate.id;
+                    placed = true;
+                    break;
+                }
+            }
+            // 若所有區域都沒有空位則跳過（通常不會發生，除非地圖太小）
+            if (!placed) {
+                // do nothing
+            }
+        }
+
         // 生成其他內容（怪物、事件） — 已移除牆壁生成
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const cell = data[r][c];
-                if (cell.type === 'dungeon') continue;
+                if (cell.type === 'dungeon' || cell.type === 'monster') continue;
                 const random = Math.random();
                 if (random < 0.30) {
                     // Create a lightweight preview for monsters so the scene can render icons
@@ -185,7 +236,6 @@ export default class WorldMap {
                     if (previewTemplate) {
                         cell.type = 'monster';
                         cell.monsterType = previewTemplate.type || previewTemplate.rank || 'normal';
-                        cell.monsterIcon = previewTemplate.icon || null;
                         cell.monsterTemplateId = previewTemplate.id || null;
                     } else {
                         // fallback: leave empty if no template available
@@ -305,14 +355,32 @@ export default class WorldMap {
             const cell = this.mapData[newY][newX];
             
             if (cell.type === 'monster') {
-                // Create monster using data-driven manager and local Monster class
-                const template = MonsterManager.createRandomMonsterForZone(cell.zone);
+                // Prefer an explicit template id (used for BOSS or pre-placed monsters).
+                // If none, fall back to random generation for the zone.
+                let template = null;
+                try {
+                    if (cell.monsterTemplateId) {
+                        // createMonsterInstance accepts either id or template and normalizes fields
+                        template = MonsterManager.createMonsterInstance(cell.monsterTemplateId);
+                    }
+                } catch (e) {
+                    // ignore and fallback to random
+                    template = null;
+                }
+
+                if (!template) {
+                    const raw = MonsterManager.createRandomMonsterForZone(cell.zone);
+                    // Normalize via createMonsterInstance when possible
+                    template = MonsterManager.createMonsterInstance ? MonsterManager.createMonsterInstance(raw) : raw;
+                }
+
                 if (template) {
                     this.currentMonster = new Monster(template);
                 } else {
                     console.error('No monster template found for zone:', cell.zone);
                     return null;
                 }
+
                 cell.type = 'empty';
                 return 'battle';
             }
