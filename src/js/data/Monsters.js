@@ -1477,7 +1477,7 @@ export const TowerMonsterData = {
 export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 5);
 export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 6 && m.level <= 12);
 export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 13 && m.level <= 20);
-export const BOSSLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30);
+export const DeathLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30);
 
 // 匯出所有怪物清單（陣列）供其他模組使用
 export const AllMonsters = Object.values(MonsterDatabase);

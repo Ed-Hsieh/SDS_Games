@@ -121,7 +121,7 @@ export default class WorldMap {
 
         // 準備資料與各 zone 的候選清單（用於放置副本）
         const data = new Array(rows);
-        const zoneCandidates = { low: [], medium: [], high: [], boss: [] };
+        const zoneCandidates = { low: [], medium: [], high: [], death: [] };
 
         for (let r = 0; r < rows; r++) {
             const row = new Array(cols);
@@ -134,7 +134,7 @@ export default class WorldMap {
                 if (distanceSq < lowMaxSq) zone = 'low';
                 else if (distanceSq < mediumMaxSq) zone = 'medium';
                 else if (distanceSq < highMaxSq) zone = 'high';
-                else zone = 'boss';
+                else zone = 'death';
 
                 const cell = { type: 'empty', zone };
                 row[c] = cell;
@@ -178,8 +178,20 @@ export default class WorldMap {
                 const cell = data[r][c];
                 if (cell.type === 'dungeon') continue;
                 const random = Math.random();
-                if (random < 0.30) cell.type = 'monster';
-                else if (random < 0.38) cell.type = 'event';
+                if (random < 0.30) {
+                    // Create a lightweight preview for monsters so the scene can render icons
+                    // without having to instantiate full monster objects every frame.
+                    const previewTemplate = MonsterManager.createRandomMonsterForZone(cell.zone);
+                    if (previewTemplate) {
+                        cell.type = 'monster';
+                        cell.monsterType = previewTemplate.type || previewTemplate.rank || 'normal';
+                        cell.monsterIcon = previewTemplate.icon || null;
+                        cell.monsterTemplateId = previewTemplate.id || null;
+                    } else {
+                        // fallback: leave empty if no template available
+                        cell.type = 'empty';
+                    }
+                } else if (random < 0.38) cell.type = 'event';
                 else cell.type = 'empty';
             }
         }
@@ -206,7 +218,7 @@ export default class WorldMap {
 
     _generateRifts(data) {
         this.rifts = [];
-        const zoneLayers = ['low', 'medium', 'high', 'boss'];
+        const zoneLayers = ['low', 'medium', 'high', 'death'];
 
         // 如果有持久化的 rifts，優先使用它們（並做基本的有效性檢查）
         if (Array.isArray(this._persistedRifts) && this._persistedRifts.length > 0) {

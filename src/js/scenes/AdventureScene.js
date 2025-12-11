@@ -15,8 +15,8 @@ import { getEquipment } from '../managers/EquipmentManager.js';
 const ZONE_COLORS = {
     low:  { hex: '#2e7d32', fill: 'rgba(77, 233, 84, 0.12)', stroke: 'rgba(43, 231, 52, 0.18)' },
     medium:{ hex: '#2196f3', fill: 'rgba(33,150,243,0.12)', stroke: 'rgba(33,150,243,0.18)' },
-    high: { hex: '#e53935', fill: 'rgba(229,57,53,0.12)', stroke: 'rgba(229,57,53,0.18)' },
-    boss: { hex: '#b71c1c', fill: 'rgba(183,28,28,0.16)', stroke: 'rgba(183,28,28,0.22)' }
+    high: { hex: '#ca521bff', fill: 'rgba(216, 166, 91, 0.12)', stroke: 'rgba(233, 169, 150, 0.18)' },
+    death: { hex: '#9b0909ff', fill: 'rgba(183,28,28,0.16)', stroke: 'rgba(183,28,28,0.22)' }
 };
 
 export default class AdventureScene {
@@ -363,7 +363,7 @@ export default class AdventureScene {
         
         if (this.worldMap && this.dom.currentZone) {
             const zone = this.worldMap.getCurrentZone();
-            const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'boss': 'Boss區' };
+            const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
             this.dom.currentZone.textContent = zoneNames[zone] || '未知區域';
             this.dom.currentZone.className = `info-value zone-indicator ${zone}`;
         }
@@ -415,8 +415,8 @@ export default class AdventureScene {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                // choose icon by preselected monster type (template.type)
-                const rank = cell.data.monsterType || 'normal';
+                // Prefer explicit monster icon preview set by WorldMap; fall back to type->icon mapping
+                const rank = (cell.data && (cell.data.monsterType || cell.data.rank)) || 'normal';
                 const icon = monsterIcons[rank] || monsterIcons.normal;
                 // give elites and bosses extra glow
                 if (rank === 'elite') {
@@ -587,7 +587,7 @@ export default class AdventureScene {
         const rift = this.worldMap.getCurrentRift();
         const options = this.worldMap.getRiftOptions();
 
-        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'boss': 'Boss區' };
+        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
 
         const modalHTML = `
             <div class="rift-modal" id="rift-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:11000;">
@@ -969,7 +969,7 @@ export default class AdventureScene {
             'low': [ItemRarity.COMMON, ItemRarity.UNCOMMON],
             'medium': [ItemRarity.UNCOMMON, ItemRarity.RARE],
             'high': [ItemRarity.RARE, ItemRarity.EPIC],
-            'boss': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
+            'death': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
         };
         
         const possibleRarities = rarityByZone[zone] || [ItemRarity.COMMON];
