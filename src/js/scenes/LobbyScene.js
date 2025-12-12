@@ -3,6 +3,8 @@
  * Logic for the Lobby scene (Hall).
  */
 import GameManager from '../managers/GameManager.js';
+import { enhancementManager } from '../managers/EnhancementManager.js';
+import { SetDatabase } from '../data/Equipment.js';
 
 export default class LobbyScene {
     constructor(container, app) {
@@ -55,6 +57,8 @@ export default class LobbyScene {
             hpText: this.container.querySelector('#hp-text'),
             expBar: this.container.querySelector('#exp-bar'),
             expText: this.container.querySelector('#exp-text'),
+            // Character set status
+            characterSetStatus: this.container.querySelector('#character-set-status'),
             
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
@@ -66,6 +70,8 @@ export default class LobbyScene {
             slotWeapon: this.container.querySelector('#slot-weapon'),
             slotArmor: this.container.querySelector('#slot-armor'),
             slotAccessory: this.container.querySelector('#slot-accessory'),
+            // Active set bonuses display
+            activeSetBonuses: this.container.querySelector('#active-set-bonuses'),
             
             // Modal is provided by centralized ItemDetailModal component
         };
@@ -124,6 +130,31 @@ export default class LobbyScene {
                 if (accessory) this.showEquipmentModal(accessory, 'accessory');
             });
         }
+
+        // Inventory event delegation: single click handler for performance
+        if (this.dom.inventoryList) {
+            this.dom.inventoryList.addEventListener('click', (e) => this.onInventoryClick(e));
+            // virtualization: update visible items on scroll
+            this.dom.inventoryList.addEventListener('scroll', () => {
+                if (this._invUpdateRAF) return;
+                this._invUpdateRAF = requestAnimationFrame(() => {
+                    this._invUpdateRAF = null;
+                    if (typeof this.updateVisibleInventoryItemsLobby === 'function') this.updateVisibleInventoryItemsLobby();
+                });
+            });
+        }
+    }
+
+    onInventoryClick(e) {
+        const target = e.target;
+        const itemEl = target.closest && target.closest('.inventory-item');
+        if (!itemEl) return;
+        const instanceId = itemEl.dataset.instanceId;
+        if (!instanceId) return;
+
+        // Find the stack in GameManager state
+        const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
+        if (stack) this.showItemModal(stack, 'inventory');
     }
 
     showItemModal(stack, source) {
@@ -138,13 +169,20 @@ export default class LobbyScene {
         let statsHtml = '';
         if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
         if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-        if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        if (item.critChance) {
+            const raw = Number(item.critChance || 0);
+            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+            statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+        }
+        if (item.critDamage) {
+            const raw = Number(item.critDamage || 0);
+            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+            statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+        }
         if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${(item.weaponSpeed || 0).toFixed ? item.weaponSpeed.toFixed(1) + 'x' : item.weaponSpeed}</span></div>`;
         if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${(item.attackSpeed || 0).toFixed ? item.attackSpeed.toFixed(1) + 'x' : item.attackSpeed}</span></div>`;
         if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
         if (item.mp) statsHtml += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
-        if (item.price) statsHtml += `<div class="item-detail-stat"><span>💰 售價</span><span class="value">${item.price}</span></div>`;
 
         // Initial action buttons from shared helper (global) if available
         let buttons = [];
@@ -236,6 +274,67 @@ export default class LobbyScene {
             
             // Update equipment slots
             this.updateEquipmentSlots(state.character.equipment);
+
+            // Compute and render active set bonuses (if any)
+            try {
+                const setResult = enhancementManager.calculateSetBonuses(state.character);
+                if (this.dom.activeSetBonuses) {
+                    if (setResult.descriptions && setResult.descriptions.length > 0) {
+                        this.dom.activeSetBonuses.innerHTML = setResult.descriptions.map(d => `<div class="set-desc">${d}</div>`).join('');
+                    } else {
+                        this.dom.activeSetBonuses.innerHTML = '';
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to calculate/render set bonuses:', e);
+            }
+
+            // Render per-set status under CHARACTER (name: equipped/total — active effects)
+            try {
+                if (this.dom.characterSetStatus) {
+                    const equippedIds = [];
+                    if (state.character && state.character.equipment) {
+                        for (const slot in state.character.equipment) {
+                            const itm = state.character.equipment[slot];
+                            if (itm && itm.id) equippedIds.push(itm.id);
+                        }
+                    }
+
+                    const lines = [];
+                    for (const setId of Object.keys(SetDatabase)) {
+                        const setInfo = SetDatabase[setId];
+                        if (!setInfo || !Array.isArray(setInfo.pieces)) continue;
+                        const total = setInfo.pieces.length;
+                        const count = setInfo.pieces.filter(pid => equippedIds.includes(pid)).length;
+                        if (count === 0) continue; // only show sets with at least one piece equipped
+
+                        // Title: 套裝名稱 (X/X)
+                        const titleHtml = `<div class="set-line set-title">${setInfo.name} (${count}/${total})</div>`;
+
+                        // Build bonuses (only show active ones). If none active, only show title.
+                        const bonuses = Array.isArray(setInfo.bonuses) ? [...setInfo.bonuses].sort((a, b) => (a.required || 0) - (b.required || 0)) : [];
+                        const activeBonuses = bonuses.filter(b => (b.required || 0) <= count);
+
+                        if (activeBonuses.length > 0) {
+                            const bonusHtml = activeBonuses.map(b => {
+                                const req = b.required || 0;
+                                const name = b.name || (req + '件');
+                                const desc = b.description || b.name || (b.effects ? JSON.stringify(b.effects) : '');
+                                return `<div class="set-bonus set-bonus-active">${name}: ${desc}</div>`;
+                            }).join('');
+
+                            lines.push(titleHtml + bonusHtml);
+                        } else {
+                            // only show the title to notify player they have partial set
+                            lines.push(titleHtml);
+                        }
+                    }
+
+                    this.dom.characterSetStatus.innerHTML = lines.length > 0 ? lines.join('') : '';
+                }
+            } catch (e) {
+                console.warn('Failed to render character set status:', e);
+            }
         }
         
         if (type === 'all' || type === 'gold') {
@@ -255,39 +354,75 @@ export default class LobbyScene {
                 this.dom.inventoryMax.textContent = state.inventoryCapacity || 10;
             }
             
-            // Render inventory items with click handlers and quantity badges
+            // Render inventory items using virtualization + DOM reuse
             if (this.dom.inventoryList) {
-                this.dom.inventoryList.innerHTML = '';
-                if (state.inventory && state.inventory.length > 0) {
-                    state.inventory.forEach(stack => {
-                        const item = stack.item;
-                        const itemEl = document.createElement('div');
-                        itemEl.className = `item-card inventory-item rarity-${item.rarity}`;
-                        
-                        let iconHTML;
-                        if (item.image) {
-                            iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                        } else {
-                            iconHTML = item.icon || '📦';
-                        }
-                        
-                        itemEl.innerHTML = `
-                            <div class="item-icon">
-                                ${iconHTML}
-                                ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
-                            </div>
-                            <div class="item-info">
-                                <div class="item-name">${item.name}</div>
-                            </div>
-                        `;
-                        itemEl.addEventListener('click', () => {
-                            this.showItemModal(stack, 'inventory');
-                        });
-                        this.dom.inventoryList.appendChild(itemEl);
-                    });
-                } else {
-                    this.dom.inventoryList.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+                const container = this.dom.inventoryList;
+                const items = state.inventory || [];
+
+                // Fixed item height (adjust to match CSS)
+                const ITEM_HEIGHT = 84;
+
+                // Ensure container styling
+                container.style.position = 'relative';
+                container.style.overflowY = 'auto';
+
+                // Spacer controls full scroll height
+                let spacer = container.querySelector('.inv-spacer');
+                if (!spacer) {
+                    spacer = document.createElement('div');
+                    spacer.className = 'inv-spacer';
+                    container.appendChild(spacer);
                 }
+                spacer.style.height = (items.length * ITEM_HEIGHT) + 'px';
+
+                // Pool wrapper holds reused nodes
+                let pool = container.querySelector('.inv-pool');
+                if (!pool) {
+                    pool = document.createElement('div');
+                    pool.className = 'inv-pool';
+                    pool.style.position = 'absolute';
+                    pool.style.top = '0';
+                    pool.style.left = '0';
+                    pool.style.right = '0';
+                    container.appendChild(pool);
+                }
+
+                if (!items || items.length === 0) {
+                    pool.innerHTML = '';
+                    spacer.style.height = '0px';
+                    container.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+                    return;
+                }
+
+                // Save for scroll updates
+                this._lobbyInv = items;
+                this._lobbyItemHeight = ITEM_HEIGHT;
+                this._lobbyInvContainer = container;
+                this._lobbyPoolWrapper = pool;
+
+                // Determine pool size
+                const viewportHeight = container.clientHeight || 400;
+                const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+                const buffer = 4;
+                const poolSize = visibleCount + buffer * 2;
+
+                if (!this._lobbyPool || this._lobbyPool.length !== poolSize) {
+                    this._lobbyPool = [];
+                    pool.innerHTML = '';
+                    for (let i = 0; i < poolSize; i++) {
+                        const node = document.createElement('div');
+                        node.className = 'item-card inventory-item';
+                        node.style.position = 'absolute';
+                        node.style.left = '0';
+                        node.style.right = '0';
+                        node.style.height = ITEM_HEIGHT + 'px';
+                        pool.appendChild(node);
+                        this._lobbyPool.push(node);
+                    }
+                }
+
+                // Initial render
+                if (typeof this.updateVisibleInventoryItemsLobby === 'function') this.updateVisibleInventoryItemsLobby();
             }
         }
     }
@@ -353,6 +488,48 @@ export default class LobbyScene {
                 this.dom.slotAccessory.classList.add('empty');
                 this.dom.slotAccessory.querySelector('.equipment-slot-icon').innerHTML = '💍';
                 this.dom.slotAccessory.querySelector('.equipment-slot-name').textContent = '未裝備';
+            }
+        }
+    }
+
+    // Update visible inventory items for Lobby virtualization
+    updateVisibleInventoryItemsLobby() {
+        const container = this._lobbyInvContainer;
+        const items = this._lobbyInv || [];
+        const ITEM_HEIGHT = this._lobbyItemHeight || 84;
+        const pool = this._lobbyPool || [];
+        if (!container || pool.length === 0) return;
+
+        const scrollTop = container.scrollTop || 0;
+        const viewportHeight = container.clientHeight || 400;
+        const firstIndex = Math.floor(scrollTop / ITEM_HEIGHT);
+        const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+        const buffer = Math.floor(pool.length - visibleCount > 0 ? (pool.length - visibleCount) / 2 : 2);
+        const start = Math.max(0, firstIndex - buffer);
+
+        for (let i = 0; i < pool.length; i++) {
+            const dataIndex = start + i;
+            const node = pool[i];
+            if (dataIndex >= 0 && dataIndex < items.length) {
+                const stack = items[dataIndex];
+                const item = stack.item;
+                node.style.display = '';
+                node.dataset.instanceId = stack.instanceId;
+                node.className = `item-card inventory-item rarity-${item.rarity}`;
+                node.style.transform = `translateY(${dataIndex * ITEM_HEIGHT}px)`;
+
+                let iconHTML = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">` : (item.icon || '📦');
+                node.innerHTML = `
+                    <div class="item-icon">
+                        ${iconHTML}
+                        ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
+                    </div>
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                    </div>
+                `;
+            } else {
+                node.style.display = 'none';
             }
         }
     }
@@ -451,8 +628,16 @@ export default class LobbyScene {
         let statsHtml = '';
         if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
         if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-        if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-        if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+        if (item.critChance) {
+            const raw = Number(item.critChance || 0);
+            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+            statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+        }
+        if (item.critDamage) {
+            const raw = Number(item.critDamage || 0);
+            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+            statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+        }
         if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
         if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
         if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
@@ -500,6 +685,7 @@ export default class LobbyScene {
         const success = GameManager.equipItem(instanceId, source === 'warehouse');
         if (success) {
             this.closeItemModal();
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         }
     }
     
@@ -507,6 +693,7 @@ export default class LobbyScene {
         const success = GameManager.useConsumable(instanceId, source === 'warehouse');
         if (success) {
             this.closeItemModal();
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
             alert('無法使用該物品！');
         }
@@ -516,6 +703,7 @@ export default class LobbyScene {
         const success = GameManager.moveToWarehouse(instanceId);
         if (success) {
             this.closeItemModal();
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
             alert('無法移動至倉庫！');
         }
@@ -525,6 +713,7 @@ export default class LobbyScene {
         const success = GameManager.moveToInventory(instanceId);
         if (success) {
             this.closeItemModal();
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
             alert('背包已滿！');
         }
@@ -542,7 +731,8 @@ export default class LobbyScene {
         if (confirm) {
             const earnedGold = GameManager.sellItem(instanceId, source === 'warehouse');
             if (earnedGold !== false) {
-                this.closeItemModal();
+                    this.closeItemModal();
+                    if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
                 alert(`賣出 ${stack.item.name}，獲得 ${earnedGold} 金幣！`);
             }
         }
@@ -565,10 +755,12 @@ export default class LobbyScene {
                     sourceArray.splice(index, 1);
                     GameManager.notify(source === 'warehouse' ? 'warehouse' : 'inventory');
                     this.closeItemModal();
+                    if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
                 }
             }
         } else if (result === true) {
             this.closeItemModal();
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         }
     }
     
@@ -590,6 +782,7 @@ export default class LobbyScene {
         GameManager.notify('all');
         
         this.closeItemModal();
+        if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         this.updateUI(GameManager.state, 'all');
     }
     

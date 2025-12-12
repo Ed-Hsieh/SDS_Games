@@ -727,13 +727,11 @@
     font-size: 12px;
 }
 
-.label-miss {
-    color: #f44336;
-}
 
-.label-hit {
-    color: #4caf50;
-}
+
+
+
+
 
 /* ===== 戰鬥控制按鈕 - ARCADE BUTTONS ===== */
 .battle-controls {
@@ -915,13 +913,8 @@
     border: 1px solid rgba(79, 172, 254, 0.3);
 }
 
-.terminal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    margin-bottom: 6px;
-}
+
+
 
 .terminal-title {
     font-size: 12px;
@@ -945,10 +938,8 @@
     50% { opacity: 0.3; }
 }
 
-.log-entry.miss {
-    color: #999;
-    font-style: italic;
-}
+
+
 
 /* 戰利品彈窗 */
 .loot-modal {
@@ -1070,9 +1061,8 @@
     gap: 8px;
 }
 
-.panel-body::-webkit-scrollbar {
-    width: 6px;
-}
+
+
 
 .panel-body::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
@@ -1103,16 +1093,8 @@
     position: relative;
 }
 
-.loot-slot::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 4px;
-    background: currentColor;
-    border-radius: 8px 0 0 8px;
-}
+
+
 
 .loot-slot:hover {
     transform: scale(1.02);
@@ -1283,9 +1265,8 @@
     overflow-y: auto;
 }
 
-.inventory-body::-webkit-scrollbar {
-    width: 6px;
-}
+
+
 
 .inventory-body::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
@@ -1311,9 +1292,8 @@
     padding-right: 8px;
 }
 
-.adventure-inventory-list::-webkit-scrollbar {
-    width: 6px;
-}
+
+
 
 .adventure-inventory-list::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.3);
@@ -1478,9 +1458,8 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-.adventure-inventory-list .item-card:hover::before {
-    left: 100%;
-}
+
+
 
 /* 稀有度邊框配色 */
 .adventure-inventory-list .item-card.rarity-common {
@@ -1628,9 +1607,8 @@
     font-size: 13px;
 }
 
-#adv-item-detail-modal .item-detail-stat:last-child {
-    border-bottom: none;
-}
+
+
 
 #adv-item-detail-modal .item-detail-stat .value {
     color: #4facfe;
@@ -1759,16 +1737,11 @@
     font-size: 12px;
 }
 
-.loot-items-container {
-    margin-top: 20px;
-}
 
-.loot-items-title {
-    font-size: 16px;
-    color: #4facfe;
-    margin-bottom: 12px;
-    font-weight: bold;
-}
+
+
+
+
 
 .loot-items {
     display: flex;
@@ -1808,24 +1781,17 @@
     border-left-color: rgba(255, 128, 0, 0.8);
 }
 
-.loot-item-icon {
-    font-size: 32px;
-}
 
-.loot-item-info {
-    flex: 1;
-}
 
-.loot-item-name {
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
-}
 
-.loot-item-type {
-    font-size: 12px;
-    color: #aaa;
-}
+
+
+
+
+
+
+
+
 
 /* HP條樣式 */
 .hp-bar {
@@ -1872,9 +1838,8 @@
         height: 50px;
     }
 
-    .battle-controls {
-        flex-direction: column;
-    }
+    
+
 
     .btn-attack {
         max-width: 100%;
@@ -2060,17 +2025,14 @@
     letter-spacing: 3px;
 }
 
-.judgment-crit {
-    animation: judgmentCritPop 0.8s ease-out forwards;
-}
 
-.judgment-hit {
-    animation: judgmentPop 0.8s ease-out forwards;
-}
 
-.judgment-miss {
-    animation: judgmentPop 0.8s ease-out forwards;
-}
+
+
+
+
+
+
 
 @keyframes judgmentCritPop {
     0% {
@@ -2390,11 +2352,8 @@
     box-shadow: 0 8px 24px rgba(255, 167, 38, 0.4), 0 0 20px rgba(255, 167, 38, 0.3);
 }
 
-.card-value-display {
-    align-items: baseline;
-    gap: 4px;
-    margin-top: auto;
-}
+
+
 
 .value-label {
     font-size: 9px;

@@ -1,11 +1,12 @@
 /**
- * QuestSystem.js
- * 任務系統 - 管理任務狀態、進度追蹤、完成判定、連鎖觸發
+ * QuestManager.js
+ * 任務管理器 - 管理任務狀態、進度追蹤、完成判定、連鎖觸發
+ * (從 scenes/QuestSystem.js 搬移而來)
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager from './GameManager.js';
 import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js';
 
-class QuestSystem {
+class QuestManager {
     constructor() {
         // 任務狀態存儲
         this.questStates = {}; // { questId: { status, progress: [], startTime } }
@@ -34,7 +35,7 @@ class QuestSystem {
             startTime: null
         };
         
-        console.log('QuestSystem initialized');
+        console.log('QuestManager initialized');
     }
 
     // ==================== 任務管理 ====================
@@ -551,5 +552,8 @@ class QuestSystem {
 }
 
 // 單例
-export const questSystem = new QuestSystem();
-export default QuestSystem;
+export const questManager = new QuestManager();
+export default QuestManager;
+
+// 重新導出常用的 enum，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { QuestStatus, QuestType, ObjectiveType, QuestRewardItems };

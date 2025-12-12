@@ -308,28 +308,17 @@
     50% { transform: scale(1.05); }
 }
 
-.combatants {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 30px 0;
-}
 
-.combatant {
-    text-align: center;
-    min-width: 150px;
-}
 
-.combatant-name {
-    font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-}
 
-.combatant-icon {
-    font-size: 4rem;
-    margin: 10px 0;
-}
+
+
+
+
+
+
+
+
 
 .hp-bar, .mp-bar {
     width: 150px;
@@ -608,9 +597,8 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.player-stat:last-child {
-    border-bottom: none;
-}
+
+
 
 /* Skills list styles removed */
 
@@ -929,9 +917,8 @@
     margin-bottom: 8px;
 }
 
-.tower-player-battle-panel .vital-row:last-child {
-    margin-bottom: 0;
-}
+
+
 
 .tower-player-battle-panel .vital-label {
     width: 30px;

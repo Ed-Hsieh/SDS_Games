@@ -2,474 +2,19 @@
  * WorldMap.js
  * Handles map generation, movement, monster encounters, and map events.
  */
-import { Equipment, Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 import GameManager from '../managers/GameManager.js';
+import EventManager, { eventManager } from '../managers/EventManager.js';
+import MonsterManager from '../managers/MonsterManager.js';
+import { BossMonsterIds } from '../data/Monsters.js';
+import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
 
-// ===== 副本入口配置 =====
-export const DungeonEntranceConfig = {
-    cave: { 
-        name: '幽暗洞窟', 
-        icon: '🏔️', 
-        zones: ['low'],
-        description: '一個被黑暗籠罩的地下洞穴'
-    },
-    snow: { 
-        name: '冰封雪峰', 
-        icon: '❄️', 
-        zones: ['medium'],
-        description: '終年積雪的山峰'
-    },
-    ruins: { 
-        name: '遠古遺跡', 
-        icon: '🏛️', 
-        zones: ['medium', 'high'],
-        description: '失落文明的遺跡'
-    },
-    jungle: { 
-        name: '迷霧叢林', 
-        icon: '🌴', 
-        zones: ['high'],
-        description: '被迷霧籠罩的神秘叢林'
-    },
-    hell: { 
-        name: '煉獄深淵', 
-        icon: '🔥', 
-        zones: ['boss'],
-        description: '通往地獄的裂縫'
-    }
-};
-
-// ===== 地圖事件系統 =====
-export class MapEventFactory {
-    static createEvent(zoneType) {
-        const eventRoll = Math.random();
-        
-        // 根據區域決定事件類型機率 (加入 story 類型)
-        if (zoneType === 'low') {
-            if (eventRoll < 0.4) return this._createTreasureChest('low');
-            else if (eventRoll < 0.6) return this._createHealingSpring();
-            else if (eventRoll < 0.75) return this._createTrap('low');
-            else return this._createStoryEvent('low');
-        } else if (zoneType === 'medium') {
-            if (eventRoll < 0.3) return this._createTreasureChest('medium');
-            else if (eventRoll < 0.45) return this._createHealingSpring();
-            else if (eventRoll < 0.65) return this._createTrap('medium');
-            else return this._createStoryEvent('medium');
-        } else if (zoneType === 'high') {
-            if (eventRoll < 0.25) return this._createTreasureChest('high');
-            else if (eventRoll < 0.35) return this._createHealingSpring();
-            else if (eventRoll < 0.55) return this._createTrap('high');
-            else return this._createStoryEvent('high');
-        } else { // boss
-            if (eventRoll < 0.4) return this._createTreasureChest('boss');
-            else if (eventRoll < 0.5) return this._createTrap('boss');
-            else return this._createStoryEvent('boss');
-        }
-    }
-    
-    static _createStoryEvent(zone) {
-        return {
-            type: 'story',
-            name: '神秘事件',
-            icon: '🔮',
-            zone: zone
-        };
-    }
-    
-    static _createTreasureChest(zone) {
-        const chestTypes = {
-            'low': { name: '木製寶箱', icon: '📦', goldMin: 10, goldMax: 30, itemChance: 0.3 },
-            'medium': { name: '鐵製寶箱', icon: '🗃️', goldMin: 30, goldMax: 80, itemChance: 0.5 },
-            'high': { name: '黃金寶箱', icon: '💰', goldMin: 80, goldMax: 200, itemChance: 0.7 },
-            'boss': { name: '傳說寶箱', icon: '👑', goldMin: 200, goldMax: 500, itemChance: 0.9 }
-        };
-        const chest = chestTypes[zone];
-        return {
-            type: 'treasure',
-            name: chest.name,
-            icon: chest.icon,
-            zone: zone,
-            goldMin: chest.goldMin,
-            goldMax: chest.goldMax,
-            itemChance: chest.itemChance
-        };
-    }
-    
-    static _createHealingSpring() {
-        return {
-            type: 'healing',
-            name: '治療之泉',
-            icon: '⛲',
-            healPercent: 0.3 // 恢復 30% HP
-        };
-    }
-    
-    static _createTrap(zone) {
-        const trapTypes = {
-            'low': { name: '小型陷阱', icon: '⚠️', damageMin: 5, damageMax: 15 },
-            'medium': { name: '尖刺陷阱', icon: '🔺', damageMin: 15, damageMax: 30 },
-            'high': { name: '毒氣陷阱', icon: '☠️', damageMin: 30, damageMax: 50 },
-            'boss': { name: '死亡陷阱', icon: '💀', damageMin: 50, damageMax: 100 }
-        };
-        const trap = trapTypes[zone];
-        return {
-            type: 'trap',
-            name: trap.name,
-            icon: trap.icon,
-            damageMin: trap.damageMin,
-            damageMax: trap.damageMax
-        };
-    }
-}
-
-// ===== 怪物工廠 =====
-export class MonsterFactory {
-    static createMonster(zoneType) {
-        switch (zoneType) {
-            case 'low':
-                return this._createLowLevelMonster();
-            case 'medium':
-                return this._createMediumLevelMonster();
-            case 'high':
-                return this._createHighLevelMonster();
-            case 'boss':
-                return this._createBossMonster();
-            default:
-                return null;
-        }
-    }
-
-    static _createLowLevelMonster() {
-        const monsters = [
-            {
-                name: '小史萊姆',
-                icon: '🟢',
-                level: 1,
-                hp: 50,
-                maxHp: 50,
-                attack: 10,
-                defense: 5,
-                exp: 10,
-                drops: [
-                    { 
-                        item: new Consumable('slime_gel_' + Date.now(), '史萊姆凝膠', ItemType.POTION, ItemRarity.COMMON, '🧪', '普通的史萊姆凝膠', 10, { hp: 20 }), 
-                        probability: 0.8 
-                    },
-                    { 
-                        item: new Consumable('slime_core_' + Date.now(), '史萊姆核心', ItemType.MATERIAL, ItemRarity.RARE, '💎', '較少見的史萊姆核心', 50, {}), 
-                        probability: 0.2 
-                    }
-                ]
-            },
-            {
-                name: '弱小哥布林',
-                icon: '👺',
-                level: 2,
-                hp: 60,
-                maxHp: 60,
-                attack: 15,
-                defense: 8,
-                exp: 15,
-                drops: [
-                    { 
-                        item: new Weapon('goblin_sword_' + Date.now(), '破舊短劍', ItemRarity.COMMON, '🗡️', '哥布林使用的破舊短劍', 15, 8, 0, 0.05, 1.3, 0.9, 1.1), 
-                        probability: 0.4 
-                    },
-                    { 
-                        item: new Consumable('goblin_pouch_' + Date.now(), '哥布林零錢袋', ItemType.MATERIAL, ItemRarity.COMMON, '💰', '裝有一些錢的袋子', 20, {}), 
-                        probability: 0.3 
-                    }
-                ]
-            },
-            {
-                name: '野狼',
-                icon: '🐺',
-                level: 2,
-                hp: 55,
-                maxHp: 55,
-                attack: 12,
-                defense: 6,
-                exp: 12,
-                drops: [
-                    {
-                        item: new Item('wolf_fang_' + Date.now(), '狼牙', ItemType.MATERIAL, ItemRarity.COMMON, '🦷', '鋒利的狼牙，可用於製作', 15),
-                        probability: 0.5
-                    },
-                    {
-                        item: new Armor('wolf_pelt_' + Date.now(), '狼皮護甲', ItemRarity.COMMON, '🧥', '用狼皮製成的輕便護甲', 25, 0, 6, 0.02, 1.1),
-                        probability: 0.2
-                    }
-                ]
-            },
-            {
-                name: '骷髏兵',
-                icon: '💀',
-                level: 3,
-                hp: 70,
-                maxHp: 70,
-                attack: 18,
-                defense: 10,
-                exp: 18,
-                drops: [
-                    {
-                        item: new Item('bone_fragment_' + Date.now(), '骨頭碎片', ItemType.MATERIAL, ItemRarity.COMMON, '🦴', '骷髏的骨頭碎片', 8),
-                        probability: 0.6
-                    },
-                    {
-                        item: new Weapon('bone_sword_' + Date.now(), '白骨劍', ItemRarity.UNCOMMON, '⚔️', '用骨頭打造的劍', 40, 12, 0, 0.08, 1.4, 1.0, 1.0),
-                        probability: 0.15
-                    }
-                ]
-            }
-        ];
-        return new Monster(monsters[Math.floor(Math.random() * monsters.length)]);
-    }
-
-    static _createMediumLevelMonster() {
-        const monsters = [
-            { 
-                name: '獸人戰士', 
-                icon: '👹', 
-                level: 4, 
-                hp: 100, 
-                maxHp: 100, 
-                attack: 25, 
-                defense: 12, 
-                exp: 40, 
-                drops: [
-                    {
-                        item: new Weapon('orc_axe_' + Date.now(), '獸人戰斧', ItemRarity.UNCOMMON, '🪓', '獸人使用的沉重戰斧', 80, 20, 0, 0.1, 1.6, 0.8, 0.8),
-                        probability: 0.25
-                    },
-                    {
-                        item: new Armor('orc_armor_' + Date.now(), '獸人鎧甲', ItemRarity.UNCOMMON, '🛡️', '粗獷但堅固的鎧甲', 100, 0, 15, 0.03, 1.2),
-                        probability: 0.2
-                    }
-                ]
-            },
-            { 
-                name: '暗影刺客', 
-                icon: '🥷', 
-                level: 5, 
-                hp: 90, 
-                maxHp: 90, 
-                attack: 30, 
-                defense: 8, 
-                exp: 45, 
-                drops: [
-                    {
-                        item: new Weapon('shadow_dagger_' + Date.now(), '暗影匕首', ItemRarity.RARE, '🗡️', '能隱於暗影中的匕首', 150, 18, 0, 0.2, 2.0, 1.5, 1.5),
-                        probability: 0.15
-                    },
-                    {
-                        item: new Accessory('shadow_cloak_' + Date.now(), '暗影披風', ItemRarity.RARE, '🧣', '增加隱匿能力的披風', 120, 5, 8, 0.12, 1.5),
-                        probability: 0.1
-                    }
-                ]
-            },
-            { 
-                name: '石頭巨人', 
-                icon: '🗿', 
-                level: 5, 
-                hp: 140, 
-                maxHp: 140, 
-                attack: 20, 
-                defense: 18, 
-                exp: 50, 
-                drops: [
-                    {
-                        item: new Item('stone_core_' + Date.now(), '石核', ItemType.MATERIAL, ItemRarity.UNCOMMON, '💎', '石頭巨人的核心', 60),
-                        probability: 0.4
-                    },
-                    {
-                        item: new Armor('stone_shield_' + Date.now(), '岩石護盾', ItemRarity.RARE, '🛡️', '堅固如山的護盾', 200, 0, 25, 0.02, 1.1),
-                        probability: 0.1
-                    }
-                ]
-            },
-            {
-                name: '毒蜘蛛',
-                icon: '🕷️',
-                level: 4,
-                hp: 80,
-                maxHp: 80,
-                attack: 22,
-                defense: 6,
-                exp: 35,
-                drops: [
-                    {
-                        item: new Item('spider_silk_' + Date.now(), '蜘蛛絲', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🕸️', '堅韌的蜘蛛絲', 30),
-                        probability: 0.5
-                    },
-                    {
-                        item: new Consumable('antidote_' + Date.now(), '解毒劑', ItemType.POTION, ItemRarity.UNCOMMON, '💊', '解除毒素的藥劑', 40, { hp: 10 }),
-                        probability: 0.3
-                    }
-                ]
-            }
-        ];
-        return new Monster(monsters[Math.floor(Math.random() * monsters.length)]);
-    }
-
-    static _createHighLevelMonster() {
-        const monsters = [
-            { 
-                name: '火焰惡魔', 
-                icon: '🔥', 
-                level: 7, 
-                hp: 200, 
-                maxHp: 200, 
-                attack: 40, 
-                defense: 20, 
-                exp: 100, 
-                drops: [
-                    {
-                        item: new Weapon('flame_sword_' + Date.now(), '烈焰之劍', ItemRarity.EPIC, '🗡️', '燃燒著永恆火焰的魔劍', 500, 35, 0, 0.15, 1.8, 1.1, 1.2),
-                        probability: 0.1
-                    },
-                    {
-                        item: new Item('demon_core_' + Date.now(), '惡魔核心', ItemType.MATERIAL, ItemRarity.EPIC, '❤️‍🔥', '蘊含惡魔力量的核心', 200),
-                        probability: 0.2
-                    }
-                ]
-            },
-            { 
-                name: '冰霜巨龍', 
-                icon: '🐉', 
-                level: 8, 
-                hp: 250, 
-                maxHp: 250, 
-                attack: 50, 
-                defense: 25, 
-                exp: 120, 
-                drops: [
-                    {
-                        item: new Weapon('frost_fang_' + Date.now(), '霜牙之刃', ItemRarity.EPIC, '❄️', '由龍牙打造的冰寒武器', 600, 40, 5, 0.18, 2.0, 1.0, 1.1),
-                        probability: 0.08
-                    },
-                    {
-                        item: new Item('dragon_scale_' + Date.now(), '龍鱗', ItemType.MATERIAL, ItemRarity.EPIC, '🐲', '堅硬的龍鱗', 300),
-                        probability: 0.25
-                    }
-                ]
-            },
-            { 
-                name: '黑暗騎士', 
-                icon: '🖤', 
-                level: 8, 
-                hp: 220, 
-                maxHp: 220, 
-                attack: 45, 
-                defense: 30, 
-                exp: 110, 
-                drops: [
-                    {
-                        item: new Armor('dark_armor_' + Date.now(), '黑暗鎧甲', ItemRarity.EPIC, '🛡️', '被黑暗力量浸染的鎧甲', 550, 10, 35, 0.05, 1.3),
-                        probability: 0.1
-                    },
-                    {
-                        item: new Weapon('cursed_blade_' + Date.now(), '詛咒之劍', ItemRarity.EPIC, '⚔️', '帶有詛咒的黑暗之劍', 480, 38, 0, 0.2, 1.9, 1.0, 1.0),
-                        probability: 0.08
-                    }
-                ]
-            },
-            {
-                name: '死靈法師',
-                icon: '🧙‍♂️',
-                level: 7,
-                hp: 180,
-                maxHp: 180,
-                attack: 55,
-                defense: 15,
-                exp: 95,
-                drops: [
-                    {
-                        item: new Accessory('necro_amulet_' + Date.now(), '亡靈護符', ItemRarity.EPIC, '📿', '增強黑暗魔法的護符', 400, 15, 5, 0.1, 1.6),
-                        probability: 0.12
-                    },
-                    {
-                        item: new Item('soul_essence_' + Date.now(), '靈魂精華', ItemType.MATERIAL, ItemRarity.EPIC, '👻', '濃縮的靈魂能量', 250),
-                        probability: 0.2
-                    }
-                ]
-            }
-        ];
-        return new Monster(monsters[Math.floor(Math.random() * monsters.length)]);
-    }
-
-    static _createBossMonster() {
-        const monsters = [
-            { 
-                name: '邪惡魔王', 
-                icon: '👿', 
-                level: 10, 
-                hp: 500, 
-                maxHp: 500, 
-                attack: 80, 
-                defense: 40, 
-                exp: 500, 
-                drops: [
-                    {
-                        item: new Weapon('demon_king_sword_' + Date.now(), '魔王之劍', ItemRarity.LEGENDARY, '⚔️', '魔王使用的至高武器', 2000, 60, 10, 0.25, 2.5, 1.2, 1.3),
-                        probability: 0.2
-                    },
-                    {
-                        item: new Armor('demon_king_armor_' + Date.now(), '魔王鎧甲', ItemRarity.LEGENDARY, '🛡️', '魔王的專屬鎧甲', 2500, 15, 50, 0.08, 1.5),
-                        probability: 0.15
-                    }
-                ]
-            },
-            { 
-                name: '遠古龍王', 
-                icon: '🐲', 
-                level: 12, 
-                hp: 600, 
-                maxHp: 600, 
-                attack: 100, 
-                defense: 50, 
-                exp: 600, 
-                drops: [
-                    {
-                        item: new Weapon('dragon_slayer_' + Date.now(), '屠龍者', ItemRarity.LEGENDARY, '🗡️', '傳說中屠龍勇者的神劍', 3000, 70, 5, 0.3, 3.0, 1.3, 1.4),
-                        probability: 0.15
-                    },
-                    {
-                        item: new Accessory('dragon_heart_' + Date.now(), '龍心寶石', ItemRarity.LEGENDARY, '💎', '蘊含龍之力量的寶石', 2800, 20, 20, 0.2, 2.0),
-                        probability: 0.1
-                    }
-                ]
-            },
-            { 
-                name: '毀滅之神', 
-                icon: '💀', 
-                level: 15, 
-                hp: 800, 
-                maxHp: 800, 
-                attack: 120, 
-                defense: 60, 
-                exp: 800, 
-                drops: [
-                    {
-                        item: new Weapon('godslayer_' + Date.now(), '弒神者', ItemRarity.LEGENDARY, '⚡', '能夠斬殺神明的終極武器', 5000, 100, 10, 0.35, 3.5, 1.5, 1.5),
-                        probability: 0.1
-                    },
-                    {
-                        item: new Armor('god_armor_' + Date.now(), '神聖鎧甲', ItemRarity.LEGENDARY, '✨', '神明遺留的鎧甲', 4500, 20, 70, 0.1, 1.8),
-                        probability: 0.08
-                    },
-                    {
-                        item: new Accessory('god_ring_' + Date.now(), '神之戒指', ItemRarity.LEGENDARY, '💍', '蘊含神力的戒指', 4000, 25, 25, 0.25, 2.2),
-                        probability: 0.05
-                    }
-                ]
-            }
-        ];
-        return new Monster(monsters[Math.floor(Math.random() * monsters.length)]);
-    }
-}
+// NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
+// 這裡重新導出以保持向後相容
+export { DungeonEntranceConfig };
 
 export class Monster {
     constructor(template) {
+        this.id = template.id;
         this.name = template.name;
         this.icon = template.icon;
         this.level = template.level;
@@ -478,28 +23,25 @@ export class Monster {
         this.attack = template.attack;
         this.defense = template.defense;
         this.exp = template.exp || 0;
+        this.gold = template.gold || 0;
         this.drops = template.drops || [];
+        this.equipmentDrops = template.equipmentDrops || [];
+        this.element = template.element || null;
+        this.type = template.type || 'normal';
     }
     
     getDrops() {
-        const items = [];
-        const gold = Math.floor(Math.random() * (this.level * 20 - this.level * 10 + 1)) + this.level * 10;
-        
-        // 從怪物定義的掉落表中獲取物品
-        for (const drop of this.drops) {
-            if (Math.random() < drop.probability) {
-                // 重新生成 instanceId 以避免重複
-                const newItem = Object.assign(Object.create(Object.getPrototypeOf(drop.item)), drop.item);
-                newItem.instanceId = Date.now() + Math.random().toString(36).substr(2, 9);
-                items.push(newItem);
-            }
-        }
-        
-        return { items, gold };
+        // 使用 DropManager 處理掉落
+        // 這裡只返回基本金幣，物品掉落由 DropManager.calculateDrops 處理
+        return { 
+            items: [], 
+            gold: this.gold 
+        };
     }
     
-    takeDamage(damage) {
-        const actualDamage = Math.max(1, damage - this.defense);
+    takeDamage(damage, defenseOverride) {
+        const def = (typeof defenseOverride === 'number') ? defenseOverride : this.defense;
+        const actualDamage = Math.max(1, damage - def);
         this.hp = Math.max(0, this.hp - actualDamage);
         return actualDamage;
     }
@@ -572,86 +114,135 @@ export default class WorldMap {
         const lowMaxSq = lowRadius * lowRadius;
         const mediumMaxSq = mediumRadius * mediumRadius;
         const highMaxSq = highRadius * highRadius;
-        
-        const data = [];
-        for (let r = 0; r < this.rows; r++) {
-            const row = [];
-            for (let c = 0; c < this.cols; c++) {
-                row.push({ type: 'empty', zone: 'low' });
-            }
-            data.push(row);
-        }
-        
-        // 先設置區域
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                const dx = c - this.playerPos.x;
-                const dy = r - this.playerPos.y;
+
+        const rows = this.rows;
+        const cols = this.cols;
+        const px = this.playerPos.x;
+        const py = this.playerPos.y;
+
+        // 準備資料與各 zone 的候選清單（用於放置副本和 BOSS）
+        const data = new Array(rows);
+        const zoneCandidates = { low: [], medium: [], high: [], death: [] };
+
+        for (let r = 0; r < rows; r++) {
+            const row = new Array(cols);
+            for (let c = 0; c < cols; c++) {
+                const dx = c - px;
+                const dy = r - py;
                 const distanceSq = dx * dx + dy * dy;
-                
+
                 let zone;
                 if (distanceSq < lowMaxSq) zone = 'low';
                 else if (distanceSq < mediumMaxSq) zone = 'medium';
                 else if (distanceSq < highMaxSq) zone = 'high';
-                else zone = 'boss';
-                
-                data[r][c].zone = zone;
+                else zone = 'death';
+
+                const cell = { type: 'empty', zone };
+                row[c] = cell;
+
+                // 若不在玩家起點附近，加入 zone 候選（供副本放置）
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    zoneCandidates[zone].push({ r, c });
+                }
             }
+            data[r] = row;
         }
-        
+
         // 生成副本入口（每種副本只生成一個）
         const dungeonTypes = Object.keys(DungeonEntranceConfig);
-        const placedDungeons = new Set();
-        
         for (const dungeonType of dungeonTypes) {
             const config = DungeonEntranceConfig[dungeonType];
+            // 從 config.zones 聚合可放置的候選格
             const validCells = [];
-            
-            // 找出符合條件的格子
-            for (let r = 0; r < this.rows; r++) {
-                for (let c = 0; c < this.cols; c++) {
-                    // 跳過玩家起點附近
-                    const dx = c - this.playerPos.x;
-                    const dy = r - this.playerPos.y;
-                    if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
-                    
-                    // 檢查區域是否符合
-                    if (config.zones.includes(data[r][c].zone) && data[r][c].type === 'empty') {
-                        validCells.push({ r, c });
-                    }
+            for (const z of config.zones) {
+                const list = zoneCandidates[z] || [];
+                for (let i = 0; i < list.length; i++) {
+                    const pos = list[i];
+                    const cell = data[pos.r][pos.c];
+                    if (cell.type === 'empty') validCells.push(pos);
                 }
             }
-            
-            // 隨機選擇一個格子放置副本入口
+
             if (validCells.length > 0) {
                 const randomIndex = Math.floor(Math.random() * validCells.length);
-                const cell = validCells[randomIndex];
-                data[cell.r][cell.c].type = 'dungeon';
-                data[cell.r][cell.c].dungeonType = dungeonType;
-                data[cell.r][cell.c].dungeonData = config;
-                placedDungeons.add(dungeonType);
+                const cellPos = validCells[randomIndex];
+                const target = data[cellPos.r][cellPos.c];
+                target.type = 'dungeon';
+                target.dungeonType = dungeonType;
+                target.dungeonData = config;
             }
         }
-        
-        // 生成其他內容（牆壁、怪物、事件）
-        for (let r = 0; r < this.rows; r++) {
-            for (let c = 0; c < this.cols; c++) {
-                // 跳過已經放置了副本入口的格子
-                if (data[r][c].type === 'dungeon') continue;
-                
-                const random = Math.random();
-                let cellType;
-                if (random < 0.15) cellType = 'wall';
-                else if (random < 0.30) cellType = 'monster';
-                else if (random < 0.38) cellType = 'event';
-                else cellType = 'empty';
-                
-                data[r][c].type = cellType;
-                
-                // 為事件格子生成具體事件
-                if (cellType === 'event') {
-                    data[r][c].eventData = MapEventFactory.createEvent(data[r][c].zone);
+
+        // 生成 BOSS（每種 BOSS 只生成一個），依照怪物等級優先放置到相對應區域
+        // level -> zone 映射，參考 data 等級群組
+        function zonesFromLevel(level) {
+            if (typeof level !== 'number') return ['medium'];
+            if (level <= 5) return ['low'];
+            if (level <= 12) return ['medium'];
+            if (level <= 20) return ['high'];
+            return ['death'];
+        }
+
+        const allBossIds = Array.isArray(BossMonsterIds) ? BossMonsterIds.slice() : [];
+        const allZonesOrder = ['low', 'medium', 'high', 'death'];
+
+        for (const bossId of allBossIds) {
+            const bossTemplate = MonsterManager.getMonster ? MonsterManager.getMonster(bossId) : null;
+            if (!bossTemplate) continue;
+
+            const preferred = zonesFromLevel(bossTemplate.level || 0);
+            // 建立以 preferred 為首的 zone 排序
+            const orderedZones = [];
+            for (const z of preferred) orderedZones.push(z);
+            for (const z of allZonesOrder) if (!orderedZones.includes(z)) orderedZones.push(z);
+
+            let placed = false;
+            for (const z of orderedZones) {
+                const list = zoneCandidates[z] || [];
+                const candidates = [];
+                for (let i = 0; i < list.length; i++) {
+                    const pos = list[i];
+                    const cell = data[pos.r][pos.c];
+                    if (cell.type === 'empty') candidates.push(pos);
                 }
+
+                if (candidates.length > 0) {
+                    const idx = Math.floor(Math.random() * candidates.length);
+                    const pos = candidates[idx];
+                    const target = data[pos.r][pos.c];
+                    target.type = 'monster';
+                    target.monsterType = bossTemplate.type || 'boss';
+                    target.monsterTemplateId = bossTemplate.id;
+                    placed = true;
+                    break;
+                }
+            }
+            // 若所有區域都沒有空位則跳過（通常不會發生，除非地圖太小）
+            if (!placed) {
+                // do nothing
+            }
+        }
+
+        // 生成其他內容（怪物、事件） — 已移除牆壁生成
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                const cell = data[r][c];
+                if (cell.type === 'dungeon' || cell.type === 'monster') continue;
+                const random = Math.random();
+                if (random < 0.30) {
+                    // Create a lightweight preview for monsters so the scene can render icons
+                    // without having to instantiate full monster objects every frame.
+                    const previewTemplate = MonsterManager.createRandomMonsterForZone(cell.zone);
+                    if (previewTemplate) {
+                        cell.type = 'monster';
+                        cell.monsterType = previewTemplate.type || previewTemplate.rank || 'normal';
+                        cell.monsterTemplateId = previewTemplate.id || null;
+                    } else {
+                        // fallback: leave empty if no template available
+                        cell.type = 'empty';
+                    }
+                } else if (random < 0.38) cell.type = 'event';
+                else cell.type = 'empty';
             }
         }
         
@@ -677,7 +268,7 @@ export default class WorldMap {
 
     _generateRifts(data) {
         this.rifts = [];
-        const zoneLayers = ['low', 'medium', 'high', 'boss'];
+        const zoneLayers = ['low', 'medium', 'high', 'death'];
 
         // 如果有持久化的 rifts，優先使用它們（並做基本的有效性檢查）
         if (Array.isArray(this._persistedRifts) && this._persistedRifts.length > 0) {
@@ -742,13 +333,14 @@ export default class WorldMap {
     }
 
     movePlayer(dx, dy) {
+        // 如果沒有移動，直接返回
+        if (dx === 0 && dy === 0) return null;
         const newX = Math.max(0, Math.min(this.cols - 1, this.playerPos.x + dx));
         const newY = Math.max(0, Math.min(this.rows - 1, this.playerPos.y + dy));
         
-        if (this.mapData[newY][newX].type !== 'wall') {
-            this.playerPos.x = newX;
-            this.playerPos.y = newY;
-            this.updateCamera();
+        this.playerPos.x = newX;
+        this.playerPos.y = newY;
+        this.updateCamera();
             // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
             try {
                 const arrivedZone = this.mapData[newY][newX].zone;
@@ -763,13 +355,54 @@ export default class WorldMap {
             const cell = this.mapData[newY][newX];
             
             if (cell.type === 'monster') {
-                this.currentMonster = MonsterFactory.createMonster(cell.zone);
+                // Prefer an explicit template id (used for BOSS or pre-placed monsters).
+                // If none, fall back to random generation for the zone.
+                let template = null;
+                try {
+                    if (cell.monsterTemplateId) {
+                        // createMonsterInstance accepts either id or template and normalizes fields
+                        template = MonsterManager.createMonsterInstance(cell.monsterTemplateId);
+                    }
+                } catch (e) {
+                    // ignore and fallback to random
+                    template = null;
+                }
+
+                if (!template) {
+                    const raw = MonsterManager.createRandomMonsterForZone(cell.zone);
+                    // Normalize via createMonsterInstance when possible
+                    template = MonsterManager.createMonsterInstance ? MonsterManager.createMonsterInstance(raw) : raw;
+                }
+
+                if (template) {
+                    this.currentMonster = new Monster(template);
+                } else {
+                    console.error('No monster template found for zone:', cell.zone);
+                    return null;
+                }
+
                 cell.type = 'empty';
                 return 'battle';
             }
             
             if (cell.type === 'event') {
-                this.currentEvent = cell.eventData;
+                // Generate the event at encounter time via the EventManager singleton
+                try {
+                    const ev = eventManager.triggerRandomEvent(cell.zone);
+                    this.currentEvent = ev;
+                } catch (e) {
+                    // fallback to stateless getter if triggerRandomEvent isn't available
+                    try {
+                        const ev2 = EventManager.getEventForZone(cell.zone);
+                        this.currentEvent = ev2;
+                        // also set singleton currentEvent if possible
+                        if (eventManager) eventManager.currentEvent = ev2;
+                    } catch (err) {
+                        console.error('Failed to generate event for zone:', cell.zone, err);
+                        this.currentEvent = null;
+                    }
+                }
+
                 cell.type = 'empty';
                 return 'event';
             }
@@ -807,7 +440,6 @@ export default class WorldMap {
             if (this.homePos && (newX !== this.homePos.x || newY !== this.homePos.y)) {
                 this.hasLeftHome = true;
             }
-        }
         return null;
     }
 
@@ -831,16 +463,18 @@ export default class WorldMap {
 
     getVisibleCells() {
         const visibleCells = [];
-        const startCol = Math.floor(this.cameraOffsetX / this.gridSize);
-        const endCol = Math.min(this.cols, Math.ceil((this.cameraOffsetX + this.screenWidth) / this.gridSize));
-        const startRow = Math.floor(this.cameraOffsetY / this.gridSize);
-        const endRow = Math.min(this.rows, Math.ceil((this.cameraOffsetY + this.screenHeight) / this.gridSize));
-        
+        const gs = this.gridSize;
+        const startCol = Math.floor(this.cameraOffsetX / gs);
+        const endCol = Math.min(this.cols, Math.ceil((this.cameraOffsetX + this.screenWidth) / gs));
+        const startRow = Math.floor(this.cameraOffsetY / gs);
+        const endRow = Math.min(this.rows, Math.ceil((this.cameraOffsetY + this.screenHeight) / gs));
+
         for (let r = startRow; r < endRow; r++) {
+            if (r < 0 || r >= this.rows) continue;
+            const row = this.mapData[r];
             for (let c = startCol; c < endCol; c++) {
-                if (r >= 0 && r < this.rows && c >= 0 && c < this.cols) {
-                    visibleCells.push({ x: c, y: r, data: this.mapData[r][c] });
-                }
+                if (c < 0 || c >= this.cols) continue;
+                visibleCells.push({ x: c, y: r, data: row[c] });
             }
         }
         return visibleCells;

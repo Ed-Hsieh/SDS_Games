@@ -44,8 +44,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 1,
         hp: 40,
-        atk: 5,
-        def: 2,
+        maxHp: 40,
+        attack: 5,
+        attackSpeed: 1,
+        defense: 2,
         exp: 15,
         gold: 10,
         drops: [
@@ -59,72 +61,136 @@ export const MonsterDatabase = {
         description: '最基礎的怪物，適合新手練習。'
     },
     
-    wild_boar: {
-        id: 'wild_boar',
-        name: '野豬',
-        icon: '🐗',
-        type: MonsterType.NORMAL,
-        element: MonsterElement.NONE,
-        level: 2,
-        hp: 60,
-        atk: 8,
-        def: 3,
-        exp: 20,
-        gold: 15,
-        drops: [
-            { itemId: 'beast_hide', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'raw_meat', chance: 0.3, quantity: [1, 1] }
-        ],
-        skills: ['charge'],
-        description: '野外常見的野豬，會衝撞攻擊。'
-    },
-    
     goblin: {
         id: 'goblin',
         name: '哥布林',
         icon: '👺',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
+        level: 2,
+        hp: 50,
+        maxHp: 50,
+        attack: 8,
+        attackSpeed: 1,
+        defense: 3,
+        exp: 20,
+        gold: 15,
+        drops: [
+            { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3] },
+            { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
+        ],
+        skills: [],
+        description: '矮小但狡猾的哥布林。'
+    },
+    
+    wild_wolf: {
+        id: 'wild_wolf',
+        name: '野狼',
+        icon: '🐺',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.NONE,
+        level: 2,
+        hp: 45,
+        maxHp: 45,
+        attack: 10,
+        attackSpeed: 1,
+        defense: 2,
+        exp: 18,
+        gold: 12,
+        drops: [
+            { itemId: 'wolf_fang', chance: 0.4, quantity: [1, 2] },
+            { itemId: 'wolf_pelt', chance: 0.25, quantity: [1, 1] }
+        ],
+        skills: [],
+        description: '森林中的野狼，攻擊性強。'
+    },
+    
+    skeleton: {
+        id: 'skeleton',
+        name: '骷髏兵',
+        icon: '💀',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.SHADOW,
         level: 3,
-        hp: 70,
-        atk: 10,
-        def: 4,
+        hp: 60,
+        maxHp: 60,
+        attack: 12,
+        attackSpeed: 1.4,
+        defense: 5,
         exp: 25,
         gold: 20,
         drops: [
-            { itemId: 'goblin_ear', chance: 0.5, quantity: [1, 1] },
-            { itemId: 'iron_ore', chance: 0.35, quantity: [1, 3] }
+            { itemId: 'bone_fragment', chance: 0.5, quantity: [1, 3] },
+            { itemId: 'iron_ore', chance: 0.2, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'goblin_dagger', chance: 0.03 }  // 3% 掉落哥布林短刀
-        ],
-        skills: ['sneak_attack'],
-        description: '狡猾的小型人形生物。'
+        skills: [],
+        description: '被黑暗力量復活的骷髏士兵。'
     },
-
-    // ==================== 第二章：森林邊境 (Lv.3-6) ====================
-    forest_wolf: {
-        id: 'forest_wolf',
-        name: '森林狼',
-        icon: '🐺',
+    
+    giant_rat: {
+        id: 'giant_rat',
+        name: '巨鼠',
+        icon: '🐀',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.NONE,
+        level: 1,
+        hp: 30,
+        maxHp: 30,
+        attack: 4,
+        attackSpeed: 1,
+        defense: 1,
+        exp: 10,
+        gold: 5,
+        drops: [
+            { itemId: 'rat_tail', chance: 0.6, quantity: [1, 1] }
+        ],
+        skills: [],
+        description: '下水道中常見的巨型老鼠。'
+    },
+    
+    // 中等級怪物 (Lv.4-6)
+    orc_warrior: {
+        id: 'orc_warrior',
+        name: '獸人戰士',
+        icon: '👹',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 4,
         hp: 90,
-        atk: 14,
-        def: 5,
+        maxHp: 90,
+        attack: 18,
+        attackSpeed: 1.4,
+        defense: 8,
+        exp: 40,
+        gold: 30,
+        drops: [
+            { itemId: 'orc_fang', chance: 0.4, quantity: [1, 2] },
+            { itemId: 'iron_ore', chance: 0.3, quantity: [1, 2] }
+        ],
+        skills: ['heavy_strike'],
+        description: '強壯的獸人戰士。'
+    },
+    
+    shadow_bat: {
+        id: 'shadow_bat',
+        name: '暗影蝙蝠',
+        icon: '🦇',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.SHADOW,
+        level: 4,
+        hp: 70,
+        maxHp: 70,
+        attack: 15,
+        attackSpeed: 1,
+        defense: 4,
         exp: 35,
         gold: 25,
         drops: [
-            { itemId: 'wolf_pelt', chance: 0.4, quantity: [1, 1] },
-            { itemId: 'wolf_fang', chance: 0.3, quantity: [1, 2] }
+            { itemId: 'bat_wing', chance: 0.5, quantity: [1, 2] },
+            { itemId: 'shadow_shard', chance: 0.15, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'wolf_fang_blade', chance: 0.03 },
-            { equipmentId: 'wolf_pelt_armor', chance: 0.02 }
-        ],
-        skills: ['bite'],
-        description: '成群結隊的森林獵手。'
+        skills: ['sonic_screech'],
+        description: '在黑暗中飛行的蝙蝠。'
     },
     
     poison_spider: {
@@ -135,20 +201,45 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 5,
         hp: 80,
-        atk: 16,
-        def: 4,
-        exp: 40,
-        gold: 30,
+        maxHp: 80,
+        attack: 20,
+        attackSpeed: 1,
+        defense: 5,
+        exp: 45,
+        gold: 35,
         drops: [
-            { itemId: 'spider_silk', chance: 0.5, quantity: [1, 3] },
-            { itemId: 'poison_gland', chance: 0.25, quantity: [1, 1] }
-        ],
-        equipmentDrops: [
-            { equipmentId: 'spider_silk_gloves', chance: 0.03 }
+            { itemId: 'spider_silk', chance: 0.5, quantity: [1, 2] },
+            { itemId: 'poison_gland', chance: 0.3, quantity: [1, 1] }
         ],
         skills: ['poison_bite'],
-        description: '帶有劇毒的大型蜘蛛。'
+        description: '會噴射毒液的巨型蜘蛛。'
     },
+    
+    stone_golem_mini: {
+        id: 'stone_golem_mini',
+        name: '小石像',
+        icon: '🗿',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.EARTH,
+        level: 5,
+        hp: 100,
+        maxHp: 100,
+        attack: 14,
+        attackSpeed: 1.4,
+        defense: 12,
+        exp: 50,
+        gold: 40,
+        drops: [
+            { itemId: 'stone_fragment', chance: 0.6, quantity: [2, 3] },
+            { itemId: 'golem_core', chance: 0.1, quantity: [1, 1] }
+        ],
+        skills: ['stone_fist'],
+        description: '由石頭構成的小型魔像。'
+    },
+    
+    // NOTE: data module contains raw monster definitions in a local object.
+    // Lookup and behavior functions (getMonster, getTowerMonster, createMonsterInstance, etc.)
+    // have been moved to `src/js/managers/MonsterManager.js` to keep data files logic-free.
     
     treant: {
         id: 'treant',
@@ -158,8 +249,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 6,
         hp: 120,
-        atk: 12,
-        def: 10,
+        maxHp: 120,
+        attack: 12,
+        attackSpeed: 1.4,
+        defense: 10,
         exp: 50,
         gold: 35,
         drops: [
@@ -177,10 +270,12 @@ export const MonsterDatabase = {
         icon: '🌲',
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
-        level: 7,
+        level: 5,
         hp: 300,
-        atk: 20,
-        def: 12,
+        maxHp: 300,
+        attack: 20,
+        attackSpeed: 2.2,
+        defense: 12,
         exp: 150,
         gold: 100,
         drops: [
@@ -204,8 +299,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 7,
         hp: 100,
-        atk: 18,
-        def: 8,
+        maxHp: 100,
+        attack: 18,
+        attackSpeed: 1.4,
+        defense: 8,
         exp: 55,
         gold: 40,
         drops: [
@@ -224,8 +321,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 8,
         hp: 80,
-        atk: 22,
-        def: 5,
+        maxHp: 80,
+        attack: 22,
+        attackSpeed: 1.4,
+        defense: 5,
         exp: 60,
         gold: 45,
         drops: [
@@ -247,8 +346,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 9,
         hp: 180,
-        atk: 16,
-        def: 18,
+        maxHp: 180,
+        attack: 16,
+        attackSpeed: 1.4,
+        defense: 18,
         exp: 70,
         gold: 50,
         drops: [
@@ -268,8 +369,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 10,
         hp: 400,
-        atk: 28,
-        def: 12,
+        maxHp: 400,
+        attack: 28,
+        attackSpeed: 2.2,
+        defense: 12,
         exp: 200,
         gold: 150,
         drops: [
@@ -293,8 +396,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 11,
         hp: 150,
-        atk: 26,
-        def: 14,
+        maxHp: 150,
+        attack: 26,
+        attackSpeed: 1.4,
+        defense: 14,
         exp: 80,
         gold: 55,
         drops: [
@@ -317,8 +422,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 12,
         hp: 120,
-        atk: 32,
-        def: 10,
+        maxHp: 120,
+        attack: 32,
+        attackSpeed: 1.4,
+        defense: 10,
         exp: 85,
         gold: 60,
         drops: [
@@ -337,8 +444,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 13,
         hp: 140,
-        atk: 38,
-        def: 8,
+        maxHp: 140,
+        attack: 38,
+        attackSpeed: 1.4,
+        defense: 8,
         exp: 100,
         gold: 70,
         drops: [
@@ -346,7 +455,7 @@ export const MonsterDatabase = {
             { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_boots', chance: 0.05 }
+            { equipmentId: 'shadow_badge', chance: 0.05 }
         ],
         skills: ['shadow_bolt', 'dark_curse'],
         description: '操控暗影魔法的法師。'
@@ -361,8 +470,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 14,
         hp: 550,
-        atk: 40,
-        def: 20,
+        maxHp: 550,
+        attack: 40,
+        attackSpeed: 2.2,
+        defense: 20,
         exp: 280,
         gold: 200,
         drops: [
@@ -387,8 +498,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 15,
         hp: 220,
-        atk: 36,
-        def: 22,
+        maxHp: 220,
+        attack: 36,
+        attackSpeed: 2.2,
+        defense: 22,
         exp: 110,
         gold: 75,
         drops: [
@@ -410,8 +523,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 16,
         hp: 280,
-        atk: 32,
-        def: 28,
+        maxHp: 280,
+        attack: 32,
+        attackSpeed: 1.4,
+        defense: 28,
         exp: 120,
         gold: 80,
         drops: [
@@ -433,8 +548,10 @@ export const MonsterDatabase = {
         element: MonsterElement.HOLY,
         level: 17,
         hp: 200,
-        atk: 45,
-        def: 18,
+        maxHp: 200,
+        attack: 45,
+        attackSpeed: 1.4,
+        defense: 18,
         exp: 140,
         gold: 90,
         drops: [
@@ -444,7 +561,7 @@ export const MonsterDatabase = {
             { itemId: 'crystal_shard', chance: 0.2, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'rune_gauntlet', chance: 0.06 }
+            { equipmentId: 'rune_badge', chance: 0.06 }
         ],
         skills: ['rune_blast', 'rune_shield'],
         description: '守護古代符文的神秘存在。'
@@ -459,8 +576,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 18,
         hp: 700,
-        atk: 48,
-        def: 25,
+        maxHp: 700,
+        attack: 48,
+        attackSpeed: 2.2,
+        defense: 25,
         exp: 350,
         gold: 250,
         drops: [
@@ -484,8 +603,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 19,
         hp: 200,
-        atk: 52,
-        def: 15,
+        maxHp: 200,
+        attack: 52,
+        attackSpeed: 1.4,
+        defense: 15,
         exp: 150,
         gold: 95,
         drops: [
@@ -507,8 +628,10 @@ export const MonsterDatabase = {
         element: MonsterElement.ICE,
         level: 19,
         hp: 220,
-        atk: 48,
-        def: 18,
+        maxHp: 220,
+        attack: 48,
+        attackSpeed: 1.4,
+        defense: 18,
         exp: 150,
         gold: 95,
         drops: [
@@ -530,8 +653,10 @@ export const MonsterDatabase = {
         element: MonsterElement.THUNDER,
         level: 20,
         hp: 180,
-        atk: 58,
-        def: 12,
+        maxHp: 180,
+        attack: 58,
+        attackSpeed: 1.4,
+        defense: 12,
         exp: 160,
         gold: 100,
         drops: [
@@ -553,8 +678,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 20,
         hp: 300,
-        atk: 42,
-        def: 30,
+        maxHp: 300,
+        attack: 42,
+        attackSpeed: 1.4,
+        defense: 30,
         exp: 160,
         gold: 100,
         drops: [
@@ -574,8 +701,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 22,
         hp: 900,
-        atk: 55,
-        def: 28,
+        maxHp: 900,
+        attack: 55,
+        attackSpeed: 2.2,
+        defense: 28,
         exp: 450,
         gold: 350,
         drops: [
@@ -600,8 +729,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 23,
         hp: 280,
-        atk: 58,
-        def: 22,
+        maxHp: 280,
+        attack: 58,
+        attackSpeed: 1.4,
+        defense: 22,
         exp: 180,
         gold: 110,
         drops: [
@@ -623,8 +754,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 24,
         hp: 320,
-        atk: 62,
-        def: 25,
+        maxHp: 320,
+        attack: 62,
+        attackSpeed: 1.4,
+        defense: 25,
         exp: 200,
         gold: 120,
         drops: [
@@ -633,7 +766,7 @@ export const MonsterDatabase = {
             { itemId: 'dragon_heart', chance: 0.05, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'drake_scale_mail', chance: 0.05 }
+            // { equipmentId: 'drake_scale_mail', chance: 0.05 }
         ],
         skills: ['fire_breath', 'claw_strike'],
         description: '年幼的龍族成員。'
@@ -647,8 +780,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 25,
         hp: 350,
-        atk: 68,
-        def: 30,
+        maxHp: 350,
+        attack: 68,
+        attackSpeed: 1.4,
+        defense: 30,
         exp: 240,
         gold: 140,
         drops: [
@@ -671,14 +806,17 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 26,
         hp: 1200,
-        atk: 72,
-        def: 35,
+        maxHp: 1200,
+        attack: 72,
+        attackSpeed: 2.2,
+        defense: 35,
         exp: 600,
         gold: 500,
         drops: [
             { itemId: 'dragon_heart', chance: 1.0, quantity: [1, 1] },
             { itemId: 'elder_dragon_scale', chance: 0.8, quantity: [2, 3] },
-            { itemId: 'dragon_tooth', chance: 0.6, quantity: [1, 2] }
+            { itemId: 'dragon_tooth', chance: 0.6, quantity: [1, 2] },
+            { itemId: 'elder_dragon_fang_badge', chance: 0.4, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'elder_dragon_fang', chance: 0.15 }
@@ -696,8 +834,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 27,
         hp: 300,
-        atk: 78,
-        def: 20,
+        maxHp: 300,
+        attack: 78,
+        attackSpeed: 1.2,
+        defense: 20,
         exp: 260,
         gold: 150,
         drops: [
@@ -719,8 +859,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 28,
         hp: 450,
-        atk: 82,
-        def: 35,
+        maxHp: 450,
+        attack: 82,
+        attackSpeed: 2.2,
+        defense: 35,
         exp: 300,
         gold: 180,
         drops: [
@@ -740,8 +882,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 28,
         hp: 1500,
-        atk: 85,
-        def: 38,
+        maxHp: 1500,
+        attack: 85,
+        attackSpeed: 2.2,
+        defense: 38,
         exp: 750,
         gold: 600,
         drops: [
@@ -764,8 +908,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 29,
         hp: 400,
-        atk: 88,
-        def: 32,
+        maxHp: 400,
+        attack: 88,
+        attackSpeed: 2.2,
+        defense: 32,
         exp: 320,
         gold: 200,
         drops: [
@@ -784,8 +930,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 30,
         hp: 600,
-        atk: 95,
-        def: 40,
+        maxHp: 600,
+        attack: 95,
+        attackSpeed: 2.2,
+        defense: 40,
         exp: 400,
         gold: 250,
         drops: [
@@ -804,12 +952,14 @@ export const MonsterDatabase = {
         id: 'demon_lord_asariel',
         name: '魔王阿薩謝爾',
         icon: '👑',
-        type: MonsterType.WORLD_BOSS,
+        type: MonsterType.BOSS,
         element: MonsterElement.SHADOW,
         level: 30,
         hp: 2500,
-        atk: 120,
-        def: 50,
+        maxHp: 2500,
+        attack: 120,
+        attackSpeed: 2.2,
+        defense: 50,
         exp: 2000,
         gold: 2000,
         drops: [
@@ -824,9 +974,11 @@ export const MonsterDatabase = {
         skills: ['apocalypse', 'void_rupture', 'demon_transformation', 'soul_harvest'],
         description: '企圖毀滅世界的魔王，最終的敵人。'
     },
+};
+
+export const TowerMonsterData = {
 
     // ==================== 無盡塔怪物 ====================
-    
     // 第1層
     tower_slime_king: {
         id: 'tower_slime_king',
@@ -836,8 +988,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 5,
         hp: 100,
-        atk: 8,
-        def: 5,
+        maxHp: 100,
+        attack: 8,
+        attackSpeed: 2.2,
+        defense: 5,
         exp: 50,
         gold: 50,
         drops: [
@@ -858,8 +1012,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 6,
         hp: 120,
-        atk: 12,
-        def: 8,
+        maxHp: 120,
+        attack: 12,
+        attackSpeed: 1.4,
+        defense: 8,
         exp: 60,
         gold: 80,
         drops: [
@@ -880,8 +1036,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 7,
         hp: 100,
-        atk: 15,
-        def: 6,
+        maxHp: 100,
+        attack: 15,
+        attackSpeed: 1.2,
+        defense: 6,
         exp: 70,
         gold: 100,
         drops: [
@@ -903,8 +1061,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 8,
         hp: 150,
-        atk: 18,
-        def: 10,
+        maxHp: 150,
+        attack: 18,
+        attackSpeed: 1,
+        defense: 10,
         exp: 80,
         gold: 120,
         drops: [
@@ -925,8 +1085,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 10,
         hp: 250,
-        atk: 22,
-        def: 12,
+        maxHp: 250,
+        attack: 22,
+        attackSpeed: 2.2,
+        defense: 12,
         exp: 150,
         gold: 200,
         drops: [
@@ -947,8 +1109,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 11,
         hp: 200,
-        atk: 20,
-        def: 18,
+        maxHp: 200,
+        attack: 20,
+        attackSpeed: 1.2,
+        defense: 18,
         exp: 100,
         gold: 150,
         drops: [
@@ -969,8 +1133,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 12,
         hp: 180,
-        atk: 28,
-        def: 12,
+        maxHp: 180,
+        attack: 28,
+        attackSpeed: 1.2,
+        defense: 12,
         exp: 110,
         gold: 180,
         drops: [
@@ -991,8 +1157,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 13,
         hp: 220,
-        atk: 25,
-        def: 14,
+        maxHp: 220,
+        attack: 25,
+        attackSpeed: 1,
+        defense: 14,
         exp: 120,
         gold: 200,
         drops: [
@@ -1013,8 +1181,10 @@ export const MonsterDatabase = {
         element: MonsterElement.ICE,
         level: 14,
         hp: 300,
-        atk: 22,
-        def: 20,
+        maxHp: 300,
+        attack: 22,
+        attackSpeed: 1.2,
+        defense: 20,
         exp: 130,
         gold: 250,
         drops: [
@@ -1035,8 +1205,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 15,
         hp: 400,
-        atk: 35,
-        def: 22,
+        maxHp: 400,
+        attack: 35,
+        attackSpeed: 1.4,
+        defense: 22,
         exp: 250,
         gold: 500,
         drops: [
@@ -1060,8 +1232,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 16,
         hp: 280,
-        atk: 30,
-        def: 16,
+        maxHp: 280,
+        attack: 30,
+        attackSpeed: 1,
+        defense: 16,
         exp: 150,
         gold: 300,
         drops: [
@@ -1082,8 +1256,10 @@ export const MonsterDatabase = {
         element: MonsterElement.FIRE,
         level: 17,
         hp: 350,
-        atk: 32,
-        def: 24,
+        maxHp: 350,
+        attack: 32,
+        attackSpeed: 1,
+        defense: 24,
         exp: 160,
         gold: 350,
         drops: [
@@ -1104,8 +1280,10 @@ export const MonsterDatabase = {
         element: MonsterElement.THUNDER,
         level: 18,
         hp: 300,
-        atk: 38,
-        def: 18,
+        maxHp: 300,
+        attack: 38,
+        attackSpeed: 1,
+        defense: 18,
         exp: 170,
         gold: 400,
         drops: [
@@ -1126,8 +1304,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 19,
         hp: 280,
-        atk: 42,
-        def: 15,
+        maxHp: 280,
+        attack: 42,
+        attackSpeed: 1.4,
+        defense: 15,
         exp: 180,
         gold: 450,
         drops: [
@@ -1148,8 +1328,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 20,
         hp: 600,
-        atk: 45,
-        def: 28,
+        maxHp: 600,
+        attack: 45,
+        attackSpeed: 2.2,
+        defense: 28,
         exp: 400,
         gold: 800,
         drops: [
@@ -1173,8 +1355,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 21,
         hp: 500,
-        atk: 35,
-        def: 40,
+        maxHp: 500,
+        attack: 35,
+        attackSpeed: 1.4,
+        defense: 40,
         exp: 220,
         gold: 500,
         drops: [
@@ -1196,8 +1380,10 @@ export const MonsterDatabase = {
         element: MonsterElement.NONE,
         level: 22,
         hp: 550,
-        atk: 48,
-        def: 25,
+        maxHp: 550,
+        attack: 48,
+        attackSpeed: 1,
+        defense: 25,
         exp: 250,
         gold: 600,
         drops: [
@@ -1218,8 +1404,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 24,
         hp: 700,
-        atk: 50,
-        def: 32,
+        maxHp: 700,
+        attack: 50,
+        attackSpeed: 1.2,
+        defense: 32,
         exp: 300,
         gold: 700,
         drops: [
@@ -1242,8 +1430,10 @@ export const MonsterDatabase = {
         element: MonsterElement.EARTH,
         level: 26,
         hp: 800,
-        atk: 55,
-        def: 38,
+        maxHp: 800,
+        attack: 55,
+        attackSpeed: 2.2,
+        defense: 38,
         exp: 350,
         gold: 900,
         drops: [
@@ -1265,8 +1455,10 @@ export const MonsterDatabase = {
         element: MonsterElement.SHADOW,
         level: 30,
         hp: 1200,
-        atk: 65,
-        def: 45,
+        maxHp: 1200,
+        attack: 65,
+        attackSpeed: 2.2,
+        defense: 45,
         exp: 1000,
         gold: 2000,
         drops: [
@@ -1285,92 +1477,21 @@ export const MonsterDatabase = {
     }
 };
 
-/**
- * 根據怪物ID獲取怪物資料
- */
-export function getMonster(monsterId) {
-    return MonsterDatabase[monsterId] || null;
-}
+// Level groups: split into four logical groups used by map/manager code.
+// - LowLevelMonster: levels 1-5 (excluding BOSS and WORLD_BOSS)
+// - MediumLevelMonster: levels 6-12 (excluding BOSS and WORLD_BOSS)
+// - HighLevelMonster: levels 13-20 (excluding BOSS and WORLD_BOSS)
+// - DeathLevelMonster: levels 21-30 (excluding BOSS and WORLD_BOSS)
+export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 5 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 6 && m.level <= 12 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 13 && m.level <= 20 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const DeathLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
 
-/**
- * 根據等級範圍獲取怪物列表
- */
-export function getMonstersByLevelRange(minLevel, maxLevel) {
-    return Object.values(MonsterDatabase).filter(
-        monster => monster.level >= minLevel && monster.level <= maxLevel
-    );
-}
+// 所有 BOSS 與 WORLD_BOSS 的 ID
+export const BossMonsterIds = Object.values(MonsterDatabase)
+    .filter(m => m && (m.type === MonsterType.BOSS || m.type === MonsterType.WORLD_BOSS))
+    .map(m => m.id);
 
-/**
- * 獲取無盡塔指定層的怪物
- */
-export function getTowerMonster(floor) {
-    return Object.values(MonsterDatabase).find(
-        monster => monster.towerFloor === floor
-    );
-}
-
-/**
- * 獲取所有無盡塔怪物（按層數排序）
- */
-export function getAllTowerMonsters() {
-    return Object.values(MonsterDatabase)
-        .filter(monster => monster.towerFloor)
-        .sort((a, b) => a.towerFloor - b.towerFloor);
-}
-
-/**
- * 計算戰鬥後的掉落物
- */
-export function calculateDrops(monster) {
-    const drops = [];
-    
-    // 計算材料掉落
-    if (monster.drops) {
-        for (const drop of monster.drops) {
-            const roll = Math.random();
-            if (roll <= drop.chance) {
-                const quantity = Array.isArray(drop.quantity)
-                    ? Math.floor(Math.random() * (drop.quantity[1] - drop.quantity[0] + 1)) + drop.quantity[0]
-                    : drop.quantity;
-                
-                drops.push({
-                    itemId: drop.itemId,
-                    quantity: quantity,
-                    type: 'material'
-                });
-            }
-        }
-    }
-    
-    // 計算裝備掉落
-    if (monster.equipmentDrops) {
-        for (const drop of monster.equipmentDrops) {
-            const roll = Math.random();
-            if (roll <= drop.chance) {
-                drops.push({
-                    itemId: drop.equipmentId,
-                    quantity: 1,
-                    type: 'equipment'
-                });
-            }
-        }
-    }
-    
-    return drops;
-}
-
-/**
- * 創建怪物戰鬥實例（帶當前HP等狀態）
- */
-export function createMonsterInstance(monsterId) {
-    const template = getMonster(monsterId);
-    if (!template) return null;
-    
-    return {
-        ...template,
-        currentHp: template.hp,
-        buffs: [],
-        debuffs: []
-    };
-}
+// 匯出所有怪物清單（陣列）供其他模組使用
+export const AllMonsters = Object.values(MonsterDatabase);
+export const TowerMonsters = Object.values(TowerMonsterData);

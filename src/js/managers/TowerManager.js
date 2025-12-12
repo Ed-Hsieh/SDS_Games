@@ -1,12 +1,17 @@
 /**
- * TowerSystem.js
- * 無盡塔系統 - 20層挑戰模式
+ * TowerManager.js
+ * 無盡塔管理器 - 20層挑戰模式邏輯處理
+ * (從 scenes/TowerSystem.js 搬移而來)
  */
 
-import GameManager from '../managers/GameManager.js';
-import { getTowerMonster, createMonsterInstance, calculateDrops } from '../data/Monsters.js';
+import GameManager from './GameManager.js';
+import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
+import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
-import { getMaterial } from '../data/Materials.js';
+import { getMaterial } from './MaterialManager.js';
+
+// 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { getBossEquipment };
 
 // 無盡塔狀態
 export const TowerState = {
@@ -35,9 +40,9 @@ const TOWER_CONFIG = {
 };
 
 /**
- * 無盡塔系統
+ * 無盡塔管理器
  */
-export default class TowerSystem {
+export default class TowerManager {
     constructor() {
         this.currentFloor = 1;
         this.highestFloor = 0;  // 歷史最高層
@@ -98,7 +103,11 @@ export default class TowerSystem {
             return { success: false, message: '找不到此層的怪物！' };
         }
         
-        this.currentMonster = createMonsterInstance(monsterData.id);
+        // Create instance directly from tower monster template (some tower monsters
+        // are defined in TowerMonsterData and may not exist in the general
+        // MonsterDatabase). Pass the template object so createMonsterInstance
+        // can initialize correctly.
+        this.currentMonster = createMonsterInstance(monsterData);
         this.state = TowerState.IN_BATTLE;
         this.battleLog = [];
         
@@ -219,9 +228,10 @@ export default class TowerSystem {
             
             // 生命偷取（僅在造成傷害時觸發）
             if (damage > 0) {
-                const lifesteal = character.equipment.weapon?.lifesteal || 0;
+                // Prefer character.getLifesteal() if available (returns fraction), otherwise fallback to raw weapon property
+                const lifesteal = (typeof character.getLifesteal === 'function') ? character.getLifesteal() : (character.equipment.weapon?.lifesteal || 0);
                 if (lifesteal > 0) {
-                    const healAmount = Math.floor(damage * lifesteal);
+                    const healAmount = Math.floor(damage * (lifesteal / 100));
                     character.hp = Math.min(character.maxHp, character.hp + healAmount);
                     message += ` 偷取 ${healAmount} 點生命。`;
                 }
@@ -391,8 +401,9 @@ export default class TowerSystem {
             }
         }
         
-        // 計算掉落物品
-        const drops = calculateDrops(monster);
+        // 計算掉落物品（使用 resolve + generate）
+        const sources = resolveDropSources({ monster });
+        const drops = generateDropsFromSources(sources, { rng: Math.random });
         for (const drop of drops) {
             const material = getMaterial(drop.itemId);
             if (material) {
@@ -580,4 +591,4 @@ export default class TowerSystem {
 }
 
 // 單例導出
-export const towerSystem = new TowerSystem();
+export const towerManager = new TowerManager();

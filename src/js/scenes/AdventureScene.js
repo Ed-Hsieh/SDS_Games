@@ -2,12 +2,26 @@
  * AdventureScene.js
  * Logic for the Adventure scene (Map, Battle, Events, etc.)
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager, { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
-import { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
-import { eventSystem } from './EventSystem.js';
-import { questSystem } from './QuestSystem.js';
-import { ObjectiveType } from '../data/Quests.js';
+import { eventManager } from '../managers/EventManager.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
+import { getMaterial } from '../managers/MaterialManager.js';
+
+// Preload FightManager for unified management (fallback to promise if not ready)
+let FightManager = null;
+const FightManagerReady = import('../managers/FightManager.js')
+    .then(mod => { FightManager = mod; return mod; })
+    .catch(err => { console.error('Failed to preload FightManager:', err); return null; });
+
+// Centralized zone color definitions used by both rendering layers
+const ZONE_COLORS = {
+    low:  { hex: '#2e7d32', fill: 'rgba(77, 233, 84, 0.12)', stroke: 'rgba(43, 231, 52, 0.18)' },
+    medium:{ hex: '#2196f3', fill: 'rgba(33,150,243,0.12)', stroke: 'rgba(33,150,243,0.18)' },
+    high: { hex: '#ca521bff', fill: 'rgba(216, 166, 91, 0.12)', stroke: 'rgba(233, 169, 150, 0.18)' },
+    death: { hex: '#9b0909ff', fill: 'rgba(183,28,28,0.16)', stroke: 'rgba(183,28,28,0.22)' }
+};
 
 export default class AdventureScene {
     constructor(container, app) {
@@ -48,6 +62,11 @@ export default class AdventureScene {
             );
 
             this.updateUI();
+            // Build static layer cache for map (improves render performance)
+            this.staticCanvas = null;
+            this.staticCtx = null;
+            this.staticDirty = true;
+            this.buildStaticLayer && this.buildStaticLayer();
             this.renderMap();
             this.bindEvents();
         } catch (error) {
@@ -165,6 +184,28 @@ export default class AdventureScene {
                 this.closeInventoryModal();
             });
         }
+
+        // Inventory list virtualization: delegate scroll/click handling
+        if (this.dom.inventoryList) {
+            // Scroll handler for virtualization
+            this.dom.inventoryList.addEventListener('scroll', () => {
+                if (this._invUpdateRAF) return;
+                this._invUpdateRAF = requestAnimationFrame(() => {
+                    this._invUpdateRAF = null;
+                    if (typeof this.updateVisibleInventoryItems === 'function') this.updateVisibleInventoryItems();
+                });
+            });
+
+            // Click delegation
+            this.dom.inventoryList.addEventListener('click', (e) => {
+                const itemEl = e.target.closest && e.target.closest('.inventory-item');
+                if (!itemEl) return;
+                const instanceId = itemEl.dataset.instanceId;
+                if (!instanceId) return;
+                const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
+                if (stack) this.showInventoryItemModal(stack);
+            });
+        }
         
         // Item Detail Modal close button
         if (this.dom.btnCloseItemModal) {
@@ -243,6 +284,9 @@ export default class AdventureScene {
             this.worldMap.screenWidth = containerWidth;
             this.worldMap.screenHeight = containerHeight;
             this.worldMap.updateCamera();
+            // Mark static layer dirty and rebuild
+            this.staticDirty = true;
+            this.buildStaticLayer && this.buildStaticLayer();
             this.renderMap();
         }
     }
@@ -281,7 +325,7 @@ export default class AdventureScene {
             
             // 追蹤探索進度（任務系統）
             const zone = this.worldMap.getCurrentZone();
-            questSystem.updateProgress(ObjectiveType.EXPLORE, zone, 1);
+            questManager.updateProgress(ObjectiveType.EXPLORE, zone, 1);
             
             if (result === 'battle') {
                 this.isLocked = true;
@@ -323,7 +367,7 @@ export default class AdventureScene {
         
         if (this.worldMap && this.dom.currentZone) {
             const zone = this.worldMap.getCurrentZone();
-            const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'boss': 'Boss區' };
+            const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
             this.dom.currentZone.textContent = zoneNames[zone] || '未知區域';
             this.dom.currentZone.className = `info-value zone-indicator ${zone}`;
         }
@@ -339,37 +383,65 @@ export default class AdventureScene {
         const cameraY = this.worldMap.cameraOffsetY;
         
         // Clear
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw cached static layer (background, grid, walls)
+        if (this.staticCanvas && this.staticCtx) {
+            // Draw portion of staticCanvas corresponding to camera
+            ctx.drawImage(
+                this.staticCanvas,
+                Math.floor(cameraX), Math.floor(cameraY), // sx, sy
+                canvas.width, canvas.height,               // sWidth, sHeight
+                0, 0,                                       // dx, dy
+                canvas.width, canvas.height                // dWidth, dHeight
+            );
+        } else {
+            // fallback: fill background
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
         
-        const zoneColors = { 'low': '#4caf50', 'medium': '#ffc107', 'high': '#ff9800', 'boss': '#f44336' };
+        // Use centralized ZONE_COLORS (defined at module top)
         const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓', 'dungeon': '🏰' };
+        const monsterIcons = {
+            normal: '👾',
+            elite: '👹',
+            boss: '👿'
+        };
 
         const visibleCells = this.worldMap.getVisibleCells();
         
+        // Draw dynamic icons (monsters, events, dungeon, rift, home)
         visibleCells.forEach(cell => {
             const x = cell.x * gridSize - cameraX;
             const y = cell.y * gridSize - cameraY;
-            
-            const zone = cell.data.zone;
-            ctx.fillStyle = zoneColors[zone] + '20';
-            ctx.fillRect(x, y, gridSize, gridSize);
-            
-            ctx.strokeStyle = zoneColors[zone] + '40';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, gridSize, gridSize);
-            
-            if (cell.data.type === 'wall') {
-                ctx.fillStyle = '#555';
-                ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-            } else if (cell.data.type === 'monster') {
+            if (cell.data.type === 'monster') {
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff';
-                ctx.fillText(terrainIcons.monster, x + gridSize / 2, y + gridSize / 2);
+                // Use unified icons based on monster type/rank only
+                const rank = (cell.data && (cell.data.monsterType || cell.data.rank)) || 'normal';
+                const icon = monsterIcons[rank] || monsterIcons.normal;
+                // give elites and bosses extra glow
+                if (rank === 'elite') {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(255,165,0,0.6)';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                    ctx.restore();
+                } else if (rank === 'boss') {
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(183,28,28,0.8)';
+                    ctx.shadowBlur = 18;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
+                }
             } else if (cell.data.type === 'event') {
-                // 顯示事件圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -377,15 +449,10 @@ export default class AdventureScene {
                 const eventIcon = cell.data.eventData ? cell.data.eventData.icon : terrainIcons.event;
                 ctx.fillText(eventIcon, x + gridSize / 2, y + gridSize / 2);
             } else if (cell.data.type === 'dungeon') {
-                // 顯示副本入口圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                // 副本入口有特殊發光效果
                 const dungeonIcon = cell.data.dungeonData?.icon || terrainIcons.dungeon;
-                
-                // 繪製發光背景
                 ctx.save();
                 ctx.shadowColor = cell.data.dungeonData?.color || '#ff6b6b';
                 ctx.shadowBlur = 10;
@@ -393,7 +460,6 @@ export default class AdventureScene {
                 ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             } else if (cell.data.type === 'rift') {
-                // 顯示裂縫圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
@@ -405,12 +471,9 @@ export default class AdventureScene {
                 ctx.fillText(riftIcon, x + gridSize / 2, y + gridSize / 2);
                 ctx.restore();
             } else if (cell.data.type === 'home') {
-                // 顯示家的圖示
                 ctx.font = `${gridSize * 0.6}px Arial`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                
-                // 家有特殊溫暖發光效果
                 ctx.save();
                 ctx.shadowColor = '#ffb347';
                 ctx.shadowBlur = 15;
@@ -442,6 +505,12 @@ export default class AdventureScene {
     handleMapEvent() {
         const event = this.worldMap.getCurrentEvent();
         if (!event) return;
+
+        // If this event is a Slay-the-Spire style event (has choices), show story modal
+        if (event.choices && Array.isArray(event.choices) && event.choices.length > 0) {
+            this.showStoryEventModal(event);
+            return;
+        }
         
         const char = GameManager.getCharacter();
         let resultHTML = '';
@@ -484,7 +553,7 @@ export default class AdventureScene {
                 // 觸發劇情事件 (Slay the Spire 風格)
                 this.triggerStoryEvent();
                 // 任務系統：觸發事件
-                questSystem.updateProgress(ObjectiveType.EVENT, 'random', 1);
+                questManager.updateProgress(ObjectiveType.EVENT, 'random', 1);
                 return; // 不要清除事件，讓玩家選擇後再清除
         }
         
@@ -522,7 +591,7 @@ export default class AdventureScene {
         const rift = this.worldMap.getCurrentRift();
         const options = this.worldMap.getRiftOptions();
 
-        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'boss': 'Boss區' };
+        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
 
         const modalHTML = `
             <div class="rift-modal" id="rift-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:11000;">
@@ -799,7 +868,7 @@ export default class AdventureScene {
     
     triggerStoryEvent() {
         const zone = this.worldMap.getCurrentZone();
-        const event = eventSystem.triggerRandomEvent(zone);
+        const event = eventManager.triggerRandomEvent(zone);
         
         if (!event) {
             this.worldMap.clearCurrentEvent();
@@ -867,7 +936,7 @@ export default class AdventureScene {
     }
     
     executeStoryChoice(choiceIndex) {
-        const result = eventSystem.executeChoice(choiceIndex);
+        const result = eventManager.executeChoiceByIndex(choiceIndex);
         
         // 隱藏選項，顯示結果
         if (this.dom.storyEventChoices) {
@@ -904,7 +973,7 @@ export default class AdventureScene {
             'low': [ItemRarity.COMMON, ItemRarity.UNCOMMON],
             'medium': [ItemRarity.UNCOMMON, ItemRarity.RARE],
             'high': [ItemRarity.RARE, ItemRarity.EPIC],
-            'boss': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
+            'death': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
         };
         
         const possibleRarities = rarityByZone[zone] || [ItemRarity.COMMON];
@@ -966,6 +1035,72 @@ export default class AdventureScene {
         
         this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
+
+        // Disable attack button until engine is ready to avoid race conditions
+        try {
+            if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = true;
+        } catch (e) {}
+
+        // If FightManager engine is available, create an engine instance and start monster auto-attack
+        try {
+            if (FightManager && FightManager.BattleController) {
+                this.currentBattle._engine = new FightManager.BattleController(this.currentBattle.player, this.currentBattle.monster);
+                if (typeof this.currentBattle._engine.startAutoAttack === 'function') {
+                    this.currentBattle._engine.startAutoAttack();
+                }
+                    try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
+                    try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+                    // Register auto-attack callback so the scene updates UI when engine attacks
+                    try {
+                        if (this.currentBattle._engine) {
+                            this.currentBattle._engine._onAutoAttack = (res) => {
+                                if (!res) return;
+                                try {
+                                    if (res.destroyedArmor) this.updateEquipmentDisplay();
+                                    this.updateUI();
+                                    this.updatePlayerHUD();
+                                    this.showPlayerHitFeedback(res.damage);
+                                    this.endTurn();
+                                    if (res.playerHp <= 0) this.handleDefeat();
+                                } catch (e) {
+                                    console.warn('Error handling auto-attack UI update:', e);
+                                }
+                            };
+                        }
+                    } catch (e) {}
+            } else {
+                // If not ready yet, wait for the dynamic import to resolve
+                FightManagerReady.then(mod => {
+                    if (mod && mod.BattleController && this.currentBattle) {
+                        this.currentBattle._engine = new mod.BattleController(this.currentBattle.player, this.currentBattle.monster);
+                        if (typeof this.currentBattle._engine.startAutoAttack === 'function') {
+                            this.currentBattle._engine.startAutoAttack();
+                        }
+                            try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
+                            try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+                            try {
+                                if (this.currentBattle._engine) {
+                                    this.currentBattle._engine._onAutoAttack = (res) => {
+                                        if (!res) return;
+                                        try {
+                                            if (res.destroyedArmor) this.updateEquipmentDisplay();
+                                            this.updateUI();
+                                            this.updatePlayerHUD();
+                                            this.showPlayerHitFeedback(res.damage);
+                                            this.endTurn();
+                                            if (res.playerHp <= 0) this.handleDefeat();
+                                        } catch (e) {
+                                            console.warn('Error handling auto-attack UI update:', e);
+                                        }
+                                    };
+                                }
+                            } catch (e) {}
+                    }
+                }).catch(err => console.warn('Failed to initialize FightManager engine:', err));
+            }
+        } catch (e) {
+            console.warn('Error initializing FightManager engine:', e);
+        }
     }
 
     endBattle(victory) {
@@ -975,6 +1110,18 @@ export default class AdventureScene {
             this.rhythmSystem = null;
         }
         this.worldMap.clearCurrentMonster();
+        // Stop engine auto-attack if running
+        try {
+            if (this.currentBattle && this.currentBattle._engine && typeof this.currentBattle._engine.stopAutoAttack === 'function') {
+                this.currentBattle._engine.stopAutoAttack();
+            }
+        } catch (e) {
+            console.warn('Error stopping engine auto-attack:', e);
+        }
+
+        // Ensure attack button disabled after battle ends
+        try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = true; } catch (e) {}
+
         this.currentBattle = null;
         
         // 清除戰鬥結束時的 Buff
@@ -1057,9 +1204,6 @@ export default class AdventureScene {
         this.updateActionDeck();
         this.updateUI();
     }
-    
-    // battle log UI removed - method kept as noop for compatibility
-    addBattleLog(message) { /* removed */ }
     
     // 技能面板 UI 已移除 - 不再在 DOM 中渲染技能卡
     
@@ -1243,31 +1387,125 @@ export default class AdventureScene {
         this.dom.lootModal.style.display = 'flex';
         this.container.querySelector('#exp-gained').textContent = `+${exp} EXP`;
         this.container.querySelector('#gold-gained').textContent = `+${gold}`;
-        
+
+        // Local lootPool (array of item objects)
+        let lootPool = Array.isArray(items) ? items.slice() : [];
+
         const lootContainer = this.dom.lootItems;
-        lootContainer.innerHTML = '';
-        
-        if (items.length === 0) {
-            lootContainer.innerHTML = '<div class="empty-state">沒有戰利品</div>';
-        } else {
-            items.forEach(item => {
-                const el = document.createElement('div');
-                el.className = `loot-slot ${item.rarity}`;
-                el.innerHTML = `
-                    <div class="slot-icon">${item.icon}</div>
+        const inventoryPanel = this.container.querySelector('#loot-current-inventory');
+        const capacityBadge = this.container.querySelector('#loot-inventory-capacity');
+        const countBadge = this.container.querySelector('#loot-count');
+
+        // Helper to render player's current inventory (left panel)
+        const updatePlayerInventory = () => {
+            const stateInv = GameManager.state.inventory || [];
+            const capacity = GameManager.state.inventoryCapacity || 0;
+
+            if (capacityBadge) capacityBadge.textContent = `${stateInv.length}/${capacity}`;
+
+            if (!inventoryPanel) return;
+            inventoryPanel.innerHTML = '';
+
+            if (stateInv.length === 0) {
+                inventoryPanel.innerHTML = '<div class="empty-state">背包是空的<br><span class="hint-arrow">←</span> 點擊右側戰利品拾取</div>';
+                return;
+            }
+
+            stateInv.forEach(stack => {
+                const it = stack.item || {};
+                const slot = document.createElement('div');
+                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.dataset.instanceId = stack.instanceId || '';
+                slot.innerHTML = `
+                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '📦')}</div>
                     <div class="slot-info">
-                        <div class="slot-name">${item.name}</div>
+                        <div class="slot-name">${it.name || '未知'}</div>
+                        <div class="slot-type">${it.type || ''} ${stack.quantity && stack.quantity > 1 ? ` x${stack.quantity}` : ''}</div>
                     </div>
+                    <div class="slot-action"><div class="action-icon">→</div></div>
                 `;
-                el.onclick = () => {
-                    GameManager.addToInventory(item);
-                    el.remove();
-                    if (lootContainer.children.length === 0) {
-                        lootContainer.innerHTML = '<div class="empty-state">已全部拾取</div>';
+
+                // Move from inventory back to loot pool
+                slot.onclick = () => {
+                    const instanceId = slot.dataset.instanceId;
+                    if (!instanceId) return;
+                    const removed = GameManager.removeItemByInstanceId(instanceId, false);
+                    if (removed) {
+                        // removed is the item instance
+                        lootPool.push(removed);
+                        updatePlayerInventory();
+                        updateLootPool();
                     }
                 };
-                lootContainer.appendChild(el);
+
+                inventoryPanel.appendChild(slot);
             });
+        };
+
+        // Helper to render loot pool (right panel)
+        const updateLootPool = () => {
+            if (countBadge) countBadge.textContent = `${lootPool.length} items`;
+            if (!lootContainer) return;
+            lootContainer.innerHTML = '';
+
+            if (lootPool.length === 0) {
+                lootContainer.innerHTML = '<div class="empty-state">沒有戰利品</div>';
+                return;
+            }
+
+            lootPool.forEach((it, idx) => {
+                const slot = document.createElement('div');
+                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.innerHTML = `
+                    <div class="slot-action"><div class="action-icon">←</div></div>
+                    <div class="slot-info">
+                        <div class="slot-name">${it.name}</div>
+                        <div class="slot-type">${it.type || ''}</div>
+                    </div>
+                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '')}</div>
+                `;
+
+                // Click to take from loot to inventory
+                slot.onclick = () => {
+                    const success = GameManager.addToInventory(it, 1);
+                    if (!success) {
+                        alert('背包已滿！請先將左側物品移回右側或擴充背包');
+                        return;
+                    }
+                    // remove from lootPool
+                    lootPool.splice(idx, 1);
+                    updatePlayerInventory();
+                    updateLootPool();
+                };
+
+                lootContainer.appendChild(slot);
+            });
+        };
+
+        // Initialize panels
+        updatePlayerInventory();
+        updateLootPool();
+
+        // Close button behavior: collect remaining loot into warehouse then close modal
+        const closeBtn = this.dom.lootCloseBtn || this.container.querySelector('#btn-close-loot');
+        if (closeBtn) {
+            const handler = () => {
+                // send remaining loot to warehouse
+                lootPool.forEach(it => {
+                    try { GameManager.addToWarehouse(it, 1); } catch (e) { console.warn('addToWarehouse failed', e); }
+                });
+                // hide modal
+                this.dom.lootModal.style.display = 'none';
+                // cleanup
+                lootPool = [];
+                updatePlayerInventory();
+                updateLootPool();
+                // Remove this listener to avoid duplicates
+                closeBtn.removeEventListener('click', handler);
+            };
+            // ensure we don't add multiple handlers
+            closeBtn.removeEventListener('click', handler);
+            closeBtn.addEventListener('click', handler);
         }
     }
 }
@@ -1285,47 +1523,74 @@ class BattleController {
     playerAttack(hitType) {
         if (this.attackCooldown || this.battleEnded) return;
 
-        const playerAtk = this.player.getTotalAtk();
-        let damage = 0;
-        let isCrit = false;
-        
-        if (hitType === 'miss') {
-            this.showDamageNumber(0, false, true);
-            this.scene.addBattleLog('攻擊落空！MISS');
-        } else if (hitType === 'crit') {
-            damage = Math.floor(playerAtk * this.player.getCritDamage());
-            isCrit = true;
-            this.showDamageNumber(damage, true, false);
-            this.scene.addBattleLog(`爆擊！造成 ${damage} 點傷害！`);
-        } else {
-            damage = playerAtk;
-            this.showDamageNumber(damage, false, false);
-            this.scene.addBattleLog(`攻擊命中，造成 ${damage} 點傷害。`);
+        if (!this._engine) {
+            console.error('Fight engine not initialized; cannot perform player attack.');
+            return;
         }
 
-        // 武器耐久度消耗（無論命中與否都消耗）
-        const destroyedWeapon = GameManager.reduceWeaponDurability();
-        if (destroyedWeapon) {
-            this.scene.addBattleLog(`💔 ${destroyedWeapon.name} 已損壞！`);
-            this.scene.updateEquipmentDisplay();
-        }
+        const res = this._engine.playerAttack(hitType);
+        if (!res) return;
 
-        if (damage > 0) {
-            this.monster.takeDamage(damage);
-            this.scene.updateMonsterDisplay();
-            if (this.monster.isDead()) {
-                this.handleVictory();
-                return;
+        // Update equipment UI if weapon was destroyed
+        if (res.destroyedWeapon) this.scene.updateEquipmentDisplay();
+
+        const computeRes = res.computeRes || {};
+        const applyRes = res.applyRes || {};
+
+        // thunder (attack speed) visual
+        const thunderBuffPercent = computeRes.thunderBuffPercent || computeRes.breakdown?.thunderPercent || 0;
+        if (thunderBuffPercent && thunderBuffPercent > 0) {
+            const buffVal = thunderBuffPercent / 100;
+            this.player.addBuff('attackSpeed', buffVal, 1);
+            const header = this.scene.container.querySelector('.battle-header');
+            if (header) {
+                const el = document.createElement('div');
+                el.className = 'player-status-thunder';
+                el.textContent = `⚡ 攻速 +${thunderBuffPercent}%`;
+                el.style.position = 'absolute';
+                el.style.right = '12px';
+                el.style.top = '8px';
+                el.style.padding = '4px 8px';
+                el.style.background = 'rgba(255,215,0,0.95)';
+                el.style.color = '#000';
+                el.style.borderRadius = '6px';
+                header.appendChild(el);
+                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
             }
         }
-        
-        // 注意：節奏條冷卻由 RhythmBarSystem 自己處理
-        // 這裡只處理武器卡片的視覺冷卻效果（可選）
-        // const cooldownTime = this.player.getAttackInterval();
-        // this.startCooldown(cooldownTime);
-        
-        // 怪物反擊延遲
-        setTimeout(() => this.monsterAttack(), 1000);
+
+        // show miss
+        if (hitType === 'miss') this.showDamageNumber(0, false, true);
+
+        // show actual final damage
+        if (applyRes && typeof applyRes.finalDamage === 'number') {
+            this.showDamageNumber(applyRes.finalDamage, computeRes.isCrit, false);
+            this.scene.updateMonsterDisplay();
+        }
+
+        // lifesteal feedback
+        if (applyRes && applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
+            const header = this.scene.container.querySelector('.battle-header');
+            if (header) {
+                const el = document.createElement('div');
+                el.className = 'player-status-lifesteal';
+                el.textContent = `❤ 恢復 ${applyRes.lifestealRecovered}`;
+                el.style.position = 'absolute';
+                el.style.left = '12px';
+                el.style.top = '8px';
+                el.style.padding = '4px 8px';
+                el.style.background = 'rgba(255,105,180,0.95)';
+                el.style.color = '#000';
+                el.style.borderRadius = '6px';
+                header.appendChild(el);
+                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+            }
+        }
+
+        // Victory handled by scene when engine marks monster dead
+        if (this.monster.isDead && this.monster.isDead()) {
+            this.handleVictory();
+        }
     }
     
     // 技能戰鬥 API 已移除（Adventure 的 BattleController 中）
@@ -1424,28 +1689,57 @@ class BattleController {
 
     monsterAttack() {
         if (this.battleEnded) return;
-        
+
+        // If engine present, delegate
+        try {
+            if (this._engine && typeof this._engine.monsterAttack === 'function') {
+                const res = this._engine.monsterAttack();
+                if (!res) return;
+
+                // Update UI / equipment when armor destroyed
+                if (res.destroyedArmor) this.scene.updateEquipmentDisplay();
+
+                // Refresh UI
+                this.scene.updateUI();
+                this.scene.updatePlayerHUD();
+
+                // Player hit feedback
+                this.showPlayerHitFeedback(res.damage);
+
+                // End turn housekeeping
+                this.endTurn();
+
+                if (res.playerHp <= 0) {
+                    this.handleDefeat();
+                }
+
+                return;
+            }
+        } catch (e) {
+            console.error('Delegated monsterAttack failed:', e);
+        }
+
+        // Fallback original behavior
+        if (this.battleEnded) return;
+
         const damage = Math.max(1, this.monster.attack - this.player.getTotalDef());
         this.player.hp = Math.max(0, this.player.hp - damage);
-        
-        this.scene.addBattleLog(`${this.monster.name} 發動攻擊，造成 ${damage} 點傷害！`);
-        
+
         // 防具耐久度消耗
         const destroyedArmor = GameManager.reduceArmorDurability();
         if (destroyedArmor) {
-            this.scene.addBattleLog(`💔 ${destroyedArmor.name} 已損壞！`);
             this.scene.updateEquipmentDisplay();
         }
-        
+
         this.scene.updateUI();
         this.scene.updatePlayerHUD();
-        
+
         // 玩家受擊反饋
         this.showPlayerHitFeedback(damage);
-        
+
         // 回合結束處理
         this.endTurn();
-        
+
         if (this.player.hp <= 0) {
             this.handleDefeat();
         }
@@ -1507,32 +1801,52 @@ class BattleController {
 
     handleVictory() {
         this.battleEnded = true;
-        this.scene.addBattleLog(`擊敗了 ${this.monster.name}！`);
         
-        const drops = this.monster.getDrops();
+        // 使用 DropManager 的 resolve + generate 流程取得掉落物品
+        const sources = resolveDropSources({ monster: this.monster });
+        const drops = generateDropsFromSources(sources, { rng: Math.random });
+        const gold = this.monster.gold || 0;
+        
+        // 將掉落 ID 轉換成物品實例
+        const droppedItems = [];
+        for (const drop of drops) {
+            // 嘗試從材料資料庫獲取
+            let item = getMaterial(drop.itemId);
+            // 如果不是材料，嘗試從裝備資料庫獲取
+            if (!item) {
+                item = getEquipment(drop.itemId);
+            }
+            if (item) {
+                droppedItems.push({
+                    ...item,
+                    quantity: drop.quantity,
+                    instanceId: Date.now() + Math.random().toString(36).substr(2, 9)
+                });
+            }
+        }
+        
         this.player.exp += this.monster.exp;
         this.player.checkLevelUp();
-        GameManager.addGold(drops.gold);
+        GameManager.addGold(gold);
         
         // 任務系統：更新擊殺進度
-        questSystem.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
+        questManager.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
         
         setTimeout(() => {
             this.scene.endBattle(true);
-            this.scene.showLoot(this.monster.exp, drops.gold, drops.items);
+            this.scene.showLoot(this.monster.exp, gold, droppedItems);
         }, 1500);
     }
 
     handleDefeat() {
         this.battleEnded = true;
-        this.scene.addBattleLog('你被擊敗了...');
         
         const penalty = Math.floor(this.player.gold * 0.1);
         GameManager.removeGold(penalty);
         this.player.hp = Math.floor(this.player.maxHp * 0.3);
         
         // 任務系統：更新死亡統計
-        questSystem.updateStats('death');
+        questManager.updateStats('death');
         
         setTimeout(() => {
             this.scene.endBattle(false);
@@ -1543,11 +1857,16 @@ class BattleController {
     flee() {
         if (Math.random() < 0.5) {
             this.battleEnded = true;
-            this.scene.addBattleLog('成功逃跑！');
             setTimeout(() => this.scene.endBattle(false), 200);
         } else {
-            this.scene.addBattleLog('逃跑失敗！');
-            setTimeout(() => this.monsterAttack(), 500);
+            // If engine present, invoke its monsterAttack immediately.
+            // Do not fallback to scheduling the old scene monsterAttack to avoid duplicate
+            // countdowns or unexpected extra hits during engine transition.
+            if (this._engine && typeof this._engine.monsterAttack === 'function') {
+                this._engine.monsterAttack();
+            } else {
+                console.warn('Fight engine not initialized; cannot perform monster attack after failed flee.');
+            }
         }
     }
 }
@@ -2021,24 +2340,111 @@ AdventureScene.prototype.renderInventory = function() {
     // Render equipment slots
     this.renderEquipmentSlots();
     
-    // Render inventory items
+    // Render inventory items using simple virtualization + DOM reuse
     if (!this.dom.inventoryList) return;
-    
-    this.dom.inventoryList.innerHTML = '';
-    if (state.inventory && state.inventory.length > 0) {
-        state.inventory.forEach(stack => {
+
+    const container = this.dom.inventoryList;
+    const items = state.inventory || [];
+
+    // Simple fixed height virtualization
+    const ITEM_HEIGHT = 84; // px per item (tweak in CSS if needed)
+    const totalHeight = items.length * ITEM_HEIGHT;
+
+    // Ensure container is set up for virtualization
+    container.style.position = 'relative';
+    container.style.overflowY = 'auto';
+
+    // Spacer element ensures scroll height
+    let spacer = container.querySelector('.inv-spacer');
+    if (!spacer) {
+        spacer = document.createElement('div');
+        spacer.className = 'inv-spacer';
+        container.appendChild(spacer);
+    }
+    spacer.style.height = totalHeight + 'px';
+
+    // Pool wrapper holds reused item nodes
+    let pool = container.querySelector('.inv-pool');
+    if (!pool) {
+        pool = document.createElement('div');
+        pool.className = 'inv-pool';
+        pool.style.position = 'absolute';
+        pool.style.top = '0';
+        pool.style.left = '0';
+        pool.style.right = '0';
+        container.appendChild(pool);
+    }
+
+    // If no items, show empty hint and clear pool
+    if (!items || items.length === 0) {
+        pool.innerHTML = '';
+        spacer.style.height = '0px';
+        container.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+        return;
+    }
+
+    // Store state for updates
+    this._invItems = items;
+    this._invItemHeight = ITEM_HEIGHT;
+    this._invContainer = container;
+    this._invPoolWrapper = pool;
+
+    // Determine number of nodes to create in pool (visible + buffer)
+    const viewportHeight = container.clientHeight || 400;
+    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+    const buffer = 4;
+    const poolSize = visibleCount + buffer * 2;
+
+    // Create or reuse pool nodes
+    if (!this._invPool || this._invPool.length !== poolSize) {
+        // clear existing
+        this._invPool = [];
+        pool.innerHTML = '';
+        for (let i = 0; i < poolSize; i++) {
+            const node = document.createElement('div');
+            node.className = 'item-card inventory-item';
+            node.style.position = 'absolute';
+            node.style.left = '0';
+            node.style.right = '0';
+            node.style.height = ITEM_HEIGHT + 'px';
+            pool.appendChild(node);
+            this._invPool.push(node);
+        }
+    }
+
+    // Initial render of visible items
+    this.updateVisibleInventoryItems();
+};
+
+// Update visible inventory items (virtualization renderer)
+AdventureScene.prototype.updateVisibleInventoryItems = function() {
+    const container = this._invContainer;
+    const items = this._invItems || [];
+    const ITEM_HEIGHT = this._invItemHeight || 84;
+    const pool = this._invPool || [];
+    if (!container || pool.length === 0) return;
+
+    const scrollTop = container.scrollTop || 0;
+    const viewportHeight = container.clientHeight || 400;
+    const firstIndex = Math.floor(scrollTop / ITEM_HEIGHT);
+    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
+    const buffer = Math.floor(pool.length - visibleCount > 0 ? (pool.length - visibleCount) / 2 : 2);
+    const start = Math.max(0, firstIndex - buffer);
+
+    for (let i = 0; i < pool.length; i++) {
+        const dataIndex = start + i;
+        const node = pool[i];
+        if (dataIndex >= 0 && dataIndex < items.length) {
+            const stack = items[dataIndex];
             const item = stack.item;
-            const itemEl = document.createElement('div');
-            itemEl.className = `item-card inventory-item rarity-${item.rarity}`;
-            
-            let iconHTML;
-            if (item.image) {
-                iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-            } else {
-                iconHTML = item.icon || '📦';
-            }
-            
-            itemEl.innerHTML = `
+            node.style.display = '';
+            node.dataset.instanceId = stack.instanceId;
+            node.className = `item-card inventory-item rarity-${item.rarity}`;
+            node.style.transform = `translateY(${dataIndex * ITEM_HEIGHT}px)`;
+
+            // Build inner HTML (cheap, but reused nodes minimize layout churn)
+            let iconHTML = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">` : (item.icon || '📦');
+            node.innerHTML = `
                 <div class="item-icon">
                     ${iconHTML}
                     ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
@@ -2047,15 +2453,68 @@ AdventureScene.prototype.renderInventory = function() {
                     <div class="item-name">${item.name}</div>
                 </div>
             `;
-            
-            itemEl.addEventListener('click', () => {
-                this.showInventoryItemModal(stack);
-            });
-            
-            this.dom.inventoryList.appendChild(itemEl);
-        });
-    } else {
-        this.dom.inventoryList.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
+        } else {
+            node.style.display = 'none';
+        }
+    }
+};
+
+// Build static layer canvas for the whole map (backgrounds, grid, walls)
+AdventureScene.prototype.buildStaticLayer = function() {
+    if (!this.worldMap) return;
+
+    try {
+        const map = this.worldMap;
+        const gridSize = map.gridSize;
+        const width = map.mapWidth;
+        const height = map.mapHeight;
+
+        // Create offscreen canvas
+        const off = document.createElement('canvas');
+        off.width = width;
+        off.height = height;
+        const octx = off.getContext('2d');
+
+        // Draw background
+        octx.fillStyle = '#0a0a0a';
+        octx.fillRect(0, 0, width, height);
+
+        // Use centralized ZONE_COLORS (defined at module top)
+
+        // Draw tiles (zones and walls) – avoid dynamic icons
+        for (let r = 0; r < map.rows; r++) {
+            for (let c = 0; c < map.cols; c++) {
+                const cell = map.mapData[r][c];
+                const x = c * gridSize;
+                const y = r * gridSize;
+                const zone = cell.zone;
+
+                // Zone background / stroke using centralized ZONE_COLORS
+                const zInfo = ZONE_COLORS[zone] || { fill: 'rgba(100,100,100,0.08)', stroke: 'rgba(100,100,100,0.14)' };
+                octx.fillStyle = zInfo.fill;
+                octx.fillRect(x, y, gridSize, gridSize);
+
+                octx.strokeStyle = zInfo.stroke;
+                octx.lineWidth = 1;
+                octx.strokeRect(x, y, gridSize, gridSize);
+
+                // Walls rendered in static layer
+                if (cell.type === 'wall') {
+                    octx.fillStyle = '#555';
+                    octx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+                }
+            }
+        }
+
+        // Save to instance
+        this.staticCanvas = off;
+        this.staticCtx = octx;
+        this.staticDirty = false;
+    } catch (e) {
+        console.warn('buildStaticLayer failed:', e);
+        this.staticCanvas = null;
+        this.staticCtx = null;
+        this.staticDirty = true;
     }
 };
 
@@ -2157,8 +2616,16 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
         const def = item.def || item.defense;
         statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
     }
-    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.critChance) {
+        const raw = Number(item.critChance || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
+    if (item.critDamage) {
+        const raw = Number(item.critDamage || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
     if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
     if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
     if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
@@ -2233,8 +2700,16 @@ AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
     let statsHtml = '';
     if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
     if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.critChance) {
+        const raw = Number(item.critChance || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
+    if (item.critDamage) {
+        const raw = Number(item.critDamage || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
     if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
     if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
     if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;

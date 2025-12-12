@@ -4,7 +4,7 @@
  * Handles buying, selling, and secret shop unlocking.
  */
 import GameManager from '../managers/GameManager.js';
-import { ShopData, SecretShopItems } from '../data/Items.js';
+import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
 
 export default class ShopScene {
     constructor(container, app) {
@@ -266,8 +266,14 @@ export default class ShopScene {
         ];
         stats.forEach(stat => {
             if (item[stat.key]) {
-                const value = stat.suffix === '%' ? (item[stat.key] * 100).toFixed(0) : item[stat.key];
-                statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${value}${stat.suffix}</span></div>`;
+                // normalize percent values: support fraction (0.05) or percent-int (5)
+                if (stat.suffix === '%') {
+                    const raw = Number(item[stat.key] || 0);
+                    const normalized = Math.abs(raw) <= 1 ? raw * 100 : raw;
+                    statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${normalized.toFixed(0)}%</span></div>`;
+                } else {
+                    statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${item[stat.key]}</span></div>`;
+                }
             }
         });
 

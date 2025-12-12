@@ -1,12 +1,15 @@
 /**
- * DungeonSystem.js
+ * DungeonManager.js
  * 副本系統 - 處理副本邏輯、狀態管理、特殊機制
  */
 
-import { DungeonDatabase, DungeonType, DungeonState, DungeonSpawnConfig } from '../data/Dungeons.js';
+import { DungeonDatabase, DungeonType, DungeonState, DungeonSpawnConfig, DungeonEntranceConfig } from '../data/Dungeons.js';
 import { generateDungeonMonster, generateDungeonBoss, generateFloorEvent } from '../data/Dungeons.js';
 
-class DungeonSystemClass {
+// 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
+export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig };
+
+class DungeonManagerClass {
     constructor() {
         // 當前副本狀態
         this.currentDungeon = null;
@@ -684,4 +687,9 @@ class DungeonSystemClass {
 }
 
 // 單例導出
-export const DungeonSystem = new DungeonSystemClass();
+export const dungeonManager = new DungeonManagerClass();
+
+// 向後兼容
+export { DungeonManagerClass as DungeonSystemClass };
+export const DungeonSystem = dungeonManager;
+export default DungeonManagerClass;

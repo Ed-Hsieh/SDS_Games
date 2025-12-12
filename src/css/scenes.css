@@ -283,7 +283,8 @@
     border: 2px solid rgba(79, 172, 254, 0.3);
 }
 
-.modal-icon { font-size: 40px; }
+
+
 
 .modal-title { margin: 0 0 4px 0; font-size: 18px; color: #fff; }
 
@@ -298,12 +299,8 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-.modal-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-}
+
+
 
 .stat-row {
     font-family: 'Consolas', monospace;
@@ -370,20 +367,7 @@
     flex-shrink: 0;
 }
 
-.player-stats {
-    display: flex;
-    gap: 24px;
-    align-items: center;
-    font-size: 16px;
-    color: #ffd700;
-    font-weight: bold;
-}
 
-.zone-info {
-    font-size: 14px;
-    color: #4facfe;
-    font-weight: 600;
-}
 
 .info-value {
     font-size: 16px;
@@ -517,13 +501,11 @@
     z-index: 10;
 }
 
-.rhythm-hint { font-size: 12px; color: #aaa; margin-top: 4px; }
 
-.battle-actions {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-}
+
+
+
+
 
 /* Loot Modal */
 .loot-modal {
@@ -627,7 +609,8 @@
 }
 
 .buff-icon { font-size: 16px; }
-.buff-value { font-weight: bold; }
+
+
 .buff-duration { opacity: 0.7; font-size: 10px; }
 
 @keyframes buffPulse {
@@ -1389,10 +1372,8 @@
     box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
 }
 
-.craft-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+
+
 
 .craft-details {
     display: flex;
@@ -1571,10 +1552,8 @@
 .item-name { font-size: 20px; color: #fff; font-weight: bold; }
 .item-rarity { font-size: 12px; color: #aaa; text-transform: uppercase; }
 
-.enhance-info {
-    width: 100%;
-    max-width: 400px;
-}
+
+
 
 .current-stats, .preview-stats {
     padding: 15px;
@@ -1583,20 +1562,16 @@
     margin: 10px 0;
 }
 
-.current-stats h4, .preview-stats h4 {
-    color: #ff9800;
-    margin: 0 0 10px 0;
-    font-size: 14px;
-}
 
-.current-stats div, .preview-stats div {
-    color: #fff;
-    font-size: 14px;
-    margin: 4px 0;
-}
 
-.stat-up { color: #4caf50; }
-.enhance-arrow { text-align: center; font-size: 24px; }
+
+
+
+
+
+
+
+
 
 .enhance-details {
     display: flex;
@@ -1631,10 +1606,8 @@
     box-shadow: 0 6px 20px rgba(255, 152, 0, 0.4);
 }
 
-.enhance-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+
+
 
 /* 寶石區域 */
 .gem-slots {
@@ -1657,7 +1630,8 @@
     transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.gem-slot.empty:hover { border-color: #ff9800; }
+
+
 .gem-slot.filled { border-style: solid; border-color: #4caf50; }
 .gem-slot.locked { opacity: 0.4; cursor: not-allowed; }
 .gem-slot.selected { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
@@ -1703,7 +1677,8 @@
     cursor: pointer;
 }
 
-.socket-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+
 
 /* 歷史面板 */
 .history-panel {
@@ -2551,11 +2526,8 @@
     text-shadow: 0 0 20px currentColor;
 }
 
-.dungeon-info {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-}
+
+
 
 .floor-badge, .steps-badge {
     padding: 6px 14px;
@@ -2594,15 +2566,8 @@
     flex-shrink: 0;
 }
 
-.mechanic-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    color: #fff;
-    font-weight: 600;
-    min-width: 150px;
-}
+
+
 
 .mechanic-bar-container {
     flex: 1;
@@ -2620,11 +2585,8 @@
     border-radius: 6px;
 }
 
-.mechanic-value {
-    color: #fff;
-    font-weight: bold;
-    min-width: 100px;
-}
+
+
 
 .mechanic-tip {
     font-size: 12px;
@@ -2660,17 +2622,11 @@
     margin-bottom: 16px;
 }
 
-.status-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
 
-.status-label {
-    min-width: 60px;
-    font-size: 14px;
-    color: #fff;
-}
+
+
+
+
 
 .status-bar-container {
     flex: 1;
@@ -2696,13 +2652,8 @@
     width: 100%;
 }
 
-.status-value {
-    min-width: 80px;
-    text-align: right;
-    color: #fff;
-    font-weight: bold;
-    font-family: 'Consolas', monospace;
-}
+
+
 
 /* 戰鬥區域 */
 .combat-area {
@@ -2735,12 +2686,8 @@
     max-width: 300px;
 }
 
-.combat-area .monster-name {
-    font-size: 20px;
-    color: #fff;
-    font-weight: bold;
-    margin-bottom: 8px;
-}
+
+
 
 .monster-hp-container {
     height: 20px;
@@ -2757,10 +2704,8 @@
     transition: width 0.3s ease;
 }
 
-.combat-area .monster-hp {
-    color: #ff6b6b;
-    font-weight: bold;
-}
+
+
 
 /* 謎題區域 */
 .puzzle-area {
@@ -2772,15 +2717,11 @@
     text-align: center;
 }
 
-.puzzle-area h3 {
-    color: #ffc107;
-    margin: 0 0 16px 0;
-}
 
-.puzzle-content {
-    margin-bottom: 20px;
-    color: #fff;
-}
+
+
+
+
 
 .sequence-display {
     font-size: 32px;
@@ -2790,17 +2731,11 @@
     border-radius: 8px;
 }
 
-.sequence-hint, .riddle-question, .symbol-question {
-    font-size: 16px;
-    margin-top: 12px;
-}
 
-.puzzle-options {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
+
+
+
+
 
 .puzzle-btn {
     padding: 12px 24px;
@@ -2849,8 +2784,10 @@
 .message-mechanic { color: #9c27b0; background: rgba(156, 39, 176, 0.1); }
 .message-combat { color: #ff9800; background: rgba(255, 152, 0, 0.1); }
 .message-reward { color: #ffd700; background: rgba(255, 215, 0, 0.15); font-weight: bold; }
-.message-player-action { color: #4facfe; }
-.message-enemy-action { color: #f44336; }
+
+
+
+
 .message-legendary { color: #ff9800; background: rgba(255, 152, 0, 0.2); font-weight: bold; font-size: 16px; }
 .message-boss { color: #e91e63; background: rgba(233, 30, 99, 0.1); font-weight: bold; }
 
@@ -2862,21 +2799,11 @@
     flex-shrink: 0;
 }
 
-.action-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-}
 
-.btn-action {
-    padding: 14px 28px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
-}
+
+
+
+
 
 .btn-explore {
     background: linear-gradient(135deg, #4facfe, #00f2fe);
@@ -2931,14 +2858,11 @@
     text-align: center;
 }
 
-.reward-panel h2 {
-    color: #ffd700;
-    margin: 0 0 20px 0;
-}
 
-.reward-list {
-    margin-bottom: 20px;
-}
+
+
+
+
 
 .reward-item {
     display: flex;
@@ -2967,7 +2891,8 @@
 
 .reward-icon { font-size: 28px; }
 .reward-name { color: #fff; font-weight: bold; flex: 1; text-align: left; }
-.reward-rarity { color: #aaa; font-size: 12px; text-transform: uppercase; }
+
+
 
 .reward-stats {
     display: flex;
@@ -3050,7 +2975,8 @@
     background: linear-gradient(180deg, #1a3a1a 0%, #228b22 50%, #90ee90 100%);
 }
 
-.dungeon-jungle .dungeon-title h1 { color: #90ee90; }
+
+
 .dungeon-jungle .mechanic-bar { background: #90ee90; }
 .dungeon-jungle .mechanic-panel { border-bottom-color: rgba(144, 238, 144, 0.3); }
 
@@ -3077,7 +3003,8 @@
     background: linear-gradient(180deg, #2d0000 0%, #8b0000 50%, #ff4500 100%);
 }
 
-.dungeon-hell .dungeon-title h1 { color: #ff4500; }
+
+
 .dungeon-hell .mechanic-bar { background: linear-gradient(90deg, #ff4500, #ff0000); width: 100%; }
 .dungeon-hell .mechanic-panel { border-bottom-color: rgba(255, 69, 0, 0.3); }
 
@@ -3325,10 +3252,8 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-.combat-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+
+
 
 .btn-attack {
     background: linear-gradient(135deg, #e74c3c, #c0392b);

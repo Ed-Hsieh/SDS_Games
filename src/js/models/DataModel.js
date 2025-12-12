@@ -3,40 +3,9 @@
  * Core data models for the RPG.
  */
 
-export const ItemRarity = {
-    COMMON: 'common',
-    UNCOMMON: 'uncommon',
-    RARE: 'rare',
-    EPIC: 'epic',
-    LEGENDARY: 'legendary'
-};
-
-export const ItemType = {
-    WEAPON: 'weapon',
-    ARMOR: 'armor',
-    ACCESSORY: 'accessory',
-    POTION: 'potion',
-    MATERIAL: 'material',
-    KEY: 'key',
-    GEM: 'gem',
-    SOCKET_GEM: 'socket_gem',
-    SCROLL: 'scroll',
-    BOOK: 'book',
-    QUEST: 'quest'
-};
-
-export const ItemCategory = {
-    EQUIPMENT: 'equipment',
-    ITEMS: 'items'
-};
-
-// ===== 技能系統 =====
-export const SkillType = {
-    ATTACK: 'attack',      // 攻擊技能
-    HEAL: 'heal',          // 治療技能
-    BUFF: 'buff',          // 增益技能
-    DEBUFF: 'debuff'       // 減益技能
-};
+// 從 Enums.js 導入並重新導出（保持向後相容）
+import { ItemRarity, ItemType, ItemCategory, SkillType } from './Enums.js';
+export { ItemRarity, ItemType, ItemCategory, SkillType };
 
 export class Skill {
     constructor(id, name, type, icon, description, mpCost, cooldown = 0) {
@@ -258,18 +227,27 @@ export class Consumable extends Item {
     }
 }
 
-export class Character {
+// 引入 CharacterManager 邏輯函式
+import * as CharacterLogic from '../managers/CharacterManager.js';
+
+/**
+ * Character - 純資料模型
+ * 只包含屬性定義和基本的 getter/setter
+ * 所有邏輯方法委派給 managers/CharacterManager.js
+ */
+export class CharacterManager {
     constructor() {
+        // ===== 純資料屬性 =====
         this.level = 1;
-        this._hp = 120;  // 100 + (1 * 20) = 120
+        this._hp = 120;      // 100 + (1 * 20) = 120
         this._maxHp = 120;
         this._mp = 50;
         this._maxMp = 50;
         this._exp = 0;
         this._maxExp = 100;
         this.gold = 100;
-        this.baseAtk = 5;   // 基礎攻擊力（較低，主要靠裝備）
-        this.baseDef = 2;   // 基礎防禦力（較低，主要靠裝備）
+        this.baseAtk = 5;    // 基礎攻擊力
+        this.baseDef = 2;    // 基礎防禦力
         this._attack = 5;
         this._defense = 2;
         
@@ -279,316 +257,76 @@ export class Character {
             accessory: null
         };
         
-        // 新增：技能系統
         this.skills = [];
-        this.initDefaultSkills();
-        
-        // 新增：Buff 系統
-        this.activeBuffs = [];  // { type, value, duration }
-    }
-    
-    // 初始化預設技能
-    initDefaultSkills() {
-        // 創建技能的新實例，避免共用同一個物件
-        this.skills = [
-            new AttackSkill('fireball', '火球術', '🔥', '發射一顆火球攻擊敵人', 15, 0, 1.5, 10),
-            new HealSkill('heal', '治療術', '💚', '恢復自身生命值', 20, 1, 30, 0.1),
-            new BuffSkill('battle_cry', '戰吼', '📢', '提升自身攻擊力', 15, 3, 'atk', 20, 3)
-        ];
-    }
-    
-    // Getters and setters to keep properties in sync
-    get hp() { return this._hp; }
-    set hp(value) { 
-        this._hp = Math.max(0, Math.min(value, this._maxHp)); 
-        this.currentHP = this._hp;
-    }
-    
-    get maxHp() { return this._maxHp; }
-    set maxHp(value) { 
-        this._maxHp = value;
-    }
-    
-    get currentHP() { return this._hp; }
-    set currentHP(value) { this._hp = Math.max(0, Math.min(value, this._maxHp)); }
-    
-    get mp() { return this._mp; }
-    set mp(value) { this._mp = Math.max(0, Math.min(value, this._maxMp)); }
-    
-    get maxMp() { return this._maxMp; }
-    set maxMp(value) { this._maxMp = value; }
-    
-    get exp() { return this._exp; }
-    set exp(value) { 
-        this._exp = value;
-        this.currentEXP = value;
-    }
-    
-    get currentEXP() { return this._exp; }
-    set currentEXP(value) { this._exp = value; }
-    
-    get maxExp() { return this._maxExp; }
-    set maxExp(value) { 
-        this._maxExp = value;
-        this.maxEXP = value;
-    }
-    
-    get maxEXP() { return this._maxExp; }
-    set maxEXP(value) { this._maxExp = value; }
-    
-    get attack() { return this._attack; }
-    set attack(value) { this._attack = value; }
-    
-    get defense() { return this._defense; }
-    set defense(value) { this._defense = value; }
-
-    getTotalAtk() {
-        let total = this.baseAtk;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.atk) total += item.atk;
-            // 加上詞綴加成
-            if (item && item.affixBonuses && item.affixBonuses.atk) {
-                total += item.affixBonuses.atk;
-            }
-        });
-        // 加上 Buff 加成
-        total += this.getBuffValue('atk');
-        this._attack = total;
-        return total;
-    }
-
-    getTotalDef() {
-        let total = this.baseDef;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.def) total += item.def;
-            // 加上詞綴加成
-            if (item && item.affixBonuses && item.affixBonuses.def) {
-                total += item.affixBonuses.def;
-            }
-        });
-        // 加上 Buff 加成
-        total += this.getBuffValue('def');
-        this._defense = total;
-        return total;
-    }
-
-    getCritChance() {
-        let totalCritChance = 0.05;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.critChance) {
-                totalCritChance += item.critChance;
-            }
-            // 加上詞綴加成
-            if (item && item.affixBonuses && item.affixBonuses.critChance) {
-                totalCritChance += item.affixBonuses.critChance;
-            }
-        });
-        // 加上 Buff 加成
-        totalCritChance += this.getBuffValue('critChance');
-        return Math.min(totalCritChance, 1.0);
-    }
-
-    getCritDamage() {
-        let totalCritDamage = 1.5;
-        let additionalCritDamage = 0;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.critDamage) {
-                additionalCritDamage += (item.critDamage - 1.5);
-            }
-            // 加上詞綴加成
-            if (item && item.affixBonuses && item.affixBonuses.critDamage) {
-                additionalCritDamage += item.affixBonuses.critDamage;
-            }
-        });
-        // 加上 Buff 加成
-        additionalCritDamage += this.getBuffValue('critDamage');
-        return totalCritDamage + additionalCritDamage;
-    }
-
-    getWeaponSpeed() {
-        const weapon = this.equipment.weapon;
-        return (weapon && weapon.weaponSpeed) ? weapon.weaponSpeed : 1.0;
-    }
-
-    getAttackSpeed() {
-        let baseSpeed = 1.0;
-        const weapon = this.equipment.weapon;
-        if (weapon && weapon.attackSpeed) {
-            baseSpeed = weapon.attackSpeed;
-        }
-        // 加上詞綴攻擊速度加成
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.affixBonuses && item.affixBonuses.attackSpeed) {
-                baseSpeed += item.affixBonuses.attackSpeed;
-            }
-        });
-        return baseSpeed;
-    }
-
-    getAttackInterval() {
-        return 1 / this.getAttackSpeed();
-    }
-    
-    /**
-     * 獲取生命偷取率
-     */
-    getLifesteal() {
-        let lifesteal = 0;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.lifesteal) lifesteal += item.lifesteal;
-            if (item && item.affixBonuses && item.affixBonuses.lifesteal) {
-                lifesteal += item.affixBonuses.lifesteal;
-            }
-        });
-        return lifesteal;
-    }
-    
-    /**
-     * 獲取傷害減免率
-     */
-    getDamageReduction() {
-        let reduction = 0;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.damageReduction) reduction += item.damageReduction;
-            if (item && item.affixBonuses && item.affixBonuses.damageReduction) {
-                reduction += item.affixBonuses.damageReduction;
-            }
-        });
-        return Math.min(reduction, 0.75); // 最大 75% 減傷
-    }
-    
-    /**
-     * 獲取詞綴帶來的額外生命值
-     */
-    getAffixHpBonus() {
-        let bonus = 0;
-        Object.values(this.equipment).forEach(item => {
-            if (item && item.affixBonuses && item.affixBonuses.hp) {
-                bonus += item.affixBonuses.hp;
-            }
-        });
-        return bonus;
-    }
-
-    // ===== Buff 系統 =====
-    
-    addBuff(buffType, buffValue, duration) {
-        // 檢查是否已有同類型 Buff，如果有則刷新
-        const existingBuff = this.activeBuffs.find(b => b.type === buffType);
-        if (existingBuff) {
-            existingBuff.value = Math.max(existingBuff.value, buffValue);
-            existingBuff.duration = Math.max(existingBuff.duration, duration);
-        } else {
-            this.activeBuffs.push({ type: buffType, value: buffValue, duration: duration });
-        }
-    }
-    
-    getBuffValue(buffType) {
-        const buff = this.activeBuffs.find(b => b.type === buffType);
-        return buff ? buff.value : 0;
-    }
-    
-    tickBuffs() {
-        // 每回合結束時減少 Buff 持續時間
-        this.activeBuffs = this.activeBuffs.filter(buff => {
-            buff.duration--;
-            return buff.duration > 0;
-        });
-    }
-    
-    clearAllBuffs() {
         this.activeBuffs = [];
-    }
-    
-    // ===== 技能系統 =====
-    
-    useSkill(skillIndex, target) {
-        if (skillIndex < 0 || skillIndex >= this.skills.length) return null;
-        const skill = this.skills[skillIndex];
-        return skill.use(this, target);
-    }
-    
-    tickSkillCooldowns() {
-        this.skills.forEach(skill => skill.reduceCooldown());
-    }
-
-    equip(item) {
-        if (!item.isEquipment()) return false;
         
-        const slot = item.type;
-        
-        if (this.equipment.hasOwnProperty(slot)) {
-             this.equipment[slot] = item;
-             this.getTotalAtk();
-             this.getTotalDef();
-             return true;
-        }
-        return false;
-    }
-
-    unequip(slotType) {
-        const item = this.equipment[slotType];
-        this.equipment[slotType] = null;
-        this.getTotalAtk();
-        this.getTotalDef();
-        return item;
-    }
-
-    useItem(item) {
-        if (!item.effect) return false;
-        
-        if (item.effect.hp) {
-            this.hp = Math.min(this.maxHp, this.hp + item.effect.hp);
-        }
-        if (item.effect.mp) {
-            this.mp = Math.min(this.maxMp, this.mp + item.effect.mp);
-        }
-        if (item.effect.exp) {
-            this.exp += item.effect.exp;
-            this.checkLevelUp();
-        }
-        return true;
-    }
-
-    checkLevelUp() {
-        while (this.exp >= this.maxExp) {
-            this.level++;
-            this.exp -= this.maxExp;
-            // 經驗需求遞增
-            this.maxExp = Math.floor(100 * Math.pow(1.2, this.level - 1));
-            // HP = 100 + (等級 × 20)
-            this.maxHp = 100 + (this.level * 20);
-            this.hp = this.maxHp;
-            // MP 小幅成長
-            this.maxMp = 50 + (this.level * 5);
-            this.mp = this.maxMp;
-            // 基礎攻防不變（依賴裝備）
-            this.getTotalAtk();
-            this.getTotalDef();
-        }
+        // 初始化技能
+        CharacterLogic.initDefaultSkills(this);
     }
     
-    /**
-     * 獲得經驗值
-     * @param {number} amount - 經驗值數量
-     * @returns {boolean} 是否升級
-     */
-    gainExp(amount) {
-        const oldLevel = this.level;
-        this.exp += amount;
-        this.checkLevelUp();
-        return this.level > oldLevel;
-    }
-    
-    /**
-     * 計算當前等級的最大HP
-     */
-    calculateMaxHp() {
-        return 100 + (this.level * 20);
-    }
+    // ===== HP/MP/EXP Getters/Setters =====
+    get hp() { return Number.isFinite(this._hp) ? this._hp : 0; }
+    set hp(v) { this._hp = Math.max(0, Number(v) || 0); }
 
-    syncProperties() {
-        this._attack = this.getTotalAtk();
-        this._defense = this.getTotalDef();
-    }
+    get maxHp() { return Number.isFinite(this._maxHp) ? this._maxHp : this.calculateMaxHp(); }
+    set maxHp(v) { this._maxHp = Math.max(1, Number(v) || 1); }
+
+    get mp() { return Number.isFinite(this._mp) ? this._mp : 0; }
+    set mp(v) { this._mp = Math.max(0, Number(v) || 0); }
+
+    get maxMp() { return Number.isFinite(this._maxMp) ? this._maxMp : 50; }
+    set maxMp(v) { this._maxMp = Math.max(0, Number(v) || 0); }
+
+    get exp() { return Number.isFinite(this._exp) ? this._exp : 0; }
+    set exp(v) { this._exp = Math.max(0, Number(v) || 0); }
+
+    get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : 100; }
+    set maxExp(v) { this._maxExp = Math.max(1, Number(v) || 1); }
+
+    // 向後相容別名
+    get currentHP() { return this.hp; }
+    set currentHP(v) { this.hp = v; }
+    get currentMP() { return this.mp; }
+    set currentMP(v) { this.mp = v; }
+    get currentEXP() { return this.exp; }
+    set currentEXP(v) { this.exp = v; }
+    get maxEXP() { return this.maxExp; }
+    set maxEXP(v) { this.maxExp = v; }
+
+    // ===== 委派方法到 CharacterManager =====
+    getTotalAtk() { return CharacterLogic.getTotalAtk(this); }
+    getTotalDef() { return CharacterLogic.getTotalDef(this); }
+    getCritChance() { return CharacterLogic.getCritChance(this); }
+    getCritDamage() { return CharacterLogic.getCritDamage(this); }
+    getWeaponSpeed() { return CharacterLogic.getWeaponSpeed(this); }
+    getAttackSpeed() { return CharacterLogic.getAttackSpeed(this); }
+    getAttackInterval() { return CharacterLogic.getAttackInterval(this); }
+    getLifesteal() { return CharacterLogic.getLifesteal(this); }
+    getDamageReduction() { return CharacterLogic.getDamageReduction(this); }
+    getAffixHpBonus() { return CharacterLogic.getAffixHpBonus(this); }
+    
+    // Buff 系統
+    addBuff(type, value, duration) { return CharacterLogic.addBuff(this, type, value, duration); }
+    getBuffValue(type) { return CharacterLogic.getBuffValue(this, type); }
+    tickBuffs() { return CharacterLogic.tickBuffs(this); }
+    clearAllBuffs() { return CharacterLogic.clearAllBuffs(this); }
+    
+    // 技能系統
+    useSkill(index, target) { return CharacterLogic.useSkill(this, index, target); }
+    tickSkillCooldowns() { return CharacterLogic.tickSkillCooldowns(this); }
+    
+    // 裝備管理
+    equip(item) { return CharacterLogic.equip(this, item); }
+    unequip(slot) { return CharacterLogic.unequip(this, slot); }
+    
+    // 物品使用
+    useItem(item) { return CharacterLogic.useItem(this, item); }
+    
+    // 等級與經驗
+    checkLevelUp() { return CharacterLogic.checkLevelUp(this); }
+    gainExp(amount) { return CharacterLogic.gainExp(this, amount); }
+    calculateMaxHp() { return CharacterLogic.calculateMaxHp(this); }
+    
+    // 同步
+    syncProperties() { return CharacterLogic.syncProperties(this); }
 }

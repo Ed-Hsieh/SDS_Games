@@ -4,8 +4,14 @@
  */
 
 import DungeonMap, { DungeonTileType, DungeonTileIcons } from '../utils/DungeonMap.js';
-import { DungeonDatabase, DungeonEntranceConfig } from '../data/Dungeons.js';
+import { DungeonDatabase, DungeonEntranceConfig } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
+
+// Preload FightManager engine
+let FightManager = null;
+const FightManagerReady = import('../managers/FightManager.js')
+    .then(mod => { FightManager = mod; return mod; })
+    .catch(err => { console.error('Failed to preload FightManager:', err); return null; });
 
 class DungeonSceneClass {
     constructor() {
@@ -316,12 +322,64 @@ class DungeonSceneClass {
         this.isInCombat = true;
         
         this.showBattleModal();
-        
+
         const prefix = monster.isBoss ? '👑 Boss: ' : monster.isElite ? '⭐ 精英: ' : '';
         this.addMessage(`⚔️ 遭遇 ${prefix}${monster.name}！`, 'combat');
         
         if (monster.special) {
             this.addMessage(`💡 ${monster.special}`, 'info');
+        }
+
+        // Initialize FightManager engine and start monster auto-attack
+        try {
+            // Disable attack button until engine ready
+            try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
+            if (FightManager && FightManager.BattleController) {
+                this._engine = new FightManager.BattleController(GameManager.getCharacter(), this.currentMonster);
+                    if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
+                    try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
+                    try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
+                    // register auto-attack callback to update UI
+                    try {
+                        if (this._engine) {
+                            this._engine._onAutoAttack = (res) => {
+                                if (!res) return;
+                                try {
+                                    if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                                    this.updateUI();
+                                    if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
+                                } catch (e) {
+                                    console.warn('Dungeon auto-attack UI handler failed:', e);
+                                }
+                            };
+                        }
+                    } catch (e) {}
+            } else {
+                FightManagerReady.then(mod => {
+                    if (mod && mod.BattleController) {
+                        this._engine = new mod.BattleController(GameManager.getCharacter(), this.currentMonster);
+                            if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
+                            try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
+                            try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
+                            try {
+                                if (this._engine) {
+                                    this._engine._onAutoAttack = (res) => {
+                                        if (!res) return;
+                                        try {
+                                            if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                                            this.updateUI();
+                                            if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
+                                        } catch (e) {
+                                            console.warn('Dungeon auto-attack UI handler failed:', e);
+                                        }
+                                    };
+                                }
+                            } catch (e) {}
+                    }
+                }).catch(err => console.warn('Failed to initialize FightManager engine for dungeon:', err));
+            }
+        } catch (e) {
+            console.warn('Error initializing dungeon fight engine:', e);
         }
     }
     
@@ -358,21 +416,31 @@ class DungeonSceneClass {
     
     playerAttack() {
         if (!this.isInCombat || !this.currentMonster) return;
-        
-        const char = GameManager.getCharacter();
-        const damage = Math.max(1, char.getTotalAtk() - this.currentMonster.def);
-        
-        this.currentMonster.hp -= damage;
-        this.addMessage(`⚔️ 造成 ${damage} 點傷害`, 'player-action');
-        
-        this.updateMonsterDisplay();
-        
+
+        if (!this._engine) {
+            console.error('Fight engine not initialized; cannot perform player attack.');
+            return;
+        }
+
+        // For dungeon simple action, treat as a normal hit
+        const res = this._engine.playerAttack('hit');
+        if (!res) return;
+
+        const applyRes = res.applyRes || {};
+        if (res.destroyedWeapon) this.addMessage('⚠️ 你的武器被破壞了！', 'warning');
+
+        if (applyRes && typeof applyRes.finalDamage === 'number') {
+            this.addMessage(`⚔️ 造成 ${applyRes.finalDamage} 點傷害`, 'player-action');
+            this.updateMonsterDisplay();
+        }
+
+        // Check monster death
         if (this.currentMonster.hp <= 0) {
+            // Stop engine auto-attack and end battle
+            try { if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack(); } catch (e) {}
             this.endBattle(true);
             return;
         }
-        
-        setTimeout(() => this.monsterAttack(), 500);
     }
     
     playerUseSkill() {
@@ -397,26 +465,40 @@ class DungeonSceneClass {
         
         if (Math.random() < 0.5) {
             this.addMessage('🏃 成功逃跑！', 'success');
+            try { if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack(); } catch (e) {}
             this.endBattle(false, true);
         } else {
             this.addMessage('❌ 逃跑失敗！', 'danger');
-            this.monsterAttack();
+            if (this._engine && typeof this._engine.monsterAttack === 'function') {
+                const res = this._engine.monsterAttack();
+                if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                this.updateUI();
+                if (res && res.playerHp <= 0) this.handlePlayerDeath();
+            } else {
+                // Engine not present — log error
+                console.error('Fight engine not initialized; cannot perform monster attack after failed flee.');
+            }
         }
     }
     
     monsterAttack() {
         if (!this.isInCombat || !this.currentMonster) return;
-        
-        const char = GameManager.getCharacter();
-        const damage = Math.max(1, this.currentMonster.atk - char.getTotalDef());
-        
-        char.hp = Math.max(0, char.hp - damage);
-        this.addMessage(`💥 ${this.currentMonster.name} 造成 ${damage} 點傷害`, 'enemy-action');
-        
-        this.updateUI();
-        
-        if (char.hp <= 0) {
-            this.handlePlayerDeath();
+
+        if (!this._engine) {
+            console.error('Fight engine not initialized; cannot perform monster attack.');
+            return;
+        }
+
+        const res = this._engine.monsterAttack();
+        if (!res) return;
+
+        if (res && typeof res.damage === 'number') {
+            this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+        }
+
+        if (res && res.playerHp !== undefined) {
+            this.updateUI();
+            if (res.playerHp <= 0) this.handlePlayerDeath();
         }
     }
     
@@ -441,11 +523,19 @@ class DungeonSceneClass {
             }
         }
         
+        // Stop engine auto-attack if running
+        try {
+            if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack();
+        } catch (e) {
+            console.warn('Error stopping dungeon engine auto-attack:', e);
+        }
+
         this.isInCombat = false;
         this.currentMonster = null;
         this.hideBattleModal();
         this.renderMap();
         this.updateUI();
+        try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
     }
     
     handleBossVictory() {

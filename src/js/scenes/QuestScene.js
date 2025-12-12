@@ -3,8 +3,7 @@
  * 任務公告板場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import GameManager from '../managers/GameManager.js';
-import { questSystem } from './QuestSystem.js';
-import { QuestStatus, QuestType, ObjectiveType, QuestRewardItems } from '../data/Quests.js';
+import { questManager, QuestStatus, QuestType, ObjectiveType, QuestRewardItems } from '../managers/QuestManager.js';
 
 export default class QuestScene {
     constructor(container, app) {
@@ -24,7 +23,7 @@ export default class QuestScene {
         this.bindEvents();
         
         // 訂閱任務系統事件
-        questSystem.subscribe(this.onQuestEvent);
+        questManager.subscribe(this.onQuestEvent);
         
         // 初始渲染
         this.renderQuestList();
@@ -32,7 +31,7 @@ export default class QuestScene {
     }
 
     cleanup() {
-        questSystem.unsubscribe(this.onQuestEvent);
+        questManager.unsubscribe(this.onQuestEvent);
         console.log('Quest Scene Cleaned up');
     }
 
@@ -90,7 +89,7 @@ export default class QuestScene {
         // 接取任務
         this.dom.btnAccept?.addEventListener('click', () => {
             if (this.selectedQuestId) {
-                const result = questSystem.acceptQuest(this.selectedQuestId);
+                const result = questManager.acceptQuest(this.selectedQuestId);
                 if (result.success) {
                     this.showNotification('任務接取', result.message);
                     this.renderQuestList();
@@ -102,7 +101,7 @@ export default class QuestScene {
         // 放棄任務
         this.dom.btnAbandon?.addEventListener('click', () => {
             if (this.selectedQuestId) {
-                const result = questSystem.abandonQuest(this.selectedQuestId);
+                const result = questManager.abandonQuest(this.selectedQuestId);
                 if (result.success) {
                     this.showNotification('任務放棄', result.message);
                     this.renderQuestList();
@@ -114,7 +113,7 @@ export default class QuestScene {
         // 完成任務
         this.dom.btnComplete?.addEventListener('click', () => {
             if (this.selectedQuestId) {
-                const result = questSystem.completeQuest(this.selectedQuestId);
+                const result = questManager.completeQuest(this.selectedQuestId);
                 if (result.success) {
                     this.showRewardNotification(result);
                     this.renderQuestList();
@@ -154,24 +153,24 @@ export default class QuestScene {
     }
 
     renderQuestList() {
-        const visibleQuests = questSystem.getVisibleQuests();
+        const visibleQuests = questManager.getVisibleQuests();
         let quests = [];
 
         if (this.currentTab === 'active') {
-            // 進行中 + 待領取
+            // 進行中 + 待完成
             quests = [
-                ...questSystem.getActiveQuests(),
-                ...questSystem.getCompletedQuests()
+                ...questManager.getActiveQuests(),
+                ...questManager.getCompletedQuests()
             ];
         } else {
             quests = visibleQuests[this.currentTab] || [];
         }
 
         // 更新進行中數量
-        const activeCount = questSystem.getActiveQuests().length + 
-                           questSystem.getCompletedQuests().length;
+        const activeCount = questManager.getActiveQuests().length + 
+                           questManager.getCompletedQuests().length;
         this.dom.activeCount.textContent = activeCount;
-        this.dom.questCount.textContent = `${quests.length} 個任務`;
+        this.dom.questCount.textContent = `${quests.length} 任務`;
 
         // 清空並渲染
         this.dom.questList.innerHTML = '';
@@ -198,7 +197,7 @@ export default class QuestScene {
         el.className = 'quest-list-item';
         el.dataset.questId = quest.id;
 
-        const state = quest.state || questSystem.getQuestState(quest.id);
+        const state = quest.state || questManager.getQuestState(quest.id);
         
         // 狀態樣式
         let statusClass = '';
@@ -278,7 +277,7 @@ export default class QuestScene {
     }
 
     renderQuestDetail(questId) {
-        const quest = questSystem.getVisibleQuests();
+        const quest = questManager.getVisibleQuests();
         let questData = null;
         
         // 從各類別尋找任務
@@ -289,8 +288,8 @@ export default class QuestScene {
 
         if (!questData) {
             // 可能是 active 或 completed
-            questData = questSystem.getActiveQuests().find(q => q.id === questId) ||
-                       questSystem.getCompletedQuests().find(q => q.id === questId);
+            questData = questManager.getActiveQuests().find(q => q.id === questId) ||
+                       questManager.getCompletedQuests().find(q => q.id === questId);
         }
 
         if (!questData) {
@@ -298,7 +297,7 @@ export default class QuestScene {
             return;
         }
 
-        const state = questData.state || questSystem.getQuestState(questId);
+        const state = questData.state || questManager.getQuestState(questId);
 
         // 顯示詳情面板
         this.dom.detailPlaceholder.classList.add('hidden');
@@ -454,12 +453,12 @@ export default class QuestScene {
     }
 
     updateSummary() {
-        const active = questSystem.getActiveQuests().length;
-        const completed = questSystem.getCompletedQuests().length;
+        const active = questManager.getActiveQuests().length;
+        const completed = questManager.getCompletedQuests().length;
         
         // 計算已完成數
         let finished = 0;
-        for (const [_, state] of Object.entries(questSystem.questStates)) {
+        for (const [_, state] of Object.entries(questManager.questStates)) {
             if (state.status === QuestStatus.FINISHED) finished++;
         }
 

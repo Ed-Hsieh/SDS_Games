@@ -1,8 +1,9 @@
 /**
- * CasinoSystem.js
- * 賭場系統 - 輪盤、老虎機、骰子遊戲
+ * CasinoManager.js
+ * 賭場管理器 - 輪盤、老虎機、骰子遊戲邏輯
+ * (從 scenes/CasinoSystem.js 搬移而來)
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager from './GameManager.js';
 import { Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 
 // 遊戲類型
@@ -48,7 +49,7 @@ const ROULETTE_NUMBERS = [
     { num: 35, color: 'black' }, { num: 36, color: 'red' }
 ];
 
-export default class CasinoSystem {
+export default class CasinoManager {
     constructor() {
         this.stats = {
             totalBet: 0,
@@ -66,50 +67,37 @@ export default class CasinoSystem {
     getLuckBonus() {
         const char = GameManager.getCharacter();
         const luckBuff = char?.getBuffValue?.('luck') || 0;
-        return 1 + (luckBuff / 100); // 幸運值每 100 點增加 1% 獲勝機率
+        return 1 + (luckBuff / 100);
     }
 
     // ==================== 老虎機 ====================
     
-    /**
-     * 玩老虎機
-     * @param {number} bet - 下注金額
-     * @returns {Object} 結果
-     */
     playSlots(bet) {
-        // 驗證下注
         const validation = this.validateBet(bet, 10, 1000);
         if (!validation.valid) {
             return { success: false, message: validation.message };
         }
 
-        // 扣除下注
         GameManager.removeGold(bet);
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
-        // 轉動老虎機
         const reels = this.spinSlots();
         const result = reels.join('');
         
-        // 計算獎金
         let multiplier = 0;
         let isJackpot = false;
 
-        // 檢查三個相同
         if (reels[0] === reels[1] && reels[1] === reels[2]) {
             multiplier = SLOT_PAYOUTS[result] || 2;
             if (result === '7️⃣7️⃣7️⃣') {
                 isJackpot = true;
                 this.stats.jackpots++;
             }
-        }
-        // 檢查兩個相同
-        else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
-            multiplier = 0.5; // 返還一半
+        } else if (reels[0] === reels[1] || reels[1] === reels[2] || reels[0] === reels[2]) {
+            multiplier = 0.5;
         }
 
-        // 幸運加成
         if (multiplier > 0) {
             multiplier *= this.getLuckBonus();
         }
@@ -123,7 +111,6 @@ export default class CasinoSystem {
             this.luckyStreak = 0;
         }
 
-        // 連勝獎勵
         let bonusMessage = '';
         if (this.luckyStreak >= 3) {
             const streakBonus = Math.floor(bet * 0.2 * this.luckyStreak);
@@ -154,61 +141,43 @@ export default class CasinoSystem {
     }
 
     getSlotsMessage(reels, winnings, isJackpot) {
-        if (isJackpot) {
-            return `🎰 JACKPOT！！！ 獲得 ${winnings}G！`;
-        }
-        if (winnings > 0) {
-            return `🎰 恭喜獲勝！獲得 ${winnings}G`;
-        }
+        if (isJackpot) return `🎰 JACKPOT！！！ 獲得 ${winnings}G！`;
+        if (winnings > 0) return `🎰 恭喜獲勝！獲得 ${winnings}G`;
         return '🎰 很遺憾，再試一次！';
     }
 
     // ==================== 輪盤 ====================
     
-    /**
-     * 玩輪盤
-     * @param {number} bet - 下注金額
-     * @param {string} betType - 下注類型: 'number', 'color', 'oddeven', 'half'
-     * @param {any} betValue - 下注值
-     */
     playRoulette(bet, betType, betValue) {
         const validation = this.validateBet(bet, 10, 500);
         if (!validation.valid) {
             return { success: false, message: validation.message };
         }
 
-        // 扣除下注
         GameManager.removeGold(bet);
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
-        // 轉輪盤
         const resultIndex = Math.floor(Math.random() * ROULETTE_NUMBERS.length);
         const result = ROULETTE_NUMBERS[resultIndex];
 
-        // 判斷結果
         let isWin = false;
         let multiplier = 0;
 
         switch (betType) {
             case 'number':
-                // 單一數字 (賠率 35:1)
                 if (parseInt(betValue) === result.num) {
                     isWin = true;
                     multiplier = 36;
                 }
                 break;
-            
             case 'color':
-                // 顏色 (賠率 1:1，綠色不算)
                 if (betValue === result.color && result.color !== 'green') {
                     isWin = true;
                     multiplier = 2;
                 }
                 break;
-            
             case 'oddeven':
-                // 奇偶 (賠率 1:1)
                 if (result.num !== 0) {
                     const isOdd = result.num % 2 === 1;
                     if ((betValue === 'odd' && isOdd) || (betValue === 'even' && !isOdd)) {
@@ -217,9 +186,7 @@ export default class CasinoSystem {
                     }
                 }
                 break;
-            
             case 'half':
-                // 前/後半 (賠率 1:1)
                 if (result.num !== 0) {
                     const isFirstHalf = result.num <= 18;
                     if ((betValue === 'first' && isFirstHalf) || (betValue === 'second' && !isFirstHalf)) {
@@ -230,9 +197,7 @@ export default class CasinoSystem {
                 break;
         }
 
-        // 幸運加成
-        const luckBonus = this.getLuckBonus();
-        multiplier *= luckBonus;
+        multiplier *= this.getLuckBonus();
 
         const winnings = isWin ? Math.floor(bet * multiplier) : 0;
         if (winnings > 0) {
@@ -261,23 +226,16 @@ export default class CasinoSystem {
 
     // ==================== 骰子 ====================
     
-    /**
-     * 玩骰子 (大小)
-     * @param {number} bet - 下注金額
-     * @param {string} betType - 'big' (11-18), 'small' (3-10), 'triple' (三個相同)
-     */
     playDice(bet, betType) {
         const validation = this.validateBet(bet, 10, 500);
         if (!validation.valid) {
             return { success: false, message: validation.message };
         }
 
-        // 扣除下注
         GameManager.removeGold(bet);
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
-        // 擲骰子
         const dice = [
             Math.floor(Math.random() * 6) + 1,
             Math.floor(Math.random() * 6) + 1,
@@ -291,23 +249,18 @@ export default class CasinoSystem {
 
         switch (betType) {
             case 'big':
-                // 大 (11-18，三豹不算)
                 if (total >= 11 && total <= 18 && !isTriple) {
                     isWin = true;
                     multiplier = 2;
                 }
                 break;
-            
             case 'small':
-                // 小 (3-10，三豹不算)
                 if (total >= 3 && total <= 10 && !isTriple) {
                     isWin = true;
                     multiplier = 2;
                 }
                 break;
-            
             case 'triple':
-                // 任意三豹 (賠率 30:1)
                 if (isTriple) {
                     isWin = true;
                     multiplier = 31;
@@ -315,7 +268,6 @@ export default class CasinoSystem {
                 break;
         }
 
-        // 幸運加成
         multiplier *= this.getLuckBonus();
 
         const winnings = isWin ? Math.floor(bet * multiplier) : 0;
@@ -372,9 +324,6 @@ export default class CasinoSystem {
         return { valid: true };
     }
 
-    /**
-     * 獲取賭場統計
-     */
     getStats() {
         return {
             ...this.stats,
@@ -385,9 +334,6 @@ export default class CasinoSystem {
         };
     }
 
-    /**
-     * 每日簽到獎勵
-     */
     claimDailyBonus() {
         const today = new Date().toDateString();
         if (this.dailyBonus === today) {
@@ -395,7 +341,7 @@ export default class CasinoSystem {
         }
 
         this.dailyBonus = today;
-        const bonus = 50 + Math.floor(Math.random() * 51); // 50-100G
+        const bonus = 50 + Math.floor(Math.random() * 51);
         GameManager.addGold(bonus);
 
         return {
@@ -405,9 +351,6 @@ export default class CasinoSystem {
         };
     }
 
-    /**
-     * 重置統計
-     */
     resetStats() {
         this.stats = {
             totalBet: 0,
@@ -419,4 +362,4 @@ export default class CasinoSystem {
 }
 
 // 單例
-export const casinoSystem = new CasinoSystem();
+export const casinoManager = new CasinoManager();

@@ -1,95 +1,6 @@
-/**
- * Equipment.js
- * 裝備資料庫 - 包含所有裝備、套裝效果和特殊效果
- */
-
-// 裝備類型
-export const EquipmentType = {
-    WEAPON: 'weapon',
-    ARMOR: 'armor',
-    HELMET: 'helmet',
-    GLOVES: 'gloves',
-    BOOTS: 'boots',
-    ACCESSORY: 'accessory',
-    RING: 'ring',
-    NECKLACE: 'necklace'
-};
-
-// 稀有度
-export const Rarity = {
-    COMMON: 'common',
-    UNCOMMON: 'uncommon',
-    RARE: 'rare',
-    EPIC: 'epic',
-    LEGENDARY: 'legendary',
-    MYTHIC: 'mythic'
-};
-
-// 稀有度顏色
-export const RarityColors = {
-    common: '#9d9d9d',
-    uncommon: '#1eff00',
-    rare: '#0070dd',
-    epic: '#a335ee',
-    legendary: '#ff8000',
-    mythic: '#e6cc80'
-};
 
 // 特殊效果類型
-export const SpecialEffectType = {
-    // 攻擊類
-    LIFE_STEAL: 'life_steal',           // 生命偷取
-    CRITICAL_BOOST: 'critical_boost',   // 暴擊增強
-    ARMOR_PIERCE: 'armor_pierce',       // 護甲穿透
-    DOUBLE_STRIKE: 'double_strike',     // 雙重打擊
-    EXECUTE: 'execute',                 // 斬殺（低HP額外傷害）
-    
-    // 元素類
-    FIRE_DAMAGE: 'fire_damage',         // 火焰傷害
-    ICE_DAMAGE: 'ice_damage',           // 冰霜傷害
-    THUNDER_DAMAGE: 'thunder_damage',   // 雷電傷害
-    POISON_DAMAGE: 'poison_damage',     // 毒素傷害
-    SHADOW_DAMAGE: 'shadow_damage',     // 暗影傷害
-    
-    // 防禦類
-    DAMAGE_REFLECT: 'damage_reflect',   // 傷害反彈
-    SHIELD_BLOCK: 'shield_block',       // 格擋
-    HP_REGEN: 'hp_regen',               // 生命回復
-    DAMAGE_REDUCE: 'damage_reduce',     // 傷害減免
-    
-    // 特殊類
-    GOLD_BONUS: 'gold_bonus',           // 金幣加成
-    EXP_BONUS: 'exp_bonus',             // 經驗加成
-    DROP_BONUS: 'drop_bonus',           // 掉落率加成
-    REVIVE: 'revive'                    // 復活
-};
-
-/**
- * 特殊效果說明
- */
-export const SpecialEffectDescriptions = {
-    life_steal: (value) => `攻擊時回復 ${value}% 傷害的生命`,
-    critical_boost: (value) => `暴擊傷害 +${value}%`,
-    armor_pierce: (value) => `無視敵人 ${value}% 防禦`,
-    double_strike: (value) => `${value}% 機率發動雙重打擊`,
-    execute: (value) => `對低於 30% HP 的敵人造成額外 ${value}% 傷害`,
-    
-    fire_damage: (value) => `附加 ${value} 點火焰傷害`,
-    ice_damage: (value) => `附加 ${value} 點冰霜傷害，${Math.floor(value/2)}% 機率減速`,
-    thunder_damage: (value) => `附加 ${value} 點雷電傷害，${Math.floor(value/3)}% 機率麻痺`,
-    poison_damage: (value) => `附加 ${value} 點毒素傷害，持續 3 回合`,
-    shadow_damage: (value) => `附加 ${value} 點暗影傷害，降低敵人命中`,
-    
-    damage_reflect: (value) => `反彈 ${value}% 受到的傷害`,
-    shield_block: (value) => `${value}% 機率完全格擋攻擊`,
-    hp_regen: (value) => `每回合回復 ${value} 點生命`,
-    damage_reduce: (value) => `受到的傷害減少 ${value}%`,
-    
-    gold_bonus: (value) => `金幣獲取 +${value}%`,
-    exp_bonus: (value) => `經驗獲取 +${value}%`,
-    drop_bonus: (value) => `掉落率 +${value}%`,
-    revive: (value) => `死亡時 ${value}% 機率復活並回復 30% HP`
-};
+import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
 
 /**
  * 裝備資料庫
@@ -101,7 +12,7 @@ export const EquipmentDatabase = {
         name: '史萊姆之劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.UNCOMMON,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 1,
         stats: {
             attack: 8,
@@ -112,7 +23,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2     // 攻擊頻率（每秒）
         },
         specialEffects: [
-            { type: SpecialEffectType.LIFE_STEAL, value: 3 }
+            { type: AffixStat.LIFE_STEAL, value: 3 }
         ],
         setId: null,
         description: '由史萊姆凝膠包裹的劍，攻擊時能吸取少量生命。',
@@ -124,7 +35,7 @@ export const EquipmentDatabase = {
         name: '哥布林短刀',
         icon: '🔪',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.UNCOMMON,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 3,
         stats: {
             attack: 10,
@@ -135,7 +46,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2     // 攻擊頻率（每秒）
         },
         specialEffects: [
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 15 }
+            { type: AffixStat.CRIT_DAMAGE, value: 10 }
         ],
         setId: null,
         description: '哥布林首領的愛刀，鋒利無比。',
@@ -148,7 +59,7 @@ export const EquipmentDatabase = {
         name: '狼牙刀',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.UNCOMMON,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 4,
         stats: {
             attack: 14,
@@ -159,7 +70,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 8 }
+            { type: AffixStat.DOUBLE_STRIKE, value: 10 }
         ],
         setId: 'wolf_hunter',
         description: '由狼牙製成的武器，有機率造成雙重打擊。',
@@ -170,8 +81,8 @@ export const EquipmentDatabase = {
         id: 'wolf_pelt_armor',
         name: '狼皮護甲',
         icon: '🥋',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.UNCOMMON,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 4,
         stats: {
             attack: 2,
@@ -180,7 +91,6 @@ export const EquipmentDatabase = {
             critDamage: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.HP_REGEN, value: 2 }
         ],
         setId: 'wolf_hunter',
         description: '由狼皮製成的護甲，輕便保暖。',
@@ -191,8 +101,8 @@ export const EquipmentDatabase = {
         id: 'spider_silk_gloves',
         name: '蛛絲手套',
         icon: '🧤',
-        type: EquipmentType.GLOVES,
-        rarity: Rarity.UNCOMMON,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 5,
         stats: {
             attack: 5,
@@ -201,7 +111,7 @@ export const EquipmentDatabase = {
             critDamage: 1.4
         },
         specialEffects: [
-            { type: SpecialEffectType.POISON_DAMAGE, value: 5 }
+            { type: AffixStat.POISON, value: 5 }
         ],
         setId: null,
         description: '由蜘蛛絲編織的手套，帶有微量毒素。',
@@ -213,7 +123,7 @@ export const EquipmentDatabase = {
         name: '森林守護者之杖',
         icon: '🌿',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 7,
         stats: {
             attack: 18,
@@ -224,8 +134,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0
         },
         specialEffects: [
-            { type: SpecialEffectType.HP_REGEN, value: 5 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 5 }
+            { type: AffixStat.LIFE_STEAL, value: 5 }
         ],
         setId: 'forest_guardian',
         description: '森林守護者的權杖，蘊含自然之力。',
@@ -236,8 +145,8 @@ export const EquipmentDatabase = {
         id: 'forest_guardian_crown',
         name: '森林守護者之冠',
         icon: '👑',
-        type: EquipmentType.HELMET,
-        rarity: Rarity.RARE,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.RARE,
         level: 7,
         stats: {
             attack: 3,
@@ -246,7 +155,7 @@ export const EquipmentDatabase = {
             critDamage: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 5 }
+            { type: AffixStat.DAMAGE_REDUCTION, value: 5 }
         ],
         setId: 'forest_guardian',
         description: '由樹枝與樹葉編織的王冠。',
@@ -259,7 +168,7 @@ export const EquipmentDatabase = {
         name: '骷髏戰士之劍',
         icon: '💀',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.UNCOMMON,
+        ItemRarity: ItemRarity.UNCOMMON,
         level: 7,
         stats: {
             attack: 16,
@@ -270,7 +179,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 10 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 10 }
         ],
         setId: 'undead_slayer',
         description: '骷髏戰士使用的劍，能穿透護甲。',
@@ -281,8 +190,8 @@ export const EquipmentDatabase = {
         id: 'ghost_cloak',
         name: '幽靈斗篷',
         icon: '👻',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.RARE,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.RARE,
         level: 8,
         stats: {
             attack: 5,
@@ -291,8 +200,7 @@ export const EquipmentDatabase = {
             critDamage: 1.4
         },
         specialEffects: [
-            { type: SpecialEffectType.SHIELD_BLOCK, value: 8 },
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 8 }
+            { type: AffixStat.DODGE_CHANCE, value: 10 }
         ],
         setId: 'undead_slayer',
         description: '由靈質編織的斗篷，能讓穿戴者隱匿身形。',
@@ -304,7 +212,7 @@ export const EquipmentDatabase = {
         name: '巫妖法杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 10,
         stats: {
             attack: 28,
@@ -315,9 +223,9 @@ export const EquipmentDatabase = {
             attackSpeed: 0.9
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 15 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 10 },
-            { type: SpecialEffectType.EXECUTE, value: 20 }
+            
+            { type: AffixStat.LIFE_STEAL, value: 10 },
+            { type: AffixStat.EXECUTE, value: 20 }
         ],
         setId: null,
         description: '巫妖的權杖，蘊含死亡的力量。',
@@ -330,7 +238,7 @@ export const EquipmentDatabase = {
         name: '暗影之刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 11,
         stats: {
             attack: 25,
@@ -341,8 +249,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.4
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 12 },
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 20 }
+            { type: AffixStat.CRIT_DAMAGE, value: 10 }
         ],
         setId: 'shadow_legion',
         description: '暗影士兵的標準配刀。',
@@ -353,8 +260,8 @@ export const EquipmentDatabase = {
         id: 'shadow_armor_drop',
         name: '暗影護甲',
         icon: '⚫',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.RARE,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.RARE,
         level: 12,
         stats: {
             attack: 5,
@@ -363,29 +270,28 @@ export const EquipmentDatabase = {
             critDamage: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 8 },
-            { type: SpecialEffectType.SHIELD_BLOCK, value: 5 }
+            { type: AffixStat.DODGE_CHANCE, value: 15 }
         ],
         setId: 'shadow_legion',
         description: '暗影軍團的制式護甲。',
         dropFrom: ['shadow_soldier', 'shadow_archer']
     },
 
-    shadow_boots: {
-        id: 'shadow_boots',
-        name: '暗影之靴',
-        icon: '👢',
-        type: EquipmentType.BOOTS,
-        rarity: Rarity.RARE,
+    shadow_badge: {
+        id: 'shadow_badge',
+        name: '暗影徽章',
+        icon: '🛑',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.RARE,
         level: 13,
         stats: {
             attack: 3,
-            defense: 15,
+            defense: 3,
             critChance: 0.10,
             critDamage: 1.5
         },
         specialEffects: [
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 10 }
+            { type: AffixStat.DOUBLE_STRIKE, value: 10 }
         ],
         setId: 'shadow_legion',
         description: '暗影軍團的戰靴，輕盈無聲。',
@@ -397,7 +303,7 @@ export const EquipmentDatabase = {
         name: '暗影指揮官之劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 14,
         stats: {
             attack: 38,
@@ -408,9 +314,8 @@ export const EquipmentDatabase = {
             attackSpeed: 1.1
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 20 },
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 15 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 8 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 15 },
+            { type: AffixStat.LIFE_STEAL, value: 5 }
         ],
         setId: 'shadow_legion',
         description: '暗影指揮官的佩劍，斬殺無數英雄。',
@@ -423,7 +328,7 @@ export const EquipmentDatabase = {
         name: '遠古之劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 15,
         stats: {
             attack: 32,
@@ -434,7 +339,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 20 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 20 }
         ],
         setId: 'ancient_relic',
         description: '古代文明遺留的武器。',
@@ -445,8 +350,8 @@ export const EquipmentDatabase = {
         id: 'crystal_shield',
         name: '水晶護盾',
         icon: '💎',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.RARE,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.RARE,
         level: 16,
         stats: {
             attack: 0,
@@ -455,20 +360,20 @@ export const EquipmentDatabase = {
             critDamage: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.DAMAGE_REFLECT, value: 10 },
-            { type: SpecialEffectType.SHIELD_BLOCK, value: 12 }
+            { type: AffixStat.DAMAGE_REFLECT, value: 10 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 10 }
         ],
         setId: 'ancient_relic',
         description: '純淨水晶製成的護盾。',
         dropFrom: ['crystal_golem']
     },
 
-    rune_gauntlet: {
-        id: 'rune_gauntlet',
-        name: '符文臂鎧',
+    rune_badge: {
+        id: 'rune_badge',
+        name: '符文勳章',
         icon: '🧤',
-        type: EquipmentType.GLOVES,
-        rarity: Rarity.RARE,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.RARE,
         level: 17,
         stats: {
             attack: 15,
@@ -477,10 +382,10 @@ export const EquipmentDatabase = {
             critDamage: 1.6
         },
         specialEffects: [
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 25 }
+            { type: AffixStat.CRIT_DAMAGE, value: 25 }
         ],
         setId: 'ancient_relic',
-        description: '刻滿符文的臂鎧。',
+        description: '刻滿符文的勳章。',
         dropFrom: ['rune_keeper']
     },
 
@@ -489,7 +394,7 @@ export const EquipmentDatabase = {
         name: '泰坦之錘',
         icon: '🔨',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 18,
         stats: {
             attack: 50,
@@ -500,9 +405,9 @@ export const EquipmentDatabase = {
             attackSpeed: 0.7
         },
         specialEffects: [
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 25 },
-            { type: SpecialEffectType.EXECUTE, value: 30 },
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 12 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 25 },
+            { type: AffixStat.EXECUTE, value: 30 },
+            { type: AffixStat.DOUBLE_STRIKE, value: 20 }
         ],
         setId: 'titan',
         description: '遠古泰坦的戰錘，蘊含毀滅之力。',
@@ -515,7 +420,7 @@ export const EquipmentDatabase = {
         name: '烈焰劍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 19,
         stats: {
             attack: 35,
@@ -526,7 +431,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 20 }
+            { type: AffixStat.FIRE, value: 20 }
         ],
         setId: 'elemental_master',
         description: '燃燒著永恆火焰的劍。',
@@ -538,7 +443,7 @@ export const EquipmentDatabase = {
         name: '霜寒之刃',
         icon: '❄️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 19,
         stats: {
             attack: 30,
@@ -549,7 +454,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.ICE_DAMAGE, value: 18 }
+            { type: AffixStat.ICE, value: 20 }
         ],
         setId: 'elemental_master',
         description: '凝結著永恆寒冰的劍。',
@@ -561,7 +466,7 @@ export const EquipmentDatabase = {
         name: '雷霆戰斧',
         icon: '⚡',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 20,
         stats: {
             attack: 40,
@@ -572,19 +477,43 @@ export const EquipmentDatabase = {
             attackSpeed: 0.9
         },
         specialEffects: [
-            { type: SpecialEffectType.THUNDER_DAMAGE, value: 22 }
+            { type: AffixStat.THUNDER, value: 22 }
         ],
         setId: 'elemental_master',
         description: '蘊含雷霆之力的戰斧。',
         dropFrom: ['thunder_elemental', 'tower_thunder_hawk']
     },
 
+    elemental_badge: {
+    id: 'elemental_badge',
+    name: '元素護符',
+    icon: '👑',
+    type: EquipmentType.ACCESSORY,
+    ItemRarity: ItemRarity.EPIC,
+    level: 22,
+    stats: {
+        attack: 10,
+        defense: 10,
+        critChance: 0.15,
+        critDamage: 1.8
+    },
+    specialEffects: [
+        { type: AffixStat.FIRE, value: 10 },
+        { type: AffixStat.ICE, value: 10 },
+        { type: AffixStat.THUNDER, value: 10 },
+        { type: AffixStat.DAMAGE_REDUCTION, value: 10 }
+    ],
+    setId: 'elemental_master',
+    description: '元素之主的護符，散發元素的光芒。',
+    dropFrom: ['elemental_lord']
+    },
+
     elemental_crown: {
         id: 'elemental_crown',
         name: '元素之冠',
         icon: '👑',
-        type: EquipmentType.HELMET,
-        rarity: Rarity.EPIC,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 22,
         stats: {
             attack: 15,
@@ -593,10 +522,10 @@ export const EquipmentDatabase = {
             critDamage: 1.8
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 10 },
-            { type: SpecialEffectType.ICE_DAMAGE, value: 10 },
-            { type: SpecialEffectType.THUNDER_DAMAGE, value: 10 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 10 }
+            { type: AffixStat.FIRE, value: 10 },
+            { type: AffixStat.ICE, value: 10 },
+            { type: AffixStat.THUNDER, value: 10 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 10 }
         ],
         setId: 'elemental_master',
         description: '元素之主的王冠，融合四大元素。',
@@ -609,7 +538,7 @@ export const EquipmentDatabase = {
         name: '翼龍之槍',
         icon: '🔱',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.RARE,
+        ItemRarity: ItemRarity.RARE,
         level: 23,
         stats: {
             attack: 42,
@@ -620,42 +549,20 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 18 },
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 10 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 18 },
+            { type: AffixStat.DOUBLE_STRIKE, value: 10 }
         ],
         setId: 'dragon_slayer',
         description: '專門獵殺龍類的長槍。',
         dropFrom: ['wyvern']
     },
 
-    drake_scale_mail: {
-        id: 'drake_scale_mail',
-        name: '幼龍鱗甲',
-        icon: '🐉',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.RARE,
-        level: 24,
-        stats: {
-            attack: 8,
-            defense: 38,
-            critChance: 0.08,
-            critDamage: 1.5
-        },
-        specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 10 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 12 }
-        ],
-        setId: 'dragon_slayer',
-        description: '由幼龍鱗片製成的鎧甲。',
-        dropFrom: ['drake']
-    },
-
     dragon_knight_helm: {
         id: 'dragon_knight_helm',
         name: '龍騎士頭盔',
         icon: '⛑️',
-        type: EquipmentType.HELMET,
-        rarity: Rarity.EPIC,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.EPIC,
         level: 25,
         stats: {
             attack: 12,
@@ -664,20 +571,20 @@ export const EquipmentDatabase = {
             critDamage: 1.7
         },
         specialEffects: [
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 30 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 10 }
+            { type: AffixStat.CRIT_DAMAGE, value: 30 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 10 }
         ],
         setId: 'dragon_slayer',
         description: '龍騎士的頭盔，象徵榮耀。',
         dropFrom: ['dragon_knight']
     },
 
-    elder_dragon_fang: {
-        id: 'elder_dragon_fang',
-        name: '古龍之牙',
+    elder_dragon_fang_badge: {
+        id: 'elder_dragon_fang_badge',
+        name: '龍牙項鍊',
         icon: '🐲',
-        type: EquipmentType.WEAPON,
-        rarity: Rarity.LEGENDARY,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 26,
         stats: {
             attack: 65,
@@ -688,13 +595,13 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 30 },
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 25 },
-            { type: SpecialEffectType.EXECUTE, value: 35 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 12 }
+            { type: AffixStat.FIRE, value: 30 },
+            { type: AffixStat.ARMOR_PENETRATION, value: 25 },
+            { type: AffixStat.EXECUTE, value: 35 },
+            { type: AffixStat.LIFE_STEAL, value: 12 }
         ],
         setId: 'dragon_slayer',
-        description: '由古龍之牙鍛造的傳說武器。',
+        description: '由古龍之牙鍛造的傳說護符。',
         dropFrom: ['elder_dragon']
     },
 
@@ -704,7 +611,7 @@ export const EquipmentDatabase = {
         name: '刺客之刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 27,
         stats: {
             attack: 55,
@@ -715,9 +622,9 @@ export const EquipmentDatabase = {
             attackSpeed: 1.6
         },
         specialEffects: [
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 40 },
-            { type: SpecialEffectType.POISON_DAMAGE, value: 15 },
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 15 }
+            { type: AffixStat.CRIT_DAMAGE, value: 20 },
+            { type: AffixStat.POISON, value: 15 },
+            { type: AffixStat.DOUBLE_STRIKE, value: 15 }
         ],
         setId: null,
         description: '暗影刺客的致命武器。',
@@ -728,8 +635,8 @@ export const EquipmentDatabase = {
         id: 'shadow_overlord_armor',
         name: '暗影霸主鎧甲',
         icon: '👹',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.LEGENDARY,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 28,
         stats: {
             attack: 15,
@@ -738,10 +645,9 @@ export const EquipmentDatabase = {
             critDamage: 1.8
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 25 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 15 },
-            { type: SpecialEffectType.DAMAGE_REFLECT, value: 10 },
-            { type: SpecialEffectType.HP_REGEN, value: 10 }
+            { type: AffixStat.DAMAGE_REDUCTION, value: 15 },
+            { type: AffixStat.DAMAGE_REFLECT, value: 10 },
+            { type: AffixStat.HP, value: 40 }
         ],
         setId: null,
         description: '暗影霸主的鎧甲，散發著邪惡氣息。',
@@ -754,7 +660,7 @@ export const EquipmentDatabase = {
         name: '魔族戰刃',
         icon: '😈',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 29,
         stats: {
             attack: 60,
@@ -765,9 +671,9 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 25 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 15 },
-            { type: SpecialEffectType.EXECUTE, value: 25 }
+            { type: AffixStat.FIRE, value: 25 },
+            { type: AffixStat.LIFE_STEAL, value: 15 },
+            { type: AffixStat.EXECUTE, value: 25 }
         ],
         setId: 'demon_lord',
         description: '魔族士兵的戰刃，燃燒著地獄之火。',
@@ -778,8 +684,8 @@ export const EquipmentDatabase = {
         id: 'demon_general_armor',
         name: '魔將鎧甲',
         icon: '👿',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.EPIC,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.EPIC,
         level: 30,
         stats: {
             attack: 18,
@@ -788,9 +694,9 @@ export const EquipmentDatabase = {
             critDamage: 1.9
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 15 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 18 },
-            { type: SpecialEffectType.HP_REGEN, value: 8 }
+            { type: AffixStat.FIRE, value: 15 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 18 },
+            { type: AffixStat.HP, value: 40 }
         ],
         setId: 'demon_lord',
         description: '魔族將軍的鎧甲。',
@@ -802,7 +708,7 @@ export const EquipmentDatabase = {
         name: '魔王之劍',
         icon: '👑',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.MYTHIC,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
             attack: 100,
@@ -813,11 +719,10 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 40 },
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 40 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 20 },
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 30 },
-            { type: SpecialEffectType.EXECUTE, value: 50 }
+            { type: AffixStat.FIRE, value: 40 },
+            { type: AffixStat.LIFE_STEAL, value: 20 },
+            { type: AffixStat.ARMOR_PENETRATION, value: 30 },
+            { type: AffixStat.EXECUTE, value: 50 }
         ],
         setId: 'demon_lord',
         description: '魔王阿薩謝爾的佩劍，蘊含毀滅世界的力量。',
@@ -826,10 +731,10 @@ export const EquipmentDatabase = {
 
     demon_lord_crown: {
         id: 'demon_lord_crown',
-        name: '魔王之冠',
+        name: '魔王之心',
         icon: '👑',
-        type: EquipmentType.HELMET,
-        rarity: Rarity.MYTHIC,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
             attack: 25,
@@ -838,9 +743,9 @@ export const EquipmentDatabase = {
             critDamage: 2.5
         },
         specialEffects: [
-            { type: SpecialEffectType.CRITICAL_BOOST, value: 50 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 20 },
-            { type: SpecialEffectType.REVIVE, value: 50 }
+            { type: AffixStat.CRIT_DAMAGE, value: 50 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 20 },
+            { type: AffixStat.REVIVE, value: 50 }
         ],
         setId: 'demon_lord',
         description: '魔王的王冠，擁有復活的力量。',
@@ -853,7 +758,7 @@ export const EquipmentDatabase = {
         name: '虛空之刃',
         icon: '🌑',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.LEGENDARY,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
             attack: 80,
@@ -864,10 +769,9 @@ export const EquipmentDatabase = {
             attackSpeed: 1.3
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 35 },
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 30 },
-            { type: SpecialEffectType.DOUBLE_STRIKE, value: 20 },
-            { type: SpecialEffectType.LIFE_STEAL, value: 15 }
+            { type: AffixStat.ARMOR_PENETRATION, value: 30 },
+            { type: AffixStat.DOUBLE_STRIKE, value: 20 },
+            { type: AffixStat.LIFE_STEAL, value: 15 }
         ],
         setId: 'void_king',
         description: '虛空之王的武器，能撕裂現實。',
@@ -878,8 +782,8 @@ export const EquipmentDatabase = {
         id: 'void_crown',
         name: '虛空之冠',
         icon: '👑',
-        type: EquipmentType.HELMET,
-        rarity: Rarity.LEGENDARY,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
             attack: 20,
@@ -888,9 +792,8 @@ export const EquipmentDatabase = {
             critDamage: 2.2
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 25 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 15 },
-            { type: SpecialEffectType.REVIVE, value: 30 }
+            { type: AffixStat.DAMAGE_REDUCTION, value: 15 },
+            { type: AffixStat.REVIVE, value: 30 }
         ],
         setId: 'void_king',
         description: '虛空之王的王冠。',
@@ -901,8 +804,8 @@ export const EquipmentDatabase = {
         id: 'abyss_armor',
         name: '深淵鎧甲',
         icon: '🖤',
-        type: EquipmentType.ARMOR,
-        rarity: Rarity.EPIC,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.EPIC,
         level: 20,
         stats: {
             attack: 12,
@@ -911,9 +814,8 @@ export const EquipmentDatabase = {
             critDamage: 1.7
         },
         specialEffects: [
-            { type: SpecialEffectType.SHADOW_DAMAGE, value: 18 },
-            { type: SpecialEffectType.DAMAGE_REDUCE, value: 12 },
-            { type: SpecialEffectType.HP_REGEN, value: 6 }
+            { type: AffixStat.DAMAGE_REDUCE, value: 12 },
+            { type: AffixStat.HP_REGEN, value: 6 }
         ],
         setId: null,
         description: '深淵魔將的鎧甲。',
@@ -925,7 +827,7 @@ export const EquipmentDatabase = {
         name: '地獄騎士之槍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
-        rarity: Rarity.EPIC,
+        ItemRarity: ItemRarity.EPIC,
         level: 15,
         stats: {
             attack: 35,
@@ -936,12 +838,218 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2
         },
         specialEffects: [
-            { type: SpecialEffectType.FIRE_DAMAGE, value: 25 },
-            { type: SpecialEffectType.ARMOR_PIERCE, value: 15 }
+            { type: AffixStat.FIRE, value: 25 },
+            { type: AffixStat.ARMOR_PIERCE, value: 15 }
         ],
         setId: null,
         description: '地獄騎士的長槍，燃燒著地獄之火。',
         dropFrom: ['tower_hell_knight']
+    },
+
+    // ===== 第2章 BOSS - 森林守衛者 =====
+    guardian_staff: {
+        id: 'guardian_staff',
+        name: '守護者之杖',
+        icon: '🪄',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.UNCOMMON,
+        attack: 12,
+        defense: 5,
+        critChance: 0.08,
+        critDamage: 1.6,
+        weaponSpeed: 0.9,
+        attackSpeed: 0.9,
+        mp: 30,
+        price: 250,
+        description: '森林守護者留下的法杖，充滿自然之力。',
+        setId: 'nature_set',
+        canEnhance: true,
+        gemSlots: 1,
+        requiredLevel: 5,
+        dropSource: 'forest_guardian'
+    },
+    
+    // ===== 第3章 BOSS - 巫妖 =====
+    lich_staff: {
+        id: 'boss_lich_staff',
+        name: '巫妖法杖',
+        icon: '☠️',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.RARE,
+        attack: 22,
+        defense: 0,
+        critChance: 0.12,
+        critDamage: 1.8,
+        weaponSpeed: 0.8,
+        attackSpeed: 0.85,
+        mp: 50,
+        darkDamage: 10,
+        price: 600,
+        description: '巫妖的法杖，充滿死亡的氣息。',
+        setId: 'undead_set',
+        canEnhance: true,
+        gemSlots: 2,
+        requiredLevel: 8,
+        dropSource: 'lich'
+    },
+    
+    // ===== 第4章 BOSS - 暗影指揮官 =====
+    shadow_commander_sword: {
+        id: 'shadow_commander_sword',
+        name: '暗影指揮官之劍',
+        icon: '⚔️',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.RARE,
+        attack: 28,
+        defense: 5,
+        critChance: 0.14,
+        critDamage: 1.9,
+        weaponSpeed: 1.1,
+        attackSpeed: 1.15,
+        price: 900,
+        description: '暗影指揮官的配劍，鋒利無比。',
+        setId: 'shadow_commander_set',
+        canEnhance: true,
+        gemSlots: 2,
+        requiredLevel: 12,
+        dropSource: 'shadow_commander'
+    },
+    
+    // ===== 第5章 BOSS - 遠古泰坦 =====
+    titan_gauntlet: {
+        id: 'titan_gauntlet',
+        name: '泰坦護手',
+        icon: '🧤',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
+        attack: 18,
+        defense: 22,
+        critChance: 0.08,
+        critDamage: 1.6,
+        hp: 80,
+        price: 1200,
+        description: '遠古泰坦的護手，蘊含遠古之力。',
+        setId: 'titan_set',
+        canEnhance: true,
+        gemSlots: 2,
+        requiredLevel: 16,
+        dropSource: 'ancient_titan'
+    },
+    
+    // ===== 第6章 BOSS - 元素之主 =====
+    elemental_orb: {
+        id: 'elemental_orb',
+        name: '元素寶珠',
+        icon: '🔮',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
+        attack: 15,
+        defense: 15,
+        critChance: 0.10,
+        critDamage: 1.7,
+        mp: 80,
+        fireDamage: 8,
+        iceDamage: 8,
+        thunderDamage: 8,
+        price: 1800,
+        description: '融合四大元素之力的神秘寶珠。',
+        setId: 'elemental_set',
+        canEnhance: true,
+        gemSlots: 2,
+        requiredLevel: 20,
+        dropSource: 'elemental_lord'
+    },
+    
+    // ===== 第7章 BOSS - 古龍 =====
+    elder_dragon_fang: {
+        id: 'boss_elder_dragon_fang',
+        name: '古龍牙劍',
+        icon: '🐲',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.EPIC,
+        attack: 45,
+        defense: 0,
+        critChance: 0.18,
+        critDamage: 2.2,
+        weaponSpeed: 1.0,
+        attackSpeed: 1.1,
+        fireDamage: 15,
+        price: 2500,
+        description: '由古龍牙齒鍛造的神劍，燃燒著龍焰。',
+        setId: 'dragon_set',
+        canEnhance: true,
+        gemSlots: 3,
+        requiredLevel: 24,
+        dropSource: 'elder_dragon'
+    },
+    
+    // ===== 第8章 BOSS - 暗影霸主 =====
+    overlord_armor: {
+        id: 'overlord_armor',
+        name: '霸主戰甲',
+        icon: '🛡️',
+        type: EquipmentType.ARMOR,
+        ItemRarity: ItemRarity.EPIC,
+        attack: 10,
+        defense: 45,
+        critChance: 0.08,
+        critDamage: 1.5,
+        hp: 120,
+        damageReduction: 0.08,
+        price: 3000,
+        description: '暗影霸主的戰甲，堅不可摧。',
+        setId: 'overlord_set',
+        canEnhance: true,
+        gemSlots: 3,
+        requiredLevel: 26,
+        dropSource: 'shadow_overlord'
+    },
+    
+    // ===== 第9章 BOSS - 魔王阿薩謝爾 =====
+    demon_lord_sword: {
+        id: 'boss_demon_lord_sword',
+        name: '魔王之劍',
+        icon: '👑',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.LEGENDARY,
+        attack: 65,
+        defense: 10,
+        critChance: 0.22,
+        critDamage: 2.5,
+        weaponSpeed: 1.2,
+        attackSpeed: 1.3,
+        lifesteal: 0.08,
+        darkDamage: 25,
+        bossBonus: 0.15,
+        price: 8000,
+        description: '魔王阿薩謝爾的配劍，擁有毀滅世界的力量。',
+        setId: 'demon_lord_set',
+        canEnhance: true,
+        gemSlots: 3,
+        requiredLevel: 28,
+        dropSource: 'demon_lord_asariel'
+    },
+    
+    demon_lord_armor: {
+        id: 'demon_lord_armor',
+        name: '魔王戰甲',
+        icon: '😈',
+        type: EquipmentType.ARMOR,
+        ItemRarity: ItemRarity.LEGENDARY,
+        attack: 15,
+        defense: 60,
+        critChance: 0.10,
+        critDamage: 1.6,
+        hp: 200,
+        damageReduction: 0.12,
+        darkResist: 0.25,
+        price: 8000,
+        description: '魔王阿薩謝爾的戰甲，散發著邪惡的氣息。',
+        setId: 'demon_lord_set',
+        canEnhance: true,
+        gemSlots: 3,
+        requiredLevel: 28,
+        dropSource: 'demon_lord_asariel'
     }
 };
 
@@ -1006,7 +1114,7 @@ export const SetDatabase = {
         id: 'shadow_legion',
         name: '暗影軍團套裝',
         icon: '⚫',
-        pieces: ['shadow_blade_drop', 'shadow_armor_drop', 'shadow_boots', 'shadow_commander_blade'],
+        pieces: ['shadow_blade_drop', 'shadow_armor_drop', 'shadow_badge'],
         bonuses: [
             {
                 required: 2,
@@ -1023,14 +1131,6 @@ export const SetDatabase = {
                 effects: {
                     damageReduceBonus: 12
                 }
-            },
-            {
-                required: 4,
-                name: '暗影支配',
-                description: '攻擊時 15% 機率使敵人陷入恐懼',
-                effects: {
-                    fearChance: 15
-                }
             }
         ]
     },
@@ -1039,7 +1139,7 @@ export const SetDatabase = {
         id: 'ancient_relic',
         name: '遠古遺物套裝',
         icon: '🏛️',
-        pieces: ['ancient_sword', 'crystal_shield', 'rune_gauntlet'],
+        pieces: ['ancient_sword', 'crystal_shield', 'rune_badge'],
         bonuses: [
             {
                 required: 2,
@@ -1064,10 +1164,10 @@ export const SetDatabase = {
         id: 'titan',
         name: '泰坦套裝',
         icon: '🗽',
-        pieces: ['titan_hammer'],
+        pieces: ['titan_hammer', 'titan_gauntlet'],
         bonuses: [
             {
-                required: 1,
+                required: 2,
                 name: '泰坦之力',
                 description: '攻擊力 +20%，但攻擊速度 -10%',
                 effects: {
@@ -1080,34 +1180,77 @@ export const SetDatabase = {
 
     elemental_master: {
         id: 'elemental_master',
-        name: '元素大師套裝',
+        name: '火焰套裝',
         icon: '🌈',
-        pieces: ['flame_sword', 'frost_blade', 'thunder_axe', 'elemental_crown'],
+        pieces: ['flame_sword', "elemental_badge", 'elemental_crown'],
         bonuses: [
             {
                 required: 2,
-                name: '雙元素',
-                description: '元素傷害 +15%',
+                name: '烈火元素',
+                description: '火焰傷害 +15%',
                 effects: {
                     elementalDamageBonus: 15
                 }
             },
             {
                 required: 3,
-                name: '三元素',
-                description: '元素傷害 +25%，元素抗性 +15%',
+                name: '火焰之王',
+                description: '火焰傷害 +25%，火焰抗性 +15%',
                 effects: {
                     elementalDamageBonus: 25,
                     elementalResistBonus: 15
                 }
+            }
+        ]
+    },
+
+    elemental_master: {
+        id: 'elemental_master',
+        name: '冰霜套裝',
+        icon: '🌈',
+        pieces: ['frost_blade', "elemental_badge", 'elemental_crown'],
+        bonuses: [
+            {
+                required: 2,
+                name: '冰霜元素',
+                description: '冰霜傷害 +15%',
+                effects: {
+                    elementalDamageBonus: 15
+                }
             },
             {
-                required: 4,
-                name: '元素支配',
-                description: '元素傷害 +40%，攻擊時隨機觸發元素爆發',
+                required: 3,
+                name: '冰霜之王',
+                description: '冰霜傷害 +25%，冰霜抗性 +15%',
                 effects: {
-                    elementalDamageBonus: 40,
-                    elementalBurst: true
+                    elementalDamageBonus: 25,
+                    elementalResistBonus: 15
+                }
+            }
+        ]
+    },
+
+        elemental_master: {
+        id: 'elemental_master',
+        name: '雷霆套裝',
+        icon: '🌈',
+        pieces: ['thunder_axe', "elemental_badge", 'elemental_crown'],
+        bonuses: [
+            {
+                required: 2,
+                name: '雷霆元素',
+                description: '雷電傷害 +15%',
+                effects: {
+                    elementalDamageBonus: 15
+                }
+            },
+            {
+                required: 3,
+                name: '雷霆之王',
+                description: '雷電傷害 +25%，雷電抗性 +15%',
+                effects: {
+                    elementalDamageBonus: 25,
+                    elementalResistBonus: 15
                 }
             }
         ]
@@ -1117,7 +1260,7 @@ export const SetDatabase = {
         id: 'dragon_slayer',
         name: '屠龍者套裝',
         icon: '🐲',
-        pieces: ['wyvern_lance', 'drake_scale_mail', 'dragon_knight_helm', 'elder_dragon_fang'],
+        pieces: ['wyvern_lance', 'dragon_knight_helm', 'elder_dragon_fang_badge'],
         bonuses: [
             {
                 required: 2,
@@ -1129,19 +1272,10 @@ export const SetDatabase = {
             },
             {
                 required: 3,
-                name: '龍之剋星',
-                description: '對龍類敵人傷害 +40%，火焰抗性 +20%',
-                effects: {
-                    dragonDamageBonus: 40,
-                    fireResistBonus: 20
-                }
-            },
-            {
-                required: 4,
                 name: '屠龍傳說',
-                description: '對龍類敵人傷害 +60%，獲得龍之力量',
+                description: '對龍類敵人傷害 +50%，獲得龍之力量',
                 effects: {
-                    dragonDamageBonus: 60,
+                    dragonDamageBonus: 50,
                     dragonPower: true
                 }
             }
@@ -1152,7 +1286,7 @@ export const SetDatabase = {
         id: 'demon_lord',
         name: '魔王套裝',
         icon: '👑',
-        pieces: ['demon_blade', 'demon_general_armor', 'demon_lord_sword', 'demon_lord_crown'],
+        pieces: ['demon_general_armor', 'demon_lord_sword', 'demon_lord_crown'],
         bonuses: [
             {
                 required: 2,
@@ -1165,18 +1299,11 @@ export const SetDatabase = {
             },
             {
                 required: 3,
-                name: '魔族支配',
-                description: '攻擊力 +25%，暴擊傷害 +30%',
+                name: '魔王降臨',
+                description: '攻擊力 +25%，暴擊傷害 +30%, 全屬性 +30%，死亡時有機率復活',
                 effects: {
                     attackBonus: 25,
-                    critDamageBonus: 30
-                }
-            },
-            {
-                required: 4,
-                name: '魔王降臨',
-                description: '全屬性 +30%，死亡時 100% 復活一次',
-                effects: {
+                    critDamageBonus: 30,
                     allStatsBonus: 30,
                     guaranteedRevive: true
                 }
@@ -1217,43 +1344,8 @@ export function getEquipment(equipmentId) {
 export function getSet(setId) {
     return SetDatabase[setId] || null;
 }
-
-/**
- * 計算當前激活的套裝效果
- */
-export function calculateSetBonuses(equippedItems) {
-    const setBonuses = [];
-    const setPieceCounts = {};
-
-    // 計算每個套裝裝備的數量
-    for (const item of equippedItems) {
-        if (item && item.setId) {
-            setPieceCounts[item.setId] = (setPieceCounts[item.setId] || 0) + 1;
-        }
-    }
-
-    // 檢查每個套裝的獎勵
-    for (const [setId, count] of Object.entries(setPieceCounts)) {
-        const set = getSet(setId);
-        if (!set) continue;
-
-        for (const bonus of set.bonuses) {
-            if (count >= bonus.required) {
-                setBonuses.push({
-                    setId: setId,
-                    setName: set.name,
-                    bonusName: bonus.name,
-                    description: bonus.description,
-                    effects: bonus.effects,
-                    piecesEquipped: count,
-                    piecesRequired: bonus.required
-                });
-            }
-        }
-    }
-
-    return setBonuses;
-}
+// NOTE: Data file should not contain logic. Helper functions have been moved to
+// `src/js/managers/EquipmentManager.js`. Keep this file as pure data only.
 
 /**
  * 獲取裝備的完整特效描述
@@ -1274,22 +1366,13 @@ export function getEquipmentEffectDescription(equipment) {
 /**
  * 根據稀有度獲取裝備列表
  */
-export function getEquipmentByRarity(rarity) {
-    return Object.values(EquipmentDatabase).filter(e => e.rarity === rarity);
-}
 
 /**
  * 根據類型獲取裝備列表
  */
-export function getEquipmentByType(type) {
-    return Object.values(EquipmentDatabase).filter(e => e.type === type);
-}
 
 /**
  * 獲取怪物可能掉落的裝備
  */
-export function getEquipmentDropsForMonster(monsterId) {
-    return Object.values(EquipmentDatabase).filter(
-        e => e.dropFrom && e.dropFrom.includes(monsterId)
-    );
-}
+// NOTE: getEquipmentEffectDescription, getEquipmentByRarity, getEquipmentByType,
+// and getEquipmentDropsForMonster were moved to `src/js/managers/EquipmentManager.js`.

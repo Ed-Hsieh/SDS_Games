@@ -51,10 +51,14 @@ body {
 /* ===== Utility Classes ===== */
 .hidden { display: none !important; }
 .flex { display: flex; }
-.flex-center { display: flex; justify-content: center; align-items: center; }
-.flex-column { display: flex; flex-direction: column; }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
+
+
+
+
+
+
+
+
 
 /* ===== Common Components ===== */
 .btn {
@@ -77,10 +81,8 @@ body {
 .btn-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
 .btn-danger { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
 
-.btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+
+
 
 /* Modal Styles (Global) */
 .modal-overlay {
@@ -187,7 +189,8 @@ body {
     cursor: pointer;
 }
 
-.modal-close:hover { color: #fff; }
+
+
 
 /* ===== Global Toast Notification ===== */
 #global-toast-container {
@@ -258,38 +261,31 @@ body {
     transition: color 0.2s;
 }
 
-.global-toast .toast-close:hover {
-    color: #fff;
-}
+
+
 
 /* Toast 類型樣式 */
 .global-toast.toast-success {
     border-left: 4px solid #2ecc71;
 }
 
-.global-toast.toast-success .toast-title {
-    color: #2ecc71;
-}
 
-.global-toast.toast-info {
-    border-left: 4px solid #3498db;
-}
 
-.global-toast.toast-info .toast-title {
-    color: #3498db;
-}
 
-.global-toast.toast-warning {
-    border-left: 4px solid #f39c12;
-}
 
-.global-toast.toast-warning .toast-title {
-    color: #f39c12;
-}
 
-.global-toast.toast-error {
-    border-left: 4px solid #e74c3c;
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* Item Detail Modal Specific Styles (Dark glassmorphism) */
 .component-item-detail-modal {
@@ -353,6 +349,5 @@ body {
 }
 
 
-.global-toast.toast-error .toast-title {
-    color: #e74c3c;
-}
+
+
