@@ -1459,8 +1459,6 @@ class BattleController {
 
                 if (hitType === 'miss') {
                     this.showDamageNumber(0, false, true);
-                } else {
-                    this.showDamageNumber(damage, isCrit, false);
                 }
 
                 if (damage > 0) {
@@ -1485,11 +1483,49 @@ class BattleController {
                         }
                     }
 
-                    this.monster.takeDamage(damage);
-                    this.scene.updateMonsterDisplay();
-                    if (this.monster.isDead()) {
-                        this.handleVictory();
-                        return;
+                    // Use FightManager.applyDamage so lifesteal / elemental effects are applied
+                    if (mod.applyDamage) {
+                        const damageObj = { damage, isCrit, breakdown: result.breakdown };
+                        const applyRes = mod.applyDamage(this.player, this.monster, damageObj);
+
+                        // show actual final damage
+                        this.showDamageNumber(applyRes.finalDamage, isCrit, false);
+                        this.scene.updateMonsterDisplay();
+
+                        // show lifesteal feedback if any
+                        if (applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
+                            const header = this.scene.container.querySelector('.battle-header');
+                            if (header) {
+                                const el = document.createElement('div');
+                                el.className = 'player-status-lifesteal';
+                                el.textContent = `❤ 恢復 ${applyRes.lifestealRecovered}`;
+                                el.style.position = 'absolute';
+                                el.style.left = '12px';
+                                el.style.top = '8px';
+                                el.style.padding = '4px 8px';
+                                el.style.background = 'rgba(255,105,180,0.95)';
+                                el.style.color = '#000';
+                                el.style.borderRadius = '6px';
+                                header.appendChild(el);
+                                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+                            }
+                        }
+
+                        // appliedEffects are intentionally not shown in UI here.
+                        // If you want to persist or apply them to status systems, hook into Character/Monster API instead.
+
+                        if (this.monster.isDead()) {
+                            this.handleVictory();
+                            return;
+                        }
+                    } else {
+                        // fallback to original
+                        this.monster.takeDamage(damage);
+                        this.scene.updateMonsterDisplay();
+                        if (this.monster.isDead()) {
+                            this.handleVictory();
+                            return;
+                        }
                     }
                 }
             } catch (e) {

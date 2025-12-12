@@ -1,26 +1,3 @@
-/**
- * FightManager.js
- * Centralized fight/damage/special-effect manager.
- *
- * Purpose:
- * - Provide a single place for computing attack damage, elemental bonuses,
- *   special effects (lifesteal, damage reduction, dodge, thunder attack-speed buff),
- *   and applying the resulting damage to targets.
- * - Replace/adapt the existing DamageManager logic and expose a clearer
- *   API for battle systems.
- *
- * Enums used (from `src/js/models/Enums.js`):
- * - AffixStat: canonical keys for affix/effect names. We mainly read element
- *   keys such as `fire`, `ice`, `thunder`, `poison`, and effect keys like
- *   `lifesteal`, `damageReduction`, etc. This manager expects equipment
- *   objects to store effects in `specialEffects`, `affixBonuses`, or `affixes`.
- *
- * Exposed API:
- * - computePlayerAttack(player, hitType) -> { damage, isCrit, thunderBuffPercent, breakdown }
- * - computeMonsterAttack(monster, player) -> { damage }
- * - applyDamage(attacker, target, damageObj) -> { finalDamage, beforeHP, afterHP, lifestealRecovered }
- * - utilities exported for tests: _toPercentValue, _sumPercentFromEquipment
- */
 
 import GameManager from './GameManager.js';
 import { AffixStat } from '../models/Enums.js';
@@ -117,24 +94,25 @@ export function computePlayerAttack(player, hitType) {
     // light used as attack-speed buff in some systems
     const lightPercent = sumPercentFromEquipment(equipmentSlots, [AffixStat.LIGHT]);
 
-    const elementalPercentTotal = firePercent + icePercent + thunderPercent + poisonPercent;
+    // Apply only fire as extra damage; other elements produce special effects
     let elementalBonus = 0;
-    if (elementalPercentTotal > 0 && damage > 0) {
-        elementalBonus = Math.floor(damage * (elementalPercentTotal / 100));
+    if (firePercent > 0 && damage > 0) {
+        elementalBonus = Math.floor(damage * (firePercent / 100));
         damage += elementalBonus;
     }
-
-    const thunderBuffPercent = thunderPercent; // returned for callers to apply temporary attack-speed buffs
 
     const breakdown = {
         base: Math.floor(playerAtk),
         crit: isCrit,
-        elementalPercentTotal,
-        elementalBonus,
-        thunderBuffPercent,
-        lightPercent
+        firePercent,
+        icePercent,
+        thunderPercent,
+        poisonPercent,
+        lightPercent,
+        elementalBonus
     };
 
+    const thunderBuffPercent = breakdown.thunderPercent || 0;
     return { damage, isCrit, thunderBuffPercent, breakdown };
 }
 
@@ -170,6 +148,12 @@ export function applyDamage(attacker, target, damageObj) {
         damage = Math.floor(damage * (1 - red / 100));
     }
 
+    // Subtract flat defense if present (ensure consistency with Monster.takeDamage)
+    const targetDef = (typeof target.getTotalDef === 'function') ? (target.getTotalDef()) : (target.def || target.defense || 0);
+    if (targetDef && damage > 0) {
+        damage = Math.max(0, Math.floor(damage - targetDef));
+    }
+
     // Ensure at least 1 damage if original damage > 0
     const finalDamage = damage > 0 ? Math.max(1, damage) : 0;
 
@@ -200,7 +184,42 @@ export function applyDamage(attacker, target, damageObj) {
 
     const afterHP = (typeof target.hp === 'number') ? target.hp : (target.getHP ? target.getHP() : 0);
 
-    return { finalDamage, beforeHP, afterHP, lifestealRecovered };
+    // Elemental effects (from damageObj.breakdown)
+    const breakdown = damageObj.breakdown || {};
+    const icePercent = breakdown.icePercent || 0;
+    const thunderPercent = breakdown.thunderPercent || 0;
+    const poisonPercent = breakdown.poisonPercent || 0;
+    const lightPercent = breakdown.lightPercent || 0;
+
+    const appliedEffects = [];
+    const attackerEffects = [];
+
+    // Thunder: chance to stun on hit
+    if (thunderPercent > 0 && finalDamage > 0) {
+        const roll = Math.random() * 100;
+        if (roll < thunderPercent) {
+            // stun duration: 1.5s (configurable later)
+            appliedEffects.push({ type: 'stun', duration: 1.5, source: 'thunder', value: thunderPercent });
+        }
+    }
+
+    // Ice: apply slow to target for 3 seconds
+    if (icePercent > 0 && finalDamage > 0) {
+        appliedEffects.push({ type: 'slow', percent: icePercent, duration: 3, source: 'ice' });
+    }
+
+    // Poison: apply damage-over-time (DPS) for 3 seconds
+    if (poisonPercent > 0 && finalDamage > 0) {
+        appliedEffects.push({ type: 'poison', dps: poisonPercent, duration: 3, source: 'poison' });
+    }
+
+    // Light: attack speed buff applied to attacker (stacking).
+    // We do not mutate attacker stats directly here; instead return the buff for caller to apply.
+    if (lightPercent > 0 && attacker) {
+        attackerEffects.push({ type: 'attackSpeed', percent: lightPercent, stacking: 'infinite', source: 'light' });
+    }
+
+    return { finalDamage, beforeHP, afterHP, lifestealRecovered, appliedEffects, attackerEffects };
 }
 
 export default {

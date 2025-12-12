@@ -78,15 +78,15 @@ export const SpecialEffectDescriptions = {
     revive: (value) => `死亡時 ${value}% 機率復活並回復 30% HP`,
     
     // 火：額外傷害比例
-    fire: (value) => `攻擊後的傷害造成額外 ${value}% 傷害`,
+    fire: (value) => `攻擊時造成額外 ${value}% 的傷害`,
     // 冰：減速效果
-    ice: (value) => `攻擊成功後使敵人攻擊速度降低 ${value}%`,
+    ice: (value) => `攻擊命中後使敵人攻速降低 ${value}%`,
     // 雷：暈眩機率
-    thunder: (value) => `命中時敵人時 ${value}% 使敵人暈眩`,
+    thunder: (value) => `命中敵人時有 ${value}% 機率使敵人暈眩`,
     // 光：提高攻速
-    light: (value) => `每當攻擊命中時使攻速提高 ${value}%，可無限疊加`,
+    light: (value) => `每次攻擊命中時攻速提高 ${value}%，此增益可無限疊加`,
     // 毒：持續傷害
-    poison: (value) => `每當造成傷害，使敵人中毒 ${value} 點持續傷害，持續 3 秒(次數使用武器攻擊次數計算 3/武器攻擊次數)`,
+    poison: (value) => `造成傷害時使敵人中毒，每秒造成 ${value} 點持續傷害，持續 3 秒（總持續時間依武器攻擊次數分配，示例：每次持續時間 = 3 / 武器攻擊次數 秒）`,
 };
 
 // ===== 物品分類 =====
