@@ -339,6 +339,21 @@ class DungeonSceneClass {
                     if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
                     try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
                     try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
+                    // register auto-attack callback to update UI
+                    try {
+                        if (this._engine) {
+                            this._engine._onAutoAttack = (res) => {
+                                if (!res) return;
+                                try {
+                                    if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                                    this.updateUI();
+                                    if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
+                                } catch (e) {
+                                    console.warn('Dungeon auto-attack UI handler failed:', e);
+                                }
+                            };
+                        }
+                    } catch (e) {}
             } else {
                 FightManagerReady.then(mod => {
                     if (mod && mod.BattleController) {
@@ -346,6 +361,20 @@ class DungeonSceneClass {
                             if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
                             try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
                             try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
+                            try {
+                                if (this._engine) {
+                                    this._engine._onAutoAttack = (res) => {
+                                        if (!res) return;
+                                        try {
+                                            if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                                            this.updateUI();
+                                            if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
+                                        } catch (e) {
+                                            console.warn('Dungeon auto-attack UI handler failed:', e);
+                                        }
+                                    };
+                                }
+                            } catch (e) {}
                     }
                 }).catch(err => console.warn('Failed to initialize FightManager engine for dungeon:', err));
             }

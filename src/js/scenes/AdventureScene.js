@@ -1050,6 +1050,24 @@ export default class AdventureScene {
                 }
                     try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
                     try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+                    // Register auto-attack callback so the scene updates UI when engine attacks
+                    try {
+                        if (this.currentBattle._engine) {
+                            this.currentBattle._engine._onAutoAttack = (res) => {
+                                if (!res) return;
+                                try {
+                                    if (res.destroyedArmor) this.updateEquipmentDisplay();
+                                    this.updateUI();
+                                    this.updatePlayerHUD();
+                                    this.showPlayerHitFeedback(res.damage);
+                                    this.endTurn();
+                                    if (res.playerHp <= 0) this.handleDefeat();
+                                } catch (e) {
+                                    console.warn('Error handling auto-attack UI update:', e);
+                                }
+                            };
+                        }
+                    } catch (e) {}
             } else {
                 // If not ready yet, wait for the dynamic import to resolve
                 FightManagerReady.then(mod => {
@@ -1060,6 +1078,23 @@ export default class AdventureScene {
                         }
                             try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
                             try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+                            try {
+                                if (this.currentBattle._engine) {
+                                    this.currentBattle._engine._onAutoAttack = (res) => {
+                                        if (!res) return;
+                                        try {
+                                            if (res.destroyedArmor) this.updateEquipmentDisplay();
+                                            this.updateUI();
+                                            this.updatePlayerHUD();
+                                            this.showPlayerHitFeedback(res.damage);
+                                            this.endTurn();
+                                            if (res.playerHp <= 0) this.handleDefeat();
+                                        } catch (e) {
+                                            console.warn('Error handling auto-attack UI update:', e);
+                                        }
+                                    };
+                                }
+                            } catch (e) {}
                     }
                 }).catch(err => console.warn('Failed to initialize FightManager engine:', err));
             }

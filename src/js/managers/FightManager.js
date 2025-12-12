@@ -246,6 +246,8 @@ export class BattleController {
         this._battleActive = false;
         // If startAutoAttack() was called before battle began, remember to start later
         this._pendingAutoStart = false;
+        // Optional callback invoked when auto-attack runs (scene may register)
+        this._onAutoAttack = null;
     }
 
     /**
@@ -366,6 +368,12 @@ export class BattleController {
 
             try {
                 const res = this.monsterAttack();
+                // Notify listener (scene) so UI can be updated
+                try {
+                    if (this._onAutoAttack && typeof this._onAutoAttack === 'function') this._onAutoAttack(res);
+                } catch (e) {
+                    console.warn('onAutoAttack listener failed:', e);
+                }
                 // If monster died or player died, stop auto-attack
                 if (this.monster && typeof this.monster.isDead === 'function' && this.monster.isDead()) {
                     this.battleEnded = true;
