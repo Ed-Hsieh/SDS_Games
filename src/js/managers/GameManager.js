@@ -55,9 +55,6 @@ class GameManager {
         // 測試用金幣
         this.state.character.gold = 50000;
         
-        // 測試用 BOSS 裝備（套裝測試）
-        this.addBossEquipmentForTesting();
-        
         // 加入所有套裝到倉庫以便測試套裝效果
         for (const setId of Object.keys(SetDatabase)) {
             try {
@@ -70,29 +67,7 @@ class GameManager {
         this.notify('all');
         console.log('Test materials and all sets added for forging and set bonus testing.');
     }
-    
-    /**
-     * 添加帶詞綴的測試裝備 - 每種詞綴各一個
-     */
-    addBossEquipmentForTesting() {
-        
-        // ========== 吸血測試裝備 ==========
-        const vampiricSword = new Weapon(
-            'vampiric_sword', '嗜血之劍', ItemRarity.RARE, '🩸',
-            '帶有生命偷取詞綴的武器。', 600, 20, 0, 0.10, 1.8, 1.0, 1.1
-        );
-        vampiricSword.durability = 50;
-        vampiricSword.maxDurability = 50;
-        vampiricSword.affixes = [
-            { id: 'vampiric', name: '嗜血的', type: 'prefix', rarity: 'rare', stats: { lifesteal: 0.05 } },
-            { id: 'sanguine', name: '鮮血的', type: 'prefix', rarity: 'epic', stats: { lifesteal: 0.08, atk: 12 } }
-        ];
-        vampiricSword.affixBonuses = { atk: 12, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0, attackSpeed: 0, lifesteal: 0.13, damageReduction: 0 };
-        vampiricSword.name = '嗜血的鮮血之劍';
-        this.addToWarehouse(vampiricSword);
-        
-        console.log('測試裝備已添加：每種詞綴稀有度各一個');
-    }
+
 
     static getInstance() {
         if (!GameManager.instance) {

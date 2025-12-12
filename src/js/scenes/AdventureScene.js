@@ -2504,8 +2504,16 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
         const def = item.def || item.defense;
         statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
     }
-    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.critChance) {
+        const raw = Number(item.critChance || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
+    if (item.critDamage) {
+        const raw = Number(item.critDamage || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
     if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
     if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
     if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
@@ -2580,8 +2588,16 @@ AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
     let statsHtml = '';
     if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
     if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-    if (item.critChance) statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${(item.critChance * 100).toFixed(0)}%</span></div>`;
-    if (item.critDamage) statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${(item.critDamage * 100).toFixed(0)}%</span></div>`;
+    if (item.critChance) {
+        const raw = Number(item.critChance || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
+    if (item.critDamage) {
+        const raw = Number(item.critDamage || 0);
+        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
+        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
+    }
     if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
     if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
     if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;

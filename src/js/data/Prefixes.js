@@ -45,7 +45,7 @@ export const PrefixDatabase = {
         name: '銳利的',
         rarity: ItemRarity.UNCOMMON,
         type: 'prefix',
-        stats: { [AffixStat.ATK]: [2, 4], [AffixStat.CRIT_CHANCE]: [0.05, 0.07] },
+        stats: { [AffixStat.ATK]: [2, 4], [AffixStat.CRIT_CHANCE]: [5, 7] },
         description: '攻擊力 +{atk}，暴擊率 +{critChance}%',
         applicableTo: ['weapon']
     },
@@ -63,7 +63,7 @@ export const PrefixDatabase = {
         name: '迅捷的',
         rarity: ItemRarity.UNCOMMON,
         type: 'prefix',
-        stats: { [AffixStat.ATTACK_SPEED]: [0.05, 0.10] },
+        stats: { [AffixStat.ATTACK_SPEED]: [5, 10] },
         description: '攻擊速度 +{attackSpeed}%',
         applicableTo: ['weapon', 'accessory']
     },
@@ -74,7 +74,7 @@ export const PrefixDatabase = {
         name: '兇猛的',
         rarity: ItemRarity.RARE,
         type: 'prefix',
-        stats: { [AffixStat.ATK]: [3, 6], [AffixStat.CRIT_DAMAGE]: [0.05, 0.10] },
+        stats: { [AffixStat.ATK]: [3, 6], [AffixStat.CRIT_DAMAGE]: [5, 10] },
         description: '攻擊力 +{atk}，暴擊傷害 +{critDamage}%',
         applicableTo: ['weapon']
     },
@@ -92,7 +92,7 @@ export const PrefixDatabase = {
         name: '嗜血的',
         rarity: ItemRarity.RARE,
         type: 'prefix',
-        stats: { [AffixStat.LIFESTEAL]: [0.03, 0.06] },
+        stats: { [AffixStat.LIFESTEAL]: [3, 6] },
         description: '生命偷取 +{lifesteal}%',
         applicableTo: ['weapon']
     },
@@ -103,7 +103,7 @@ export const PrefixDatabase = {
         name: '殘暴的',
         rarity: ItemRarity.EPIC,
         type: 'prefix',
-        stats: { [AffixStat.ATK]: [4, 8], [AffixStat.CRIT_CHANCE]: [0.05, 0.10], [AffixStat.CRIT_DAMAGE]: [0.10, 0.15] },
+        stats: { [AffixStat.ATK]: [4, 8], [AffixStat.CRIT_CHANCE]: [5, 10], [AffixStat.CRIT_DAMAGE]: [10, 15] },
         description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%',
         applicableTo: ['weapon']
     },
@@ -112,7 +112,7 @@ export const PrefixDatabase = {
         name: '堅不可摧的',
         rarity: ItemRarity.EPIC,
         type: 'prefix',
-        stats: { [AffixStat.DEF]: [4, 8], [AffixStat.HP]: [40, 60], [AffixStat.DAMAGE_REDUCTION]: [0.05, 0.10] },
+        stats: { [AffixStat.DEF]: [4, 8], [AffixStat.HP]: [40, 60], [AffixStat.DAMAGE_REDUCTION]: [5, 10] },
         description: '防禦力 +{def}，生命 +{hp}，傷害減免 +{damageReduction}%',
         applicableTo: ['armor']
     },
@@ -121,7 +121,7 @@ export const PrefixDatabase = {
         name: '鮮血的',
         rarity: ItemRarity.EPIC,
         type: 'prefix',
-        stats: { [AffixStat.LIFESTEAL]: [0.06, 0.10], [AffixStat.ATK]: [5, 10] },
+        stats: { [AffixStat.LIFESTEAL]: [6, 10], [AffixStat.ATK]: [5, 10] },
         description: '生命偷取 +{lifesteal}%，攻擊力 +{atk}',
         applicableTo: ['weapon']
     },
@@ -132,7 +132,7 @@ export const PrefixDatabase = {
         name: '弒神的',
         rarity: ItemRarity.LEGENDARY,
         type: 'prefix',
-        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.CRIT_CHANCE]: [0.10, 0.15], [AffixStat.CRIT_DAMAGE]: [0.20, 0.30], [AffixStat.BOSS_BONUS]: 0.10 },
+        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.CRIT_CHANCE]: [10, 15], [AffixStat.CRIT_DAMAGE]: [20, 30], [AffixStat.BOSS_BONUS]: 10 },
         description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%，對BOSS傷害 +{bossBonus}%',
         applicableTo: ['weapon']
     },
@@ -141,7 +141,7 @@ export const PrefixDatabase = {
         name: '不朽的',
         rarity: ItemRarity.LEGENDARY,
         type: 'prefix',
-        stats: { [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [60, 100], [AffixStat.LIFESTEAL]: 0.10, [AffixStat.DAMAGE_REDUCTION]: 0.10 },
+        stats: { [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [60, 100], [AffixStat.LIFESTEAL]: 10, [AffixStat.DAMAGE_REDUCTION]: 10 },
         description: '防禦力 +{def}，生命 +{hp}，生命偷取 +{lifesteal}%，傷害減免 +{damageReduction}%',
         applicableTo: ['armor']
     },
@@ -150,7 +150,7 @@ export const PrefixDatabase = {
         name: '原始的',
         rarity: ItemRarity.LEGENDARY,
         type: 'prefix',
-        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [50, 100], [AffixStat.ALL_STATS]: 0.20 },
+        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [50, 100], [AffixStat.ALL_STATS]: 20 },
         description: '攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，全屬性 +{allStats}%',
         applicableTo: ['weapon', 'armor', 'accessory']
     }
@@ -167,7 +167,7 @@ export const SuffixDatabase = {
         name: '輕盈',
         rarity: ItemRarity.COMMON,
         type: 'suffix',
-        stats: { [AffixStat.ATTACK_SPEED]: [0.03, 0.06] },
+        stats: { [AffixStat.ATTACK_SPEED]: [3, 6] },
         description: '攻擊速度 +{attackSpeed}%',
         applicableTo: ['weapon']
     },
@@ -176,7 +176,7 @@ export const SuffixDatabase = {
         name: '暴力',
         rarity: ItemRarity.COMMON,
         type: 'suffix',
-        stats: { [AffixStat.CRIT_CHANCE]: [0.03, 0.06] },
+        stats: { [AffixStat.CRIT_CHANCE]: [3, 6] },
         description: '暴擊率 +{critChance}%',
         applicableTo: ['weapon']
     },
@@ -185,7 +185,7 @@ export const SuffixDatabase = {
         name: '破甲',
         rarity: ItemRarity.COMMON,
         type: 'suffix',
-        stats: { [AffixStat.ARMOR_PENETRATION]: [0.03, 0.06] },
+        stats: { [AffixStat.ARMOR_PENETRATION]: [3, 6] },
         description: '穿甲 +{armorPenetration}%',
         applicableTo: ['weapon']
     },
@@ -196,7 +196,7 @@ export const SuffixDatabase = {
         name: '殘破',
         rarity: ItemRarity.UNCOMMON,
         type: 'suffix',
-        stats: { [AffixStat.SLOW_CHANCE]: [0.08, 0.16], [AffixStat.HP]: [10, 30] },
+        stats: { [AffixStat.SLOW_CHANCE]: [8, 16], [AffixStat.HP]: [10, 30] },
         description: '有機率減速敵人 +{slowChance}%，並提供生命 +{hp}',
         applicableTo: ['weapon']
     },
@@ -205,7 +205,7 @@ export const SuffixDatabase = {
         name: '震源',
         rarity: ItemRarity.UNCOMMON,
         type: 'suffix',
-        stats: { [AffixStat.ARMOR_PENETRATION]: [0.12, 0.25], [AffixStat.STUN_CHANCE]: [0.10, 0.20] },
+        stats: { [AffixStat.ARMOR_PENETRATION]: [12, 25], [AffixStat.STUN_CHANCE]: [10, 20] },
         description: '提高穿甲 +{armorPenetration}%，並顯著提升暈眩機率 +{stunChance}%',
         applicableTo: ['weapon']
     },
@@ -225,7 +225,7 @@ export const SuffixDatabase = {
         name: '狂怒',
         rarity: ItemRarity.RARE,
         type: 'suffix',
-        stats: { [AffixStat.CRIT_CHANCE]: [0.05, 0.08], [AffixStat.ATTACK_SPEED]: [0.05, 0.10] },
+        stats: { [AffixStat.CRIT_CHANCE]: [5, 8], [AffixStat.ATTACK_SPEED]: [5, 10] },
         description: '暴擊率 +{critChance}%，攻擊速度 +{attackSpeed}%',
         applicableTo: ['weapon', 'accessory']
     },
@@ -243,7 +243,7 @@ export const SuffixDatabase = {
         name: '精準',
         rarity: ItemRarity.RARE,
         type: 'suffix',
-        stats: { [AffixStat.CRIT_CHANCE]: [0.05, 0.10], [AffixStat.CRIT_DAMAGE]: [0.05, 0.10] },
+        stats: { [AffixStat.CRIT_CHANCE]: [5, 10], [AffixStat.CRIT_DAMAGE]: [5, 10] },
         description: '暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%',
         applicableTo: ['weapon', 'accessory']
     },
@@ -254,7 +254,7 @@ export const SuffixDatabase = {
         name: '毀滅',
         rarity: ItemRarity.EPIC,
         type: 'suffix',
-        stats: { [AffixStat.CRIT_DAMAGE]: [0.10, 0.20], [AffixStat.ATK]: [4, 8] },
+        stats: { [AffixStat.CRIT_DAMAGE]: [10, 20], [AffixStat.ATK]: [4, 8] },
         description: '暴擊傷害 +{critDamage}%，攻擊力 +{atk}',
         applicableTo: ['weapon']
     },
@@ -272,7 +272,7 @@ export const SuffixDatabase = {
         name: '暗影',
         rarity: ItemRarity.EPIC,
         type: 'suffix',
-        stats: { [AffixStat.CRIT_CHANCE]: [0.08, 0.12], [AffixStat.DODGE_CHANCE]: [0.03, 0.06] },
+        stats: { [AffixStat.CRIT_CHANCE]: [8, 12], [AffixStat.DODGE_CHANCE]: [3, 6] },
         description: '暴擊率 +{critChance}%，閃避率 +{dodgeChance}%',
         applicableTo: ['weapon', 'accessory']
     },
@@ -281,7 +281,7 @@ export const SuffixDatabase = {
         name: '生機',
         rarity: ItemRarity.EPIC,
         type: 'suffix',
-        stats: { [AffixStat.LIFESTEAL]: [0.05, 0.10], [AffixStat.HP]: 40 },
+        stats: { [AffixStat.LIFESTEAL]: [5, 10], [AffixStat.HP]: 40 },
         description: '吸血 +{lifesteal}%，生命 +{hp}',
         applicableTo: ['armor', 'accessory']
     },
@@ -292,7 +292,7 @@ export const SuffixDatabase = {
         name: '虛空',
         rarity: ItemRarity.LEGENDARY,
         type: 'suffix',
-        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.ARMOR_PENETRATION]: 0.20, [AffixStat.CRIT_CHANCE]: [0.10, 0.20] },
+        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.ARMOR_PENETRATION]: 20, [AffixStat.CRIT_CHANCE]: [10, 20] },
         description: '攻擊力 +{atk}，穿甲 +{armorPenetration}%，暴擊率 +{critChance}%',
         applicableTo: ['weapon']
     },
@@ -301,7 +301,7 @@ export const SuffixDatabase = {
         name: '永恆',
         rarity: ItemRarity.LEGENDARY,
         type: 'suffix',
-        stats: { [AffixStat.HP]: [80, 120], [AffixStat.DEF]: [10, 15], [AffixStat.DAMAGE_REDUCTION]: [0.05, 0.10] },
+        stats: { [AffixStat.HP]: [80, 120], [AffixStat.DEF]: [10, 15], [AffixStat.DAMAGE_REDUCTION]: [5, 10] },
         description: '生命 +{hp}，防禦力 +{def}，傷害減免 +{damageReduction}%',
         applicableTo: ['armor']
     },
@@ -310,7 +310,7 @@ export const SuffixDatabase = {
         name: '全能',
         rarity: ItemRarity.LEGENDARY,
         type: 'suffix',
-        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [40, 60], [AffixStat.CRIT_CHANCE]: [0.10, 0.20], [AffixStat.ALL_STATS]: [0.10, 0.20] },
+        stats: { [AffixStat.ATK]: [6, 10], [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [40, 60], [AffixStat.CRIT_CHANCE]: [10, 20], [AffixStat.ALL_STATS]: [10, 20] },
         description: '攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，暴擊率 +{critChance}%，全屬性 +{allStats}%',
         applicableTo: ['weapon', 'armor', 'accessory']
     },
@@ -320,7 +320,7 @@ export const SuffixDatabase = {
         name: '不朽',
         rarity: ItemRarity.LEGENDARY,
         type: 'suffix',
-        stats: { [AffixStat.ATK]: 7, [AffixStat.DEF]: 7, [AffixStat.CRIT_CHANCE]: 0.07, [AffixStat.CRIT_DAMAGE]: 0.07, [AffixStat.HP]: 40, [AffixStat.ALL_STATS]: 0.07, noDurabilityLoss: [1, 1] },
+        stats: { [AffixStat.ATK]: 7, [AffixStat.DEF]: 7, [AffixStat.CRIT_CHANCE]: 7, [AffixStat.CRIT_DAMAGE]: 7, [AffixStat.HP]: 40, [AffixStat.ALL_STATS]: 7, noDurabilityLoss: [1, 1] },
         description: '【完美無瑕】不會消耗耐久度，攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%，全屬性 +{allStats}%',
         applicableTo: ['weapon', 'armor']
     }

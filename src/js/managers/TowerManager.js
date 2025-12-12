@@ -228,9 +228,10 @@ export default class TowerManager {
             
             // 生命偷取（僅在造成傷害時觸發）
             if (damage > 0) {
-                const lifesteal = character.equipment.weapon?.lifesteal || 0;
+                // Prefer character.getLifesteal() if available (returns fraction), otherwise fallback to raw weapon property
+                const lifesteal = (typeof character.getLifesteal === 'function') ? character.getLifesteal() : (character.equipment.weapon?.lifesteal || 0);
                 if (lifesteal > 0) {
-                    const healAmount = Math.floor(damage * lifesteal);
+                    const healAmount = Math.floor(damage * (lifesteal / 100));
                     character.hp = Math.min(character.maxHp, character.hp + healAmount);
                     message += ` 偷取 ${healAmount} 點生命。`;
                 }

@@ -89,14 +89,46 @@ export function getAttackInterval(character) {
 }
 
 export function getLifesteal(character) {
+    // Normalize to percent integer representation (e.g. 0.05 -> 5, 5 -> 5)
+    const toPercentInt = (raw) => {
+        const n = Number(raw || 0);
+        if (n === 0) return 0;
+        if (Math.abs(n) <= 1) return n * 100; // fraction -> percent
+        return n; // already percent
+    };
+
     let lifesteal = 0;
     Object.values(character.equipment || {}).forEach(item => {
-        if (item && item.lifesteal) lifesteal += item.lifesteal;
-        if (item && item.affixBonuses && item.affixBonuses.lifesteal) {
-            lifesteal += item.affixBonuses.lifesteal;
+        if (!item) return;
+
+        if (item.lifesteal !== undefined && item.lifesteal !== null) lifesteal += toPercentInt(item.lifesteal);
+        if (item.lifeStealBonus !== undefined && item.lifeStealBonus !== null) lifesteal += toPercentInt(item.lifeStealBonus);
+
+        if (item.affixBonuses) {
+            if (item.affixBonuses.lifesteal !== undefined && item.affixBonuses.lifesteal !== null) lifesteal += toPercentInt(item.affixBonuses.lifesteal);
+            if (item.affixBonuses.lifeStealBonus !== undefined && item.affixBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.affixBonuses.lifeStealBonus);
+        }
+
+        if (Array.isArray(item.affixes)) {
+            for (const a of item.affixes) {
+                if (!a || !a.stats) continue;
+                if (a.stats.lifesteal !== undefined && a.stats.lifesteal !== null) lifesteal += toPercentInt(a.stats.lifesteal);
+                if (a.stats.lifeStealBonus !== undefined && a.stats.lifeStealBonus !== null) lifesteal += toPercentInt(a.stats.lifeStealBonus);
+            }
+        }
+
+        if (Array.isArray(item.specialEffects)) {
+            for (const eff of item.specialEffects) {
+                if (!eff || !eff.type) continue;
+                const t = String(eff.type).toLowerCase();
+                if (t.includes('life') && t.includes('steal') || t === 'lifesteal' || t === 'life_steal') {
+                    lifesteal += toPercentInt(eff.value);
+                }
+            }
         }
     });
-    return lifesteal;
+
+    return lifesteal; // percent integer (e.g. 5 means 5%)
 }
 
 export function getDamageReduction(character) {

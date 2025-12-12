@@ -71,8 +71,38 @@ class ItemDetailModal {
         // We'll auto-build a structured view if item has stats or affixes, overriding statsHtml if needed.
         // This ensures the aggregated base + (+bonus) format is always shown.
         if (!Array.isArray(opts.stats) && item) {
-            const percentKeys = new Set(['critChance', 'critDamage', 'lifesteal', 'damageReduction', 'allStats']);
-            const labelMap = { atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力', durability: '耐久度', critChance: '爆擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度' };
+            // Map of keys that should be displayed as percentages (and their Chinese labels)
+            const percentKeyMap = {
+                critChance: '爆擊率',
+                critDamage: '暴擊傷害',
+                lifesteal: '生命偷取',
+                damageReduction: '傷害減免',
+                allStats: '全屬性',
+                fire: '火屬性',
+                ice: '冰屬性',
+                thunder: '雷屬性',
+                poison: '毒屬性',
+                light: '光屬性',
+                dodgeChance: '閃避率',
+                armorPenetration: '穿甲',
+                double_strike: '雙重打擊',
+                execute: '處決',
+                damage_reflect: '反傷',
+                gold_bonus: '金幣加成',
+                exp_bonus: '經驗加成',
+                drop_bonus: '掉落加成',
+                revive: '復活'
+            };
+            const percentKeys = new Set(Object.keys(percentKeyMap));
+
+            const labelMap = Object.assign({
+                atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力', durability: '耐久度',
+                attackSpeed: '攻擊速度'
+            }, percentKeyMap);
+
+            // unified buff icon for percent/buff-style affixes
+            const buffIcon = '✨';
+            const iconMap = Object.assign({}, Object.fromEntries(Object.keys(percentKeyMap).map(k => [k, buffIcon])));
 
             // Compute affix contributions per-stat from `item.affixes` (preferred) or fallback to `item.affixBonuses`.
             const affixContribs = {};
@@ -81,8 +111,17 @@ class ItemDetailModal {
                     if (!aff || !aff.stats) return;
                     for (const [k, v] of Object.entries(aff.stats)) {
                         if (v === undefined || v === null) continue;
-                        const isPercent = percentKeys.has(k);
-                        const displayVal = isPercent ? (Number(v) * 100) : Number(v);
+                    const isPercent = percentKeys.has(k);
+                    let raw = Number(v);
+                    let disp = isPercent ? (Math.abs(raw) <= 1 ? raw * 100 : raw) : raw;
+                    const display = isPercent ? ((Math.abs(disp % 1) > 0) ? disp.toFixed(2) : disp.toFixed(0)) + '%' : disp;
+                        let num = Number(v);
+                        let displayVal;
+                        if (isPercent) {
+                            displayVal = Math.abs(num) <= 1 ? num * 100 : num;
+                        } else {
+                            displayVal = num;
+                        }
                         affixContribs[k] = (affixContribs[k] || 0) + displayVal;
                     }
                 });
@@ -91,10 +130,24 @@ class ItemDetailModal {
             // If no individual affixes, but shorthand affixBonuses exist, use them as contributions
             if (Object.keys(affixContribs).length === 0 && item.affixBonuses) {
                 for (const [k, v] of Object.entries(item.affixBonuses)) {
-                    if (!v || v === 0) continue;
-                    const displayVal = percentKeys.has(k) ? (Number(v) * 100) : v;
+                    if (v === undefined || v === null || v === 0) continue;
+                    let num = Number(v);
+                    let displayVal = percentKeys.has(k) ? (Math.abs(num) <= 1 ? num * 100 : num) : Number(num);
                     affixContribs[k] = (affixContribs[k] || 0) + displayVal;
                 }
+            }
+
+            // Merge specialEffects into affix contributions so they appear on the card
+            // specialEffects format assumed: [{ type: 'lifesteal'|'fire'|..., value: number }, ...]
+            if (Array.isArray(item.specialEffects) && item.specialEffects.length > 0) {
+                item.specialEffects.forEach(eff => {
+                    if (!eff || !eff.type) return;
+                    const key = String(eff.type);
+                    const raw = eff.value !== undefined && eff.value !== null ? eff.value : 0;
+                    let num = Number(raw);
+                    const displayVal = percentKeys.has(key) ? (Math.abs(num) <= 1 ? num * 100 : num) : Number(num);
+                    affixContribs[key] = (affixContribs[key] || 0) + displayVal;
+                });
             }
 
             // Check if item has any base stats or affix contributions
@@ -128,7 +181,7 @@ class ItemDetailModal {
                 for (const [k, v] of Object.entries(affixContribs)) {
                     if (built.find(b => b.key === k)) continue;
                     if (!v || v === 0) continue;
-                    built.push({ key: k, icon: '', label: labelMap[k] || k, base: 0, bonus: v, suffix: percentKeys.has(k) ? '%' : '' });
+                    built.push({ key: k, icon: iconMap[k] || '', label: labelMap[k] || k, base: 0, bonus: v, suffix: percentKeys.has(k) ? '%' : '' });
                 }
 
                 if (built.length > 0) {
