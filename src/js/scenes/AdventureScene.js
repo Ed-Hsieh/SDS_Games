@@ -4,12 +4,16 @@
  */
 import GameManager, { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
-import { SpecialEffectType } from '../managers/EquipmentManager.js';
 import { eventManager } from '../managers/EventManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
-import { calculateDrops } from '../managers/DropManager.js';
+import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
 import { getMaterial } from '../managers/MaterialManager.js';
-import { getEquipment } from '../managers/EquipmentManager.js';
+
+// Preload FightManager for unified management (fallback to promise if not ready)
+let FightManager = null;
+const FightManagerReady = import('../managers/FightManager.js')
+    .then(mod => { FightManager = mod; return mod; })
+    .catch(err => { console.error('Failed to preload FightManager:', err); return null; });
 
 // Centralized zone color definitions used by both rendering layers
 const ZONE_COLORS = {
@@ -1441,123 +1445,70 @@ class BattleController {
     playerAttack(hitType) {
         if (this.attackCooldown || this.battleEnded) return;
 
-        const playerAtk = this.player.getTotalAtk();
-        let damage = 0;
-        let isCrit = false;
-        
-        if (hitType === 'miss') {
-            this.showDamageNumber(0, false, true);
-            // Miss — no elemental damage applied
-        } else {
-            if (hitType === 'crit') {
-                damage = Math.floor(playerAtk * this.player.getCritDamage());
-                isCrit = true;
-            } else {
-                damage = playerAtk;
-            }
-
-            // 計算裝備上的火焰加成（百分比），支援 DB 與 instance 命名
-            let elementalPercent = 0;
-            const equipmentSlots = Object.values(this.player.equipment || {});
-            for (const item of equipmentSlots) {
-                if (!item) continue;
-
-                if (item.specialEffects && Array.isArray(item.specialEffects)) {
-                    for (const eff of item.specialEffects) {
-                        if (!eff || !eff.type) continue;
-                        const t = eff.type;
-                        const v = Number(eff.value || 0);
-                        if (t === SpecialEffectType.FIRE || t === 'fire_damage' || t === 'fire') {
-                            elementalPercent += v;
-                        }
-                    }
-                }
-
-                if (item.affixBonuses) {
-                    if (item.affixBonuses.fireDamage) elementalPercent += Number(item.affixBonuses.fireDamage);
-                    if (item.affixBonuses.fire_damage) elementalPercent += Number(item.affixBonuses.fire_damage);
-                }
-
-                if (item.affixes && Array.isArray(item.affixes)) {
-                    for (const a of item.affixes) {
-                        if (!a || !a.stats) continue;
-                        if (a.stats.fireDamage) elementalPercent += Number(a.stats.fireDamage);
-                        if (a.stats.fire_damage) elementalPercent += Number(a.stats.fire_damage);
-                    }
-                }
-            }
-
-            if (elementalPercent > 0 && damage > 0) {
-                const extra = Math.floor(damage * (elementalPercent / 100));
-                damage += extra;
-            }
-
-            this.showDamageNumber(damage, isCrit, false);
-        }
-
         // 武器耐久度消耗（無論命中與否都消耗）
         const destroyedWeapon = GameManager.reduceWeaponDurability();
         if (destroyedWeapon) {
             this.scene.updateEquipmentDisplay();
         }
 
-        if (damage > 0) {
-            // THUNDER: 命中後短暫提高玩家攻擊速度（以百分比表示）
-            let thunderPercentTotal = 0;
-            const eqSlots = Object.values(this.player.equipment || {});
-            for (const item of eqSlots) {
-                if (!item) continue;
-                if (item.specialEffects && Array.isArray(item.specialEffects)) {
-                    for (const eff of item.specialEffects) {
-                        if (!eff || !eff.type) continue;
-                        const t = eff.type;
-                        const v = Number(eff.value || 0);
-                        if (t === SpecialEffectType.THUNDER || t === 'thunder_damage' || t === 'thunder') {
-                            thunderPercentTotal += v;
+        // Delegate to FightManager for core damage calculation (use preloaded module)
+        const _runCompute = (mod) => {
+            try {
+                const result = mod.computePlayerAttack(this.player, hitType);
+                const { damage, isCrit, thunderBuffPercent } = result;
+
+                if (hitType === 'miss') {
+                    this.showDamageNumber(0, false, true);
+                } else {
+                    this.showDamageNumber(damage, isCrit, false);
+                }
+
+                if (damage > 0) {
+                    // 若 FightManager 回傳 thunderBuffPercent，則處理短暫攻速
+                    if (thunderBuffPercent && thunderBuffPercent > 0) {
+                        const buffVal = thunderBuffPercent / 100;
+                        this.player.addBuff('attackSpeed', buffVal, 1);
+                        const header = this.scene.container.querySelector('.battle-header');
+                        if (header) {
+                            const el = document.createElement('div');
+                            el.className = 'player-status-thunder';
+                            el.textContent = `⚡ 攻速 +${thunderBuffPercent}%`;
+                            el.style.position = 'absolute';
+                            el.style.right = '12px';
+                            el.style.top = '8px';
+                            el.style.padding = '4px 8px';
+                            el.style.background = 'rgba(255,215,0,0.95)';
+                            el.style.color = '#000';
+                            el.style.borderRadius = '6px';
+                            header.appendChild(el);
+                            setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
                         }
                     }
-                }
-                if (item.affixBonuses) {
-                    if (item.affixBonuses.thunderDamage) thunderPercentTotal += Number(item.affixBonuses.thunderDamage);
-                    if (item.affixBonuses.thunder_damage) thunderPercentTotal += Number(item.affixBonuses.thunder_damage);
-                }
-                if (item.affixes && Array.isArray(item.affixes)) {
-                    for (const a of item.affixes) {
-                        if (!a || !a.stats) continue;
-                        if (a.stats.thunderDamage) thunderPercentTotal += Number(a.stats.thunderDamage);
-                        if (a.stats.thunder_damage) thunderPercentTotal += Number(a.stats.thunder_damage);
+
+                    this.monster.takeDamage(damage);
+                    this.scene.updateMonsterDisplay();
+                    if (this.monster.isDead()) {
+                        this.handleVictory();
+                        return;
                     }
                 }
+            } catch (e) {
+                console.error('Error while computing player attack:', e);
             }
+        };
 
-            if (thunderPercentTotal > 0) {
-                // 轉為小數（例如 20 -> 0.2），持續 1 回合
-                const buffVal = thunderPercentTotal / 100;
-                this.player.addBuff('attackSpeed', buffVal, 1);
-                // 顯示短暫提示
-                const header = this.scene.container.querySelector('.battle-header');
-                if (header) {
-                    const el = document.createElement('div');
-                    el.className = 'player-status-thunder';
-                    el.textContent = `⚡ 攻速 +${thunderPercentTotal}%`;
-                    el.style.position = 'absolute';
-                    el.style.right = '12px';
-                    el.style.top = '8px';
-                    el.style.padding = '4px 8px';
-                    el.style.background = 'rgba(255,215,0,0.95)';
-                    el.style.color = '#000';
-                    el.style.borderRadius = '6px';
-                    header.appendChild(el);
-                    setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+        if (FightManager && FightManager.computePlayerAttack) {
+            _runCompute(FightManager);
+        } else {
+            FightManagerReady.then(mod => {
+                if (!mod) {
+                    console.error('Failed to load FightManager');
+                    return;
                 }
-            }
-
-            this.monster.takeDamage(damage);
-            this.scene.updateMonsterDisplay();
-            if (this.monster.isDead()) {
-                this.handleVictory();
-                return;
-            }
+                _runCompute(mod);
+            }).catch(err => {
+                console.error('Failed to load FightManager or compute damage:', err);
+            });
         }
         
         // 注意：節奏條冷卻由 RhythmBarSystem 自己處理
@@ -1746,8 +1697,9 @@ class BattleController {
     handleVictory() {
         this.battleEnded = true;
         
-        // 使用 DropManager 計算掉落物品
-        const drops = calculateDrops(this.monster);
+        // 使用 DropManager 的 resolve + generate 流程取得掉落物品
+        const sources = resolveDropSources({ monster: this.monster });
+        const drops = generateDropsFromSources(sources, { rng: Math.random });
         const gold = this.monster.gold || 0;
         
         // 將掉落 ID 轉換成物品實例

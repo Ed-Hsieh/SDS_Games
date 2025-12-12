@@ -61,7 +61,6 @@ export const MonsterDatabase = {
         description: '最基礎的怪物，適合新手練習。'
     },
     
-    // 低等級怪物 (Lv.1-3)
     goblin: {
         id: 'goblin',
         name: '哥布林',
@@ -448,7 +447,7 @@ export const MonsterDatabase = {
             { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_boots', chance: 0.05 }
+            { equipmentId: 'shadow_badge', chance: 0.05 }
         ],
         skills: ['shadow_bolt', 'dark_curse'],
         description: '操控暗影魔法的法師。'
@@ -554,7 +553,7 @@ export const MonsterDatabase = {
             { itemId: 'crystal_shard', chance: 0.2, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'rune_gauntlet', chance: 0.06 }
+            { equipmentId: 'rune_badge', chance: 0.06 }
         ],
         skills: ['rune_blast', 'rune_shield'],
         description: '守護古代符文的神秘存在。'
@@ -759,7 +758,7 @@ export const MonsterDatabase = {
             { itemId: 'dragon_heart', chance: 0.05, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'drake_scale_mail', chance: 0.05 }
+            // { equipmentId: 'drake_scale_mail', chance: 0.05 }
         ],
         skills: ['fire_breath', 'claw_strike'],
         description: '年幼的龍族成員。'
@@ -808,7 +807,8 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'dragon_heart', chance: 1.0, quantity: [1, 1] },
             { itemId: 'elder_dragon_scale', chance: 0.8, quantity: [2, 3] },
-            { itemId: 'dragon_tooth', chance: 0.6, quantity: [1, 2] }
+            { itemId: 'dragon_tooth', chance: 0.6, quantity: [1, 2] },
+            { itemId: 'elder_dragon_fang_badge', chance: 0.4, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'elder_dragon_fang', chance: 0.15 }

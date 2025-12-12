@@ -5,6 +5,7 @@
  */
 
 import { ItemRarity } from '../models/DataModel.js';
+import {PrefixDatabase, SuffixDatabase} from '../data/Prefixes.js';
 
 // 詞綴類型
 export const AffixType = {
@@ -20,7 +21,6 @@ const AFFIX_RARITY_WEIGHTS = {
     [ItemRarity.EPIC]: { common: 10, uncommon: 25, rare: 35, epic: 25, legendary: 5 },
     [ItemRarity.LEGENDARY]: { common: 0, uncommon: 10, rare: 30, epic: 40, legendary: 20 }
 };
-
 // 根據裝備稀有度決定詞綴數量
 const AFFIX_COUNT_BY_RARITY = {
     [ItemRarity.COMMON]: { min: 0, max: 1 },
@@ -28,345 +28,6 @@ const AFFIX_COUNT_BY_RARITY = {
     [ItemRarity.RARE]: { min: 1, max: 3 },
     [ItemRarity.EPIC]: { min: 2, max: 4 },
     [ItemRarity.LEGENDARY]: { min: 3, max: 5 }
-};
-
-/**
- * 前綴資料庫
- * 主要影響攻擊/傷害相關屬性
- */
-export const PrefixDatabase = {
-    // ===== 普通前綴 (Common) =====
-    sharp: {
-        id: 'sharp',
-        name: '鋒利的',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.PREFIX,
-        stats: { atk: [2, 5] },
-        description: '攻擊力 +{atk}',
-        applicableTo: ['weapon']
-    },
-    sturdy: {
-        id: 'sturdy',
-        name: '堅固的',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.PREFIX,
-        stats: { def: [2, 4] },
-        description: '防禦力 +{def}',
-        applicableTo: ['armor', 'accessory']
-    },
-    light: {
-        id: 'light',
-        name: '輕盈的',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.PREFIX,
-        stats: { attackSpeed: [0.03, 0.06] },
-        description: '攻擊速度 +{attackSpeed}%',
-        applicableTo: ['weapon']
-    },
-    
-    // ===== 優秀前綴 (Uncommon) =====
-    keen: {
-        id: 'keen',
-        name: '銳利的',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.PREFIX,
-        stats: { atk: [5, 10], critChance: [0.02, 0.04] },
-        description: '攻擊力 +{atk}，暴擊率 +{critChance}%',
-        applicableTo: ['weapon']
-    },
-    reinforced: {
-        id: 'reinforced',
-        name: '強化的',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.PREFIX,
-        stats: { def: [5, 10], hp: [10, 20] },
-        description: '防禦力 +{def}，生命 +{hp}',
-        applicableTo: ['armor']
-    },
-    swift: {
-        id: 'swift',
-        name: '迅捷的',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.PREFIX,
-        stats: { attackSpeed: [0.08, 0.12] },
-        description: '攻擊速度 +{attackSpeed}%',
-        applicableTo: ['weapon', 'accessory']
-    },
-    
-    // ===== 稀有前綴 (Rare) =====
-    vicious: {
-        id: 'vicious',
-        name: '兇猛的',
-        rarity: ItemRarity.RARE,
-        type: AffixType.PREFIX,
-        stats: { atk: [10, 18], critDamage: [0.1, 0.2] },
-        description: '攻擊力 +{atk}，暴擊傷害 +{critDamage}%',
-        applicableTo: ['weapon']
-    },
-    guardian: {
-        id: 'guardian',
-        name: '守護的',
-        rarity: ItemRarity.RARE,
-        type: AffixType.PREFIX,
-        stats: { def: [10, 18], hp: [30, 50] },
-        description: '防禦力 +{def}，生命 +{hp}',
-        applicableTo: ['armor', 'accessory']
-    },
-    vampiric: {
-        id: 'vampiric',
-        name: '嗜血的',
-        rarity: ItemRarity.RARE,
-        type: AffixType.PREFIX,
-        stats: { lifesteal: [0.03, 0.06] },
-        description: '生命偷取 +{lifesteal}%',
-        applicableTo: ['weapon']
-    },
-    
-    // ===== 史詩前綴 (Epic) =====
-    brutal: {
-        id: 'brutal',
-        name: '殘暴的',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.PREFIX,
-        stats: { atk: [18, 30], critChance: [0.05, 0.10], critDamage: [0.15, 0.25] },
-        description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%',
-        applicableTo: ['weapon']
-    },
-    impenetrable: {
-        id: 'impenetrable',
-        name: '堅不可摧的',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.PREFIX,
-        stats: { def: [20, 35], hp: [60, 100], damageReduction: [0.03, 0.06] },
-        description: '防禦力 +{def}，生命 +{hp}，傷害減免 +{damageReduction}%',
-        applicableTo: ['armor']
-    },
-    sanguine: {
-        id: 'sanguine',
-        name: '鮮血的',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.PREFIX,
-        stats: { lifesteal: [0.06, 0.10], atk: [10, 15] },
-        description: '生命偷取 +{lifesteal}%，攻擊力 +{atk}',
-        applicableTo: ['weapon']
-    },
-    
-    // ===== 傳說前綴 (Legendary) =====
-    godslayer: {
-        id: 'godslayer',
-        name: '弒神的',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.PREFIX,
-        stats: { atk: [30, 50], critChance: [0.10, 0.15], critDamage: [0.25, 0.40], bossBonus: [0.10, 0.20] },
-        description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%，對BOSS傷害 +{bossBonus}%',
-        applicableTo: ['weapon']
-    },
-    immortal: {
-        id: 'immortal',
-        name: '不朽的',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.PREFIX,
-        stats: { def: [35, 55], hp: [100, 150], hpRegen: [0.02, 0.04], damageReduction: [0.06, 0.10] },
-        description: '防禦力 +{def}，生命 +{hp}，每秒回血 +{hpRegen}%，傷害減免 +{damageReduction}%',
-        applicableTo: ['armor']
-    },
-    primordial: {
-        id: 'primordial',
-        name: '原始的',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.PREFIX,
-        stats: { atk: [20, 35], def: [20, 35], hp: [50, 80], allStats: [0.05, 0.10] },
-        description: '攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，全屬性 +{allStats}%',
-        applicableTo: ['weapon', 'armor', 'accessory']
-    }
-};
-
-/**
- * 後綴資料庫
- * 主要影響特殊效果/元素相關屬性
- */
-export const SuffixDatabase = {
-    // ===== 普通後綴 (Common) =====
-    of_strength: {
-        id: 'of_strength',
-        name: '力量',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.SUFFIX,
-        stats: { atk: [1, 4] },
-        description: '攻擊力 +{atk}',
-        applicableTo: ['weapon', 'armor', 'accessory']
-    },
-    of_protection: {
-        id: 'of_protection',
-        name: '守護',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.SUFFIX,
-        stats: { def: [1, 4] },
-        description: '防禦力 +{def}',
-        applicableTo: ['weapon', 'armor', 'accessory']
-    },
-    of_vitality: {
-        id: 'of_vitality',
-        name: '活力',
-        rarity: ItemRarity.COMMON,
-        type: AffixType.SUFFIX,
-        stats: { hp: [5, 15] },
-        description: '生命 +{hp}',
-        applicableTo: ['armor', 'accessory']
-    },
-    
-    // ===== 優秀後綴 (Uncommon) =====
-    of_fire: {
-        id: 'of_fire',
-        name: '烈焰',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.SUFFIX,
-        stats: { atk: [3, 8],critChance: [0.05, 0.10] },
-        description: '攻擊力 +{atk}，暴擊率 +{critChance}%',
-        applicableTo: ['weapon']
-    },
-    of_ice: {
-        id: 'of_ice',
-        name: '冰霜',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.SUFFIX,
-        stats: { atk: [3, 8], attackSpeed: [0.05, 0.10] },
-        description: '攻擊力 +{atk}，攻擊速度 +{attackSpeed}%',
-        applicableTo: ['weapon']
-    },
-    of_thunder: {
-        id: 'of_thunder',
-        name: '迅雷',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.SUFFIX,
-        stats: { atk: [3, 8], stunChance: [0.03, 0.06] },
-        description: '攻擊力 +{atk}，暈眩機率 +{stunChance}%',
-        applicableTo: ['weapon']
-    },
-    of_fortitude: {
-        id: 'of_fortitude',
-        name: '堅毅',
-        rarity: ItemRarity.UNCOMMON,
-        type: AffixType.SUFFIX,
-        stats: { hp: [15, 30], def: [3, 6] },
-        description: '生命 +{hp}，防禦力 +{def}',
-        applicableTo: ['armor', 'accessory']
-    },
-    
-    // ===== 稀有後綴 (Rare) =====
-    of_fury: {
-        id: 'of_fury',
-        name: '狂怒',
-        rarity: ItemRarity.RARE,
-        type: AffixType.SUFFIX,
-        stats: { critChance: [0.05, 0.08], attackSpeed: [0.05, 0.10] },
-        description: '暴擊率 +{critChance}%，攻擊速度 +{attackSpeed}%',
-        applicableTo: ['weapon', 'accessory']
-    },
-    of_the_titan: {
-        id: 'of_the_titan',
-        name: '泰坦',
-        rarity: ItemRarity.RARE,
-        type: AffixType.SUFFIX,
-        stats: { hp: [40, 70], def: [8, 15] },
-        description: '生命 +{hp}，防禦力 +{def}',
-        applicableTo: ['armor']
-    },
-    of_precision: {
-        id: 'of_precision',
-        name: '精準',
-        rarity: ItemRarity.RARE,
-        type: AffixType.SUFFIX,
-        stats: { critChance: [0.05, 0.10], critDamage: [0.10, 0.20] },
-        description: '暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%',
-        applicableTo: ['weapon', 'accessory']
-    },
-    of_mana: {
-        id: 'of_mana',
-        name: '魔力',
-        rarity: ItemRarity.RARE,
-        type: AffixType.SUFFIX,
-        stats: { mp: [20, 40], mpRegen: [0.01, 0.03] },
-        description: '魔力 +{mp}，魔力回復 +{mpRegen}%/秒',
-        applicableTo: ['armor', 'accessory']
-    },
-    
-    // ===== 史詩後綴 (Epic) =====
-    of_annihilation: {
-        id: 'of_annihilation',
-        name: '毀滅',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.SUFFIX,
-        stats: { critDamage: [0.20, 0.35], atk: [10, 20] },
-        description: '暴擊傷害 +{critDamage}%，攻擊力 +{atk}',
-        applicableTo: ['weapon']
-    },
-    of_the_dragon: {
-        id: 'of_the_dragon',
-        name: '龍威',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.SUFFIX,
-        stats: { atk: [10, 20], hp: [50, 80], def: [10, 18] },
-        description: '攻擊力 +{atk}，生命 +{hp}，防禦力 +{def}',
-        applicableTo: ['weapon', 'armor']
-    },
-    of_shadows: {
-        id: 'of_shadows',
-        name: '暗影',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.SUFFIX,
-        stats: { critChance: [0.08, 0.12], dodgeChance: [0.03, 0.06] },
-        description: '暴擊率 +{critChance}%，閃避率 +{dodgeChance}%',
-        applicableTo: ['weapon', 'accessory']
-    },
-    of_restoration: {
-        id: 'of_restoration',
-        name: '生機',
-        rarity: ItemRarity.EPIC,
-        type: AffixType.SUFFIX,
-        stats: { hpRegen: [0.02, 0.04], mpRegen: [0.02, 0.04], hp: [30, 50] },
-        description: '每秒回血 +{hpRegen}%，魔力回復 +{mpRegen}%，生命 +{hp}',
-        applicableTo: ['armor', 'accessory']
-    },
-    
-    // ===== 傳說後綴 (Legendary) =====
-    of_the_void: {
-        id: 'of_the_void',
-        name: '虛空',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.SUFFIX,
-        stats: { atk: [15, 30], armorPenetration: [0.10, 0.18], critChance: [0.08, 0.12] },
-        description: '攻擊力 +{atk}，穿甲 +{armorPenetration}%，暴擊率 +{critChance}%',
-        applicableTo: ['weapon']
-    },
-    of_eternity: {
-        id: 'of_eternity',
-        name: '永恆',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.SUFFIX,
-        stats: { hp: [80, 120], def: [25, 40], hpRegen: [0.03, 0.05], damageReduction: [0.05, 0.08] },
-        description: '生命 +{hp}，防禦力 +{def}，每秒回血 +{hpRegen}%，傷害減免 +{damageReduction}%',
-        applicableTo: ['armor']
-    },
-    of_omnipotence: {
-        id: 'of_omnipotence',
-        name: '全能',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.SUFFIX,
-        stats: { atk: [15, 25], def: [15, 25], hp: [40, 60], critChance: [0.05, 0.08], allStats: [0.03, 0.06] },
-        description: '攻擊力 +{atk}，防禦力 +{def}，生命 +{hp}，暴擊率 +{critChance}%，全屬性 +{allStats}%',
-        applicableTo: ['weapon', 'armor', 'accessory']
-    },
-    // 完美無瑕 - 不會消耗耐久度
-    indestructible: {
-        id: 'indestructible',
-        name: '不朵',
-        rarity: ItemRarity.LEGENDARY,
-        type: AffixType.SUFFIX,
-        stats: { def: [10, 20], hp: [30, 50], noDurabilityLoss: [1, 1] },
-        description: '【完美無瑕】不會消耗耐久度，防禦力 +{def}，生命 +{hp}',
-        applicableTo: ['weapon', 'armor']
-    }
 };
 
 /**
@@ -457,12 +118,27 @@ export class AffixManager {
         // 初始化詞綴數組
         equipment.affixes = [];
         equipment.affixBonuses = {
-            atk: 0, def: 0, hp: 0, mp: 0,
-            critChance: 0, critDamage: 0, attackSpeed: 0,
-            lifesteal: 0, damageReduction: 0, hpRegen: 0, mpRegen: 0,
-            fireDamage: 0, iceDamage: 0, thunderDamage: 0, voidDamage: 0,
-            slowChance: 0, stunChance: 0, dodgeChance: 0, armorPenetration: 0,
-            bossBonus: 0, allStats: 0
+            [AffixStat.ATK]: 0,
+            [AffixStat.DEF]: 0,
+            [AffixStat.HP]: 0,
+            [AffixStat.MP]: 0,
+            [AffixStat.CRIT_CHANCE]: 0,
+            [AffixStat.CRIT_DAMAGE]: 0,
+            [AffixStat.ATTACK_SPEED]: 0,
+            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.DAMAGE_REDUCTION]: 0,
+            [AffixStat.HP_REGEN]: 0,
+            [AffixStat.MP_REGEN]: 0,
+            [AffixStat.FIRE_DAMAGE]: 0,
+            [AffixStat.ICE_DAMAGE]: 0,
+            [AffixStat.THUNDER_DAMAGE]: 0,
+            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.SLOW_CHANCE]: 0,
+            [AffixStat.STUN_CHANCE]: 0,
+            [AffixStat.DODGE_CHANCE]: 0,
+            [AffixStat.ARMOR_PENETRATION]: 0,
+            [AffixStat.BOSS_BONUS]: 0,
+            [AffixStat.ALL_STATS]: 0
         };
         
         const usedAffixIds = new Set();
@@ -505,10 +181,14 @@ export class AffixManager {
                 stats: rolledValues
             });
             
-            // 累計加成
+            // 累計加成（正規化 stat key）
             for (const [stat, value] of Object.entries(rolledValues)) {
-                if (equipment.affixBonuses[stat] !== undefined) {
-                    equipment.affixBonuses[stat] += value;
+                const norm = normalizeStatKey(stat) || stat;
+                if (equipment.affixBonuses[norm] !== undefined) {
+                    equipment.affixBonuses[norm] += value;
+                } else {
+                    // if unknown key, add it dynamically
+                    equipment.affixBonuses[norm] = value;
                 }
             }
             
@@ -559,25 +239,32 @@ export class AffixManager {
      */
     getAffixDescription(affix) {
         let desc = affix.name + ': ';
+        // 使用中央化常數以避免命名不一致
+        const { AffixStat } = AffixConsts;
         const statNames = {
-            atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
-            critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
-            lifesteal: '生命偷取', damageReduction: '傷害減免',
-            hpRegen: '生命回復', mpRegen: '魔力回復',
-            fireDamage: '火焰傷害', iceDamage: '冰霜傷害',
-            thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
-            slowChance: '減速機率', stunChance: '暈眩機率',
-            dodgeChance: '閃避率', armorPenetration: '穿甲',
-            bossBonus: 'BOSS傷害加成', allStats: '全屬性'
+            [AffixStat.ATK]: '攻擊力', [AffixStat.DEF]: '防禦力', [AffixStat.HP]: '生命', [AffixStat.MP]: '魔力',
+            [AffixStat.CRIT_CHANCE]: '暴擊率', [AffixStat.CRIT_DAMAGE]: '暴擊傷害', [AffixStat.ATTACK_SPEED]: '攻擊速度',
+            [AffixStat.LIFESTEAL]: '生命偷取', [AffixStat.DAMAGE_REDUCTION]: '傷害減免',
+            [AffixStat.HP_REGEN]: '生命回復', [AffixStat.MP_REGEN]: '魔力回復',
+            [AffixStat.FIRE_DAMAGE]: '火焰傷害', [AffixStat.ICE_DAMAGE]: '冰霜傷害',
+            [AffixStat.THUNDER_DAMAGE]: '雷電傷害', [AffixStat.VOID_DAMAGE]: '虛空傷害',
+            [AffixStat.SLOW_CHANCE]: '減速機率', [AffixStat.STUN_CHANCE]: '暈眩機率',
+            [AffixStat.DODGE_CHANCE]: '閃避率', [AffixStat.ARMOR_PENETRATION]: '穿甲',
+            [AffixStat.BOSS_BONUS]: 'BOSS傷害加成', [AffixStat.ALL_STATS]: '全屬性'
         };
         
         const parts = [];
         for (const [stat, value] of Object.entries(affix.stats)) {
             const statName = statNames[stat] || stat;
-            // 百分比屬性
-            if (['critChance', 'critDamage', 'attackSpeed', 'lifesteal', 'damageReduction',
-                 'hpRegen', 'mpRegen', 'slowChance', 'stunChance', 'dodgeChance',
-                 'armorPenetration', 'bossBonus', 'allStats'].includes(stat)) {
+            // 百分比屬性（使用中央化判斷）
+            const percentStats = [
+                AffixStat.CRIT_CHANCE, AffixStat.CRIT_DAMAGE, AffixStat.ATTACK_SPEED, AffixStat.LIFESTEAL,
+                AffixStat.DAMAGE_REDUCTION, AffixStat.HP_REGEN, AffixStat.MP_REGEN, AffixStat.SLOW_CHANCE,
+                AffixStat.STUN_CHANCE, AffixStat.DODGE_CHANCE, AffixStat.ARMOR_PENETRATION, AffixStat.BOSS_BONUS,
+                AffixStat.ALL_STATS, AffixStat.FIRE_DAMAGE, AffixStat.ICE_DAMAGE, AffixStat.THUNDER_DAMAGE,
+                AffixStat.VOID_DAMAGE
+            ];
+            if (percentStats.includes(stat)) {
                 parts.push(`${statName} +${(value * 100).toFixed(1)}%`);
             } else {
                 parts.push(`${statName} +${value}`);
@@ -613,12 +300,27 @@ export class AffixManager {
      */
     getTotalAffixBonuses(equipment) {
         return equipment.affixBonuses || {
-            atk: 0, def: 0, hp: 0, mp: 0,
-            critChance: 0, critDamage: 0, attackSpeed: 0,
-            lifesteal: 0, damageReduction: 0, hpRegen: 0, mpRegen: 0,
-            fireDamage: 0, iceDamage: 0, thunderDamage: 0, voidDamage: 0,
-            slowChance: 0, stunChance: 0, dodgeChance: 0, armorPenetration: 0,
-            bossBonus: 0, allStats: 0
+            [AffixStat.ATK]: 0,
+            [AffixStat.DEF]: 0,
+            [AffixStat.HP]: 0,
+            [AffixStat.MP]: 0,
+            [AffixStat.CRIT_CHANCE]: 0,
+            [AffixStat.CRIT_DAMAGE]: 0,
+            [AffixStat.ATTACK_SPEED]: 0,
+            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.DAMAGE_REDUCTION]: 0,
+            [AffixStat.HP_REGEN]: 0,
+            [AffixStat.MP_REGEN]: 0,
+            [AffixStat.FIRE_DAMAGE]: 0,
+            [AffixStat.ICE_DAMAGE]: 0,
+            [AffixStat.THUNDER_DAMAGE]: 0,
+            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.SLOW_CHANCE]: 0,
+            [AffixStat.STUN_CHANCE]: 0,
+            [AffixStat.DODGE_CHANCE]: 0,
+            [AffixStat.ARMOR_PENETRATION]: 0,
+            [AffixStat.BOSS_BONUS]: 0,
+            [AffixStat.ALL_STATS]: 0
         };
     }
     
@@ -636,12 +338,27 @@ export class AffixManager {
         // 重置
         equipment.affixes = keptAffixes;
         equipment.affixBonuses = {
-            atk: 0, def: 0, hp: 0, mp: 0,
-            critChance: 0, critDamage: 0, attackSpeed: 0,
-            lifesteal: 0, damageReduction: 0, hpRegen: 0, mpRegen: 0,
-            fireDamage: 0, iceDamage: 0, thunderDamage: 0, voidDamage: 0,
-            slowChance: 0, stunChance: 0, dodgeChance: 0, armorPenetration: 0,
-            bossBonus: 0, allStats: 0
+            [AffixStat.ATK]: 0,
+            [AffixStat.DEF]: 0,
+            [AffixStat.HP]: 0,
+            [AffixStat.MP]: 0,
+            [AffixStat.CRIT_CHANCE]: 0,
+            [AffixStat.CRIT_DAMAGE]: 0,
+            [AffixStat.ATTACK_SPEED]: 0,
+            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.DAMAGE_REDUCTION]: 0,
+            [AffixStat.HP_REGEN]: 0,
+            [AffixStat.MP_REGEN]: 0,
+            [AffixStat.FIRE_DAMAGE]: 0,
+            [AffixStat.ICE_DAMAGE]: 0,
+            [AffixStat.THUNDER_DAMAGE]: 0,
+            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.SLOW_CHANCE]: 0,
+            [AffixStat.STUN_CHANCE]: 0,
+            [AffixStat.DODGE_CHANCE]: 0,
+            [AffixStat.ARMOR_PENETRATION]: 0,
+            [AffixStat.BOSS_BONUS]: 0,
+            [AffixStat.ALL_STATS]: 0
         };
         
         // 重新累計保留的詞綴

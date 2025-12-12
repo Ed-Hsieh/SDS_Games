@@ -6,7 +6,7 @@
 
 import GameManager from './GameManager.js';
 import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
-import { calculateDrops } from './DropManager.js';
+import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 import { getMaterial } from './MaterialManager.js';
 
@@ -400,8 +400,9 @@ export default class TowerManager {
             }
         }
         
-        // 計算掉落物品
-        const drops = calculateDrops(monster);
+        // 計算掉落物品（使用 resolve + generate）
+        const sources = resolveDropSources({ monster });
+        const drops = generateDropsFromSources(sources, { rng: Math.random });
         for (const drop of drops) {
             const material = getMaterial(drop.itemId);
             if (material) {

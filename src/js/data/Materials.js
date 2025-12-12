@@ -225,6 +225,53 @@ export const MaterialDatabase = {
         craftUse: ['dark_staff', 'lich_robe']
     },
     
+    // ==================== Missing / Stub Materials (added by validation fix) ====================
+    goblin_coin: {
+        id: 'goblin_coin',
+        name: '哥布林硬幣',
+        icon: '🪙',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.COMMON,
+        price: 1,
+        description: '哥布林掉落的小硬幣，可用於任務或小額交易。',
+        craftUse: []
+    },
+
+    orc_fang: {
+        id: 'orc_fang',
+        name: '獸人牙齒',
+        icon: '🦷',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.COMMON,
+        price: 8,
+        description: '獸人的獠牙，用於製作簡易飾品或任務。',
+        craftUse: []
+    },
+
+    rat_tail: {
+        id: 'rat_tail',
+        name: '老鼠尾巴',
+        icon: '🐀',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.COMMON,
+        price: 2,
+        description: '常見的小型素材，常被鍊金或任務使用。',
+        craftUse: []
+    },
+
+    // Pool materials referenced from DropPools (added as stubs)
+    wood: { id: 'wood', name: '木材', icon: '🪵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 3, description: '基本建材與鍛造材料。', craftUse: [] },
+    cloth: { id: 'cloth', name: '布料', icon: '🧵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 4, description: '纖維材料，用於衣物與輕甲。', craftUse: [] },
+    armor_shard: { id: 'armor_shard', name: '護甲碎片', icon: '🔩', type: ItemType.MATERIAL, rarity: ItemRarity.UNCOMMON, price: 12, description: '舊護甲的碎片，可回收再利用。', craftUse: [] },
+    iron_shard: { id: 'iron_shard', name: '鐵片', icon: '⛓️', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 6, description: '鐵製碎片，可作為低階鍛造材料。', craftUse: [] },
+    low_stone: { id: 'low_stone', name: '低級石材', icon: '🪨', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 5, description: '基礎石材，常見於野外。', craftUse: [] },
+    high_ore: { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 120, description: '富含礦物質的礦石，用於高階製作。', craftUse: [] },
+    rare_metal: { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 200, description: '稀有且昂貴的金屬，用於特殊裝備。', craftUse: [] },
+    cold_iron: { id: 'cold_iron', name: '寒鐵', icon: '❄️', type: ItemType.MATERIAL, rarity: ItemRarity.UNCOMMON, price: 60, description: '傳說中對某些怪物特別有效的材料。', craftUse: [] },
+    forge_core: { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 300, description: '鍛造過程中的能量核心。', craftUse: [] },
+    ice_crystal: { id: 'ice_crystal', name: '冰晶', icon: '❄️', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 180, description: '冷冽的冰晶，用於冰系武器或飾品。', craftUse: [] },
+    lava_stone: { id: 'lava_stone', name: '熔岩石', icon: '🪨', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 220, description: '熔岩形成的特殊岩石，帶有火焰力量。', craftUse: [] },
+
     dark_crystal: {
         id: 'dark_crystal',
         name: '暗黑水晶',
