@@ -1035,6 +1035,37 @@ export default class AdventureScene {
         
         this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
+
+        // Disable attack button until engine is ready to avoid race conditions
+        try {
+            if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = true;
+        } catch (e) {}
+
+        // If FightManager engine is available, create an engine instance and start monster auto-attack
+        try {
+            if (FightManager && FightManager.BattleController) {
+                this.currentBattle._engine = new FightManager.BattleController(this.currentBattle.player, this.currentBattle.monster);
+                if (typeof this.currentBattle._engine.startAutoAttack === 'function') {
+                    this.currentBattle._engine.startAutoAttack();
+                }
+                    try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
+                    try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+            } else {
+                // If not ready yet, wait for the dynamic import to resolve
+                FightManagerReady.then(mod => {
+                    if (mod && mod.BattleController && this.currentBattle) {
+                        this.currentBattle._engine = new mod.BattleController(this.currentBattle.player, this.currentBattle.monster);
+                        if (typeof this.currentBattle._engine.startAutoAttack === 'function') {
+                            this.currentBattle._engine.startAutoAttack();
+                        }
+                            try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
+                            try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
+                    }
+                }).catch(err => console.warn('Failed to initialize FightManager engine:', err));
+            }
+        } catch (e) {
+            console.warn('Error initializing FightManager engine:', e);
+        }
     }
 
     endBattle(victory) {
@@ -1044,6 +1075,18 @@ export default class AdventureScene {
             this.rhythmSystem = null;
         }
         this.worldMap.clearCurrentMonster();
+        // Stop engine auto-attack if running
+        try {
+            if (this.currentBattle && this.currentBattle._engine && typeof this.currentBattle._engine.stopAutoAttack === 'function') {
+                this.currentBattle._engine.stopAutoAttack();
+            }
+        } catch (e) {
+            console.warn('Error stopping engine auto-attack:', e);
+        }
+
+        // Ensure attack button disabled after battle ends
+        try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = true; } catch (e) {}
+
         this.currentBattle = null;
         
         // 清除戰鬥結束時的 Buff
@@ -1445,115 +1488,74 @@ class BattleController {
     playerAttack(hitType) {
         if (this.attackCooldown || this.battleEnded) return;
 
-        // 武器耐久度消耗（無論命中與否都消耗）
-        const destroyedWeapon = GameManager.reduceWeaponDurability();
-        if (destroyedWeapon) {
-            this.scene.updateEquipmentDisplay();
+        if (!this._engine) {
+            console.error('Fight engine not initialized; cannot perform player attack.');
+            return;
         }
 
-        // Delegate to FightManager for core damage calculation (use preloaded module)
-        const _runCompute = (mod) => {
-            try {
-                const result = mod.computePlayerAttack(this.player, hitType);
-                const { damage, isCrit, thunderBuffPercent } = result;
+        const res = this._engine.playerAttack(hitType);
+        if (!res) return;
 
-                if (hitType === 'miss') {
-                    this.showDamageNumber(0, false, true);
-                }
+        // Update equipment UI if weapon was destroyed
+        if (res.destroyedWeapon) this.scene.updateEquipmentDisplay();
 
-                if (damage > 0) {
-                    // 若 FightManager 回傳 thunderBuffPercent，則處理短暫攻速
-                    if (thunderBuffPercent && thunderBuffPercent > 0) {
-                        const buffVal = thunderBuffPercent / 100;
-                        this.player.addBuff('attackSpeed', buffVal, 1);
-                        const header = this.scene.container.querySelector('.battle-header');
-                        if (header) {
-                            const el = document.createElement('div');
-                            el.className = 'player-status-thunder';
-                            el.textContent = `⚡ 攻速 +${thunderBuffPercent}%`;
-                            el.style.position = 'absolute';
-                            el.style.right = '12px';
-                            el.style.top = '8px';
-                            el.style.padding = '4px 8px';
-                            el.style.background = 'rgba(255,215,0,0.95)';
-                            el.style.color = '#000';
-                            el.style.borderRadius = '6px';
-                            header.appendChild(el);
-                            setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
-                        }
-                    }
+        const computeRes = res.computeRes || {};
+        const applyRes = res.applyRes || {};
 
-                    // Use FightManager.applyDamage so lifesteal / elemental effects are applied
-                    if (mod.applyDamage) {
-                        const damageObj = { damage, isCrit, breakdown: result.breakdown };
-                        const applyRes = mod.applyDamage(this.player, this.monster, damageObj);
-
-                        // show actual final damage
-                        this.showDamageNumber(applyRes.finalDamage, isCrit, false);
-                        this.scene.updateMonsterDisplay();
-
-                        // show lifesteal feedback if any
-                        if (applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
-                            const header = this.scene.container.querySelector('.battle-header');
-                            if (header) {
-                                const el = document.createElement('div');
-                                el.className = 'player-status-lifesteal';
-                                el.textContent = `❤ 恢復 ${applyRes.lifestealRecovered}`;
-                                el.style.position = 'absolute';
-                                el.style.left = '12px';
-                                el.style.top = '8px';
-                                el.style.padding = '4px 8px';
-                                el.style.background = 'rgba(255,105,180,0.95)';
-                                el.style.color = '#000';
-                                el.style.borderRadius = '6px';
-                                header.appendChild(el);
-                                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
-                            }
-                        }
-
-                        // appliedEffects are intentionally not shown in UI here.
-                        // If you want to persist or apply them to status systems, hook into Character/Monster API instead.
-
-                        if (this.monster.isDead()) {
-                            this.handleVictory();
-                            return;
-                        }
-                    } else {
-                        // fallback to original
-                        this.monster.takeDamage(damage);
-                        this.scene.updateMonsterDisplay();
-                        if (this.monster.isDead()) {
-                            this.handleVictory();
-                            return;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Error while computing player attack:', e);
+        // thunder (attack speed) visual
+        const thunderBuffPercent = computeRes.thunderBuffPercent || computeRes.breakdown?.thunderPercent || 0;
+        if (thunderBuffPercent && thunderBuffPercent > 0) {
+            const buffVal = thunderBuffPercent / 100;
+            this.player.addBuff('attackSpeed', buffVal, 1);
+            const header = this.scene.container.querySelector('.battle-header');
+            if (header) {
+                const el = document.createElement('div');
+                el.className = 'player-status-thunder';
+                el.textContent = `⚡ 攻速 +${thunderBuffPercent}%`;
+                el.style.position = 'absolute';
+                el.style.right = '12px';
+                el.style.top = '8px';
+                el.style.padding = '4px 8px';
+                el.style.background = 'rgba(255,215,0,0.95)';
+                el.style.color = '#000';
+                el.style.borderRadius = '6px';
+                header.appendChild(el);
+                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
             }
-        };
-
-        if (FightManager && FightManager.computePlayerAttack) {
-            _runCompute(FightManager);
-        } else {
-            FightManagerReady.then(mod => {
-                if (!mod) {
-                    console.error('Failed to load FightManager');
-                    return;
-                }
-                _runCompute(mod);
-            }).catch(err => {
-                console.error('Failed to load FightManager or compute damage:', err);
-            });
         }
-        
-        // 注意：節奏條冷卻由 RhythmBarSystem 自己處理
-        // 這裡只處理武器卡片的視覺冷卻效果（可選）
-        // const cooldownTime = this.player.getAttackInterval();
-        // this.startCooldown(cooldownTime);
-        
-        // 怪物反擊延遲
-        setTimeout(() => this.monsterAttack(), 1000);
+
+        // show miss
+        if (hitType === 'miss') this.showDamageNumber(0, false, true);
+
+        // show actual final damage
+        if (applyRes && typeof applyRes.finalDamage === 'number') {
+            this.showDamageNumber(applyRes.finalDamage, computeRes.isCrit, false);
+            this.scene.updateMonsterDisplay();
+        }
+
+        // lifesteal feedback
+        if (applyRes && applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
+            const header = this.scene.container.querySelector('.battle-header');
+            if (header) {
+                const el = document.createElement('div');
+                el.className = 'player-status-lifesteal';
+                el.textContent = `❤ 恢復 ${applyRes.lifestealRecovered}`;
+                el.style.position = 'absolute';
+                el.style.left = '12px';
+                el.style.top = '8px';
+                el.style.padding = '4px 8px';
+                el.style.background = 'rgba(255,105,180,0.95)';
+                el.style.color = '#000';
+                el.style.borderRadius = '6px';
+                header.appendChild(el);
+                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+            }
+        }
+
+        // Victory handled by scene when engine marks monster dead
+        if (this.monster.isDead && this.monster.isDead()) {
+            this.handleVictory();
+        }
     }
     
     // 技能戰鬥 API 已移除（Adventure 的 BattleController 中）
@@ -1652,25 +1654,57 @@ class BattleController {
 
     monsterAttack() {
         if (this.battleEnded) return;
-        
+
+        // If engine present, delegate
+        try {
+            if (this._engine && typeof this._engine.monsterAttack === 'function') {
+                const res = this._engine.monsterAttack();
+                if (!res) return;
+
+                // Update UI / equipment when armor destroyed
+                if (res.destroyedArmor) this.scene.updateEquipmentDisplay();
+
+                // Refresh UI
+                this.scene.updateUI();
+                this.scene.updatePlayerHUD();
+
+                // Player hit feedback
+                this.showPlayerHitFeedback(res.damage);
+
+                // End turn housekeeping
+                this.endTurn();
+
+                if (res.playerHp <= 0) {
+                    this.handleDefeat();
+                }
+
+                return;
+            }
+        } catch (e) {
+            console.error('Delegated monsterAttack failed:', e);
+        }
+
+        // Fallback original behavior
+        if (this.battleEnded) return;
+
         const damage = Math.max(1, this.monster.attack - this.player.getTotalDef());
         this.player.hp = Math.max(0, this.player.hp - damage);
-        
+
         // 防具耐久度消耗
         const destroyedArmor = GameManager.reduceArmorDurability();
         if (destroyedArmor) {
             this.scene.updateEquipmentDisplay();
         }
-        
+
         this.scene.updateUI();
         this.scene.updatePlayerHUD();
-        
+
         // 玩家受擊反饋
         this.showPlayerHitFeedback(damage);
-        
+
         // 回合結束處理
         this.endTurn();
-        
+
         if (this.player.hp <= 0) {
             this.handleDefeat();
         }
@@ -1790,7 +1824,14 @@ class BattleController {
             this.battleEnded = true;
             setTimeout(() => this.scene.endBattle(false), 200);
         } else {
-            setTimeout(() => this.monsterAttack(), 500);
+            // If engine present, invoke its monsterAttack immediately.
+            // Do not fallback to scheduling the old scene monsterAttack to avoid duplicate
+            // countdowns or unexpected extra hits during engine transition.
+            if (this._engine && typeof this._engine.monsterAttack === 'function') {
+                this._engine.monsterAttack();
+            } else {
+                console.warn('Fight engine not initialized; cannot perform monster attack after failed flee.');
+            }
         }
     }
 }

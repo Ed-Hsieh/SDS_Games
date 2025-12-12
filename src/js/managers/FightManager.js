@@ -151,7 +151,12 @@ export function applyDamage(attacker, target, damageObj) {
     // Subtract flat defense if present (ensure consistency with Monster.takeDamage)
     const targetDef = (typeof target.getTotalDef === 'function') ? (target.getTotalDef()) : (target.def || target.defense || 0);
     if (targetDef && damage > 0) {
-        damage = Math.max(0, Math.floor(damage - targetDef));
+        // Calculate armor penetration from attacker equipment (reduces target armor before subtraction)
+        const atkEquipForPen = attacker ? Object.values(attacker.equipment || {}) : [];
+        const armorPenPercent = sumPercentFromEquipment(atkEquipForPen, ['armorPenetration', 'armor_penetration', AffixStat.ARMOR_PENETRATION, 'armor_pierce', 'armorPierce']);
+        const pen = Math.max(0, Math.min(100, armorPenPercent || 0));
+        const effectiveDef = Math.max(0, Math.floor(targetDef * (1 - pen / 100)));
+        damage = Math.max(0, Math.floor(damage - effectiveDef));
     }
 
     // Ensure at least 1 damage if original damage > 0
@@ -220,6 +225,194 @@ export function applyDamage(attacker, target, damageObj) {
     }
 
     return { finalDamage, beforeHP, afterHP, lifestealRecovered, appliedEffects, attackerEffects };
+}
+
+/**
+ * BattleController encapsulates a single-player vs single-monster battle flow.
+ * It performs durability checks, computes player damage via computePlayerAttack,
+ * applies damage via applyDamage, and runs the monster counter-attack.
+ *
+ * This class intentionally does not manipulate DOM. Callers (scenes) should
+ * observe the return values and update UI accordingly.
+ */
+export class BattleController {
+    constructor(player, monster) {
+        this.player = player;
+        this.monster = monster;
+        this.battleEnded = false;
+        this.attackCooldown = false;
+        this.turnCount = 0;
+        // Whether the scene has signalled the battle has actually begun (UI enabled)
+        this._battleActive = false;
+        // If startAutoAttack() was called before battle began, remember to start later
+        this._pendingAutoStart = false;
+    }
+
+    /**
+     * Execute a player attack. Returns an object with computation and application results.
+     * The method will schedule a monsterAttack() call after 1s if the battle hasn't ended.
+     */
+    playerAttack(hitType) {
+        if (this.attackCooldown || this.battleEnded) return null;
+
+        // Weapon durability consumed regardless of hit
+        let destroyedWeapon = null;
+        try {
+            destroyedWeapon = GameManager.reduceWeaponDurability();
+        } catch (e) {
+            // ignore; GameManager may not expose durability in some contexts
+            console.warn('reduceWeaponDurability error:', e);
+        }
+
+        // Compute damage
+        let computeRes = { damage: 0, isCrit: false, breakdown: {} };
+        try {
+            computeRes = computePlayerAttack(this.player, hitType);
+        } catch (e) {
+            console.error('computePlayerAttack failed:', e);
+        }
+
+        let applyRes = null;
+        if (computeRes.damage > 0) {
+            try {
+                applyRes = applyDamage(this.player, this.monster, { damage: computeRes.damage, isCrit: computeRes.isCrit, breakdown: computeRes.breakdown });
+
+                if (this.monster && typeof this.monster.isDead === 'function' && this.monster.isDead()) {
+                    this.battleEnded = true;
+                }
+            } catch (e) {
+                console.error('applyDamage failed:', e);
+            }
+        } else if (hitType === 'miss') {
+            // nothing else to do
+        }
+
+        // NOTE: counter-attack scheduling removed. Monster auto-attacks are handled
+        // by startAutoAttack()/stopAutoAttack() using monster.attackSpeed.
+
+        return { destroyedWeapon, computeRes, applyRes };
+    }
+
+    /**
+     * Monster performs its attack on player. Returns attack result.
+     */
+    monsterAttack() {
+        if (this.battleEnded) return null;
+
+        // Prefer the compute helper but fall back to simple subtraction
+        let dmgObj = null;
+        try {
+            dmgObj = computeMonsterAttack(this.monster, this.player);
+        } catch (e) {
+            console.warn('computeMonsterAttack failed, falling back:', e);
+        }
+
+        let damage = 0;
+        if (dmgObj && typeof dmgObj.damage === 'number') {
+            damage = Math.max(1, Math.floor(dmgObj.damage));
+        } else {
+            const def = this.player.getTotalDef ? this.player.getTotalDef() : (this.player.def || 0);
+            damage = Math.max(1, Math.floor((this.monster.attack || 0) - def));
+        }
+
+        // Apply to player
+        if (typeof this.player.hp === 'number') {
+            this.player.hp = Math.max(0, this.player.hp - damage);
+        } else if (this.player.setHP) {
+            const cur = this.player.getHP ? this.player.getHP() : 0;
+            this.player.setHP(Math.max(0, cur - damage));
+        }
+
+        // Armor durability
+        let destroyedArmor = null;
+        try {
+            destroyedArmor = GameManager.reduceArmorDurability();
+        } catch (e) {
+            console.warn('reduceArmorDurability error:', e);
+        }
+
+        this.turnCount++;
+
+        if ((this.player.hp || (this.player.getHP ? this.player.getHP() : 0)) <= 0) {
+            this.battleEnded = true;
+        }
+
+        return { damage, destroyedArmor, playerHp: this.player.hp || (this.player.getHP ? this.player.getHP() : 0) };
+    }
+
+    /**
+     * Start automatic monster attacks driven by the monster's `attackSpeed` (in seconds).
+     * If `attackSpeed` is not set on the monster, a sensible default (1.5s) is used.
+     */
+    startAutoAttack() {
+        // Avoid duplicate timers
+        if (this._autoAttackIntervalId) return;
+        // If the scene hasn't signalled that the battle is active (e.g. attack button
+        // still disabled while waiting for engine), defer the actual interval start
+        // to avoid monsters counting down and hitting the player during UI lag.
+        if (!this._battleActive) {
+            this._pendingAutoStart = true;
+            return;
+        }
+
+        const attackSpeedSec = (this.monster && (this.monster.attackSpeed || this.monster.attack_speed)) || 1.5;
+        const ms = Math.max(200, Math.floor(attackSpeedSec * 1000));
+
+        this._autoAttackIntervalId = setInterval(() => {
+            if (this.battleEnded) {
+                this.stopAutoAttack();
+                return;
+            }
+
+            try {
+                const res = this.monsterAttack();
+                // If monster died or player died, stop auto-attack
+                if (this.monster && typeof this.monster.isDead === 'function' && this.monster.isDead()) {
+                    this.battleEnded = true;
+                    this.stopAutoAttack();
+                }
+                if (res && res.playerHp <= 0) {
+                    this.battleEnded = true;
+                    this.stopAutoAttack();
+                }
+            } catch (e) {
+                console.error('Auto monsterAttack failed:', e);
+            }
+        }, ms);
+    }
+
+    stopAutoAttack() {
+        if (this._autoAttackIntervalId) {
+            clearInterval(this._autoAttackIntervalId);
+            this._autoAttackIntervalId = null;
+        }
+        // clear pending flag as well
+        this._pendingAutoStart = false;
+    }
+
+    /**
+     * Mark the battle as begun (called by scene when attack UI is enabled).
+     * If startAutoAttack() was called earlier, this will start the interval now.
+     */
+    beginBattle() {
+        this._battleActive = true;
+        // If startAutoAttack() was requested before battle activation, start it now
+        if (this._pendingAutoStart) {
+            this._pendingAutoStart = false;
+            // startAutoAttack will no-op if interval already exists
+            this.startAutoAttack();
+        }
+    }
+
+    /**
+     * End the battle explicitly: mark ended and stop auto-attack.
+     */
+    endBattle() {
+        this.battleEnded = true;
+        this._battleActive = false;
+        this._pendingAutoStart = false;
+        this.stopAutoAttack();
+    }
 }
 
 export default {
