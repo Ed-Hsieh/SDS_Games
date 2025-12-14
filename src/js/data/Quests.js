@@ -58,7 +58,7 @@ export const QuestDatabase = {
                 exp: 50,
                 items: ['starter_sword'],
                 materials: [
-                    { id: 'slime_jelly', quantity: 5 },
+                    { id: 'slime_jelly', quantity: 3 },
                     { id: 'beast_hide', quantity: 3 }
                 ]
             },

@@ -99,7 +99,8 @@ export const MonsterDatabase = {
         gold: 12,
         drops: [
             { itemId: 'wolf_fang', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'wolf_pelt', chance: 0.25, quantity: [1, 1] }
+            { itemId: 'wolf_pelt', chance: 0.25, quantity: [1, 1] },
+            { itemId: 'beast_hide', chance: 0.25, quantity: [1, 2] }
         ],
         skills: [],
         description: '森林中的野狼，攻擊性強。'
@@ -404,7 +405,7 @@ export const MonsterDatabase = {
         gold: 55,
         drops: [
             { itemId: 'shadow_shard', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'dark_steel', chance: 0.25, quantity: [1, 1] }
+            { itemId: 'dark_steel', chance: 0.25, quantity: [1, 3] }
         ],
         equipmentDrops: [
             { equipmentId: 'shadow_blade_drop', chance: 0.04 },
@@ -451,7 +452,7 @@ export const MonsterDatabase = {
         exp: 100,
         gold: 70,
         drops: [
-            { itemId: 'shadow_essence', chance: 0.35, quantity: [1, 1] },
+            { itemId: 'shadow_essence', chance: 0.5, quantity: [1, 1] },
             { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] }
         ],
         equipmentDrops: [

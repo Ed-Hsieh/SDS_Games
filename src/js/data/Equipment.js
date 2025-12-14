@@ -12,7 +12,7 @@ export const EquipmentDatabase = {
         name: '史萊姆之劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        ItemRarity: ItemRarity.UNCOMMON,
+        ItemRarity: ItemRarity.EPIC,
         level: 1,
         stats: {
             attack: 8,

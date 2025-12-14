@@ -35,7 +35,7 @@ export const RecipeDatabase = {
             icon: '⚔️',
             type: 'weapon',
             rarity: 'common',
-            attack: 12,
+            attack: 8,
             defense: 0,
             critChance: 0.08,
             critDamage: 1.5,
@@ -61,7 +61,7 @@ export const RecipeDatabase = {
             icon: '🦴',
             type: 'weapon',
             rarity: 'uncommon',
-            attack: 18,
+            attack: 8,
             defense: 0,
             critChance: 0.12,
             critDamage: 1.6,
@@ -88,7 +88,7 @@ export const RecipeDatabase = {
             icon: '🗡️',
             type: 'weapon',
             rarity: 'uncommon',
-            attack: 15,
+            attack: 10,
             defense: 0,
             critChance: 0.18,
             critDamage: 1.8,
@@ -116,7 +116,7 @@ export const RecipeDatabase = {
             icon: '⚔️',
             type: 'weapon',
             rarity: 'rare',
-            attack: 28,
+            attack: 30,
             defense: 0,
             critChance: 0.15,
             critDamage: 1.9,
@@ -142,7 +142,7 @@ export const RecipeDatabase = {
             icon: '⚔️',
             type: 'weapon',
             rarity: 'rare',
-            attack: 32,
+            attack: 35,
             defense: 0,
             critChance: 0.18,
             critDamage: 2.0,
@@ -197,7 +197,7 @@ export const RecipeDatabase = {
             icon: '❄️',
             type: 'weapon',
             rarity: 'rare',
-            attack: 30,
+            attack: 35,
             defense: 5,
             critChance: 0.12,
             critDamage: 1.8,
@@ -208,7 +208,7 @@ export const RecipeDatabase = {
 
     dragon_slayer: {
         id: 'dragon_slayer',
-        name: '屠龍劍',
+        name: '龍心',
         icon: '🐉',
         type: 'weapon',
         rarity: 'epic',
@@ -225,8 +225,8 @@ export const RecipeDatabase = {
             name: '屠龍劍',
             icon: '🐉',
             type: 'weapon',
-            rarity: 'epic',
-            attack: 50,
+            rarity: 'legendary',
+            attack: 40,
             defense: 0,
             critChance: 0.22,
             critDamage: 2.5,
@@ -255,7 +255,7 @@ export const RecipeDatabase = {
             icon: '⚔️',
             type: 'weapon',
             rarity: 'legendary',
-            attack: 80,
+            attack: 50,
             defense: 10,
             critChance: 0.25,
             critDamage: 3.0,
@@ -282,9 +282,9 @@ export const RecipeDatabase = {
             type: 'armor',
             rarity: 'common',
             attack: 0,
-            defense: 8,
-            critChance: 0.02,
-            critDamage: 1.2,
+            defense: 4,
+            critChance: 0,
+            critDamage: 0,
             desc: '由獸皮製成的輕便護甲。'
         }
     },
@@ -307,10 +307,10 @@ export const RecipeDatabase = {
             icon: '🐺',
             type: 'armor',
             rarity: 'uncommon',
-            attack: 3,
-            defense: 12,
-            critChance: 0.05,
-            critDamage: 1.4,
+            attack: 0,
+            defense: 6,
+            critChance: 0,
+            critDamage: 0,
             desc: '由狼皮製成的保暖斗篷。'
         }
     },
@@ -335,9 +335,9 @@ export const RecipeDatabase = {
             type: 'armor',
             rarity: 'rare',
             attack: 0,
-            defense: 25,
-            critChance: 0.05,
-            critDamage: 1.3,
+            defense: 10,
+            critChance: 0,
+            critDamage: 0,
             special: { hpRegen: 2 },
             desc: '蘊含森林守護者之力的鎧甲。'
         }
@@ -362,10 +362,10 @@ export const RecipeDatabase = {
             icon: '⚫',
             type: 'armor',
             rarity: 'rare',
-            attack: 5,
-            defense: 22,
-            critChance: 0.08,
-            critDamage: 1.5,
+            attack: 3,
+            defense: 13,
+            critChance: 0,
+            critDamage: 0,
             special: { evasion: 5 },
             desc: '被暗影籠罩的神秘鎧甲。'
         }
@@ -391,9 +391,9 @@ export const RecipeDatabase = {
             type: 'armor',
             rarity: 'epic',
             attack: 8,
-            defense: 40,
-            critChance: 0.10,
-            critDamage: 1.6,
+            defense: 18,
+            critChance: 0.05,
+            critDamage: 1.2,
             special: { fireResist: 20 },
             desc: '由龍鱗製成的傳說鎧甲。'
         }
@@ -419,10 +419,10 @@ export const RecipeDatabase = {
             icon: '🛡️',
             type: 'armor',
             rarity: 'legendary',
-            attack: 15,
-            defense: 60,
-            critChance: 0.12,
-            critDamage: 1.8,
+            attack: 10,
+            defense: 22,
+            critChance: 0.1,
+            critDamage: 1.3,
             desc: '蘊含泰坦之力的傳說鎧甲。'
         }
     },
@@ -446,10 +446,10 @@ export const RecipeDatabase = {
             icon: '🦷',
             type: 'accessory',
             rarity: 'uncommon',
-            attack: 5,
-            defense: 2,
-            critChance: 0.08,
-            critDamage: 1.5,
+            attack: 1,
+            defense: 1,
+            critChance: 0,
+            critDamage: 0,
             desc: '由狼牙串成的項鍊。'
         }
     },
@@ -473,11 +473,11 @@ export const RecipeDatabase = {
             icon: '🌿',
             type: 'accessory',
             rarity: 'rare',
-            attack: 3,
+            attack: 1,
             defense: 5,
-            critChance: 0.05,
-            critDamage: 1.3,
-            special: { hpBonus: 30 },
+            critChance: 0,
+            critDamage: 0,
+            special: { hpBonus: 20 },
             desc: '蘊含自然之力的護符。'
         }
     },
@@ -501,10 +501,10 @@ export const RecipeDatabase = {
             icon: '💍',
             type: 'accessory',
             rarity: 'rare',
-            attack: 8,
+            attack: 3,
             defense: 3,
-            critChance: 0.12,
-            critDamage: 1.7,
+            critChance: 0.05,
+            critDamage: 0,
             desc: '籠罩暗影的神秘戒指。'
         }
     },
@@ -530,8 +530,8 @@ export const RecipeDatabase = {
             rarity: 'epic',
             attack: 12,
             defense: 8,
-            critChance: 0.15,
-            critDamage: 1.9,
+            critChance: 0.10,
+            critDamage: 1.2,
             special: { dragonPower: true },
             desc: '蘊含龍之力的護符。'
         }
@@ -556,10 +556,10 @@ export const RecipeDatabase = {
             icon: '💍',
             type: 'accessory',
             rarity: 'legendary',
-            attack: 20,
+            attack: 15,
             defense: 15,
             critChance: 0.20,
-            critDamage: 2.2,
+            critDamage: 1.2,
             desc: '蘊含泰坦之力的傳說戒指。'
         }
     },
@@ -587,29 +587,6 @@ export const RecipeDatabase = {
         }
     },
 
-    mana_potion_basic: {
-        id: 'mana_potion_basic',
-        name: '基礎魔力藥水',
-        icon: '💙',
-        type: 'potion',
-        rarity: 'common',
-        materials: [
-            { id: 'ectoplasm', quantity: 2 },
-            { id: 'slime_jelly', quantity: 2 }
-        ],
-        cost: 25,
-        successRate: 95,
-        result: {
-            id: 'crafted_mana_potion',
-            name: '魔力藥水',
-            icon: '💙',
-            type: 'potion',
-            rarity: 'common',
-            mp: 30,
-            desc: '恢復 30 點魔力值。'
-        }
-    },
-
     greater_health_potion: {
         id: 'greater_health_potion',
         name: '高級生命藥水',
@@ -632,80 +609,8 @@ export const RecipeDatabase = {
             hp: 120,
             desc: '恢復 120 點生命值。'
         }
-    },
-
-    antidote_potion: {
-        id: 'antidote_potion',
-        name: '解毒劑',
-        icon: '💊',
-        type: 'potion',
-        rarity: 'common',
-        materials: [
-            { id: 'poison_gland', quantity: 1 },
-            { id: 'slime_jelly', quantity: 2 }
-        ],
-        cost: 20,
-        successRate: 100,
-        result: {
-            id: 'crafted_antidote',
-            name: '解毒劑',
-            icon: '💊',
-            type: 'potion',
-            rarity: 'common',
-            cure: 'poison',
-            desc: '解除中毒狀態。'
-        }
-    },
-
-    strength_elixir: {
-        id: 'strength_elixir',
-        name: '力量藥劑',
-        icon: '💪',
-        type: 'potion',
-        rarity: 'rare',
-        materials: [
-            { id: 'fire_essence', quantity: 2 },
-            { id: 'demon_horn', quantity: 1 },
-            { id: 'slime_jelly', quantity: 3 }
-        ],
-        cost: 150,
-        successRate: 75,
-        result: {
-            id: 'crafted_strength_elixir',
-            name: '力量藥劑',
-            icon: '💪',
-            type: 'potion',
-            rarity: 'rare',
-            buff: { type: 'atk', value: 20, duration: 5 },
-            desc: '暫時提升攻擊力 +20，持續5回合。'
-        }
-    },
-
-    dragon_elixir: {
-        id: 'dragon_elixir',
-        name: '龍血藥劑',
-        icon: '🐲',
-        type: 'potion',
-        rarity: 'epic',
-        materials: [
-            { id: 'dragon_heart', quantity: 1 },
-            { id: 'fire_essence', quantity: 3 },
-            { id: 'life_seed', quantity: 2 }
-        ],
-        cost: 500,
-        successRate: 60,
-        result: {
-            id: 'crafted_dragon_elixir',
-            name: '龍血藥劑',
-            icon: '🐲',
-            type: 'potion',
-            rarity: 'epic',
-            hp: 200,
-            mp: 100,
-            buff: { type: 'all', value: 15, duration: 10 },
-            desc: '傳說中的龍血藥劑，全屬性提升！'
-        }
     }
+
 };
 
 /**
