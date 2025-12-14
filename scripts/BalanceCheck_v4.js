@@ -67,27 +67,89 @@ function simulateBattle(player, monster) {
 }
 
 // ==========================================
-// 3. 怪物資料庫 (範例)
+// 3. 怪物資料庫 (嘗試從專案資料讀取，失敗則使用內建範例)
 // ==========================================
-const MonsterDatabase = {
+const MonsterDatabaseLocal = {
     slime: { name: '史萊姆', level: 1, hp: 40, attack: 5, defense: 0, attackSpeed: 1.0 },
     goblin: { name: '哥布林', level: 2, hp: 60, attack: 18, defense: 2, attackSpeed: 1.0 },
     lich: { name: '巫妖(BOSS)', level: 10, hp: 800, attack: 55, defense: 15, attackSpeed: 0.85 },
     shadow_cmd: { name: '暗影指揮官', level: 14, hp: 1200, attack: 80, defense: 25, attackSpeed: 1.0 },
-    
+
     // 你的設定：需要傳說裝備才打得贏的魔王
-    void_king: { 
-        name: '虛空之王', 
-        level: 30, 
-        hp: 3500,        
-        attack: 70,      
-        defense: 45, 
-        attackSpeed: 2.2 
+    void_king: {
+        name: '虛空之王',
+        level: 30,
+        hp: 3500,
+        attack: 70,
+        defense: 45,
+        attackSpeed: 2.2
     },
 
     // 對照組：Lv30 小怪
     demon: { name: '魔族士兵', level: 30, hp: 1200, attack: 90, defense: 40, attackSpeed: 1.0 }
 };
+
+// 嘗試載入外部 Monster 資料庫（`src/js/data/Monsters.js`）
+function loadExternalMonsterDatabase() {
+    // 1) 如果在瀏覽器中並且全域變數已被載入（例如你在頁面中引入了 Monsters.js），直接使用
+    if (typeof window !== 'undefined' && window.MonsterDatabase) {
+        return window.MonsterDatabase;
+    }
+
+    // 2) 在 Node 環境中嘗試用幾種方法載入
+    try {
+        // 嘗試直接 require（若該 module 已轉為 CommonJS）
+        if (typeof require === 'function') {
+            try {
+                const candidate = require('../src/js/data/Monsters.js');
+                if (candidate) {
+                    // 模組可能 export named or default
+                    if (candidate.MonsterDatabase) return candidate.MonsterDatabase;
+                    if (candidate.default && candidate.default.MonsterDatabase) return candidate.default.MonsterDatabase;
+                    // Or the module itself could be the DB
+                    if (candidate.MonsterDatabase === undefined && typeof candidate === 'object') {
+                        // fallthrough
+                    }
+                }
+            } catch (e) {
+                // ignore require error and fallback to fs read
+            }
+
+            // 嘗試用 fs + vm 直接解析 ES module 檔案（若為 ES module，直接 require 可能失敗）
+            const fs = require('fs');
+            const path = require('path');
+            const vm = require('vm');
+            const abs = path.join(__dirname, '..', 'src', 'js', 'data', 'Monsters.js');
+            if (fs.existsSync(abs)) {
+                const raw = fs.readFileSync(abs, 'utf8');
+                // 移除 export 關鍵字，讓檔案可以在 vm 中執行並取得 MonsterDatabase
+                const transformed = raw
+                    .replace(/export\s+const\s+MonsterDatabase\s*=\s*/, 'const MonsterDatabase = ')
+                    .replace(/export\s+\{[^}]*\};?/g, '')
+                    .replace(/export\s+default\s+/g, '')
+                    .replace(/module\.exports\s*=\s*/g, '');
+
+                const context = {};
+                try {
+                    vm.createContext(context);
+                    const script = new vm.Script(transformed + '\n;MonsterDatabase');
+                    const result = script.runInContext(context);
+                    if (result && typeof result === 'object') return result;
+                } catch (e) {
+                    // failed to parse/eval
+                }
+            }
+        }
+    } catch (e) {
+        // ignore and fallback
+    }
+
+    // 3) 無法載入外部資料庫，回傳 null
+    return null;
+}
+
+const MonsterDatabaseExternal = loadExternalMonsterDatabase();
+const MonsterDatabase = MonsterDatabaseExternal || MonsterDatabaseLocal;
 
 // ==========================================
 // 4. 輸出報表

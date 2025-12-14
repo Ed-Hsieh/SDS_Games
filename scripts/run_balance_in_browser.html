@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>BalanceCheck Runner</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#0f1722; --muted:#9aa6b2; --accent:#0b84ff; --border:#24303a;
+    }
+    html,body{height:100%;}
+    body { margin:0; background:var(--bg); color:#e6eef6; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding:24px 0; }
+    header { margin-bottom: 16px; padding: 0 16px; }
+    .muted{ color:var(--muted); margin:4px 0 0; }
+    .card{ max-width:1920px; margin:0 auto; background:var(--card); border-radius:10px; padding:18px; box-shadow: 0 6px 18px rgba(2,6,23,0.6); box-sizing:border-box; }
+    .card-header{ display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .card-header h2{ margin:0 0 6px 0; font-size:18px; }
+    .controls{ display:flex; gap:8px; align-items:center; }
+    .btn{ background:transparent; color:var(--accent); border:1px solid var(--border); padding:8px 10px; border-radius:6px; cursor:pointer; }
+    .btn.primary{ background:var(--accent); color:white; border-color:transparent; }
+    .summary{ display:flex; gap:12px; margin-top:12px; color:var(--muted); align-items:center; }
+
+    /* report layout: keep 15% left/right padding on wide screens */
+    .report-table{ margin-top:12px; }
+    .report-row{ display:flex; gap:12px; padding:10px 12px; align-items:center; }
+    .report-row.header{ font-weight:700; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border-radius:6px; }
+    .report-row:not(.header){ border-bottom:1px solid rgba(255,255,255,0.03); }
+    .report-row > div{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .report-row > div.col-name{ flex:2; }
+    .report-row > div.col-advice{ flex:1.4; }
+    .report-row:nth-child(odd):not(.header){ background: rgba(255,255,255,0.01); }
+
+    @media (max-width:900px){
+      .report-row{ font-size:13px; gap:8px; }
+    }
+    @media (max-width:640px){
+      /* stack into cards on narrow screens */
+      .report-row{ display:block; padding:12px; border-radius:8px; margin-bottom:8px; }
+      .report-row.header{ display:none; }
+      .report-row > div{ display:flex; justify-content:space-between; padding:4px 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2>BalanceCheck v4 — 瀏覽器執行器</h2>
+    <div>說明：直接開啟此檔案（雙擊或在 PowerShell 用 <code>start</code>）即可在頁面中看到報表。</div>
+  </header>
+
+  <div id="app">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h2>BalanceCheck v4 — 報表檢視</h2>
+          <p class="muted">顯示怪物與玩家交戰數據；左右保留 15% 間隔，內容區平均分配欄位。</p>
+        </div>
+        <div class="controls">
+          <button id="refreshBtn" class="btn">重新整理</button>
+          <button id="downloadBtn" class="btn primary">匯出 CSV</button>
+        </div>
+      </div>
+
+      <div id="summary" class="summary" aria-live="polite"></div>
+
+      <div id="report" class="report-table">載入中…</div>
+    </div>
+  </div>
+
+  <!-- 嘗試以 ES module 形式載入專案內的 Monsters.js，並將 MonsterDatabase 暴露到 window -->
+  <script type="module">
+    import('../src/js/data/Monsters.js')
+      .then(mod => {
+        if (mod.MonsterDatabase) window.MonsterDatabase = mod.MonsterDatabase;
+        else if (mod.default && mod.default.MonsterDatabase) window.MonsterDatabase = mod.default.MonsterDatabase;
+      })
+      .catch(err => {
+        console.warn('Could not import ../src/js/data/Monsters.js — falling back to embedded database', err);
+      })
+      .finally(() => {
+        // Call the embedded runner if it's defined
+        try { if (window.startBalanceCheck) window.startBalanceCheck(); } catch(e) {}
+      });
+  </script>
+
+  <script>
+// BEGIN: embedded BalanceCheck_v4.js
+/*
+ * BalanceCheck_v4.js
+ * 遊戲數值強度與難度評分工具
+ */
+
+// ==========================================
+// 1. 設定：玩家成長模型
+// ==========================================
+const PLAYER_CONFIG = {
+    baseHp: 100,
+    hpPerLevel: 20,
+    baseAtk: 5,
+    atkPerLevel: 4,
+    defMultiplier: 1.5,
+    baseAtkSpeed: 1.2  // 玩家標準攻速
+};
+
+function getStandardPlayerStats(level) {
+    return {
+        hp: Math.floor(PLAYER_CONFIG.baseHp + (level * PLAYER_CONFIG.hpPerLevel)),
+        attack: Math.floor(PLAYER_CONFIG.baseAtk + (level * PLAYER_CONFIG.atkPerLevel)),
+        defense: Math.floor(level * PLAYER_CONFIG.defMultiplier),
+        attackSpeed: PLAYER_CONFIG.baseAtkSpeed
+    };
+}
+
+// ==========================================
+// 2. 戰鬥模擬與評分邏輯
+// ==========================================
+function simulateBattle(player, monster) {
+    const monSpeed = monster.attackSpeed || 1.0; 
+    
+    // --- 玩家輸出 (DPS) ---
+    const playerHitDmg = Math.max(1, player.attack - monster.defense);
+    const playerDPS = playerHitDmg * player.attackSpeed;
+    const timeToKill = monster.hp / playerDPS;
+
+    // --- 怪物輸出 (DPS) ---
+    const monsterHitDmg = Math.max(1, monster.attack - player.defense);
+    const monsterDPS = monsterHitDmg * monSpeed;
+    const timeToDie = player.hp / monsterDPS;
+
+    // --- 強度評分算法 ---
+    // 強度比 = 殺怪時間 / 存活時間
+    const powerRatio = timeToKill / timeToDie;
+    
+    let rank = "B";
+    if (powerRatio > 3.0) rank = "SSS (惡夢)";
+    else if (powerRatio > 2.0) rank = "S (BOSS)";
+    else if (powerRatio > 1.5) rank = "A (困難)";
+    else if (powerRatio > 0.8) rank = "B (標準)";
+    else if (powerRatio > 0.5) rank = "C (簡單)";
+    else rank = "D (割草)";
+
+    return {
+        timeToKill: parseFloat(timeToKill.toFixed(1)),
+        timeToDie: parseFloat(timeToDie.toFixed(1)),
+        playerDPS: Math.floor(playerDPS),
+        monsterDPS: Math.floor(monsterDPS),
+        powerRatio: parseFloat(powerRatio.toFixed(2)),
+        rank
+    };
+}
+
+// Helper: compute display width treating non-ASCII (CJK) as width 2
+function displayWidth(str) {
+  str = String(str);
+  let w = 0;
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    // Rough heuristic: ASCII and basic punctuation are width 1, others (CJK, fullwidth) width 2
+    if (code <= 0x007f) w += 1;
+    else w += 2;
+  }
+  return w;
+}
+
+function padEndFW(value, targetWidth) {
+  const s = String(value);
+  const w = displayWidth(s);
+  if (w >= targetWidth) return s;
+  return s + ' '.repeat(targetWidth - w);
+}
+
+// ==========================================
+// 3. 怪物資料庫 (範例)
+// ==========================================
+const MonsterDatabaseFallback = {
+  slime: { name: '史萊姆', level: 1, hp: 40, attack: 5, defense: 0, attackSpeed: 1.0 },
+  goblin: { name: '哥布林', level: 2, hp: 60, attack: 18, defense: 2, attackSpeed: 1.0 },
+  lich: { name: '巫妖(BOSS)', level: 10, hp: 800, attack: 55, defense: 15, attackSpeed: 0.85 },
+  shadow_cmd: { name: '暗影指揮官', level: 14, hp: 1200, attack: 80, defense: 25, attackSpeed: 1.0 },
+
+  void_king: {
+    name: '虛空之王',
+    level: 30,
+    hp: 3500,
+    attack: 70,
+    defense: 45,
+    attackSpeed: 2.2
+  },
+
+  demon: { name: '魔族士兵', level: 30, hp: 1200, attack: 90, defense: 40, attackSpeed: 1.0 }
+};
+
+// ==========================================
+// 4. 輸出報表
+// ==========================================
+function runBalanceCheck() {
+    // Build a modern, readable report inside #report
+    const db = (typeof window !== 'undefined' && window.MonsterDatabase) ? window.MonsterDatabase : MonsterDatabaseFallback;
+    const entries = Object.keys(db || {}).map(k => ({ key: k, monster: db[k] }))
+      .sort((a, b) => (Number(a.monster.level) || 0) - (Number(b.monster.level) || 0));
+
+    // Summary
+    const summary = document.getElementById('summary');
+    const total = entries.length;
+    const avgPower = (entries.reduce((s, e) => {
+      const p = getStandardPlayerStats(e.monster.level);
+      const r = simulateBattle(p, e.monster);
+      return s + r.powerRatio;
+    }, 0) / Math.max(1, total)).toFixed(2);
+    summary.innerHTML = `<div>怪物數量：<strong>${total}</strong></div><div>平均強度比：<strong>${avgPower}</strong></div>`;
+
+    const report = document.getElementById('report');
+    report.innerHTML = '';
+
+    // header row
+    const headerRow = document.createElement('div');
+    headerRow.className = 'report-row header';
+    const cols = ['Lv','怪物名稱','玩家HP','攻/防','攻速','DPS(人vs怪)','殺怪秒','存活秒','強度評分 (比值)','評價建議'];
+    for (const c of cols){ const d = document.createElement('div'); d.textContent = c; headerRow.appendChild(d); }
+    report.appendChild(headerRow);
+
+    // rows
+    for (const entry of entries){
+      const monster = entry.monster;
+      const p = getStandardPlayerStats(monster.level);
+      const result = simulateBattle(p, monster);
+
+      let advice = '✅ 數值平衡';
+      if (result.powerRatio > 2.5) advice = '⚠️ 需神裝/技術';
+      else if (result.powerRatio > 1.5) advice = '⚠️ 需喝水/走位';
+      else if (result.powerRatio < 0.4) advice = '💤 太弱 (需增強)';
+      else if (result.timeToKill > 30) advice = '🛑 血太厚 (作業感)';
+      else if (result.timeToDie < 3) advice = '💀 攻擊太高 (秒殺)';
+
+      const row = document.createElement('div'); row.className='report-row';
+      const cells = [monster.level, monster.name, p.hp, `${p.attack}/${p.defense}`, p.attackSpeed, `${result.playerDPS} vs ${result.monsterDPS}`, result.timeToKill, result.timeToDie, `${result.rank} (${result.powerRatio})`, advice];
+      for (let i=0;i<cells.length;i++){
+        const d = document.createElement('div'); d.textContent = cells[i];
+        if (i===0||i===2||i===6||i===7) d.className='numeric';
+        if (i===1) d.classList.add('col-name');
+        if (i===9) d.classList.add('col-advice');
+        row.appendChild(d);
+      }
+      report.appendChild(row);
+    }
+
+    // wire up download/refresh
+    const downloadBtn = document.getElementById('downloadBtn');
+    if (downloadBtn) downloadBtn.onclick = () => {
+      const rows = [cols];
+      for (const entry of entries){
+        const m = entry.monster; const p = getStandardPlayerStats(m.level); const r=simulateBattle(p,m);
+        rows.push([m.level, m.name, p.hp, `${p.attack}/${p.defense}`, p.attackSpeed, `${r.playerDPS} vs ${r.monsterDPS}`, r.timeToKill, r.timeToDie, `${r.rank} (${r.powerRatio})`, '']);
+      }
+      const csv = rows.map(r => r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='balance_report.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    };
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) refreshBtn.onclick = () => { runBalanceCheck(); };
+}
+
+// Expose a starter so the module loader can trigger the run after import
+window.startBalanceCheck = runBalanceCheck;
+// If MonsterDatabase is already available, run immediately
+if (window.MonsterDatabase) window.startBalanceCheck();
+
+// END: embedded BalanceCheck_v4.js
+  </script>
+
+</body>
+</html>

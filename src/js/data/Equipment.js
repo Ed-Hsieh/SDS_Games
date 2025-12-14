@@ -753,8 +753,8 @@ export const EquipmentDatabase = {
     },
 
     // ==================== 無盡塔特殊掉落 ====================
-    void_blade: {
-        id: 'void_blade',
+    tower_void_blade: {
+        id: 'tower_void_blade',
         name: '虛空之刃',
         icon: '🌑',
         type: EquipmentType.WEAPON,
@@ -778,8 +778,8 @@ export const EquipmentDatabase = {
         dropFrom: ['tower_void_king']
     },
 
-    void_crown: {
-        id: 'void_crown',
+    tower_void_crown: {
+        id: 'tower_void_crown',
         name: '虛空之冠',
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
@@ -800,8 +800,8 @@ export const EquipmentDatabase = {
         dropFrom: ['tower_void_king']
     },
 
-    abyss_armor: {
-        id: 'abyss_armor',
+    tower_abyss_armor: {
+        id: 'tower_abyss_armor',
         name: '深淵鎧甲',
         icon: '🖤',
         type: EquipmentType.EQUIPMENT,
@@ -822,8 +822,8 @@ export const EquipmentDatabase = {
         dropFrom: ['tower_abyss_general']
     },
 
-    hell_knight_lance: {
-        id: 'hell_knight_lance',
+    tower_hell_knight_lance: {
+        id: 'tower_hell_knight_lance',
         name: '地獄騎士之槍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
@@ -847,49 +847,54 @@ export const EquipmentDatabase = {
     },
 
     // ===== 第2章 BOSS - 森林守衛者 =====
-    guardian_staff: {
-        id: 'guardian_staff',
+    tower_guardian_staff: {
+        id: 'tower_guardian_staff',
         name: '守護者之杖',
         icon: '🪄',
         type: EquipmentType.WEAPON,
         ItemRarity: ItemRarity.UNCOMMON,
-        attack: 12,
-        defense: 5,
-        critChance: 0.08,
-        critDamage: 1.6,
-        weaponSpeed: 0.9,
-        attackSpeed: 0.9,
-        mp: 30,
+        stats: {
+            attack: 12,
+            defense: 5,
+            critChance: 0.08,
+            critDamage: 1.6,
+            weaponSpeed: 0.9,
+            attackSpeed: 0.9,
+            mp: 30
+        },
         price: 250,
         description: '森林守護者留下的法杖，充滿自然之力。',
         setId: 'nature_set',
         canEnhance: true,
         gemSlots: 1,
-        requiredLevel: 5,
+        level: 5,
         dropSource: 'forest_guardian'
     },
     
     // ===== 第3章 BOSS - 巫妖 =====
-    lich_staff: {
-        id: 'boss_lich_staff',
+    tower_lich_staff: {
+        id: 'tower_lich_staff',
         name: '巫妖法杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
         ItemRarity: ItemRarity.RARE,
-        attack: 22,
-        defense: 0,
-        critChance: 0.12,
-        critDamage: 1.8,
-        weaponSpeed: 0.8,
-        attackSpeed: 0.85,
-        mp: 50,
-        darkDamage: 10,
+        stats: {
+            attack: 22,
+            defense: 0,
+            critChance: 0.12,
+            critDamage: 1.8,
+            weaponSpeed: 0.8,
+            attackSpeed: 0.85,
+            mp: 50
+        },
         price: 600,
         description: '巫妖的法杖，充滿死亡的氣息。',
         setId: 'undead_set',
         canEnhance: true,
         gemSlots: 2,
-        requiredLevel: 8,
+        level: 8,
+        // 保留元素傷害作為特殊效果
+        specialEffects: [ { type: AffixStat.POISON, value: 10 } ],
         dropSource: 'lich'
     },
     
@@ -900,18 +905,20 @@ export const EquipmentDatabase = {
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         ItemRarity: ItemRarity.RARE,
-        attack: 28,
-        defense: 5,
-        critChance: 0.14,
-        critDamage: 1.9,
-        weaponSpeed: 1.1,
-        attackSpeed: 1.15,
+        stats: {
+            attack: 28,
+            defense: 5,
+            critChance: 0.14,
+            critDamage: 1.9,
+            weaponSpeed: 1.1,
+            attackSpeed: 1.15
+        },
         price: 900,
         description: '暗影指揮官的配劍，鋒利無比。',
         setId: 'shadow_commander_set',
         canEnhance: true,
         gemSlots: 2,
-        requiredLevel: 12,
+        level: 12,
         dropSource: 'shadow_commander'
     },
     
@@ -922,17 +929,19 @@ export const EquipmentDatabase = {
         icon: '🧤',
         type: EquipmentType.ACCESSORY,
         ItemRarity: ItemRarity.EPIC,
-        attack: 18,
-        defense: 22,
-        critChance: 0.08,
-        critDamage: 1.6,
-        hp: 80,
+        stats: {
+            attack: 18,
+            defense: 22,
+            critChance: 0.08,
+            critDamage: 1.6,
+            hp: 80
+        },
         price: 1200,
         description: '遠古泰坦的護手，蘊含遠古之力。',
         setId: 'titan_set',
         canEnhance: true,
         gemSlots: 2,
-        requiredLevel: 16,
+        level: 16,
         dropSource: 'ancient_titan'
     },
     
@@ -943,20 +952,24 @@ export const EquipmentDatabase = {
         icon: '🔮',
         type: EquipmentType.ACCESSORY,
         ItemRarity: ItemRarity.EPIC,
-        attack: 15,
-        defense: 15,
-        critChance: 0.10,
-        critDamage: 1.7,
-        mp: 80,
-        fireDamage: 8,
-        iceDamage: 8,
-        thunderDamage: 8,
+        stats: {
+            attack: 15,
+            defense: 15,
+            critChance: 0.10,
+            critDamage: 1.7,
+            mp: 80
+        },
         price: 1800,
         description: '融合四大元素之力的神秘寶珠。',
         setId: 'elemental_set',
         canEnhance: true,
         gemSlots: 2,
-        requiredLevel: 20,
+        level: 20,
+        specialEffects: [
+            { type: AffixStat.FIRE, value: 8 },
+            { type: AffixStat.ICE, value: 8 },
+            { type: AffixStat.THUNDER, value: 8 }
+        ],
         dropSource: 'elemental_lord'
     },
     
@@ -967,19 +980,21 @@ export const EquipmentDatabase = {
         icon: '🐲',
         type: EquipmentType.WEAPON,
         ItemRarity: ItemRarity.EPIC,
-        attack: 45,
-        defense: 0,
-        critChance: 0.18,
-        critDamage: 2.2,
-        weaponSpeed: 1.0,
-        attackSpeed: 1.1,
-        fireDamage: 15,
+        stats: {
+            attack: 45,
+            defense: 0,
+            critChance: 0.18,
+            critDamage: 2.2,
+            weaponSpeed: 1.0,
+            attackSpeed: 1.1
+        },
         price: 2500,
         description: '由古龍牙齒鍛造的神劍，燃燒著龍焰。',
         setId: 'dragon_set',
         canEnhance: true,
         gemSlots: 3,
-        requiredLevel: 24,
+        level: 24,
+        specialEffects: [ { type: AffixStat.FIRE, value: 15 } ],
         dropSource: 'elder_dragon'
     },
     
@@ -990,44 +1005,21 @@ export const EquipmentDatabase = {
         icon: '🛡️',
         type: EquipmentType.ARMOR,
         ItemRarity: ItemRarity.EPIC,
-        attack: 10,
-        defense: 45,
-        critChance: 0.08,
-        critDamage: 1.5,
-        hp: 120,
-        damageReduction: 0.08,
+        stats: {
+            attack: 10,
+            defense: 45,
+            critChance: 0.08,
+            critDamage: 1.5,
+            hp: 120
+        },
         price: 3000,
         description: '暗影霸主的戰甲，堅不可摧。',
         setId: 'overlord_set',
         canEnhance: true,
         gemSlots: 3,
-        requiredLevel: 26,
+        level: 26,
+        specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 0.08 } ],
         dropSource: 'shadow_overlord'
-    },
-    
-    // ===== 第9章 BOSS - 魔王阿薩謝爾 =====
-    demon_lord_sword: {
-        id: 'boss_demon_lord_sword',
-        name: '魔王之劍',
-        icon: '👑',
-        type: EquipmentType.WEAPON,
-        ItemRarity: ItemRarity.LEGENDARY,
-        attack: 65,
-        defense: 10,
-        critChance: 0.22,
-        critDamage: 2.5,
-        weaponSpeed: 1.2,
-        attackSpeed: 1.3,
-        lifesteal: 0.08,
-        darkDamage: 25,
-        bossBonus: 0.15,
-        price: 8000,
-        description: '魔王阿薩謝爾的配劍，擁有毀滅世界的力量。',
-        setId: 'demon_lord_set',
-        canEnhance: true,
-        gemSlots: 3,
-        requiredLevel: 28,
-        dropSource: 'demon_lord_asariel'
     },
     
     demon_lord_armor: {
@@ -1036,19 +1028,26 @@ export const EquipmentDatabase = {
         icon: '😈',
         type: EquipmentType.ARMOR,
         ItemRarity: ItemRarity.LEGENDARY,
-        attack: 15,
-        defense: 60,
-        critChance: 0.10,
-        critDamage: 1.6,
-        hp: 200,
-        damageReduction: 0.12,
+        // 移至統一的 stats 物件供工具使用
+        stats: {
+            attack: 15,
+            defense: 60,
+            critChance: 0.10,
+            critDamage: 1.6,
+            hp: 200
+        },
+        // 保留額外特效於 specialEffects，數值用百分比或小數皆可（工具會自動處理）
+        specialEffects: [
+            { type: AffixStat.DAMAGE_REDUCTION, value: 0.12 }
+        ],
+        // 仍保留原本的其他欄位（如果系統其他部分依賴）
         darkResist: 0.25,
         price: 8000,
         description: '魔王阿薩謝爾的戰甲，散發著邪惡的氣息。',
         setId: 'demon_lord_set',
         canEnhance: true,
         gemSlots: 3,
-        requiredLevel: 28,
+        level: 28,
         dropSource: 'demon_lord_asariel'
     }
 };
@@ -1315,7 +1314,7 @@ export const SetDatabase = {
         id: 'void_king',
         name: '虛空之王套裝',
         icon: '🌑',
-        pieces: ['void_blade', 'void_crown'],
+        pieces: ['tower_void_blade', 'tower_void_crown'],
         bonuses: [
             {
                 required: 2,

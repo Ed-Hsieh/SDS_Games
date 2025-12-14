@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>Matchup Simulator — UI</title>
+  <style>
+    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
+    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:900px;margin:0 auto}
+    .row{display:flex;gap:8px;margin-bottom:8px}
+    label{width:120px;color:#9fb7cc}
+    .btn{background:#163341;color:#dff0ff;padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
+    .out{background:#071a22;padding:12px;border-radius:8px;margin-top:12px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Matchup Simulator — 實戰模擬</h2>
+    <div class="row"><label>玩家等級</label><input id="pLevel" type="number" value="30" /></div>
+    <div class="row"><label>選擇怪物</label><select id="monsterSelect"></select></div>
+    <div class="row"><label>選擇裝備</label><select id="equipSelect"></select></div>
+    <div class="row"><label>執行</label><button id="run" class="btn">Run Simulation</button></div>
+    <div id="out" class="out"></div>
+  </div>
+
+  <script type="module">
+  // Load Monsters and Equipment databases (if available), populate selectors and run simulation
+  (async ()=>{
+    let MonsterDB = null, EquipmentDB = null;
+    try{ const m = await import('../../src/js/data/Monsters.js'); if(m && m.MonsterDatabase) MonsterDB = m.MonsterDatabase; }catch(e){ console.warn('Monsters import failed', e); }
+    try{ const e = await import('../../src/js/data/Equipment.js'); if(e && e.EquipmentDatabase) EquipmentDB = e.EquipmentDatabase; }catch(e){ console.warn('Equipment import failed', e); }
+
+    function simulateFight(playerStats, monster, equipment){
+      let p = {...playerStats}; const stats = equipment.stats || {}; const effects = equipment.specialEffects || [];
+      p.attack += (stats.attack||0); p.defense += (stats.defense||0); p.critChance += (stats.critChance||0);
+      function critDamagePercent(value){ const v=Number(value); if(!Number.isFinite(v)) return 0; if(v>10) return v; if(v>=1.1) return (v-1)*100; if(v>0&&v<1.1) return v*100; return 0; }
+      if(stats.critDamage){ const pct = critDamagePercent(stats.critDamage); const deltaMul = pct/100; p.critDamage = (p.critDamage||1)+deltaMul; }
+      let firePct=0,lifestealPct=0,penPct=0; effects.forEach(e=>{ let v=e.value||0; if(e.type==='fire' || e.type==='FIRE') firePct+=v; if(e.type==='life_steal' || e.type==='LIFE_STEAL') lifestealPct+=v; if(e.type==='armor_pierce' || e.type==='ARMOR_PIERCE' || e.type==='ARMOR_PENETRATION') penPct+=v; });
+      const monDef = Math.max(0, monster.defense * (1 - penPct/100)); const rawDmg = Math.max(1, p.attack - monDef);
+      const cc = Math.min(1, p.critChance/100); const avgHit = rawDmg * (1-cc) + (rawDmg * p.critDamage * cc); const finalHit = avgHit * (1 + firePct/100); const playerDPS = finalHit * p.attackSpeed;
+      const monDmg = Math.max(1, monster.attack - p.defense); const monSpeed = monster.attackSpeed||1.0; const monDPS = monDmg * monSpeed;
+      const hps = playerDPS * (lifestealPct/100); const netDamageTaken = monDPS - hps; const timeToKill = monster.hp / playerDPS; const timeToDie = (netDamageTaken <= 0) ? Infinity : (p.hp / netDamageTaken); const difficulty = (timeToDie===Infinity)?0:(timeToKill/timeToDie);
+      return { timeToKill, timeToDie, difficulty, playerDPS, monDPS, hps };
+    }
+
+    // DOM helpers
+    const monsterSelect = document.getElementById('monsterSelect'); const equipSelect = document.getElementById('equipSelect');
+    const defaultMonsters = MonsterDB ? Object.values(MonsterDB) : [ { id:'void_king', name:'虛空之王', level:30, hp:3500, attack:70, defense:45, attackSpeed:2.2 } ];
+    const defaultEquips = EquipmentDB ? Object.values(EquipmentDB) : [ { id:'void_blade', name:'虛空之刃', stats:{ attack:80, critChance:25, critDamage:3.0 }, specialEffects:[{type:'armor_pierce',value:30},{type:'life_steal',value:15}] } ];
+
+    function populate(){
+      monsterSelect.innerHTML=''; equipSelect.innerHTML='';
+      defaultMonsters.sort((a,b)=>(a.level||0)-(b.level||0)).forEach(m=>{ const o=document.createElement('option'); o.value = m.id || m.name; o.textContent = `[Lv${m.level||''}] ${m.name||m.id}`; o.dataset.key = m.id || m.name; monsterSelect.appendChild(o); });
+      defaultEquips.forEach(eq=>{ const o=document.createElement('option'); o.value = eq.id || eq.name; o.textContent = `${eq.name||eq.id} (Lv${eq.level||''})`; o.dataset.key = eq.id || eq.name; equipSelect.appendChild(o); });
+    }
+
+    function findMonsterById(key){ if(!MonsterDB) return defaultMonsters.find(m=> (m.id||m.name)==key) || defaultMonsters[0]; return Object.values(MonsterDB).find(m=>m.id==key || m.name==key) || Object.values(MonsterDB)[0]; }
+    function findEquipById(key){ if(!EquipmentDB) return defaultEquips.find(e=> (e.id||e.name)==key) || defaultEquips[0]; return Object.values(EquipmentDB).find(e=>e.id==key || e.name==key) || Object.values(EquipmentDB)[0]; }
+
+    populate();
+
+    function run(){ const out=document.getElementById('out'); const pLevel = Number(document.getElementById('pLevel').value)||30; const player = { hp:700, attack:125, defense:45, attackSpeed:1.2, critChance:0, critDamage:1.5 };
+      const monKey = monsterSelect.value; const eqKey = equipSelect.value; const monster = findMonsterById(monKey); const equip = findEquipById(eqKey);
+      const res = simulateFight(player, monster, equip); out.innerHTML = `<strong>裝備：</strong>${equip.name || equip.id}<br><strong>怪物：</strong>${monster.name || monster.id}<hr><div>玩家 DPS: ${Math.floor(res.playerDPS)} (每秒回血: ${Math.floor(res.hps)})</div><div>怪物 DPS: ${Math.floor(res.monDPS)}</div><div>殺怪時間: ${res.timeToKill.toFixed(1)} 秒</div><div>存活時間: ${res.timeToDie===Infinity?'∞ (不死)':res.timeToDie.toFixed(1)+' 秒'}</div><div>結論: ${res.difficulty===0? '👑 輾壓' : (res.difficulty>1 ? '💀 挑戰失敗' : '✅ 挑戰成功')}</div>`; }
+
+    document.getElementById('run').addEventListener('click', run);
+    // auto-run once
+    run();
+  })();
+  </script>
+</body>
+</html>

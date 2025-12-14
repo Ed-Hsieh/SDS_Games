@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>BalanceCheck — UI</title>
+  <style>
+    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
+    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:1200px;margin:0 auto}
+    .controls{display:flex;gap:8px;margin-bottom:12px}
+    .btn{background:#163341;color:#dff0ff;padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
+    .report{margin-top:12px}
+    .row{display:flex;gap:12px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .row.header{font-weight:700;background:rgba(255,255,255,0.02)}
+    .row>div{flex:1}
+    .row>div.name{flex:2}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>BalanceCheck — 報表</h2>
+    <div class="controls">
+      <button id="run" class="btn">執行檢查</button>
+      <button id="csv" class="btn">匯出 CSV</button>
+    </div>
+    <div id="summary"></div>
+    <div id="report" class="report">載入中…</div>
+  </div>
+
+  <script type="module">
+  // Load project Monster database if available, then render report
+  (async ()=>{
+    try{
+      const mod = await import('../../src/js/data/Monsters.js');
+      if(mod && mod.MonsterDatabase) window.MonsterDatabase = mod.MonsterDatabase;
+    }catch(e){
+      // ignore — fallback will be used
+      console.warn('Could not import Monsters.js', e);
+    }
+
+    // Embedded Balance logic (simple port of BalanceCheck_v4)
+    const PLAYER_CONFIG = { baseHp:100, hpPerLevel:20, baseAtk:5, atkPerLevel:4, defMultiplier:1.5, baseAtkSpeed:1.2 };
+    function getStandardPlayerStats(level){ return { hp: Math.floor(PLAYER_CONFIG.baseHp + (level * PLAYER_CONFIG.hpPerLevel)), attack: Math.floor(PLAYER_CONFIG.baseAtk + (level * PLAYER_CONFIG.atkPerLevel)), defense: Math.floor(level * PLAYER_CONFIG.defMultiplier), attackSpeed: PLAYER_CONFIG.baseAtkSpeed }; }
+    function simulateBattle(player, monster){ const monSpeed = monster.attackSpeed || 1.0; const playerHitDmg = Math.max(1, player.attack - monster.defense); const playerDPS = playerHitDmg * player.attackSpeed; const timeToKill = monster.hp / playerDPS; const monsterHitDmg = Math.max(1, monster.attack - player.defense); const monsterDPS = monsterHitDmg * monSpeed; const timeToDie = player.hp / monsterDPS; const powerRatio = timeToKill / timeToDie; let rank = 'B'; if(powerRatio>3) rank='SSS (惡夢)'; else if(powerRatio>2) rank='S (BOSS)'; else if(powerRatio>1.5) rank='A (困難)'; else if(powerRatio>0.8) rank='B (標準)'; else if(powerRatio>0.5) rank='C (簡單)'; else rank='D (割草)'; return { timeToKill: parseFloat(timeToKill.toFixed(1)), timeToDie: parseFloat(timeToDie.toFixed(1)), playerDPS: Math.floor(playerDPS), monsterDPS: Math.floor(monsterDPS), powerRatio: parseFloat(powerRatio.toFixed(2)), rank }; }
+
+    const MonsterDatabaseFallback = {
+      slime:{name:'史萊姆',level:1,hp:40,attack:5,defense:0,attackSpeed:1.0},
+      goblin:{name:'哥布林',level:2,hp:60,attack:18,defense:2,attackSpeed:1.0},
+      void_king:{name:'虛空之王',level:30,hp:3500,attack:70,defense:45,attackSpeed:2.2}
+    };
+
+    function getDB(){ return window.MonsterDatabase || MonsterDatabaseFallback; }
+
+    function renderReport(){
+      const db = getDB(); const entries = Object.keys(db).map(k=>({k,monster:db[k]})).sort((a,b)=>(a.monster.level||0)-(b.monster.level||0));
+      document.getElementById('summary').innerHTML=`怪物數量：<strong>${entries.length}</strong>`;
+      const report = document.getElementById('report'); report.innerHTML='';
+      const header = document.createElement('div'); header.className='row header'; ['Lv','名稱','HP','攻/防','攻速','DPS','殺怪(s)','存活(s)','評價'].forEach(h=>{const d=document.createElement('div');d.textContent=h;header.appendChild(d)}); report.appendChild(header);
+      entries.forEach(e=>{ const m=e.monster; const p=getStandardPlayerStats(m.level); const r=simulateBattle(p,m); const row=document.createElement('div'); row.className='row'; const cells=[m.level,m.name,p.hp,`${p.attack}/${p.defense}`,p.attackSpeed,`${r.playerDPS} vs ${r.monsterDPS}`,r.timeToKill,r.timeToDie,`${r.rank} (${r.powerRatio})`]; cells.forEach((c,i)=>{const d=document.createElement('div'); d.textContent=c; if(i===1) d.className='name'; row.appendChild(d)}); report.appendChild(row); });
+    }
+
+    document.getElementById('run').addEventListener('click', renderReport);
+    document.getElementById('csv').addEventListener('click', ()=>{
+      const db = getDB(); const rows=[['Lv','Name','HP','Atk/Def','AtkSpd','DPS','TTK','TTD','Rank']]; Object.keys(db).forEach(k=>{ const m=db[k]; const p=getStandardPlayerStats(m.level); const r=simulateBattle(p,m); rows.push([m.level,m.name,p.hp,`${p.attack}/${p.defense}`,p.attackSpeed,`${r.playerDPS} vs ${r.monsterDPS}`,r.timeToKill,r.timeToDie,`${r.rank} (${r.powerRatio})`]); }); const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='balance_report.csv'; document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    // auto-run once after DB attempt
+    renderReport();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>EquipmentScore — UI</title>
+  <style>
+    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
+    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:1000px;margin:0 auto}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left}
+    th{background:rgba(255,255,255,0.02)}
+    .controls{display:flex;gap:8px}
+    .btn{background:#163341;color:#dff0ff;padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>EquipmentScore — 裝備評分</h2>
+    <div class="controls"><button id="run" class="btn">執行評分</button></div>
+    <div id="out"></div>
+  </div>
+
+  <script type="module">
+  // Load Equipment database from project and use it for scoring
+  (async ()=>{
+    let EquipmentDB = null;
+    try{
+      const mod = await import('../../src/js/data/Equipment.js');
+      if(mod && mod.EquipmentDatabase) EquipmentDB = mod.EquipmentDatabase;
+    }catch(e){ console.warn('Could not import Equipment.js', e); }
+
+    const CONFIG = { baseAtkPerLevel:4.5, baseDefPerLevel:2.0, rarityStandard:{common:1,uncommon:1.3,rare:1.6,epic:2.2,legendary:3.0,mythic:4.5}, weights:{attack:1,defense:2.5,hp:0.2,critChance:1.5,critDamage:0.5,attackSpeed:2.5,fire:3,life_steal:5,armor_pierce:2,thunder:1.5,ice:1.2,poison:1.5,defaultEffect:20} };
+    function calculateScore(item){ const stats=item.stats||{}; const effects=item.specialEffects||[]; let score=0; score += (stats.attack||0)*CONFIG.weights.attack; score += (stats.defense||0)*CONFIG.weights.defense; score += (stats.hp||0)*CONFIG.weights.hp; let cc = stats.critChance||0; if(cc>0&&cc<=1) cc*=100; score += cc*CONFIG.weights.critChance; let cd = stats.critDamage||0; function critDamagePercent(value){ const v=Number(value); if(!Number.isFinite(v)) return 0; if(v>10) return v; if(v>=1.1) return (v-1)*100; if(v>0&&v<1.1) return v*100; return 0; } if(cd>0){ const bonus=Math.max(0,critDamagePercent(cd)); score += bonus*CONFIG.weights.critDamage; } let as = stats.attackSpeed||0; if(as>1) score += (as-1)*100*CONFIG.weights.attackSpeed; effects.forEach(eff=>{ let val=eff.value||0; if(val>0&&val<=1) val*=100; const type=String(eff.type).toLowerCase(); const weight = CONFIG.weights[type] || CONFIG.weights.defaultEffect; score += val*weight; }); const level = item.level||1; const rarity = (item.rarity||'common').toLowerCase(); let baseStd=0; if(item.type==='weapon') baseStd = Math.max(10, level*CONFIG.baseAtkPerLevel); else baseStd = Math.max(10, level*CONFIG.baseDefPerLevel*CONFIG.weights.defense); const targetScore = Math.floor(baseStd * CONFIG.rarityStandard[rarity]); const ratio = score / targetScore; let rank='B'; if(ratio>=2.0) rank='SSS (超模)'; else if(ratio>=1.5) rank='S (優秀)'; else if(ratio>=1.1) rank='A (強力)'; else if(ratio>=0.9) rank='B (及格)'; else if(ratio>=0.6) rank='C (偏弱)'; else rank='D (垃圾)'; return { score: Math.floor(score), target: targetScore, ratio: ratio.toFixed(2), rank }; }
+
+    // Build list from EquipmentDB or fallback sample
+    const items = EquipmentDB ? Object.values(EquipmentDB) : [ { name:'虛空之刃', type:'weapon', level:30, rarity:'legendary', stats:{ attack:80, critChance:25, critDamage:3.0 }, specialEffects:[{type:'armor_pierce',value:30},{type:'life_steal',value:15}] }, { name:'史萊姆劍', type:'weapon', level:1, rarity:'uncommon', stats:{ attack:12, critChance:5 }, specialEffects:[{type:'life_steal',value:3}] } ];
+
+    function render(){ const out=document.getElementById('out'); out.innerHTML=''; const t=document.createElement('table'); const thead=document.createElement('thead'); thead.innerHTML='<tr><th>名稱</th><th>等級</th><th>分數</th><th>及格分</th><th>倍數</th><th>評級</th></tr>'; t.appendChild(thead); const tbody=document.createElement('tbody'); items.forEach(it=>{ const r=calculateScore(it); const tr=document.createElement('tr'); tr.innerHTML=`<td>${it.name||it.id}</td><td>${it.level||''}</td><td>${r.score}</td><td>${r.target}</td><td>${r.ratio}</td><td>${r.rank}</td>`; tbody.appendChild(tr); }); t.appendChild(tbody); out.appendChild(t); }
+
+    document.getElementById('run').addEventListener('click', render);
+    // auto-run
+    render();
+  })();
+  </script>
+</body>
+</html>
