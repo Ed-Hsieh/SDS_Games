@@ -166,39 +166,46 @@ class GameManager {
         } else {
             // Convert plain object to Item instance
             if (itemData.type === ItemType.WEAPON) {
-                // 武器：包含所有屬性
+                // 支援從 itemData.stats 讀取欄位以兼容新資料結構
+                const stats = itemData.stats || {};
+                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
+                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
+                const critChance = itemData.critChance || stats.critChance || 0.08;
+                const critDamage = itemData.critDamage || stats.critDamage || 1.5;
+                const weaponSpeed = itemData.weaponSpeed || stats.weaponSpeed || 1.0;
+                const attackSpeed = itemData.attackSpeed || stats.attackSpeed || 1.0;
+
                 item = new Weapon(
                     itemData.id, itemData.name, itemData.rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.08, 
-                    itemData.critDamage || 1.5, 
-                    itemData.weaponSpeed || 1.0, 
-                    itemData.attackSpeed || 1.0
+                    atk, def, critChance, critDamage, weaponSpeed, attackSpeed
                 );
-                // 保留圖片路徑
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ARMOR) {
-                // 防具：無 weaponSpeed 和 attackSpeed
+                // 支援從 itemData.stats 讀取欄位以兼容新資料結構
+                const stats = itemData.stats || {};
+                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
+                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
+                const critChance = itemData.critChance || stats.critChance || 0.03;
+                const critDamage = itemData.critDamage || stats.critDamage || 1.2;
+
                 item = new Armor(
                     itemData.id, itemData.name, itemData.rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.03, 
-                    itemData.critDamage || 1.2
+                    atk, def, critChance, critDamage
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ACCESSORY) {
-                // 飾品：無 weaponSpeed 和 attackSpeed
+                const stats = itemData.stats || {};
+                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
+                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
+                const critChance = itemData.critChance || stats.critChance || 0.05;
+                const critDamage = itemData.critDamage || stats.critDamage || 1.3;
+
                 item = new Accessory(
                     itemData.id, itemData.name, itemData.rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.05, 
-                    itemData.critDamage || 1.3
+                    atk, def, critChance, critDamage
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.POTION) {
@@ -216,6 +223,27 @@ class GameManager {
             
             // Preserve special flags
             if (itemData.isSecretKey) item.isSecretKey = true;
+
+            // 如果原始資料提供了 specialEffects 或 affixes，保留到實例上
+            if (itemData.specialEffects) {
+                try { item.specialEffects = JSON.parse(JSON.stringify(itemData.specialEffects)); } catch (e) { item.specialEffects = itemData.specialEffects; }
+                // 同時為向後相容複製常用特效到頂層屬性（例如 lifesteal, damageReduction）
+                for (const eff of item.specialEffects) {
+                    if (!eff || !eff.type) continue;
+                    const t = String(eff.type).toLowerCase();
+                    const v = eff.value;
+                    if (t.includes('life') && t.includes('steal') || t === 'lifesteal' || t === 'life_steal') {
+                        item.lifesteal = (item.lifesteal || 0) + v;
+                    }
+                    if (t.includes('damage') && t.includes('reduction') || t === 'damage_reduction') {
+                        item.damageReduction = (item.damageReduction || 0) + v;
+                    }
+                }
+            }
+
+            // 若存在舊式 affix 列表或 affixBonuses，保留
+            if (itemData.affixes) item.affixes = itemData.affixes;
+            if (itemData.affixBonuses) item.affixBonuses = itemData.affixBonuses;
         }
 
         // Ensure unique instance ID
@@ -522,7 +550,21 @@ class GameManager {
         // Preserve metadata
         if (equip.setId) instance.setId = equip.setId;
         if (equip.dropFrom) instance.dropFrom = Array.isArray(equip.dropFrom) ? [...equip.dropFrom] : [equip.dropFrom];
-        if (equip.specialEffects) instance.specialEffects = JSON.parse(JSON.stringify(equip.specialEffects));
+        if (equip.specialEffects) {
+            instance.specialEffects = JSON.parse(JSON.stringify(equip.specialEffects));
+            // also copy common convenience fields for backward compatibility
+            for (const eff of instance.specialEffects) {
+                if (!eff || !eff.type) continue;
+                const t = String(eff.type).toLowerCase();
+                const v = eff.value;
+                if (t.includes('life') && t.includes('steal') || t === 'lifesteal' || t === 'life_steal') {
+                    instance.lifesteal = (instance.lifesteal || 0) + v;
+                }
+                if (t.includes('damage') && t.includes('reduction') || t === 'damage_reduction') {
+                    instance.damageReduction = (instance.damageReduction || 0) + v;
+                }
+            }
+        }
         if (equip.durability !== undefined) instance.durability = equip.durability;
         if (equip.maxDurability !== undefined) instance.maxDurability = equip.maxDurability;
         if (equip.affixes) instance.affixes = JSON.parse(JSON.stringify(equip.affixes));

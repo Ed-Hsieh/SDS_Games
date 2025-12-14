@@ -587,10 +587,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 26,
         stats: {
-            attack: 65,
-            defense: 10,
-            critChance: 0.22,
-            critDamage: 2.8,
+            attack: 58,
+            defense: 9,
+            critChance: 0.20,
+            critDamage: 2.5,
             weaponSpeed: 0.9,
             attackSpeed: 1.0
         },
@@ -639,10 +639,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 28,
         stats: {
-            attack: 15,
-            defense: 55,
-            critChance: 0.15,
-            critDamage: 1.8
+            attack: 14,
+            defense: 50,
+            critChance: 0.13,
+            critDamage: 1.6
         },
         specialEffects: [
             { type: AffixStat.DAMAGE_REDUCTION, value: 15 },
@@ -688,10 +688,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.EPIC,
         level: 30,
         stats: {
-            attack: 18,
-            defense: 50,
-            critChance: 0.15,
-            critDamage: 1.9
+            attack: 16,
+            defense: 45,
+            critChance: 0.13,
+            critDamage: 1.7
         },
         specialEffects: [
             { type: AffixStat.FIRE, value: 15 },
@@ -711,10 +711,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
-            attack: 100,
-            defense: 15,
-            critChance: 0.25,
-            critDamage: 3.5,
+            attack: 90,
+            defense: 14,
+            critChance: 0.22,
+            critDamage: 3.3,
             weaponSpeed: 0.85,
             attackSpeed: 1.0
         },
@@ -737,10 +737,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
-            attack: 25,
-            defense: 40,
-            critChance: 0.20,
-            critDamage: 2.5
+            attack: 23,
+            defense: 36,
+            critChance: 0.18,
+            critDamage: 2.3
         },
         specialEffects: [
             { type: AffixStat.CRIT_DAMAGE, value: 50 },
@@ -761,10 +761,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
-            attack: 80,
-            defense: 10,
-            critChance: 0.25,
-            critDamage: 3.0,
+            attack: 72,
+            defense: 9,
+            critChance: 0.22,
+            critDamage: 2.7,
             weaponSpeed: 1.2,
             attackSpeed: 1.3
         },
@@ -786,10 +786,10 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         level: 30,
         stats: {
-            attack: 20,
-            defense: 35,
-            critChance: 0.18,
-            critDamage: 2.2
+            attack: 18,
+            defense: 31,
+            critChance: 0.16,
+            critDamage: 2.0
         },
         specialEffects: [
             { type: AffixStat.DAMAGE_REDUCTION, value: 15 },
@@ -1030,11 +1030,11 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.LEGENDARY,
         // 移至統一的 stats 物件供工具使用
         stats: {
-            attack: 15,
-            defense: 60,
-            critChance: 0.10,
-            critDamage: 1.6,
-            hp: 200
+            attack: 14,
+            defense: 54,
+            critChance: 0.09,
+            critDamage: 1.5,
+            hp: 180
         },
         // 保留額外特效於 specialEffects，數值用百分比或小數皆可（工具會自動處理）
         specialEffects: [
