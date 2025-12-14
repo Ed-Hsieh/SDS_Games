@@ -16,14 +16,16 @@
  * - successRate: 成功率 (0-100)
  * - result: 製作結果物品
  */
+import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
+
 export const RecipeDatabase = {
     // ==================== 基礎武器 ====================
     iron_sword: {
         id: 'iron_sword',
         name: '鐵劍',
         icon: '⚔️',
-        type: 'weapon',
-        rarity: 'common',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.COMMON,
         materials: [
             { id: 'iron_ore', quantity: 5 }
         ],
@@ -33,12 +35,15 @@ export const RecipeDatabase = {
             id: 'crafted_iron_sword',
             name: '鐵劍',
             icon: '⚔️',
-            type: 'weapon',
-            rarity: 'common',
-            attack: 8,
-            defense: 0,
-            critChance: 0.08,
-            critDamage: 1.5,
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.COMMON,
+            stats: {
+                attack: 8,
+                defense: 0,
+                critChance: 0.08,
+                critDamage: 1.5
+            },
+            specialEffects: [],
             desc: '由鐵礦石鍛造而成的劍。'
         }
     },
@@ -47,8 +52,8 @@ export const RecipeDatabase = {
         id: 'bone_blade',
         name: '骨刃',
         icon: '🦴',
-        type: 'weapon',
-        rarity: 'uncommon',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'bone_fragment', quantity: 8 },
             { id: 'iron_ore', quantity: 3 }
@@ -59,12 +64,15 @@ export const RecipeDatabase = {
             id: 'crafted_bone_blade',
             name: '骨刃',
             icon: '🦴',
-            type: 'weapon',
-            rarity: 'uncommon',
-            attack: 8,
-            defense: 0,
-            critChance: 0.12,
-            critDamage: 1.6,
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 8,
+                defense: 0,
+                critChance: 0.12,
+                critDamage: 1.6
+            },
+            specialEffects: [],
             desc: '由骨頭碎片製成的鋒利刀刃。'
         }
     },
@@ -73,8 +81,8 @@ export const RecipeDatabase = {
         id: 'poison_dagger',
         name: '毒刃匕首',
         icon: '🗡️',
-        type: 'weapon',
-        rarity: 'uncommon',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'poison_gland', quantity: 3 },
             { id: 'spider_queen_fang', quantity: 1 },
@@ -86,13 +94,15 @@ export const RecipeDatabase = {
             id: 'crafted_poison_dagger',
             name: '毒刃匕首',
             icon: '🗡️',
-            type: 'weapon',
-            rarity: 'uncommon',
-            attack: 10,
-            defense: 0,
-            critChance: 0.18,
-            critDamage: 1.8,
-            special: { poison: 5 },
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 10,
+                defense: 0,
+                critChance: 0.18,
+                critDamage: 1.8
+            },
+            specialEffects: [ { type: AffixStat.POISON, value: 5 } ],
             desc: '塗有蜘蛛毒液的匕首。'
         }
     },
@@ -101,8 +111,8 @@ export const RecipeDatabase = {
         id: 'shadow_blade',
         name: '暗影之劍',
         icon: '⚔️',
-        type: 'weapon',
-        rarity: 'rare',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'shadow_shard', quantity: 5 },
             { id: 'dark_steel', quantity: 3 },
@@ -114,12 +124,15 @@ export const RecipeDatabase = {
             id: 'crafted_shadow_blade',
             name: '暗影之劍',
             icon: '⚔️',
-            type: 'weapon',
-            rarity: 'rare',
-            attack: 30,
-            defense: 0,
-            critChance: 0.15,
-            critDamage: 1.9,
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 30,
+                defense: 0,
+                critChance: 0.15,
+                critDamage: 1.9
+            },
+            specialEffects: [],
             desc: '由暗影能量凝聚而成的劍。'
         }
     },
@@ -128,8 +141,8 @@ export const RecipeDatabase = {
         id: 'mithril_sword',
         name: '秘銀長劍',
         icon: '⚔️',
-        type: 'weapon',
-        rarity: 'rare',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'mithril_ore', quantity: 5 },
             { id: 'crystal_shard', quantity: 3 }
@@ -140,12 +153,15 @@ export const RecipeDatabase = {
             id: 'crafted_mithril_sword',
             name: '秘銀長劍',
             icon: '⚔️',
-            type: 'weapon',
-            rarity: 'rare',
-            attack: 35,
-            defense: 0,
-            critChance: 0.18,
-            critDamage: 2.0,
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 35,
+                defense: 0,
+                critChance: 0.18,
+                critDamage: 2.0
+            },
+            specialEffects: [],
             desc: '輕盈而鋒利的秘銀劍。'
         }
     },
@@ -154,8 +170,8 @@ export const RecipeDatabase = {
         id: 'fire_sword',
         name: '烈焰之劍',
         icon: '🔥',
-        type: 'weapon',
-        rarity: 'rare',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'fire_essence', quantity: 5 },
             { id: 'ember_stone', quantity: 2 },
@@ -167,13 +183,15 @@ export const RecipeDatabase = {
             id: 'crafted_fire_sword',
             name: '烈焰之劍',
             icon: '🔥',
-            type: 'weapon',
-            rarity: 'rare',
-            attack: 35,
-            defense: 0,
-            critChance: 0.15,
-            critDamage: 2.0,
-            special: { fireDamage: 10 },
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 35,
+                defense: 0,
+                critChance: 0.15,
+                critDamage: 2.0
+            },
+            specialEffects: [ { type: AffixStat.FIRE, value: 10 } ],
             desc: '燃燒著永恆火焰的魔劍。'
         }
     },
@@ -182,8 +200,8 @@ export const RecipeDatabase = {
         id: 'ice_sword',
         name: '霜寒之劍',
         icon: '❄️',
-        type: 'weapon',
-        rarity: 'rare',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'ice_essence', quantity: 5 },
             { id: 'frost_crystal', quantity: 2 },
@@ -195,13 +213,15 @@ export const RecipeDatabase = {
             id: 'crafted_ice_sword',
             name: '霜寒之劍',
             icon: '❄️',
-            type: 'weapon',
-            rarity: 'rare',
-            attack: 35,
-            defense: 5,
-            critChance: 0.12,
-            critDamage: 1.8,
-            special: { slow: 15 },
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 35,
+                defense: 5,
+                critChance: 0.12,
+                critDamage: 1.8
+            },
+            specialEffects: [ { type: AffixStat.ICE, value: 15 } ],
             desc: '凝結著永恆寒冰的魔劍。'
         }
     },
@@ -210,8 +230,8 @@ export const RecipeDatabase = {
         id: 'dragon_slayer',
         name: '龍心',
         icon: '🐉',
-        type: 'weapon',
-        rarity: 'epic',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
         materials: [
             { id: 'dragon_heart', quantity: 1 },
             { id: 'dragon_tooth', quantity: 3 },
@@ -224,13 +244,15 @@ export const RecipeDatabase = {
             id: 'crafted_dragon_slayer',
             name: '屠龍劍',
             icon: '🐉',
-            type: 'weapon',
-            rarity: 'legendary',
-            attack: 40,
-            defense: 0,
-            critChance: 0.22,
-            critDamage: 2.5,
-            special: { dragonSlayer: true },
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 40,
+                defense: 0,
+                critChance: 0.22,
+                critDamage: 2.5
+            },
+            specialEffects: [ { type: AffixStat.EXECUTE, value: 0 } ],
             desc: '傳說中能斬龍的神劍。'
         }
     },
@@ -239,8 +261,8 @@ export const RecipeDatabase = {
         id: 'titan_blade',
         name: '泰坦之劍',
         icon: '⚔️',
-        type: 'weapon',
-        rarity: 'legendary',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.LEGENDARY,
         materials: [
             { id: 'titan_heart', quantity: 1 },
             { id: 'primordial_stone', quantity: 2 },
@@ -253,12 +275,15 @@ export const RecipeDatabase = {
             id: 'crafted_titan_blade',
             name: '泰坦之劍',
             icon: '⚔️',
-            type: 'weapon',
-            rarity: 'legendary',
-            attack: 50,
-            defense: 10,
-            critChance: 0.25,
-            critDamage: 3.0,
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 50,
+                defense: 10,
+                critChance: 0.25,
+                critDamage: 3.0
+            },
+            specialEffects: [],
             desc: '蘊含泰坦之力的傳說神劍。'
         }
     },
@@ -268,8 +293,8 @@ export const RecipeDatabase = {
         id: 'leather_armor',
         name: '皮甲',
         icon: '🥋',
-        type: 'armor',
-        rarity: 'common',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.COMMON,
         materials: [
             { id: 'beast_hide', quantity: 5 }
         ],
@@ -279,12 +304,15 @@ export const RecipeDatabase = {
             id: 'crafted_leather_armor',
             name: '皮甲',
             icon: '🥋',
-            type: 'armor',
-            rarity: 'common',
-            attack: 0,
-            defense: 4,
-            critChance: 0,
-            critDamage: 0,
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.COMMON,
+            stats: {
+                attack: 0,
+                defense: 4,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [],
             desc: '由獸皮製成的輕便護甲。'
         }
     },
@@ -293,8 +321,8 @@ export const RecipeDatabase = {
         id: 'wolf_cloak',
         name: '狼皮斗篷',
         icon: '🐺',
-        type: 'armor',
-        rarity: 'uncommon',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'wolf_pelt', quantity: 3 },
             { id: 'beast_hide', quantity: 2 }
@@ -305,12 +333,15 @@ export const RecipeDatabase = {
             id: 'crafted_wolf_cloak',
             name: '狼皮斗篷',
             icon: '🐺',
-            type: 'armor',
-            rarity: 'uncommon',
-            attack: 0,
-            defense: 6,
-            critChance: 0,
-            critDamage: 0,
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 0,
+                defense: 6,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [],
             desc: '由狼皮製成的保暖斗篷。'
         }
     },
@@ -319,8 +350,8 @@ export const RecipeDatabase = {
         id: 'guardian_armor',
         name: '守護者之甲',
         icon: '🛡️',
-        type: 'armor',
-        rarity: 'rare',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'guardian_branch', quantity: 2 },
             { id: 'ancient_bark', quantity: 5 },
@@ -332,13 +363,15 @@ export const RecipeDatabase = {
             id: 'crafted_guardian_armor',
             name: '守護者之甲',
             icon: '🛡️',
-            type: 'armor',
-            rarity: 'rare',
-            attack: 0,
-            defense: 10,
-            critChance: 0,
-            critDamage: 0,
-            special: { hpRegen: 2 },
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 0,
+                defense: 10,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [ { type: AffixStat.ALL_STATS, value: 0 } ],
             desc: '蘊含森林守護者之力的鎧甲。'
         }
     },
@@ -347,8 +380,8 @@ export const RecipeDatabase = {
         id: 'shadow_armor',
         name: '暗影鎧甲',
         icon: '⚫',
-        type: 'armor',
-        rarity: 'rare',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'dark_steel', quantity: 5 },
             { id: 'shadow_essence', quantity: 3 },
@@ -360,13 +393,15 @@ export const RecipeDatabase = {
             id: 'crafted_shadow_armor',
             name: '暗影鎧甲',
             icon: '⚫',
-            type: 'armor',
-            rarity: 'rare',
-            attack: 3,
-            defense: 13,
-            critChance: 0,
-            critDamage: 0,
-            special: { evasion: 5 },
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 3,
+                defense: 13,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [ { type: AffixStat.DODGE_CHANCE, value: 5 } ],
             desc: '被暗影籠罩的神秘鎧甲。'
         }
     },
@@ -375,8 +410,8 @@ export const RecipeDatabase = {
         id: 'dragon_scale_armor',
         name: '龍鱗鎧甲',
         icon: '🐲',
-        type: 'armor',
-        rarity: 'epic',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.EPIC,
         materials: [
             { id: 'drake_scale', quantity: 5 },
             { id: 'elder_dragon_scale', quantity: 2 },
@@ -388,13 +423,15 @@ export const RecipeDatabase = {
             id: 'crafted_dragon_scale_armor',
             name: '龍鱗鎧甲',
             icon: '🐲',
-            type: 'armor',
-            rarity: 'epic',
-            attack: 8,
-            defense: 18,
-            critChance: 0.05,
-            critDamage: 1.2,
-            special: { fireResist: 20 },
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 8,
+                defense: 18,
+                critChance: 0.05,
+                critDamage: 1.2
+            },
+            specialEffects: [ { type: AffixStat.FIRE, value: 20 } ],
             desc: '由龍鱗製成的傳說鎧甲。'
         }
     },
@@ -403,8 +440,8 @@ export const RecipeDatabase = {
         id: 'titan_armor',
         name: '泰坦之鎧',
         icon: '🛡️',
-        type: 'armor',
-        rarity: 'legendary',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.LEGENDARY,
         materials: [
             { id: 'titan_heart', quantity: 1 },
             { id: 'primordial_stone', quantity: 2 },
@@ -417,12 +454,15 @@ export const RecipeDatabase = {
             id: 'crafted_titan_armor',
             name: '泰坦之鎧',
             icon: '🛡️',
-            type: 'armor',
-            rarity: 'legendary',
-            attack: 10,
-            defense: 22,
-            critChance: 0.1,
-            critDamage: 1.3,
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 10,
+                defense: 22,
+                critChance: 0.1,
+                critDamage: 1.3
+            },
+            specialEffects: [],
             desc: '蘊含泰坦之力的傳說鎧甲。'
         }
     },
@@ -432,8 +472,8 @@ export const RecipeDatabase = {
         id: 'wolf_fang_necklace',
         name: '狼牙項鍊',
         icon: '🦷',
-        type: 'accessory',
-        rarity: 'uncommon',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'wolf_fang', quantity: 3 },
             { id: 'spider_silk', quantity: 2 }
@@ -444,12 +484,15 @@ export const RecipeDatabase = {
             id: 'crafted_wolf_fang_necklace',
             name: '狼牙項鍊',
             icon: '🦷',
-            type: 'accessory',
-            rarity: 'uncommon',
-            attack: 1,
-            defense: 1,
-            critChance: 0,
-            critDamage: 0,
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 1,
+                defense: 1,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [],
             desc: '由狼牙串成的項鍊。'
         }
     },
@@ -458,8 +501,8 @@ export const RecipeDatabase = {
         id: 'nature_amulet',
         name: '自然護符',
         icon: '🌿',
-        type: 'accessory',
-        rarity: 'rare',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'life_seed', quantity: 2 },
             { id: 'forest_essence', quantity: 2 },
@@ -471,13 +514,15 @@ export const RecipeDatabase = {
             id: 'crafted_nature_amulet',
             name: '自然護符',
             icon: '🌿',
-            type: 'accessory',
-            rarity: 'rare',
-            attack: 1,
-            defense: 5,
-            critChance: 0,
-            critDamage: 0,
-            special: { hpBonus: 20 },
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 1,
+                defense: 5,
+                critChance: 0,
+                critDamage: 0
+            },
+            specialEffects: [ { type: AffixStat.HP, value: 20 } ],
             desc: '蘊含自然之力的護符。'
         }
     },
@@ -486,8 +531,8 @@ export const RecipeDatabase = {
         id: 'shadow_ring',
         name: '暗影戒指',
         icon: '💍',
-        type: 'accessory',
-        rarity: 'rare',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
         materials: [
             { id: 'shadow_core', quantity: 1 },
             { id: 'dark_crystal', quantity: 2 },
@@ -499,12 +544,15 @@ export const RecipeDatabase = {
             id: 'crafted_shadow_ring',
             name: '暗影戒指',
             icon: '💍',
-            type: 'accessory',
-            rarity: 'rare',
-            attack: 3,
-            defense: 3,
-            critChance: 0.05,
-            critDamage: 0,
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 3,
+                defense: 3,
+                critChance: 0.05,
+                critDamage: 0
+            },
+            specialEffects: [],
             desc: '籠罩暗影的神秘戒指。'
         }
     },
@@ -513,8 +561,8 @@ export const RecipeDatabase = {
         id: 'dragon_amulet',
         name: '龍之護符',
         icon: '🐉',
-        type: 'accessory',
-        rarity: 'epic',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
         materials: [
             { id: 'dragon_knight_badge', quantity: 1 },
             { id: 'dragon_tooth', quantity: 2 },
@@ -526,13 +574,15 @@ export const RecipeDatabase = {
             id: 'crafted_dragon_amulet',
             name: '龍之護符',
             icon: '🐉',
-            type: 'accessory',
-            rarity: 'epic',
-            attack: 12,
-            defense: 8,
-            critChance: 0.10,
-            critDamage: 1.2,
-            special: { dragonPower: true },
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 12,
+                defense: 8,
+                critChance: 0.10,
+                critDamage: 1.2
+            },
+            specialEffects: [],
             desc: '蘊含龍之力的護符。'
         }
     },
@@ -541,8 +591,8 @@ export const RecipeDatabase = {
         id: 'titan_ring',
         name: '泰坦之戒',
         icon: '💍',
-        type: 'accessory',
-        rarity: 'legendary',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.LEGENDARY,
         materials: [
             { id: 'titan_heart', quantity: 1 },
             { id: 'elemental_core', quantity: 1 },
@@ -554,12 +604,15 @@ export const RecipeDatabase = {
             id: 'crafted_titan_ring',
             name: '泰坦之戒',
             icon: '💍',
-            type: 'accessory',
-            rarity: 'legendary',
-            attack: 15,
-            defense: 15,
-            critChance: 0.20,
-            critDamage: 1.2,
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 15,
+                defense: 15,
+                critChance: 0.20,
+                critDamage: 1.2
+            },
+            specialEffects: [],
             desc: '蘊含泰坦之力的傳說戒指。'
         }
     },
@@ -569,8 +622,8 @@ export const RecipeDatabase = {
         id: 'health_potion_basic',
         name: '基礎生命藥水',
         icon: '🧪',
-        type: 'potion',
-        rarity: 'common',
+        type: ItemType.POTION,
+        rarity: ItemRarity.COMMON,
         materials: [
             { id: 'slime_jelly', quantity: 3 }
         ],
@@ -580,8 +633,8 @@ export const RecipeDatabase = {
             id: 'crafted_health_potion',
             name: '生命藥水',
             icon: '🧪',
-            type: 'potion',
-            rarity: 'common',
+            type: ItemType.POTION,
+            ItemRarity: ItemRarity.COMMON,
             hp: 50,
             desc: '恢復 50 點生命值。'
         }
@@ -591,8 +644,8 @@ export const RecipeDatabase = {
         id: 'greater_health_potion',
         name: '高級生命藥水',
         icon: '❤️',
-        type: 'potion',
-        rarity: 'uncommon',
+        type: ItemType.POTION,
+        rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'life_seed', quantity: 1 },
             { id: 'slime_jelly', quantity: 5 },
@@ -604,8 +657,8 @@ export const RecipeDatabase = {
             id: 'crafted_greater_health_potion',
             name: '高級生命藥水',
             icon: '❤️',
-            type: 'potion',
-            rarity: 'uncommon',
+            type: ItemType.POTION,
+            ItemRarity: ItemRarity.UNCOMMON,
             hp: 120,
             desc: '恢復 120 點生命值。'
         }
