@@ -37,6 +37,8 @@ export const ObjectiveType = {
     CUSTOM: 'custom'            // 自定義條件
 };
 
+import { ItemRarity, ItemType, EquipmentType, AffixStat } from '../models/Enums.js';
+
 /**
  * 任務資料庫
  */
@@ -1225,9 +1227,11 @@ export const QuestRewardItems = {
         id: 'starter_sword',
         name: '冒險者之劍',
         icon: '🗡️',
-        type: 'weapon',
-        rarity: 'uncommon',
-        attack: 12,
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.UNCOMMON,
+        stats: {
+            attack: 12
+        },
         description: '每個英雄旅程的起點。',
         isQuestReward: true
     },
@@ -1235,8 +1239,8 @@ export const QuestRewardItems = {
         id: 'enhance_stone',
         name: '強化石',
         icon: '💎',
-        type: 'material',
-        rarity: 'rare',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
         description: '使用後，下次強化成功率 +20%。',
         isQuestReward: true
     },
@@ -1244,11 +1248,13 @@ export const QuestRewardItems = {
         id: 'lucky_coin',
         name: '幸運金幣',
         icon: '🪙',
-        type: 'accessory',
-        rarity: 'rare',
-        attack: 0,
-        defense: 0,
-        critChance: 0.05,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.RARE,
+        stats: {
+            attack: 0,
+            defense: 0,
+            critChance: 0.05
+        },
         description: '據說是從賭場贏來的第一枚金幣，會帶來好運。',
         isQuestReward: true
     },
@@ -1256,8 +1262,8 @@ export const QuestRewardItems = {
         id: 'rare_gem_box',
         name: '稀有寶石盒',
         icon: '📦',
-        type: 'consumable',
-        rarity: 'rare',
+        type: ItemType.GEM,
+        rarity: ItemRarity.RARE,
         description: '開啟獲得隨機稀有寶石。',
         isQuestReward: true
     },
@@ -1265,10 +1271,12 @@ export const QuestRewardItems = {
         id: 'fate_crystal',
         name: '命運水晶',
         icon: '🔮',
-        type: 'accessory',
-        rarity: 'epic',
-        attack: 5,
-        defense: 5,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
+        stats: {
+            attack: 5,
+            defense: 5
+        },
         description: '能夠影響命運的神秘水晶。隨機事件獎勵 +20%。',
         isQuestReward: true
     },
@@ -1276,8 +1284,8 @@ export const QuestRewardItems = {
         id: 'legendary_weapon_box',
         name: '傳說武器寶箱',
         icon: '👑',
-        type: 'consumable',
-        rarity: 'legendary',
+        type: ItemType.GEM,
+        rarity: ItemRarity.LEGENDARY,
         description: '開啟獲得隨機傳說武器！',
         isQuestReward: true
     },
@@ -1287,10 +1295,12 @@ export const QuestRewardItems = {
         id: 'wolf_fang',
         name: '狼牙項鍊',
         icon: '🦷',
-        type: 'accessory',
-        rarity: 'uncommon',
-        attack: 3,
-        critChance: 0.08,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.UNCOMMON,
+        stats: {
+            attack: 3,
+            critChance: 0.08
+        },
         description: '用狼牙製成的項鍊，散發著野性的氣息。',
         isQuestReward: true
     },
@@ -1298,13 +1308,15 @@ export const QuestRewardItems = {
         id: 'assassin_dagger',
         name: '刺客匕首',
         icon: '🗡️',
-        type: 'weapon',
-        rarity: 'epic',
-        attack: 18,
-        critChance: 0.25,
-        critDamage: 2.0,
-        weaponSpeed: 1.5,
-        attackSpeed: 1.8,
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.EPIC,
+        stats: {
+            attack: 18,
+            critChance: 0.25,
+            critDamage: 2.0,
+            weaponSpeed: 1.5,
+            attackSpeed: 1.8
+        },
         description: '暗影刺客的武器，追求一擊必殺。',
         isQuestReward: true
     },
@@ -1314,48 +1326,56 @@ export const QuestRewardItems = {
         id: 'enhance_scroll',
         name: '強化秘卷',
         icon: '📜',
-        type: 'consumable',
-        rarity: 'rare',
+        type: ItemType.SCROLL,
+        rarity: ItemRarity.RARE,
         description: '使用後，下次強化必定成功！',
-        effect: { guaranteeEnhance: true },
+        specialEffects: [
+            { type: 'guaranteeEnhance', value: true }
+        ],
         isQuestReward: true
     },
     master_hammer: {
         id: 'master_hammer',
         name: '大師之錘',
         icon: '🔨',
-        type: 'accessory',
-        rarity: 'epic',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
         description: '裝備時，強化成功率永久 +10%。',
-        effect: { enhanceBonus: 0.1 },
+        specialEffects: [
+            { type: 'enhanceBonus', value: 0.1 }
+        ],
         isQuestReward: true
     },
     vip_card: {
         id: 'vip_card',
         name: '賭場 VIP 卡',
         icon: '💳',
-        type: 'key',
-        rarity: 'rare',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
         description: '在賭場享有特殊待遇。',
-        effect: { casinoBonus: 0.05 },
+        specialEffects: [
+            { type: 'casinoBonus', value: 0.05 }
+        ],
         isQuestReward: true
     },
     loaded_dice: {
         id: 'loaded_dice',
         name: '幸運骰子',
         icon: '🎲',
-        type: 'accessory',
-        rarity: 'epic',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
         description: '「這骰子好像有點重...」骰子遊戲勝率 +5%。',
-        effect: { diceBonus: 0.05 },
+        specialEffects: [
+            { type: 'diceBonus', value: 0.05 }
+        ],
         isQuestReward: true
     },
     mystery_box: {
         id: 'mystery_box',
         name: '神秘寶盒',
         icon: '❓',
-        type: 'consumable',
-        rarity: 'epic',
+        type: ItemType.GEM,
+        rarity: ItemRarity.EPIC,
         description: '不知道裡面是什麼...開啟看看？',
         isQuestReward: true
     },
@@ -1365,62 +1385,77 @@ export const QuestRewardItems = {
         id: 'beggars_wisdom',
         name: '乞丐的智慧',
         icon: '📿',
-        type: 'accessory',
-        rarity: 'rare',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.RARE,
         description: '「一無所有，反而看得更清。」金幣獲取 +10%。',
-        effect: { goldBonus: 0.1 },
+        specialEffects: [
+            { type: AffixStat.GOLD_BONUS, value: 0.1 }
+        ],
         isQuestReward: true
     },
     phoenix_feather: {
         id: 'phoenix_feather',
         name: '鳳凰羽毛',
         icon: '🪶',
-        type: 'accessory',
-        rarity: 'legendary',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.LEGENDARY,
         description: '死亡時自動復活一次，HP 恢復 30%。每場戰鬥只能觸發一次。',
-        effect: { autoRevive: true, reviveHp: 0.3 },
+        specialEffects: [
+            { type: 'autoRevive', value: true },
+            { type: 'reviveHp', value: 0.3 }
+        ],
         isQuestReward: true
     },
     gamblers_fallacy: {
         id: 'gamblers_fallacy',
         name: '賭徒謬誤',
         icon: '🃏',
-        type: 'accessory',
-        rarity: 'epic',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
         description: '「連輸這麼多次，下次一定會贏！」連敗後勝率大幅提升。',
-        effect: { lossStreakBonus: true },
+        specialEffects: [
+            { type: 'lossStreakBonus', value: true }
+        ],
         isQuestReward: true
     },
     demon_contract: {
         id: 'demon_contract',
         name: '惡魔契約',
         icon: '📋',
-        type: 'accessory',
-        rarity: 'legendary',
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.LEGENDARY,
+        stats: {
+            attack: 15,
+            defense: 15
+        },
         description: '攻擊力、防禦力 +15。但每場戰鬥開始時損失 5% HP。',
-        attack: 15,
-        defense: 15,
-        effect: { battleHpCost: 0.05 },
+        specialEffects: [
+            { type: 'battleHpCost', value: 0.05 }
+        ],
         isQuestReward: true
     },
     lucky_charm_7: {
         id: 'lucky_charm_7',
         name: '七星護符',
         icon: '⭐',
-        type: 'accessory',
-        rarity: 'legendary',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.LEGENDARY,
         description: '幸運之神的眷顧。所有機率判定 +7%。',
-        effect: { luckBonus: 0.07 },
+        specialEffects: [
+            { type: 'luckBonus', value: 0.07 }
+        ],
         isQuestReward: true
     },
     transcend_stone: {
         id: 'transcend_stone',
         name: '超越之石',
         icon: '💠',
-        type: 'consumable',
-        rarity: 'legendary',
+        type: ItemType.GEM,
+        rarity: ItemRarity.LEGENDARY,
         description: '使用後，突破裝備的強化上限 (+10 → +15)。',
-        effect: { transcendEnhance: true },
+        specialEffects: [
+            { type: 'transcendEnhance', value: true }
+        ],
         isQuestReward: true
     },
 
@@ -1431,22 +1466,29 @@ export const QuestRewardItems = {
         id: 'torch',
         name: '永恆火炬',
         icon: '🔥',
-        type: 'accessory',
-        rarity: 'uncommon',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.UNCOMMON,
         description: '在黑暗副本中提供額外視野，降低被突襲機率。',
-        effect: { darkVision: 0.3 },
+        specialEffects: [
+            { type: 'darkVision', value: 0.3 }
+        ],
         isQuestReward: true
     },
     bat_wing_cloak: {
         id: 'bat_wing_cloak',
         name: '蝙蝠翼披風',
         icon: '🦇',
-        type: 'armor',
-        rarity: 'rare',
-        defense: 8,
-        critChance: 0.1,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.RARE,
+        stats: {
+            defense: 8,
+            critChance: 0.1
+        },
         description: '由洞窟蝙蝠王的翅膀製成，在黑暗中更加敏捷。',
-        effect: { evasion: 0.05, darkBonus: 0.15 },
+        specialEffects: [
+            { type: AffixStat.DODGE_CHANCE, value: 0.05 },
+            { type: 'darkBonus', value: 0.15 }
+        ],
         isQuestReward: true
     },
     
@@ -1455,24 +1497,31 @@ export const QuestRewardItems = {
         id: 'cold_resist_potion',
         name: '抗寒藥劑',
         icon: '🧪',
-        type: 'consumable',
-        rarity: 'rare',
+        type: ItemType.POTION,
+        rarity: ItemRarity.RARE,
         stackable: true,
         maxStack: 10,
         description: '使用後減緩寒氣累積速度 50%，持續整個副本。',
-        effect: { coldResist: 0.5 },
+        specialEffects: [
+            { type: 'coldResist', value: 0.5 }
+        ],
         isQuestReward: true
     },
     frost_crown: {
         id: 'frost_crown',
         name: '冰霜王冠',
         icon: '👑',
-        type: 'accessory',
-        rarity: 'epic',
-        attack: 10,
-        defense: 5,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
+        stats: {
+            attack: 10,
+            defense: 5
+        },
         description: '冰霜領主的王冠，賦予冰霜之力。攻擊時有機率凍結敵人。',
-        effect: { freezeChance: 0.15, coldImmune: true },
+        specialEffects: [
+            { type: AffixStat.ICE, value: 0.15 },
+            { type: 'coldImmune', value: true }
+        ],
         isQuestReward: true
     },
     
@@ -1481,21 +1530,28 @@ export const QuestRewardItems = {
         id: 'ancient_key',
         name: '古代鑰匙',
         icon: '🗝️',
-        type: 'key',
-        rarity: 'rare',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
         description: '可以開啟遺跡中的隱藏寶箱，獲得額外獎勵。',
-        effect: { secretChest: true },
+        specialEffects: [
+            { type: 'secretChest', value: true }
+        ],
         isQuestReward: true
     },
     guardian_shield: {
         id: 'guardian_shield',
         name: '守護者之盾',
         icon: '🛡️',
-        type: 'armor',
-        rarity: 'epic',
-        defense: 20,
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.EPIC,
+        stats: {
+            defense: 20
+        },
         description: '遺跡守護者的古老盾牌，能夠抵擋強大的攻擊。',
-        effect: { blockChance: 0.2, puzzleBonus: 0.2 },
+        specialEffects: [
+            { type: 'blockChance', value: 0.2 },
+            { type: 'puzzleBonus', value: 0.2 }
+        ],
         isQuestReward: true
     },
     
@@ -1504,22 +1560,29 @@ export const QuestRewardItems = {
         id: 'compass',
         name: '迷途指南針',
         icon: '🧭',
-        type: 'accessory',
-        rarity: 'rare',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
         description: '在迷霧叢林中不會迷路，總是指向正確的方向。',
-        effect: { mazeNavigate: true },
+        specialEffects: [
+            { type: 'mazeNavigate', value: true }
+        ],
         isQuestReward: true
     },
     jungle_heart: {
         id: 'jungle_heart',
         name: '叢林之心',
         icon: '💚',
-        type: 'accessory',
-        rarity: 'epic',
-        attack: 8,
-        defense: 8,
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.EPIC,
+        stats: {
+            attack: 8,
+            defense: 8
+        },
         description: '叢林女王的心臟結晶，蘊含自然的力量。',
-        effect: { hpRegen: 0.02, natureBonus: 0.15 },
+        specialEffects: [
+            { type: 'hpRegen', value: 0.02 },
+            { type: 'natureBonus', value: 0.15 }
+        ],
         isQuestReward: true
     },
     
@@ -1528,26 +1591,33 @@ export const QuestRewardItems = {
         id: 'fire_resist_potion',
         name: '抗火藥劑',
         icon: '🧪',
-        type: 'consumable',
-        rarity: 'rare',
+        type: ItemType.POTION,
+        rarity: ItemRarity.RARE,
         stackable: true,
         maxStack: 10,
         description: '使用後減少灼燒傷害 50%，持續整個副本。',
-        effect: { fireResist: 0.5 },
+        specialEffects: [
+            { type: 'fireResist', value: 0.5 }
+        ],
         isQuestReward: true
     },
     demon_slayer: {
         id: 'demon_slayer',
         name: '弒魔者',
         icon: '⚔️',
-        type: 'weapon',
-        rarity: 'legendary',
-        attack: 35,
-        critChance: 0.2,
-        critDamage: 2.5,
-        weaponSpeed: 1.2,
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.LEGENDARY,
+        stats: {
+            attack: 35,
+            critChance: 0.2,
+            critDamage: 2.5,
+            weaponSpeed: 1.2
+        },
         description: '傳說中能夠斬殺惡魔的神劍。對惡魔類敵人傷害 +50%。',
-        effect: { demonSlayer: 0.5, burnImmune: true },
+        specialEffects: [
+            { type: 'demonSlayer', value: 0.5 },
+            { type: 'burnImmune', value: true }
+        ],
         isQuestReward: true
     },
     
@@ -1556,8 +1626,8 @@ export const QuestRewardItems = {
         id: 'dungeon_token',
         name: '副本代幣',
         icon: '🎖️',
-        type: 'currency',
-        rarity: 'uncommon',
+        type: ItemType.CURRENCY,
+        ItemRarity: ItemRarity.UNCOMMON,
         stackable: true,
         maxStack: 999,
         description: '累積足夠的代幣可以兌換稀有道具。',
@@ -1569,17 +1639,19 @@ export const QuestRewardItems = {
         id: 'dungeon_master_badge',
         name: '副本征服者徽章',
         icon: '🏆',
-        type: 'accessory',
-        rarity: 'legendary',
-        attack: 20,
-        defense: 20,
-        critChance: 0.15,
-        description: '征服五大副本的證明。全屬性大幅提升，所有副本獎勵 +25%。',
-        effect: { 
-            allStats: 0.1, 
-            dungeonReward: 0.25,
-            titleUnlock: 'dungeon_master'
+        type: EquipmentType.ACCESSORY,
+        ItemRarity: ItemRarity.LEGENDARY,
+        stats: {
+            attack: 20,
+            defense: 20,
+            critChance: 0.15
         },
+        description: '征服五大副本的證明。全屬性大幅提升，所有副本獎勵 +25%。',
+        specialEffects: [
+            { type: AffixStat.ALL_STATS, value: 0.1 },
+            { type: 'dungeonReward', value: 0.25 },
+            { type: 'titleUnlock', value: 'dungeon_master' }
+        ],
         isQuestReward: true
     }
 };

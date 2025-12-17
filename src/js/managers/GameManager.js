@@ -31,12 +31,12 @@ class GameManager {
 
     initInitialItems() {
         // Add initial items (using new stack system)
-        const oldSword = new Weapon('old_sword', '舊劍', ItemRarity.COMMON, '🗡️', '一把生鏽的舊劍。', 30, 5, 0, 0.08, 1.5, 1.0, 1.0);
-        const leatherArmor = new Armor('leather_armor', '皮甲', ItemRarity.COMMON, '🛡️', '普通的皮製護甲。', 50, 0, 8, 0.03, 1.2);
+        // const oldSword = new Weapon('old_sword', '舊劍', ItemRarity.COMMON, '🗡️', '一把生鏽的舊劍。', 30, 5, 0, 0.08, 1.5, 1.0, 1.0);
+        // const leatherArmor = new Armor('leather_armor', '皮甲', ItemRarity.COMMON, '🛡️', '普通的皮製護甲。', 50, 0, 2, 0.03, 1.2);
         
         // 直接裝備初始裝備
-        this.state.character.equip(oldSword);
-        this.state.character.equip(leatherArmor);
+        // this.state.character.equip(oldSword);
+        // this.state.character.equip(leatherArmor);
         
         this.addToInventory(new Consumable('health_potion_s', '小型生命藥水', ItemType.POTION, ItemRarity.COMMON, '🧪', '恢復少量生命值。', 20, { hp: 30 }), 3);
         
