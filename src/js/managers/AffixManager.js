@@ -5,7 +5,46 @@
  */
 
 import { ItemRarity } from '../models/DataModel.js';
+import { AffixStat } from '../models/Enums.js';
 import {PrefixDatabase, SuffixDatabase} from '../data/Prefixes.js';
+
+// Normalize various stat key forms to central AffixStat values
+function normalizeStatKey(stat) {
+    if (!stat) return stat;
+    // if already one of the AffixStat values, return as-is
+    const allVals = Object.values(AffixStat);
+    if (allVals.includes(stat)) return stat;
+
+    const key = String(stat).toLowerCase();
+    const map = {
+        atk: AffixStat.ATK,
+        attack: AffixStat.ATK,
+        def: AffixStat.DEF,
+        defense: AffixStat.DEF,
+        hp: AffixStat.HP,
+        mp: AffixStat.MP,
+        critchance: AffixStat.CRIT_CHANCE,
+        'crit_chance': AffixStat.CRIT_CHANCE,
+        critdamage: AffixStat.CRIT_DAMAGE,
+        attackspeed: AffixStat.ATTACK_SPEED,
+        lifesteal: AffixStat.LIFE_STEAL || AffixStat.LIFESTEAL,
+        'life_steal': AffixStat.LIFE_STEAL || AffixStat.LIFESTEAL,
+        'damage_reduction': AffixStat.DAMAGE_REDUCTION,
+        damagereduction: AffixStat.DAMAGE_REDUCTION,
+        'dodge_chance': AffixStat.DODGE_CHANCE || AffixStat.DODGE_CHANCE,
+        dodgetchance: AffixStat.DODGE_CHANCE || AffixStat.DODGE_CHANCE,
+        'armor_penetration': AffixStat.ARMOR_PENETRATION,
+        armorpen: AffixStat.ARMOR_PENETRATION,
+        'allstats': AffixStat.ALL_STATS,
+        all_stats: AffixStat.ALL_STATS,
+        fire: AffixStat.FIRE || AffixStat.FIRE,
+        ice: AffixStat.ICE || AffixStat.ICE,
+        thunder: AffixStat.THUNDER || AffixStat.THUNDER,
+        void: AffixStat.VOID || AffixStat.VOID_DAMAGE || AffixStat.VOID_DAMAGE
+    };
+
+    return map[key] || stat;
+}
 
 // 詞綴類型
 export const AffixType = {
@@ -125,14 +164,14 @@ export class AffixManager {
             [AffixStat.CRIT_CHANCE]: 0,
             [AffixStat.CRIT_DAMAGE]: 0,
             [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.LIFE_STEAL]: 0,
             [AffixStat.DAMAGE_REDUCTION]: 0,
             [AffixStat.HP_REGEN]: 0,
             [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE_DAMAGE]: 0,
-            [AffixStat.ICE_DAMAGE]: 0,
-            [AffixStat.THUNDER_DAMAGE]: 0,
-            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.FIRE]: 0,
+            [AffixStat.ICE]: 0,
+            [AffixStat.THUNDER]: 0,
+            [AffixStat.VOID]: 0,
             [AffixStat.SLOW_CHANCE]: 0,
             [AffixStat.STUN_CHANCE]: 0,
             [AffixStat.DODGE_CHANCE]: 0,
@@ -240,14 +279,13 @@ export class AffixManager {
     getAffixDescription(affix) {
         let desc = affix.name + ': ';
         // 使用中央化常數以避免命名不一致
-        const { AffixStat } = AffixConsts;
         const statNames = {
             [AffixStat.ATK]: '攻擊力', [AffixStat.DEF]: '防禦力', [AffixStat.HP]: '生命', [AffixStat.MP]: '魔力',
             [AffixStat.CRIT_CHANCE]: '暴擊率', [AffixStat.CRIT_DAMAGE]: '暴擊傷害', [AffixStat.ATTACK_SPEED]: '攻擊速度',
-            [AffixStat.LIFESTEAL]: '生命偷取', [AffixStat.DAMAGE_REDUCTION]: '傷害減免',
+            [AffixStat.LIFE_STEAL]: '生命偷取', [AffixStat.DAMAGE_REDUCTION]: '傷害減免',
             [AffixStat.HP_REGEN]: '生命回復', [AffixStat.MP_REGEN]: '魔力回復',
-            [AffixStat.FIRE_DAMAGE]: '火焰傷害', [AffixStat.ICE_DAMAGE]: '冰霜傷害',
-            [AffixStat.THUNDER_DAMAGE]: '雷電傷害', [AffixStat.VOID_DAMAGE]: '虛空傷害',
+            [AffixStat.FIRE]: '火焰傷害', [AffixStat.ICE]: '冰霜傷害',
+            [AffixStat.THUNDER]: '雷電傷害', [AffixStat.VOID]: '虛空傷害',
             [AffixStat.SLOW_CHANCE]: '減速機率', [AffixStat.STUN_CHANCE]: '暈眩機率',
             [AffixStat.DODGE_CHANCE]: '閃避率', [AffixStat.ARMOR_PENETRATION]: '穿甲',
             [AffixStat.BOSS_BONUS]: 'BOSS傷害加成', [AffixStat.ALL_STATS]: '全屬性'
@@ -258,11 +296,11 @@ export class AffixManager {
             const statName = statNames[stat] || stat;
             // 百分比屬性（使用中央化判斷）
             const percentStats = [
-                AffixStat.CRIT_CHANCE, AffixStat.CRIT_DAMAGE, AffixStat.ATTACK_SPEED, AffixStat.LIFESTEAL,
+                AffixStat.CRIT_CHANCE, AffixStat.CRIT_DAMAGE, AffixStat.ATTACK_SPEED, AffixStat.LIFE_STEAL,
                 AffixStat.DAMAGE_REDUCTION, AffixStat.HP_REGEN, AffixStat.MP_REGEN, AffixStat.SLOW_CHANCE,
                 AffixStat.STUN_CHANCE, AffixStat.DODGE_CHANCE, AffixStat.ARMOR_PENETRATION, AffixStat.BOSS_BONUS,
-                AffixStat.ALL_STATS, AffixStat.FIRE_DAMAGE, AffixStat.ICE_DAMAGE, AffixStat.THUNDER_DAMAGE,
-                AffixStat.VOID_DAMAGE
+                AffixStat.ALL_STATS, AffixStat.FIRE, AffixStat.ICE, AffixStat.THUNDER,
+                AffixStat.VOID
             ];
             if (percentStats.includes(stat)) {
                 parts.push(`${statName} +${(value * 100).toFixed(1)}%`);
@@ -307,14 +345,14 @@ export class AffixManager {
             [AffixStat.CRIT_CHANCE]: 0,
             [AffixStat.CRIT_DAMAGE]: 0,
             [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.LIFE_STEAL]: 0,
             [AffixStat.DAMAGE_REDUCTION]: 0,
             [AffixStat.HP_REGEN]: 0,
             [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE_DAMAGE]: 0,
-            [AffixStat.ICE_DAMAGE]: 0,
-            [AffixStat.THUNDER_DAMAGE]: 0,
-            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.FIRE]: 0,
+            [AffixStat.ICE]: 0,
+            [AffixStat.THUNDER]: 0,
+            [AffixStat.VOID]: 0,
             [AffixStat.SLOW_CHANCE]: 0,
             [AffixStat.STUN_CHANCE]: 0,
             [AffixStat.DODGE_CHANCE]: 0,
@@ -345,14 +383,14 @@ export class AffixManager {
             [AffixStat.CRIT_CHANCE]: 0,
             [AffixStat.CRIT_DAMAGE]: 0,
             [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFESTEAL]: 0,
+            [AffixStat.LIFE_STEAL]: 0,
             [AffixStat.DAMAGE_REDUCTION]: 0,
             [AffixStat.HP_REGEN]: 0,
             [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE_DAMAGE]: 0,
-            [AffixStat.ICE_DAMAGE]: 0,
-            [AffixStat.THUNDER_DAMAGE]: 0,
-            [AffixStat.VOID_DAMAGE]: 0,
+            [AffixStat.FIRE]: 0,
+            [AffixStat.ICE]: 0,
+            [AffixStat.THUNDER]: 0,
+            [AffixStat.VOID]: 0,
             [AffixStat.SLOW_CHANCE]: 0,
             [AffixStat.STUN_CHANCE]: 0,
             [AffixStat.DODGE_CHANCE]: 0,

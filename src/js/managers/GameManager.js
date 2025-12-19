@@ -165,6 +165,7 @@ class GameManager {
             item = itemData;
         } else {
             // Convert plain object to Item instance
+            const rarity = itemData.rarity ?? itemData.ItemRarity ?? ItemRarity.COMMON;
             if (itemData.type === ItemType.WEAPON) {
                 // 支援從 itemData.stats 讀取欄位以兼容新資料結構
                 const stats = itemData.stats || {};
@@ -174,11 +175,13 @@ class GameManager {
                 const critDamage = itemData.critDamage || stats.critDamage || 1.5;
                 const weaponSpeed = itemData.weaponSpeed || stats.weaponSpeed || 1.0;
                 const attackSpeed = itemData.attackSpeed || stats.attackSpeed || 1.0;
+                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? 50;
+                const durability = itemData.durability ?? stats.durability ?? maxDurability;
 
                 item = new Weapon(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage, weaponSpeed, attackSpeed
+                    atk, def, critChance, critDamage, weaponSpeed, attackSpeed, maxDurability, durability
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ARMOR) {
@@ -188,11 +191,13 @@ class GameManager {
                 const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
                 const critChance = itemData.critChance || stats.critChance || 0.03;
                 const critDamage = itemData.critDamage || stats.critDamage || 1.2;
+                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? 50;
+                const durability = itemData.durability ?? stats.durability ?? maxDurability;
 
                 item = new Armor(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage
+                    atk, def, critChance, critDamage, maxDurability, durability
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ACCESSORY) {
@@ -201,22 +206,24 @@ class GameManager {
                 const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
                 const critChance = itemData.critChance || stats.critChance || 0.05;
                 const critDamage = itemData.critDamage || stats.critDamage || 1.3;
+                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? null;
+                const durability = itemData.durability ?? stats.durability ?? maxDurability;
 
                 item = new Accessory(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage
+                    atk, def, critChance, critDamage, maxDurability, durability
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.POTION) {
                 item = new Consumable(
-                    itemData.id, itemData.name, itemData.type, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
                     { hp: itemData.hp, mp: itemData.mp, exp: itemData.exp }
                 );
             } else {
                 item = new Item(
-                    itemData.id, itemData.name, itemData.type, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price
                 );
             }
@@ -282,47 +289,54 @@ class GameManager {
             item = itemData;
         } else {
             // Convert plain object to Item instance (same logic as inventory)
+            const rarity = itemData.rarity ?? itemData.ItemRarity ?? ItemRarity.COMMON;
             if (itemData.type === ItemType.WEAPON) {
                 item = new Weapon(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
                     itemData.attack || itemData.atk || 0, 
                     itemData.defense || itemData.def || 0,
                     itemData.critChance || 0.08, 
                     itemData.critDamage || 1.5, 
                     itemData.weaponSpeed || 1.0, 
-                    itemData.attackSpeed || 1.0
+                    itemData.attackSpeed || 1.0,
+                    itemData.maxDurability ?? 50,
+                    itemData.durability ?? itemData.maxDurability ?? 50
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ARMOR) {
                 item = new Armor(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
                     itemData.attack || itemData.atk || 0, 
                     itemData.defense || itemData.def || 0,
                     itemData.critChance || 0.03, 
-                    itemData.critDamage || 1.2
+                    itemData.critDamage || 1.2,
+                    itemData.maxDurability ?? 50,
+                    itemData.durability ?? itemData.maxDurability ?? 50
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.ACCESSORY) {
                 item = new Accessory(
-                    itemData.id, itemData.name, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
                     itemData.attack || itemData.atk || 0, 
                     itemData.defense || itemData.def || 0,
                     itemData.critChance || 0.05, 
-                    itemData.critDamage || 1.3
+                    itemData.critDamage || 1.3,
+                    itemData.maxDurability ?? null,
+                    itemData.durability ?? itemData.maxDurability ?? null
                 );
                 if (itemData.image) item.image = itemData.image;
             } else if (itemData.type === ItemType.POTION) {
                 item = new Consumable(
-                    itemData.id, itemData.name, itemData.type, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price, 
                     { hp: itemData.hp, mp: itemData.mp, exp: itemData.exp }
                 );
             } else {
                 item = new Item(
-                    itemData.id, itemData.name, itemData.type, itemData.rarity, itemData.icon, 
+                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
                     itemData.desc || itemData.description, itemData.price
                 );
             }
@@ -517,7 +531,9 @@ class GameManager {
                 stats.critChance || 0.08,
                 stats.critDamage || 1.5,
                 stats.weaponSpeed || 1.0,
-                stats.attackSpeed || 1.0
+                stats.attackSpeed || 1.0,
+                equip.maxDurability ?? stats.maxDurability ?? 50,
+                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? 50
             );
         } else if (targetType === ItemType.ACCESSORY) {
             instance = new Accessory(
@@ -530,7 +546,9 @@ class GameManager {
                 stats.attack || 0,
                 stats.defense || 0,
                 stats.critChance || 0.05,
-                stats.critDamage || 1.3
+                stats.critDamage || 1.3,
+                equip.maxDurability ?? stats.maxDurability ?? null,
+                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? null
             );
         } else {
             instance = new Armor(
@@ -543,7 +561,9 @@ class GameManager {
                 stats.attack || 0,
                 stats.defense || 0,
                 stats.critChance || 0.03,
-                stats.critDamage || 1.2
+                stats.critDamage || 1.2,
+                equip.maxDurability ?? stats.maxDurability ?? 50,
+                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? 50
             );
         }
 

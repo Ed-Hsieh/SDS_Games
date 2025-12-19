@@ -17,6 +17,7 @@
  * - result: 製作結果物品
  */
 import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
+import { MaterialDatabase } from './Materials.js';
 
 export const RecipeDatabase = {
     // ==================== 基礎武器 ====================
@@ -661,6 +662,459 @@ export const RecipeDatabase = {
             ItemRarity: ItemRarity.UNCOMMON,
             hp: 120,
             desc: '恢復 120 點生命值。'
+        }
+    },
+
+    // ==================== 高階/新材料裝備 ====================
+    void_reaver: {
+        id: 'void_reaver',
+        name: '虛空裂刃',
+        icon: '🌑',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.LEGENDARY,
+        materials: [
+            { id: 'void_essence', quantity: 2 },
+            { id: 'world_shard', quantity: 1 },
+            { id: 'abyssal_shard', quantity: 2 },
+            { id: 'dark_dragon_scale', quantity: 1 },
+            { id: 'rune_stone', quantity: 3 }
+        ],
+        cost: 4800,
+        successRate: 45,
+        result: {
+            id: 'crafted_void_reaver',
+            name: '虛空裂刃',
+            icon: '🌑',
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 82,
+                defense: 6,
+                critChance: 0.22,
+                critDamage: 2.6,
+                weaponSpeed: 1.1,
+                attackSpeed: 1.2
+            },
+            specialEffects: [
+                { type: AffixStat.ARMOR_PENETRATION, value: 25 },
+                { type: AffixStat.VOID_DAMAGE ?? 'VOID_DAMAGE', value: 30 }
+            ],
+            desc: '以虛空精華與世界碎片鍛造，切裂防禦。'
+        }
+    },
+
+    storm_spear: {
+        id: 'storm_spear',
+        name: '雷霆長矛',
+        icon: '⚡',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'storm_essence', quantity: 2 },
+            { id: 'storm_crystal', quantity: 2 },
+            { id: 'thunder_essence', quantity: 2 },
+            { id: 'thunder_feather', quantity: 3 },
+            { id: 'geo_crystal', quantity: 1 }
+        ],
+        cost: 2600,
+        successRate: 55,
+        result: {
+            id: 'crafted_storm_spear',
+            name: '雷霆長矛',
+            icon: '⚡',
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 56,
+                defense: 4,
+                critChance: 0.20,
+                critDamage: 2.1,
+                weaponSpeed: 1.15,
+                attackSpeed: 1.3
+            },
+            specialEffects: [ { type: AffixStat.THUNDER, value: 28 } ],
+            desc: '凝聚風暴與雷羽的長矛，攻速與暴擊兼備。'
+        }
+    },
+
+    wyvern_scale_mail: {
+        id: 'wyvern_scale_mail',
+        name: '翼龍鱗鎧',
+        icon: '🛡️',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'wyvern_scale', quantity: 4 },
+            { id: 'wyvern_wing', quantity: 2 },
+            { id: 'lava_scale', quantity: 2 },
+            { id: 'molten_core', quantity: 1 },
+            { id: 'dragon_scale_armor', quantity: 1 }
+        ],
+        cost: 3000,
+        successRate: 50,
+        result: {
+            id: 'crafted_wyvern_scale_mail',
+            name: '翼龍鱗鎧',
+            icon: '🛡️',
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 10,
+                defense: 42,
+                critChance: 0.08,
+                critDamage: 1.5
+            },
+            specialEffects: [ { type: AffixStat.FIRE, value: 12 } ],
+            desc: '由翼龍與熔岩之力鍛成的鎧甲，防禦與火抗兼備。'
+        }
+    },
+
+    hydra_fang_dagger: {
+        id: 'hydra_fang_dagger',
+        name: '九頭毒牙匕首',
+        icon: '🦂',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'hydra_fang', quantity: 3 },
+            { id: 'hydra_scale', quantity: 2 },
+            { id: 'imp_horn', quantity: 2 },
+            { id: 'poison_gland', quantity: 2 }
+        ],
+        cost: 2400,
+        successRate: 60,
+        result: {
+            id: 'crafted_hydra_fang_dagger',
+            name: '九頭毒牙匕首',
+            icon: '🦂',
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 48,
+                defense: 0,
+                critChance: 0.24,
+                critDamage: 2.2,
+                weaponSpeed: 1.3,
+                attackSpeed: 1.45
+            },
+            specialEffects: [ { type: AffixStat.POISON, value: 25 } ],
+            desc: '融合九頭蛇毒液的匕首，暴擊率極高。'
+        }
+    },
+
+    bone_soul_staff: {
+        id: 'bone_soul_staff',
+        name: '骨靈權杖',
+        icon: '☠️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'bone_sword', quantity: 1 },
+            { id: 'spirit_essence', quantity: 2 },
+            { id: 'ectoplasm', quantity: 3 },
+            { id: 'lich_phylactery', quantity: 1 },
+            { id: 'spectral_staff', quantity: 1 }
+        ],
+        cost: 2700,
+        successRate: 55,
+        result: {
+            id: 'crafted_bone_soul_staff',
+            name: '骨靈權杖',
+            icon: '☠️',
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 44,
+                defense: 6,
+                critChance: 0.18,
+                critDamage: 2.0,
+                weaponSpeed: 0.95,
+                attackSpeed: 1.05
+            },
+            specialEffects: [ { type: AffixStat.EXECUTE, value: 15 } ],
+            desc: '由亡靈與骨魂凝聚的杖，兼具攻擊與穿透。'
+        }
+    },
+
+    gargoyle_bulwark: {
+        id: 'gargoyle_bulwark',
+        name: '石像鬼壁壘',
+        icon: '🪨',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'gargoyle_wing', quantity: 2 },
+            { id: 'stone_fragment', quantity: 6 },
+            { id: 'rune_stone', quantity: 2 },
+            { id: 'magic_crystal', quantity: 1 }
+        ],
+        cost: 1400,
+        successRate: 70,
+        result: {
+            id: 'crafted_gargoyle_bulwark',
+            name: '石像鬼壁壘',
+            icon: '🪨',
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 4,
+                defense: 28,
+                critChance: 0.04,
+                critDamage: 1.4
+            },
+            specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 10 } ],
+            desc: '以石像鬼之翼與符文加固的重甲。'
+        }
+    },
+
+    goblin_trickster_charm: {
+        id: 'goblin_trickster_charm',
+        name: '哥布林詭計護符',
+        icon: '🪙',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.UNCOMMON,
+        materials: [
+            { id: 'goblin_coin', quantity: 10 },
+            { id: 'goblin_ear', quantity: 5 },
+            { id: 'rat_tail', quantity: 5 },
+            { id: 'raw_meat', quantity: 3 },
+            { id: 'orc_fang', quantity: 2 }
+        ],
+        cost: 300,
+        successRate: 90,
+        result: {
+            id: 'crafted_goblin_trickster_charm',
+            name: '哥布林詭計護符',
+            icon: '🪙',
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 6,
+                defense: 2,
+                critChance: 0.08,
+                critDamage: 1.4
+            },
+            specialEffects: [ { type: AffixStat.DODGE_CHANCE, value: 8 } ],
+            desc: '集結哥布林戰利品製成的小護符，靈巧提升。'
+        }
+    },
+
+    demonwar_helm: {
+        id: 'demonwar_helm',
+        name: '魔戰指揮盔',
+        icon: '👹',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'demon_general_helm', quantity: 1 },
+            { id: 'demon_horn', quantity: 3 },
+            { id: 'demonic_steel', quantity: 3 },
+            { id: 'general_armor', quantity: 1 },
+            { id: 'commander_blade', quantity: 1 }
+        ],
+        cost: 3200,
+        successRate: 50,
+        result: {
+            id: 'crafted_demonwar_helm',
+            name: '魔戰指揮盔',
+            icon: '👹',
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 8,
+                defense: 36,
+                critChance: 0.10,
+                critDamage: 1.6
+            },
+            specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 12 } ],
+            desc: '由魔角與魔鋼打造的指揮官頭盔，穩固防禦。'
+        }
+    },
+
+    dragon_overlord_crown: {
+        id: 'dragon_overlord_crown',
+        name: '龍王霸主冠',
+        icon: '👑',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.LEGENDARY,
+        materials: [
+            { id: 'overlord_crown', quantity: 1 },
+            { id: 'dragon_scale_armor', quantity: 1 },
+            { id: 'dark_dragon_scale', quantity: 2 },
+            { id: 'pure_crystal', quantity: 2 }
+        ],
+        cost: 5200,
+        successRate: 40,
+        result: {
+            id: 'crafted_dragon_overlord_crown',
+            name: '龍王霸主冠',
+            icon: '👑',
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 22,
+                defense: 24,
+                critChance: 0.16,
+                critDamage: 2.0
+            },
+            specialEffects: [ { type: AffixStat.CRIT_DAMAGE, value: 35 } ],
+            desc: '融合霸主王冠與龍鱗的冠冕，象徵至高權威。'
+        }
+    },
+
+    primal_focus: {
+        id: 'primal_focus',
+        name: '原初聚能器',
+        icon: '✨',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.LEGENDARY,
+        materials: [
+            { id: 'primal_essence', quantity: 2 },
+            { id: 'ancient_artifact', quantity: 1 },
+            { id: 'ancient_gear', quantity: 2 },
+            { id: 'ancient_rune', quantity: 2 },
+            { id: 'pure_crystal', quantity: 1 }
+        ],
+        cost: 5400,
+        successRate: 45,
+        result: {
+            id: 'crafted_primal_focus',
+            name: '原初聚能器',
+            icon: '✨',
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.LEGENDARY,
+            stats: {
+                attack: 18,
+                defense: 18,
+                critChance: 0.18,
+                critDamage: 2.1
+            },
+            specialEffects: [ { type: AffixStat.ALL_STATS, value: 10 } ],
+            desc: '以原始精華與遠古零件組成的聚能器，全屬性提升。'
+        }
+    },
+
+    slime_crown_ring: {
+        id: 'slime_crown_ring',
+        name: '史萊姆之冠戒',
+        icon: '👑',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'slime_crown', quantity: 1 },
+            { id: 'carnivore_seed', quantity: 2 },
+            { id: 'alpha_fang', quantity: 3 }
+        ],
+        cost: 900,
+        successRate: 80,
+        result: {
+            id: 'crafted_slime_crown_ring',
+            name: '史萊姆之冠戒',
+            icon: '👑',
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 8,
+                defense: 6,
+                critChance: 0.12,
+                critDamage: 1.6
+            },
+            specialEffects: [ { type: AffixStat.HP_REGEN ?? 'HP_REGEN', value: 6 } ],
+            desc: '以史萊姆王冠與獸牙種子打造的戒指，增強再生。'
+        }
+    },
+
+    assassin_shadow_veil: {
+        id: 'assassin_shadow_veil',
+        name: '刺客影幕',
+        icon: '🗡️',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        materials: [
+            { id: 'assassin_blade', quantity: 1 },
+            { id: 'shadow_arrow', quantity: 4 },
+            { id: 'shadow_insignia', quantity: 2 },
+            { id: 'void_essence', quantity: 1 }
+        ],
+        cost: 2600,
+        successRate: 60,
+        result: {
+            id: 'crafted_assassin_shadow_veil',
+            name: '刺客影幕',
+            icon: '🗡️',
+            type: EquipmentType.ACCESSORY,
+            ItemRarity: ItemRarity.EPIC,
+            stats: {
+                attack: 16,
+                defense: 10,
+                critChance: 0.22,
+                critDamage: 2.0
+            },
+            specialEffects: [ { type: AffixStat.DODGE_CHANCE, value: 15 } ],
+            desc: '暗影刺客遺留的影幕，暴擊與閃避並重。'
+        }
+    },
+
+    earthwarden_aegis: {
+        id: 'earthwarden_aegis',
+        name: '大地守衛盾',
+        icon: '🌍',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'earth_essence', quantity: 3 },
+            { id: 'golem_core', quantity: 1 },
+            { id: 'molten_core', quantity: 1 },
+            { id: 'stone_fragment', quantity: 4 }
+        ],
+        cost: 1500,
+        successRate: 70,
+        result: {
+            id: 'crafted_earthwarden_aegis',
+            name: '大地守衛盾',
+            icon: '🌍',
+            type: EquipmentType.EQUIPMENT,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 4,
+                defense: 30,
+                critChance: 0.04,
+                critDamage: 1.3
+            },
+            specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 10 } ],
+            desc: '以大地精華與魔像核心鑄成的守護盾牌。'
+        }
+    },
+
+    frostbound_scepter: {
+        id: 'frostbound_scepter',
+        name: '霜縛權杖',
+        icon: '❄️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'frost_core', quantity: 2 },
+            { id: 'magic_crystal', quantity: 2 },
+            { id: 'pure_crystal', quantity: 1 }
+        ],
+        cost: 1600,
+        successRate: 70,
+        result: {
+            id: 'crafted_frostbound_scepter',
+            name: '霜縛權杖',
+            icon: '❄️',
+            type: EquipmentType.WEAPON,
+            ItemRarity: ItemRarity.RARE,
+            stats: {
+                attack: 32,
+                defense: 4,
+                critChance: 0.14,
+                critDamage: 1.8,
+                weaponSpeed: 0.95,
+                attackSpeed: 1.05
+            },
+            specialEffects: [ { type: AffixStat.ICE, value: 18 } ],
+            desc: '封印霜核能量的權杖，兼具控制與傷害。'
         }
     }
 

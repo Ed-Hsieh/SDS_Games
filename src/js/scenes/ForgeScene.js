@@ -617,6 +617,15 @@ export default class ForgeScene {
         this.dom.affixInfo.style.display = 'block';
     }
 
+    formatAffixEffect(affix) {
+        if (!affix) return '';
+        if (this.affixManager && typeof this.affixManager.getAffixDescription === 'function') {
+            return this.affixManager.getAffixDescription(affix);
+        }
+        // Fallback: simple serialization
+        return Object.entries(affix.stats || {}).map(([k, v]) => `${k}:${v}`).join(', ');
+    }
+
     calculateRerollCost(item) {
         const rarityMultiplier = {
             'common': 50,
@@ -781,300 +790,34 @@ export default class ForgeScene {
     // ==================== 寶石系統 ====================
 
     loadGemInventory() {
-        const inventory = GameManager.state?.inventory || [];
         if (!this.dom.gemInventory) return;
-        
-        this.dom.gemInventory.innerHTML = '';
-        
-        inventory.forEach(stack => {
-            const item = stack.item;
-            if (item && (item.type === ItemType.GEM || item.type === ItemType.SOCKET_GEM || item.type === 'socket_gem')) {
-                const gemCard = document.createElement('div');
-                gemCard.className = 'gem-card';
-                gemCard.innerHTML = `
-                    <span class="gem-icon">${item.icon || '💎'}</span>
-                    <span class="gem-name">${item.name}</span>
-                    <span class="gem-count">x${stack.quantity}</span>
-                `;
-                gemCard.addEventListener('click', () => this.selectGem(item));
-                this.dom.gemInventory.appendChild(gemCard);
-            }
-        });
-        
-        if (this.dom.gemInventory.children.length === 0) {
-            this.dom.gemInventory.innerHTML = '<div class="empty-gems">沒有可用的寶石</div>';
-        }
+        this.dom.gemInventory.innerHTML = '<div class="empty-gems">寶石鑲嵌功能已停用</div>';
     }
 
     selectGem(gem) {
-        this.selectedGem = gem;
-        
-        // 更新 UI 顯示選中狀態
-        this.dom.gemInventory.querySelectorAll('.gem-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        event.currentTarget.classList.add('selected');
-        
-        this.updateSocketButton();
+        this.selectedGem = null;
     }
 
     updateGemSlots(item) {
         if (!this.dom.gemSlots) return;
-        
-        const maxSlots = enhancementManager.getGemSlotCount(item);
-        const socketedGems = item.socketedGems || [];
-        
-        this.dom.gemSlots.innerHTML = '';
-        
-        for (let i = 0; i < 3; i++) {
-            const slot = document.createElement('div');
-            
-            if (i < maxSlots) {
-                const gem = socketedGems[i];
-                if (gem) {
-                    slot.className = 'gem-slot filled';
-                    slot.innerHTML = `
-                        <span class="slot-icon">${gem.icon || '💎'}</span>
-                        <span class="slot-label">${gem.name}</span>
-                    `;
-                } else {
-                    slot.className = 'gem-slot empty';
-                    slot.innerHTML = `
-                        <span class="slot-icon">◇</span>
-                        <span class="slot-label">空槽位</span>
-                    `;
-                }
-                slot.addEventListener('click', () => this.selectGemSlot(i));
-            } else {
-                slot.className = 'gem-slot locked';
-                slot.innerHTML = `
-                    <span class="slot-icon">🔒</span>
-                    <span class="slot-label">未解鎖</span>
-                `;
-            }
-            
-            slot.dataset.slot = i;
-            this.dom.gemSlots.appendChild(slot);
-        }
+        this.dom.gemSlots.innerHTML = '<div class="empty-gems">寶石鑲嵌功能已停用</div>';
     }
 
     selectGemSlot(slotIndex) {
-        this.selectedGemSlot = slotIndex;
-        
-        this.dom.gemSlots.querySelectorAll('.gem-slot').forEach((slot, i) => {
-            slot.classList.toggle('selected', i === slotIndex);
-        });
-        
-        this.updateSocketButton();
+        this.selectedGemSlot = null;
     }
 
     updateSocketButton() {
         if (!this.dom.btnSocketGem) return;
-        
-        const canSocket = this.selectedEquipment && 
-                         this.selectedGem && 
-                         this.selectedGemSlot !== null;
-        
-        this.dom.btnSocketGem.disabled = !canSocket;
+        this.dom.btnSocketGem.disabled = true;
     }
 
     socketGem() {
-        if (!this.selectedEquipment || !this.selectedGem || this.selectedGemSlot === null) {
-            return;
-        }
-        
-        const result = enhancementManager.socketGem(
-            this.selectedEquipment.item,
-            this.selectedGem,
-            this.selectedGemSlot
-        );
-        
-        if (result.success) {
-            this.showMessage(result.message, 'success');
-            this.loadGemInventory();
-            this.updateGemSlots(this.selectedEquipment.item);
-        } else {
-            this.showMessage(result.message, 'error');
-        }
-        
-        this.selectedGem = null;
-        this.selectedGemSlot = null;
-        this.updateSocketButton();
+        this.showMessage('寶石鑲嵌功能已停用', 'info');
     }
 
     showMessage(message, type) {
-        // 簡單的訊息顯示
         alert(message);
-    }
-
-    // ==================== 詞綴系統 ====================
-
-    showAffixInfo(item) {
-        if (!this.dom.affixPanel) {
-            // 如果 DOM 不存在，動態創建詞綴面板
-            this.createAffixPanel();
-        }
-
-        const affixSlots = this.affixManager.getAffixSlots(item.rarity || 'common');
-        const currentAffixes = item.affixes || [];
-
-        // 計算重鑄費用
-        const rerollCost = this.calculateRerollCost(item);
-
-        // 顯示當前詞綴
-        let affixHtml = '<h4>裝備詞綴</h4>';
-        
-        if (affixSlots.prefix === 0 && affixSlots.suffix === 0) {
-            affixHtml += '<p class="no-affix">此稀有度無法擁有詞綴</p>';
-        } else {
-            affixHtml += '<div class="affix-slots">';
-            affixHtml += `<p>詞綴槽位: 前綴 ${affixSlots.prefix} / 後綴 ${affixSlots.suffix}</p>`;
-            
-            if (currentAffixes.length > 0) {
-                affixHtml += '<ul class="affix-list">';
-                for (const affix of currentAffixes) {
-                    const typeLabel = affix.type === 'prefix' ? '【前綴】' : '【後綴】';
-                    const effectText = this.formatAffixEffect(affix);
-                    affixHtml += `<li class="affix-item ${affix.type}">${typeLabel} ${affix.name}: ${effectText}</li>`;
-                }
-                affixHtml += '</ul>';
-            } else {
-                affixHtml += '<p class="no-affix">尚無詞綴</p>';
-            }
-            affixHtml += '</div>';
-        }
-
-        if (this.dom.currentAffixes) {
-            this.dom.currentAffixes.innerHTML = affixHtml;
-        }
-
-        if (this.dom.affixCost) {
-            this.dom.affixCost.textContent = `${rerollCost}G`;
-        }
-
-        if (this.dom.btnRerollAffix) {
-            const canReroll = affixSlots.prefix > 0 || affixSlots.suffix > 0;
-            this.dom.btnRerollAffix.disabled = !canReroll;
-        }
-
-        if (this.dom.affixPanel) {
-            this.dom.affixPanel.style.display = 'block';
-        }
-    }
-
-    createAffixPanel() {
-        // 在寶石面板後動態創建詞綴面板
-        const gemSection = this.container.querySelector('.gem-section');
-        if (!gemSection) return;
-
-        const affixPanel = document.createElement('div');
-        affixPanel.className = 'affix-section';
-        affixPanel.id = 'affix-panel';
-        affixPanel.innerHTML = `
-            <div class="section-header">
-                <h3>⚡ 詞綴重鑄</h3>
-            </div>
-            <div class="affix-content">
-                <div id="current-affixes" class="current-affixes"></div>
-                <div class="reroll-controls">
-                    <span class="cost-label">重鑄費用: <span id="affix-cost">0</span></span>
-                    <button id="btn-reroll-affix" class="btn-reroll">重鑄詞綴</button>
-                </div>
-            </div>
-        `;
-
-        gemSection.after(affixPanel);
-
-        // 重新綁定 DOM 和事件
-        this.dom.affixPanel = affixPanel;
-        this.dom.currentAffixes = affixPanel.querySelector('#current-affixes');
-        this.dom.affixCost = affixPanel.querySelector('#affix-cost');
-        this.dom.btnRerollAffix = affixPanel.querySelector('#btn-reroll-affix');
-        this.dom.btnRerollAffix.addEventListener('click', () => this.rerollAffixes());
-    }
-
-    formatAffixEffect(affix) {
-        const effects = [];
-        if (affix.bonusAtk) effects.push(`攻擊+${affix.bonusAtk}`);
-        if (affix.bonusDef) effects.push(`防禦+${affix.bonusDef}`);
-        if (affix.bonusHp) effects.push(`生命+${affix.bonusHp}`);
-        if (affix.bonusMp) effects.push(`魔力+${affix.bonusMp}`);
-        if (affix.bonusCrit) effects.push(`暴擊+${affix.bonusCrit}%`);
-        if (affix.bonusSpeed) effects.push(`速度+${affix.bonusSpeed}`);
-        if (affix.bonusHpRegen) effects.push(`生命回復+${affix.bonusHpRegen}`);
-        if (affix.bonusMpRegen) effects.push(`魔力回復+${affix.bonusMpRegen}`);
-        if (affix.bonusGoldFind) effects.push(`金幣獲取+${affix.bonusGoldFind}%`);
-        if (affix.bonusExpBonus) effects.push(`經驗加成+${affix.bonusExpBonus}%`);
-        if (affix.bonusLifeSteal) effects.push(`生命偷取+${affix.bonusLifeSteal}%`);
-        if (affix.bonusAtkPercent) effects.push(`攻擊+${affix.bonusAtkPercent}%`);
-        if (affix.bonusDefPercent) effects.push(`防禦+${affix.bonusDefPercent}%`);
-        if (affix.bonusAllStats) effects.push(`全屬性+${affix.bonusAllStats}`);
-        return effects.join(', ') || '無效果';
-    }
-
-    calculateRerollCost(item) {
-        const basePrice = item.price || 100;
-        const rarityMultiplier = {
-            'common': 0,
-            'uncommon': 1,
-            'rare': 2,
-            'epic': 3,
-            'legendary': 5
-        };
-        const multiplier = rarityMultiplier[item.rarity || 'common'] || 1;
-        return Math.floor(basePrice * 0.5 * multiplier);
-    }
-
-    async rerollAffixes() {
-        if (!this.selectedEquipment) {
-            this.showMessage('請先選擇裝備！', 'error');
-            return;
-        }
-
-        const { item } = this.selectedEquipment;
-        const cost = this.calculateRerollCost(item);
-        const currentGold = GameManager.getGold();
-
-        if (currentGold < cost) {
-            this.showMessage(`金幣不足！需要 ${cost}G`, 'error');
-            return;
-        }
-
-        // 扣除金幣
-        GameManager.addGold(-cost);
-
-        // 播放動畫
-        if (this.dom.btnRerollAffix) {
-            this.dom.btnRerollAffix.disabled = true;
-            this.dom.btnRerollAffix.textContent = '🔄 重鑄中...';
-        }
-
-        await this.sleep(1000);
-
-        // 重新生成詞綴
-        const result = this.affixManager.generateAffixes(item, true);
-
-        // 更新顯示
-        this.showAffixInfo(item);
-        this.updateUI();
-
-        // 添加到歷史
-        this.addToHistory({
-            success: true,
-            message: `重鑄詞綴完成，獲得 ${result.affixes.length} 個詞綴！`,
-            isCritical: false
-        });
-
-        // 恢復按鈕
-        if (this.dom.btnRerollAffix) {
-            this.dom.btnRerollAffix.disabled = false;
-            this.dom.btnRerollAffix.textContent = '🔄 重鑄詞綴';
-        }
-
-        // 更新裝備卡片顯示
-        this.loadEquipmentList();
-        
-        this.showMessage(`重鑄成功！獲得 ${result.affixes.length} 個詞綴`, 'success');
     }
 
     // ==================== 寶石面板的裝備列表 ====================

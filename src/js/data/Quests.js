@@ -58,7 +58,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 100,
                 exp: 50,
-                items: ['starter_sword'],
+                items: ['old_sword'],
                 materials: [
                     { id: 'slime_jelly', quantity: 3 },
                     { id: 'beast_hide', quantity: 3 }
@@ -107,7 +107,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 100,
                 exp: 60,
-                items: ['enhance_stone'],
+                items: ['old_armor'],
                 materials: [
                     { id: 'wolf_pelt', quantity: 3 },
                     { id: 'wolf_fang', quantity: 3 }
@@ -131,8 +131,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 200,
-                exp: 70,
-                items: ['lucky_coin']
+                exp: 70
             },
             unlocks: ['main_005', 'commission_casino_001'],
             dialogue: {
@@ -154,11 +153,10 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 150,
-                items: ['rare_gem_box'],
                 materials: [
-                    { id: 'spider_silk', quantity: 5 },
-                    { id: 'poison_gland', quantity: 3 },
-                    { id: 'bone_fragment', quantity: 5 }
+                    { id: 'spider_silk', quantity: 2 },
+                    { id: 'poison_gland', quantity: 1 },
+                    { id: 'bone_fragment', quantity: 3 }
                 ]
             },
             unlocks: ['main_006', 'bounty_002'],
@@ -179,8 +177,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 500,
-                exp: 200,
-                items: ['fate_crystal']
+                exp: 200
             },
             unlocks: ['main_007'],
             dialogue: {
@@ -202,7 +199,6 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 200,
-                items: ['lich_phylactery'],
                 materials: [
                     { id: 'dark_crystal', quantity: 2 },
                     { id: 'ancient_bark', quantity: 5 },
@@ -229,8 +225,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 400,
-                exp: 250,
-                items: ['shadow_shard']
+                exp: 250
             },
             unlocks: ['main_009'],
             requiredLevel: 10,
@@ -253,7 +248,9 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 300,
-                items: ['dark_steel']
+                materials: [
+                    { id: 'dark_steel', quantity: 2 },
+                ]
             },
             unlocks: ['main_010'],
             requiredLevel: 11,
@@ -275,8 +272,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 800,
-                exp: 400,
-                items: ['commander_blade', 'shadow_core']
+                exp: 400
             },
             unlocks: ['main_011'],
             requiredLevel: 13,
@@ -300,7 +296,9 @@ export const QuestDatabase = {
             rewards: {
                 gold: 600,
                 exp: 350,
-                items: ['ancient_gear', 'mithril_ore']
+                materials: [
+                    { id: 'mithril_ore', quantity: 2 },
+                ]
             },
             unlocks: ['main_012'],
             requiredLevel: 14,
@@ -323,7 +321,10 @@ export const QuestDatabase = {
             rewards: {
                 gold: 700,
                 exp: 400,
-                items: ['ancient_rune', 'pure_crystal']
+                materials: [
+                    { id: 'ancient_rune', quantity: 1 },
+                    { id: 'pure_crystal', quantity: 1 }
+                ]
             },
             unlocks: ['main_013'],
             requiredLevel: 16,
@@ -344,8 +345,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 1200,
-                exp: 600,
-                items: ['titan_heart', 'titan_gauntlet']
+                exp: 600
             },
             unlocks: ['main_014'],
             requiredLevel: 17,
@@ -369,7 +369,9 @@ export const QuestDatabase = {
             rewards: {
                 gold: 600,
                 exp: 400,
-                items: ['ember_stone']
+                materials: [
+                    { id: 'ember_stone', quantity: 2 }
+                ]
             },
             unlocks: ['main_015'],
             requiredLevel: 18,
@@ -392,7 +394,10 @@ export const QuestDatabase = {
             rewards: {
                 gold: 700,
                 exp: 450,
-                items: ['frost_crystal', 'storm_crystal']
+                materials: [
+                    { id: 'frost_crystal', quantity: 2 },
+                    { id: 'storm_crystal', quantity: 2 }
+                ]
             },
             unlocks: ['main_016'],
             requiredLevel: 19,
@@ -415,7 +420,9 @@ export const QuestDatabase = {
             rewards: {
                 gold: 1500,
                 exp: 700,
-                items: ['elemental_core', 'elemental_orb']
+                materials: [
+                    { id: 'elemental_core', quantity: 1 },
+                ]
             },
             unlocks: ['main_017'],
             requiredLevel: 21,
@@ -483,8 +490,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 2500,
-                exp: 1000,
-                items: ['dragon_heart', 'elder_dragon_fang']
+                exp: 1000
             },
             unlocks: ['main_020'],
             requiredLevel: 25,
@@ -694,8 +700,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 500,
-                exp: 300,
-                items: ['assassin_dagger']
+                exp: 300
             },
             unlocks: []
         }
@@ -716,7 +721,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 200,
                 exp: 100,
-                items: ['torch']
+                // items: ['torch']
             },
             unlocks: ['dungeon_cave_002'],
             dialogue: {
@@ -737,7 +742,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 250,
-                items: ['bat_wing_cloak']
+                // items: ['bat_wing_cloak']
             },
             unlocks: ['dungeon_snow_001'],
             dialogue: {
@@ -779,8 +784,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 800,
-                exp: 400,
-                items: ['frost_crown']
+                exp: 400
             },
             unlocks: ['dungeon_ruins_001'],
             dialogue: {
@@ -802,7 +806,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 400,
                 exp: 200,
-                items: ['ancient_key']
+                // items: ['ancient_key']
             },
             unlocks: ['dungeon_ruins_002'],
             dialogue: {
@@ -822,8 +826,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 1000,
-                exp: 500,
-                items: ['guardian_shield']
+                exp: 500
             },
             unlocks: ['dungeon_jungle_001'],
             dialogue: {
@@ -845,7 +848,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 250,
-                items: ['compass']
+                // items: ['compass']
             },
             unlocks: ['dungeon_jungle_002'],
             dialogue: {
@@ -865,8 +868,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 1200,
-                exp: 600,
-                items: ['jungle_heart']
+                exp: 600
             },
             unlocks: ['dungeon_hell_001'],
             dialogue: {
@@ -888,7 +890,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 600,
                 exp: 300,
-                items: ['fire_resist_potion']
+                // items: ['fire_resist_potion']
             },
             unlocks: ['dungeon_hell_002'],
             dialogue: {
@@ -909,7 +911,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 2000,
                 exp: 1000,
-                items: ['demon_slayer']
+                // items: ['demon_slayer']
             },
             unlocks: ['hidden_dungeon_master'],
             dialogue: {
@@ -932,7 +934,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 150,
-                items: ['dungeon_token']
+                // items: ['dungeon_token']
             },
             unlocks: [],
             dialogue: {
@@ -956,8 +958,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.COLLECT, target: 'iron_ore', count: 5, description: '收集鐵礦石 5 個' }
             ],
             rewards: {
-                gold: 100,
-                items: ['enhance_scroll'] // 使用後下次強化必定成功
+                gold: 100
             },
             unlocks: ['commission_forge_002'],
             dialogue: {
@@ -978,7 +979,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 300,
-                items: ['master_hammer'] // 強化成功率 +10%
+                // items: ['master_hammer'] // 強化成功率 +10%
             },
             unlocks: [],
             dialogue: {
@@ -1001,7 +1002,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 200,
-                items: ['vip_card'] // 賭場手續費減免
+                // items: ['vip_card'] // 賭場手續費減免
             },
             unlocks: ['commission_casino_002'],
             dialogue: {
@@ -1021,7 +1022,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 500,
-                items: ['loaded_dice'] // 骰子遊戲勝率 +5%
+                // items: ['loaded_dice'] // 骰子遊戲勝率 +5%
             },
             unlocks: [],
             dialogue: {
@@ -1043,7 +1044,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 0,
-                items: ['mystery_box'] // 開啟獲得隨機稀有道具
+                // items: ['mystery_box'] // 開啟獲得隨機稀有道具
             },
             unlocks: ['hidden_dark_deal'],
             dialogue: {
@@ -1070,7 +1071,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.TALK, target: 'beggar', count: 1, description: '與乞丐對話' }
             ],
             rewards: {
-                items: ['beggars_wisdom'] // 金幣獲取 +10%
+                // items: ['beggars_wisdom'] // 金幣獲取 +10%
             },
             dialogue: {
                 start: '你也淪落到這個地步了嗎？來，我教你一些生存的智慧...',
@@ -1092,7 +1093,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.KILL, target: 'any', count: 1, description: '在下次戰鬥中獲勝' }
             ],
             rewards: {
-                items: ['phoenix_feather'] // 死亡時自動復活一次
+                // items: ['phoenix_feather'] // 死亡時自動復活一次
             },
             dialogue: {
                 start: '死亡...不是終點。你開始明白了。',
@@ -1114,7 +1115,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.GAMBLE_WIN, target: 'any', count: 1, description: '再贏一次' }
             ],
             rewards: {
-                items: ['gamblers_fallacy'] // 連敗後勝率提升
+                // items: ['gamblers_fallacy'] // 連敗後勝率提升
             },
             dialogue: {
                 start: '都說賭博害人...但你還是要繼續嗎？',
@@ -1136,7 +1137,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.COLLECT, target: 'soul_fragment', count: 3, description: '收集靈魂碎片 3 個' }
             ],
             rewards: {
-                items: ['demon_contract'] // 所有屬性 +10，但每場戰鬥扣 5% HP
+                // items: ['demon_contract'] // 所有屬性 +10，但每場戰鬥扣 5% HP
             },
             dialogue: {
                 start: '你已經踏入了深淵...願意走得更深嗎？',
@@ -1158,7 +1159,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.GAMBLE_WIN, target: 'slots', count: 7, description: '在老虎機連續獲勝 7 次' }
             ],
             rewards: {
-                items: ['lucky_charm_7'] // 所有機率判定 +7%
+                // items: ['lucky_charm_7'] // 所有機率判定 +7%
             },
             dialogue: {
                 start: '七...這個數字似乎與你有緣。',
@@ -1180,7 +1181,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.ENHANCE, target: 'legendary', count: 1, description: '強化傳說裝備 1 次' }
             ],
             rewards: {
-                items: ['transcend_stone'] // 突破強化上限
+                // items: ['transcend_stone'] // 突破強化上限
             },
             dialogue: {
                 start: '+10 不是終點，只是新的起點...',
@@ -1208,7 +1209,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 5000,
                 exp: 2000,
-                items: ['dungeon_master_badge']
+                // items: ['dungeon_master_badge']
             },
             dialogue: {
                 start: '五大副本的征服者...這是屬於真正英雄的稱號。',

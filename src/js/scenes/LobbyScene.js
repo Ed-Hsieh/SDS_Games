@@ -662,7 +662,37 @@ export default class LobbyScene {
         }
     }
     
-    
+    //格式化詞綴屬性為可讀文字（與 AdventureScene 共用邏輯）
+    formatAffixStats(stats) {
+        if (!stats) return '';
+        const statNames = {
+            atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
+            critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
+            lifesteal: '生命偷取', damageReduction: '傷害減免', hpRegen: '生命回復', mpRegen: '魔力回復',
+            fireDamage: '火焰傷害', iceDamage: '冰霜傷害', thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
+            slowChance: '減速', stunChance: '暈眩', dodgeChance: '閃避', armorPenetration: '穿甲',
+            bossBonus: 'Boss傷害', allStats: '全屬性', noDurabilityLoss: '不損耐久'
+        };
+
+        const parts = [];
+        for (const [key, value] of Object.entries(stats)) {
+            const name = statNames[key] || key;
+            if (key === 'noDurabilityLoss') {
+                parts.push('不損耐久');
+            } else if (key.includes('Chance') || key.includes('Reduction') || key.toLowerCase().includes('steal')) {
+                // treat as percent
+                console.log(value);
+                
+                const pct = (typeof value === 'number' && Math.abs(value) <= 1) ? (value * 100) : value;
+                parts.push(`${name}+${Number(pct).toFixed(0)}%`);
+            } else {
+                parts.push(`${name}+${value}`);
+            }
+        }
+
+        return parts.join(', ');
+    }
+
     createButton(text, className, onClick) {
         const btn = document.createElement('button');
         btn.className = `btn ${className}`;

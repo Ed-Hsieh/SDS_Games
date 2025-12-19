@@ -228,87 +228,21 @@ export class EnhancementManager {
      * @param {number} slotIndex - 槽位索引
      */
     socketGem(equipment, gem, slotIndex = 0) {
-        if (!equipment || !gem) {
-            return { success: false, message: '無效的裝備或寶石' };
-        }
-
-        // 初始化寶石槽
-        if (!equipment.gemSlots) {
-            equipment.gemSlots = this.getGemSlotCount(equipment);
-        }
-        if (!equipment.socketedGems) {
-            equipment.socketedGems = [];
-        }
-
-        // 檢查槽位
-        const maxSlots = equipment.gemSlots;
-        if (slotIndex >= maxSlots) {
-            return { success: false, message: '沒有可用的寶石槽位' };
-        }
-
-        // 檢查是否已有寶石
-        if (equipment.socketedGems[slotIndex]) {
-            return { success: false, message: '此槽位已鑲嵌寶石，請先拆除' };
-        }
-
-        // 鑲嵌寶石
-        const gemInfo = GEM_BONUSES[gem.gemType] || gem.effect;
-        if (!gemInfo) {
-            return { success: false, message: '無效的寶石類型' };
-        }
-
-        equipment.socketedGems[slotIndex] = {
-            type: gem.gemType || gem.id,
-            ...gemInfo
-        };
-
-        // 從背包移除寶石
-        GameManager.removeFromInventory(gem.id);
-
-        return {
-            success: true,
-            message: `成功將 ${gemInfo.name || gem.name} 鑲嵌到 ${equipment.name}！`
-        };
+        return { success: false, message: '寶石鑲嵌功能已停用' };
     }
 
     /**
      * 拆除寶石
      */
     unsocketGem(equipment, slotIndex) {
-        if (!equipment?.socketedGems?.[slotIndex]) {
-            return { success: false, message: '此槽位沒有寶石' };
-        }
-
-        const cost = 100; // 拆除費用
-        if (GameManager.getGold() < cost) {
-            return { success: false, message: `金幣不足！拆除需要 ${cost}G` };
-        }
-
-        GameManager.removeGold(cost);
-        const gem = equipment.socketedGems[slotIndex];
-        equipment.socketedGems[slotIndex] = null;
-
-        // 返還寶石到背包（以物品形式）
-        // 這裡簡化處理，實際應創建對應的寶石物品
-
-        return {
-            success: true,
-            message: `成功拆除 ${gem.name}！`
-        };
+        return { success: false, message: '寶石拆除功能已停用' };
     }
 
     /**
      * 根據裝備稀有度獲取寶石槽數量
      */
     getGemSlotCount(equipment) {
-        const slots = {
-            [ItemRarity.COMMON]: 0,
-            [ItemRarity.UNCOMMON]: 1,
-            [ItemRarity.RARE]: 1,
-            [ItemRarity.EPIC]: 2,
-            [ItemRarity.LEGENDARY]: 3
-        };
-        return slots[equipment.rarity] || 0;
+        return 0;
     }
 
     /**

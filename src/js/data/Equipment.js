@@ -2,11 +2,64 @@
 // 特殊效果類型
 import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
 
+// 耐久度基準：以稀有度與類型決定初始值，確保每件裝備都有獨立耐久度
+const rarityDurabilityBase = {
+    [ItemRarity.COMMON]: 40,
+    [ItemRarity.UNCOMMON]: 50,
+    [ItemRarity.RARE]: 60,
+    [ItemRarity.EPIC]: 70,
+    [ItemRarity.LEGENDARY]: 80
+};
+
+const typeDurabilityBonus = {
+    [EquipmentType.WEAPON]: 8,
+    [EquipmentType.EQUIPMENT]: 12,
+    [EquipmentType.ACCESSORY]: 0
+};
+
 /**
  * 裝備資料庫
  */
 export const EquipmentDatabase = {
     // ==================== 第一章掉落武器 ====================
+    old_sword: {
+        id: 'old_sword',
+        name: '舊劍',
+        icon: '🗡️',
+        type: EquipmentType.WEAPON,
+        ItemRarity: ItemRarity.COMMON,
+        level: 1,
+        stats: {
+            attack: 4,
+            defense: 0,
+            critChance: 0.10,
+            critDamage: 1.5,
+            weaponSpeed: 1.0,    // 節奏條指針速度
+            attackSpeed: 1.0     // 攻擊頻率（每秒）
+        },
+        setId: null,
+        description: 'd一把看起來很舊的劍，但仍能使用。'
+    },
+
+    old_armor: {
+        id: 'old_armor',
+        name: '舊護甲',
+        icon: '🥋',
+        type: EquipmentType.EQUIPMENT,
+        ItemRarity: ItemRarity.COMMON,
+        level: 4,
+        stats: {
+            attack: 0,
+            defense: 6,
+            critChance: 0,
+            critDamage: 0
+        },
+        specialEffects: [
+        ],
+        setId: null,
+        description: '由舊布料製成的護甲，提供基本防護。'
+    },
+
     slime_sword: {
         id: 'slime_sword',
         name: '史萊姆之劍',
@@ -15,7 +68,7 @@ export const EquipmentDatabase = {
         ItemRarity: ItemRarity.EPIC,
         level: 1,
         stats: {
-            attack: 8,
+            attack: 6,
             defense: 0,
             critChance: 0.05,
             critDamage: 1.3,
@@ -1051,6 +1104,34 @@ export const EquipmentDatabase = {
         dropSource: 'demon_lord_asariel'
     }
 };
+
+// 逐筆補齊耐久度，避免落入共用預設值
+Object.values(EquipmentDatabase).forEach((item, index) => {
+    // 稀有度欄位名稱統一，避免 UI 顯示遺失
+    if (!item.rarity && item.ItemRarity) item.rarity = item.ItemRarity;
+    if (!item.ItemRarity && item.rarity) item.ItemRarity = item.rarity;
+
+    const level = Number(item.level) || 1;
+    const rarityBase = rarityDurabilityBase[item.ItemRarity] ?? 50;
+    const typeBonus = typeDurabilityBonus[item.type] ?? 0;
+
+    // 生成每件裝備的專屬耐久度：基準 + 等級微調 + 序號去重
+    const generatedMax = rarityBase + typeBonus + Math.max(0, Math.floor(level / 2)) + (index % 7);
+
+    if (item.maxDurability === undefined) item.maxDurability = generatedMax;
+    if (item.durability === undefined) item.durability = item.maxDurability;
+
+    // 停用寶石槽功能：清空槽位數並同步 stats
+    item.gemSlots = 0;
+    item.socketedGems = [];
+
+    // 若 stats 物件存在且缺少耐久度，同步進去方便工具取用
+    if (item.stats) {
+        if (item.stats.maxDurability === undefined) item.stats.maxDurability = item.maxDurability;
+        if (item.stats.durability === undefined) item.stats.durability = item.durability;
+        item.stats.gemSlots = 0;
+    }
+});
 
 /**
  * 套裝資料庫

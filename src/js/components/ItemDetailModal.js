@@ -298,7 +298,7 @@ class ItemDetailModal {
             const stats = affix.stats ? Object.entries(affix.stats).map(([k,v]) => {
                 // format percent values
                 const isPercent = k.toLowerCase().includes('crit') || k.toLowerCase().includes('damage') || k.toLowerCase().includes('speed') || k.toLowerCase().includes('allstat') || k.toLowerCase().includes('lifesteal') || k.toLowerCase().includes('damageReduction');
-                const display = isPercent ? (Number(v) * 100).toFixed(isPercent && Math.abs(v) < 0.01 ? 2 : 0) + '%' : v;
+                const display = isPercent ? (Number(v)).toFixed(isPercent && Math.abs(v) < 0.01 ? 2 : 0) + '%' : v;
                 return `${k.replace(/([A-Z])/g, ' $1')}: ${display}`;
             }).join(' • '): '';
 

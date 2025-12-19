@@ -157,15 +157,24 @@ export class Item {
 }
 
 export class Equipment extends Item {
-    constructor(id, name, type, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.05, critDamage = 1.5) {
+    constructor(id, name, type, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability) {
         super(id, name, type, rarity, icon, description, price);
+
+        // 基本屬性必填，避免默認值靜默帶入
+        const required = { atk, def, critChance, critDamage };
+        if (Object.values(required).some(v => v === undefined)) {
+            throw new Error(`Equipment ${id} missing base stats (atk/def/critChance/critDamage)`);
+        }
+
         this.atk = atk;
         this.def = def;
         this.critChance = critChance; // 所有裝備都有爆擊率
         this.critDamage = critDamage; // 所有裝備都有爆擊傷害
-        // 耐久度系統 - 武器和防具才有
-        this.maxDurability = 50;      // 最大耐久度
-        this.durability = 50;          // 當前耐久度
+
+        // 耐久度系統 - 武器和防具才有；如果未提供則落在預設 50
+        const resolvedMaxDurability = Number.isFinite(maxDurability) ? maxDurability : 50;
+        this.maxDurability = resolvedMaxDurability;
+        this.durability = Number.isFinite(durability) ? durability : resolvedMaxDurability;
     }
     
     // 檢查是否有完美無瑕詞綴（不消耗耐久度）
@@ -188,13 +197,10 @@ export class Equipment extends Item {
 }
 
 export class Weapon extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.1, critDamage = 1.5, weaponSpeed = 1.0, attackSpeed = 1.0) {
-        super(id, name, ItemType.WEAPON, rarity, icon, description, price, atk, def, critChance, critDamage);
+    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, weaponSpeed = 1.0, attackSpeed = 1.0, maxDurability, durability) {
+        super(id, name, ItemType.WEAPON, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
         this.weaponSpeed = weaponSpeed;   // 只有武器有武器速度
         this.attackSpeed = attackSpeed;   // 只有武器有攻擊速度
-        // 武器耐久度
-        this.maxDurability = 50;
-        this.durability = 50;
     }
     
     getAttackInterval() {
@@ -203,20 +209,17 @@ export class Weapon extends Equipment {
 }
 
 export class Armor extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.03, critDamage = 1.2) {
-        super(id, name, ItemType.ARMOR, rarity, icon, description, price, atk, def, critChance, critDamage);
-        // 防具耐久度
-        this.maxDurability = 50;
-        this.durability = 50;
+    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability) {
+        super(id, name, ItemType.ARMOR, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
     }
 }
 
 export class Accessory extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk = 0, def = 0, critChance = 0.05, critDamage = 1.3) {
-        super(id, name, ItemType.ACCESSORY, rarity, icon, description, price, atk, def, critChance, critDamage);
+    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability = null, durability = null) {
+        super(id, name, ItemType.ACCESSORY, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
         // 飾品沒有耐久度
-        this.maxDurability = null;
-        this.durability = null;
+        this.maxDurability = maxDurability ?? null;
+        this.durability = durability ?? null;
     }
 }
 

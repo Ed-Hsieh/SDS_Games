@@ -84,13 +84,8 @@ function generateEventItem(itemType) {
     const timestamp = Date.now();
     switch (itemType) {
         case 'gem': {
-            const gems = [
-                { name: '紅寶石', icon: '🔴', stat: 'atk', value: 3 },
-                { name: '藍寶石', icon: '🔵', stat: 'def', value: 3 },
-                { name: '綠寶石', icon: '🟢', stat: 'hp', value: 20 }
-            ];
-            const gem = gems[Math.floor(Math.random() * gems.length)];
-            return new Item(`gem_${timestamp}`, gem.name, ItemType.GEM, ItemRarity.RARE, gem.icon, `可鑲嵌到裝備上，${gem.stat}+${gem.value}`, 150);
+            // 鑲嵌功能已停用，改為獎勵強化石（材料）
+            return new Item(`enhance_stone_${timestamp}`, '強化石', ItemType.MATERIAL, ItemRarity.RARE, '🪨', '可用於強化或任務的材料。', 150);
         }
         case 'random':
         default: {
