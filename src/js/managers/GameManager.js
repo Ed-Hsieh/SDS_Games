@@ -40,11 +40,11 @@ class GameManager {
         
         this.addToInventory(new Consumable('health_potion_s', '小型生命藥水', ItemType.POTION, ItemRarity.COMMON, '🧪', '恢復少量生命值。', 20, { hp: 30 }), 3);
         
-        const coin = new Item('ancient_coin', '古代錢幣', ItemType.KEY, ItemRarity.LEGENDARY, '💸', '一枚古老的錢幣，似乎隱藏著秘密。', 500);
-        coin.isSecretKey = true;
-        this.addToInventory(coin);
+        // const coin = new Item('ancient_coin', '古代錢幣', ItemType.KEY, ItemRarity.LEGENDARY, '💸', '一枚古老的錢幣，似乎隱藏著秘密。', 500);
+        // coin.isSecretKey = true;
+        // this.addToInventory(coin);
 
-        this.addTest();
+        // this.addTest();
     }
     
     /**
