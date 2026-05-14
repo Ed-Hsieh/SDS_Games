@@ -28,6 +28,7 @@ export class Monster {
         this.equipmentDrops = template.equipmentDrops || [];
         this.element = template.element || null;
         this.type = template.type || 'normal';
+        this.zoneId = template.zoneId || template.zone || null;
     }
     
     getDrops() {
@@ -376,6 +377,7 @@ export default class WorldMap {
 
                 if (template) {
                     this.currentMonster = new Monster(template);
+                    this.currentMonster.zoneId = cell.zone;
                 } else {
                     console.error('No monster template found for zone:', cell.zone);
                     return null;

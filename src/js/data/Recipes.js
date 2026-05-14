@@ -1167,13 +1167,14 @@ export function canCraft(recipeId, inventory, warehouse = []) {
 /**
  * 獲取缺少的材料
  */
-export function getMissingMaterials(recipeId, inventory) {
+export function getMissingMaterials(recipeId, inventory, warehouse = []) {
     const recipe = getRecipe(recipeId);
     if (!recipe) return [];
 
+    const allItems = [...(inventory || []), ...(warehouse || [])];
     const missing = [];
     for (const mat of recipe.materials) {
-        const owned = inventory.filter(item => item.item?.id === mat.id)
+        const owned = allItems.filter(item => item.item?.id === mat.id)
             .reduce((sum, stack) => sum + (stack.quantity || 1), 0);
         if (owned < mat.quantity) {
             missing.push({

@@ -269,9 +269,105 @@ body {
     border-left: 4px solid #2ecc71;
 }
 
+.global-toast.toast-info {
+    border-left: 4px solid #4facfe;
+}
 
+.global-toast.toast-warning {
+    border-left: 4px solid #f6c453;
+}
 
+.global-toast.toast-error {
+    border-left: 4px solid #fb7185;
+}
 
+.app-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10020;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(2, 6, 23, 0.68);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+}
+
+.app-confirm-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.app-confirm-dialog {
+    width: min(420px, 100%);
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid rgba(125, 211, 252, 0.28);
+    border-radius: 12px;
+    background: rgba(17, 24, 39, 0.96);
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.45);
+    transform: translateY(10px);
+    transition: transform 0.18s ease;
+}
+
+.app-confirm-overlay.active .app-confirm-dialog {
+    transform: translateY(0);
+}
+
+.app-confirm-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(246, 196, 83, 0.36);
+    border-radius: 10px;
+    background: rgba(246, 196, 83, 0.12);
+    font-size: 22px;
+}
+
+.confirm-danger .app-confirm-icon,
+.confirm-error .app-confirm-icon {
+    border-color: rgba(251, 113, 133, 0.42);
+    background: rgba(251, 113, 133, 0.12);
+}
+
+.app-confirm-content {
+    min-width: 0;
+}
+
+.app-confirm-content h3 {
+    margin: 0 0 6px;
+    color: rgba(255, 255, 255, 0.96);
+    font-size: 18px;
+}
+
+.app-confirm-content p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.74);
+    line-height: 1.55;
+    font-size: 14px;
+}
+
+.app-confirm-details {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: rgba(255, 255, 255, 0.68);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.app-confirm-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 4px;
+}
 
 
 

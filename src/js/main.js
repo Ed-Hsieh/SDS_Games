@@ -71,6 +71,7 @@ class App {
         if (this.currentScene && typeof this.currentScene.cleanup === 'function') {
             this.currentScene.cleanup();
         }
+
         
         // 清理副本場景
         if (this.dungeonRoutes[sceneName] === undefined && DungeonScene) {
@@ -121,6 +122,7 @@ class App {
                 this.currentScene = DungeonScene;
                 DungeonScene.init(dungeonType);
             }
+
         } catch (error) {
             console.error('Error loading scene:', error);
             this.appContainer.innerHTML = `<div style="color:red; padding:20px;">Error loading scene: ${error.message}</div>`;

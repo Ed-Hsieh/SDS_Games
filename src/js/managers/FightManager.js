@@ -38,6 +38,16 @@ function _getValueFromItem(item, wantedKeys = []) {
         }
     }
 
+    if (item.enhancementBonuses && typeof item.enhancementBonuses === 'object') {
+        for (const prop of Object.keys(item.enhancementBonuses)) {
+            for (const k of wantedKeys) {
+                if (prop.toLowerCase() === String(k).toLowerCase() || prop.toLowerCase().indexOf(String(k).toLowerCase()) !== -1) {
+                    total += Number(item.enhancementBonuses[prop] || 0);
+                }
+            }
+        }
+    }
+
     // affixes: array of { stats: { key: value } }
     if (item.affixes && Array.isArray(item.affixes)) {
         for (const a of item.affixes) {

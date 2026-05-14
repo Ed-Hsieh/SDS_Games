@@ -6,20 +6,20 @@
 export const ShopData = {
     blacksmith: {
         name: '鍛造師',
-        npcPortrait: 'src/assets/images/鍛造師.jpg',
+        npcPortrait: '',
         dialogue: '需要武器或防具嗎？我的作品從不讓人失望。',
         items: [
             // 武器：有 atk, critChance, critDamage, weaponSpeed, attackSpeed
-            { id: 'iron_sword', name: '鐵劍', icon: '⚔️', image: 'src/assets/images/鐵劍.jpg', type: 'weapon', rarity: 'common', attack: 10, defense: 0, critChance: 0.08, critDamage: 1.5, weaponSpeed: 1.0, attackSpeed: 1.0, price: 100, desc: '一把標準的鐵劍，守衛們的最愛。' },
+            { id: 'iron_sword', name: '鐵劍', icon: '⚔️', type: 'weapon', rarity: 'common', attack: 10, defense: 0, critChance: 0.08, critDamage: 1.5, weaponSpeed: 1.0, attackSpeed: 1.0, price: 100, desc: '一把標準的鐵劍，守衛們的最愛。' },
             // 防具：只有 def, critChance, critDamage（無 weaponSpeed, attackSpeed）
-            { id: 'steel_armor', name: '鋼鎧', icon: '🛡️', image: 'src/assets/images/鋼鎧.jpg', type: 'armor', rarity: 'uncommon', attack: 0, defense: 15, critChance: 0.03, critDamage: 1.2, price: 200, desc: '堅固的鋼製鎧甲，能抵擋大部分攻擊。' },
+            { id: 'steel_armor', name: '鋼鎧', icon: '🛡️', type: 'armor', rarity: 'uncommon', attack: 0, defense: 15, critChance: 0.03, critDamage: 1.2, price: 200, desc: '堅固的鋼製鎧甲，能抵擋大部分攻擊。' },
             // 武器：更高屬性
-            { id: 'mithril_blade', name: '秘銀劍', icon: '⚔️', image: 'src/assets/images/秘銀劍.jpg', type: 'weapon', rarity: 'rare', attack: 25, defense: 0, critChance: 0.15, critDamage: 1.8, weaponSpeed: 1.2, attackSpeed: 1.3, price: 500, desc: '輕盈而鋒利的秘銀劍，閃耀著銀光。' }
+            { id: 'mithril_blade', name: '秘銀劍', icon: '⚔️', type: 'weapon', rarity: 'rare', attack: 25, defense: 0, critChance: 0.15, critDamage: 1.8, weaponSpeed: 1.2, attackSpeed: 1.3, price: 500, desc: '輕盈而鋒利的秘銀劍，閃耀著銀光。' }
         ]
     },
     alchemist: {
         name: '煉金術士',
-        npcPortrait: 'src/assets/images/煉金術士.jpg',
+        npcPortrait: '',
         dialogue: '藥水、毒藥、還是變身藥劑？你想要什麼？',
         items: [
             // 基礎恢復藥水
@@ -37,25 +37,22 @@ export const ShopData = {
     },
     merchant: {
         name: '旅行商人',
-        npcPortrait: 'src/assets/images/旅行商人.jpg',
-        dialogue: '稀有物品、寶石、還有一些...特別的東西。',
+        npcPortrait: '',
+        dialogue: '稀有物品、鍛造素材、還有一些...特別的東西。',
         items: [
-            { id: 'ruby', name: '紅寶石', icon: '💎', type: 'gem', rarity: 'rare', price: 250, desc: '閃耀著紅色光芒的寶石。' },
             { id: 'ancient_coin', name: '古代錢幣', icon: '🪙', type: 'key', rarity: 'legendary', price: 1000, isSecretKey: true, desc: '一枚古老的錢幣，似乎隱藏著秘密。' },
             { id: 'map_fragment', name: '地圖碎片', icon: '🗺️', type: 'quest', rarity: 'uncommon', price: 150, desc: '一張破舊的地圖碎片。' },
             // 新增：飾品
             { id: 'silver_ring', name: '銀戒指', icon: '💍', type: 'accessory', rarity: 'uncommon', attack: 3, defense: 3, critChance: 0.05, critDamage: 1.3, price: 180, desc: '簡單但精緻的銀戒指。' },
             { id: 'lucky_charm', name: '幸運符', icon: '🧿', type: 'accessory', rarity: 'rare', attack: 0, defense: 0, critChance: 0.12, critDamage: 1.6, price: 350, desc: '帶來好運的神秘符咒。' },
-            // 鍛造用寶石
-            { id: 'atk_gem_1', name: '攻擊寶石 I', icon: '🔴', type: 'socket_gem', gemType: 'ATK', tier: 1, rarity: 'uncommon', price: 150, desc: '鑲嵌後增加攻擊力 +5。' },
-            { id: 'def_gem_1', name: '防禦寶石 I', icon: '🔵', type: 'socket_gem', gemType: 'DEF', tier: 1, rarity: 'uncommon', price: 150, desc: '鑲嵌後增加防禦力 +5。' },
-            { id: 'hp_gem_1', name: '生命寶石 I', icon: '🟢', type: 'socket_gem', gemType: 'HP', tier: 1, rarity: 'uncommon', price: 150, desc: '鑲嵌後增加生命值 +20。' },
-            { id: 'mp_gem_1', name: '魔力寶石 I', icon: '🟣', type: 'socket_gem', gemType: 'MP', tier: 1, rarity: 'uncommon', price: 150, desc: '鑲嵌後增加魔力值 +15。' }
+            // 鍛造用素材
+            { id: 'iron_shard', name: '鐵片', icon: '⛓️', type: 'material', rarity: 'common', price: 80, desc: '可作為低階鍛造與重鑄的補充材料。' },
+            { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: 'material', rarity: 'rare', price: 360, desc: '蘊含鍛造能量的核心，可用於高階鍛造規劃。' }
         ]
     },
     scholar: {
         name: '學者',
-        npcPortrait: 'src/assets/images/學者.jpg',
+        npcPortrait: '',
         dialogue: '知識即力量。這些捲軸記載著失落的技藝。',
         items: [
             { id: 'fire_scroll', name: '火球術捲軸', icon: '🔥', type: 'scroll', rarity: 'uncommon', price: 120, desc: '記載著火球術的魔法捲軸。' },
@@ -78,12 +75,8 @@ export const SecretShopItems = [
     // 新增：傳說藥水
     { id: 'immortal_elixir', name: '不死藥劑', icon: '⭐', type: 'potion', rarity: 'legendary', hp: 999, mp: 999, price: 3000, desc: '傳說中的不死藥劑，完全恢復一切。' },
     { id: 'berserker_potion', name: '狂戰士藥劑', icon: '😈', type: 'potion', rarity: 'legendary', buff: { type: 'atk', value: 50, duration: 3 }, price: 2000, desc: '使你暫時化身為狂戰士，攻擊力大幅提升！' },
-    // 高級鍛造寶石
-    { id: 'atk_gem_2', name: '攻擊寶石 II', icon: '🔴', type: 'socket_gem', gemType: 'ATK', tier: 2, rarity: 'rare', price: 400, desc: '鑲嵌後增加攻擊力 +10。' },
-    { id: 'def_gem_2', name: '防禦寶石 II', icon: '🔵', type: 'socket_gem', gemType: 'DEF', tier: 2, rarity: 'rare', price: 400, desc: '鑲嵌後增加防禦力 +10。' },
-    { id: 'hp_gem_2', name: '生命寶石 II', icon: '🟢', type: 'socket_gem', gemType: 'HP', tier: 2, rarity: 'rare', price: 400, desc: '鑲嵌後增加生命值 +50。' },
-    { id: 'mp_gem_2', name: '魔力寶石 II', icon: '🟣', type: 'socket_gem', gemType: 'MP', tier: 2, rarity: 'rare', price: 400, desc: '鑲嵌後增加魔力值 +40。' },
-    // 傳說級寶石
-    { id: 'atk_gem_3', name: '攻擊寶石 III', icon: '💠', type: 'socket_gem', gemType: 'ATK', tier: 3, rarity: 'legendary', price: 1000, desc: '鑲嵌後增加攻擊力 +20。' },
-    { id: 'crit_gem', name: '暴擊寶石', icon: '⚡', type: 'socket_gem', gemType: 'CRIT', tier: 3, rarity: 'legendary', price: 1200, desc: '鑲嵌後增加暴擊率 +10%。' }
+    // 高級鍛造素材
+    { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: 'material', rarity: 'rare', price: 450, desc: '高階裝備製作與重鑄常用的礦物。' },
+    { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: 'material', rarity: 'rare', price: 650, desc: '可用於特殊裝備與高階鍛造。' },
+    { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: 'material', rarity: 'rare', price: 900, desc: '蘊含鍛造能量的核心。' }
 ];

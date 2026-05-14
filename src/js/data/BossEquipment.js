@@ -1,7 +1,7 @@
 /**
  * BossEquipment.js
  * BOSS 掉落裝備資料庫 - 無盡塔與主線BOSS專屬裝備
- * 所有裝備都可強化、鑲嵌寶石
+ * 所有裝備都可強化
  */
 
 import { ItemType, ItemRarity } from '../models/Enums.js';
@@ -27,7 +27,6 @@ export const TowerBossEquipment = {
         description: '哥布林首領的匕首，輕巧且攻擊迅速。',
         setId: null,
         canEnhance: true,
-        gemSlots: 1,
         requiredLevel: 5,
         dropSource: 'tower_goblin_chief'
     },
@@ -49,7 +48,6 @@ export const TowerBossEquipment = {
         description: '來自地獄的騎士鎧甲，散發著灼熱的氣息。',
         setId: 'hell_knight_set',
         canEnhance: true,
-        gemSlots: 2,
         requiredLevel: 10,
         dropSource: 'tower_hell_knight'
     },
@@ -72,7 +70,6 @@ export const TowerBossEquipment = {
         description: '深淵魔將的佩劍，帶有吸取生命的詛咒。',
         setId: 'abyss_set',
         canEnhance: true,
-        gemSlots: 2,
         requiredLevel: 15,
         dropSource: 'tower_abyss_general'
     },
@@ -95,7 +92,6 @@ export const TowerBossEquipment = {
         description: '虛空之王的王冠，蘊含扭曲現實的力量。',
         setId: 'void_set',
         canEnhance: true,
-        gemSlots: 3,
         requiredLevel: 25,
         dropSource: 'tower_void_king'
     }

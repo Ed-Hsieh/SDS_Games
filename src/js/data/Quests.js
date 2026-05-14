@@ -25,6 +25,7 @@ export const ObjectiveType = {
     KILL: 'kill',               // 擊殺怪物
     COLLECT: 'collect',         // 收集道具
     GOLD: 'gold',               // 累積金幣
+    CRAFT: 'craft',             // 鍛造製作
     ENHANCE: 'enhance',         // 強化裝備
     GAMBLE_WIN: 'gamble_win',   // 賭場獲勝
     GAMBLE_PROFIT: 'gamble_profit', // 賭場盈利
@@ -1040,7 +1041,7 @@ export const QuestDatabase = {
             icon: '🎭',
             description: '神秘商人正在尋找一些...特殊的物品。',
             objectives: [
-                { type: ObjectiveType.COLLECT, target: 'cursed_gem', count: 1, description: '獲得詛咒寶石 1 個' }
+                { type: ObjectiveType.COLLECT, target: 'cursed_shard', count: 1, description: '獲得詛咒碎片 1 個' }
             ],
             rewards: {
                 gold: 0,
@@ -1259,13 +1260,13 @@ export const QuestRewardItems = {
         description: '據說是從賭場贏來的第一枚金幣，會帶來好運。',
         isQuestReward: true
     },
-    rare_gem_box: {
-        id: 'rare_gem_box',
-        name: '稀有寶石盒',
+    rare_material_box: {
+        id: 'rare_material_box',
+        name: '稀有素材盒',
         icon: '📦',
-        type: ItemType.GEM,
+        type: ItemType.KEY,
         rarity: ItemRarity.RARE,
-        description: '開啟獲得隨機稀有寶石。',
+        description: '開啟後可獲得隨機稀有素材。',
         isQuestReward: true
     },
     fate_crystal: {
@@ -1285,7 +1286,7 @@ export const QuestRewardItems = {
         id: 'legendary_weapon_box',
         name: '傳說武器寶箱',
         icon: '👑',
-        type: ItemType.GEM,
+        type: ItemType.KEY,
         rarity: ItemRarity.LEGENDARY,
         description: '開啟獲得隨機傳說武器！',
         isQuestReward: true
@@ -1375,7 +1376,7 @@ export const QuestRewardItems = {
         id: 'mystery_box',
         name: '神秘寶盒',
         icon: '❓',
-        type: ItemType.GEM,
+        type: ItemType.KEY,
         rarity: ItemRarity.EPIC,
         description: '不知道裡面是什麼...開啟看看？',
         isQuestReward: true
@@ -1451,7 +1452,7 @@ export const QuestRewardItems = {
         id: 'transcend_stone',
         name: '超越之石',
         icon: '💠',
-        type: ItemType.GEM,
+        type: ItemType.KEY,
         rarity: ItemRarity.LEGENDARY,
         description: '使用後，突破裝備的強化上限 (+10 → +15)。',
         specialEffects: [

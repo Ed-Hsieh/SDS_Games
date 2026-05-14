@@ -177,8 +177,15 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.dropFrom) item.dropFrom = Array.isArray(itemData.dropFrom) ? [...itemData.dropFrom] : [itemData.dropFrom];
     if (itemData.dropSource) item.dropSource = itemData.dropSource;
     if (itemData.canEnhance !== undefined) item.canEnhance = itemData.canEnhance;
-    if (itemData.gemSlots !== undefined) item.gemSlots = itemData.gemSlots;
-    if (itemData.socketedGems) item.socketedGems = cloneData(itemData.socketedGems);
+    if (itemData.requiredLevel !== undefined) item.requiredLevel = itemData.requiredLevel;
+    if (itemData.balanceTier !== undefined) item.balanceTier = itemData.balanceTier;
+    if (itemData.powerBudget !== undefined) item.powerBudget = cloneData(itemData.powerBudget);
+    if (itemData.enhanceLevel !== undefined) item.enhanceLevel = itemData.enhanceLevel;
+    if (itemData.enhancementStability !== undefined) item.enhancementStability = itemData.enhancementStability;
+    if (itemData.maxEnhancementStability !== undefined) item.maxEnhancementStability = itemData.maxEnhancementStability;
+    if (itemData.enhancementMarks) item.enhancementMarks = cloneData(itemData.enhancementMarks);
+    if (itemData.enhancementBonuses) item.enhancementBonuses = cloneData(itemData.enhancementBonuses);
+    if (itemData._enhanceBaseStats) item._enhanceBaseStats = cloneData(itemData._enhanceBaseStats);
     if (itemData.isSecretKey) item.isSecretKey = true;
     if (itemData.isQuestReward) item.isQuestReward = true;
     if (itemData.stackable !== undefined) item.stackable = itemData.stackable;

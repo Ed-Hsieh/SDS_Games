@@ -6,6 +6,9 @@
 import GameManager from './GameManager.js';
 import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js';
 import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
+import { getMaterial } from './MaterialManager.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
+import { unlockRecipesForInteraction } from './BlueprintManager.js';
 
 class QuestManager {
     constructor() {
@@ -29,13 +32,7 @@ class QuestManager {
     }
 
     init() {
-        // 初始化第一個主線任務為可接取狀態
-        this.questStates['main_001'] = {
-            status: QuestStatus.AVAILABLE,
-            progress: [],
-            startTime: null
-        };
-        
+        // 任務由世界線索解鎖，避免一開始像清單任務一樣直接出現。
     }
 
     // ==================== 任務管理 ====================
@@ -136,13 +133,15 @@ class QuestManager {
 
         // 檢查是否觸發隱藏任務
         this.checkHiddenQuestTriggers('quest_complete', questId);
+        const blueprintUnlocks = unlockRecipesForInteraction(questId);
 
-        this.notify('quest_completed', { quest, questId, rewards });
+        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks });
 
         return {
             success: true,
             message: quest.dialogue?.complete || `完成任務：${quest.name}`,
-            rewards
+            rewards,
+            blueprintUnlocks
         };
     }
 
@@ -166,7 +165,7 @@ class QuestManager {
      * 發放獎勵
      */
     giveRewards(rewards) {
-        const result = { gold: 0, exp: 0, items: [] };
+        const result = { gold: 0, exp: 0, items: [], materials: [] };
 
         if (rewards.gold) {
             GameManager.addGold(rewards.gold);
@@ -182,12 +181,25 @@ class QuestManager {
 
         if (rewards.items && rewards.items.length > 0) {
             rewards.items.forEach(itemId => {
-                const itemData = QuestRewardItems[itemId];
+                const itemData = resolveItemById(itemId, {
+                    order: ['questReward', 'material', 'equipment', 'shop', 'bossEquipment']
+                });
                 if (itemData) {
                     // 創建道具實例並加入背包
                     const item = this.createQuestRewardItem(itemData);
                     GameManager.addToInventory(item);
                     result.items.push(item);
+                }
+            });
+        }
+
+        if (rewards.materials && rewards.materials.length > 0) {
+            rewards.materials.forEach(entry => {
+                const material = getMaterial(entry.id);
+                const quantity = Math.max(1, Number(entry.quantity) || 1);
+                if (material) {
+                    GameManager.addToInventory(material, quantity);
+                    result.materials.push({ ...material, quantity });
                 }
             });
         }
@@ -246,8 +258,6 @@ class QuestManager {
             if (this.checkQuestCompletion(questId)) {
                 state.status = QuestStatus.COMPLETED;
                 this.notify('quest_ready', { questId, quest });
-                // 顯示全局 Toast 通知
-                this.showGlobalToast('🎉 任務完成！', `「${quest.name}」可以領取獎勵了！`, 'success');
             }
         }
 
@@ -261,40 +271,7 @@ class QuestManager {
      * @param {string} type - 類型 (success, info, warning, error)
      */
     showGlobalToast(title, message, type = 'info') {
-        const container = document.getElementById('global-toast-container');
-        if (!container) return;
-        
-        const toast = document.createElement('div');
-        toast.className = `global-toast toast-${type}`;
-        toast.innerHTML = `
-            <div class="toast-icon">${this.getToastIcon(type)}</div>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
-            </div>
-            <button class="toast-close">×</button>
-        `;
-        
-        // 關閉按鈕
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            toast.classList.add('toast-hiding');
-            setTimeout(() => toast.remove(), 300);
-        });
-        
-        container.appendChild(toast);
-        
-        // 觸發動畫
-        requestAnimationFrame(() => {
-            toast.classList.add('toast-show');
-        });
-        
-        // 自動關閉
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.classList.add('toast-hiding');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, 4000);
+        return null;
     }
     
     /**

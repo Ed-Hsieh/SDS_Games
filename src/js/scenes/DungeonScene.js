@@ -6,6 +6,7 @@
 import DungeonMap, { DungeonTileType, DungeonTileIcons } from '../utils/DungeonMap.js';
 import { DungeonDatabase, DungeonEntranceConfig } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 
 // Preload FightManager engine
 let FightManager = null;
@@ -47,7 +48,7 @@ class DungeonSceneClass {
         const dungeonData = DungeonDatabase[dungeonType];
         if (!dungeonData) {
             console.error('[DungeonScene] 找不到副本資料:', dungeonType);
-            alert(`錯誤：找不到副本資料 "${dungeonType}"`);
+            showGlobalToast('副本載入失敗', `找不到副本資料「${dungeonType}」。`, 'error');
             return;
         }
         
@@ -65,7 +66,7 @@ class DungeonSceneClass {
         const canvasReady = this.initCanvas();
         if (!canvasReady) {
             console.error('[DungeonScene] Canvas 初始化失敗');
-            alert('錯誤：無法初始化遊戲畫面');
+            showGlobalToast('畫面初始化失敗', '無法初始化副本遊戲畫面。', 'error');
             return;
         }
         
@@ -580,7 +581,7 @@ class DungeonSceneClass {
         this.addMessage(`🏆 通關 ${dungeonData.name}！`, 'legendary');
         
         setTimeout(() => {
-            alert(`恭喜通關 ${dungeonData.name}！`);
+            showGlobalToast('副本通關', `恭喜通關 ${dungeonData.name}！`, 'success');
             this.exitDungeon();
         }, 2000);
     }
@@ -592,12 +593,17 @@ class DungeonSceneClass {
         
         setTimeout(() => {
             const dungeonData = DungeonDatabase[this.dungeonType];
-            alert(`你在 ${dungeonData.name} 第 ${this.currentFloor} 層被擊敗了...`);
             
             const char = GameManager.getCharacter();
             char.hp = Math.floor(char.maxHp * 0.3);
-            const penalty = Math.floor(GameManager.state.gold * 0.1);
+            const currentGold = GameManager.getGold?.() ?? GameManager.state?.character?.gold ?? 0;
+            const penalty = Math.floor(currentGold * 0.1);
             GameManager.removeGold(penalty);
+            showGlobalToast(
+                '副本失敗',
+                `你在 ${dungeonData.name} 第 ${this.currentFloor} 層被擊敗，損失 ${penalty} 金幣。`,
+                'warning'
+            );
             
             this.exitDungeon();
         }, 1500);
@@ -634,7 +640,7 @@ class DungeonSceneClass {
         this.renderMap();
     }
     
-    showStairsPrompt() {
+    async showStairsPrompt() {
         const nextFloor = this.currentFloor + 1;
         const isBossFloor = nextFloor === this.totalFloors;
         
@@ -649,12 +655,16 @@ class DungeonSceneClass {
             return;
         }
         
-        // 回退到 confirm
-        const msg = isBossFloor 
-            ? '🪜 前往 Boss 房間？'
-            : `🪜 前往第 ${nextFloor} 層？`;
-        
-        if (confirm(msg)) {
+        const confirmed = await confirmAction({
+            title: isBossFloor ? '前往 Boss 房間？' : `前往第 ${nextFloor} 層？`,
+            message: isBossFloor
+                ? '前方是 Boss 房間，進入後會面對更高強度戰鬥。'
+                : '進入下一層會刷新地圖與事件。',
+            confirmText: isBossFloor ? '挑戰 Boss' : '前往下一層',
+            type: isBossFloor ? 'danger' : 'warning'
+        });
+
+        if (confirmed) {
             this.advanceFloor();
         }
     }

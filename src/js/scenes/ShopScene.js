@@ -5,14 +5,17 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
+import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { getSellPrice } from '../models/ItemSchema.js';
-import { buildItemModalOptions } from '../utils/ItemDisplay.js';
+import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
+import { showGlobalToast } from '../utils/UIFeedback.js';
 
 export default class ShopScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
         this.currentShopId = 'blacksmith';
+        this.currentShopItems = [];
         this.draggedItem = null;
 
         // Bind methods to preserve 'this'
@@ -64,7 +67,11 @@ export default class ShopScene {
             shopInventory: this.container.querySelector('#shop-inventory'),
             playerInventory: this.container.querySelector('#player-inventory'),
             playerGold: this.container.querySelector('#player-gold'),
-            dropZone: this.container.querySelector('#npc-drop-zone')
+            dropZone: this.container.querySelector('#npc-drop-zone'),
+            tradeStatus: this.container.querySelector('#trade-status'),
+            tradeStatusIcon: this.container.querySelector('#trade-status-icon'),
+            tradeStatusTitle: this.container.querySelector('#trade-status-title'),
+            tradeStatusMessage: this.container.querySelector('#trade-status-message')
         };
 
         // Quick debug check
@@ -136,11 +143,14 @@ export default class ShopScene {
         if (!this.dom || !state) return;
         if (type === 'gold' || type === 'all') {
             this.dom.playerGold.textContent = `💰 ${state.character.gold}`;
+            if (this.currentShopItems.length > 0) {
+                this.renderShopInventory(this.currentShopItems);
+            }
         }
         if (type === 'inventory' || type === 'all') {
             this.renderPlayerInventory(state.inventory || []);
         }
-        if (type === 'flags' && state.flags?.secretShopUnlocked) {
+        if ((type === 'flags' || type === 'all') && state.flags?.secretShopUnlocked) {
             this.unlockSecretVisuals();
         }
     }
@@ -176,7 +186,7 @@ export default class ShopScene {
             if (GameManager.getFlag('secretShopUnlocked')) {
                 shopInfo = {
                     name: '黑市商人',
-                    npcPortrait: 'https://via.placeholder.com/400x500/000000/ffffff?text=Secret',
+                    npcPortrait: '',
                     dialogue: '噓... 這裡只有最強大的裝備。',
                     items: SecretShopItems
                 };
@@ -190,20 +200,39 @@ export default class ShopScene {
         this.dom.grid?.querySelectorAll('.grid-tile').forEach(tile => {
             tile.classList.toggle('active', tile.dataset.shop === shopId);
         });
+        const activeTile = this.dom.grid?.querySelector(`.grid-tile[data-shop="${shopId}"]`);
+        if (activeTile) this.movePlayerToken(activeTile);
 
         // Update NPC Panel
         if (this.dom.npcPortrait) {
-            this.dom.npcPortrait.src = shopInfo.npcPortrait || '';
+            const portrait = shopInfo.npcPortrait || '';
+            if (portrait) {
+                this.dom.npcPortrait.src = portrait;
+                this.dom.npcPortrait.hidden = false;
+                this.dom.dropZone?.classList.remove('no-portrait');
+            } else {
+                this.dom.npcPortrait.removeAttribute('src');
+                this.dom.npcPortrait.hidden = true;
+                this.dom.dropZone?.classList.add('no-portrait');
+            }
             this.dom.npcPortrait.alt = shopInfo.name || '商店 NPC';
         }
-        if (this.dom.npcDialogue) this.dom.npcDialogue.innerHTML = `<p>${shopInfo.dialogue}</p>`;
+        this.renderNpcDialogue();
+        this.setTradeStatus(shopInfo.name || '店鋪', '貨架已更新。', 'info');
 
-        // Render Shop Items
-        if (!this.dom.shopInventory) return;
-        this.dom.shopInventory.innerHTML = '';
-        shopInfo.items.forEach(item => {
+        this.renderShopInventory(shopInfo.items);
+    }
+
+    renderShopInventory(items = []) {
+        const container = this.dom.shopInventory;
+        if (!container) return;
+
+        this.currentShopItems = items;
+        container.innerHTML = '';
+
+        items.forEach(item => {
             const itemEl = this.createItemElement(item, 'buy');
-            this.dom.shopInventory.appendChild(itemEl);
+            container.appendChild(itemEl);
         });
     }
 
@@ -211,6 +240,16 @@ export default class ShopScene {
         const container = this.dom.playerInventory;
         if (!container) return;
         container.innerHTML = '';
+
+        if (!Array.isArray(inventory) || inventory.length === 0) {
+            container.innerHTML = `
+                <div class="trade-empty-state">
+                    <div class="trade-empty-title">背包沒有可出售物品</div>
+                    <div class="trade-empty-copy">冒險取得裝備或素材後，會在這裡顯示出售價。</div>
+                </div>
+            `;
+            return;
+        }
 
         if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
             window.PerformanceUtils.processInChunks(inventory, (item) => {
@@ -240,18 +279,26 @@ export default class ShopScene {
     }
 
     createItemElement(itemData, mode) {
-        // Handle stack format
-        const item = itemData.item || itemData;
-        const quantity = itemData.quantity || 1;
+        const trade = this.getTradeEntry(itemData, mode);
+        const { item, quantity, price } = trade;
+        const playerGold = this.getPlayerGold();
+        const canAfford = mode !== 'buy' || playerGold >= price;
+        const modeText = mode === 'buy' ? '購買' : '出售';
+        const hintText = mode === 'buy'
+            ? (canAfford ? '點擊購買' : '金幣不足')
+            : '點擊出售';
         
         const el = document.createElement('div');
-        el.className = `item-card rarity-${item.rarity}`;
+        el.className = `item-card shop-flow-card rarity-${item.rarity || 'common'} mode-${mode}`;
+        if (!canAfford) el.classList.add('is-unaffordable');
+        el.setAttribute('role', 'button');
+        el.tabIndex = 0;
         
         let iconHTML;
         if (item.image) {
-            iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
+            iconHTML = `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="shop-item-image">`;
         } else {
-            iconHTML = item.icon || '📦';
+            iconHTML = escapeHtml(item.icon || '📦');
         }
         
         el.innerHTML = `
@@ -260,38 +307,88 @@ export default class ShopScene {
                 ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
             </div>
             <div class="item-info">
-                <div class="item-name">${item.name}</div>
-                <div class="item-price">💰 ${mode === 'buy' ? item.price : getSellPrice(item)}</div>
+                <div class="item-flow-row">
+                    <span class="item-price-label">${modeText}</span>
+                    <span class="item-price">💰 ${price}</span>
+                </div>
+                <div class="item-name">${escapeHtml(item.name)}</div>
+                <div class="item-action-hint">${hintText}</div>
             </div>
         `;
         
         el.addEventListener('click', () => {
-            this.openModal(item, mode);
+            this.openModal(trade, mode);
+        });
+        el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.openModal(trade, mode);
+            }
         });
 
         return el;
     }
 
-    openModal(item, mode) {
-        // Create action button
-        const price = mode === 'buy' ? item.price : getSellPrice(item);
+    getTradeEntry(itemData, mode) {
+        const item = itemData?.item || itemData || {};
+        const quantity = Number(itemData?.quantity || item.quantity || 1) || 1;
+        const instanceId = itemData?.instanceId || item.instanceId || null;
+        const price = mode === 'buy'
+            ? (Number(item.price) || 0)
+            : getSellPrice(item, quantity);
+
+        return {
+            item,
+            quantity,
+            instanceId,
+            price
+        };
+    }
+
+    openModal(itemData, mode) {
+        const trade = itemData?.item ? itemData : this.getTradeEntry(itemData, mode);
+        const { item, quantity, price } = trade;
+        const canAfford = mode !== 'buy' || this.getPlayerGold() >= price;
+
         const actionBtn = document.createElement('button');
-        actionBtn.className = 'btn btn-primary';
-        actionBtn.textContent = mode === 'buy' ? `購買 💰 ${price}` : `出售 💰 ${price}`;
+        actionBtn.className = `btn ${mode === 'buy' ? 'btn-primary' : 'btn-warning'} shop-confirm-btn mode-${mode}`;
+        actionBtn.disabled = !canAfford;
+        actionBtn.textContent = mode === 'buy'
+            ? (canAfford ? `確認購買 · ${price} 金幣` : `金幣不足 · ${price} 金幣`)
+            : `確認出售 · ${price} 金幣`;
         actionBtn.addEventListener('click', () => {
-            if (mode === 'buy') this.handleBuy(item);
-            else this.handleSell(item);
+            if (!canAfford) {
+                this.showFeedback('金幣不足', `還需要 ${Math.max(0, price - this.getPlayerGold())} 金幣。`, 'error');
+                return;
+            }
+            if (mode === 'buy') this.handleBuy(trade);
+            else this.handleSell(trade);
         });
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-secondary shop-cancel-btn';
+        cancelBtn.textContent = '取消';
+        cancelBtn.addEventListener('click', () => this.closeItemModal());
 
         // Open centralized modal
         if (window.ItemDetailModal) {
+            const flowDescription = mode === 'buy'
+                ? `購買後會放入你的背包。目前持有 ${this.getPlayerGold()} 金幣。`
+                : `出售 ${quantity > 1 ? `x${quantity} ` : ''}後會獲得 ${price} 金幣，物品會從背包移除。`;
             window.ItemDetailModal.open(item, {
-                ...buildItemModalOptions(item),
-                actions: [actionBtn]
+                ...buildItemModalOptions(item, { description: flowDescription }),
+                action: mode,
+                priceLabel: mode === 'buy' ? '購買價' : '出售價',
+                actions: [actionBtn, cancelBtn]
             });
         } else {
             console.error('ItemDetailModal not available');
         }
+    }
+
+    getPlayerGold() {
+        if (typeof GameManager.getGold === 'function') return Number(GameManager.getGold()) || 0;
+        return Number(GameManager.state?.character?.gold) || 0;
     }
 
     closeItemModal() {
@@ -300,49 +397,66 @@ export default class ShopScene {
         }
     }
 
-    handleBuy(item) {
-        if (GameManager.getGold() >= item.price) {
-            if (GameManager.removeGold(item.price)) {
-                GameManager.addToInventory(item);
-                this.closeItemModal();
-                this.showFeedback('購買成功！', 'success');
-            }
-        } else {
-            this.showFeedback('金幣不足！', 'error');
+    handleBuy(trade) {
+        const { item, price } = trade;
+        const itemName = item.name || '物品';
+
+        if (this.getPlayerGold() < price || !GameManager.removeGold(price)) {
+            this.showFeedback('金幣不足', `無法購買「${itemName}」，目前持有 ${this.getPlayerGold()} 金幣。`, 'error');
+            return;
         }
+
+        const added = GameManager.addToInventory(item);
+        if (!added) {
+            GameManager.addGold(price);
+            this.showFeedback('背包已滿', `「${itemName}」無法放入背包，金幣已退回。`, 'error');
+            return;
+        }
+
+        this.closeItemModal();
+        this.showFeedback('購買完成', `已購買「${itemName}」，花費 ${price} 金幣。`, 'success');
     }
 
-    handleSell(item) {
-        // Use instanceId if available, otherwise fallback to ID (though ID might delete wrong duplicate)
-        // GameManager's removeFromInventory uses ID currently, let's update it to use instanceId if possible
-        // or just pass the ID for now as per current GameManager implementation.
-        // Wait, I see removeItemByInstanceId in GameManager.
-        
-        let removed;
-        if (item.instanceId) {
-            removed = GameManager.removeItemByInstanceId(item.instanceId);
+    handleSell(trade) {
+        const { item, quantity, instanceId, price } = trade;
+        const itemName = item.name || '物品';
+        let earnedGold = false;
+
+        if (instanceId && typeof GameManager.sellItem === 'function') {
+            earnedGold = GameManager.sellItem(instanceId, false);
         } else {
-            removed = GameManager.removeFromInventory(item.id);
+            const removed = GameManager.removeFromInventory(item.id);
+            if (removed) {
+                GameManager.addGold(price);
+                earnedGold = price;
+            }
         }
 
-        if (removed) {
-            const sellPrice = getSellPrice(item);
-            GameManager.addGold(sellPrice);
-            this.closeItemModal();
-            this.showFeedback('出售成功！', 'success');
+        if (earnedGold === false) {
+            this.showFeedback('出售失敗', `找不到「${itemName}」，請重新整理背包後再試。`, 'error');
+            return;
         }
+
+        this.closeItemModal();
+        this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
     }
 
     handleItemDrop(item) {
         if (item.isSecretKey) {
-            this.dom.npcDialogue.innerHTML = `<p class="highlight">哦？這是...古代的錢幣？你竟然有這種東西！</p>`;
-            setTimeout(() => {
-                this.dom.npcDialogue.innerHTML += `<p>看來你有資格進入那個地方...</p>`;
-                GameManager.setFlag('secretShopUnlocked', true);
-                this.showFeedback('隱藏商店已解鎖！', 'success');
-            }, 1500);
+            const outcome = worldInteractionManager.trigger('merchant_ancient_coin', {
+                source: 'vendor',
+                shopId: this.currentShopId,
+                toast: false
+            });
+
+            if (GameManager.getFlag('secretShopUnlocked')) {
+                this.unlockSecretVisuals();
+            }
+
+            const message = outcome.messages?.join(' ') || '黑市入口已經開啟。';
+            this.showFeedback(outcome.success ? '線索觸發' : '沒有新的反應', message, outcome.success ? 'success' : 'info');
         } else {
-            this.dom.npcDialogue.innerHTML = `<p>我對這個不感興趣。</p>`;
+            this.showFeedback('沒有新的反應', '這件物品沒有觸發新的線索。', 'info');
         }
     }
 
@@ -355,13 +469,49 @@ export default class ShopScene {
         });
     }
 
-    showFeedback(message, type) {
-        // Simple alert or toast could go here
-        // For now, let's just log or update dialogue temporarily
-        const originalText = this.dom.npcDialogue.innerHTML;
-        this.dom.npcDialogue.innerHTML = `<p style="color: ${type === 'error' ? 'red' : 'green'}">${message}</p>`;
-        setTimeout(() => {
-            this.dom.npcDialogue.innerHTML = originalText;
-        }, 2000);
+    renderNpcDialogue(message = '', type = 'idle') {
+        if (!this.dom?.npcDialogue) return;
+
+        const text = String(message || '').trim();
+        this.dom.npcDialogue.classList.toggle('is-quiet', !text);
+
+        if (!text) {
+            this.dom.npcDialogue.innerHTML = '<p class="trade-dialogue-idle" aria-hidden="true"></p>';
+            return;
+        }
+
+        const lines = text.split('\n').filter(Boolean);
+        this.dom.npcDialogue.innerHTML = lines.map(line => (
+            `<p class="trade-dialogue-feedback ${type}">${escapeHtml(line)}</p>`
+        )).join('');
+    }
+
+    setTradeStatus(title, message, type = 'info') {
+        if (!this.dom?.tradeStatus) return;
+
+        this.dom.tradeStatus.className = `trade-status-panel is-${type}`;
+        if (this.dom.tradeStatusIcon) {
+            this.dom.tradeStatusIcon.textContent = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            }[type] || 'ℹ️';
+        }
+        if (this.dom.tradeStatusTitle) this.dom.tradeStatusTitle.textContent = title;
+        if (this.dom.tradeStatusMessage) this.dom.tradeStatusMessage.textContent = message;
+    }
+
+    showFeedback(title, message, type = 'info') {
+        if (message === 'success' || message === 'error' || message === 'warning' || message === 'info') {
+            type = message;
+            message = title;
+            title = type === 'success' ? '交易完成' : '交易提示';
+        }
+
+        this.setTradeStatus(title, message, type);
+        showGlobalToast(title, message, type);
+
+        this.renderNpcDialogue(message, type);
     }
 }

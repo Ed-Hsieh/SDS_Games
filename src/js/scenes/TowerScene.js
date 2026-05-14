@@ -6,6 +6,7 @@
 import GameManager from '../managers/GameManager.js';
 import { towerManager, TowerState, getBossEquipment } from '../managers/TowerManager.js';
 import { getTowerMonster } from '../managers/MonsterManager.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 
 class TowerScene {
     constructor() {
@@ -389,7 +390,7 @@ class TowerScene {
 
             this.floorRewardsEl.innerHTML = `
                 <h3>通關獎勵</h3>
-                <div class="rewards-list">${rewards.join('<br>')}</div>
+                <div class="rewards-list">${rewards.map(reward => `<span class="reward-chip">${reward}</span>`).join('')}</div>
             `;
         }
 
@@ -502,13 +503,22 @@ class TowerScene {
         document.body.appendChild(menu);
     }
 
-    fleeBattle() {
-        if (confirm('確定要逃跑嗎？進度將會重置。')) {
-            this.stopRhythmBar();
-            towerManager.abandonChallenge();
-            this.showIdleState();
-            this.renderFloorsList();
-        }
+    async fleeBattle() {
+        const confirmed = await confirmAction({
+            title: '確認逃跑',
+            message: '逃跑會重置目前的無盡塔挑戰進度。',
+            details: ['已通過但尚未結算到下一次挑戰的進度會中斷。', '角色狀態會保留，之後可以重新挑戰。'],
+            confirmText: '逃跑',
+            type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        this.stopRhythmBar();
+        towerManager.abandonChallenge();
+        this.showIdleState();
+        this.renderFloorsList();
+        showGlobalToast('已離開戰鬥', '無盡塔挑戰進度已重置。', 'warning');
     }
 
     goNextFloor() {
@@ -714,9 +724,26 @@ class TowerScene {
         this.updatePlayerStats();
     }
 
-    showMessage(message) {
-        // 簡易提示
-        alert(message);
+    showMessage(message, type = 'info') {
+        const text = String(message || '');
+        let resolvedType = type;
+
+        if (resolvedType === 'info') {
+            if (text.includes('恭喜') || text.includes('恢復')) {
+                resolvedType = 'success';
+            } else if (text.includes('尚未') || text.includes('失敗') || text.includes('無法')) {
+                resolvedType = 'warning';
+            }
+        }
+
+        const titleMap = {
+            success: '無盡塔進度',
+            warning: '無盡塔提示',
+            error: '無盡塔錯誤',
+            info: '無盡塔'
+        };
+
+        showGlobalToast(titleMap[resolvedType] || '無盡塔', text, resolvedType);
     }
 
     refresh() {

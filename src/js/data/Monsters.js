@@ -77,6 +77,7 @@ export const MonsterDatabase = {
         gold: 15,
         drops: [
             { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3] },
+            { itemId: 'goblin_ear', chance: 0.35, quantity: [1, 1] },
             { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
         ],
         skills: [],
@@ -100,7 +101,12 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'wolf_fang', chance: 0.4, quantity: [1, 2] },
             { itemId: 'wolf_pelt', chance: 0.25, quantity: [1, 1] },
-            { itemId: 'beast_hide', chance: 0.25, quantity: [1, 2] }
+            { itemId: 'beast_hide', chance: 0.25, quantity: [1, 2] },
+            { itemId: 'raw_meat', chance: 0.3, quantity: [1, 2] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'wolf_fang_blade', chance: 0.03 },
+            { equipmentId: 'wolf_pelt_armor', chance: 0.025 }
         ],
         skills: [],
         description: '森林中的野狼，攻擊性強。'
@@ -143,7 +149,8 @@ export const MonsterDatabase = {
         exp: 10,
         gold: 5,
         drops: [
-            { itemId: 'rat_tail', chance: 0.6, quantity: [1, 1] }
+            { itemId: 'rat_tail', chance: 0.6, quantity: [1, 1] },
+            { itemId: 'raw_meat', chance: 0.4, quantity: [1, 1] }
         ],
         skills: [],
         description: '下水道中常見的巨型老鼠。'
@@ -330,7 +337,8 @@ export const MonsterDatabase = {
         gold: 45,
         drops: [
             { itemId: 'ectoplasm', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'spirit_essence', chance: 0.2, quantity: [1, 1] }
+            { itemId: 'spirit_essence', chance: 0.2, quantity: [1, 1] },
+            { itemId: 'soul_fragment', chance: 0.15, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'ghost_cloak', chance: 0.05 }
@@ -379,7 +387,8 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'lich_phylactery', chance: 1.0, quantity: [1, 1] },
             { itemId: 'dark_crystal', chance: 0.7, quantity: [1, 2] },
-            { itemId: 'shadow_shard', chance: 0.5, quantity: [2, 3] }
+            { itemId: 'shadow_shard', chance: 0.5, quantity: [2, 3] },
+            { itemId: 'soul_fragment', chance: 0.35, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'lich_staff', chance: 0.20 }
@@ -453,7 +462,8 @@ export const MonsterDatabase = {
         gold: 70,
         drops: [
             { itemId: 'shadow_essence', chance: 0.5, quantity: [1, 1] },
-            { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] }
+            { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] },
+            { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'shadow_badge', chance: 0.05 }
@@ -1093,7 +1103,7 @@ export const TowerMonsterData = {
         exp: 150,
         gold: 200,
         drops: [
-            { itemId: 'atk_gem_1', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'forge_core', chance: 1.0, quantity: [1, 1] },
             { itemId: 'goblin_dagger', chance: 1.0, quantity: [1, 1] }  // BOSS武器
         ],
         skills: ['goblin_rage', 'summon_goblins'],
@@ -1213,7 +1223,7 @@ export const TowerMonsterData = {
         exp: 250,
         gold: 500,
         drops: [
-            { itemId: 'def_gem_2', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'molten_core', chance: 1.0, quantity: [1, 1] },
             { itemId: 'hell_knight_armor', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
@@ -1336,7 +1346,7 @@ export const TowerMonsterData = {
         exp: 400,
         gold: 800,
         drops: [
-            { itemId: 'crit_gem', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'rare_metal', chance: 1.0, quantity: [1, 1] },
             { itemId: 'abyss_blade', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [

@@ -155,7 +155,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 200,
         description: '森林的純淨精華。',
-        craftUse: ['hp_gem_1', 'enhancement_boost']
+        craftUse: ['vitality_reforge', 'enhancement_boost']
     },
     
     // ==================== 遺跡材料 ====================
@@ -189,7 +189,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 100,
         description: '純淨的靈魂能量。',
-        craftUse: ['mp_gem_1', 'soul_weapon']
+        craftUse: ['focus_reforge', 'soul_weapon']
     },
     
     golem_core: {
@@ -270,18 +270,11 @@ export const MaterialDatabase = {
         craftUse: ['bat_wing_cloak']
     },
 
-    // Pool materials referenced from DropPools (added as stubs)
-    wood: { id: 'wood', name: '木材', icon: '🪵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 3, description: '基本建材與鍛造材料。', craftUse: [] },
-    cloth: { id: 'cloth', name: '布料', icon: '🧵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 4, description: '纖維材料，用於衣物與輕甲。', craftUse: [] },
-    armor_shard: { id: 'armor_shard', name: '護甲碎片', icon: '🔩', type: ItemType.MATERIAL, rarity: ItemRarity.UNCOMMON, price: 12, description: '舊護甲的碎片，可回收再利用。', craftUse: [] },
-    iron_shard: { id: 'iron_shard', name: '鐵片', icon: '⛓️', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 6, description: '鐵製碎片，可作為低階鍛造材料。', craftUse: [] },
-    low_stone: { id: 'low_stone', name: '低級石材', icon: '🪨', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 5, description: '基礎石材，常見於野外。', craftUse: [] },
-    high_ore: { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 120, description: '富含礦物質的礦石，用於高階製作。', craftUse: [] },
-    rare_metal: { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 200, description: '稀有且昂貴的金屬，用於特殊裝備。', craftUse: [] },
-    cold_iron: { id: 'cold_iron', name: '寒鐵', icon: '❄️', type: ItemType.MATERIAL, rarity: ItemRarity.UNCOMMON, price: 60, description: '傳說中對某些怪物特別有效的材料。', craftUse: [] },
-    forge_core: { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 300, description: '鍛造過程中的能量核心。', craftUse: [] },
-    ice_crystal: { id: 'ice_crystal', name: '冰晶', icon: '❄️', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 180, description: '冷冽的冰晶，用於冰系武器或飾品。', craftUse: [] },
-    lava_stone: { id: 'lava_stone', name: '熔岩石', icon: '🪨', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 220, description: '熔岩形成的特殊岩石，帶有火焰力量。', craftUse: [] },
+    // Pool materials referenced from active drop and reroll systems.
+    iron_shard: { id: 'iron_shard', name: '鐵片', icon: '⛓️', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 6, description: '鐵製碎片，可作為低階鍛造材料。', craftUse: ['weapon_craft_pool', 'affix_reroll_pool'] },
+    high_ore: { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 120, description: '富含礦物質的礦石，用於高階製作。', craftUse: ['advanced_craft_pool', 'affix_reroll_pool'] },
+    rare_metal: { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 200, description: '稀有且昂貴的金屬，用於特殊裝備。', craftUse: ['advanced_craft_pool', 'legendary_reforge_pool'] },
+    forge_core: { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: ItemType.MATERIAL, rarity: ItemRarity.RARE, price: 300, description: '鍛造過程中的能量核心。', craftUse: ['advanced_craft_pool', 'legendary_reforge_pool'] },
 
     dark_crystal: {
         id: 'dark_crystal',
@@ -291,7 +284,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 150,
         description: '充滿黑暗能量的水晶。',
-        craftUse: ['shadow_weapon', 'dark_gem']
+        craftUse: ['shadow_weapon', 'dark_catalyst']
     },
     
     // ==================== 暗影材料 ====================
@@ -317,14 +310,14 @@ export const MaterialDatabase = {
         craftUse: []
     },
 
-    cursed_gem: {
-        id: 'cursed_gem',
-        name: '詛咒寶石',
-        icon: '💎',
+    cursed_shard: {
+        id: 'cursed_shard',
+        name: '詛咒碎片',
+        icon: '🔮',
         type: ItemType.MATERIAL,
         rarity: ItemRarity.RARE,
         price: 180,
-        description: '帶有詛咒氣息的寶石，商人會特別留意這種稀有物。',
+        description: '帶有詛咒氣息的碎片，商人會特別留意這種稀有物。',
         craftUse: []
     },
     
@@ -358,7 +351,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 180,
         description: '純粹的暗影能量。',
-        craftUse: ['atk_gem_2', 'shadow_enhancement']
+        craftUse: ['shadow_reforge', 'shadow_enhancement']
     },
     
     magic_crystal: {
@@ -369,7 +362,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 120,
         description: '凝聚的魔力結晶。',
-        craftUse: ['mp_gem_2', 'magic_weapon']
+        craftUse: ['focus_reforge', 'magic_weapon']
     },
     
     commander_blade: {
@@ -425,7 +418,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.UNCOMMON,
         price: 50,
         description: '純淨的水晶碎片。',
-        craftUse: ['crystal_accessory', 'gem_craft']
+        craftUse: ['crystal_accessory', 'crystal_reforge']
     },
     
     pure_crystal: {
@@ -436,7 +429,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 180,
         description: '完美無瑕的水晶。',
-        craftUse: ['def_gem_2', 'crystal_weapon']
+        craftUse: ['guard_reforge', 'crystal_weapon']
     },
     
     ancient_rune: {
@@ -492,7 +485,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.UNCOMMON,
         price: 80,
         description: '純粹的火焰能量。',
-        craftUse: ['fire_weapon', 'fire_gem']
+        craftUse: ['fire_weapon', 'fire_catalyst']
     },
     
     ember_stone: {
@@ -503,7 +496,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 150,
         description: '永不熄滅的火焰之石。',
-        craftUse: ['atk_gem_2', 'fire_weapon_plus']
+        craftUse: ['power_reforge', 'fire_weapon_plus']
     },
     
     ice_essence: {
@@ -514,7 +507,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.UNCOMMON,
         price: 80,
         description: '純粹的冰霜能量。',
-        craftUse: ['ice_weapon', 'ice_gem']
+        craftUse: ['ice_weapon', 'ice_catalyst']
     },
     
     frost_crystal: {
@@ -525,7 +518,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 150,
         description: '永不融化的冰晶。',
-        craftUse: ['def_gem_2', 'ice_weapon_plus']
+        craftUse: ['guard_reforge', 'ice_weapon_plus']
     },
     
     frost_core: {
@@ -547,7 +540,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.UNCOMMON,
         price: 80,
         description: '純粹的雷電能量。',
-        craftUse: ['thunder_weapon', 'thunder_gem']
+        craftUse: ['thunder_weapon', 'thunder_catalyst']
     },
     
     storm_crystal: {
@@ -558,7 +551,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 150,
         description: '蘊含風暴之力的水晶。',
-        craftUse: ['crit_gem', 'thunder_weapon_plus']
+        craftUse: ['precision_reforge', 'thunder_weapon_plus']
     },
     
     storm_essence: {
@@ -580,7 +573,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.UNCOMMON,
         price: 80,
         description: '純粹的大地能量。',
-        craftUse: ['earth_weapon', 'earth_gem']
+        craftUse: ['earth_weapon', 'earth_catalyst']
     },
     
     geo_crystal: {
@@ -591,7 +584,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 150,
         description: '來自大地深處的水晶。',
-        craftUse: ['hp_gem_2', 'earth_weapon_plus']
+        craftUse: ['vitality_reforge', 'earth_weapon_plus']
     },
     
     elemental_core: {

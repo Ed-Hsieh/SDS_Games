@@ -6,14 +6,18 @@ import GameManager from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
 import { SetDatabase } from '../data/Equipment.js';
 import { getSellPrice } from '../models/ItemSchema.js';
-import { buildItemModalOptions } from '../utils/ItemDisplay.js';
+import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 
 export default class LobbyScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
         this.updateUI = this.updateUI.bind(this);
+        this.handleWorldInteraction = this.handleWorldInteraction.bind(this);
+        this.handleWorldRoute = this.handleWorldRoute.bind(this);
         
         // Warehouse filter state
         this.currentWarehouseFilter = 'all';
@@ -22,6 +26,12 @@ export default class LobbyScene {
         // Selected item for modal
         this.selectedItem = null;
         this.selectedItemSource = null; // 'warehouse' or 'inventory'
+
+        this.narrativeLines = [];
+        this.ambientTimer = null;
+        this.ambientIndex = 0;
+        this.lastNarrativeAt = 0;
+        this.lastNarrativeTone = null;
     }
 
     init() {
@@ -31,7 +41,9 @@ export default class LobbyScene {
             
             // Subscribe to GameManager updates
             GameManager.subscribe(this.updateUI);
-            
+
+            this.initializeTownNarrative();
+
             // Force initial UI update with current state
             this.updateUI(GameManager.state, 'all');
         } catch (error) {
@@ -41,13 +53,11 @@ export default class LobbyScene {
 
     cacheDOM() {
         this.dom = {
-            // Navigation buttons
-            btnGoShop: this.container.querySelector('#btn-go-shop'),
-            btnGoForge: this.container.querySelector('#btn-go-forge'),
-            btnGoGamble: this.container.querySelector('#btn-go-gamble'),
-            btnGoQuest: this.container.querySelector('#btn-go-quest'),
-            btnGoTower: this.container.querySelector('#btn-go-tower'),
-            btnStartAdventure: this.container.querySelector('#btn-start-adventure'),
+            townNarrative: this.container.querySelector('#town-narrative'),
+            townNarrativeTitle: this.container.querySelector('#town-narrative-title'),
+            townDialogueStream: this.container.querySelector('#town-dialogue-stream'),
+            worldStage: this.container.querySelector('#world-stage'),
+            worldStoryLog: this.container.querySelector('#world-story-log'),
             
             // Character info
             characterLevel: this.container.querySelector('#character-level'),
@@ -79,25 +89,13 @@ export default class LobbyScene {
     }
 
     bindEvents() {
-        // Navigation
-        if (this.dom.btnGoShop) {
-            this.dom.btnGoShop.addEventListener('click', () => this.app.loadScene('shop'));
-        }
-        if (this.dom.btnGoForge) {
-            this.dom.btnGoForge.addEventListener('click', () => this.app.loadScene('forge'));
-        }
-        if (this.dom.btnGoGamble) {
-            this.dom.btnGoGamble.addEventListener('click', () => this.app.loadScene('casino'));
-        }
-        if (this.dom.btnGoQuest) {
-            this.dom.btnGoQuest.addEventListener('click', () => this.app.loadScene('quest'));
-        }
-        if (this.dom.btnGoTower) {
-            this.dom.btnGoTower.addEventListener('click', () => this.app.loadScene('tower'));
-        }
-        if (this.dom.btnStartAdventure) {
-            this.dom.btnStartAdventure.addEventListener('click', () => this.app.loadScene('adventure'));
-        }
+        this.container.querySelectorAll('[data-interaction-id]').forEach(hotspot => {
+            hotspot.addEventListener('click', this.handleWorldInteraction);
+        });
+
+        this.container.querySelectorAll('[data-route]').forEach(route => {
+            route.addEventListener('click', this.handleWorldRoute);
+        });
 
         // Warehouse filters
         const warehouseFilters = this.container.querySelectorAll('.warehouse-filter');
@@ -176,25 +174,25 @@ export default class LobbyScene {
         // Add source-specific actions
         if (source === 'warehouse') {
             if (isEquipment) {
-                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🎒 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
             } else {
-                if (isConsumable) buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                if (isConsumable) buttons.push(this.createButton('🧪 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🎒 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
             }
         } else if (source === 'inventory') {
             if (isEquipment) {
-                buttons.push(this.createButton('✅ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+                buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🏦 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🗑️ 回收', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
             } else {
-                if (isConsumable) buttons.push(this.createButton('✅ 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('✅ 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('✅ 丟棄', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+                if (isConsumable) buttons.push(this.createButton('🧪 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🏦 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🗑️ 回收', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
             }
         }
 
@@ -340,6 +338,175 @@ export default class LobbyScene {
                 });
             }
         }
+
+        if (type === 'all' || type === 'flags') {
+            this.renderWorldStage();
+        }
+
+    }
+
+    handleWorldInteraction(event) {
+        const hotspot = event.currentTarget;
+        const interactionId = hotspot?.dataset?.interactionId;
+        if (!interactionId) return;
+
+        const outcome = worldInteractionManager.trigger(interactionId, {
+            source: 'lobby',
+            toast: false
+        });
+        const title = outcome.interaction?.title || '線索';
+        const message = outcome.messages?.join(' ') || '這裡暫時沒有新的變化。';
+
+        this.pushTownNarrative(title, message, outcome.success ? 'discovery' : 'ambient');
+        this.renderWorldStage();
+    }
+
+    handleWorldRoute(event) {
+        const route = event.currentTarget?.dataset?.route;
+        if (route) this.app.loadScene(route);
+    }
+
+    initializeTownNarrative() {
+        if (this.ambientTimer) {
+            clearInterval(this.ambientTimer);
+            this.ambientTimer = null;
+        }
+
+        this.narrativeLines = [];
+        if (this.dom.townNarrativeTitle) {
+            this.dom.townNarrativeTitle.textContent = this.getTownTitle();
+        }
+        this.pushTownNarrative('抵達', this.getReturnNarrative(), 'ambient');
+
+        this.ambientTimer = setInterval(() => {
+            const recentDiscovery = this.lastNarrativeTone === 'discovery'
+                && Date.now() - this.lastNarrativeAt < 30000;
+            if (recentDiscovery) return;
+            this.pushTownNarrative('片刻', this.getAmbientNarrative(), 'ambient');
+        }, 22000);
+    }
+
+    getTownFlags() {
+        return {
+            board: Boolean(GameManager.getFlag('readCrossroadsNoticeBoard')),
+            blueprintCache: Boolean(GameManager.getFlag('foundBlueprintCache')),
+            ruinTablet: Boolean(GameManager.getFlag('foundRuinTabletTrace')),
+            towerGlyph: Boolean(GameManager.getFlag('foundTowerGlyphMemory')),
+            dungeonForge: Boolean(GameManager.getFlag('foundDungeonForgeRelic')),
+            secretShop: Boolean(GameManager.getFlag('secretShopUnlocked'))
+        };
+    }
+
+    getReturnNarrative() {
+        const flags = this.getTownFlags();
+
+        if (flags.secretShop) {
+            return '你從街角回到廣場，市集的燈影裡多了一條不在地圖上的窄路。有人把古代錢幣的符號刻在門框內側。';
+        }
+        if (flags.ruinTablet) {
+            return '拓印紙還帶著石粉，城鎮邊緣的舊路線逐漸連成形狀。鍛造鋪那邊有人在低聲討論洞窟裡的爐火。';
+        }
+        if (flags.blueprintCache) {
+            return '殘破圖紙被攤在桌上晾乾，墨線雖然斷裂，仍能看出幾種可行的鍛造方式。';
+        }
+        if (flags.board) {
+            return '公告欄上的新紙被風吹得沙沙作響，南門路標的拓印讓安全區外的異常變得更難忽略。';
+        }
+
+        return '你回到城鎮十字路。天空很藍，鐵匠鋪傳來規律的敲擊聲，公告欄上有幾張剛釘好的紙還沒有被人讀過。';
+    }
+
+    getTownTitle() {
+        const flags = this.getTownFlags();
+        if (flags.secretShop) return '十字路與暗巷';
+        if (flags.ruinTablet) return '十字路與舊碑';
+        if (flags.blueprintCache) return '十字路與鍛造鋪';
+        return '城鎮十字路';
+    }
+
+    getAmbientNarrative() {
+        const flags = this.getTownFlags();
+        const state = GameManager.state;
+        const lines = [
+            '廣場邊的旗繩輕輕晃動，巡守的人把城門外的塵土掃回石階下。',
+            '鍛造鋪的煙囪冒出一縷白煙，爐火忽明忽暗，像是在等新的材料被送進去。',
+            '天空很藍，適合把倉庫裡的戰利品重新整理一遍，也適合把下一段路想清楚。',
+            '市集那邊傳來收攤前的木箱聲，有人提到城外的道路比昨天安靜太多。'
+        ];
+
+        if (flags.board) {
+            lines.push('公告欄旁有人停下腳步，又很快離開。那份路標拓印仍指向南門外。');
+        }
+        if (flags.blueprintCache) {
+            lines.push('圖匣碎片被壓在桌角，幾道鍛造線條在燈下變得比白天更清楚。');
+        }
+        if (flags.ruinTablet) {
+            lines.push('石碑拓印乾得很慢，紙面上的刻痕像一條藏在地底的路。');
+        }
+        if (flags.secretShop) {
+            lines.push('市集深處的燈籠沒有掛招牌，卻總有人避開守衛往那裡走。');
+        }
+        if ((state?.warehouse?.length || 0) > 0) {
+            lines.push('倉庫管理員把新到的物品記在薄冊上，空白欄位正好留給下一批戰利品。');
+        }
+
+        const line = lines[this.ambientIndex % lines.length];
+        this.ambientIndex += 1;
+        return line;
+    }
+
+    pushTownNarrative(title, message, tone = 'ambient') {
+        if (!this.dom?.townDialogueStream) return;
+
+        const allowedTones = new Set(['ambient', 'discovery', 'warning']);
+        const safeTone = allowedTones.has(tone) ? tone : 'ambient';
+
+        this.narrativeLines.push({
+            title: title || '城鎮片刻',
+            message: message || '街道暫時安靜下來。',
+            tone: safeTone
+        });
+        this.lastNarrativeAt = Date.now();
+        this.lastNarrativeTone = safeTone;
+
+        if (this.narrativeLines.length > 30) {
+            this.narrativeLines.shift();
+        }
+
+        if (this.dom.townNarrativeTitle) {
+            this.dom.townNarrativeTitle.textContent = this.getTownTitle();
+        }
+        this.renderTownNarrative();
+    }
+
+    renderTownNarrative() {
+        if (!this.dom?.townDialogueStream) return;
+
+        const latestLine = this.narrativeLines[this.narrativeLines.length - 1];
+        if (!latestLine) return;
+
+        this.dom.townDialogueStream.innerHTML = this.narrativeLines.map(line => `
+            <article class="town-story-entry is-${line.tone}">
+                <span class="world-log-title">${escapeHtml(line.title)}</span>
+                <p class="world-log-message">${escapeHtml(line.message)}</p>
+            </article>
+        `).join('');
+
+        this.dom.townDialogueStream.scrollTop = this.dom.townDialogueStream.scrollHeight;
+
+        if (this.dom.worldStoryLog) {
+            this.dom.worldStoryLog.classList.toggle('is-discovery', latestLine.tone === 'discovery');
+            this.dom.worldStoryLog.classList.toggle('is-warning', latestLine.tone === 'warning');
+        }
+    }
+
+    renderWorldStage() {
+        if (!this.dom?.worldStage) return;
+
+        this.container.querySelectorAll('[data-interaction-id]').forEach(hotspot => {
+            const interactionId = hotspot.dataset.interactionId;
+            hotspot.classList.toggle('is-resolved', worldInteractionManager.hasResolved(interactionId));
+        });
     }
 
     cleanup() {
@@ -348,6 +515,10 @@ export default class LobbyScene {
         if (this._invUpdateRAF) {
             cancelAnimationFrame(this._invUpdateRAF);
             this._invUpdateRAF = null;
+        }
+        if (this.ambientTimer) {
+            clearInterval(this.ambientTimer);
+            this.ambientTimer = null;
         }
     }
     
@@ -547,7 +718,7 @@ export default class LobbyScene {
             this.closeItemModal();
             if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
-            alert('無法使用該物品！');
+            showGlobalToast('無法使用物品', '這個物品目前不能使用。', 'error');
         }
     }
     
@@ -557,7 +728,7 @@ export default class LobbyScene {
             this.closeItemModal();
             if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
-            alert('無法移動至倉庫！');
+            showGlobalToast('移動失敗', '無法將物品放入倉庫。', 'error');
         }
     }
     
@@ -567,30 +738,36 @@ export default class LobbyScene {
             this.closeItemModal();
             if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
         } else {
-            alert('背包已滿！');
+            showGlobalToast('背包已滿', '請先整理背包或移動物品到倉庫。', 'warning');
         }
     }
     
-    sellItem(instanceId, source) {
+    async sellItem(instanceId, source) {
         const sourceArray = source === 'warehouse' ? GameManager.state.warehouse : GameManager.state.inventory;
         const stack = sourceArray.find(s => s.instanceId === instanceId);
         
         if (!stack) return;
         
         const sellPrice = getSellPrice(stack.item, stack.quantity);
-        const confirm = window.confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`);
+        const confirmed = await confirmAction({
+            title: '確認出售',
+            message: `出售「${stack.item.name}」x${stack.quantity} 後會從${source === 'warehouse' ? '倉庫' : '背包'}移除。`,
+            details: [`可獲得 ${sellPrice} 金幣`],
+            confirmText: '出售',
+            type: 'warning'
+        });
         
-        if (confirm) {
+        if (confirmed) {
             const earnedGold = GameManager.sellItem(instanceId, source === 'warehouse');
             if (earnedGold !== false) {
-                    this.closeItemModal();
-                    if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
-                alert(`賣出 ${stack.item.name}，獲得 ${earnedGold} 金幣！`);
+                this.closeItemModal();
+                if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
+                showGlobalToast('出售完成', `已出售「${stack.item.name}」，獲得 ${earnedGold} 金幣。`, 'success');
             }
         }
     }
     
-    discardItem(instanceId, source) {
+    async discardItem(instanceId, source) {
         const sourceArray = source === 'warehouse' ? GameManager.state.warehouse : GameManager.state.inventory;
         const stack = sourceArray.find(s => s.instanceId === instanceId);
         
@@ -599,8 +776,13 @@ export default class LobbyScene {
         const result = GameManager.discardItem(instanceId, source === 'warehouse');
         
         if (result === 'confirm') {
-            const confirm = window.confirm(`「${stack.item.name}」是 ${stack.item.rarity} 稀有度物品！\n確定要丟棄嗎？`);
-            if (confirm) {
+            const confirmed = await confirmAction({
+                title: '確認回收稀有物品',
+                message: `「${stack.item.name}」是 ${stack.item.rarity} 稀有度物品，回收後會永久移除。`,
+                confirmText: '回收',
+                type: 'danger'
+            });
+            if (confirmed) {
                 // Force discard
                 const index = sourceArray.findIndex(s => s.instanceId === instanceId);
                 if (index > -1) {
@@ -608,11 +790,13 @@ export default class LobbyScene {
                     GameManager.notify(source === 'warehouse' ? 'warehouse' : 'inventory');
                     this.closeItemModal();
                     if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
+                    showGlobalToast('已回收物品', `「${stack.item.name}」已移除。`, 'info');
                 }
             }
         } else if (result === true) {
             this.closeItemModal();
             if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
+            showGlobalToast('已回收物品', `「${stack.item.name}」已移除。`, 'info');
         }
     }
     
@@ -622,7 +806,7 @@ export default class LobbyScene {
         
         // Check inventory capacity
         if (GameManager.state.inventory.length >= GameManager.state.inventoryCapacity) {
-            alert('背包已滿！');
+            showGlobalToast('背包已滿', '請先整理背包再卸下裝備。', 'warning');
             return;
         }
         

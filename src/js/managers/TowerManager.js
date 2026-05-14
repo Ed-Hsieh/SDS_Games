@@ -8,7 +8,7 @@ import GameManager from './GameManager.js';
 import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
 import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
-import { getMaterial } from './MaterialManager.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
 export { getBossEquipment };
@@ -414,10 +414,10 @@ export default class TowerManager {
         const sources = resolveDropSources({ monster });
         const drops = generateDropsFromSources(sources, { rng: Math.random });
         for (const drop of drops) {
-            const material = getMaterial(drop.itemId);
-            if (material) {
+            const item = resolveItemById(drop.itemId, { preferBossEquipment: true });
+            if (item && item.id !== rewards.equipment?.id) {
                 rewards.items.push({
-                    ...material,
+                    ...item,
                     quantity: drop.quantity
                 });
             }

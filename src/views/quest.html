@@ -1,28 +1,11 @@
 <!-- 任務公告板視覺背景 -->
 <div class="quest-board-container">
-    <!-- 頂部標籤欄 -->
-    <div class="quest-tabs">
-        <button class="quest-tab active" data-type="main">
-            <span class="tab-icon">📜</span>
-            <span class="tab-label">主線</span>
-        </button>
-        <button class="quest-tab" data-type="bounty">
-            <span class="tab-icon">🎯</span>
-            <span class="tab-label">懸賞</span>
-        </button>
-        <button class="quest-tab" data-type="commission">
-            <span class="tab-icon">📋</span>
-            <span class="tab-label">委託</span>
-        </button>
-        <button class="quest-tab" data-type="hidden">
-            <span class="tab-icon">🔮</span>
-            <span class="tab-label">神秘</span>
-        </button>
-        <button class="quest-tab" data-type="active">
-            <span class="tab-icon">⚔️</span>
-            <span class="tab-label">進行中</span>
-            <span class="badge" id="active-count">0</span>
-        </button>
+    <div class="quest-story-ledger">
+        <div>
+            <span class="ledger-kicker">Story Ledger</span>
+            <h2>故事線索簿</h2>
+        </div>
+        <div class="ledger-summary" id="ledger-summary">0 條線索</div>
     </div>
 
     <!-- 任務面板主體 -->
@@ -30,7 +13,7 @@
         <!-- 左側：任務列表 -->
         <div class="quest-list-panel">
             <div class="quest-list-header">
-                <h3 id="list-title">主線任務</h3>
+                <h3 id="list-title">所有線索</h3>
                 <span class="quest-count" id="quest-count">0 個任務</span>
             </div>
             <div class="quest-list" id="quest-list">
@@ -46,7 +29,7 @@
         <div class="quest-detail-panel" id="quest-detail">
             <div class="detail-placeholder" id="detail-placeholder">
                 <div class="placeholder-icon">📖</div>
-                <p>選擇一個任務查看詳情</p>
+                <p>選擇一條線索查看故事與下一步</p>
             </div>
 
             <div class="detail-content hidden" id="detail-content">
@@ -126,13 +109,4 @@
     </div>
 </div>
 
-<!-- 任務完成通知彈窗 -->
-<div class="quest-notification hidden" id="quest-notification">
-    <div class="notification-content">
-        <div class="notification-icon">🎉</div>
-        <div class="notification-text">
-            <h3 id="notification-title">任務完成！</h3>
-            <p id="notification-message">已解鎖新任務</p>
-        </div>
-    </div>
-</div>
+<!-- 任務通知改由線索簿本身更新，不使用彈跳 toast。 -->

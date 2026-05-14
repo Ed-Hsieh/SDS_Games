@@ -11,8 +11,8 @@
         <!-- 功能切換標籤 -->
         <nav class="forge-tabs">
             <button class="tab-btn active" data-tab="craft">🔨 鍛造製作</button>
+            <button class="tab-btn" data-tab="enhance">⚒️ 裝備強化</button>
             <button class="tab-btn" data-tab="affix">✨ 詞綴重鑄</button>
-            <button class="tab-btn" data-tab="gem">💎 寶石鑲嵌</button>
         </nav>
 
         <!-- 主要內容 -->
@@ -55,6 +55,8 @@
                             <div id="materials-list" class="materials-grid"></div>
                         </div>
 
+                        <div id="forge-craft-guidance" class="forge-craft-guidance" aria-live="polite"></div>
+
                         <div class="craft-details">
                             <div class="detail-row">
                                 <span>製作費用:</span>
@@ -83,6 +85,71 @@
                         <input type="text" id="material-search" placeholder="搜尋材料...">
                     </div>
                     <div class="materials-inventory" id="materials-inventory">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ========== 裝備強化面板 ========== -->
+            <div id="enhance-panel" class="tab-content">
+                <!-- 左側：裝備選擇 -->
+                <section class="equipment-panel">
+                    <h3>📦 選擇裝備</h3>
+                    <div class="equipment-list" id="enhance-equipment-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+
+                <!-- 中間：強化區域 -->
+                <section class="enhance-area">
+                    <div class="selected-equipment" id="selected-enhance-equipment">
+                        <div class="empty-slot">
+                            <span class="empty-icon">⚔️</span>
+                            <span class="empty-text">選擇要強化的裝備</span>
+                        </div>
+                    </div>
+
+                    <div class="enhance-info" id="enhance-info" style="display: none;">
+                        <div class="enhance-summary">
+                            <div class="detail-row">
+                                <span>強化等級:</span>
+                                <span id="enhance-level" class="rate-value">+0 → +1</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>穩定度:</span>
+                                <span id="enhance-stability" class="rate-value">0/0</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>成功率:</span>
+                                <span id="enhance-success-rate" class="rate-value high">100%</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>強化費用:</span>
+                                <span id="enhance-cost" class="cost-value">0 金幣</span>
+                            </div>
+                        </div>
+
+                        <div class="enhance-milestone">
+                            <h4>強化印記</h4>
+                            <div id="enhance-next-milestone" class="milestone-note">下一個印記：+3</div>
+                            <div id="enhance-marks-display" class="affixes-display">
+                                <!-- 動態顯示印記 -->
+                            </div>
+                        </div>
+
+                        <button id="btn-enhance-equipment" class="action-btn enhance-btn">強化裝備</button>
+                    </div>
+
+                    <div class="enhance-result" id="enhance-result" style="display: none;">
+                        <div class="result-icon"></div>
+                        <div class="result-text"></div>
+                    </div>
+                </section>
+
+                <!-- 右側：強化歷史 -->
+                <section class="enhance-history-panel">
+                    <h4>📜 強化紀錄</h4>
+                    <div class="history-list" id="enhance-history">
                         <!-- 動態生成 -->
                     </div>
                 </section>
@@ -128,6 +195,10 @@
                                 <span>重鑄費用:</span>
                                 <span id="reroll-cost" class="cost-value">100 金幣</span>
                             </div>
+                            <div class="detail-row">
+                                <span>素材需求:</span>
+                                <span id="reroll-material-cost" class="cost-value">無</span>
+                            </div>
                             <div class="detail-row warning-text">
                                 ⚠️ 重鑄將隨機更換所有詞綴
                             </div>
@@ -152,54 +223,5 @@
                 </section>
             </div>
 
-            <!-- ========== 寶石鑲嵌面板 ========== -->
-            <div id="gem-panel" class="tab-content">
-                <!-- 左側：可鑲嵌裝備 -->
-                <section class="gem-equipment-panel">
-                    <h3>📦 選擇裝備</h3>
-                    <div class="equipment-list" id="gem-equipment-list">
-                        <!-- 動態生成 -->
-                    </div>
-                </section>
-
-                <!-- 中間：鑲嵌區域 -->
-                <section class="gem-socket-panel">
-                    <div class="selected-gem-equipment" id="selected-gem-equipment">
-                        <div class="empty-slot">
-                            <span class="empty-icon">⚔️</span>
-                            <span class="empty-text">選擇要鑲嵌的裝備</span>
-                        </div>
-                    </div>
-
-                    <div class="gem-socket-info" id="gem-socket-info" style="display: none;">
-                        <h4>寶石槽位</h4>
-                        <div class="gem-slots" id="gem-slots">
-                            <div class="gem-slot empty" data-slot="0">
-                                <span class="slot-icon">◇</span>
-                                <span class="slot-label">空槽位</span>
-                            </div>
-                            <div class="gem-slot empty" data-slot="1">
-                                <span class="slot-icon">◇</span>
-                                <span class="slot-label">空槽位</span>
-                            </div>
-                            <div class="gem-slot locked" data-slot="2">
-                                <span class="slot-icon">🔒</span>
-                                <span class="slot-label">未解鎖</span>
-                            </div>
-                        </div>
-
-                        <button id="btn-socket-gem" class="action-btn socket-btn" disabled>💎 鑲嵌寶石</button>
-                        <button id="btn-remove-gem" class="action-btn remove-btn" disabled>❌ 移除寶石</button>
-                    </div>
-                </section>
-
-                <!-- 右側：寶石庫存 -->
-                <section class="gem-inventory-panel">
-                    <h3>💎 可用寶石</h3>
-                    <div class="gem-inventory" id="gem-inventory">
-                        <!-- 動態生成 -->
-                    </div>
-                </section>
-            </div>
         </main>
     </div>

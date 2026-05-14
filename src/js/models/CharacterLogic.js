@@ -6,6 +6,8 @@
  * concrete classes, while this file only operates on character-shaped objects.
  */
 import { normalizeItemType, readItemStat, readNumber } from './ItemSchema.js';
+import { SetDatabase } from '../data/Equipment.js';
+import { calculateActiveSetBonuses } from '../data/EquipmentBalance.js';
 
 function toPercentInt(raw) {
     const number = readNumber(raw);
@@ -26,32 +28,52 @@ function normalizeEquipmentSlot(item) {
     return normalizeItemType(item.type);
 }
 
+function getSetBonusTotals(character) {
+    return calculateActiveSetBonuses(character, SetDatabase).bonuses;
+}
+
+function getEquipmentBonus(item, stat) {
+    return readNumber(item?.affixBonuses?.[stat]) + readNumber(item?.enhancementBonuses?.[stat]);
+}
+
 export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
+    const setBonuses = getSetBonusTotals(character);
+    let enhancementAllStats = 0;
     Object.values(character.equipment || {}).forEach(item => {
         total += readItemStat(item, 'atk', 'attack');
-        total += readNumber(item?.affixBonuses?.atk);
+        total += getEquipmentBonus(item, 'atk');
+        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
+    total += readNumber(setBonuses.atk);
+    total = Math.floor(total * (1 + toFraction(setBonuses.atkPercent) + toFraction(setBonuses.allStats) + enhancementAllStats));
     total += getBuffValue(character, 'atk');
     return total;
 }
 
 export function getTotalDef(character) {
     let total = readNumber(character.baseDef);
+    const setBonuses = getSetBonusTotals(character);
+    let enhancementAllStats = 0;
     Object.values(character.equipment || {}).forEach(item => {
         total += readItemStat(item, 'def', 'defense');
-        total += readNumber(item?.affixBonuses?.def);
+        total += getEquipmentBonus(item, 'def');
+        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
+    total += readNumber(setBonuses.def);
+    total = Math.floor(total * (1 + toFraction(setBonuses.defPercent) + toFraction(setBonuses.allStats) + enhancementAllStats));
     total += getBuffValue(character, 'def');
     return total;
 }
 
 export function getCritChance(character) {
     let totalCritChance = 0.05;
+    const setBonuses = getSetBonusTotals(character);
     Object.values(character.equipment || {}).forEach(item => {
         totalCritChance += toFraction(readItemStat(item, 'critChance', 'crit_chance'));
-        totalCritChance += toFraction(item?.affixBonuses?.critChance);
+        totalCritChance += toFraction(getEquipmentBonus(item, 'critChance'));
     });
+    totalCritChance += toFraction(setBonuses.critChance);
     totalCritChance += toFraction(getBuffValue(character, 'critChance'));
     return Math.min(totalCritChance, 1.0);
 }
@@ -59,11 +81,13 @@ export function getCritChance(character) {
 export function getCritDamage(character) {
     let totalCritDamage = 1.5;
     let additionalCritDamage = 0;
+    const setBonuses = getSetBonusTotals(character);
     Object.values(character.equipment || {}).forEach(item => {
         const critDamage = readItemStat(item, 'critDamage', 'crit_damage');
         if (critDamage) additionalCritDamage += critDamage - 1.5;
-        additionalCritDamage += toFraction(item?.affixBonuses?.critDamage);
+        additionalCritDamage += toFraction(getEquipmentBonus(item, 'critDamage'));
     });
+    additionalCritDamage += toFraction(setBonuses.critDamage);
     additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
     return totalCritDamage + additionalCritDamage;
 }
@@ -75,14 +99,16 @@ export function getWeaponSpeed(character) {
 
 export function getAttackSpeed(character) {
     let baseSpeed = 1.0;
+    const setBonuses = getSetBonusTotals(character);
     const weapon = character.equipment?.weapon;
     if (weapon?.attackSpeed) {
         baseSpeed = readNumber(weapon.attackSpeed, 1.0);
     }
     let speedBonus = 0;
     Object.values(character.equipment || {}).forEach(item => {
-        speedBonus += toFraction(item?.affixBonuses?.attackSpeed);
+        speedBonus += toFraction(getEquipmentBonus(item, 'attackSpeed'));
     });
+    speedBonus += toFraction(setBonuses.attackSpeed);
     speedBonus += toFraction(getBuffValue(character, 'attackSpeed'));
     return Math.max(0.1, baseSpeed * (1 + speedBonus));
 }
@@ -93,6 +119,7 @@ export function getAttackInterval(character) {
 
 export function getLifesteal(character) {
     let lifesteal = 0;
+    const setBonuses = getSetBonusTotals(character);
     Object.values(character.equipment || {}).forEach(item => {
         if (!item) return;
 
@@ -102,6 +129,10 @@ export function getLifesteal(character) {
         if (item.affixBonuses) {
             if (item.affixBonuses.lifesteal !== undefined && item.affixBonuses.lifesteal !== null) lifesteal += toPercentInt(item.affixBonuses.lifesteal);
             if (item.affixBonuses.lifeStealBonus !== undefined && item.affixBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.affixBonuses.lifeStealBonus);
+        }
+        if (item.enhancementBonuses) {
+            if (item.enhancementBonuses.lifesteal !== undefined && item.enhancementBonuses.lifesteal !== null) lifesteal += toPercentInt(item.enhancementBonuses.lifesteal);
+            if (item.enhancementBonuses.lifeStealBonus !== undefined && item.enhancementBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.enhancementBonuses.lifeStealBonus);
         }
 
         if (Array.isArray(item.affixes)) {
@@ -122,26 +153,40 @@ export function getLifesteal(character) {
         }
     });
 
+    lifesteal += toPercentInt(setBonuses.lifesteal);
     return lifesteal;
 }
 
 export function getDamageReduction(character) {
     let reduction = 0;
+    const setBonuses = getSetBonusTotals(character);
     Object.values(character.equipment || {}).forEach(item => {
         if (!item) return;
         if (item.damageReduction !== undefined && item.damageReduction !== null) reduction += toPercentInt(item.damageReduction) / 100;
         if (item.affixBonuses?.damageReduction !== undefined && item.affixBonuses.damageReduction !== null) {
             reduction += toPercentInt(item.affixBonuses.damageReduction) / 100;
         }
+        if (item.enhancementBonuses?.damageReduction !== undefined && item.enhancementBonuses.damageReduction !== null) {
+            reduction += toPercentInt(item.enhancementBonuses.damageReduction) / 100;
+        }
     });
+    reduction += toPercentInt(setBonuses.damageReduction) / 100;
     return Math.min(reduction, 0.75);
 }
 
 export function getAffixHpBonus(character) {
     let bonus = 0;
+    const setBonuses = getSetBonusTotals(character);
+    let enhancementAllStats = 0;
     Object.values(character.equipment || {}).forEach(item => {
-        bonus += readNumber(item?.affixBonuses?.hp);
+        bonus += readNumber(readItemStat(item, 'hp', [], 0));
+        bonus += getEquipmentBonus(item, 'hp');
+        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
+    bonus += readNumber(setBonuses.hp);
+    if (enhancementAllStats > 0) {
+        bonus = Math.floor(bonus * (1 + enhancementAllStats));
+    }
     return bonus;
 }
 

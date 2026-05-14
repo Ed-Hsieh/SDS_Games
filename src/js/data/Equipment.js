@@ -1,21 +1,7 @@
 
 // 特殊效果類型
 import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
-
-// 耐久度基準：以稀有度與類型決定初始值，確保每件裝備都有獨立耐久度
-const rarityDurabilityBase = {
-    [ItemRarity.COMMON]: 40,
-    [ItemRarity.UNCOMMON]: 50,
-    [ItemRarity.RARE]: 60,
-    [ItemRarity.EPIC]: 70,
-    [ItemRarity.LEGENDARY]: 80
-};
-
-const typeDurabilityBonus = {
-    [EquipmentType.WEAPON]: 8,
-    [EquipmentType.EQUIPMENT]: 12,
-    [EquipmentType.ACCESSORY]: 0
-};
+import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
 
 /**
  * 裝備資料庫
@@ -127,7 +113,7 @@ export const EquipmentDatabase = {
         ],
         setId: 'wolf_hunter',
         description: '由狼牙製成的武器，有機率造成雙重打擊。',
-        dropFrom: ['forest_wolf', 'tower_alpha_wolf']
+        dropFrom: ['wild_wolf', 'tower_alpha_wolf']
     },
 
     wolf_pelt_armor: {
@@ -147,7 +133,7 @@ export const EquipmentDatabase = {
         ],
         setId: 'wolf_hunter',
         description: '由狼皮製成的護甲，輕便保暖。',
-        dropFrom: ['forest_wolf']
+        dropFrom: ['wild_wolf']
     },
 
     spider_silk_gloves: {
@@ -919,7 +905,6 @@ export const EquipmentDatabase = {
         description: '森林守護者留下的法杖，充滿自然之力。',
         setId: null,
         canEnhance: true,
-        gemSlots: 1,
         level: 5,
         dropSource: 'forest_guardian'
     },
@@ -944,7 +929,6 @@ export const EquipmentDatabase = {
         description: '巫妖的法杖，充滿死亡的氣息。',
         setId: null,
         canEnhance: true,
-        gemSlots: 2,
         level: 8,
         // 保留元素傷害作為特殊效果
         specialEffects: [ { type: AffixStat.POISON, value: 10 } ],
@@ -970,7 +954,6 @@ export const EquipmentDatabase = {
         description: '暗影指揮官的配劍，鋒利無比。',
         setId: null,
         canEnhance: true,
-        gemSlots: 2,
         level: 12,
         dropSource: 'shadow_commander'
     },
@@ -993,7 +976,6 @@ export const EquipmentDatabase = {
         description: '遠古泰坦的護手，蘊含遠古之力。',
         setId: 'titan',
         canEnhance: true,
-        gemSlots: 2,
         level: 16,
         dropSource: 'ancient_titan'
     },
@@ -1016,7 +998,6 @@ export const EquipmentDatabase = {
         description: '融合四大元素之力的神秘寶珠。',
         setId: null,
         canEnhance: true,
-        gemSlots: 2,
         level: 20,
         specialEffects: [
             { type: AffixStat.FIRE, value: 8 },
@@ -1045,7 +1026,6 @@ export const EquipmentDatabase = {
         description: '由古龍牙齒鍛造的神劍，燃燒著龍焰。',
         setId: null,
         canEnhance: true,
-        gemSlots: 3,
         level: 24,
         specialEffects: [ { type: AffixStat.FIRE, value: 15 } ],
         dropSource: 'elder_dragon'
@@ -1069,7 +1049,6 @@ export const EquipmentDatabase = {
         description: '暗影霸主的戰甲，堅不可摧。',
         setId: null,
         canEnhance: true,
-        gemSlots: 3,
         level: 26,
         specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 0.08 } ],
         dropSource: 'shadow_overlord'
@@ -1099,7 +1078,6 @@ export const EquipmentDatabase = {
         description: '魔王阿薩謝爾的戰甲，散發著邪惡的氣息。',
         setId: null,
         canEnhance: true,
-        gemSlots: 3,
         level: 28,
         dropSource: 'demon_lord_asariel'
     }
@@ -1109,24 +1087,20 @@ export const EquipmentDatabase = {
 Object.values(EquipmentDatabase).forEach((item, index) => {
     // 稀有度欄位名稱統一，避免 UI 顯示遺失
     const level = Number(item.level) || 1;
-    const rarityBase = rarityDurabilityBase[item.rarity] ?? 50;
-    const typeBonus = typeDurabilityBonus[item.type] ?? 0;
 
-    // 生成每件裝備的專屬耐久度：基準 + 等級微調 + 序號去重
-    const generatedMax = rarityBase + typeBonus + Math.max(0, Math.floor(level / 2)) + (index % 7);
+    // 生成每件裝備的專屬耐久度：由共用平衡表統一決定
+    const generatedMax = getDurabilityForEquipment(item, index);
 
     if (item.maxDurability === undefined) item.maxDurability = generatedMax;
     if (item.durability === undefined) item.durability = item.maxDurability;
-
-    // 停用寶石槽功能：清空槽位數並同步 stats
-    item.gemSlots = 0;
-    item.socketedGems = [];
+    if (item.requiredLevel === undefined) item.requiredLevel = level;
+    if (item.balanceTier === undefined) item.balanceTier = getLevelBand(level).id;
+    if (item.powerBudget === undefined) item.powerBudget = getEquipmentPowerBudget(item);
 
     // 若 stats 物件存在且缺少耐久度，同步進去方便工具取用
     if (item.stats) {
         if (item.stats.maxDurability === undefined) item.stats.maxDurability = item.maxDurability;
         if (item.stats.durability === undefined) item.stats.durability = item.durability;
-        item.stats.gemSlots = 0;
     }
 });
 

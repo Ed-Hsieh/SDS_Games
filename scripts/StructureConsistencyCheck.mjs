@@ -92,6 +92,7 @@ if (fs.existsSync(globalCss)) {
 for (const file of [
     path.join(root, 'src/css/global.css'),
     path.join(root, 'src/css/scenes.css'),
+    path.join(root, 'src/css/ui-foundation.css'),
     path.join(root, 'src/style/hall.css'),
     path.join(root, 'src/style/marketplace.css')
 ]) {
@@ -106,6 +107,16 @@ for (const file of [
     }
     if (depth !== 0 || minDepth < 0) {
         push('css-braces', `${rel(file)} has unbalanced CSS braces`);
+    }
+}
+
+const indexHtml = path.join(root, 'index.html');
+if (fs.existsSync(indexHtml)) {
+    const cssLinks = [...read(indexHtml).matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match => match[1]);
+    if (!cssLinks.includes('src/css/ui-foundation.css')) {
+        push('ui-foundation', 'index.html should load src/css/ui-foundation.css');
+    } else if (cssLinks[cssLinks.length - 1] !== 'src/css/ui-foundation.css') {
+        push('ui-foundation', 'src/css/ui-foundation.css should be the final stylesheet so layout fixes win');
     }
 }
 

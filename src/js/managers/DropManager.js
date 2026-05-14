@@ -29,7 +29,8 @@ const ZoneTypeToPoolKey = {
     low: 'low_forest',
     medium: 'ice_field',
     high: 'volcano',
-    boss: 'volcano'
+    death: 'death_wastes',
+    boss: 'death_wastes'
 };
 
 function resolveZonePoolKey(zoneIdOrType) {

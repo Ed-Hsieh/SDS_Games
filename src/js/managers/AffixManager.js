@@ -7,6 +7,13 @@
 import { AffixStat, ItemRarity } from '../models/Enums.js';
 import {PrefixDatabase, SuffixDatabase} from '../data/Prefixes.js';
 import { formatAffixStats } from '../utils/ItemDisplay.js';
+import {
+    createEmptyAffixBonuses,
+    getAffixCountRange,
+    getAffixSlots,
+    normalizeEquipmentKind,
+    rollWeightedAffixRarity
+} from '../data/EquipmentBalance.js';
 
 // Normalize various stat key forms to central AffixStat values
 function normalizeStatKey(stat) {
@@ -52,23 +59,6 @@ export const AffixType = {
     SUFFIX: 'suffix'    // 後綴
 };
 
-// 詞綴稀有度權重（用於隨機選擇）
-const AFFIX_RARITY_WEIGHTS = {
-    [ItemRarity.COMMON]: { common: 70, uncommon: 25, rare: 5, epic: 0, legendary: 0 },
-    [ItemRarity.UNCOMMON]: { common: 50, uncommon: 35, rare: 12, epic: 3, legendary: 0 },
-    [ItemRarity.RARE]: { common: 30, uncommon: 35, rare: 25, epic: 8, legendary: 2 },
-    [ItemRarity.EPIC]: { common: 10, uncommon: 25, rare: 35, epic: 25, legendary: 5 },
-    [ItemRarity.LEGENDARY]: { common: 0, uncommon: 10, rare: 30, epic: 40, legendary: 20 }
-};
-// 根據裝備稀有度決定詞綴數量
-const AFFIX_COUNT_BY_RARITY = {
-    [ItemRarity.COMMON]: { min: 0, max: 1 },
-    [ItemRarity.UNCOMMON]: { min: 1, max: 2 },
-    [ItemRarity.RARE]: { min: 1, max: 3 },
-    [ItemRarity.EPIC]: { min: 2, max: 4 },
-    [ItemRarity.LEGENDARY]: { min: 3, max: 5 }
-};
-
 /**
  * 詞綴管理器類
  */
@@ -82,17 +72,7 @@ export class AffixManager {
      * 根據稀有度權重隨機選擇詞綴稀有度
      */
     rollAffixRarity(equipmentRarity) {
-        const weights = AFFIX_RARITY_WEIGHTS[equipmentRarity] || AFFIX_RARITY_WEIGHTS[ItemRarity.COMMON];
-        const roll = Math.random() * 100;
-        let cumulative = 0;
-        
-        for (const [rarity, weight] of Object.entries(weights)) {
-            cumulative += weight;
-            if (roll < cumulative) {
-                return rarity;
-            }
-        }
-        return ItemRarity.COMMON;
+        return rollWeightedAffixRarity(equipmentRarity);
     }
     
     /**
@@ -145,48 +125,31 @@ export class AffixManager {
             return equipment;
         }
         
-        const equipmentType = equipment.type;
+        const equipmentType = normalizeEquipmentKind(equipment.type);
         const equipmentRarity = equipment.rarity || ItemRarity.COMMON;
         
         // 確定詞綴數量
-        const countRange = AFFIX_COUNT_BY_RARITY[equipmentRarity] || { min: 0, max: 1 };
+        const countRange = getAffixCountRange(equipmentRarity);
         const affixCount = Math.floor(Math.random() * (countRange.max - countRange.min + 1)) + countRange.min;
         
         if (affixCount === 0) return equipment;
         
         // 初始化詞綴數組
         equipment.affixes = [];
-        equipment.affixBonuses = {
-            [AffixStat.ATK]: 0,
-            [AffixStat.DEF]: 0,
-            [AffixStat.HP]: 0,
-            [AffixStat.MP]: 0,
-            [AffixStat.CRIT_CHANCE]: 0,
-            [AffixStat.CRIT_DAMAGE]: 0,
-            [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFE_STEAL]: 0,
-            [AffixStat.DAMAGE_REDUCTION]: 0,
-            [AffixStat.HP_REGEN]: 0,
-            [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE]: 0,
-            [AffixStat.ICE]: 0,
-            [AffixStat.THUNDER]: 0,
-            [AffixStat.VOID]: 0,
-            [AffixStat.SLOW_CHANCE]: 0,
-            [AffixStat.STUN_CHANCE]: 0,
-            [AffixStat.DODGE_CHANCE]: 0,
-            [AffixStat.ARMOR_PENETRATION]: 0,
-            [AffixStat.BOSS_BONUS]: 0,
-            [AffixStat.ALL_STATS]: 0
-        };
+        equipment.affixBonuses = createEmptyAffixBonuses();
         
         const usedAffixIds = new Set();
         let prefixCount = 0;
         let suffixCount = 0;
+        const slots = getAffixSlots(equipmentRarity);
         
         for (let i = 0; i < affixCount; i++) {
             // 決定生成前綴還是後綴
-            const usePrefix = prefixCount < 2 && (suffixCount >= 2 || Math.random() < 0.5);
+            const canUsePrefix = prefixCount < slots.prefix;
+            const canUseSuffix = suffixCount < slots.suffix;
+            if (!canUsePrefix && !canUseSuffix) break;
+
+            const usePrefix = canUsePrefix && (!canUseSuffix || Math.random() < 0.5);
             const affixDatabase = usePrefix ? this.prefixes : this.suffixes;
             
             // 決定詞綴稀有度
@@ -286,17 +249,17 @@ export class AffixManager {
      */
     getAffixSlots(rarity) {
         const slotsByRarity = {
-            [ItemRarity.COMMON]: { prefix: 0, suffix: 0 },
-            [ItemRarity.UNCOMMON]: { prefix: 1, suffix: 0 },
-            [ItemRarity.RARE]: { prefix: 1, suffix: 1 },
-            [ItemRarity.EPIC]: { prefix: 2, suffix: 1 },
-            [ItemRarity.LEGENDARY]: { prefix: 2, suffix: 2 },
+            [ItemRarity.COMMON]: getAffixSlots(ItemRarity.COMMON),
+            [ItemRarity.UNCOMMON]: getAffixSlots(ItemRarity.UNCOMMON),
+            [ItemRarity.RARE]: getAffixSlots(ItemRarity.RARE),
+            [ItemRarity.EPIC]: getAffixSlots(ItemRarity.EPIC),
+            [ItemRarity.LEGENDARY]: getAffixSlots(ItemRarity.LEGENDARY),
             // 字串對應（小寫）
-            'common': { prefix: 0, suffix: 0 },
-            'uncommon': { prefix: 1, suffix: 0 },
-            'rare': { prefix: 1, suffix: 1 },
-            'epic': { prefix: 2, suffix: 1 },
-            'legendary': { prefix: 2, suffix: 2 }
+            'common': getAffixSlots(ItemRarity.COMMON),
+            'uncommon': getAffixSlots(ItemRarity.UNCOMMON),
+            'rare': getAffixSlots(ItemRarity.RARE),
+            'epic': getAffixSlots(ItemRarity.EPIC),
+            'legendary': getAffixSlots(ItemRarity.LEGENDARY)
         };
         
         return slotsByRarity[rarity] || { prefix: 0, suffix: 0 };
@@ -306,29 +269,7 @@ export class AffixManager {
      * 計算裝備的總詞綴加成
      */
     getTotalAffixBonuses(equipment) {
-        return equipment.affixBonuses || {
-            [AffixStat.ATK]: 0,
-            [AffixStat.DEF]: 0,
-            [AffixStat.HP]: 0,
-            [AffixStat.MP]: 0,
-            [AffixStat.CRIT_CHANCE]: 0,
-            [AffixStat.CRIT_DAMAGE]: 0,
-            [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFE_STEAL]: 0,
-            [AffixStat.DAMAGE_REDUCTION]: 0,
-            [AffixStat.HP_REGEN]: 0,
-            [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE]: 0,
-            [AffixStat.ICE]: 0,
-            [AffixStat.THUNDER]: 0,
-            [AffixStat.VOID]: 0,
-            [AffixStat.SLOW_CHANCE]: 0,
-            [AffixStat.STUN_CHANCE]: 0,
-            [AffixStat.DODGE_CHANCE]: 0,
-            [AffixStat.ARMOR_PENETRATION]: 0,
-            [AffixStat.BOSS_BONUS]: 0,
-            [AffixStat.ALL_STATS]: 0
-        };
+        return equipment.affixBonuses || createEmptyAffixBonuses();
     }
     
     /**
@@ -344,35 +285,14 @@ export class AffixManager {
         
         // 重置
         equipment.affixes = keptAffixes;
-        equipment.affixBonuses = {
-            [AffixStat.ATK]: 0,
-            [AffixStat.DEF]: 0,
-            [AffixStat.HP]: 0,
-            [AffixStat.MP]: 0,
-            [AffixStat.CRIT_CHANCE]: 0,
-            [AffixStat.CRIT_DAMAGE]: 0,
-            [AffixStat.ATTACK_SPEED]: 0,
-            [AffixStat.LIFE_STEAL]: 0,
-            [AffixStat.DAMAGE_REDUCTION]: 0,
-            [AffixStat.HP_REGEN]: 0,
-            [AffixStat.MP_REGEN]: 0,
-            [AffixStat.FIRE]: 0,
-            [AffixStat.ICE]: 0,
-            [AffixStat.THUNDER]: 0,
-            [AffixStat.VOID]: 0,
-            [AffixStat.SLOW_CHANCE]: 0,
-            [AffixStat.STUN_CHANCE]: 0,
-            [AffixStat.DODGE_CHANCE]: 0,
-            [AffixStat.ARMOR_PENETRATION]: 0,
-            [AffixStat.BOSS_BONUS]: 0,
-            [AffixStat.ALL_STATS]: 0
-        };
+        equipment.affixBonuses = createEmptyAffixBonuses();
         
         // 重新累計保留的詞綴
         for (const affix of keptAffixes) {
             for (const [stat, value] of Object.entries(affix.stats)) {
-                if (equipment.affixBonuses[stat] !== undefined) {
-                    equipment.affixBonuses[stat] += value;
+                const norm = normalizeStatKey(stat) || stat;
+                if (equipment.affixBonuses[norm] !== undefined) {
+                    equipment.affixBonuses[norm] += value;
                 }
             }
         }

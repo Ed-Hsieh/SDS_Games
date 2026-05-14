@@ -7,6 +7,9 @@ import GameManager from './GameManager.js';
 import { Consumable, Item } from '../models/DataModel.js';
 import { ItemType, ItemRarity } from '../models/Enums.js';
 import { weightedPick } from '../utils/WeightedPick.js';
+import { questManager, QuestStatus } from './QuestManager.js';
+import { getQuestById } from '../data/Quests.js';
+import { worldInteractionManager } from './WorldInteractionManager.js';
 
 export function getEventForZone(zoneType, rng = Math.random) {
     if (!zoneType) zoneType = 'low';
@@ -74,8 +77,7 @@ function getWeightedRandomResults(randomResults, rng = Math.random) {
 function generateEventItem(itemType) {
     const timestamp = Date.now();
     switch (itemType) {
-        case 'gem': {
-            // 鑲嵌功能已停用，改為獎勵強化石（材料）
+        case 'forge_material': {
             return new Item(`enhance_stone_${timestamp}`, '強化石', ItemType.MATERIAL, ItemRarity.RARE, '🪨', '可用於強化或任務的材料。', 150);
         }
         case 'random':
@@ -182,6 +184,31 @@ function applyResultToCharacter(char, result) {
             const item = generateEventItem(result.itemType);
             if (item) GameManager.addToInventory(item);
             return result.message || (item ? `獲得 ${item.name}！` : result.message);
+        }
+        case ResultType.UNLOCK_QUEST: {
+            const questId = result.questId || result.value;
+            if (!questId) return result.message;
+
+            const before = questManager.getQuestState(questId);
+            questManager.unlockQuest(questId);
+            const after = questManager.getQuestState(questId);
+            const quest = getQuestById(questId);
+
+            if (result.message) return result.message;
+            if (before.status === QuestStatus.LOCKED && after.status !== QuestStatus.LOCKED && quest) {
+                return `新的任務線索已記錄：${quest.name}`;
+            }
+            return quest ? `已記錄任務線索：${quest.name}` : null;
+        }
+        case ResultType.WORLD_INTERACTION: {
+            const interactionId = result.interactionId || result.value;
+            const outcome = worldInteractionManager.trigger(interactionId, {
+                source: 'event',
+                toast: result.toast
+            });
+
+            if (result.message) return result.message;
+            return outcome.messages?.join(' ') || null;
         }
         default:
             return result.message;

@@ -22,7 +22,9 @@ export const ResultType = {
     BUFF: 'buff',
     DEBUFF: 'debuff',
     STAT: 'stat',
-    EXP: 'exp'
+    EXP: 'exp',
+    UNLOCK_QUEST: 'unlock_quest',
+    WORLD_INTERACTION: 'world_interaction'
 };
 
 /**
@@ -169,7 +171,7 @@ export const EventDatabase = [
                 chance: 0.25,
                 successResults: [
                     { type: ResultType.GOLD, value: 500, message: '大獎！你獲得了豐厚獎勵！' },
-                    { type: ResultType.ITEM, itemType: 'gem', message: '還獲得了一顆寶石！' }
+                    { type: ResultType.ITEM, itemType: 'forge_material', message: '還獲得了一份稀有鍛造素材！' }
                 ],
                 failResults: [
                     { type: ResultType.GOLD, value: 20, message: '安慰獎，返還一點金幣。' }
@@ -350,6 +352,46 @@ export const EventDatabase = [
         ]
     },
 
+    {
+        id: 'abandoned_blueprint_cache',
+        name: '殘破製作圖匣',
+        icon: '📜',
+        type: EventType.MYSTERY,
+        description: '路邊的碎木匣裡夾著幾張被雨水泡皺的圖紙。紙面上的標記像是某種鍛造記錄。',
+        choices: [
+            {
+                text: '整理圖紙',
+                results: [
+                    { type: ResultType.WORLD_INTERACTION, interactionId: 'field_blueprint_cache' }
+                ]
+            },
+            {
+                text: '先放回原處',
+                results: []
+            }
+        ]
+    },
+
+    {
+        id: 'weathered_route_tablet',
+        name: '風化路線石碑',
+        icon: '🪨',
+        type: EventType.MYSTERY,
+        description: '草叢裡露出一截舊石碑，刻痕像路線，也像某種警告。碑底有洞窟形狀的標記。',
+        choices: [
+            {
+                text: '拓印刻痕',
+                results: [
+                    { type: ResultType.WORLD_INTERACTION, interactionId: 'ruin_tablet_trace' }
+                ]
+            },
+            {
+                text: '不碰它',
+                results: []
+            }
+        ]
+    },
+
     // ===== 遭遇事件 =====
     {
         id: 'injured_adventurer',
@@ -414,7 +456,7 @@ export const EventDatabase = [
 export function getEventsForZone(zone) {
     // 不同區域有不同的事件權重
     const zoneWeights = {
-        'low': { [EventType.BLESSING]: 40, [EventType.TRADE]: 30, [EventType.ENCOUNTER]: 20, [EventType.GAMBLE]: 10 },
+        'low': { [EventType.BLESSING]: 35, [EventType.TRADE]: 25, [EventType.ENCOUNTER]: 20, [EventType.GAMBLE]: 10, [EventType.MYSTERY]: 10 },
         'medium': { [EventType.TRADE]: 30, [EventType.GAMBLE]: 25, [EventType.MYSTERY]: 25, [EventType.ENCOUNTER]: 20 },
         'high': { [EventType.CURSE]: 25, [EventType.GAMBLE]: 25, [EventType.MYSTERY]: 30, [EventType.ENCOUNTER]: 20 },
         'boss': { [EventType.CURSE]: 30, [EventType.MYSTERY]: 40, [EventType.BLESSING]: 30 }

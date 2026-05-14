@@ -7,10 +7,11 @@ import WorldMap from '../utils/WorldMap.js';
 import { eventManager } from '../managers/EventManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
-import { getMaterial } from '../managers/MaterialManager.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 
 // Preload FightManager for unified management (fallback to promise if not ready)
@@ -35,8 +36,10 @@ export default class AdventureScene {
         this.canvas = null;
         this.ctx = null;
         this.currentBattle = null;
+        this.currentBattleZone = null;
         this.rhythmSystem = null;
         this.animationFrameId = null;
+        this.lootCloseHandler = null;
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
         
         // Bindings
@@ -654,7 +657,7 @@ export default class AdventureScene {
     teleportPlayerToZone(zone) {
         const target = this.findRandomEmptyCellInZone(zone);
         if (!target) {
-            alert('找不到可傳送的位置。');
+            showGlobalToast('傳送失敗', '找不到可傳送的位置。', 'error');
             this.worldMap.clearCurrentRift();
             this.isLocked = false;
             return;
@@ -998,7 +1001,7 @@ export default class AdventureScene {
             return potions[Math.floor(Math.random() * potions.length)];
         } else if (itemType < 0.6) {
             // 生成材料
-            return new Item(`treasure_material_${timestamp}`, '神秘寶石', ItemType.MATERIAL, rarity, '💎', '從寶箱中發現的神秘寶石', 100);
+            return new Item(`treasure_material_${timestamp}`, '神秘礦晶', ItemType.MATERIAL, rarity, '🔮', '從寶箱中發現的神秘礦晶', 100);
         }
         
         return null;
@@ -1027,6 +1030,10 @@ export default class AdventureScene {
 
     startBattle() {
         const monster = this.worldMap.getCurrentMonster();
+        this.currentBattleZone = monster?.zoneId || this.worldMap?.getCurrentZone?.() || null;
+        if (monster && !monster.zoneId) {
+            monster.zoneId = this.currentBattleZone;
+        }
         
         this.battleLog = []; // 清空戰鬥日誌
         this.currentBattle = new AdventureBattleViewController(GameManager.getCharacter(), monster, this);
@@ -1412,7 +1419,7 @@ export default class AdventureScene {
             inventoryPanel.innerHTML = '';
 
             if (stateInv.length === 0) {
-                inventoryPanel.innerHTML = '<div class="empty-state">背包是空的<br><span class="hint-arrow">←</span> 點擊右側戰利品拾取</div>';
+                inventoryPanel.innerHTML = '<div class="empty-state">背包是空的<br><span class="hint-arrow">←</span> 點擊右側戰利品放入背包</div>';
                 return;
             }
 
@@ -1454,7 +1461,7 @@ export default class AdventureScene {
             lootContainer.innerHTML = '';
 
             if (lootPool.length === 0) {
-                lootContainer.innerHTML = '<div class="empty-state">沒有戰利品</div>';
+                lootContainer.innerHTML = '<div class="empty-state">戰利品已整理完畢</div>';
                 return;
             }
 
@@ -1474,7 +1481,7 @@ export default class AdventureScene {
                 slot.onclick = () => {
                     const success = GameManager.addToInventory(it, 1);
                     if (!success) {
-                        alert('背包已滿！請先將左側物品移回右側或擴充背包');
+                        showGlobalToast('背包已滿', '請先將左側物品移回右側或擴充背包。', 'warning');
                         return;
                     }
                     // remove from lootPool
@@ -1494,7 +1501,11 @@ export default class AdventureScene {
         // Close button behavior: collect remaining loot into warehouse then close modal
         const closeBtn = this.dom.lootCloseBtn || this.container.querySelector('#btn-close-loot');
         if (closeBtn) {
-            const handler = () => {
+            if (this.lootCloseHandler) {
+                closeBtn.removeEventListener('click', this.lootCloseHandler);
+            }
+
+            this.lootCloseHandler = () => {
                 // send remaining loot to warehouse
                 lootPool.forEach(it => {
                     try { GameManager.addToWarehouse(it, 1); } catch (e) { console.warn('addToWarehouse failed', e); }
@@ -1506,11 +1517,10 @@ export default class AdventureScene {
                 updatePlayerInventory();
                 updateLootPool();
                 // Remove this listener to avoid duplicates
-                closeBtn.removeEventListener('click', handler);
+                closeBtn.removeEventListener('click', this.lootCloseHandler);
+                this.lootCloseHandler = null;
             };
-            // ensure we don't add multiple handlers
-            closeBtn.removeEventListener('click', handler);
-            closeBtn.addEventListener('click', handler);
+            closeBtn.addEventListener('click', this.lootCloseHandler);
         }
     }
 }
@@ -1808,7 +1818,11 @@ class AdventureBattleViewController {
         this.battleEnded = true;
         
         // 使用 DropManager 的 resolve + generate 流程取得掉落物品
-        const sources = resolveDropSources({ monster: this.monster });
+        const zoneId = this.monster.zoneId
+            || this.scene?.currentBattleZone
+            || this.scene?.worldMap?.getCurrentZone?.()
+            || null;
+        const sources = resolveDropSources({ monster: this.monster, zoneId });
         const drops = generateDropsFromSources(sources, { rng: Math.random });
         const gold = this.monster.gold || 0;
         
@@ -1816,11 +1830,10 @@ class AdventureBattleViewController {
         const droppedItems = [];
         for (const drop of drops) {
             // 嘗試從材料資料庫獲取
-            let item = getMaterial(drop.itemId);
+            const item = resolveItemById(drop.itemId, {
+                order: ['material', 'equipment', 'shop', 'bossEquipment', 'questReward']
+            });
             // 如果不是材料，嘗試從裝備資料庫獲取
-            if (!item) {
-                item = getEquipment(drop.itemId);
-            }
             if (item) {
                 droppedItems.push({
                     ...item,
@@ -1855,7 +1868,7 @@ class AdventureBattleViewController {
         
         setTimeout(() => {
             this.scene.endBattle(false);
-            alert(`你被擊敗了，損失了 ${penalty} 金幣。`);
+            showGlobalToast('戰鬥失敗', `你被擊敗了，損失了 ${penalty} 金幣。`, 'warning');
         }, 1500);
     }
 
@@ -2071,7 +2084,7 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
     if (isEquipment) {
         const equipBtn = document.createElement('button');
         equipBtn.className = 'btn btn-primary';
-        equipBtn.textContent = '✅ 裝備';
+        equipBtn.textContent = '⚔️ 裝備';
         equipBtn.addEventListener('click', () => {
             GameManager.equipItem(stack.instanceId, false);
             this.closeItemDetailModal();
@@ -2082,7 +2095,7 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
     if (isConsumable) {
         const useBtn = document.createElement('button');
         useBtn.className = 'btn btn-info';
-        useBtn.textContent = '✅ 使用';
+        useBtn.textContent = '🧪 使用';
         useBtn.addEventListener('click', () => {
             GameManager.useConsumable(stack.instanceId, false);
             this.closeItemDetailModal();
@@ -2094,29 +2107,46 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
     const sellBtn = document.createElement('button');
     sellBtn.className = 'btn btn-warning';
     sellBtn.textContent = '💰 販售';
-    sellBtn.addEventListener('click', () => {
+    sellBtn.addEventListener('click', async () => {
         const sellPrice = getSellPrice(stack.item, stack.quantity);
-        if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
-            GameManager.sellItem(stack.instanceId, false);
-            this.closeItemDetailModal();
-            this.renderInventory();
+        const confirmed = await confirmAction({
+            title: '確認出售',
+            message: `出售「${stack.item.name}」x${stack.quantity} 後會從背包移除。`,
+            details: [`可獲得 ${sellPrice} 金幣`],
+            confirmText: '出售',
+            type: 'warning'
+        });
+        if (!confirmed) return;
+
+        const earnedGold = GameManager.sellItem(stack.instanceId, false);
+        this.closeItemDetailModal();
+        this.renderInventory();
+        if (earnedGold !== false) {
+            showGlobalToast('出售完成', `已出售「${stack.item.name}」，獲得 ${earnedGold} 金幣。`, 'success');
         }
     });
     actions.push(sellBtn);
 
     const discardBtn = document.createElement('button');
     discardBtn.className = 'btn btn-danger';
-    discardBtn.textContent = '🗑️ 丟棄';
-    discardBtn.addEventListener('click', () => {
-        if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
-            const index = GameManager.state.inventory.findIndex(s => s.instanceId === stack.instanceId);
-            if (index > -1) {
-                GameManager.state.inventory.splice(index, 1);
-                GameManager.notify('inventory');
-            }
-            this.closeItemDetailModal();
-            this.renderInventory();
+    discardBtn.textContent = '🗑️ 回收';
+    discardBtn.addEventListener('click', async () => {
+        const confirmed = await confirmAction({
+            title: '確認回收',
+            message: `回收「${stack.item.name}」後會永久移除。`,
+            confirmText: '回收',
+            type: 'danger'
+        });
+        if (!confirmed) return;
+
+        const index = GameManager.state.inventory.findIndex(s => s.instanceId === stack.instanceId);
+        if (index > -1) {
+            GameManager.state.inventory.splice(index, 1);
+            GameManager.notify('inventory');
         }
+        this.closeItemDetailModal();
+        this.renderInventory();
+        showGlobalToast('已回收物品', `「${stack.item.name}」已移除。`, 'info');
     });
     actions.push(discardBtn);
 
@@ -2169,27 +2199,44 @@ window.adventureUseItem = function(instanceId) {
     window.adventureRefreshInventory();
 };
 
-window.adventureSellItem = function(instanceId) {
+window.adventureSellItem = async function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
     
     const sellPrice = getSellPrice(stack.item, stack.quantity);
-    if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
-        GameManager.sellItem(instanceId, false);
+    const confirmed = await confirmAction({
+        title: '確認出售',
+        message: `出售「${stack.item.name}」x${stack.quantity} 後會從背包移除。`,
+        details: [`可獲得 ${sellPrice} 金幣`],
+        confirmText: '出售',
+        type: 'warning'
+    });
+    if (confirmed) {
+        const earnedGold = GameManager.sellItem(instanceId, false);
         window.adventureRefreshInventory();
+        if (earnedGold !== false) {
+            showGlobalToast('出售完成', `已出售「${stack.item.name}」，獲得 ${earnedGold} 金幣。`, 'success');
+        }
     }
 };
 
-window.adventureDiscardItem = function(instanceId) {
+window.adventureDiscardItem = async function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
     
-    if (confirm(`確定要丟棄 ${stack.item.name}？`)) {
+    const confirmed = await confirmAction({
+        title: '確認回收',
+        message: `回收「${stack.item.name}」後會永久移除。`,
+        confirmText: '回收',
+        type: 'danger'
+    });
+    if (confirmed) {
         const index = GameManager.state.inventory.findIndex(s => s.instanceId === instanceId);
         if (index > -1) {
             GameManager.state.inventory.splice(index, 1);
             GameManager.notify('inventory');
         }
+        showGlobalToast('已回收物品', `「${stack.item.name}」已移除。`, 'info');
     }
     window.adventureRefreshInventory();
 };

@@ -9,8 +9,6 @@ export const ITEM_TYPE_TEXT = {
     material: '材料',
     currency: '貨幣',
     key: '鑰匙',
-    gem: '寶石',
-    socket_gem: '鑲嵌寶石',
     book: '書籍',
     quest: '任務道具'
 };
@@ -223,6 +221,18 @@ export function buildItemStatsHtml(item, options = {}) {
             return `<div class="item-affix ${rarity}"><span class="affix-name">${name}</span><span class="affix-stats">${stats}</span></div>`;
         }).join('');
         html += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>${affixes}</div>`;
+    }
+
+    const enhancementMarks = Object.values(item.enhancementMarks || {})
+        .sort((a, b) => (a.milestone || 0) - (b.milestone || 0));
+    if (enhancementMarks.length > 0) {
+        const marks = enhancementMarks.map(mark => {
+            const rarity = escapeHtml(mark.rarity || 'rare');
+            const name = escapeHtml(mark.label || `+${mark.milestone} 強化印記`);
+            const stats = escapeHtml(mark.stats ? formatAffixStats(mark.stats) : formatAffixStats({ [mark.stat]: mark.value }));
+            return `<div class="item-affix ${rarity}"><span class="affix-name">+${mark.milestone} ${name}</span><span class="affix-stats">${stats}</span></div>`;
+        }).join('');
+        html += `<div class="item-affixes-section"><div class="affixes-title">⚒️ 強化印記</div>${marks}</div>`;
     }
 
     return html;

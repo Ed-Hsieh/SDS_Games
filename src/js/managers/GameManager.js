@@ -107,7 +107,11 @@ class GameManager {
         if (this._notifyScheduled) return;
 
         this._notifyScheduled = true;
-        requestAnimationFrame(() => {
+        const scheduleFrame = typeof requestAnimationFrame === 'function'
+            ? requestAnimationFrame
+            : callback => setTimeout(callback, 0);
+
+        scheduleFrame(() => {
             this._notifyScheduled = false;
 
             // If multiple different event types accumulated, send a single 'all' update
@@ -515,6 +519,10 @@ class GameManager {
         
         // 檢查 affixBonuses
         if (equipment.affixBonuses && equipment.affixBonuses.noDurabilityLoss) {
+            return true;
+        }
+
+        if (equipment.enhancementBonuses && equipment.enhancementBonuses.noDurabilityLoss) {
             return true;
         }
         

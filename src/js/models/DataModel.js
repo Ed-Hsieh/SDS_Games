@@ -277,7 +277,10 @@ export class CharacterManager {
     get hp() { return Number.isFinite(this._hp) ? this._hp : 0; }
     set hp(v) { this._hp = Math.max(0, Number(v) || 0); }
 
-    get maxHp() { return Number.isFinite(this._maxHp) ? this._maxHp : this.calculateMaxHp(); }
+    get maxHp() {
+        const baseMaxHp = Number.isFinite(this._maxHp) ? this._maxHp : this.calculateMaxHp();
+        return baseMaxHp + this.getAffixHpBonus();
+    }
     set maxHp(v) { this._maxHp = Math.max(1, Number(v) || 1); }
 
     get mp() { return Number.isFinite(this._mp) ? this._mp : 0; }

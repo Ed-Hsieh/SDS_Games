@@ -22,8 +22,6 @@ export const ItemType = {
     MATERIAL: 'material',
     CURRENCY: 'currency',
     KEY: 'key',
-    GEM: 'gem',
-    SOCKET_GEM: 'socket_gem',
     SCROLL: 'scroll',
     BOOK: 'book',
     QUEST: 'quest'
@@ -42,9 +40,12 @@ export const AffixStat = {
 
     //特效
     LIFE_STEAL: 'lifesteal', // 吸血
+    LIFESTEAL: 'lifesteal', // 吸血（相容舊命名）
     DAMAGE_REDUCTION: 'damageReduction', // 減傷
+    DAMAGE_REDUCE: 'damageReduction', // 減傷（相容舊命名）
     DODGE_CHANCE: 'dodgeChance', // 閃避機率
     ARMOR_PENETRATION: 'armorPenetration', // 穿甲
+    ARMOR_PIERCE: 'armorPenetration', // 穿甲（相容舊命名）
     DOUBLE_STRIKE: 'double_strike', // 雙重打擊機率
     EXECUTE: 'execute', // 處決傷害加成
     DAMAGE_REFLECT: 'damage_reflect', // 反傷
@@ -55,6 +56,11 @@ export const AffixStat = {
     DROP_BONUS: 'drop_bonus',
     REVIVE: 'revive',
     ALL_STATS: 'allStats', // 全屬性加成
+    HP_REGEN: 'hpRegen',
+    MP_REGEN: 'mpRegen',
+    SLOW_CHANCE: 'slowChance',
+    STUN_CHANCE: 'stunChance',
+    BOSS_BONUS: 'bossBonus',
 
     // 元素
     FIRE: 'fire',
@@ -62,6 +68,8 @@ export const AffixStat = {
     THUNDER: 'thunder',
     LIGHT: 'light',
     POISON: 'poison',
+    VOID: 'void',
+    VOID_DAMAGE: 'voidDamage',
 };
 
 export const SpecialEffectDescriptions = {
