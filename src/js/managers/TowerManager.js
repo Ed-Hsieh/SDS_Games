@@ -60,7 +60,13 @@ export default class TowerManager {
      * 訂閱事件
      */
     subscribe(callback) {
-        this.listeners.push(callback);
+        if (!this.listeners.includes(callback)) {
+            this.listeners.push(callback);
+        }
+    }
+
+    unsubscribe(callback) {
+        this.listeners = this.listeners.filter(listener => listener !== callback);
     }
     
     /**
@@ -190,7 +196,7 @@ export default class TowerManager {
             if (action.hitType && action.damage !== undefined) {
                 // 使用節奏條判定的結果
                 damage = action.damage;
-                const def = monster.def || 0;
+                const def = monster.def ?? monster.defense ?? 0;
                 
                 // 根據判定類型生成訊息
                 if (action.hitType === 'crit') {
@@ -209,7 +215,7 @@ export default class TowerManager {
             } else {
                 // 備用邏輯：沒有節奏條時使用原始計算
                 const atk = character.getTotalAtk();
-                const def = monster.def || 0;
+                const def = monster.def ?? monster.defense ?? 0;
                 
                 // 計算傷害
                 damage = Math.max(1, atk - def * 0.5);
@@ -275,7 +281,7 @@ export default class TowerManager {
      * 執行怪物行動
      */
     executeMonsterAction(monster, character) {
-        const monsterAtk = monster.atk || 10;
+        const monsterAtk = monster.atk ?? monster.attack ?? 10;
         const playerDef = character.getTotalDef();
         
         // 計算傷害
@@ -283,9 +289,12 @@ export default class TowerManager {
         damage = Math.floor(damage);
         
         // 傷害減免
-        const damageReduction = character.equipment.armor?.damageReduction || 0;
-        if (damageReduction > 0) {
-            damage = Math.floor(damage * (1 - damageReduction));
+        const damageReduction = typeof character.getDamageReduction === 'function'
+            ? character.getDamageReduction()
+            : (character.equipment.armor?.damageReduction || 0);
+        const normalizedReduction = Math.abs(damageReduction) > 1 ? damageReduction / 100 : damageReduction;
+        if (normalizedReduction > 0) {
+            damage = Math.floor(damage * (1 - Math.min(normalizedReduction, 0.75)));
         }
         
         // 應用傷害

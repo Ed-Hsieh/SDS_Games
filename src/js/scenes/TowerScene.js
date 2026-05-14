@@ -11,6 +11,18 @@ class TowerScene {
     constructor() {
         this.initialized = false;
         this.selectedFloor = 1;
+        this.eventsBound = false;
+        this.systemsSubscribed = false;
+        this.handleTowerEvent = this.handleTowerEvent.bind(this);
+        this.handleGameEvent = this.handleGameEvent.bind(this);
+        this.handleBackLobbyClick = this.exitTower.bind(this);
+        this.handleStartBattleClick = this.startBattle.bind(this);
+        this.handleAttackButtonClick = this.handleAttackClick.bind(this);
+        this.handleItemButtonClick = this.showItemMenu.bind(this);
+        this.handleFleeButtonClick = this.fleeBattle.bind(this);
+        this.handleNextFloorClick = this.goNextFloor.bind(this);
+        this.handleRetryClick = this.retryBattle.bind(this);
+        this.handleExitClick = this.exitTower.bind(this);
         this.app = null; // 由 main.js 設定
         this.rhythmSystem = null; // 節奏條系統
     }
@@ -28,7 +40,6 @@ class TowerScene {
         if (!this.initialized) {
             this.subscribeToSystems();
             this.initialized = true;
-            console.log('TowerScene initialized');
         }
 
         this.renderFloorsList();
@@ -48,6 +59,7 @@ class TowerScene {
         // 頂部資訊
         this.highestFloorEl = document.getElementById('highest-floor');
         this.currentFloorEl = document.getElementById('current-floor');
+        this.btnBackLobby = document.getElementById('btn-back-lobby');
 
         // 塔層列表
         this.floorsListEl = document.getElementById('floors-list');
@@ -107,23 +119,47 @@ class TowerScene {
     }
 
     bindEvents() {
+        if (this.eventsBound) return;
         // 返回大廳按鈕
-        const btnBackLobby = document.getElementById('btn-back-lobby');
-        btnBackLobby?.addEventListener('click', () => this.exitTower());
+        this.btnBackLobby?.addEventListener('click', this.handleBackLobbyClick);
         
         // 開始戰鬥
-        this.btnStartBattle?.addEventListener('click', () => this.startBattle());
+        this.btnStartBattle?.addEventListener('click', this.handleStartBattleClick);
 
         // 戰鬥操作 - 使用節奏條系統
-        this.btnAttack?.addEventListener('click', () => this.handleAttackClick());
+        this.btnAttack?.addEventListener('click', this.handleAttackButtonClick);
         // Skill UI removed: skill button no longer opens a skill menu
-        this.btnItem?.addEventListener('click', () => this.showItemMenu());
-        this.btnFlee?.addEventListener('click', () => this.fleeBattle());
+        this.btnItem?.addEventListener('click', this.handleItemButtonClick);
+        this.btnFlee?.addEventListener('click', this.handleFleeButtonClick);
 
         // 結果操作
-        this.btnNextFloor?.addEventListener('click', () => this.goNextFloor());
-        this.btnRetry?.addEventListener('click', () => this.retryBattle());
-        this.btnExit?.addEventListener('click', () => this.exitTower());
+        this.btnNextFloor?.addEventListener('click', this.handleNextFloorClick);
+        this.btnRetry?.addEventListener('click', this.handleRetryClick);
+        this.btnExit?.addEventListener('click', this.handleExitClick);
+        this.eventsBound = true;
+    }
+
+    unbindEvents() {
+        this.btnBackLobby?.removeEventListener('click', this.handleBackLobbyClick);
+        this.btnStartBattle?.removeEventListener('click', this.handleStartBattleClick);
+        this.btnAttack?.removeEventListener('click', this.handleAttackButtonClick);
+        this.btnItem?.removeEventListener('click', this.handleItemButtonClick);
+        this.btnFlee?.removeEventListener('click', this.handleFleeButtonClick);
+        this.btnNextFloor?.removeEventListener('click', this.handleNextFloorClick);
+        this.btnRetry?.removeEventListener('click', this.handleRetryClick);
+        this.btnExit?.removeEventListener('click', this.handleExitClick);
+        this.eventsBound = false;
+    }
+
+    cleanup() {
+        this.unbindEvents();
+        this.stopRhythmBar();
+        if (this.systemsSubscribed) {
+            towerManager.unsubscribe(this.handleTowerEvent);
+            GameManager.unsubscribe(this.handleGameEvent);
+            this.systemsSubscribed = false;
+        }
+        this.initialized = false;
     }
     
     /**
@@ -195,7 +231,6 @@ class TowerScene {
         // 創建節奏條系統實例
         this.rhythmSystem = new window.RhythmBarSystem(char, containerWrapper);
         
-        console.log('[TowerScene] Rhythm system initialized');
     }
     
     /**
@@ -217,17 +252,19 @@ class TowerScene {
     }
 
     subscribeToSystems() {
+        if (this.systemsSubscribed) return;
         // 訂閱無盡塔系統事件
-        towerManager.subscribe((eventType, data) => {
-            this.handleTowerEvent(eventType, data);
-        });
+        towerManager.subscribe(this.handleTowerEvent);
 
         // 訂閱遊戲狀態變化
-        GameManager.subscribe((state, eventType) => {
-            if (eventType === 'all' || eventType === 'gold') {
-                this.updatePlayerStats();
-            }
-        });
+        GameManager.subscribe(this.handleGameEvent);
+        this.systemsSubscribed = true;
+    }
+
+    handleGameEvent(state, eventType) {
+        if (eventType === 'all' || eventType === 'gold') {
+            this.updatePlayerStats();
+        }
     }
 
     handleTowerEvent(eventType, data) {
@@ -327,16 +364,15 @@ class TowerScene {
 
         if (this.monsterPreviewEl) {
             const monster = floorInfo.monster;
-            console.log(monster);
             
             this.monsterPreviewEl.innerHTML = `
                 <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${monster.icon}</div>
                 <div class="monster-name">${monster.name}</div>
-                <div class="monster-level">Lv.${monster.level}</div>
+                <div class="monster-level">等級 ${monster.level}</div>
                 <div class="monster-stats">
-                    <span>❤️ ${monster.hp}</span>
-                    <span>⚔️ ${monster.attack}</span>
-                    <span>🛡️ ${monster.defense}</span>
+                    <span>生命 ${monster.hp}</span>
+                    <span>攻擊 ${monster.attack}</span>
+                    <span>防禦 ${monster.defense}</span>
                 </div>
                 ${floorInfo.isBoss ? '<div class="boss-badge">⭐ BOSS</div>' : ''}
             `;
@@ -344,8 +380,8 @@ class TowerScene {
 
         if (this.floorRewardsEl) {
             const rewards = [];
-            rewards.push(`💰 ${floorInfo.monster.gold} G`);
-            rewards.push(`✨ ${floorInfo.monster.exp} EXP`);
+            rewards.push(`💰 ${floorInfo.monster.gold} 金幣`);
+            rewards.push(`✨ ${floorInfo.monster.exp} 經驗`);
 
             if (floorInfo.bossEquipment) {
                 rewards.push(`🎁 ${floorInfo.bossEquipment.name}`);
@@ -531,11 +567,11 @@ class TowerScene {
         }
         
         if (this.monsterAtkEl) {
-            this.monsterAtkEl.textContent = data.monster.atk;
+            this.monsterAtkEl.textContent = data.monster.atk ?? data.monster.attack ?? 0;
         }
         
         if (this.monsterDefEl) {
-            this.monsterDefEl.textContent = data.monster.def;
+            this.monsterDefEl.textContent = data.monster.def ?? data.monster.defense ?? 0;
         }
         
         // 更新戰鬥中的玩家等級
@@ -611,8 +647,8 @@ class TowerScene {
         if (this.resultRewardsEl && data.rewards) {
             const rewards = data.rewards;
             let html = '<h3>獲得獎勵</h3><div class="rewards-detail">';
-            html += `<p>💰 ${rewards.gold} G</p>`;
-            html += `<p>✨ ${rewards.exp} EXP</p>`;
+            html += `<p>💰 ${rewards.gold} 金幣</p>`;
+            html += `<p>✨ ${rewards.exp} 經驗</p>`;
 
             if (rewards.items && rewards.items.length > 0) {
                 html += '<p>🎁 道具：</p><ul>';

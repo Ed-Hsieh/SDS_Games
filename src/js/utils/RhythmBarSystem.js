@@ -162,7 +162,6 @@ class RhythmBarSystem {
         }
         
         // Debug log
-        console.log(`[RhythmBar] Zones generated - Crit: ${critWidth.toFixed(1)}% at ${critStart.toFixed(1)}%, Hit: ${hitWidth}% at ${hitStart.toFixed(1)}%`);
     }
 
     /**
@@ -179,7 +178,6 @@ class RhythmBarSystem {
         this.lastTime = performance.now();
         this.animate();
         
-        console.log(`[RhythmBar] Started - Speed: ${this.weaponSpeed}, Cooldown: ${this.attackSpeed}s`);
     }
 
     /**
@@ -276,7 +274,6 @@ class RhythmBarSystem {
         // 啟動冷卻
         this.startCooldown();
         
-        console.log(`[RhythmBar] Judge: ${hitType} at ${pos.toFixed(1)}%, Damage: ${damage}`);
         
         return { type: hitType, damage: damage };
     }
@@ -317,9 +314,9 @@ class RhythmBarSystem {
      */
     showJudgmentText(hitType, damage) {
         const textConfig = {
-            'crit': { text: 'CRITICAL!', color: '#4caf50', size: '28px' },
-            'hit': { text: 'HIT', color: '#ffd700', size: '22px' },
-            'miss': { text: 'MISS', color: '#ff4444', size: '20px' }
+            'crit': { text: '暴擊', color: '#4caf50', size: '28px' },
+            'hit': { text: '命中', color: '#ffd700', size: '22px' },
+            'miss': { text: '失誤', color: '#ff4444', size: '20px' }
         };
         
         const config = textConfig[hitType];
@@ -391,7 +388,6 @@ class RhythmBarSystem {
             this.cooldownTimer = null;
         }
         
-        console.log('[RhythmBar] Cooldown ended, zones regenerated');
     }
     
     /**
@@ -457,4 +453,8 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // 全域變數（供非模組化使用）
-window.RhythmBarSystem = RhythmBarSystem;
+if (typeof window !== 'undefined') {
+    window.RhythmBarSystem = RhythmBarSystem;
+}
+
+export default RhythmBarSystem;

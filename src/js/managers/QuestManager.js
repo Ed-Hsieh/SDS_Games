@@ -5,6 +5,7 @@
  */
 import GameManager from './GameManager.js';
 import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js';
+import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 
 class QuestManager {
     constructor() {
@@ -35,7 +36,6 @@ class QuestManager {
             startTime: null
         };
         
-        console.log('QuestManager initialized');
     }
 
     // ==================== 任務管理 ====================
@@ -313,20 +313,23 @@ class QuestManager {
     /**
      * 檢查怪物類型匹配
      */
-    isMonsterMatch(target, monsterType) {
-        // 區域怪物匹配
-        const zoneMonsters = {
-            'low_monster': ['slime', 'rat', 'bat'],
-            'medium_monster': ['goblin', 'skeleton', 'spider'],
-            'high_monster': ['wolf', 'orc', 'ghost'],
-            'boss': ['dragon', 'demon_lord', 'lich']
+    isMonsterMatch(target, monsterId) {
+        if (target === monsterId) return true;
+
+        const monster = MonsterDatabase[monsterId] || Object.values(MonsterDatabase).find(m => m.id === monsterId);
+        if (!monster) return false;
+
+        const isBoss = monster.type === MonsterType.BOSS || monster.type === MonsterType.WORLD_BOSS;
+        const level = Number(monster.level) || 0;
+
+        const zoneMatchers = {
+            low_monster: () => level >= 1 && level <= 5 && !isBoss,
+            medium_monster: () => level >= 6 && level <= 12 && !isBoss,
+            high_monster: () => level >= 13 && level <= 20 && !isBoss,
+            boss: () => isBoss
         };
 
-        if (zoneMonsters[target]) {
-            return zoneMonsters[target].includes(monsterType);
-        }
-
-        return target === monsterType;
+        return zoneMatchers[target]?.() || false;
     }
 
     /**

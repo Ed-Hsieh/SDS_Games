@@ -3,8 +3,16 @@
  * 副本系統 - 處理副本邏輯、狀態管理、特殊機制
  */
 
-import { DungeonDatabase, DungeonType, DungeonState, DungeonSpawnConfig, DungeonEntranceConfig } from '../data/Dungeons.js';
-import { generateDungeonMonster, generateDungeonBoss, generateFloorEvent } from '../data/Dungeons.js';
+import {
+    DungeonDatabase,
+    DungeonType,
+    DungeonState,
+    DungeonSpawnConfig,
+    DungeonEntranceConfig,
+    generateDungeonMonster,
+    generateDungeonBoss,
+    generateFloorEvent
+} from '../data/Dungeons.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
 export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig };

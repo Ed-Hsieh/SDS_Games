@@ -3,8 +3,14 @@
  * 管理怪物相關的查詢與實例化行為（從 data 中拆分）
  */
 
-import { LowLevelMonster, MediumLevelMonster, HighLevelMonster, AllMonsters, TowerMonsters } from '../data/Monsters.js';
-import { MonsterType } from '../data/Monsters.js';
+import {
+    LowLevelMonster,
+    MediumLevelMonster,
+    HighLevelMonster,
+    AllMonsters,
+    TowerMonsters,
+    MonsterType
+} from '../data/Monsters.js';
 
 export function getMonster(monsterId) {
     return AllMonsters.find(m => m.id === monsterId) || null;
@@ -44,6 +50,8 @@ export function createMonsterInstance(monsterOrId) {
     const def = template.def ?? template.defense ?? 0;
 
     return {
+        ...template,
+
         // base identity
         id: template.id,
         name: template.name,
@@ -65,7 +73,13 @@ export function createMonsterInstance(monsterOrId) {
         exp: template.exp || 0,
         gold: template.gold || 0,
         drops: template.drops || [],
+        equipmentDrops: template.equipmentDrops || [],
         skills: template.skills || [],
+        attackSpeed: template.attackSpeed ?? template.attack_speed ?? 1,
+        description: template.description || '',
+        special: template.special,
+        isElite: Boolean(template.isElite || template.type === MonsterType.ELITE),
+        isBoss: Boolean(template.isBoss || template.type === MonsterType.BOSS || template.type === MonsterType.WORLD_BOSS),
 
         // keep original template for debugging
         _template: template,

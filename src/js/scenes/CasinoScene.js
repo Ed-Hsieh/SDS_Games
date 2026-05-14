@@ -18,7 +18,6 @@ export default class CasinoScene {
     }
 
     init() {
-        console.log('Casino Scene Initialized');
         this.cacheDOM();
         this.bindEvents();
         this.updateUI();
@@ -27,7 +26,6 @@ export default class CasinoScene {
 
     cleanup() {
         this.unbindEvents();
-        console.log('Casino Scene Cleaned up');
     }
 
     cacheDOM() {

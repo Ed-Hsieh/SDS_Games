@@ -17,8 +17,6 @@ export default class QuestScene {
     }
 
     init() {
-        console.log('Quest Scene Initialized');
-        
         this.cacheDOM();
         this.bindEvents();
         
@@ -32,7 +30,6 @@ export default class QuestScene {
 
     cleanup() {
         questManager.unsubscribe(this.onQuestEvent);
-        console.log('Quest Scene Cleaned up');
     }
 
     cacheDOM() {
@@ -312,7 +309,7 @@ export default class QuestScene {
         // NPC 對話
         if (questData.npc) {
             this.dom.npcAvatar.textContent = questData.npc.avatar || '👨';
-            this.dom.npcName.textContent = questData.npc.name || '???';
+            this.dom.npcName.textContent = questData.npc.name || '委託人';
         }
 
         // 根據狀態顯示不同對話
@@ -392,7 +389,7 @@ export default class QuestScene {
             el.className = 'reward-item';
             el.innerHTML = `
                 <span class="reward-icon">⭐</span>
-                <span class="reward-value">${rewards.exp} EXP</span>
+                <span class="reward-value">${rewards.exp} 經驗</span>
             `;
             this.dom.detailRewards.appendChild(el);
         }
@@ -505,7 +502,7 @@ export default class QuestScene {
     showRewardNotification(result) {
         let message = '獲得：';
         if (result.rewards.gold) message += `💰${result.rewards.gold} `;
-        if (result.rewards.exp) message += `⭐${result.rewards.exp}EXP `;
+        if (result.rewards.exp) message += `⭐${result.rewards.exp} 經驗 `;
         if (result.rewards.items.length > 0) {
             message += result.rewards.items.map(i => i.name).join('、');
         }

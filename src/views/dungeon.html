@@ -1,23 +1,21 @@
-<div class="dungeon-scene dungeon-hell">
+<div id="dungeon-scene" class="dungeon-scene">
     <div id="dungeon-background" class="dungeon-background"></div>
-    
-    <!-- 火焰特效 -->
-    <div class="fire-effect"></div>
-    
+    <div class="snow-effect hidden" data-dungeon-effect="snow"></div>
+    <div class="fog-effect hidden" data-dungeon-effect="jungle"></div>
+    <div class="fire-effect hidden" data-dungeon-effect="hell"></div>
+
     <div id="dungeon-container" class="dungeon-container">
-        <!-- 地圖區域 -->
         <div class="dungeon-map-area">
             <canvas id="dungeon-canvas" width="800" height="500"></canvas>
-            
-            <!-- HUD 面板 -->
+
             <div class="dungeon-hud">
                 <div class="hud-section">
-                    <span class="hud-icon" id="dungeon-icon">🔥</span>
-                    <span class="hud-label" id="dungeon-name">煉獄深淵</span>
+                    <span class="hud-icon" id="dungeon-icon">🏰</span>
+                    <span class="hud-label" id="dungeon-name">副本</span>
                 </div>
                 <div class="hud-section">
                     <span class="hud-icon">📊</span>
-                    <span id="floor-info" class="hud-value">第 1/7 層</span>
+                    <span id="floor-info" class="hud-value">第 1/1 層</span>
                 </div>
                 <div class="hud-section">
                     <span class="hud-icon">❤️</span>
@@ -32,21 +30,20 @@
                     <span id="player-level" class="hud-value">1</span>
                 </div>
                 <div class="hud-section mechanic-info">
-                    <span class="hud-icon" id="mechanic-icon">🌋</span>
-                    <span id="mechanic-status" class="hud-value">熔岩地形：踩到會持續灼燒</span>
+                    <span class="hud-icon" id="mechanic-icon">⚙️</span>
+                    <span id="mechanic-status" class="hud-value">副本機制</span>
                 </div>
                 <button id="btn-exit" class="btn-exit">🚪 離開</button>
             </div>
         </div>
-        
-        <!-- 戰鬥遮罩 -->
+
         <div id="combat-overlay" class="combat-overlay hidden">
             <div class="combat-panel">
-                <h2 class="combat-title">⚔️ 遭遇敵人！</h2>
+                <h2 class="combat-title">⚔️ 遭遇敵人</h2>
                 <div class="combat-content">
                     <div class="enemy-info">
-                        <span id="enemy-icon" class="enemy-icon">👹</span>
-                        <span id="enemy-name" class="enemy-name">敵人名稱</span>
+                        <span id="enemy-icon" class="enemy-icon">👾</span>
+                        <span id="enemy-name" class="enemy-name">敵人</span>
                         <div class="enemy-hp-bar">
                             <div id="enemy-hp-fill" class="hp-fill" style="width: 100%"></div>
                         </div>
@@ -55,44 +52,61 @@
                     <div class="combat-log" id="combat-log"></div>
                     <div class="combat-actions">
                         <button id="btn-attack" class="combat-btn btn-attack">⚔️ 攻擊</button>
-                        <button id="btn-skill" class="combat-btn btn-skill">🔮 技能</button>
+                        <button id="btn-skill" class="combat-btn btn-skill">✨ 技能</button>
                         <button id="btn-item" class="combat-btn btn-item">🎒 道具</button>
                         <button id="btn-flee" class="combat-btn btn-flee">🏃 逃跑</button>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <!-- 灼燒提示遮罩 -->
-        <div id="burn-overlay" class="burn-overlay hidden">
-            <div class="burn-panel">
-                <h2>🔥 熔岩灼燒！</h2>
-                <p id="burn-text">你踩到了熔岩，受到了灼燒傷害！</p>
-                <div class="burn-damage">
-                    <span id="burn-damage-value">-10 HP</span>
-                </div>
-                <div class="burn-actions">
-                    <button id="btn-burn-close" class="btn-secondary">確定</button>
+
+        <div id="puzzle-overlay" class="puzzle-overlay hidden">
+            <div class="puzzle-panel">
+                <h2>🧩 遺跡機關</h2>
+                <p id="puzzle-text">解開機關以繼續前進。</p>
+                <div class="puzzle-actions">
+                    <button id="btn-puzzle-close" class="btn-secondary">關閉</button>
                 </div>
             </div>
         </div>
-        
-        <!-- 層級完成遮罩 -->
+
+        <div id="teleport-overlay" class="teleport-overlay hidden">
+            <div class="teleport-panel">
+                <h2>🌫️ 迷霧傳送</h2>
+                <p id="teleport-text">迷霧改變了前進方向。</p>
+                <div class="teleport-actions">
+                    <button id="btn-teleport-close" class="btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="burn-overlay" class="burn-overlay hidden">
+            <div class="burn-panel">
+                <h2>🔥 熔岩灼燒</h2>
+                <p id="burn-text">熔岩造成持續傷害。</p>
+                <div class="burn-damage">
+                    <span id="burn-damage-value">-10 生命</span>
+                </div>
+                <div class="burn-actions">
+                    <button id="btn-burn-close" class="btn-secondary">關閉</button>
+                </div>
+            </div>
+        </div>
+
         <div id="floor-complete-overlay" class="floor-complete-overlay hidden">
             <div class="floor-complete-panel">
-                <h2>✨ 發現樓梯！</h2>
+                <h2>樓層完成</h2>
                 <p id="floor-complete-text">是否前往下一層？</p>
                 <div class="floor-complete-actions">
                     <button id="btn-next-floor" class="btn-primary">⬆️ 前往下一層</button>
-                    <button id="btn-stay" class="btn-secondary">繼續探索</button>
+                    <button id="btn-stay" class="btn-secondary">暫時停留</button>
                 </div>
             </div>
         </div>
-        
-        <!-- 控制提示 -->
+
         <div class="control-hints">
-            <span>移動：WASD 或 方向鍵</span>
-            <span class="mechanic-hint">⚠️ 小心熔岩(🌋)：踩到會造成持續灼燒傷害！</span>
+            <span>移動：WASD 或方向鍵</span>
+            <span class="mechanic-hint">副本機制會依區域變化</span>
         </div>
     </div>
 </div>

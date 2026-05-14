@@ -5,6 +5,9 @@
 import GameManager from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
 import { SetDatabase } from '../data/Equipment.js';
+import { getSellPrice } from '../models/ItemSchema.js';
+import { buildItemModalOptions } from '../utils/ItemDisplay.js';
+import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
 
 export default class LobbyScene {
     constructor(container, app) {
@@ -22,8 +25,6 @@ export default class LobbyScene {
     }
 
     init() {
-        console.log('Lobby Scene Initialized');
-        
         try {
             this.cacheDOM();
             this.bindEvents();
@@ -164,26 +165,6 @@ export default class LobbyScene {
         const item = stack.item;
         const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
         const isConsumable = item.type === 'potion' || item.type === 'scroll';
-
-        // Build statsHtml
-        let statsHtml = '';
-        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
-        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-        if (item.critChance) {
-            const raw = Number(item.critChance || 0);
-            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-            statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-        }
-        if (item.critDamage) {
-            const raw = Number(item.critDamage || 0);
-            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-            statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-        }
-        if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${(item.weaponSpeed || 0).toFixed ? item.weaponSpeed.toFixed(1) + 'x' : item.weaponSpeed}</span></div>`;
-        if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${(item.attackSpeed || 0).toFixed ? item.attackSpeed.toFixed(1) + 'x' : item.attackSpeed}</span></div>`;
-        if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
-        if (item.mp) statsHtml += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
-
         // Initial action buttons from shared helper (global) if available
         let buttons = [];
         try {
@@ -220,9 +201,7 @@ export default class LobbyScene {
         // Open centralized modal
         if (window.ItemDetailModal) {
             window.ItemDetailModal.open(item, {
-                typeText: this.getItemTypeText ? this.getItemTypeText(item.type) : (item.type || ''),
-                description: item.description || item.desc || '沒有描述',
-                statsHtml: statsHtml,
+                ...buildItemModalOptions(item),
                 actions: buttons
             });
         }
@@ -354,75 +333,11 @@ export default class LobbyScene {
                 this.dom.inventoryMax.textContent = state.inventoryCapacity || 10;
             }
             
-            // Render inventory items using virtualization + DOM reuse
+            // Render inventory items using shared virtualization + DOM reuse
             if (this.dom.inventoryList) {
-                const container = this.dom.inventoryList;
-                const items = state.inventory || [];
-
-                // Fixed item height (adjust to match CSS)
-                const ITEM_HEIGHT = 84;
-
-                // Ensure container styling
-                container.style.position = 'relative';
-                container.style.overflowY = 'auto';
-
-                // Spacer controls full scroll height
-                let spacer = container.querySelector('.inv-spacer');
-                if (!spacer) {
-                    spacer = document.createElement('div');
-                    spacer.className = 'inv-spacer';
-                    container.appendChild(spacer);
-                }
-                spacer.style.height = (items.length * ITEM_HEIGHT) + 'px';
-
-                // Pool wrapper holds reused nodes
-                let pool = container.querySelector('.inv-pool');
-                if (!pool) {
-                    pool = document.createElement('div');
-                    pool.className = 'inv-pool';
-                    pool.style.position = 'absolute';
-                    pool.style.top = '0';
-                    pool.style.left = '0';
-                    pool.style.right = '0';
-                    container.appendChild(pool);
-                }
-
-                if (!items || items.length === 0) {
-                    pool.innerHTML = '';
-                    spacer.style.height = '0px';
-                    container.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
-                    return;
-                }
-
-                // Save for scroll updates
-                this._lobbyInv = items;
-                this._lobbyItemHeight = ITEM_HEIGHT;
-                this._lobbyInvContainer = container;
-                this._lobbyPoolWrapper = pool;
-
-                // Determine pool size
-                const viewportHeight = container.clientHeight || 400;
-                const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
-                const buffer = 4;
-                const poolSize = visibleCount + buffer * 2;
-
-                if (!this._lobbyPool || this._lobbyPool.length !== poolSize) {
-                    this._lobbyPool = [];
-                    pool.innerHTML = '';
-                    for (let i = 0; i < poolSize; i++) {
-                        const node = document.createElement('div');
-                        node.className = 'item-card inventory-item';
-                        node.style.position = 'absolute';
-                        node.style.left = '0';
-                        node.style.right = '0';
-                        node.style.height = ITEM_HEIGHT + 'px';
-                        pool.appendChild(node);
-                        this._lobbyPool.push(node);
-                    }
-                }
-
-                // Initial render
-                if (typeof this.updateVisibleInventoryItemsLobby === 'function') this.updateVisibleInventoryItemsLobby();
+                renderVirtualInventoryList(this, this.dom.inventoryList, state.inventory || [], {
+                    stateKey: '_lobbyInventoryList'
+                });
             }
         }
     }
@@ -430,7 +345,10 @@ export default class LobbyScene {
     cleanup() {
         // Unsubscribe from GameManager
         GameManager.unsubscribe(this.updateUI);
-        console.log('Lobby Scene Cleaned up');
+        if (this._invUpdateRAF) {
+            cancelAnimationFrame(this._invUpdateRAF);
+            this._invUpdateRAF = null;
+        }
     }
     
     updateEquipmentSlots(equipment) {
@@ -494,44 +412,7 @@ export default class LobbyScene {
 
     // Update visible inventory items for Lobby virtualization
     updateVisibleInventoryItemsLobby() {
-        const container = this._lobbyInvContainer;
-        const items = this._lobbyInv || [];
-        const ITEM_HEIGHT = this._lobbyItemHeight || 84;
-        const pool = this._lobbyPool || [];
-        if (!container || pool.length === 0) return;
-
-        const scrollTop = container.scrollTop || 0;
-        const viewportHeight = container.clientHeight || 400;
-        const firstIndex = Math.floor(scrollTop / ITEM_HEIGHT);
-        const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
-        const buffer = Math.floor(pool.length - visibleCount > 0 ? (pool.length - visibleCount) / 2 : 2);
-        const start = Math.max(0, firstIndex - buffer);
-
-        for (let i = 0; i < pool.length; i++) {
-            const dataIndex = start + i;
-            const node = pool[i];
-            if (dataIndex >= 0 && dataIndex < items.length) {
-                const stack = items[dataIndex];
-                const item = stack.item;
-                node.style.display = '';
-                node.dataset.instanceId = stack.instanceId;
-                node.className = `item-card inventory-item rarity-${item.rarity}`;
-                node.style.transform = `translateY(${dataIndex * ITEM_HEIGHT}px)`;
-
-                let iconHTML = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">` : (item.icon || '📦');
-                node.innerHTML = `
-                    <div class="item-icon">
-                        ${iconHTML}
-                        ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
-                    </div>
-                    <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                    </div>
-                `;
-            } else {
-                node.style.display = 'none';
-            }
-        }
+        updateVirtualInventoryList(this, '_lobbyInventoryList');
     }
     
     // ===== Warehouse Methods =====
@@ -624,75 +505,16 @@ export default class LobbyScene {
     }
     
     showEquipmentModal(item, slotType) {
-        // Build statsHtml for centralized modal
-        let statsHtml = '';
-        if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
-        if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-        if (item.critChance) {
-            const raw = Number(item.critChance || 0);
-            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-            statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-        }
-        if (item.critDamage) {
-            const raw = Number(item.critDamage || 0);
-            const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-            statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-        }
-        if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-        if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-        if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
-        if (item.affixes && item.affixes.length > 0) {
-            statsHtml += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
-            item.affixes.forEach(affix => {
-                const affixDesc = this.formatAffixStats(affix.stats);
-                statsHtml += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
-            });
-            statsHtml += `</div>`;
-        }
-
         const unequipBtn = this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType));
 
         if (window.ItemDetailModal) {
             window.ItemDetailModal.open(item, {
-                typeText: this.getItemTypeText(item.type),
-                description: item.desc || item.description || '無描述',
-                statsHtml: statsHtml,
+                ...buildItemModalOptions(item),
                 actions: [unequipBtn]
             });
         }
     }
     
-    //格式化詞綴屬性為可讀文字（與 AdventureScene 共用邏輯）
-    formatAffixStats(stats) {
-        if (!stats) return '';
-        const statNames = {
-            atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
-            critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
-            lifesteal: '生命偷取', damageReduction: '傷害減免', hpRegen: '生命回復', mpRegen: '魔力回復',
-            fireDamage: '火焰傷害', iceDamage: '冰霜傷害', thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
-            slowChance: '減速', stunChance: '暈眩', dodgeChance: '閃避', armorPenetration: '穿甲',
-            bossBonus: 'Boss傷害', allStats: '全屬性', noDurabilityLoss: '不損耐久'
-        };
-
-        const parts = [];
-        for (const [key, value] of Object.entries(stats)) {
-            const name = statNames[key] || key;
-            if (key === 'noDurabilityLoss') {
-                parts.push('不損耐久');
-            } else if (key.includes('Chance') || key.includes('Reduction') || key.toLowerCase().includes('steal')) {
-                // treat as percent
-                console.log(value);
-                
-                const pct = (typeof value === 'number' && Math.abs(value) <= 1) ? (value * 100) : value;
-                parts.push(`${name}+${Number(pct).toFixed(0)}%`);
-            } else {
-                parts.push(`${name}+${value}`);
-            }
-        }
-
-        return parts.join(', ');
-    }
-
     createButton(text, className, onClick) {
         const btn = document.createElement('button');
         btn.className = `btn ${className}`;
@@ -755,7 +577,7 @@ export default class LobbyScene {
         
         if (!stack) return;
         
-        const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+        const sellPrice = getSellPrice(stack.item, stack.quantity);
         const confirm = window.confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`);
         
         if (confirm) {
@@ -816,19 +638,4 @@ export default class LobbyScene {
         this.updateUI(GameManager.state, 'all');
     }
     
-    getItemTypeText(type) {
-        const typeMap = {
-            weapon: '武器',
-            armor: '防具',
-            accessory: '飾品',
-            potion: '藥水',
-            scroll: '卷軸',
-            material: '材料',
-            quest: '任務物品',
-            gem: '寶石',
-            key: '鑰匙',
-            book: '書籍'
-        };
-        return typeMap[type] || type;
-    }
 }

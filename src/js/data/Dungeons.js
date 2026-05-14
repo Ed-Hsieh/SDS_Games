@@ -108,16 +108,16 @@ export const DungeonDatabase = {
         // 怪物生態
         monsters: {
             common: [
-                { id: 'cave_bat', name: '洞窟蝙蝠', icon: '🦇', hp: 30, atk: 8, def: 2, exp: 15, gold: [5, 15] },
-                { id: 'cave_spider', name: '穴居蜘蛛', icon: '🕷️', hp: 40, atk: 10, def: 4, exp: 20, gold: [8, 20] },
-                { id: 'cave_rat', name: '巨型洞鼠', icon: '🐀', hp: 25, atk: 12, def: 1, exp: 12, gold: [3, 10] }
+                { id: 'cave_bat', name: '洞窟蝙蝠', icon: '🦇', hp: 30, attack: 8, defense: 2, exp: 15, gold: [5, 15] },
+                { id: 'cave_spider', name: '穴居蜘蛛', icon: '🕷️', hp: 40, attack: 10, defense: 4, exp: 20, gold: [8, 20] },
+                { id: 'cave_rat', name: '巨型洞鼠', icon: '🐀', hp: 25, attack: 12, defense: 1, exp: 12, gold: [3, 10] }
             ],
             elite: [
-                { id: 'shadow_lurker', name: '暗影潛伏者', icon: '👤', hp: 80, atk: 18, def: 8, exp: 50, gold: [30, 60], special: '偷襲：首次攻擊傷害翻倍' }
+                { id: 'shadow_lurker', name: '暗影潛伏者', icon: '👤', hp: 80, attack: 18, defense: 8, exp: 50, gold: [30, 60], special: '偷襲：首次攻擊傷害翻倍' }
             ],
             boss: {
                 id: 'rock_golem', name: '岩石巨人', icon: '🗿', 
-                hp: 200, atk: 25, def: 20, exp: 150, gold: [100, 200],
+                hp: 200, attack: 25, defense: 20, exp: 150, gold: [100, 200],
                 skills: [
                     { name: '地震', damage: 30, description: '對全體造成傷害' },
                     { name: '石化凝視', effect: 'stun', duration: 1, description: '使目標無法行動1回合' }
@@ -138,7 +138,7 @@ export const DungeonDatabase = {
                 type: 'accessory',
                 rarity: 'rare',
                 description: '古老礦工的護身符，能感應到金幣的氣息。',
-                stats: { atk: 3, def: 5 },
+                stats: { attack: 3, defense: 5 },
                 special: { goldBonus: 0.25 },  // 金幣掉落 +25%
                 price: 500
             },
@@ -197,16 +197,16 @@ export const DungeonDatabase = {
         
         monsters: {
             common: [
-                { id: 'frost_wolf', name: '冰霜狼', icon: '🐺', hp: 50, atk: 14, def: 6, exp: 25, gold: [10, 25] },
-                { id: 'yeti_scout', name: '雪人斥候', icon: '⛄', hp: 60, atk: 12, def: 10, exp: 30, gold: [15, 30] },
-                { id: 'ice_elemental', name: '冰元素', icon: '❄️', hp: 45, atk: 16, def: 4, exp: 28, gold: [12, 28], special: '冰凍觸碰：攻擊時增加目標寒冷值' }
+                { id: 'frost_wolf', name: '冰霜狼', icon: '🐺', hp: 50, attack: 14, defense: 6, exp: 25, gold: [10, 25] },
+                { id: 'yeti_scout', name: '雪人斥候', icon: '⛄', hp: 60, attack: 12, defense: 10, exp: 30, gold: [15, 30] },
+                { id: 'ice_elemental', name: '冰元素', icon: '❄️', hp: 45, attack: 16, defense: 4, exp: 28, gold: [12, 28], special: '冰凍觸碰：攻擊時增加目標寒冷值' }
             ],
             elite: [
-                { id: 'frost_giant', name: '霜巨人', icon: '🧊', hp: 120, atk: 22, def: 15, exp: 80, gold: [50, 100], special: '寒冰護甲：受到傷害減少 20%' }
+                { id: 'frost_giant', name: '霜巨人', icon: '🧊', hp: 120, attack: 22, defense: 15, exp: 80, gold: [50, 100], special: '寒冰護甲：受到傷害減少 20%' }
             ],
             boss: {
                 id: 'ice_dragon', name: '冰霜巨龍', icon: '🐉',
-                hp: 350, atk: 35, def: 25, exp: 250, gold: [200, 400],
+                hp: 350, attack: 35, defense: 25, exp: 250, gold: [200, 400],
                 skills: [
                     { name: '冰息', damage: 40, effect: 'freeze', duration: 2, description: '噴出冰冷的龍息' },
                     { name: '暴風雪', aoe: true, damage: 25, coldIncrease: 50, description: '召喚暴風雪' },
@@ -227,7 +227,7 @@ export const DungeonDatabase = {
                 type: 'accessory',
                 rarity: 'epic',
                 description: '冰龍的心臟結晶，賦予持有者抵禦寒冷的能力。',
-                stats: { atk: 5, def: 10, hp: 30 },
+                stats: { attack: 5, defense: 10, hp: 30 },
                 special: { coldImmune: true, iceResist: 0.5 },  // 免疫寒冷，冰系傷害 -50%
                 price: 1200
             },
@@ -285,16 +285,16 @@ export const DungeonDatabase = {
         
         monsters: {
             common: [
-                { id: 'stone_guardian', name: '石像守衛', icon: '🗿', hp: 70, atk: 16, def: 18, exp: 35, gold: [20, 40] },
-                { id: 'animated_armor', name: '活化盔甲', icon: '⚔️', hp: 80, atk: 20, def: 15, exp: 40, gold: [25, 50] },
-                { id: 'phantom', name: '遺跡幽魂', icon: '👻', hp: 50, atk: 22, def: 5, exp: 38, gold: [18, 35], special: '虛體：50% 機率閃避物理攻擊' }
+                { id: 'stone_guardian', name: '石像守衛', icon: '🗿', hp: 70, attack: 16, defense: 18, exp: 35, gold: [20, 40] },
+                { id: 'animated_armor', name: '活化盔甲', icon: '⚔️', hp: 80, attack: 20, defense: 15, exp: 40, gold: [25, 50] },
+                { id: 'phantom', name: '遺跡幽魂', icon: '👻', hp: 50, attack: 22, defense: 5, exp: 38, gold: [18, 35], special: '虛體：50% 機率閃避物理攻擊' }
             ],
             elite: [
-                { id: 'ancient_mage', name: '遠古法師', icon: '🧙', hp: 100, atk: 30, def: 10, exp: 100, gold: [70, 140], special: '魔法屏障：免疫首次攻擊' }
+                { id: 'ancient_mage', name: '遠古法師', icon: '🧙', hp: 100, attack: 30, defense: 10, exp: 100, gold: [70, 140], special: '魔法屏障：免疫首次攻擊' }
             ],
             boss: {
                 id: 'ancient_guardian', name: '遠古守衛者', icon: '🤖',
-                hp: 500, atk: 40, def: 30, exp: 400, gold: [300, 600],
+                hp: 500, attack: 40, defense: 30, exp: 400, gold: [300, 600],
                 skills: [
                     { name: '雷射光束', damage: 50, description: '發射致命的光束' },
                     { name: '機關召喚', effect: 'summon', count: 2, description: '召喚 2 個石像守衛' },
@@ -320,7 +320,7 @@ export const DungeonDatabase = {
                 type: 'accessory',
                 rarity: 'epic',
                 description: '遠古智者的遺物，能看穿一切隱藏。',
-                stats: { atk: 8, def: 8 },
+                stats: { attack: 8, defense: 8 },
                 special: { revealHidden: true, trapDetect: 0.5, puzzleHint: true },
                 price: 1500
             },
@@ -380,17 +380,17 @@ export const DungeonDatabase = {
         
         monsters: {
             common: [
-                { id: 'jungle_panther', name: '叢林黑豹', icon: '🐆', hp: 90, atk: 28, def: 12, exp: 50, gold: [30, 60], special: '潛行突襲：首擊必爆擊' },
-                { id: 'poison_frog', name: '劇毒蛙', icon: '🐸', hp: 40, atk: 15, def: 5, exp: 35, gold: [20, 40], special: '劇毒：攻擊附帶中毒效果' },
-                { id: 'vine_beast', name: '藤蔓獸', icon: '🌿', hp: 100, atk: 20, def: 20, exp: 55, gold: [35, 70], special: '纏繞：降低目標速度' },
-                { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, atk: 32, def: 8, exp: 48, gold: [25, 55] }
+                { id: 'jungle_panther', name: '叢林黑豹', icon: '🐆', hp: 90, attack: 28, defense: 12, exp: 50, gold: [30, 60], special: '潛行突襲：首擊必爆擊' },
+                { id: 'poison_frog', name: '劇毒蛙', icon: '🐸', hp: 40, attack: 15, defense: 5, exp: 35, gold: [20, 40], special: '劇毒：攻擊附帶中毒效果' },
+                { id: 'vine_beast', name: '藤蔓獸', icon: '🌿', hp: 100, attack: 20, defense: 20, exp: 55, gold: [35, 70], special: '纏繞：降低目標速度' },
+                { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, attack: 32, defense: 8, exp: 48, gold: [25, 55] }
             ],
             elite: [
-                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, atk: 35, def: 25, exp: 150, gold: [100, 200], special: '自然治癒：每回合恢復 10% HP' }
+                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, attack: 35, defense: 25, exp: 150, gold: [100, 200], special: '自然治癒：每回合恢復 10% HP' }
             ],
             boss: {
                 id: 'jungle_hydra', name: '叢林九頭蛇', icon: '🐍',
-                hp: 700, atk: 45, def: 20, exp: 600, gold: [500, 1000],
+                hp: 700, attack: 45, defense: 20, exp: 600, gold: [500, 1000],
                 heads: 3,  // 多頭機制
                 skills: [
                     { name: '多重撕咬', hits: 3, damage: 20, description: '每個頭各攻擊一次' },
@@ -417,7 +417,7 @@ export const DungeonDatabase = {
                 type: 'accessory',
                 rarity: 'legendary',
                 description: '傳說中探險家的遺物，穿上它永遠不會迷路。',
-                stats: { atk: 10, def: 12 },
+                stats: { attack: 10, defense: 12 },
                 special: { mazeImmune: true, moveSpeed: 1.3, trapEvade: 0.3 },
                 price: 2500
             },
@@ -425,7 +425,7 @@ export const DungeonDatabase = {
                 { id: 'exotic_flower', name: '異域奇花', icon: '🌺', type: 'material', rarity: 'epic', price: 300 },
                 { id: 'panther_fang', name: '黑豹獠牙', icon: '🦷', type: 'material', rarity: 'rare', price: 200 },
                 { id: 'ancient_map', name: '古老地圖', icon: '🗺️', type: 'material', rarity: 'rare', price: 250 },
-                { id: 'tribal_mask', name: '部落面具', icon: '🎭', type: 'accessory', rarity: 'rare', stats: { atk: 15 }, price: 400 }
+                { id: 'tribal_mask', name: '部落面具', icon: '🎭', type: 'accessory', rarity: 'rare', stats: { attack: 15 }, price: 400 }
             ]
         },
         
@@ -470,7 +470,7 @@ export const DungeonDatabase = {
             events: [
                 { type: 'lava', name: '岩漿噴發', damage: 50, chance: 0.15 },
                 { type: 'trap', name: '惡魔突襲', monsterType: 'elite', chance: 0.12 },
-                { type: 'curse', name: '詛咒領域', effect: 'curse', debuff: { atk: -10, def: -10 }, duration: 10, chance: 0.1 },
+                { type: 'curse', name: '詛咒領域', effect: 'curse', debuff: { attack: -10, defense: -10 }, duration: 10, chance: 0.1 },
                 { type: 'soul_well', name: '靈魂之井', healPercent: 0.5, mpRestore: 1.0, chance: 0.05 },
                 { type: 'treasure', name: '惡魔寶庫', goldRange: [200, 500], chance: 0.08 },
                 { type: 'contract', name: '惡魔契約', choice: true, chance: 0.1 }  // 可選擇簽訂或拒絕
@@ -479,17 +479,17 @@ export const DungeonDatabase = {
         
         monsters: {
             common: [
-                { id: 'imp', name: '小惡魔', icon: '😈', hp: 80, atk: 35, def: 10, exp: 70, gold: [50, 100], special: '火焰彈：遠程攻擊' },
-                { id: 'hell_hound', name: '地獄犬', icon: '🐕‍🦺', hp: 120, atk: 40, def: 15, exp: 85, gold: [60, 120], special: '烈焰吐息：附帶灼燒效果' },
-                { id: 'tormented_soul', name: '受難亡魂', icon: '💀', hp: 60, atk: 45, def: 5, exp: 75, gold: [40, 80], special: '生命汲取：傷害的 30% 轉為自身 HP' },
-                { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, atk: 30, def: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
+                { id: 'imp', name: '小惡魔', icon: '😈', hp: 80, attack: 35, defense: 10, exp: 70, gold: [50, 100], special: '火焰彈：遠程攻擊' },
+                { id: 'hell_hound', name: '地獄犬', icon: '🐕‍🦺', hp: 120, attack: 40, defense: 15, exp: 85, gold: [60, 120], special: '烈焰吐息：附帶灼燒效果' },
+                { id: 'tormented_soul', name: '受難亡魂', icon: '💀', hp: 60, attack: 45, defense: 5, exp: 75, gold: [40, 80], special: '生命汲取：傷害的 30% 轉為自身 HP' },
+                { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, attack: 30, defense: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
             ],
             elite: [
-                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, atk: 55, def: 25, exp: 250, gold: [200, 400], special: '地獄火：每回合對全體造成 15 點傷害' }
+                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, attack: 55, defense: 25, exp: 250, gold: [200, 400], special: '地獄火：每回合對全體造成 15 點傷害' }
             ],
             boss: {
                 id: 'demon_king', name: '魔王·炎獄', icon: '👹',
-                hp: 1000, atk: 60, def: 35, exp: 1000, gold: [1000, 2000],
+                hp: 1000, attack: 60, defense: 35, exp: 1000, gold: [1000, 2000],
                 skills: [
                     { name: '末日審判', aoe: true, damage: 80, description: '召喚地獄之火焚燒一切' },
                     { name: '深淵凝視', effect: 'fear', duration: 3, atkDebuff: 0.5, description: '凝視使目標陷入極度恐懼' },
@@ -517,7 +517,7 @@ export const DungeonDatabase = {
                 type: 'accessory',
                 rarity: 'legendary',
                 description: '魔王的王冠，蘊含著煉獄的力量。',
-                stats: { atk: 30, def: 20, hp: 100 },
+                stats: { attack: 30, defense: 20, hp: 100 },
                 special: { 
                     burnImmune: true, 
                     fireAbsorb: 0.3,     // 吸收 30% 火系傷害轉為 HP
@@ -530,7 +530,7 @@ export const DungeonDatabase = {
                 { id: 'demon_horn', name: '惡魔之角', icon: '🦯', type: 'material', rarity: 'legendary', price: 500 },
                 { id: 'soul_essence', name: '靈魂精華', icon: '✨', type: 'material', rarity: 'epic', price: 350 },
                 { id: 'lava_core', name: '熔岩核心', icon: '🔴', type: 'material', rarity: 'epic', price: 400 },
-                { id: 'infernal_blade', name: '煉獄之刃', icon: '🗡️', type: 'weapon', rarity: 'legendary', stats: { atk: 50, critChance: 0.2, critDamage: 2.0 }, special: { burnOnHit: { damage: 10, duration: 3 } }, price: 3000 }
+                { id: 'infernal_blade', name: '煉獄之刃', icon: '🗡️', type: 'weapon', rarity: 'legendary', stats: { attack: 50, critChance: 0.2, critDamage: 2.0 }, special: { burnOnHit: { damage: 10, duration: 3 } }, price: 3000 }
             ]
         },
         
@@ -611,13 +611,17 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
     
     // 根據樓層調整屬性
     const floorMultiplier = 1 + (floor - 1) * 0.15;
+    const attack = Math.floor((monster.attack ?? monster.atk ?? 0) * floorMultiplier);
+    const defense = Math.floor((monster.defense ?? monster.def ?? 0) * floorMultiplier);
     
     return {
         ...monster,
         hp: Math.floor(monster.hp * floorMultiplier),
         maxHp: Math.floor(monster.hp * floorMultiplier),
-        atk: Math.floor(monster.atk * floorMultiplier),
-        def: Math.floor(monster.def * floorMultiplier),
+        attack,
+        defense,
+        atk: attack,
+        def: defense,
         exp: Math.floor(monster.exp * floorMultiplier),
         gold: monster.gold.map(g => Math.floor(g * floorMultiplier))
     };
@@ -629,10 +633,17 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
 export function generateDungeonBoss(dungeonType) {
     const dungeon = DungeonDatabase[dungeonType];
     if (!dungeon) return null;
+    const boss = dungeon.monsters.boss;
+    const attack = boss.attack ?? boss.atk ?? 0;
+    const defense = boss.defense ?? boss.def ?? 0;
     
     return {
-        ...dungeon.monsters.boss,
-        maxHp: dungeon.monsters.boss.hp,
+        ...boss,
+        maxHp: boss.hp,
+        attack,
+        defense,
+        atk: attack,
+        def: defense,
         isBoss: true
     };
 }

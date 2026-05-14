@@ -8,6 +8,10 @@ import { eventManager } from '../managers/EventManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
 import { getMaterial } from '../managers/MaterialManager.js';
+import { getSellPrice } from '../models/ItemSchema.js';
+import { buildItemModalOptions } from '../utils/ItemDisplay.js';
+import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
+import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 
 // Preload FightManager for unified management (fallback to promise if not ready)
 let FightManager = null;
@@ -42,8 +46,6 @@ export default class AdventureScene {
     }
 
     init() {
-        console.log('Adventure Scene Initialized');
-        
         // Set global reference for adventure item actions
         window.currentAdventureScene = this;
         
@@ -93,8 +95,12 @@ export default class AdventureScene {
             this.currentBattle = null;
         }
         
+        if (this._invUpdateRAF) {
+            cancelAnimationFrame(this._invUpdateRAF);
+            this._invUpdateRAF = null;
+        }
+
         this.unbindEvents();
-        console.log('Adventure Scene Cleaned up');
     }
 
     cacheDOM() {
@@ -897,11 +903,11 @@ export default class AdventureScene {
                 
                 let costText = '';
                 if (choice.cost) {
-                    if (choice.cost.gold) costText += `💰 -${choice.cost.gold}G `;
+                    if (choice.cost.gold) costText += `💰 -${choice.cost.gold} 金幣 `;
                     if (choice.cost.hp) {
                         const hpCost = choice.cost.isPercent 
-                            ? `${Math.floor(choice.cost.hp * 100)}% HP`
-                            : `${choice.cost.hp} HP`;
+                            ? `${Math.floor(choice.cost.hp * 100)}% 生命`
+                            : `${choice.cost.hp} 生命`;
                         costText += `❤️ -${hpCost} `;
                     }
                 }
@@ -1021,10 +1027,9 @@ export default class AdventureScene {
 
     startBattle() {
         const monster = this.worldMap.getCurrentMonster();
-        console.log('Encounter:', monster);
         
         this.battleLog = []; // 清空戰鬥日誌
-        this.currentBattle = new BattleController(GameManager.getCharacter(), monster, this);
+        this.currentBattle = new AdventureBattleViewController(GameManager.getCharacter(), monster, this);
         this.dom.battleModal.style.display = 'flex';
         
         this.updateMonsterDisplay();
@@ -1257,7 +1262,7 @@ export default class AdventureScene {
         
         // 更新玩家名稱
         const nameEl = this.container.querySelector('#hud-player-name');
-        if (nameEl) nameEl.textContent = char.name || 'Adventurer';
+        if (nameEl) nameEl.textContent = char.name || '冒險者';
         
         // 更新HP條
         const hpBarEl = this.container.querySelector('#hud-hp-bar');
@@ -1385,7 +1390,7 @@ export default class AdventureScene {
 
     showLoot(exp, gold, items) {
         this.dom.lootModal.style.display = 'flex';
-        this.container.querySelector('#exp-gained').textContent = `+${exp} EXP`;
+        this.container.querySelector('#exp-gained').textContent = `+${exp} 經驗`;
         this.container.querySelector('#gold-gained').textContent = `+${gold}`;
 
         // Local lootPool (array of item objects)
@@ -1444,7 +1449,7 @@ export default class AdventureScene {
 
         // Helper to render loot pool (right panel)
         const updateLootPool = () => {
-            if (countBadge) countBadge.textContent = `${lootPool.length} items`;
+            if (countBadge) countBadge.textContent = `${lootPool.length} 件`;
             if (!lootContainer) return;
             lootContainer.innerHTML = '';
 
@@ -1510,7 +1515,7 @@ export default class AdventureScene {
     }
 }
 
-class BattleController {
+class AdventureBattleViewController {
     constructor(player, monster, scene) {
         this.player = player;
         this.monster = monster;
@@ -1603,7 +1608,7 @@ class BattleController {
         damageEl.className = 'damage-number';
         
         if (isMiss) {
-            damageEl.textContent = 'MISS';
+            damageEl.textContent = '失誤';
             damageEl.classList.add('miss');
         } else if (isCrit) {
             damageEl.textContent = `-${damage}!!`;
@@ -1830,7 +1835,7 @@ class BattleController {
         GameManager.addGold(gold);
         
         // 任務系統：更新擊殺進度
-        questManager.updateProgress(ObjectiveType.KILL, this.monster.type, 1);
+        questManager.updateProgress(ObjectiveType.KILL, this.monster.id || this.monster.type, 1);
         
         setTimeout(() => {
             this.scene.endBattle(true);
@@ -1871,444 +1876,6 @@ class BattleController {
     }
 }
 
-/**
- * RhythmBarSystem - 動態攻擊判定條系統
- * 
- * 規則說明：
- * 1. 游標在長條內左右來回移動，速度由 weaponSpeed 決定
- * 2. 爆擊區(Crit Zone)：寬度 = critChance * 100%，位置隨機
- * 3. 有效區(Hit Zone)：寬度根據武器稀有度從20%到40%線性增加
- * 4. 兩區域不可重疊
- * 5. 攻擊後進入冷卻，冷卻時間 = attackSpeed 秒
- */
-class RhythmBarSystem {
-    constructor(character, container) {
-        this.character = character;
-        this.container = container;
-        this.barElement = container.querySelector('#rhythm-bar');
-        this.needleElement = container.querySelector('#rhythm-needle');
-        this.critZoneElement = container.querySelector('#crit-zone');
-        this.hitZoneElement = container.querySelector('#hit-zone');
-        this.attackBtn = container.querySelector('#btn-attack');
-        
-        // 節奏條總寬度（百分比）
-        this.barWidth = 100;
-        
-        // 指針狀態
-        this.needlePosition = 0;      // 當前位置 (0-100%)
-        this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
-        
-        // 從角色/武器獲取數據
-        this.updateEquipmentStats();
-        
-        // 動畫控制
-        this.animationId = null;
-        this.lastTime = 0;
-        this.isRunning = false;
-        this.isPaused = false;
-        
-        // 擊中標記
-        this.hitMarker = null;
-        
-        // 生成判定區域
-        this.generateZones();
-    }
-
-    /**
-     * 從角色裝備更新節奏條參數
-     */
-    updateEquipmentStats() {
-        // 取得武器速度（控制指針移動速度）
-        // weaponSpeed 越高，指針移動越快
-        this.weaponSpeed = this.character.getWeaponSpeed() || 1.0;
-        
-        // 取得攻擊速度（控制冷卻時間）
-        // attackSpeed 是冷卻秒數
-        this.attackSpeed = this.character.getAttackSpeed() || 1.0;
-        
-        // 取得爆擊機率（決定 Crit Zone 寬度）
-        this.critChance = this.character.getCritChance() || 0.05;
-        
-        // 取得爆擊傷害倍率
-        this.critDamage = this.character.getCritDamage() || 1.5;
-        
-        // 取得攻擊力（使用 getTotalAtk 方法）
-        this.attackPower = this.character.getTotalAtk() || 10;
-        
-        // 取得武器稀有度（決定 Hit Zone 寬度）
-        this.weaponRarity = this._getWeaponRarity();
-        
-        // 冷卻系統
-        this.isOnCooldown = false;
-        this.cooldownTimer = null;
-    }
-
-    /**
-     * 取得武器稀有度
-     * @returns {string} 稀有度名稱
-     */
-    _getWeaponRarity() {
-        const weapon = this.character.equipment?.weapon;
-        if (weapon && weapon.rarity) {
-            return weapon.rarity;
-        }
-        return 'common';
-    }
-
-    /**
-     * 根據稀有度計算 Hit Zone 寬度
-     * common: 20%, uncommon: 24%, rare: 28%, epic: 32%, legendary: 36%, mythic: 40%
-     */
-    _calculateHitZoneWidth() {
-        const rarityWidths = {
-            'common': 20,
-            'uncommon': 24,
-            'rare': 28,
-            'epic': 32,
-            'legendary': 36,
-            'mythic': 40
-        };
-        return rarityWidths[this.weaponRarity] || 20;
-    }
-
-    /**
-     * 生成判定區域位置
-     * Crit Zone 和 Hit Zone 隨機放置，但不可重疊
-     */
-    generateZones() {
-        // ===== 計算區域寬度 =====
-        // Crit Zone 寬度 = critChance * 100%（例：12% 暴擊率 = 12% 寬度）
-        const critWidth = Math.max(5, Math.min(30, this.critChance * 100));
-        
-        // Hit Zone 寬度根據武器稀有度（20% ~ 40%）
-        const hitWidth = this._calculateHitZoneWidth();
-        
-        // 安全間距，確保區域不重疊
-        const safeGap = 3;
-        
-        // 可用範圍（留出兩端邊距）
-        const marginLeft = 3;
-        const marginRight = 3;
-        const availableWidth = 100 - marginLeft - marginRight;
-        
-        // ===== 隨機決定區域位置 =====
-        // 隨機決定哪個區域在左邊
-        const critOnLeft = Math.random() > 0.5;
-        
-        let critStart, hitStart;
-        
-        if (critOnLeft) {
-            // Crit 在左，Hit 在右
-            const maxCritStart = availableWidth - critWidth - safeGap - hitWidth;
-            critStart = marginLeft + Math.random() * Math.max(0, maxCritStart);
-            
-            // Hit 區域在 Crit 區域右側
-            const hitMinStart = critStart + critWidth + safeGap;
-            const hitMaxStart = 100 - marginRight - hitWidth;
-            hitStart = hitMinStart + Math.random() * Math.max(0, hitMaxStart - hitMinStart);
-        } else {
-            // Hit 在左，Crit 在右
-            const maxHitStart = availableWidth - hitWidth - safeGap - critWidth;
-            hitStart = marginLeft + Math.random() * Math.max(0, maxHitStart);
-            
-            // Crit 區域在 Hit 區域右側
-            const critMinStart = hitStart + hitWidth + safeGap;
-            const critMaxStart = 100 - marginRight - critWidth;
-            critStart = critMinStart + Math.random() * Math.max(0, critMaxStart - critMinStart);
-        }
-        
-        // 保存區域資料
-        this.critZone = { start: critStart, width: critWidth };
-        this.hitZone = { start: hitStart, width: hitWidth };
-        
-        // 更新 DOM - 使用 transform 以避免觸發重排
-        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
-        if (this.critZoneElement) {
-            const critTranslate = (this.critZone.start / 100) * parentWidth;
-            this.critZoneElement.style.transform = `translateX(${critTranslate}px)`;
-            this.critZoneElement.style.width = this.critZone.width + '%';
-            this.critZoneElement.style.willChange = 'transform';
-        }
-        if (this.hitZoneElement) {
-            const hitTranslate = (this.hitZone.start / 100) * parentWidth;
-            this.hitZoneElement.style.transform = `translateX(${hitTranslate}px)`;
-            this.hitZoneElement.style.width = this.hitZone.width + '%';
-            this.hitZoneElement.style.willChange = 'transform';
-        }
-        
-        // Debug log
-        console.log(`[RhythmBar] Zones generated - Crit: ${critWidth.toFixed(1)}% at ${critStart.toFixed(1)}%, Hit: ${hitWidth}% at ${hitStart.toFixed(1)}%`);
-    }
-
-    /**
-     * 創建冷卻環 UI
-     * 注意：使用 CSS 的旋轉動畫來顯示冷卻狀態
-     */
-    createCooldownRing() {
-        // 舊版使用 CSS ::before 偽元素顯示旋轉冷卻環
-        // 不需要額外創建 DOM 元素
-    }
-
-    /**
-     * 開始節奏條動畫
-     */
-    start() {
-        if (this.isRunning) return;
-        
-        // 更新裝備參數
-        this.updateEquipmentStats();
-        
-        this.isRunning = true;
-        this.isPaused = false;
-        this.lastTime = performance.now();
-        this.animate();
-        
-        console.log(`[RhythmBar] Started - Speed: ${this.weaponSpeed}, Cooldown: ${this.attackSpeed}s`);
-    }
-
-    /**
-     * 停止節奏條動畫
-     */
-    stop() {
-        this.isRunning = false;
-        if (this.animationId) {
-            cancelAnimationFrame(this.animationId);
-            this.animationId = null;
-        }
-    }
-
-    /**
-     * 動畫循環 - 更新指針位置
-     */
-    animate() {
-        if (!this.isRunning) return;
-        
-        const currentTime = performance.now();
-        const deltaTime = (currentTime - this.lastTime) / 1000; // 轉換為秒
-        this.lastTime = currentTime;
-        
-        // 暫停或冷卻中不更新位置
-        if (!this.isPaused && !this.isOnCooldown) {
-            // 計算指針移動速度
-            // 公式：指針速度 = (barWidth * weaponSpeed) per second
-            // weaponSpeed = 1.0 表示 1 秒走完整個條
-            // weaponSpeed = 2.0 表示 0.5 秒走完
-            // weaponSpeed = 0.5 表示 2 秒走完
-            const pixelsPerSecond = this.barWidth * this.weaponSpeed;
-            const movement = pixelsPerSecond * deltaTime;
-            
-            this.needlePosition += movement * this.needleDirection;
-            
-            // 邊界反彈
-            if (this.needlePosition >= this.barWidth) {
-                this.needlePosition = this.barWidth;
-                this.needleDirection = -1;
-            } else if (this.needlePosition <= 0) {
-                this.needlePosition = 0;
-                this.needleDirection = 1;
-            }
-            
-            // 更新指針 DOM - 使用 transform
-            if (this.needleElement && this.barElement) {
-                const parentWidth = this.barElement.offsetWidth || 1;
-                const translateX = (this.needlePosition / 100) * parentWidth;
-                this.needleElement.style.transform = `translateX(${translateX}px)`;
-            }
-        }
-        
-        this.animationId = requestAnimationFrame(() => this.animate());
-    }
-
-    /**
-     * 判定攻擊結果
-     * @returns {object} { type: 'crit'|'hit'|'miss', damage: number }
-     */
-    judgeHit() {
-        // 冷卻中無法攻擊
-        if (this.isOnCooldown) {
-            return { type: 'cooldown', damage: 0 };
-        }
-        
-        const pos = this.needlePosition;
-        let hitType = 'miss';
-        let damage = 0;
-        
-        // ===== 判定邏輯（Crit 優先） =====
-        // Condition A: Crit - 游標在 Crit Zone 內
-        if (pos >= this.critZone.start && pos <= this.critZone.start + this.critZone.width) {
-            hitType = 'crit';
-            damage = Math.floor(this.attackPower * this.critDamage);
-        }
-        // Condition B: Hit - 游標在 Hit Zone 內（且不在 Crit 內）
-        else if (pos >= this.hitZone.start && pos <= this.hitZone.start + this.hitZone.width) {
-            hitType = 'hit';
-            damage = this.attackPower;
-        }
-        // Condition C: Miss - 其他區域
-        else {
-            hitType = 'miss';
-            damage = 0;
-        }
-        
-        // 顯示擊中標記
-        this.showHitMarker(pos, hitType);
-        
-        // 顯示判定文字特效
-        this.showJudgmentText(hitType, damage);
-        
-        // 啟動冷卻
-        this.startCooldown();
-        
-        console.log(`[RhythmBar] Judge: ${hitType} at ${pos.toFixed(1)}%, Damage: ${damage}`);
-        
-        return { type: hitType, damage: damage };
-    }
-    
-    /**
-     * 顯示擊中位置標記
-     */
-    showHitMarker(position, hitType) {
-        // 移除舊標記
-        if (this.hitMarker) {
-            this.hitMarker.remove();
-        }
-        
-        // 創建新標記
-        this.hitMarker = document.createElement('div');
-        this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
-        // 使用 transform 定位以避免觸發重排
-        const parentW = this.barElement ? this.barElement.offsetWidth : 1;
-        const hitTranslate = (position / 100) * parentW;
-        this.hitMarker.style.transform = `translateX(${hitTranslate}px)`;
-        this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
-        
-        if (this.barElement) {
-            this.barElement.appendChild(this.hitMarker);
-        }
-        
-        // 特效播放完後移除
-        setTimeout(() => {
-            if (this.hitMarker) {
-                this.hitMarker.remove();
-                this.hitMarker = null;
-            }
-        }, 800);
-    }
-    
-    /**
-     * 顯示判定文字特效
-     */
-    showJudgmentText(hitType, damage) {
-        const textConfig = {
-            'crit': { text: 'CRITICAL!', color: '#4caf50', size: '28px' },
-            'hit': { text: 'HIT', color: '#ffd700', size: '22px' },
-            'miss': { text: 'MISS', color: '#ff4444', size: '20px' }
-        };
-        
-        const config = textConfig[hitType];
-        if (!config) return;
-        
-        const textEl = document.createElement('div');
-        textEl.className = `judgment-text judgment-${hitType}`;
-        textEl.textContent = config.text;
-        textEl.style.cssText = `
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: ${config.size};
-            font-weight: 900;
-            color: ${config.color};
-            text-shadow: 0 0 20px ${config.color}, 0 0 40px ${config.color};
-            z-index: 100;
-            pointer-events: none;
-            animation: judgmentPop 0.8s ease-out forwards;
-        `;
-        
-        if (this.barElement) {
-            this.barElement.appendChild(textEl);
-        }
-        
-        // 動畫結束後移除
-        setTimeout(() => textEl.remove(), 800);
-    }
-
-    /**
-     * 啟動冷卻系統
-     */
-    startCooldown() {
-        if (this.isOnCooldown) return;
-        
-        this.isOnCooldown = true;
-        
-        // 添加冷卻樣式（使用 CSS 的旋轉動畫）
-        if (this.barElement) {
-            this.barElement.classList.add('cooldown');
-        }
-        
-        // 冷卻時間結束後恢復
-        const cooldownDuration = this.attackSpeed * 1000; // 轉換為毫秒
-        
-        this.cooldownTimer = setTimeout(() => {
-            this.endCooldown();
-        }, cooldownDuration);
-    }
-
-    /**
-     * 結束冷卻
-     */
-    endCooldown() {
-        this.isOnCooldown = false;
-        
-        // 移除冷卻樣式
-        if (this.barElement) {
-            this.barElement.classList.remove('cooldown');
-        }
-        
-        // 重新隨機化區域位置
-        this.generateZones();
-        
-        // 取消冷卻計時器
-        if (this.cooldownTimer) {
-            clearTimeout(this.cooldownTimer);
-            this.cooldownTimer = null;
-        }
-        
-        console.log('[RhythmBar] Cooldown ended, zones regenerated');
-    }
-    
-    /**
-     * 暫停節奏條
-     */
-    pause() {
-        this.isPaused = true;
-    }
-    
-    /**
-     * 恢復節奏條
-     */
-    resume() {
-        this.isPaused = false;
-    }
-    
-    /**
-     * 重置節奏條
-     */
-    reset() {
-        this.needlePosition = 0;
-        this.needleDirection = 1;
-        this.isPaused = false;
-        this.isOnCooldown = false;
-        
-        if (this.barElement) {
-            this.barElement.classList.remove('cooldown');
-        }
-        
-        this.updateEquipmentStats();
-        this.generateZones();
-    }
-}
-
 // Export AdventureScene with inventory management methods
 AdventureScene.prototype.openInventoryModal = function() {
     if (!this.dom.inventoryModal) return;
@@ -2340,123 +1907,17 @@ AdventureScene.prototype.renderInventory = function() {
     // Render equipment slots
     this.renderEquipmentSlots();
     
-    // Render inventory items using simple virtualization + DOM reuse
+    // Render inventory items using shared virtualization + DOM reuse
     if (!this.dom.inventoryList) return;
 
-    const container = this.dom.inventoryList;
-    const items = state.inventory || [];
-
-    // Simple fixed height virtualization
-    const ITEM_HEIGHT = 84; // px per item (tweak in CSS if needed)
-    const totalHeight = items.length * ITEM_HEIGHT;
-
-    // Ensure container is set up for virtualization
-    container.style.position = 'relative';
-    container.style.overflowY = 'auto';
-
-    // Spacer element ensures scroll height
-    let spacer = container.querySelector('.inv-spacer');
-    if (!spacer) {
-        spacer = document.createElement('div');
-        spacer.className = 'inv-spacer';
-        container.appendChild(spacer);
-    }
-    spacer.style.height = totalHeight + 'px';
-
-    // Pool wrapper holds reused item nodes
-    let pool = container.querySelector('.inv-pool');
-    if (!pool) {
-        pool = document.createElement('div');
-        pool.className = 'inv-pool';
-        pool.style.position = 'absolute';
-        pool.style.top = '0';
-        pool.style.left = '0';
-        pool.style.right = '0';
-        container.appendChild(pool);
-    }
-
-    // If no items, show empty hint and clear pool
-    if (!items || items.length === 0) {
-        pool.innerHTML = '';
-        spacer.style.height = '0px';
-        container.innerHTML = '<div class="empty-hint">背包空空如也...</div>';
-        return;
-    }
-
-    // Store state for updates
-    this._invItems = items;
-    this._invItemHeight = ITEM_HEIGHT;
-    this._invContainer = container;
-    this._invPoolWrapper = pool;
-
-    // Determine number of nodes to create in pool (visible + buffer)
-    const viewportHeight = container.clientHeight || 400;
-    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
-    const buffer = 4;
-    const poolSize = visibleCount + buffer * 2;
-
-    // Create or reuse pool nodes
-    if (!this._invPool || this._invPool.length !== poolSize) {
-        // clear existing
-        this._invPool = [];
-        pool.innerHTML = '';
-        for (let i = 0; i < poolSize; i++) {
-            const node = document.createElement('div');
-            node.className = 'item-card inventory-item';
-            node.style.position = 'absolute';
-            node.style.left = '0';
-            node.style.right = '0';
-            node.style.height = ITEM_HEIGHT + 'px';
-            pool.appendChild(node);
-            this._invPool.push(node);
-        }
-    }
-
-    // Initial render of visible items
-    this.updateVisibleInventoryItems();
+    renderVirtualInventoryList(this, this.dom.inventoryList, state.inventory || [], {
+        stateKey: '_adventureInventoryList'
+    });
 };
 
 // Update visible inventory items (virtualization renderer)
 AdventureScene.prototype.updateVisibleInventoryItems = function() {
-    const container = this._invContainer;
-    const items = this._invItems || [];
-    const ITEM_HEIGHT = this._invItemHeight || 84;
-    const pool = this._invPool || [];
-    if (!container || pool.length === 0) return;
-
-    const scrollTop = container.scrollTop || 0;
-    const viewportHeight = container.clientHeight || 400;
-    const firstIndex = Math.floor(scrollTop / ITEM_HEIGHT);
-    const visibleCount = Math.ceil(viewportHeight / ITEM_HEIGHT);
-    const buffer = Math.floor(pool.length - visibleCount > 0 ? (pool.length - visibleCount) / 2 : 2);
-    const start = Math.max(0, firstIndex - buffer);
-
-    for (let i = 0; i < pool.length; i++) {
-        const dataIndex = start + i;
-        const node = pool[i];
-        if (dataIndex >= 0 && dataIndex < items.length) {
-            const stack = items[dataIndex];
-            const item = stack.item;
-            node.style.display = '';
-            node.dataset.instanceId = stack.instanceId;
-            node.className = `item-card inventory-item rarity-${item.rarity}`;
-            node.style.transform = `translateY(${dataIndex * ITEM_HEIGHT}px)`;
-
-            // Build inner HTML (cheap, but reused nodes minimize layout churn)
-            let iconHTML = item.image ? `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">` : (item.icon || '📦');
-            node.innerHTML = `
-                <div class="item-icon">
-                    ${iconHTML}
-                    ${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}
-                </div>
-                <div class="item-info">
-                    <div class="item-name">${item.name}</div>
-                </div>
-            `;
-        } else {
-            node.style.display = 'none';
-        }
-    }
+    updateVirtualInventoryList(this, '_adventureInventoryList');
 };
 
 // Build static layer canvas for the whole map (backgrounds, grid, walls)
@@ -2605,32 +2066,6 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
     const item = stack.item;
     const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
     const isConsumable = item.type === 'potion' || item.type === 'scroll';
-
-    // Build statsHtml
-    let statsHtml = '';
-    if (item.atk || item.attack) {
-        const atk = item.atk || item.attack;
-        statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${atk}</span></div>`;
-    }
-    if (item.def || item.defense) {
-        const def = item.def || item.defense;
-        statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${def}</span></div>`;
-    }
-    if (item.critChance) {
-        const raw = Number(item.critChance || 0);
-        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-    }
-    if (item.critDamage) {
-        const raw = Number(item.critDamage || 0);
-        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-    }
-    if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-    if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-    if (item.hp) statsHtml += `<div class="item-detail-stat"><span>❤️ 恢復 HP</span><span class="value">+${item.hp}</span></div>`;
-    if (item.mp) statsHtml += `<div class="item-detail-stat"><span>💙 恢復 MP</span><span class="value">+${item.mp}</span></div>`;
-
     // Actions
     const actions = [];
     if (isEquipment) {
@@ -2660,7 +2095,7 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
     sellBtn.className = 'btn btn-warning';
     sellBtn.textContent = '💰 販售';
     sellBtn.addEventListener('click', () => {
-        const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+        const sellPrice = getSellPrice(stack.item, stack.quantity);
         if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
             GameManager.sellItem(stack.instanceId, false);
             this.closeItemDetailModal();
@@ -2687,42 +2122,13 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
 
     if (window.ItemDetailModal) {
         window.ItemDetailModal.open(item, {
-            typeText: this.getItemTypeText(item.type),
-            description: item.desc || item.description || '無描述',
-            statsHtml: statsHtml,
+            ...buildItemModalOptions(item),
             actions: actions
         });
     }
 };
 
 AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
-    // Build statsHtml
-    let statsHtml = '';
-    if (item.atk || item.attack) statsHtml += `<div class="item-detail-stat"><span>⚔️ 攻擊力</span><span class="value">+${item.atk || item.attack}</span></div>`;
-    if (item.def || item.defense) statsHtml += `<div class="item-detail-stat"><span>🛡️ 防禦力</span><span class="value">+${item.def || item.defense}</span></div>`;
-    if (item.critChance) {
-        const raw = Number(item.critChance || 0);
-        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-        statsHtml += `<div class="item-detail-stat"><span>💥 爆擊率</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-    }
-    if (item.critDamage) {
-        const raw = Number(item.critDamage || 0);
-        const pct = Math.abs(raw) <= 1 ? raw * 100 : raw;
-        statsHtml += `<div class="item-detail-stat"><span>⚡ 爆擊傷害</span><span class="value">${pct.toFixed(0)}%</span></div>`;
-    }
-    if (item.weaponSpeed) statsHtml += `<div class="item-detail-stat"><span>⏱️ 武器速度</span><span class="value">${item.weaponSpeed.toFixed(1)}x</span></div>`;
-    if (item.attackSpeed) statsHtml += `<div class="item-detail-stat"><span>⚡ 攻擊速度</span><span class="value">${item.attackSpeed.toFixed(1)}x</span></div>`;
-    if (item.durability !== undefined) statsHtml += `<div class="item-detail-stat"><span>🔧 耐久度</span><span class="value">${item.durability}/${item.maxDurability || 50}</span></div>`;
-
-    if (item.affixes && item.affixes.length > 0) {
-        statsHtml += `<div class="item-affixes-section"><div class="affixes-title">✨ 詞綴</div>`;
-        item.affixes.forEach(affix => {
-            const affixDesc = this.formatAffixStats(affix.stats);
-            statsHtml += `<div class="item-affix ${affix.rarity}"><span class="affix-name">${affix.name}</span><span class="affix-stats">${affixDesc}</span></div>`;
-        });
-        statsHtml += `</div>`;
-    }
-
     const actions = [];
     const unequipBtn = document.createElement('button');
     unequipBtn.className = 'btn btn-warning';
@@ -2736,9 +2142,7 @@ AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
 
     if (window.ItemDetailModal) {
         window.ItemDetailModal.open(item, {
-            typeText: this.getItemTypeText(item.type),
-            description: item.desc || item.description || '無描述',
-            statsHtml: statsHtml,
+            ...buildItemModalOptions(item),
             actions: actions
         });
     }
@@ -2754,43 +2158,6 @@ AdventureScene.prototype.closeItemDetailModal = function() {
 /**
  * 格式化詞綴屬性為可讀文字
  */
-AdventureScene.prototype.formatAffixStats = function(stats) {
-    if (!stats) return '';
-    const statNames = {
-        atk: '攻擊力', def: '防禦力', hp: '生命', mp: '魔力',
-        critChance: '暴擊率', critDamage: '暴擊傷害', attackSpeed: '攻擊速度',
-        lifesteal: '生命偷取', damageReduction: '傷害減免', hpRegen: '生命回復', mpRegen: '魔力回復',
-        fireDamage: '火焰傷害', iceDamage: '冰霜傷害', thunderDamage: '雷電傷害', voidDamage: '虛空傷害',
-        slowChance: '減速', stunChance: '暈眩', dodgeChance: '閃避', armorPenetration: '穿甲',
-        bossBonus: 'Boss傷害', allStats: '全屬性', noDurabilityLoss: '不損耐久'
-    };
-    
-    const parts = [];
-    for (const [key, value] of Object.entries(stats)) {
-        const name = statNames[key] || key;
-        if (key === 'noDurabilityLoss') {
-            parts.push('不損耐久');
-        } else if (key.includes('Chance') || key.includes('Reduction') || key.includes('steal')) {
-            parts.push(`${name}+${(value * 100).toFixed(0)}%`);
-        } else {
-            parts.push(`${name}+${typeof value === 'number' ? value.toFixed(value % 1 === 0 ? 0 : 1) : value}`);
-        }
-    }
-    return parts.join(', ');
-};
-
-AdventureScene.prototype.getItemTypeText = function(type) {
-    const typeMap = {
-        'weapon': '武器',
-        'armor': '防具',
-        'accessory': '飾品',
-        'potion': '藥水',
-        'scroll': '卷軸',
-        'material': '素材'
-    };
-    return typeMap[type] || type || '未知';
-};
-
 // Global functions for adventure item actions (for backward compatibility)
 window.adventureEquipItem = function(instanceId) {
     GameManager.equipItem(instanceId, false);
@@ -2806,7 +2173,7 @@ window.adventureSellItem = function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
     
-    const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+    const sellPrice = getSellPrice(stack.item, stack.quantity);
     if (confirm(`確定要賣掉 ${stack.item.name} x${stack.quantity}？\n將獲得 ${sellPrice} 金幣。`)) {
         GameManager.sellItem(instanceId, false);
         window.adventureRefreshInventory();

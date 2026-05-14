@@ -3,7 +3,7 @@
  * 裝備強化系統 - 強化、寶石鑲嵌、套裝效果
  */
 import GameManager from './GameManager.js';
-import { ItemRarity } from '../models/DataModel.js';
+import { ItemRarity } from '../models/Enums.js';
 
 // 強化等級上限
 const MAX_ENHANCEMENT_LEVEL = 10;

@@ -34,7 +34,8 @@ body {
 /* 地圖格子 - 棋盤風格 */
 .grid-tile {
     position: relative;
-    aspect-ratio: 1 / 1;
+    height: 100%;
+    min-height: 0;
     cursor: pointer;
     /* 優化：只動畫 GPU 友善屬性 */
     transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -105,8 +106,8 @@ body {
     font-size: 10px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.8);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    text-transform: none;
+    letter-spacing: 0.6px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
 }
 
@@ -302,8 +303,8 @@ body {
     margin: 0;
     font-size: 14px;
     color: #4facfe;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    text-transform: none;
+    letter-spacing: 0.6px;
 }
 
 .gold-display {

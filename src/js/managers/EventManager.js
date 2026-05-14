@@ -4,18 +4,9 @@
  */
 import { EventDatabase, EventType, ResultType } from '../data/Events.js';
 import GameManager from './GameManager.js';
-import { Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
-
-function weightedPick(list, rng = Math.random) {
-    const total = list.reduce((s, it) => s + (it.weight || 0), 0);
-    if (total <= 0) return null;
-    let r = rng() * total;
-    for (const it of list) {
-        r -= (it.weight || 0);
-        if (r <= 0) return it;
-    }
-    return list[list.length - 1];
-}
+import { Consumable, Item } from '../models/DataModel.js';
+import { ItemType, ItemRarity } from '../models/Enums.js';
+import { weightedPick } from '../utils/WeightedPick.js';
 
 export function getEventForZone(zoneType, rng = Math.random) {
     if (!zoneType) zoneType = 'low';

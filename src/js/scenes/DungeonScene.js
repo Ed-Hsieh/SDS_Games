@@ -39,10 +39,10 @@ class DungeonSceneClass {
     // ==================== 初始化 ====================
     
     init(dungeonType) {
-        console.log(`[DungeonScene] 初始化副本: ${dungeonType}`);
         
         this.dungeonType = dungeonType;
         this.container = document.getElementById('dungeon-container') || document.body;
+        this.applyDungeonView(dungeonType);
         
         const dungeonData = DungeonDatabase[dungeonType];
         if (!dungeonData) {
@@ -59,6 +59,7 @@ class DungeonSceneClass {
         
         // 緩存 DOM
         this.cacheElements();
+        this.applyDungeonControls(dungeonType);
         
         // 初始化 Canvas
         const canvasReady = this.initCanvas();
@@ -84,7 +85,6 @@ class DungeonSceneClass {
             this.addMessage('❄️ 天寒地凍：此副本無法使用技能！', 'warning');
         }
         
-        console.log('[DungeonScene] 初始化完成');
     }
     
     initDungeonMap() {
@@ -96,6 +96,25 @@ class DungeonSceneClass {
             screenWidth: 800,
             screenHeight: 500
         });
+    }
+
+    applyDungeonView(dungeonType) {
+        const sceneEl = document.getElementById('dungeon-scene');
+        if (sceneEl) {
+            sceneEl.className = `dungeon-scene dungeon-${dungeonType}`;
+        }
+
+        document.querySelectorAll('[data-dungeon-effect]').forEach(effectEl => {
+            effectEl.classList.toggle('hidden', effectEl.dataset.dungeonEffect !== dungeonType);
+        });
+    }
+
+    applyDungeonControls(dungeonType) {
+        if (!this.dom.btnSkill) return;
+
+        const skillDisabled = dungeonType === 'snow';
+        this.dom.btnSkill.disabled = skillDisabled;
+        this.dom.btnSkill.title = skillDisabled ? '天寒地凍：無法使用技能' : '';
     }
     
     cacheElements() {
@@ -189,7 +208,6 @@ class DungeonSceneClass {
             this.canvas.height = 500;
         }
         
-        console.log(`[DungeonScene] Canvas 初始化完成: ${this.canvas.width}x${this.canvas.height}`);
         return true;
     }
     
@@ -222,6 +240,20 @@ class DungeonSceneClass {
             document.removeEventListener('keydown', this.boundKeyHandler);
             this.boundKeyHandler = null;
         }
+        try {
+            if (this._engine && typeof this._engine.stopAutoAttack === 'function') {
+                this._engine.stopAutoAttack();
+            }
+        } catch (e) {
+            console.warn('[DungeonScene] Failed to stop fight engine during destroy:', e);
+        }
+        this._engine = null;
+        this.isInCombat = false;
+        this.currentMonster = null;
+    }
+
+    cleanup() {
+        this.destroy();
     }
     
     // ==================== 鍵盤控制 ====================
@@ -313,10 +345,15 @@ class DungeonSceneClass {
         
         // 樓層加成
         const floorBonus = 1 + (this.currentFloor - 1) * 0.15;
+        const baseAttack = monster.attack ?? monster.atk ?? 0;
+        const baseDefense = monster.defense ?? monster.def ?? 0;
+
         monster.hp = Math.floor(monster.hp * floorBonus);
         monster.maxHp = monster.hp;
-        monster.atk = Math.floor(monster.atk * floorBonus);
-        monster.def = Math.floor(monster.def * floorBonus);
+        monster.attack = Math.floor(baseAttack * floorBonus);
+        monster.defense = Math.floor(baseDefense * floorBonus);
+        monster.atk = monster.attack;
+        monster.def = monster.defense;
         
         this.currentMonster = monster;
         this.isInCombat = true;
@@ -509,7 +546,7 @@ class DungeonSceneClass {
             const exp = m.exp;
             
             this.addMessage(`🎉 擊敗 ${m.name}！`, 'success');
-            this.addMessage(`💰 +${gold}G  ⭐ +${exp} EXP`, 'reward');
+            this.addMessage(`💰 +${gold} 金幣  ⭐ +${exp} 經驗`, 'reward');
             
             GameManager.addGold(gold);
             const char = GameManager.getCharacter();
@@ -590,7 +627,7 @@ class DungeonSceneClass {
         const healAmount = Math.floor(char.maxHp * 0.3);
         char.hp = Math.min(char.maxHp, char.hp + healAmount);
         
-        this.addMessage(`⛲ 恢復 ${healAmount} HP`, 'success');
+        this.addMessage(`⛲ 恢復 ${healAmount} 生命`, 'success');
         
         this.dungeonMap.clearHealing();
         this.updateUI();
@@ -844,7 +881,6 @@ class DungeonSceneClass {
         // 嘗試使用 combat-log
         const logEl = this.dom.messageLog;
         if (!logEl) {
-            console.log(`[DungeonScene] ${text}`);
             return;
         }
         

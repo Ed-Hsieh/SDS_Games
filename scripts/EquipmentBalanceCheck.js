@@ -115,7 +115,7 @@ function evaluateItem(item) {
     score += bonusStats.otherScore;
 
     // 4. 及格線計算
-    const rarity = (item.ItemRarity || item.rarity || 'common').toLowerCase();
+    const rarity = (item.rarity || 'common').toLowerCase();
     const rarityMult = CONFIG.rarityStandard[rarity] || 1.0;
     
     let baseStandard = Math.max(5, item.level * CONFIG.baseAtkPerLevel);

@@ -1217,7 +1217,7 @@ export const TowerMonsterData = {
             { itemId: 'hell_knight_armor', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'hell_knight_lance', chance: 0.25 }
+            { equipmentId: 'tower_hell_knight_lance', chance: 0.25 }
         ],
         skills: ['hellfire_slash', 'flame_charge'],
         description: '來自地獄的騎士。',
@@ -1340,7 +1340,7 @@ export const TowerMonsterData = {
             { itemId: 'abyss_blade', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'abyss_armor', chance: 0.25 }
+            { equipmentId: 'tower_abyss_armor', chance: 0.25 }
         ],
         skills: ['abyss_strike', 'dark_summon', 'void_armor'],
         description: '來自深淵的強大魔將。',
@@ -1469,8 +1469,8 @@ export const TowerMonsterData = {
             { itemId: 'titan_heart', chance: 0.3, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'void_blade', chance: 0.30 },
-            { equipmentId: 'void_crown', chance: 0.25 }
+            { equipmentId: 'tower_void_blade', chance: 0.30 },
+            { equipmentId: 'tower_void_crown', chance: 0.25 }
         ],
         skills: ['void_rupture', 'reality_tear', 'dimension_shift', 'annihilation'],
         description: '統治虛空的終極存在，無盡塔的最終守護者。',

@@ -65,6 +65,25 @@ function sumPercentFromEquipment(equipmentSlots, keys) {
     return total;
 }
 
+export function normalizeMonsterCombatStats(monster) {
+    if (!monster) return monster;
+
+    const attack = monster.attack ?? monster.atk ?? 0;
+    const defense = monster.defense ?? monster.def ?? 0;
+    const hp = monster.hp ?? monster.currentHp ?? monster.maxHp ?? 0;
+    const maxHp = monster.maxHp ?? monster.hp ?? hp;
+
+    monster.attack = attack;
+    monster.atk = attack;
+    monster.defense = defense;
+    monster.def = defense;
+    monster.hp = hp;
+    monster.maxHp = maxHp;
+    if (monster.currentHp === undefined) monster.currentHp = hp;
+
+    return monster;
+}
+
 /**
  * Compute player attack damage (includes elemental bonuses and crit handling)
  * hitType: 'crit' | 'hit' | 'miss'
@@ -123,7 +142,8 @@ export function computePlayerAttack(player, hitType) {
 export function computeMonsterAttack(monster, player) {
     if (!monster || !player) return { damage: 1 };
     const def = player.getTotalDef ? player.getTotalDef() : (player.def || 0);
-    const raw = (monster.attack || 0) - def;
+    const normalizedMonster = normalizeMonsterCombatStats(monster);
+    const raw = (normalizedMonster.attack || 0) - def;
     const damage = Math.max(1, Math.floor(raw));
     return { damage };
 }
@@ -238,7 +258,7 @@ export function applyDamage(attacker, target, damageObj) {
 export class BattleController {
     constructor(player, monster) {
         this.player = player;
-        this.monster = monster;
+        this.monster = normalizeMonsterCombatStats(monster);
         this.battleEnded = false;
         this.attackCooldown = false;
         this.turnCount = 0;
@@ -314,7 +334,8 @@ export class BattleController {
             damage = Math.max(1, Math.floor(dmgObj.damage));
         } else {
             const def = this.player.getTotalDef ? this.player.getTotalDef() : (this.player.def || 0);
-            damage = Math.max(1, Math.floor((this.monster.attack || 0) - def));
+            const monsterAttack = (this.monster.attack ?? this.monster.atk ?? 0);
+            damage = Math.max(1, Math.floor(monsterAttack - def));
         }
 
         // Apply to player

@@ -37,7 +37,7 @@ export const RecipeDatabase = {
             name: '鐵劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.COMMON,
+            rarity: ItemRarity.COMMON,
             stats: {
                 attack: 8,
                 defense: 0,
@@ -66,7 +66,7 @@ export const RecipeDatabase = {
             name: '骨刃',
             icon: '🦴',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 8,
                 defense: 0,
@@ -96,7 +96,7 @@ export const RecipeDatabase = {
             name: '毒刃匕首',
             icon: '🗡️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 10,
                 defense: 0,
@@ -126,7 +126,7 @@ export const RecipeDatabase = {
             name: '暗影之劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 30,
                 defense: 0,
@@ -155,7 +155,7 @@ export const RecipeDatabase = {
             name: '秘銀長劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 35,
                 defense: 0,
@@ -185,7 +185,7 @@ export const RecipeDatabase = {
             name: '烈焰之劍',
             icon: '🔥',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 35,
                 defense: 0,
@@ -215,7 +215,7 @@ export const RecipeDatabase = {
             name: '霜寒之劍',
             icon: '❄️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 35,
                 defense: 5,
@@ -246,7 +246,7 @@ export const RecipeDatabase = {
             name: '屠龍劍',
             icon: '🐉',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 40,
                 defense: 0,
@@ -277,7 +277,7 @@ export const RecipeDatabase = {
             name: '泰坦之劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 50,
                 defense: 10,
@@ -306,7 +306,7 @@ export const RecipeDatabase = {
             name: '皮甲',
             icon: '🥋',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.COMMON,
+            rarity: ItemRarity.COMMON,
             stats: {
                 attack: 0,
                 defense: 4,
@@ -335,7 +335,7 @@ export const RecipeDatabase = {
             name: '狼皮斗篷',
             icon: '🐺',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 0,
                 defense: 6,
@@ -365,7 +365,7 @@ export const RecipeDatabase = {
             name: '守護者之甲',
             icon: '🛡️',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 0,
                 defense: 10,
@@ -395,7 +395,7 @@ export const RecipeDatabase = {
             name: '暗影鎧甲',
             icon: '⚫',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 3,
                 defense: 13,
@@ -425,7 +425,7 @@ export const RecipeDatabase = {
             name: '龍鱗鎧甲',
             icon: '🐲',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 8,
                 defense: 18,
@@ -456,7 +456,7 @@ export const RecipeDatabase = {
             name: '泰坦之鎧',
             icon: '🛡️',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 10,
                 defense: 22,
@@ -486,7 +486,7 @@ export const RecipeDatabase = {
             name: '狼牙項鍊',
             icon: '🦷',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 1,
                 defense: 1,
@@ -516,7 +516,7 @@ export const RecipeDatabase = {
             name: '自然護符',
             icon: '🌿',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 1,
                 defense: 5,
@@ -546,7 +546,7 @@ export const RecipeDatabase = {
             name: '暗影戒指',
             icon: '💍',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 3,
                 defense: 3,
@@ -576,7 +576,7 @@ export const RecipeDatabase = {
             name: '龍之護符',
             icon: '🐉',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 12,
                 defense: 8,
@@ -606,7 +606,7 @@ export const RecipeDatabase = {
             name: '泰坦之戒',
             icon: '💍',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 15,
                 defense: 15,
@@ -635,7 +635,7 @@ export const RecipeDatabase = {
             name: '生命藥水',
             icon: '🧪',
             type: ItemType.POTION,
-            ItemRarity: ItemRarity.COMMON,
+            rarity: ItemRarity.COMMON,
             hp: 50,
             desc: '恢復 50 點生命值。'
         }
@@ -659,7 +659,7 @@ export const RecipeDatabase = {
             name: '高級生命藥水',
             icon: '❤️',
             type: ItemType.POTION,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             hp: 120,
             desc: '恢復 120 點生命值。'
         }
@@ -686,7 +686,7 @@ export const RecipeDatabase = {
             name: '虛空裂刃',
             icon: '🌑',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 82,
                 defense: 6,
@@ -723,7 +723,7 @@ export const RecipeDatabase = {
             name: '雷霆長矛',
             icon: '⚡',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 56,
                 defense: 4,
@@ -757,7 +757,7 @@ export const RecipeDatabase = {
             name: '翼龍鱗鎧',
             icon: '🛡️',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 10,
                 defense: 42,
@@ -788,7 +788,7 @@ export const RecipeDatabase = {
             name: '九頭毒牙匕首',
             icon: '🦂',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 48,
                 defense: 0,
@@ -822,7 +822,7 @@ export const RecipeDatabase = {
             name: '骨靈權杖',
             icon: '☠️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 44,
                 defense: 6,
@@ -855,7 +855,7 @@ export const RecipeDatabase = {
             name: '石像鬼壁壘',
             icon: '🪨',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 4,
                 defense: 28,
@@ -887,7 +887,7 @@ export const RecipeDatabase = {
             name: '哥布林詭計護符',
             icon: '🪙',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.UNCOMMON,
+            rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 6,
                 defense: 2,
@@ -919,7 +919,7 @@ export const RecipeDatabase = {
             name: '魔戰指揮盔',
             icon: '👹',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 8,
                 defense: 36,
@@ -950,7 +950,7 @@ export const RecipeDatabase = {
             name: '龍王霸主冠',
             icon: '👑',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 22,
                 defense: 24,
@@ -982,7 +982,7 @@ export const RecipeDatabase = {
             name: '原初聚能器',
             icon: '✨',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.LEGENDARY,
+            rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 18,
                 defense: 18,
@@ -1012,7 +1012,7 @@ export const RecipeDatabase = {
             name: '史萊姆之冠戒',
             icon: '👑',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 8,
                 defense: 6,
@@ -1043,7 +1043,7 @@ export const RecipeDatabase = {
             name: '刺客影幕',
             icon: '🗡️',
             type: EquipmentType.ACCESSORY,
-            ItemRarity: ItemRarity.EPIC,
+            rarity: ItemRarity.EPIC,
             stats: {
                 attack: 16,
                 defense: 10,
@@ -1074,7 +1074,7 @@ export const RecipeDatabase = {
             name: '大地守衛盾',
             icon: '🌍',
             type: EquipmentType.EQUIPMENT,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 4,
                 defense: 30,
@@ -1104,7 +1104,7 @@ export const RecipeDatabase = {
             name: '霜縛權杖',
             icon: '❄️',
             type: EquipmentType.WEAPON,
-            ItemRarity: ItemRarity.RARE,
+            rarity: ItemRarity.RARE,
             stats: {
                 attack: 32,
                 defense: 4,

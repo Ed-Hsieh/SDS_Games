@@ -19,6 +19,7 @@ class App {
         this.appContainer = document.getElementById('app');
         this.currentScene = null;
         this.htmlCache = {}; // Cache for HTML content
+        this.sceneLoadToken = 0;
         
         // Simple router map
         this.routes = {
@@ -63,6 +64,9 @@ class App {
     }
 
     async loadScene(sceneName) {
+        const loadToken = ++this.sceneLoadToken;
+        const viewName = this.dungeonRoutes[sceneName] ? 'dungeon' : sceneName;
+
         // Cleanup current scene if it has a cleanup method
         if (this.currentScene && typeof this.currentScene.cleanup === 'function') {
             this.currentScene.cleanup();
@@ -80,23 +84,26 @@ class App {
             let htmlContent;
 
             // Check cache
-            if (this.htmlCache[sceneName]) {
-                htmlContent = this.htmlCache[sceneName];
+            if (this.htmlCache[viewName]) {
+                htmlContent = this.htmlCache[viewName];
             } else {
                 // Fetch from file
-                const response = await fetch(`src/views/${sceneName}.html`);
+                const response = await fetch(`src/views/${viewName}.html`);
                 if (!response.ok) {
                     throw new Error(`Failed to load scene: ${sceneName} (${response.status})`);
                 }
                 htmlContent = await response.text();
-                this.htmlCache[sceneName] = htmlContent;
+                this.htmlCache[viewName] = htmlContent;
             }
+
+            if (loadToken !== this.sceneLoadToken) return;
 
             // Inject HTML
             this.appContainer.innerHTML = htmlContent;
 
-            // Wait for next frame to ensure DOM is fully updated
-            await new Promise(resolve => requestAnimationFrame(resolve));
+            // Wait briefly so injected DOM is available even when requestAnimationFrame is throttled.
+            await this.nextDomTick();
+            if (loadToken !== this.sceneLoadToken) return;
 
             // Initialize new scene logic
             const SceneClass = this.routes[sceneName];
@@ -119,7 +126,24 @@ class App {
             this.appContainer.innerHTML = `<div style="color:red; padding:20px;">Error loading scene: ${error.message}</div>`;
         }
     }
-    
+
+    nextDomTick() {
+        return new Promise(resolve => {
+            let done = false;
+            const finish = () => {
+                if (done) return;
+                done = true;
+                resolve();
+            };
+
+            if (typeof requestAnimationFrame === 'function') {
+                requestAnimationFrame(finish);
+            }
+
+            setTimeout(finish, 0);
+        });
+    }
+
     // 進入副本的便捷方法
     enterDungeon(dungeonType) {
         const routeName = `dungeon-${dungeonType}`;

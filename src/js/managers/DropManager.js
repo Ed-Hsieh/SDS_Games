@@ -5,6 +5,7 @@
 
 import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../data/DropPools.js';
 import { DropSourceType } from '../models/Enums.js';
+import { weightedPick } from '../utils/WeightedPick.js';
 
 // Pool helpers (kept in manager so data file stays logic-free)
 export function registerZonePool(zoneId, pool) {
@@ -41,18 +42,6 @@ function resolveZonePoolKey(zoneIdOrType) {
 
 // DropSource type enum
 // DropSourceType moved to `src/js/models/Enums.js`
-
-// Utilities
-function weightedPick(items, rng = Math.random) {
-    const total = items.reduce((s, it) => s + (it.weight || 0), 0);
-    if (total <= 0) return null;
-    let r = rng() * total;
-    for (const it of items) {
-        r -= (it.weight || 0);
-        if (r <= 0) return it;
-    }
-    return items[items.length - 1];
-}
 
 function resolveQuantity(qty, rng = Math.random) {
     if (qty == null) return 1;

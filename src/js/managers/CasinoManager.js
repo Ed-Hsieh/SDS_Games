@@ -4,7 +4,6 @@
  * (從 scenes/CasinoSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
-import { Consumable, Item, ItemType, ItemRarity } from '../models/DataModel.js';
 
 // 遊戲類型
 export const CasinoGame = {

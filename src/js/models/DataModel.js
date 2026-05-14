@@ -5,6 +5,7 @@
 
 // 從 Enums.js 導入並重新導出（保持向後相容）
 import { ItemRarity, ItemType, ItemCategory, SkillType } from './Enums.js';
+import * as CharacterLogic from './CharacterLogic.js';
 export { ItemRarity, ItemType, ItemCategory, SkillType };
 
 export class Skill {
@@ -130,6 +131,14 @@ export const DefaultSkills = {
     sharpEye: new BuffSkill('sharp_eye', '銳眼', '👁️', '提升爆擊率', 18, 4, 'critChance', 0.2, 3)
 };
 
+export function createDefaultSkills() {
+    return [
+        new AttackSkill('fireball', '火球術', '🔥', '發射火球造成傷害', 15, 0, 1.5, 10),
+        new HealSkill('heal', '治療術', '✨', '恢復生命值', 20, 1, 30, 0.1),
+        new BuffSkill('battle_cry', '戰吼', '📣', '短時間提升攻擊力', 15, 3, 'atk', 20, 3)
+    ];
+}
+
 export class Item {
     constructor(id, name, type, rarity, icon, description, price) {
         this.id = id;
@@ -230,9 +239,6 @@ export class Consumable extends Item {
     }
 }
 
-// 引入 CharacterManager 邏輯函式
-import * as CharacterLogic from '../managers/CharacterManager.js';
-
 /**
  * Character - 純資料模型
  * 只包含屬性定義和基本的 getter/setter
@@ -264,7 +270,7 @@ export class CharacterManager {
         this.activeBuffs = [];
         
         // 初始化技能
-        CharacterLogic.initDefaultSkills(this);
+        CharacterLogic.initDefaultSkills(this, createDefaultSkills);
     }
     
     // ===== HP/MP/EXP Getters/Setters =====

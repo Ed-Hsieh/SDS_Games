@@ -6,23 +6,23 @@
         <div class="hall-left-panel">
             <!-- 角色資訊卡 -->
             <div class="card character-info">
-                <div class="card-header">⚔️ CHARACTER</div>
+                <div class="card-header">⚔️ 角色</div>
                 <div class="card-body">
                     <!-- LV & Gold 上排 -->
                     <div class="character-header">
                         <div class="character-level">
-                            <div class="character-level-label">LV</div>
+                            <div class="character-level-label">等級</div>
                             <div class="character-level-value" id="character-level">1</div>
                         </div>
                         <div class="character-gold">
-                            <div class="character-gold-label">💰 Gold</div>
+                            <div class="character-gold-label">💰 金幣</div>
                             <div class="character-gold-value" id="character-gold">1000</div>
                         </div>
                     </div>
                     
                     <!-- HP 進度條 -->
                     <div class="stat-row">
-                        <span class="stat-label">HP</span>
+                        <span class="stat-label">生命</span>
                     </div>
                     <div class="progress-bar-container">
                         <div class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;"></div>
@@ -31,7 +31,7 @@
                     
                     <!-- EXP 進度條 -->
                     <div class="stat-row">
-                        <span class="stat-label">EXP</span>
+                        <span class="stat-label">經驗</span>
                     </div>
                     <div class="progress-bar-container">
                         <div class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;"></div>
@@ -41,11 +41,11 @@
                     <!-- 屬性面板 -->
                     <div class="attributes-panel">
                         <div class="attribute-box">
-                            <div class="attribute-label">⚔️ ATK</div>
+                            <div class="attribute-label">⚔️ 攻擊</div>
                             <div class="attribute-value" id="character-atk">10</div>
                         </div>
                         <div class="attribute-box">
-                            <div class="attribute-label">🛡️ DEF</div>
+                            <div class="attribute-label">🛡️ 防禦</div>
                             <div class="attribute-value" id="character-def">5</div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
             <!-- 倉庫資訊卡 -->
             <div class="card warehouse-info">
                 <div class="card-header">
-                    <span>🏪 STORAGE</span>
+                        <span>🏪 倉庫</span>
                     <div class="warehouse-controls">
                         <!-- 排序選單 -->
                         <select class="warehouse-sort" id="warehouse-sort">
@@ -70,7 +70,7 @@
                         </select>
                         <!-- 倉庫分類篩選 - INLINE -->
                         <div class="warehouse-filters">
-                            <button class="warehouse-filter active" data-filter="all">ALL</button>
+                            <button class="warehouse-filter active" data-filter="all">全部</button>
                             <button class="warehouse-filter" data-filter="weapon">⚔️</button>
                             <button class="warehouse-filter" data-filter="armor">🛡️</button>
                             <button class="warehouse-filter" data-filter="accessory">💍</button>
@@ -92,7 +92,7 @@
         <div class="hall-right-panel">
             <!-- 角色裝備資訊卡 -->
             <div class="card character-equipment">
-                <div class="card-header">👤 EQUIPMENT</div>
+                <div class="card-header">👤 裝備</div>
                 <div class="card-body">
                     <div class="equipment-slots">
                         <!-- 武器槽 -->
@@ -124,7 +124,7 @@
             <div class="card inventory-section">
                 <div class="card-header">
                     <div class="inventory-header-info">
-                        <span>🎒 INVENTORY</span>
+                        <span>🎒 背包</span>
                         <span class="inventory-capacity">
                             <span id="inventory-used">0</span> / <span id="inventory-max">10</span>
                         </span>
@@ -145,7 +145,7 @@
             <div class="menu-buttons">
                 <button class="menu-btn" id="btn-go-shop">
                     <div class="menu-btn-icon">🛒</div>
-                    <div class="menu-btn-text">Shop</div>
+                    <div class="menu-btn-text">市集</div>
                 </button>
                 <button class="menu-btn" id="btn-go-forge">
                     <div class="menu-btn-icon">⚒️</div>
@@ -153,22 +153,22 @@
                 </button>
                 <button class="menu-btn" id="btn-go-gamble">
                     <div class="menu-btn-icon">🎲</div>
-                    <div class="menu-btn-text">Gamble</div>
+                    <div class="menu-btn-text">賭場</div>
                 </button>
                 <button class="menu-btn" id="btn-go-quest">
                     <div class="menu-btn-icon">📜</div>
-                    <div class="menu-btn-text">Quest</div>
+                    <div class="menu-btn-text">任務</div>
                 </button>
                 <button class="menu-btn" id="btn-go-tower">
                     <div class="menu-btn-icon">🗼</div>
-                    <div class="menu-btn-text">Tower</div>
+                    <div class="menu-btn-text">無盡塔</div>
                 </button>
             </div>
             
             <!-- 開始冒險按鈕 - 右側高亮 -->
             <div class="adventure-section">
                 <button class="adventure-btn" id="btn-start-adventure">
-                    ⚔️ START ADVENTURE
+                    ⚔️ 開始冒險
                 </button>
             </div>
         </div>

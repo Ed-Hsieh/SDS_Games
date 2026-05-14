@@ -679,7 +679,7 @@ export const QuestDatabase = {
             description: '危險區的狼群正在威脅旅人安全。',
             repeatable: true,
             objectives: [
-                { type: ObjectiveType.KILL, target: 'wolf', count: 5, description: '擊敗野狼 5 隻' }
+                { type: ObjectiveType.KILL, target: 'wild_wolf', count: 5, description: '擊敗野狼 5 隻' }
             ],
             rewards: {
                 gold: 250,
@@ -696,7 +696,7 @@ export const QuestDatabase = {
             description: '一個精英怪物正在危險區域徘徊...',
             repeatable: false,
             objectives: [
-                { type: ObjectiveType.KILL, target: 'elite_assassin', count: 1, description: '擊敗暗影刺客' }
+                { type: ObjectiveType.KILL, target: 'shadow_assassin', count: 1, description: '擊敗暗影刺客' }
             ],
             rewards: {
                 gold: 500,
@@ -1229,7 +1229,7 @@ export const QuestRewardItems = {
         name: '冒險者之劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        ItemRarity: ItemRarity.UNCOMMON,
+        rarity: ItemRarity.UNCOMMON,
         stats: {
             attack: 12
         },
@@ -1250,7 +1250,7 @@ export const QuestRewardItems = {
         name: '幸運金幣',
         icon: '🪙',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.RARE,
+        rarity: ItemRarity.RARE,
         stats: {
             attack: 0,
             defense: 0,
@@ -1273,7 +1273,7 @@ export const QuestRewardItems = {
         name: '命運水晶',
         icon: '🔮',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         stats: {
             attack: 5,
             defense: 5
@@ -1297,7 +1297,7 @@ export const QuestRewardItems = {
         name: '狼牙項鍊',
         icon: '🦷',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.UNCOMMON,
+        rarity: ItemRarity.UNCOMMON,
         stats: {
             attack: 3,
             critChance: 0.08
@@ -1310,7 +1310,7 @@ export const QuestRewardItems = {
         name: '刺客匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         stats: {
             attack: 18,
             critChance: 0.25,
@@ -1387,7 +1387,7 @@ export const QuestRewardItems = {
         name: '乞丐的智慧',
         icon: '📿',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.RARE,
+        rarity: ItemRarity.RARE,
         description: '「一無所有，反而看得更清。」金幣獲取 +10%。',
         specialEffects: [
             { type: AffixStat.GOLD_BONUS, value: 0.1 }
@@ -1399,7 +1399,7 @@ export const QuestRewardItems = {
         name: '鳳凰羽毛',
         icon: '🪶',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.LEGENDARY,
+        rarity: ItemRarity.LEGENDARY,
         description: '死亡時自動復活一次，HP 恢復 30%。每場戰鬥只能觸發一次。',
         specialEffects: [
             { type: 'autoRevive', value: true },
@@ -1412,7 +1412,7 @@ export const QuestRewardItems = {
         name: '賭徒謬誤',
         icon: '🃏',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         description: '「連輸這麼多次，下次一定會贏！」連敗後勝率大幅提升。',
         specialEffects: [
             { type: 'lossStreakBonus', value: true }
@@ -1424,7 +1424,7 @@ export const QuestRewardItems = {
         name: '惡魔契約',
         icon: '📋',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.LEGENDARY,
+        rarity: ItemRarity.LEGENDARY,
         stats: {
             attack: 15,
             defense: 15
@@ -1480,7 +1480,7 @@ export const QuestRewardItems = {
         name: '蝙蝠翼披風',
         icon: '🦇',
         type: EquipmentType.EQUIPMENT,
-        ItemRarity: ItemRarity.RARE,
+        rarity: ItemRarity.RARE,
         stats: {
             defense: 8,
             critChance: 0.1
@@ -1513,7 +1513,7 @@ export const QuestRewardItems = {
         name: '冰霜王冠',
         icon: '👑',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         stats: {
             attack: 10,
             defense: 5
@@ -1544,7 +1544,7 @@ export const QuestRewardItems = {
         name: '守護者之盾',
         icon: '🛡️',
         type: EquipmentType.EQUIPMENT,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         stats: {
             defense: 20
         },
@@ -1574,7 +1574,7 @@ export const QuestRewardItems = {
         name: '叢林之心',
         icon: '💚',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.EPIC,
+        rarity: ItemRarity.EPIC,
         stats: {
             attack: 8,
             defense: 8
@@ -1607,7 +1607,7 @@ export const QuestRewardItems = {
         name: '弒魔者',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
-        ItemRarity: ItemRarity.LEGENDARY,
+        rarity: ItemRarity.LEGENDARY,
         stats: {
             attack: 35,
             critChance: 0.2,
@@ -1628,7 +1628,7 @@ export const QuestRewardItems = {
         name: '副本代幣',
         icon: '🎖️',
         type: ItemType.CURRENCY,
-        ItemRarity: ItemRarity.UNCOMMON,
+        rarity: ItemRarity.UNCOMMON,
         stackable: true,
         maxStack: 999,
         description: '累積足夠的代幣可以兌換稀有道具。',
@@ -1641,7 +1641,7 @@ export const QuestRewardItems = {
         name: '副本征服者徽章',
         icon: '🏆',
         type: EquipmentType.ACCESSORY,
-        ItemRarity: ItemRarity.LEGENDARY,
+        rarity: ItemRarity.LEGENDARY,
         stats: {
             attack: 20,
             defense: 20,

@@ -3,7 +3,7 @@
  * 材料與掉落物資料庫 - 所有怪物掉落的素材都可用於鍛造/強化
  */
 
-import { ItemType, ItemRarity } from '../models/DataModel.js';
+import { ItemType, ItemRarity } from '../models/Enums.js';
 
 /**
  * 材料資料庫
@@ -61,7 +61,7 @@ export const MaterialDatabase = {
     iron_ore: {
         id: 'iron_ore',
         name: '鐵礦石',
-        icon: '�ite',
+        icon: '⛏️',
         type: ItemType.MATERIAL,
         rarity: ItemRarity.COMMON,
         price: 15,
@@ -259,6 +259,17 @@ export const MaterialDatabase = {
         craftUse: []
     },
 
+    bat_wing: {
+        id: 'bat_wing',
+        name: '蝙蝠翅膀',
+        icon: '🦇',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.COMMON,
+        price: 30,
+        description: '暗影蝙蝠掉落的薄翼，可作為裁縫與鍛造材料。',
+        craftUse: ['bat_wing_cloak']
+    },
+
     // Pool materials referenced from DropPools (added as stubs)
     wood: { id: 'wood', name: '木材', icon: '🪵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 3, description: '基本建材與鍛造材料。', craftUse: [] },
     cloth: { id: 'cloth', name: '布料', icon: '🧵', type: ItemType.MATERIAL, rarity: ItemRarity.COMMON, price: 4, description: '纖維材料，用於衣物與輕甲。', craftUse: [] },
@@ -293,6 +304,28 @@ export const MaterialDatabase = {
         price: 45,
         description: '凝固的暗影能量。',
         craftUse: ['shadow_blade', 'shadow_cloak']
+    },
+
+    soul_fragment: {
+        id: 'soul_fragment',
+        name: '靈魂碎片',
+        icon: '🕯️',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
+        price: 120,
+        description: '被黑暗交易污染的靈魂殘片。',
+        craftUse: []
+    },
+
+    cursed_gem: {
+        id: 'cursed_gem',
+        name: '詛咒寶石',
+        icon: '💎',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
+        price: 180,
+        description: '帶有詛咒氣息的寶石，商人會特別留意這種稀有物。',
+        craftUse: []
     },
     
     dark_steel: {
@@ -465,7 +498,7 @@ export const MaterialDatabase = {
     ember_stone: {
         id: 'ember_stone',
         name: '餘燼石',
-        icon: '�ite',
+        icon: '⛏️',
         type: ItemType.MATERIAL,
         rarity: ItemRarity.RARE,
         price: 150,
@@ -996,15 +1029,5 @@ export const MaterialDatabase = {
     }
 };
 
-/**
- * 根據 ID 獲取材料
- */
-export function getMaterial(materialId) {
-    return MaterialDatabase[materialId] || null;
-}
-
-/**
- * 根據稀有度獲取材料列表
- */
 // NOTE: data module should not contain logic. Material lookups (getMaterial, getMaterialsByRarity,
 // getMaterialsForCraft) have been moved to `src/js/managers/MaterialManager.js`.

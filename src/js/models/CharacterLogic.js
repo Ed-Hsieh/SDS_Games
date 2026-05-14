@@ -1,0 +1,326 @@
+/**
+ * CharacterLogic.js
+ * Pure helpers for character combat stats, buffs, equipment, skills, and growth.
+ *
+ * This module intentionally does not import DataModel.js. DataModel owns the
+ * concrete classes, while this file only operates on character-shaped objects.
+ */
+import { normalizeItemType, readItemStat, readNumber } from './ItemSchema.js';
+
+function toPercentInt(raw) {
+    const number = readNumber(raw);
+    if (number === 0) return 0;
+    if (Math.abs(number) <= 1) return number * 100;
+    return number;
+}
+
+function toFraction(raw) {
+    const number = readNumber(raw);
+    if (number === 0) return 0;
+    if (Math.abs(number) > 1) return number / 100;
+    return number;
+}
+
+function normalizeEquipmentSlot(item) {
+    if (!item) return null;
+    return normalizeItemType(item.type);
+}
+
+export function getTotalAtk(character) {
+    let total = readNumber(character.baseAtk);
+    Object.values(character.equipment || {}).forEach(item => {
+        total += readItemStat(item, 'atk', 'attack');
+        total += readNumber(item?.affixBonuses?.atk);
+    });
+    total += getBuffValue(character, 'atk');
+    return total;
+}
+
+export function getTotalDef(character) {
+    let total = readNumber(character.baseDef);
+    Object.values(character.equipment || {}).forEach(item => {
+        total += readItemStat(item, 'def', 'defense');
+        total += readNumber(item?.affixBonuses?.def);
+    });
+    total += getBuffValue(character, 'def');
+    return total;
+}
+
+export function getCritChance(character) {
+    let totalCritChance = 0.05;
+    Object.values(character.equipment || {}).forEach(item => {
+        totalCritChance += toFraction(readItemStat(item, 'critChance', 'crit_chance'));
+        totalCritChance += toFraction(item?.affixBonuses?.critChance);
+    });
+    totalCritChance += toFraction(getBuffValue(character, 'critChance'));
+    return Math.min(totalCritChance, 1.0);
+}
+
+export function getCritDamage(character) {
+    let totalCritDamage = 1.5;
+    let additionalCritDamage = 0;
+    Object.values(character.equipment || {}).forEach(item => {
+        const critDamage = readItemStat(item, 'critDamage', 'crit_damage');
+        if (critDamage) additionalCritDamage += critDamage - 1.5;
+        additionalCritDamage += toFraction(item?.affixBonuses?.critDamage);
+    });
+    additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
+    return totalCritDamage + additionalCritDamage;
+}
+
+export function getWeaponSpeed(character) {
+    const weapon = character.equipment?.weapon;
+    return readNumber(weapon?.weaponSpeed, 1.0) || 1.0;
+}
+
+export function getAttackSpeed(character) {
+    let baseSpeed = 1.0;
+    const weapon = character.equipment?.weapon;
+    if (weapon?.attackSpeed) {
+        baseSpeed = readNumber(weapon.attackSpeed, 1.0);
+    }
+    let speedBonus = 0;
+    Object.values(character.equipment || {}).forEach(item => {
+        speedBonus += toFraction(item?.affixBonuses?.attackSpeed);
+    });
+    speedBonus += toFraction(getBuffValue(character, 'attackSpeed'));
+    return Math.max(0.1, baseSpeed * (1 + speedBonus));
+}
+
+export function getAttackInterval(character) {
+    return 1 / getAttackSpeed(character);
+}
+
+export function getLifesteal(character) {
+    let lifesteal = 0;
+    Object.values(character.equipment || {}).forEach(item => {
+        if (!item) return;
+
+        if (item.lifesteal !== undefined && item.lifesteal !== null) lifesteal += toPercentInt(item.lifesteal);
+        if (item.lifeStealBonus !== undefined && item.lifeStealBonus !== null) lifesteal += toPercentInt(item.lifeStealBonus);
+
+        if (item.affixBonuses) {
+            if (item.affixBonuses.lifesteal !== undefined && item.affixBonuses.lifesteal !== null) lifesteal += toPercentInt(item.affixBonuses.lifesteal);
+            if (item.affixBonuses.lifeStealBonus !== undefined && item.affixBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.affixBonuses.lifeStealBonus);
+        }
+
+        if (Array.isArray(item.affixes)) {
+            for (const affix of item.affixes) {
+                if (!affix?.stats) continue;
+                if (affix.stats.lifesteal !== undefined && affix.stats.lifesteal !== null) lifesteal += toPercentInt(affix.stats.lifesteal);
+                if (affix.stats.lifeStealBonus !== undefined && affix.stats.lifeStealBonus !== null) lifesteal += toPercentInt(affix.stats.lifeStealBonus);
+            }
+        }
+
+        if (Array.isArray(item.specialEffects)) {
+            for (const effect of item.specialEffects) {
+                const type = String(effect?.type || '').toLowerCase();
+                if ((type.includes('life') && type.includes('steal')) || type === 'lifesteal' || type === 'life_steal') {
+                    lifesteal += toPercentInt(effect.value);
+                }
+            }
+        }
+    });
+
+    return lifesteal;
+}
+
+export function getDamageReduction(character) {
+    let reduction = 0;
+    Object.values(character.equipment || {}).forEach(item => {
+        if (!item) return;
+        if (item.damageReduction !== undefined && item.damageReduction !== null) reduction += toPercentInt(item.damageReduction) / 100;
+        if (item.affixBonuses?.damageReduction !== undefined && item.affixBonuses.damageReduction !== null) {
+            reduction += toPercentInt(item.affixBonuses.damageReduction) / 100;
+        }
+    });
+    return Math.min(reduction, 0.75);
+}
+
+export function getAffixHpBonus(character) {
+    let bonus = 0;
+    Object.values(character.equipment || {}).forEach(item => {
+        bonus += readNumber(item?.affixBonuses?.hp);
+    });
+    return bonus;
+}
+
+export function addBuff(character, buffType, buffValue, duration) {
+    if (!character.activeBuffs) character.activeBuffs = [];
+    const existingBuff = character.activeBuffs.find(buff => buff.type === buffType);
+    if (existingBuff) {
+        existingBuff.value = Math.max(existingBuff.value, buffValue);
+        existingBuff.duration = Math.max(existingBuff.duration, duration);
+    } else {
+        character.activeBuffs.push({ type: buffType, value: buffValue, duration });
+    }
+}
+
+export function getBuffValue(character, buffType) {
+    if (!character.activeBuffs) return 0;
+    const buff = character.activeBuffs.find(item => item.type === buffType);
+    return buff ? buff.value : 0;
+}
+
+export function tickBuffs(character) {
+    if (!character.activeBuffs) return;
+    character.activeBuffs = character.activeBuffs.filter(buff => {
+        buff.duration--;
+        return buff.duration > 0;
+    });
+}
+
+export function clearAllBuffs(character) {
+    character.activeBuffs = [];
+}
+
+export function initDefaultSkills(character, createDefaultSkills = null) {
+    character.skills = typeof createDefaultSkills === 'function' ? createDefaultSkills() : [];
+}
+
+export function useSkill(character, skillIndex, target) {
+    if (!character.skills || skillIndex < 0 || skillIndex >= character.skills.length) return null;
+    const skill = character.skills[skillIndex];
+    return skill.use(character, target);
+}
+
+export function tickSkillCooldowns(character) {
+    if (!character.skills) return;
+    character.skills.forEach(skill => skill.reduceCooldown());
+}
+
+export function equip(character, item) {
+    if (!item?.isEquipment || !item.isEquipment()) return false;
+    const slot = normalizeEquipmentSlot(item);
+    if (character.equipment && Object.prototype.hasOwnProperty.call(character.equipment, slot)) {
+        character.equipment[slot] = item;
+        return true;
+    }
+    return false;
+}
+
+export function unequip(character, slotType) {
+    if (!character.equipment) return null;
+    const item = character.equipment[slotType];
+    character.equipment[slotType] = null;
+    return item;
+}
+
+export function useItem(character, item) {
+    if (!item.effect) return false;
+
+    if (item.effect.hp) {
+        const maxHp = character.maxHp || calculateMaxHp(character);
+        character.hp = Math.min(maxHp, (character.hp || 0) + item.effect.hp);
+    }
+    if (item.effect.mp) {
+        const maxMp = character.maxMp || 50;
+        character.mp = Math.min(maxMp, (character.mp || 0) + item.effect.mp);
+    }
+    if (item.effect.exp) {
+        character.exp = (character.exp || 0) + item.effect.exp;
+        checkLevelUp(character);
+    }
+    return true;
+}
+
+export function calculateMaxHp(character) {
+    return 100 + ((character.level || 1) * 20);
+}
+
+export function calculateMaxMp(character) {
+    return 50 + ((character.level || 1) * 5);
+}
+
+export function calculateMaxExp(character) {
+    return Math.floor(100 * Math.pow(1.2, (character.level || 1) - 1));
+}
+
+export function checkLevelUp(character) {
+    const getMaxExp = () => calculateMaxExp(character);
+    while ((character.exp || 0) >= getMaxExp()) {
+        character.level = (character.level || 1) + 1;
+        character.exp -= getMaxExp();
+        character.maxHp = calculateMaxHp(character);
+        character.hp = character.maxHp;
+        character.maxMp = calculateMaxMp(character);
+        character.mp = character.maxMp;
+        character.maxExp = calculateMaxExp(character);
+    }
+}
+
+export function gainExp(character, amount) {
+    const oldLevel = character.level || 1;
+    character.exp = (character.exp || 0) + amount;
+    checkLevelUp(character);
+    return character.level > oldLevel;
+}
+
+export function syncProperties(character) {
+    character._attack = getTotalAtk(character);
+    character._defense = getTotalDef(character);
+}
+
+export class CharacterHelper {
+    constructor(characterData) {
+        this.data = characterData;
+    }
+
+    getTotalAtk() { return getTotalAtk(this.data); }
+    getTotalDef() { return getTotalDef(this.data); }
+    getCritChance() { return getCritChance(this.data); }
+    getCritDamage() { return getCritDamage(this.data); }
+    getWeaponSpeed() { return getWeaponSpeed(this.data); }
+    getAttackSpeed() { return getAttackSpeed(this.data); }
+    getAttackInterval() { return getAttackInterval(this.data); }
+    getLifesteal() { return getLifesteal(this.data); }
+    getDamageReduction() { return getDamageReduction(this.data); }
+    getAffixHpBonus() { return getAffixHpBonus(this.data); }
+
+    addBuff(type, value, duration) { return addBuff(this.data, type, value, duration); }
+    getBuffValue(type) { return getBuffValue(this.data, type); }
+    tickBuffs() { return tickBuffs(this.data); }
+    clearAllBuffs() { return clearAllBuffs(this.data); }
+
+    useSkill(index, target) { return useSkill(this.data, index, target); }
+    tickSkillCooldowns() { return tickSkillCooldowns(this.data); }
+
+    equip(item) { return equip(this.data, item); }
+    unequip(slot) { return unequip(this.data, slot); }
+    useItem(item) { return useItem(this.data, item); }
+
+    checkLevelUp() { return checkLevelUp(this.data); }
+    gainExp(amount) { return gainExp(this.data, amount); }
+    calculateMaxHp() { return calculateMaxHp(this.data); }
+    syncProperties() { return syncProperties(this.data); }
+}
+
+export default {
+    getTotalAtk,
+    getTotalDef,
+    getCritChance,
+    getCritDamage,
+    getWeaponSpeed,
+    getAttackSpeed,
+    getAttackInterval,
+    getLifesteal,
+    getDamageReduction,
+    getAffixHpBonus,
+    addBuff,
+    getBuffValue,
+    tickBuffs,
+    clearAllBuffs,
+    initDefaultSkills,
+    useSkill,
+    tickSkillCooldowns,
+    equip,
+    unequip,
+    useItem,
+    calculateMaxHp,
+    calculateMaxMp,
+    calculateMaxExp,
+    checkLevelUp,
+    gainExp,
+    syncProperties,
+    CharacterHelper
+};

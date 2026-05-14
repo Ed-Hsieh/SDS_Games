@@ -3,8 +3,11 @@
  * Singleton class for managing global game state.
  * Uses DataModel classes for robust state management.
  */
-import { CharacterManager, Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity } from '../models/DataModel.js';
+import { CharacterManager, Item, Equipment, Weapon, Armor, Accessory, Consumable } from '../models/DataModel.js';
+import { ItemType, ItemRarity } from '../models/Enums.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
+import { createRuntimeItem } from '../models/ItemFactory.js';
+import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem } from '../models/ItemSchema.js';
 
 class GameManager {
     constructor() {
@@ -65,7 +68,6 @@ class GameManager {
         }
 
         this.notify('all');
-        console.log('Test materials and all sets added for forging and set bonus testing.');
     }
 
 
@@ -79,8 +81,7 @@ class GameManager {
     // ===== Helper Methods =====
     
     isStackable(item) {
-        const stackableTypes = [ItemType.POTION, ItemType.SCROLL, ItemType.MATERIAL];
-        return stackableTypes.includes(item.type);
+        return isStackableItem(item);
     }
     
     isHighRarity(item) {
@@ -153,220 +154,56 @@ class GameManager {
     }
 
     addToInventory(itemData, quantity = 1) {
-        // Check inventory capacity
-        if (this.state.inventory.length >= this.state.inventoryCapacity) {
-            console.warn('Inventory is full!');
-            return false;
-        }
-        
-        let item;
-        // Check if it's already an instance of Item
-        if (itemData instanceof Item) {
-            item = itemData;
-        } else {
-            // Convert plain object to Item instance
-            const rarity = itemData.rarity ?? itemData.ItemRarity ?? ItemRarity.COMMON;
-            if (itemData.type === ItemType.WEAPON) {
-                // 支援從 itemData.stats 讀取欄位以兼容新資料結構
-                const stats = itemData.stats || {};
-                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
-                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
-                const critChance = itemData.critChance || stats.critChance || 0.08;
-                const critDamage = itemData.critDamage || stats.critDamage || 1.5;
-                const weaponSpeed = itemData.weaponSpeed || stats.weaponSpeed || 1.0;
-                const attackSpeed = itemData.attackSpeed || stats.attackSpeed || 1.0;
-                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? 50;
-                const durability = itemData.durability ?? stats.durability ?? maxDurability;
+        const item = createRuntimeItem(itemData);
+        const safeQuantity = Math.max(1, Number(quantity) || 1);
+        const stackable = this.isStackable(item);
 
-                item = new Weapon(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage, weaponSpeed, attackSpeed, maxDurability, durability
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.ARMOR) {
-                // 支援從 itemData.stats 讀取欄位以兼容新資料結構
-                const stats = itemData.stats || {};
-                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
-                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
-                const critChance = itemData.critChance || stats.critChance || 0.03;
-                const critDamage = itemData.critDamage || stats.critDamage || 1.2;
-                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? 50;
-                const durability = itemData.durability ?? stats.durability ?? maxDurability;
-
-                item = new Armor(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage, maxDurability, durability
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.ACCESSORY) {
-                const stats = itemData.stats || {};
-                const atk = itemData.attack || itemData.atk || stats.attack || stats.atk || 0;
-                const def = itemData.defense || itemData.def || stats.defense || stats.def || 0;
-                const critChance = itemData.critChance || stats.critChance || 0.05;
-                const critDamage = itemData.critDamage || stats.critDamage || 1.3;
-                const maxDurability = itemData.maxDurability ?? stats.maxDurability ?? null;
-                const durability = itemData.durability ?? stats.durability ?? maxDurability;
-
-                item = new Accessory(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    atk, def, critChance, critDamage, maxDurability, durability
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.POTION) {
-                item = new Consumable(
-                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    { hp: itemData.hp, mp: itemData.mp, exp: itemData.exp }
-                );
-            } else {
-                item = new Item(
-                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price
-                );
-            }
-            
-            // Preserve special flags
-            if (itemData.isSecretKey) item.isSecretKey = true;
-
-            // 如果原始資料提供了 specialEffects 或 affixes，保留到實例上
-            if (itemData.specialEffects) {
-                try { item.specialEffects = JSON.parse(JSON.stringify(itemData.specialEffects)); } catch (e) { item.specialEffects = itemData.specialEffects; }
-                // 同時為向後相容複製常用特效到頂層屬性（例如 lifesteal, damageReduction）
-                for (const eff of item.specialEffects) {
-                    if (!eff || !eff.type) continue;
-                    const t = String(eff.type).toLowerCase();
-                    const v = eff.value;
-                    if (t.includes('life') && t.includes('steal') || t === 'lifesteal' || t === 'life_steal') {
-                        item.lifesteal = (item.lifesteal || 0) + v;
-                    }
-                    if (t.includes('damage') && t.includes('reduction') || t === 'damage_reduction') {
-                        item.damageReduction = (item.damageReduction || 0) + v;
-                    }
-                }
-            }
-
-            // 若存在舊式 affix 列表或 affixBonuses，保留
-            if (itemData.affixes) item.affixes = itemData.affixes;
-            if (itemData.affixBonuses) item.affixBonuses = itemData.affixBonuses;
-        }
-
-        // Ensure unique instance ID
-        if (!item.instanceId) {
-             item.instanceId = Date.now() + Math.random().toString(36).substr(2, 9);
-        }
-
-        // Check if stackable
-        if (this.isStackable(item)) {
-            // Try to find existing stack
-            const existingStack = this.state.inventory.find(stack => 
-                stack.item.id === item.id && stack.item.rarity === item.rarity
-            );
-            
+        if (stackable) {
+            const existingStack = findMatchingStack(this.state.inventory, item);
             if (existingStack) {
-                existingStack.quantity += quantity;
+                existingStack.quantity += safeQuantity;
                 this.notify('inventory');
                 return true;
             }
         }
-        
-        // Add as new stack (or non-stackable item)
+
+        if (this.state.inventory.length >= this.state.inventoryCapacity) {
+            console.warn('Inventory is full!');
+            return false;
+        }
+
+        ensureInstanceId(item);
         this.state.inventory.push({
-            item: item,
-            quantity: this.isStackable(item) ? quantity : 1,
+            item,
+            quantity: stackable ? safeQuantity : 1,
             instanceId: item.instanceId
         });
-        
+
         this.notify('inventory');
         return true;
     }
 
     addToWarehouse(itemData, quantity = 1) {
-        let item;
-        if (itemData instanceof Item) {
-            item = itemData;
-        } else {
-            // Convert plain object to Item instance (same logic as inventory)
-            const rarity = itemData.rarity ?? itemData.ItemRarity ?? ItemRarity.COMMON;
-            if (itemData.type === ItemType.WEAPON) {
-                item = new Weapon(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.08, 
-                    itemData.critDamage || 1.5, 
-                    itemData.weaponSpeed || 1.0, 
-                    itemData.attackSpeed || 1.0,
-                    itemData.maxDurability ?? 50,
-                    itemData.durability ?? itemData.maxDurability ?? 50
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.ARMOR) {
-                item = new Armor(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.03, 
-                    itemData.critDamage || 1.2,
-                    itemData.maxDurability ?? 50,
-                    itemData.durability ?? itemData.maxDurability ?? 50
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.ACCESSORY) {
-                item = new Accessory(
-                    itemData.id, itemData.name, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    itemData.attack || itemData.atk || 0, 
-                    itemData.defense || itemData.def || 0,
-                    itemData.critChance || 0.05, 
-                    itemData.critDamage || 1.3,
-                    itemData.maxDurability ?? null,
-                    itemData.durability ?? itemData.maxDurability ?? null
-                );
-                if (itemData.image) item.image = itemData.image;
-            } else if (itemData.type === ItemType.POTION) {
-                item = new Consumable(
-                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price, 
-                    { hp: itemData.hp, mp: itemData.mp, exp: itemData.exp }
-                );
-            } else {
-                item = new Item(
-                    itemData.id, itemData.name, itemData.type, rarity, itemData.icon, 
-                    itemData.desc || itemData.description, itemData.price
-                );
-            }
-            if (itemData.isSecretKey) item.isSecretKey = true;
-        }
-        
-        if (!item.instanceId) {
-             item.instanceId = Date.now() + Math.random().toString(36).substr(2, 9);
-        }
-        
-        // Check if stackable and merge with existing
-        if (this.isStackable(item)) {
-            const existingStack = this.state.warehouse.find(stack => 
-                stack.item.id === item.id && stack.item.rarity === item.rarity
-            );
-            
+        const item = createRuntimeItem(itemData);
+        const safeQuantity = Math.max(1, Number(quantity) || 1);
+        const stackable = this.isStackable(item);
+
+        if (stackable) {
+            const existingStack = findMatchingStack(this.state.warehouse, item);
             if (existingStack) {
-                existingStack.quantity += quantity;
+                existingStack.quantity += safeQuantity;
                 this.notify('warehouse');
                 return true;
             }
         }
-        
-        // Add as new stack
+
+        ensureInstanceId(item);
         this.state.warehouse.push({
-            item: item,
-            quantity: this.isStackable(item) ? quantity : 1,
+            item,
+            quantity: stackable ? safeQuantity : 1,
             instanceId: item.instanceId
         });
-        
+
         this.notify('warehouse');
         return true;
     }
@@ -442,18 +279,12 @@ class GameManager {
     moveToWarehouse(instanceId) {
         const index = this.state.inventory.findIndex(stack => stack.instanceId === instanceId);
         if (index === -1) return false;
-        
+
         const stack = this.state.inventory[index];
-        
-        // Remove from inventory
         this.state.inventory.splice(index, 1);
-        
-        // Add to warehouse (will merge if stackable)
+
         if (this.isStackable(stack.item)) {
-            const existingStack = this.state.warehouse.find(s => 
-                s.item.id === stack.item.id && s.item.rarity === stack.item.rarity
-            );
-            
+            const existingStack = findMatchingStack(this.state.warehouse, stack.item);
             if (existingStack) {
                 existingStack.quantity += stack.quantity;
             } else {
@@ -462,7 +293,7 @@ class GameManager {
         } else {
             this.state.warehouse.push(stack);
         }
-        
+
         this.notify('all');
         return true;
     }
@@ -470,33 +301,25 @@ class GameManager {
     moveToInventory(instanceId) {
         const index = this.state.warehouse.findIndex(stack => stack.instanceId === instanceId);
         if (index === -1) return false;
-        
-        // Check capacity
-        if (this.state.inventory.length >= this.state.inventoryCapacity) {
+
+        const stack = this.state.warehouse[index];
+        const existingStack = this.isStackable(stack.item)
+            ? findMatchingStack(this.state.inventory, stack.item)
+            : null;
+
+        if (!existingStack && this.state.inventory.length >= this.state.inventoryCapacity) {
             console.warn('Inventory is full!');
             return false;
         }
-        
-        const stack = this.state.warehouse[index];
-        
-        // Remove from warehouse
+
         this.state.warehouse.splice(index, 1);
-        
-        // Add to inventory (will merge if stackable)
-        if (this.isStackable(stack.item)) {
-            const existingStack = this.state.inventory.find(s => 
-                s.item.id === stack.item.id && s.item.rarity === stack.item.rarity
-            );
-            
-            if (existingStack) {
-                existingStack.quantity += stack.quantity;
-            } else {
-                this.state.inventory.push(stack);
-            }
+
+        if (existingStack) {
+            existingStack.quantity += stack.quantity;
         } else {
             this.state.inventory.push(stack);
         }
-        
+
         this.notify('all');
         return true;
     }
@@ -506,92 +329,12 @@ class GameManager {
      * Preserves stats, setId, specialEffects and affixes where present.
      */
     addEquipmentById(equipmentId, toWarehouse = true, quantity = 1) {
-        const equip = EquipmentDatabase[equipmentId];
-        if (!equip) return false;
+        const equipment = EquipmentDatabase[equipmentId];
+        if (!equipment) return false;
 
-        const stats = equip.stats || {};
-        const price = equip.price || 0;
-
-        // Normalize type mapping: Equipment entries use 'weapon'|'equipment'|'accessory'
-        let targetType = ItemType.ARMOR; // default
-        if (equip.type === 'weapon') targetType = ItemType.WEAPON;
-        else if (equip.type === 'accessory') targetType = ItemType.ACCESSORY;
-
-        let instance;
-        if (targetType === ItemType.WEAPON) {
-            instance = new Weapon(
-                equip.id,
-                equip.name,
-                equip.rarity || ItemRarity.COMMON,
-                equip.icon || '',
-                equip.description || '',
-                price,
-                stats.attack || 0,
-                stats.defense || 0,
-                stats.critChance || 0.08,
-                stats.critDamage || 1.5,
-                stats.weaponSpeed || 1.0,
-                stats.attackSpeed || 1.0,
-                equip.maxDurability ?? stats.maxDurability ?? 50,
-                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? 50
-            );
-        } else if (targetType === ItemType.ACCESSORY) {
-            instance = new Accessory(
-                equip.id,
-                equip.name,
-                equip.rarity || ItemRarity.COMMON,
-                equip.icon || '',
-                equip.description || '',
-                price,
-                stats.attack || 0,
-                stats.defense || 0,
-                stats.critChance || 0.05,
-                stats.critDamage || 1.3,
-                equip.maxDurability ?? stats.maxDurability ?? null,
-                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? null
-            );
-        } else {
-            instance = new Armor(
-                equip.id,
-                equip.name,
-                equip.rarity || ItemRarity.COMMON,
-                equip.icon || '',
-                equip.description || '',
-                price,
-                stats.attack || 0,
-                stats.defense || 0,
-                stats.critChance || 0.03,
-                stats.critDamage || 1.2,
-                equip.maxDurability ?? stats.maxDurability ?? 50,
-                equip.durability ?? stats.durability ?? equip.maxDurability ?? stats.maxDurability ?? 50
-            );
-        }
-
-        // Preserve metadata
-        if (equip.setId) instance.setId = equip.setId;
-        if (equip.dropFrom) instance.dropFrom = Array.isArray(equip.dropFrom) ? [...equip.dropFrom] : [equip.dropFrom];
-        if (equip.specialEffects) {
-            instance.specialEffects = JSON.parse(JSON.stringify(equip.specialEffects));
-            // also copy common convenience fields for backward compatibility
-            for (const eff of instance.specialEffects) {
-                if (!eff || !eff.type) continue;
-                const t = String(eff.type).toLowerCase();
-                const v = eff.value;
-                if (t.includes('life') && t.includes('steal') || t === 'lifesteal' || t === 'life_steal') {
-                    instance.lifesteal = (instance.lifesteal || 0) + v;
-                }
-                if (t.includes('damage') && t.includes('reduction') || t === 'damage_reduction') {
-                    instance.damageReduction = (instance.damageReduction || 0) + v;
-                }
-            }
-        }
-        if (equip.durability !== undefined) instance.durability = equip.durability;
-        if (equip.maxDurability !== undefined) instance.maxDurability = equip.maxDurability;
-        if (equip.affixes) instance.affixes = JSON.parse(JSON.stringify(equip.affixes));
-
-        // Add to target
-        if (toWarehouse) return this.addToWarehouse(instance, quantity);
-        return this.addToInventory(instance, quantity);
+        return toWarehouse
+            ? this.addToWarehouse(equipment, quantity)
+            : this.addToInventory(equipment, quantity);
     }
 
     /**
@@ -616,7 +359,7 @@ class GameManager {
         if (index === -1) return false;
         
         const stack = source[index];
-        const sellPrice = Math.floor(stack.item.price * 0.5) * stack.quantity;
+        const sellPrice = getSellPrice(stack.item, stack.quantity);
         
         // Remove item
         source.splice(index, 1);

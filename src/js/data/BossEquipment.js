@@ -4,7 +4,7 @@
  * 所有裝備都可強化、鑲嵌寶石
  */
 
-import { ItemType, ItemRarity } from '../models/DataModel.js';
+import { ItemType, ItemRarity } from '../models/Enums.js';
 
 /**
  * 無盡塔 BOSS 裝備

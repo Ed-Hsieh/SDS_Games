@@ -1,6 +1,9 @@
 /* ===== Scene Specific Styles ===== */
 
 /* --- Marketplace / Shop Scene --- */
+/* Dedicated shop styles live in src/style/marketplace.css. Keep this legacy
+   block inert so it cannot override the maintained marketplace stylesheet. */
+@media not all {
 
 /* Top Navigation Grid */
 .market-tactical-grid {
@@ -344,6 +347,7 @@
     background: linear-gradient(90deg, #cb2d3e, #ef473a);
     color: #fff;
     box-shadow: 0 4px 15px rgba(239, 71, 58, 0.4);
+}
 }
 
 /* ===== 冒險場景樣式 ===== */

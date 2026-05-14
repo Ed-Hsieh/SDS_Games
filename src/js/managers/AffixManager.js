@@ -4,9 +4,9 @@
  * 整合鍛造系統，裝備可獲得隨機詞綴
  */
 
-import { ItemRarity } from '../models/DataModel.js';
-import { AffixStat } from '../models/Enums.js';
+import { AffixStat, ItemRarity } from '../models/Enums.js';
 import {PrefixDatabase, SuffixDatabase} from '../data/Prefixes.js';
+import { formatAffixStats } from '../utils/ItemDisplay.js';
 
 // Normalize various stat key forms to central AffixStat values
 function normalizeStatKey(stat) {
@@ -277,39 +277,8 @@ export class AffixManager {
      * 獲取詞綴加成的顯示描述
      */
     getAffixDescription(affix) {
-        let desc = affix.name + ': ';
-        // 使用中央化常數以避免命名不一致
-        const statNames = {
-            [AffixStat.ATK]: '攻擊力', [AffixStat.DEF]: '防禦力', [AffixStat.HP]: '生命', [AffixStat.MP]: '魔力',
-            [AffixStat.CRIT_CHANCE]: '暴擊率', [AffixStat.CRIT_DAMAGE]: '暴擊傷害', [AffixStat.ATTACK_SPEED]: '攻擊速度',
-            [AffixStat.LIFE_STEAL]: '生命偷取', [AffixStat.DAMAGE_REDUCTION]: '傷害減免',
-            [AffixStat.HP_REGEN]: '生命回復', [AffixStat.MP_REGEN]: '魔力回復',
-            [AffixStat.FIRE]: '火焰傷害', [AffixStat.ICE]: '冰霜傷害',
-            [AffixStat.THUNDER]: '雷電傷害', [AffixStat.VOID]: '虛空傷害',
-            [AffixStat.SLOW_CHANCE]: '減速機率', [AffixStat.STUN_CHANCE]: '暈眩機率',
-            [AffixStat.DODGE_CHANCE]: '閃避率', [AffixStat.ARMOR_PENETRATION]: '穿甲',
-            [AffixStat.BOSS_BONUS]: 'BOSS傷害加成', [AffixStat.ALL_STATS]: '全屬性'
-        };
-        
-        const parts = [];
-        for (const [stat, value] of Object.entries(affix.stats)) {
-            const statName = statNames[stat] || stat;
-            // 百分比屬性（使用中央化判斷）
-            const percentStats = [
-                AffixStat.CRIT_CHANCE, AffixStat.CRIT_DAMAGE, AffixStat.ATTACK_SPEED, AffixStat.LIFE_STEAL,
-                AffixStat.DAMAGE_REDUCTION, AffixStat.HP_REGEN, AffixStat.MP_REGEN, AffixStat.SLOW_CHANCE,
-                AffixStat.STUN_CHANCE, AffixStat.DODGE_CHANCE, AffixStat.ARMOR_PENETRATION, AffixStat.BOSS_BONUS,
-                AffixStat.ALL_STATS, AffixStat.FIRE, AffixStat.ICE, AffixStat.THUNDER,
-                AffixStat.VOID
-            ];
-            if (percentStats.includes(stat)) {
-                parts.push(`${statName} +${(value * 100).toFixed(1)}%`);
-            } else {
-                parts.push(`${statName} +${value}`);
-            }
-        }
-        
-        return desc + parts.join(', ');
+        const statsText = formatAffixStats(affix?.stats);
+        return `${affix?.name || '詞綴'}${statsText ? `: ${statsText}` : ''}`;
     }
     
     /**

@@ -29,7 +29,6 @@ export default class ForgeScene {
     }
 
     init() {
-        console.log('Forge Scene Initialized');
         this.cacheDOM();
         this.bindEvents();
         this.updateUI();
@@ -38,7 +37,6 @@ export default class ForgeScene {
 
     cleanup() {
         this.unbindEvents();
-        console.log('Forge Scene Cleaned up');
     }
 
     cacheDOM() {
@@ -269,7 +267,7 @@ export default class ForgeScene {
         }).join('');
         
         // 費用和成功率
-        this.dom.craftCost.textContent = `${recipe.cost}G`;
+        this.dom.craftCost.textContent = `${recipe.cost} 金幣`;
         this.dom.craftCost.className = `cost-value ${hasGold ? '' : 'not-enough'}`;
         this.dom.craftSuccessRate.textContent = `${recipe.successRate}%`;
         
@@ -409,7 +407,6 @@ export default class ForgeScene {
                     const highestIndex = rarityOrder.indexOf(highestAffixRarity);
                     if (highestIndex > equipRarityIndex) {
                         newItem.rarity = highestAffixRarity;
-                        console.log(`[Forge] 裝備稀有度提升至 ${highestAffixRarity}`);
                     }
                 }
             }
@@ -604,7 +601,7 @@ export default class ForgeScene {
         // 計算重鑄費用
         const rerollCost = this.calculateRerollCost(item);
         if (this.dom.rerollCost) {
-            this.dom.rerollCost.textContent = `${rerollCost}G`;
+            this.dom.rerollCost.textContent = `${rerollCost} 金幣`;
         }
         
         // 按鈕狀態

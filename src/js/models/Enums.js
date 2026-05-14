@@ -20,6 +20,7 @@ export const ItemType = {
     ACCESSORY: 'accessory',
     POTION: 'potion',
     MATERIAL: 'material',
+    CURRENCY: 'currency',
     KEY: 'key',
     GEM: 'gem',
     SOCKET_GEM: 'socket_gem',
@@ -114,6 +115,7 @@ export const DropSourceType = {
 // 裝備類型（簡化為三類）
 export const EquipmentType = {
     WEAPON: 'weapon',
+    ARMOR: 'armor',
     EQUIPMENT: 'equipment',
     ACCESSORY: 'accessory'
 };

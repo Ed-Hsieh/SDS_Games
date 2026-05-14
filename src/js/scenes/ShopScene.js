@@ -5,6 +5,8 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
+import { getSellPrice } from '../models/ItemSchema.js';
+import { buildItemModalOptions } from '../utils/ItemDisplay.js';
 
 export default class ShopScene {
     constructor(container, app) {
@@ -15,6 +17,13 @@ export default class ShopScene {
 
         // Bind methods to preserve 'this'
         this.updateUI = this.updateUI.bind(this);
+        this.handleGridClick = this.handleGridClick.bind(this);
+        this.handleDropZoneDragOver = this.handleDropZoneDragOver.bind(this);
+        this.handleDropZoneDragLeave = this.handleDropZoneDragLeave.bind(this);
+        this.handleDropZoneDrop = this.handleDropZoneDrop.bind(this);
+        this.eventsBound = false;
+        this.subscribed = false;
+        this.dragDropBound = false;
     }
 
     init() {
@@ -24,13 +33,26 @@ export default class ShopScene {
 
         // Subscribe to game state updates
         try {
-            GameManager.subscribe(this.updateUI);
+            if (!this.subscribed) {
+                GameManager.subscribe(this.updateUI);
+                this.subscribed = true;
+            }
         } catch (e) {
             // safe fallback if GameManager is not a pub/sub here
         }
 
         // Initial render
         if (GameManager && GameManager.state) this.updateUI(GameManager.state, 'all');
+        this.selectShop(this.currentShopId);
+    }
+
+    cleanup() {
+        this.unbindEvents();
+        if (this.subscribed) {
+            GameManager.unsubscribe(this.updateUI);
+            this.subscribed = false;
+        }
+        this.closeItemModal();
     }
 
     cacheDOM() {
@@ -53,83 +75,72 @@ export default class ShopScene {
     }
 
     bindEvents() {
-        if (this.dom.grid) {
-            this.dom.grid.addEventListener('click', (e) => {
-                const tile = e.target.closest('.grid-tile');
-                if (tile) {
-                    const shopId = tile.dataset.shop;
-                    if (shopId === 'exit') this.app.loadScene('lobby');
-                    else if (!tile.classList.contains('locked')) this.selectShop(shopId);
-                }
-            });
-        }
-
+        if (this.eventsBound) return;
+        if (this.dom.grid) this.dom.grid.addEventListener('click', this.handleGridClick);
         if (this.dom.dropZone) this.setupDragAndDrop();
+        this.eventsBound = true;
     }
 
-    bindEvents() {
-        // Grid Navigation
-        this.dom.grid.addEventListener('click', (e) => {
-            const tile = e.target.closest('.grid-tile');
-            if (tile) {
-                const shopId = tile.dataset.shop;
-                if (shopId === 'exit') {
-                    this.app.loadScene('lobby');
-                } else if (!tile.classList.contains('locked')) {
-                    this.movePlayerToken(tile);
-                    this.selectShop(shopId);
-                }
-            }
-        });
-
-        // Modal Close
-        if (this.dom.modalClose) {
-            this.dom.modalClose.addEventListener('click', () => {
-                this.dom.modal.style.display = 'none';
-            });
+    unbindEvents() {
+        if (this.dom?.grid) this.dom.grid.removeEventListener('click', this.handleGridClick);
+        if (this.dom?.dropZone && this.dragDropBound) {
+            this.dom.dropZone.removeEventListener('dragover', this.handleDropZoneDragOver);
+            this.dom.dropZone.removeEventListener('dragleave', this.handleDropZoneDragLeave);
+            this.dom.dropZone.removeEventListener('drop', this.handleDropZoneDrop);
+            this.dragDropBound = false;
         }
+        this.eventsBound = false;
+    }
 
-        // Close modal on outside click
-        if (this.dom.modal) {
-            this.dom.modal.addEventListener('click', (e) => {
-                if (e.target === this.dom.modal) {
-                    this.dom.modal.style.display = 'none';
-                }
-            });
+    handleGridClick(e) {
+        const tile = e.target.closest('.grid-tile');
+        if (!tile) return;
+
+        const shopId = tile.dataset.shop;
+        if (shopId === 'exit') {
+            this.app.loadScene('lobby');
+        } else if (!tile.classList.contains('locked')) {
+            this.movePlayerToken(tile);
+            this.selectShop(shopId);
         }
     }
 
     setupDragAndDrop() {
-        const dropZone = this.dom.dropZone;
+        if (this.dragDropBound || !this.dom.dropZone) return;
+        this.dom.dropZone.addEventListener('dragover', this.handleDropZoneDragOver);
+        this.dom.dropZone.addEventListener('dragleave', this.handleDropZoneDragLeave);
+        this.dom.dropZone.addEventListener('drop', this.handleDropZoneDrop);
+        this.dragDropBound = true;
+    }
 
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
+    handleDropZoneDragOver(e) {
+        e.preventDefault();
+        this.dom.dropZone.classList.add('drag-over');
+    }
 
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
+    handleDropZoneDragLeave() {
+        this.dom.dropZone.classList.remove('drag-over');
+    }
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            
-            if (this.draggedItem) {
-                this.handleItemDrop(this.draggedItem);
-                this.draggedItem = null;
-            }
-        });
+    handleDropZoneDrop(e) {
+        e.preventDefault();
+        this.dom.dropZone.classList.remove('drag-over');
+
+        if (this.draggedItem) {
+            this.handleItemDrop(this.draggedItem);
+            this.draggedItem = null;
+        }
     }
 
     updateUI(state, type) {
+        if (!this.dom || !state) return;
         if (type === 'gold' || type === 'all') {
             this.dom.playerGold.textContent = `💰 ${state.character.gold}`;
         }
         if (type === 'inventory' || type === 'all') {
-            this.renderPlayerInventory(state.inventory);
+            this.renderPlayerInventory(state.inventory || []);
         }
-        if (type === 'flags' && state.flags.secretShopUnlocked) {
+        if (type === 'flags' && state.flags?.secretShopUnlocked) {
             this.unlockSecretVisuals();
         }
     }
@@ -176,11 +187,19 @@ export default class ShopScene {
 
         if (!shopInfo) return;
 
+        this.dom.grid?.querySelectorAll('.grid-tile').forEach(tile => {
+            tile.classList.toggle('active', tile.dataset.shop === shopId);
+        });
+
         // Update NPC Panel
-        this.dom.npcPortrait.src = shopInfo.npcPortrait;
-        this.dom.npcDialogue.innerHTML = `<p>${shopInfo.dialogue}</p>`;
+        if (this.dom.npcPortrait) {
+            this.dom.npcPortrait.src = shopInfo.npcPortrait || '';
+            this.dom.npcPortrait.alt = shopInfo.name || '商店 NPC';
+        }
+        if (this.dom.npcDialogue) this.dom.npcDialogue.innerHTML = `<p>${shopInfo.dialogue}</p>`;
 
         // Render Shop Items
+        if (!this.dom.shopInventory) return;
         this.dom.shopInventory.innerHTML = '';
         shopInfo.items.forEach(item => {
             const itemEl = this.createItemElement(item, 'buy');
@@ -190,6 +209,7 @@ export default class ShopScene {
 
     renderPlayerInventory(inventory) {
         const container = this.dom.playerInventory;
+        if (!container) return;
         container.innerHTML = '';
 
         if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
@@ -241,7 +261,7 @@ export default class ShopScene {
             </div>
             <div class="item-info">
                 <div class="item-name">${item.name}</div>
-                <div class="item-price">💰 ${mode === 'buy' ? item.price : Math.floor(item.price * 0.5)}</div>
+                <div class="item-price">💰 ${mode === 'buy' ? item.price : getSellPrice(item)}</div>
             </div>
         `;
         
@@ -253,32 +273,8 @@ export default class ShopScene {
     }
 
     openModal(item, mode) {
-        // Build stats HTML
-        let statsHtml = '';
-        const stats = [
-            { key: 'attack', label: '⚔️ 攻擊', suffix: '' },
-            { key: 'atk', label: '⚔️ 攻擊', suffix: '' },
-            { key: 'defense', label: '🛡️ 防禦', suffix: '' },
-            { key: 'def', label: '🛡️ 防禦', suffix: '' },
-            { key: 'hp', label: '❤️ 生命', suffix: '' },
-            { key: 'mp', label: '💙 魔力', suffix: '' },
-            { key: 'critChance', label: '💥 爆擊率', suffix: '%' }
-        ];
-        stats.forEach(stat => {
-            if (item[stat.key]) {
-                // normalize percent values: support fraction (0.05) or percent-int (5)
-                if (stat.suffix === '%') {
-                    const raw = Number(item[stat.key] || 0);
-                    const normalized = Math.abs(raw) <= 1 ? raw * 100 : raw;
-                    statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${normalized.toFixed(0)}%</span></div>`;
-                } else {
-                    statsHtml += `<div class="modal-stat-row"><span>${stat.label}</span> <span class="value">+${item[stat.key]}</span></div>`;
-                }
-            }
-        });
-
         // Create action button
-        const price = mode === 'buy' ? item.price : Math.floor(item.price * 0.5);
+        const price = mode === 'buy' ? item.price : getSellPrice(item);
         const actionBtn = document.createElement('button');
         actionBtn.className = 'btn btn-primary';
         actionBtn.textContent = mode === 'buy' ? `購買 💰 ${price}` : `出售 💰 ${price}`;
@@ -290,9 +286,7 @@ export default class ShopScene {
         // Open centralized modal
         if (window.ItemDetailModal) {
             window.ItemDetailModal.open(item, {
-                typeText: item.rarity || '',
-                description: item.desc || item.description || '沒有描述',
-                statsHtml: statsHtml,
+                ...buildItemModalOptions(item),
                 actions: [actionBtn]
             });
         } else {
@@ -300,11 +294,17 @@ export default class ShopScene {
         }
     }
 
+    closeItemModal() {
+        if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') {
+            window.ItemDetailModal.close();
+        }
+    }
+
     handleBuy(item) {
         if (GameManager.getGold() >= item.price) {
             if (GameManager.removeGold(item.price)) {
                 GameManager.addToInventory(item);
-                this.dom.modal.style.display = 'none';
+                this.closeItemModal();
                 this.showFeedback('購買成功！', 'success');
             }
         } else {
@@ -326,9 +326,9 @@ export default class ShopScene {
         }
 
         if (removed) {
-            const sellPrice = Math.floor(item.price * 0.5); // Or item.sellPrice if defined
+            const sellPrice = getSellPrice(item);
             GameManager.addGold(sellPrice);
-            this.dom.modal.style.display = 'none';
+            this.closeItemModal();
             this.showFeedback('出售成功！', 'success');
         }
     }
