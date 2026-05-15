@@ -7,6 +7,8 @@ import EventManager, { eventManager } from '../managers/EventManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
 import { BossMonsterIds } from '../data/Monsters.js';
 import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
+import { getLandmark, getWorldLandmarks } from '../data/WorldStories.js';
+import { worldStoryManager } from '../managers/WorldStoryManager.js';
 
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
 // 這裡重新導出以保持向後相容
@@ -72,7 +74,6 @@ export default class WorldMap {
         this.mapHeight = this.rows * gridSize;
         
         this.playerPos = { x: Math.floor(this.cols / 2), y: Math.floor(this.rows / 2) };
-        this.mapData = this.generateMap();
         
         // 玩家出生在家的位置（由 generateMap 設定）
         // homePos 在 generateMap 中被設定
@@ -81,17 +82,19 @@ export default class WorldMap {
         this.cameraOffsetY = 0;
         this.currentMonster = null;
         this.currentEvent = null;
+        this.currentLandmark = null;
         this.currentDungeon = null; // 新增：當前副本入口
         this.hasLeftHome = false; // 新增：玩家是否已經離開過家（用於判斷是否觸發回家事件）
         this.currentRift = null; // 當前互動的裂縫
         this.rifts = [];
+        this.landmarks = [];
+        this.bossSites = [];
         // 記錄已解鎖的區域（玩家抵達過即視為解鎖）
         this.unlockedZones = new Set(['low']);
 
         // 嘗試從 GameManager 載入持久化的地圖狀態（rifts / unlockedZones）
         try {
-            const gm = GameManager.getInstance();
-            const persisted = gm.state.mapState;
+            const persisted = GameManager.state?.mapState;
             if (persisted) {
                 if (Array.isArray(persisted.unlockedZones)) {
                     this.unlockedZones = new Set(persisted.unlockedZones);
@@ -100,14 +103,19 @@ export default class WorldMap {
                 if (Array.isArray(persisted.rifts)) {
                     this._persistedRifts = persisted.rifts.slice();
                 }
+                if (Array.isArray(persisted.landmarks)) {
+                    this._persistedLandmarks = persisted.landmarks.slice();
+                }
             }
         } catch (e) {
             console.warn('無法讀取 GameManager mapState:', e);
         }
+        this.mapData = this.generateMap();
         this.updateCamera();
     }
 
     generateMap() {
+        this.bossSites = [];
         // 使用 ringIncrement 決定各圈半徑
         const lowRadius = this.ringIncrement * 1;
         const mediumRadius = this.ringIncrement * 2;
@@ -150,12 +158,15 @@ export default class WorldMap {
         }
 
         // 生成副本入口（每種副本只生成一個）
+        this._placeLandmarks(data, zoneCandidates);
+
         const dungeonTypes = Object.keys(DungeonEntranceConfig);
         for (const dungeonType of dungeonTypes) {
             const config = DungeonEntranceConfig[dungeonType];
             // 從 config.zones 聚合可放置的候選格
             const validCells = [];
-            for (const z of config.zones) {
+            const placementZones = (config.zones || []).flatMap(z => z === 'boss' ? ['death'] : [z]);
+            for (const z of placementZones) {
                 const list = zoneCandidates[z] || [];
                 for (let i = 0; i < list.length; i++) {
                     const pos = list[i];
@@ -211,9 +222,9 @@ export default class WorldMap {
                     const idx = Math.floor(Math.random() * candidates.length);
                     const pos = candidates[idx];
                     const target = data[pos.r][pos.c];
-                    target.type = 'monster';
-                    target.monsterType = bossTemplate.type || 'boss';
-                    target.monsterTemplateId = bossTemplate.id;
+                    target.bossSiteId = bossTemplate.id;
+                    target.bossSiteRank = bossTemplate.type || 'boss';
+                    this.bossSites.push({ x: pos.c, y: pos.r, bossId: bossTemplate.id });
                     placed = true;
                     break;
                 }
@@ -224,28 +235,8 @@ export default class WorldMap {
             }
         }
 
-        // 生成其他內容（怪物、事件） — 已移除牆壁生成
-        for (let r = 0; r < rows; r++) {
-            for (let c = 0; c < cols; c++) {
-                const cell = data[r][c];
-                if (cell.type === 'dungeon' || cell.type === 'monster') continue;
-                const random = Math.random();
-                if (random < 0.30) {
-                    // Create a lightweight preview for monsters so the scene can render icons
-                    // without having to instantiate full monster objects every frame.
-                    const previewTemplate = MonsterManager.createRandomMonsterForZone(cell.zone);
-                    if (previewTemplate) {
-                        cell.type = 'monster';
-                        cell.monsterType = previewTemplate.type || previewTemplate.rank || 'normal';
-                        cell.monsterTemplateId = previewTemplate.id || null;
-                    } else {
-                        // fallback: leave empty if no template available
-                        cell.type = 'empty';
-                    }
-                } else if (random < 0.38) cell.type = 'event';
-                else cell.type = 'empty';
-            }
-        }
+        // Regular monsters and random events are no longer exposed as fixed map cells.
+        // The map shows terrain objects; encounters are rolled as the player explores.
         
         // 設置出生點為「家」
         data[this.playerPos.y][this.playerPos.x] = { 
@@ -263,8 +254,50 @@ export default class WorldMap {
 
         // 生成裂縫（每個 Layer 一個），避免覆蓋副本或出生點
         this._generateRifts(data);
+        this._saveMapState();
         
         return data;
+    }
+
+    _placeLandmarks(data, zoneCandidates) {
+        this.landmarks = [];
+
+        const place = (landmark, pos) => {
+            if (!landmark || !pos) return false;
+            if (pos.x < 0 || pos.x >= this.cols || pos.y < 0 || pos.y >= this.rows) return false;
+            const cell = data[pos.y]?.[pos.x];
+            if (!cell || cell.type !== 'empty') return false;
+
+            cell.type = 'landmark';
+            cell.landmarkId = landmark.id;
+            cell.landmarkData = landmark;
+            this.landmarks.push({ x: pos.x, y: pos.y, landmarkId: landmark.id });
+            return true;
+        };
+
+        if (Array.isArray(this._persistedLandmarks) && this._persistedLandmarks.length > 0) {
+            for (const saved of this._persistedLandmarks) {
+                const landmark = getLandmark(saved.landmarkId);
+                if (landmark) place(landmark, saved);
+            }
+        }
+
+        const placedIds = new Set(this.landmarks.map(item => item.landmarkId));
+        for (const landmark of getWorldLandmarks()) {
+            if (placedIds.has(landmark.id)) continue;
+
+            const validCells = [];
+            for (const zone of landmark.zones || ['low']) {
+                for (const pos of zoneCandidates[zone] || []) {
+                    const cell = data[pos.r]?.[pos.c];
+                    if (cell?.type === 'empty') validCells.push(pos);
+                }
+            }
+
+            if (validCells.length === 0) continue;
+            const chosen = validCells[Math.floor(Math.random() * validCells.length)];
+            place(landmark, { x: chosen.c, y: chosen.r });
+        }
     }
 
     _generateRifts(data) {
@@ -277,7 +310,7 @@ export default class WorldMap {
                 const { x, y, zone } = rift;
                 if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
                     // 只在該格仍為 empty 且 zone 相符時還原裂縫
-                    if (data[y][x].type === 'empty' && data[y][x].zone === zone) {
+                    if (data[y][x].type === 'empty' && data[y][x].zone === zone && !data[y][x].bossSiteId) {
                         data[y][x].type = 'rift';
                         data[y][x].riftData = { zone };
                         this.rifts.push({ x, y, zone });
@@ -294,7 +327,7 @@ export default class WorldMap {
                         const dy = r - this.playerPos.y;
                         if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
                         // 只放在空格，避免蓋到副本或事件或牆
-                        if (data[r][c].zone === zone && data[r][c].type === 'empty') {
+                        if (data[r][c].zone === zone && data[r][c].type === 'empty' && !data[r][c].bossSiteId) {
                             validCells.push({ r, c });
                         }
                     }
@@ -315,12 +348,12 @@ export default class WorldMap {
 
     _saveMapState() {
         try {
-            const gm = GameManager.getInstance();
-            gm.state.mapState = {
+            GameManager.state.mapState = {
                 rifts: this.rifts.slice(),
+                landmarks: this.landmarks.slice(),
                 unlockedZones: Array.from(this.unlockedZones)
             };
-            gm.notify('mapState');
+            GameManager.notify('mapState');
         } catch (e) {
             console.warn('無法儲存 mapState 到 GameManager:', e);
         }
@@ -331,6 +364,127 @@ export default class WorldMap {
         let y = this.playerPos.y * this.gridSize - this.screenHeight / 2 + this.gridSize / 2;
         this.cameraOffsetX = Math.max(0, Math.min(x, this.mapWidth - this.screenWidth));
         this.cameraOffsetY = Math.max(0, Math.min(y, this.mapHeight - this.screenHeight));
+    }
+
+    getAmbientEncounterRates(zone) {
+        const rates = {
+            low: { battle: 0.10, event: 0.035 },
+            medium: { battle: 0.14, event: 0.045 },
+            high: { battle: 0.17, event: 0.055 },
+            death: { battle: 0.21, event: 0.045 }
+        };
+        return rates[zone] || rates.low;
+    }
+
+    createRandomMonsterEncounter(zone) {
+        const raw = MonsterManager.createRandomMonsterForZone(zone);
+        const template = MonsterManager.createMonsterInstance
+            ? MonsterManager.createMonsterInstance(raw)
+            : raw;
+
+        if (!template) return false;
+        this.currentMonster = new Monster(template);
+        this.currentMonster.zoneId = zone;
+        return true;
+    }
+
+    createBossEncounter(bossId, zone) {
+        const template = MonsterManager.createMonsterInstance
+            ? MonsterManager.createMonsterInstance(bossId)
+            : MonsterManager.getMonster?.(bossId);
+
+        if (!template) return false;
+        this.currentMonster = new Monster(template);
+        this.currentMonster.zoneId = zone;
+        this.currentMonster.isBossEncounter = true;
+        return true;
+    }
+
+    findBossSite(bossId) {
+        return this.bossSites.find(site => site.bossId === bossId) || null;
+    }
+
+    teleportToBossSite(bossId) {
+        const site = this.findBossSite(bossId);
+        if (!site) return null;
+        this.playerPos.x = site.x;
+        this.playerPos.y = site.y;
+        this.updateCamera();
+        return site;
+    }
+
+    findDungeonSite(dungeonType) {
+        for (let y = 0; y < this.rows; y += 1) {
+            for (let x = 0; x < this.cols; x += 1) {
+                const cell = this.mapData[y]?.[x];
+                if (cell?.type === 'dungeon' && (!dungeonType || cell.dungeonType === dungeonType)) {
+                    return { x, y, dungeonType: cell.dungeonType, data: cell.dungeonData };
+                }
+            }
+        }
+        return null;
+    }
+
+    teleportToDungeon(dungeonType) {
+        const site = this.findDungeonSite(dungeonType);
+        if (!site) return null;
+        this.playerPos.x = site.x;
+        this.playerPos.y = site.y;
+        this.currentDungeon = {
+            type: site.dungeonType,
+            data: site.data
+        };
+        this.updateCamera();
+        return site;
+    }
+
+    createRandomMapEvent(zone) {
+        try {
+            const event = eventManager.triggerMapQuestionEvent
+                ? eventManager.triggerMapQuestionEvent(zone)
+                : eventManager.triggerRandomEvent(zone);
+            this.currentEvent = event;
+            return Boolean(event);
+        } catch (e) {
+            try {
+                const fallbackEvent = EventManager.getEventForZone(zone);
+                this.currentEvent = fallbackEvent;
+                if (eventManager) eventManager.currentEvent = fallbackEvent;
+                return Boolean(fallbackEvent);
+            } catch (err) {
+                console.error('Failed to generate event for zone:', zone, err);
+                this.currentEvent = null;
+                return false;
+            }
+        }
+    }
+
+    rollAmbientEncounter(cell) {
+        if (!cell || cell.type !== 'empty') return null;
+        if (GameManager.getFlag('debug.noAmbientEncounters')) return null;
+
+        const forcedEncounter = GameManager.getFlag('debug.forceNextEncounter');
+        if (forcedEncounter) {
+            GameManager.setFlag('debug.forceNextEncounter', null);
+            if (forcedEncounter === 'event') {
+                return this.createRandomMapEvent(cell.zone) ? 'event' : null;
+            }
+            if (forcedEncounter === 'battle' && !GameManager.getFlag('debug.noBattles')) {
+                return this.createRandomMonsterEncounter(cell.zone) ? 'battle' : null;
+            }
+            return null;
+        }
+
+        const rates = this.getAmbientEncounterRates(cell.zone);
+        const roll = Math.random();
+
+        if (roll < rates.event) {
+            return this.createRandomMapEvent(cell.zone) ? 'event' : null;
+        }
+        if (!GameManager.getFlag('debug.noBattles') && roll < rates.event + rates.battle) {
+            return this.createRandomMonsterEncounter(cell.zone) ? 'battle' : null;
+        }
+        return null;
     }
 
     movePlayer(dx, dy) {
@@ -354,8 +508,19 @@ export default class WorldMap {
             }
             
             const cell = this.mapData[newY][newX];
+
+            if (cell.bossSiteId && worldStoryManager.isBossLairVisible(cell.bossSiteId)) {
+                if (GameManager.getFlag('debug.noBattles')) {
+                    return null;
+                }
+                return this.createBossEncounter(cell.bossSiteId, cell.zone) ? 'battle' : null;
+            }
             
             if (cell.type === 'monster') {
+                if (GameManager.getFlag('debug.noAmbientEncounters') || GameManager.getFlag('debug.noBattles')) {
+                    return null;
+                }
+
                 // Prefer an explicit template id (used for BOSS or pre-placed monsters).
                 // If none, fall back to random generation for the zone.
                 let template = null;
@@ -390,7 +555,9 @@ export default class WorldMap {
             if (cell.type === 'event') {
                 // Generate the event at encounter time via the EventManager singleton
                 try {
-                    const ev = eventManager.triggerRandomEvent(cell.zone);
+                    const ev = eventManager.triggerMapQuestionEvent
+                        ? eventManager.triggerMapQuestionEvent(cell.zone)
+                        : eventManager.triggerRandomEvent(cell.zone);
                     this.currentEvent = ev;
                 } catch (e) {
                     // fallback to stateless getter if triggerRandomEvent isn't available
@@ -407,6 +574,15 @@ export default class WorldMap {
 
                 cell.type = 'empty';
                 return 'event';
+            }
+
+            if (cell.type === 'landmark') {
+                this.currentLandmark = {
+                    id: cell.landmarkId,
+                    data: cell.landmarkData,
+                    zone: cell.zone
+                };
+                return 'landmark';
             }
             
             if (cell.type === 'dungeon') {
@@ -442,16 +618,19 @@ export default class WorldMap {
             if (this.homePos && (newX !== this.homePos.x || newY !== this.homePos.y)) {
                 this.hasLeftHome = true;
             }
-        return null;
+        return this.rollAmbientEncounter(cell);
     }
 
     getCurrentMonster() { return this.currentMonster; }
     clearCurrentMonster() { this.currentMonster = null; }
     getCurrentEvent() { return this.currentEvent; }
     clearCurrentEvent() { this.currentEvent = null; }
+    getCurrentLandmark() { return this.currentLandmark; }
+    clearCurrentLandmark() { this.currentLandmark = null; }
     getCurrentDungeon() { return this.currentDungeon; }
     clearCurrentDungeon() { this.currentDungeon = null; }
     getCurrentZone() { return this.mapData[this.playerPos.y][this.playerPos.x].zone; }
+    getCurrentCell() { return this.mapData[this.playerPos.y][this.playerPos.x]; }
 
     // 裂縫相關 API
     getCurrentRift() { return this.currentRift; }

@@ -7,10 +7,14 @@ import WorldMap from '../utils/WorldMap.js';
 import { eventManager } from '../managers/EventManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
+import { createRecipeBlueprintDisplayItems, rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
+import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
+import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
-import { buildItemModalOptions } from '../utils/ItemDisplay.js';
+import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 
@@ -22,10 +26,10 @@ const FightManagerReady = import('../managers/FightManager.js')
 
 // Centralized zone color definitions used by both rendering layers
 const ZONE_COLORS = {
-    low:  { hex: '#2e7d32', fill: 'rgba(77, 233, 84, 0.12)', stroke: 'rgba(43, 231, 52, 0.18)' },
-    medium:{ hex: '#2196f3', fill: 'rgba(33,150,243,0.12)', stroke: 'rgba(33,150,243,0.18)' },
-    high: { hex: '#ca521bff', fill: 'rgba(216, 166, 91, 0.12)', stroke: 'rgba(233, 169, 150, 0.18)' },
-    death: { hex: '#9b0909ff', fill: 'rgba(183,28,28,0.16)', stroke: 'rgba(183,28,28,0.22)' }
+    low: { hex: '#31583b', fill: 'rgba(32, 74, 44, 0.46)', stroke: 'rgba(109, 142, 93, 0.08)', texture: 'rgba(153, 190, 131, 0.18)' },
+    medium: { hex: '#394f4b', fill: 'rgba(42, 63, 59, 0.48)', stroke: 'rgba(118, 145, 135, 0.08)', texture: 'rgba(141, 169, 154, 0.16)' },
+    high: { hex: '#685a43', fill: 'rgba(82, 71, 52, 0.5)', stroke: 'rgba(190, 166, 116, 0.09)', texture: 'rgba(216, 181, 95, 0.16)' },
+    death: { hex: '#5b332e', fill: 'rgba(83, 45, 39, 0.54)', stroke: 'rgba(207, 98, 79, 0.1)', texture: 'rgba(228, 120, 95, 0.15)' }
 };
 
 export default class AdventureScene {
@@ -40,6 +44,10 @@ export default class AdventureScene {
         this.rhythmSystem = null;
         this.animationFrameId = null;
         this.lootCloseHandler = null;
+        this.clueBookOpen = false;
+        this.bossTestOpen = false;
+        this.currentLocationKey = null;
+        this.locationToastTimer = null;
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
         
         // Bindings
@@ -103,6 +111,11 @@ export default class AdventureScene {
             this._invUpdateRAF = null;
         }
 
+        if (this.locationToastTimer) {
+            clearTimeout(this.locationToastTimer);
+            this.locationToastTimer = null;
+        }
+
         this.unbindEvents();
     }
 
@@ -112,7 +125,19 @@ export default class AdventureScene {
             playerLevel: this.container.querySelector('#adv-player-level'),
             playerHp: this.container.querySelector('#adv-player-hp'),
             playerGold: this.container.querySelector('#adv-player-gold'),
-            currentZone: this.container.querySelector('#current-zone'),
+            locationToast: this.container.querySelector('#location-toast'),
+            locationToastKicker: this.container.querySelector('#location-toast-kicker'),
+            locationToastTitle: this.container.querySelector('#location-toast-title'),
+            locationToastDescription: this.container.querySelector('#location-toast-description'),
+            btnToggleClueBook: this.container.querySelector('#btn-toggle-clue-book'),
+            btnCloseClueBook: this.container.querySelector('#btn-close-clue-book'),
+            clueBookPanel: this.container.querySelector('#clue-book-panel'),
+            clueBookSummary: this.container.querySelector('#clue-book-summary'),
+            clueBookContent: this.container.querySelector('#clue-book-content'),
+            btnToggleBossTest: this.container.querySelector('#btn-toggle-boss-test'),
+            btnCloseBossTest: this.container.querySelector('#btn-close-boss-test'),
+            bossTestPanel: this.container.querySelector('#boss-test-panel'),
+            bossTestContent: this.container.querySelector('#boss-test-content'),
             
             // Battle Modal
             battleModal: this.container.querySelector('#battle-modal'),
@@ -171,10 +196,17 @@ export default class AdventureScene {
     }
 
     initCanvas() {
-        const containerWidth = Math.min(window.innerWidth, window.innerWidth - 40);
-        const containerHeight = Math.min(window.innerHeight, window.innerHeight - 100);
+        const { width: containerWidth, height: containerHeight } = this.getMapViewportSize();
         this.canvas.width = containerWidth;
         this.canvas.height = containerHeight;
+    }
+
+    getMapViewportSize() {
+        const mapContainer = this.container.querySelector('#map-container');
+        const rect = mapContainer?.getBoundingClientRect?.();
+        const width = Math.max(320, Math.floor(rect?.width || window.innerWidth));
+        const height = Math.max(320, Math.floor(rect?.height || (window.innerHeight - 180)));
+        return { width, height };
     }
 
     bindEvents() {
@@ -271,6 +303,26 @@ export default class AdventureScene {
         
         const returnBtn = this.container.querySelector('#btn-return-to-lobby');
         if (returnBtn) returnBtn.addEventListener('click', () => this.app.loadScene('lobby'));
+
+        if (this.dom.btnToggleClueBook) {
+            this.dom.btnToggleClueBook.addEventListener('click', () => this.toggleClueBook());
+        }
+
+        if (this.dom.btnCloseClueBook) {
+            this.dom.btnCloseClueBook.addEventListener('click', () => this.toggleClueBook(false));
+        }
+
+        if (this.dom.btnToggleBossTest) {
+            this.dom.btnToggleBossTest.addEventListener('click', () => this.toggleBossTestPanel());
+        }
+
+        if (this.dom.btnCloseBossTest) {
+            this.dom.btnCloseBossTest.addEventListener('click', () => this.toggleBossTestPanel(false));
+        }
+
+        if (this.dom.bossTestPanel) {
+            this.dom.bossTestPanel.addEventListener('click', event => this.handleBossTestPanelClick(event));
+        }
         
         if (this.dom.fleeBtn) this.dom.fleeBtn.addEventListener('click', () => this.handleFleeClick());
         if (this.dom.lootCloseBtn) this.dom.lootCloseBtn.addEventListener('click', () => {
@@ -285,8 +337,7 @@ export default class AdventureScene {
 
     handleResize() {
         if (this.canvas && this.worldMap) {
-            const containerWidth = Math.min(window.innerWidth, window.innerWidth - 40);
-            const containerHeight = Math.min(window.innerHeight, window.innerHeight - 100);
+            const { width: containerWidth, height: containerHeight } = this.getMapViewportSize();
             this.canvas.width = containerWidth;
             this.canvas.height = containerHeight;
             
@@ -342,6 +393,9 @@ export default class AdventureScene {
             } else if (result === 'event') {
                 this.isLocked = true;
                 this.handleMapEvent();
+            } else if (result === 'landmark') {
+                this.isLocked = true;
+                this.handleLandmarkInteraction();
             } else if (result === 'dungeon') {
                 this.isLocked = true;
                 this.handleDungeonEntrance();
@@ -374,12 +428,577 @@ export default class AdventureScene {
             this.dom.playerGold.textContent = char.gold || 0;
         }
         
-        if (this.worldMap && this.dom.currentZone) {
-            const zone = this.worldMap.getCurrentZone();
-            const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
-            this.dom.currentZone.textContent = zoneNames[zone] || '未知區域';
-            this.dom.currentZone.className = `info-value zone-indicator ${zone}`;
+        this.updateWorldNarrativePanel();
+    }
+
+    updateWorldNarrativePanel(override = null) {
+        if (!this.worldMap) return;
+
+        const currentCell = this.worldMap.getCurrentCell?.();
+        const landmarkId = override?.landmark?.id || currentCell?.landmarkId || null;
+        const zoneId = override?.zoneId || currentCell?.zone || this.worldMap.getCurrentZone?.();
+        const narrative = override?.narrative || worldStoryManager.getNarrative({ zoneId, landmarkId });
+        const locationKey = `${zoneId || 'unknown'}:${landmarkId || 'zone'}`;
+
+        if (locationKey !== this.currentLocationKey) {
+            this.currentLocationKey = locationKey;
+            this.showLocationToast(narrative);
         }
+        this.renderClueBook();
+        this.renderBossTestPanel();
+    }
+
+    showLocationToast(narrative) {
+        if (!this.dom.locationToast) return;
+
+        if (this.dom.locationToastKicker) {
+            this.dom.locationToastKicker.textContent = narrative.landmark ? '發現地點' : '進入區域';
+        }
+        if (this.dom.locationToastTitle) {
+            this.dom.locationToastTitle.textContent = narrative.title || '未知地點';
+        }
+        if (this.dom.locationToastDescription) {
+            this.dom.locationToastDescription.textContent = narrative.description || '';
+        }
+
+        this.dom.locationToast.classList.remove('is-visible');
+        void this.dom.locationToast.offsetWidth;
+        this.dom.locationToast.classList.add('is-visible');
+
+        if (this.locationToastTimer) clearTimeout(this.locationToastTimer);
+        this.locationToastTimer = setTimeout(() => {
+            this.dom.locationToast?.classList.remove('is-visible');
+            this.locationToastTimer = null;
+        }, 3200);
+    }
+
+    toggleClueBook(forceOpen = null) {
+        this.clueBookOpen = forceOpen === null ? !this.clueBookOpen : Boolean(forceOpen);
+        if (this.dom.clueBookPanel) {
+            this.dom.clueBookPanel.classList.toggle('is-open', this.clueBookOpen);
+            this.dom.clueBookPanel.setAttribute('aria-hidden', String(!this.clueBookOpen));
+        }
+        if (this.dom.btnToggleClueBook) {
+            this.dom.btnToggleClueBook.classList.toggle('is-open', this.clueBookOpen);
+            this.dom.btnToggleClueBook.classList.remove('has-new');
+            this.dom.btnToggleClueBook.setAttribute('aria-expanded', String(this.clueBookOpen));
+        }
+        this.renderClueBook();
+    }
+
+    renderClueBook() {
+        if (!this.dom.clueBookContent && !this.dom.btnToggleClueBook) return;
+
+        const notebook = worldStoryManager.getNotebookData();
+        const clueCount = notebook.clues.length;
+        const hasClues = clueCount > 0;
+
+        if (this.dom.btnToggleClueBook) {
+            this.dom.btnToggleClueBook.classList.toggle('is-available', hasClues);
+            this.dom.btnToggleClueBook.disabled = !hasClues;
+            this.dom.btnToggleClueBook.setAttribute('aria-hidden', String(!hasClues));
+        }
+        if (!hasClues && this.clueBookOpen) {
+            this.toggleClueBook(false);
+        }
+        if (this.dom.clueBookSummary) {
+            this.dom.clueBookSummary.textContent = '筆記會依照你發現的順序留下，不會預先列出未知線索。';
+        }
+        if (!this.dom.clueBookContent) return;
+
+        const chainHTML = notebook.chains.map(chain => {
+            const knownClues = chain.clues.map(clue => `
+                <article class="notebook-clue">
+                    <div class="notebook-clue-source">線索 ${clue.notebookIndex}</div>
+                    <h4>${escapeHtml(clue.title)}</h4>
+                    <div class="notebook-clue-origin">${escapeHtml(clue.source || '未知來源')}</div>
+                    <p>${escapeHtml(clue.text)}</p>
+                    <small>${escapeHtml(clue.lead || '')}</small>
+                </article>
+            `).join('');
+
+            return `
+                <section class="notebook-chain">
+                    <div class="notebook-chain-header">
+                        <div>
+                            <span>${escapeHtml(chain.method)}</span>
+                            <h3>${escapeHtml(chain.title)}</h3>
+                        </div>
+                    </div>
+                    <p class="notebook-chain-text">${escapeHtml(chain.text)}</p>
+                    <div class="notebook-clue-list">${knownClues}</div>
+                </section>
+            `;
+        }).join('');
+
+        const landmarkHTML = notebook.landmarks.length > 0
+            ? `<section class="notebook-landmarks">
+                <h3>踏查地點</h3>
+                ${notebook.landmarks.map(landmark => `<span>${escapeHtml(landmark.name)}</span>`).join('')}
+            </section>`
+            : '';
+
+        this.dom.clueBookContent.innerHTML = chainHTML + landmarkHTML;
+    }
+
+    toggleBossTestPanel(forceOpen = null) {
+        this.bossTestOpen = forceOpen === null ? !this.bossTestOpen : Boolean(forceOpen);
+        if (this.dom.bossTestPanel) {
+            this.dom.bossTestPanel.classList.toggle('is-open', this.bossTestOpen);
+            this.dom.bossTestPanel.setAttribute('aria-hidden', String(!this.bossTestOpen));
+        }
+        if (this.dom.btnToggleBossTest) {
+            this.dom.btnToggleBossTest.classList.toggle('is-open', this.bossTestOpen);
+            this.dom.btnToggleBossTest.setAttribute('aria-expanded', String(this.bossTestOpen));
+        }
+        this.renderBossTestPanel();
+    }
+
+    getBossTestDebugState() {
+        const char = GameManager.getCharacter();
+        const readNumber = (value, fallback = 0) => {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : fallback;
+        };
+
+        return {
+            noAmbientEncounters: Boolean(GameManager.getFlag('debug.noAmbientEncounters')),
+            noBattles: Boolean(GameManager.getFlag('debug.noBattles')),
+            forcedEncounter: GameManager.getFlag('debug.forceNextEncounter') || null,
+            level: readNumber(char?.level, 1),
+            exp: readNumber(char?.exp),
+            maxExp: readNumber(char?.maxExp, 100),
+            baseAtk: readNumber(char?.baseAtk),
+            baseDef: readNumber(char?.baseDef),
+            totalAtk: typeof char?.getTotalAtk === 'function' ? char.getTotalAtk() : readNumber(char?.baseAtk),
+            totalDef: typeof char?.getTotalDef === 'function' ? char.getTotalDef() : readNumber(char?.baseDef),
+            hp: readNumber(char?.hp ?? char?.currentHP),
+            maxHp: readNumber(char?.maxHp ?? char?.maxHP, 1),
+            gold: readNumber(char?.gold)
+        };
+    }
+
+    adjustPlayerTestStat(stat, delta) {
+        const char = GameManager.getCharacter();
+        if (!char) return null;
+
+        const property = stat === 'def' ? 'baseDef' : 'baseAtk';
+        const minimum = stat === 'def' ? 0 : 1;
+        char[property] = Math.max(minimum, Math.round((Number(char[property]) || 0) + delta));
+        if (typeof char.syncProperties === 'function') char.syncProperties();
+        GameManager.markSaveDirty?.('boss-test-panel');
+        GameManager.notify('all');
+        return char[property];
+    }
+
+    healPlayerForTesting() {
+        const char = GameManager.getCharacter();
+        if (!char) return;
+        char.hp = char.maxHp || char.maxHP || char.hp || 1;
+        GameManager.markSaveDirty?.('boss-test-panel');
+        GameManager.notify('all');
+    }
+
+    resetPlayerTestStats() {
+        const char = GameManager.getCharacter();
+        if (!char) return;
+        char.level = 1;
+        char.maxHp = typeof char.calculateMaxHp === 'function' ? char.calculateMaxHp() : 120;
+        char.maxMp = 55;
+        char.mp = char.maxMp;
+        char.maxExp = 100;
+        char.exp = 0;
+        char.baseAtk = 5;
+        char.baseDef = 2;
+        char.hp = char.maxHp || char.maxHP || 120;
+        if (typeof char.syncProperties === 'function') char.syncProperties();
+        GameManager.markSaveDirty?.('boss-test-panel');
+        GameManager.notify('all');
+    }
+
+    setPlayerTestLevel(level) {
+        const char = GameManager.getCharacter();
+        if (!char) return null;
+
+        const nextLevel = Math.max(1, Math.min(99, Math.round(Number(level) || 1)));
+        char.level = nextLevel;
+        char.maxHp = typeof char.calculateMaxHp === 'function' ? char.calculateMaxHp() : 100 + nextLevel * 20;
+        char.hp = char.maxHp;
+        char.maxMp = 50 + nextLevel * 5;
+        char.mp = char.maxMp;
+        char.maxExp = Math.floor(100 * Math.pow(1.2, nextLevel - 1));
+        char.exp = 0;
+        if (typeof char.syncProperties === 'function') char.syncProperties();
+        GameManager.markSaveDirty?.('boss-test-panel');
+        GameManager.notify('all');
+        return nextLevel;
+    }
+
+    adjustPlayerTestLevel(delta) {
+        const char = GameManager.getCharacter();
+        return this.setPlayerTestLevel((Number(char?.level) || 1) + delta);
+    }
+
+    getTestZone(zone) {
+        if (zone && zone !== 'current') return zone;
+        return this.worldMap?.getCurrentZone?.() || 'low';
+    }
+
+    triggerTestMonster(zone) {
+        const targetZone = this.getTestZone(zone);
+        if (!this.worldMap?.createRandomMonsterEncounter?.(targetZone)) return null;
+        this.isLocked = true;
+        this.toggleBossTestPanel(false);
+        this.startBattle();
+        return targetZone;
+    }
+
+    triggerTestEvent(zone, mode = 'question') {
+        const targetZone = this.getTestZone(zone);
+        const event = mode === 'random'
+            ? eventManager.triggerRandomEvent(targetZone)
+            : eventManager.triggerMapQuestionEvent(targetZone);
+
+        if (!event) return null;
+        if (this.worldMap) this.worldMap.currentEvent = event;
+        this.isLocked = true;
+        this.toggleBossTestPanel(false);
+        this.handleMapEvent();
+        return targetZone;
+    }
+
+    triggerTestDungeon(dungeonType) {
+        const site = this.worldMap?.teleportToDungeon?.(dungeonType);
+        if (!site) return null;
+        this.isLocked = true;
+        this.toggleBossTestPanel(false);
+        this.renderMap();
+        this.handleDungeonEntrance();
+        return site;
+    }
+
+    teleportToBossLairForTesting(chainId) {
+        const status = worldStoryManager.getBossFlowStatus(chainId);
+        if (!status?.finalReady || !status?.battleTemplateLinked) return null;
+
+        const site = this.worldMap?.teleportToBossSite?.(status.bossId);
+        if (!site) return null;
+        this.currentLocationKey = null;
+        this.renderMap();
+        this.updateWorldNarrativePanel();
+        return { ...site, bossId: status.bossId };
+    }
+
+    challengeBossLairForTesting(chainId) {
+        const site = this.teleportToBossLairForTesting(chainId);
+        if (!site) return null;
+
+        GameManager.setFlag('debug.noAmbientEncounters', false);
+        GameManager.setFlag('debug.noBattles', false);
+        GameManager.setFlag('debug.forceNextEncounter', null);
+
+        const cell = this.worldMap?.mapData?.[site.y]?.[site.x];
+        const zone = cell?.zone || this.worldMap?.getCurrentZone?.() || 'low';
+        if (!this.worldMap?.createBossEncounter?.(site.bossId, zone)) return null;
+
+        this.isLocked = true;
+        this.toggleBossTestPanel(false);
+        this.startBattle();
+        return site;
+    }
+
+    handleBossTestPanelClick(event) {
+        const button = event.target.closest?.('[data-boss-action]');
+        if (!button) return;
+
+        const action = button.dataset.bossAction;
+        const chainId = button.dataset.chainId;
+        const methodId = button.dataset.methodId;
+        const testZone = button.dataset.testZone;
+        const testMode = button.dataset.testMode;
+        let toastTitle = 'BOSS 測試';
+        let toastMessage = '已更新故事測試狀態。';
+
+        if (action === 'reset-all') {
+            worldStoryManager.resetWorldStoryProgress();
+            this.toggleClueBook(false);
+            toastMessage = '所有世界線索與 BOSS 測試狀態已重置。';
+        } else if (action === 'reset-chain' && chainId) {
+            worldStoryManager.resetStoryChain(chainId);
+            toastMessage = '此 BOSS 流程已重置。';
+        } else if (action === 'unlock-next' && chainId) {
+            const clue = worldStoryManager.revealNextClue(chainId, { source: 'boss_test_panel' });
+            if (clue) {
+                this.showWorldDiscovery({ newClues: [clue] });
+                toastMessage = `解鎖：${clue.title}`;
+            } else {
+                toastMessage = '這條流程已沒有未解鎖線索。';
+            }
+        } else if (action === 'unlock-all' && chainId) {
+            const clues = worldStoryManager.revealAllClues(chainId, { source: 'boss_test_panel' });
+            if (clues.length > 0) this.showWorldDiscovery({ newClues: clues });
+            toastMessage = clues.length > 0 ? `解鎖 ${clues.length} 條線索。` : '所有線索都已解鎖。';
+        } else if (action === 'progress' && chainId && methodId) {
+            worldStoryManager.recordProgress(chainId, methodId, { source: 'boss_test_panel' });
+            toastMessage = '已模擬一項推進方式。';
+        } else if (action === 'final-ready' && chainId) {
+            worldStoryManager.markFinalReady(chainId, { source: 'boss_test_panel' });
+            toastTitle = '最終觸發';
+            toastMessage = '已強制標記此 BOSS 可進入最終觸發測試。';
+        } else if (action === 'toggle-no-encounters') {
+            const enabled = !GameManager.getFlag('debug.noAmbientEncounters');
+            GameManager.setFlag('debug.noAmbientEncounters', enabled);
+            if (enabled) GameManager.setFlag('debug.forceNextEncounter', null);
+            toastTitle = '世界測試';
+            toastMessage = enabled ? '已開啟和平探索：移動不會觸發敵人或隨機事件。' : '已恢復世界隨機遭遇。';
+        } else if (action === 'toggle-no-battles') {
+            const enabled = !GameManager.getFlag('debug.noBattles');
+            GameManager.setFlag('debug.noBattles', enabled);
+            if (enabled && GameManager.getFlag('debug.forceNextEncounter') === 'battle') {
+                GameManager.setFlag('debug.forceNextEncounter', null);
+            }
+            toastTitle = '世界測試';
+            toastMessage = enabled ? '已停用戰鬥遭遇，地圖事件仍可觸發。' : '已恢復戰鬥遭遇。';
+        } else if (action === 'force-next-event') {
+            GameManager.setFlag('debug.noAmbientEncounters', false);
+            GameManager.setFlag('debug.forceNextEncounter', 'event');
+            toastTitle = '世界測試';
+            toastMessage = '下一次踏入可遭遇格時會優先觸發隨機事件。';
+        } else if (action === 'force-next-battle') {
+            GameManager.setFlag('debug.noAmbientEncounters', false);
+            GameManager.setFlag('debug.noBattles', false);
+            GameManager.setFlag('debug.forceNextEncounter', 'battle');
+            toastTitle = '世界測試';
+            toastMessage = '下一次踏入可遭遇格時會優先觸發戰鬥。';
+        } else if (action === 'reset-debug') {
+            GameManager.setFlag('debug.noAmbientEncounters', null);
+            GameManager.setFlag('debug.noBattles', null);
+            GameManager.setFlag('debug.forceNextEncounter', null);
+            toastTitle = '世界測試';
+            toastMessage = '測試旗標已重置。';
+        } else if (action === 'atk-plus') {
+            const value = this.adjustPlayerTestStat('atk', 10);
+            toastTitle = '角色測試';
+            toastMessage = `基礎攻擊已調整為 ${value}。`;
+        } else if (action === 'atk-minus') {
+            const value = this.adjustPlayerTestStat('atk', -10);
+            toastTitle = '角色測試';
+            toastMessage = `基礎攻擊已調整為 ${value}。`;
+        } else if (action === 'def-plus') {
+            const value = this.adjustPlayerTestStat('def', 10);
+            toastTitle = '角色測試';
+            toastMessage = `基礎防禦已調整為 ${value}。`;
+        } else if (action === 'def-minus') {
+            const value = this.adjustPlayerTestStat('def', -10);
+            toastTitle = '角色測試';
+            toastMessage = `基礎防禦已調整為 ${value}。`;
+        } else if (action === 'heal-full') {
+            this.healPlayerForTesting();
+            toastTitle = '角色測試';
+            toastMessage = '已回滿生命。';
+        } else if (action === 'gold-plus') {
+            GameManager.addGold(1000);
+            GameManager.markSaveDirty?.('boss-test-panel');
+            toastTitle = '角色測試';
+            toastMessage = '已增加 1000 金幣。';
+        } else if (action === 'reset-player-test-stats') {
+            this.resetPlayerTestStats();
+            toastTitle = '角色測試';
+            toastMessage = '已重置測試用等級、攻防並回滿生命。';
+        } else if (action === 'level-plus') {
+            const value = this.adjustPlayerTestLevel(1);
+            toastTitle = '角色測試';
+            toastMessage = `等級已調整為 ${value}。`;
+        } else if (action === 'level-plus-five') {
+            const value = this.adjustPlayerTestLevel(5);
+            toastTitle = '角色測試';
+            toastMessage = `等級已調整為 ${value}。`;
+        } else if (action === 'level-dungeon-ready') {
+            const value = this.setPlayerTestLevel(20);
+            toastTitle = '角色測試';
+            toastMessage = `已調整到副本測試等級 ${value}。`;
+        } else if (action === 'test-monster') {
+            const zone = this.triggerTestMonster(testZone);
+            toastTitle = '怪物測試';
+            toastMessage = zone ? `已觸發 ${zone} 區怪物戰鬥。` : '這個區域沒有可用怪物。';
+        } else if (action === 'test-event') {
+            const zone = this.triggerTestEvent(testZone, testMode);
+            toastTitle = '事件測試';
+            toastMessage = zone ? `已觸發 ${zone} 區${testMode === 'random' ? '一般' : '問號'}事件。` : '這個區域沒有可用事件。';
+        } else if (action === 'test-dungeon') {
+            const site = this.triggerTestDungeon(button.dataset.dungeonType);
+            toastTitle = '副本測試';
+            toastMessage = site ? `已定位並開啟 ${site.dungeonType} 副本入口。` : '找不到這個副本入口。';
+        } else if (action === 'teleport-boss-lair' && chainId) {
+            const site = this.teleportToBossLairForTesting(chainId);
+            toastTitle = 'BOSS 巢穴';
+            toastMessage = site ? `已定位到 ${site.bossId} 的巢穴。` : '此 BOSS 尚未達到可顯示巢穴的條件。';
+        } else if (action === 'challenge-boss-lair' && chainId) {
+            const site = this.challengeBossLairForTesting(chainId);
+            toastTitle = 'BOSS 挑戰';
+            toastMessage = site ? `已直接挑戰 ${site.bossId}。` : '此 BOSS 尚未完成巢穴顯示或缺少戰鬥模板。';
+        }
+
+        showGlobalToast(toastTitle, toastMessage, 'info');
+        this.updateUI();
+        this.renderMap();
+        this.renderClueBook();
+        this.renderBossTestPanel();
+    }
+
+    renderBossTestPanel() {
+        if (!this.dom.bossTestContent) return;
+
+        const debugState = this.getBossTestDebugState();
+        const statuses = worldStoryManager.getBossTestData();
+        const testerPanel = `
+            <section class="boss-tester-card">
+                <div class="boss-tester-head">
+                    <div>
+                        <span>世界測試者</span>
+                        <h3>探索與角色控制</h3>
+                    </div>
+                    <strong>${debugState.noAmbientEncounters ? '和平探索中' : debugState.noBattles ? '戰鬥停用中' : '正常遭遇'}</strong>
+                </div>
+                <div class="boss-tester-grid">
+                    <div class="boss-tester-block">
+                        <b>地圖遭遇</b>
+                        <div class="boss-tester-status">
+                            <span>隨機遭遇：${debugState.noAmbientEncounters ? '關' : '開'}</span>
+                            <span>戰鬥：${debugState.noBattles ? '停用' : '啟用'}</span>
+                            <span>下次強制：${debugState.forcedEncounter === 'battle' ? '戰鬥' : debugState.forcedEncounter === 'event' ? '事件' : '無'}</span>
+                        </div>
+                        <div class="boss-tester-actions">
+                            <button class="boss-test-action ${debugState.noAmbientEncounters ? 'is-active' : ''}" type="button" data-boss-action="toggle-no-encounters">不遇敵/事件</button>
+                            <button class="boss-test-action ${debugState.noBattles ? 'is-active' : ''}" type="button" data-boss-action="toggle-no-battles">停用戰鬥</button>
+                            <button class="boss-test-action" type="button" data-boss-action="force-next-event">下次事件</button>
+                            <button class="boss-test-action" type="button" data-boss-action="force-next-battle">下次戰鬥</button>
+                            <button class="boss-test-action" type="button" data-boss-action="reset-debug">重置旗標</button>
+                        </div>
+                    </div>
+                    <div class="boss-tester-block">
+                        <b>角色數值</b>
+                        <div class="boss-tester-stats">
+                            <span>等級 ${debugState.level}</span>
+                            <span>攻擊 ${debugState.totalAtk}（基礎 ${debugState.baseAtk}）</span>
+                            <span>防禦 ${debugState.totalDef}（基礎 ${debugState.baseDef}）</span>
+                            <span>HP ${debugState.hp}/${debugState.maxHp}</span>
+                            <span>金幣 ${debugState.gold}</span>
+                        </div>
+                        <div class="boss-tester-actions">
+                            <button class="boss-test-action" type="button" data-boss-action="atk-plus">攻擊 +10</button>
+                            <button class="boss-test-action" type="button" data-boss-action="atk-minus">攻擊 -10</button>
+                            <button class="boss-test-action" type="button" data-boss-action="def-plus">防禦 +10</button>
+                            <button class="boss-test-action" type="button" data-boss-action="def-minus">防禦 -10</button>
+                            <button class="boss-test-action" type="button" data-boss-action="level-plus">等級 +1</button>
+                            <button class="boss-test-action" type="button" data-boss-action="level-plus-five">等級 +5</button>
+                            <button class="boss-test-action" type="button" data-boss-action="level-dungeon-ready">副本 Lv20</button>
+                            <button class="boss-test-action" type="button" data-boss-action="heal-full">補滿生命</button>
+                            <button class="boss-test-action" type="button" data-boss-action="gold-plus">金幣 +1000</button>
+                            <button class="boss-test-action" type="button" data-boss-action="reset-player-test-stats">重置角色測試</button>
+                        </div>
+                    </div>
+                    <div class="boss-tester-block">
+                        <b>怪物測試</b>
+                        <div class="boss-tester-actions">
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="current">目前區域怪物</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="low">低威脅</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="medium">普通威脅</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="high">高威脅</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="death">死亡區</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="boss">隨機 BOSS</button>
+                        </div>
+                    </div>
+                    <div class="boss-tester-block">
+                        <b>事件測試</b>
+                        <div class="boss-tester-actions">
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="current" data-test-mode="question">目前問號事件</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="current" data-test-mode="random">目前一般事件</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="question">低區問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="question">中區問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="question">高區問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="question">死亡區問號</button>
+                        </div>
+                    </div>
+                    <div class="boss-tester-block">
+                        <b>副本測試</b>
+                        <div class="boss-tester-actions">
+                            <button class="boss-test-action" type="button" data-boss-action="test-dungeon" data-dungeon-type="cave">幽暗洞窟</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-dungeon" data-dungeon-type="snow">冰封雪峰</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-dungeon" data-dungeon-type="ruins">遠古遺跡</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-dungeon" data-dungeon-type="jungle">迷霧叢林</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-dungeon" data-dungeon-type="hell">煉獄深淵</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        `;
+
+        const bossCards = statuses.map(status => {
+            const lairReady = Boolean(status.finalReady && status.battleTemplateLinked);
+            const lairStatusText = !status.battleTemplateLinked
+                ? '缺戰鬥模板，暫不能顯示可戰鬥巢穴'
+                : lairReady
+                    ? '已顯示在地圖'
+                    : `線索 ${status.discoveredClues.length}/${status.requiredClues}｜推進 ${status.completedProgress}/${status.requiredProgress}`;
+            const checks = (status.validation?.checks || []).map(check => `
+                <span class="boss-check ${check.passed ? 'is-pass' : 'is-fail'}">
+                    ${check.passed ? 'OK' : '缺'} ${escapeHtml(check.label)}
+                </span>
+            `).join('');
+            const sources = (status.infoSources || []).map(source => `<span>${escapeHtml(source)}</span>`).join('');
+            const reveals = (status.revealMethods || []).map(method => `<span>${escapeHtml(method)}</span>`).join('');
+            const progressButtons = (status.progressMethods || []).map(method => `
+                <button class="boss-progress-btn ${method.completed ? 'is-complete' : ''}" type="button"
+                    data-boss-action="progress" data-chain-id="${escapeHtml(status.id)}" data-method-id="${escapeHtml(method.id)}">
+                    ${method.completed ? '完成' : '模擬'}｜${escapeHtml(method.type)}：${escapeHtml(method.label)}
+                </button>
+            `).join('');
+            const clueList = status.discoveredClues.length > 0
+                ? status.discoveredClues.map(clue => `<li>線索 ${clue.notebookIndex}｜${escapeHtml(clue.title)}</li>`).join('')
+                : '<li>尚未取得任何線索</li>';
+
+            return `
+                <article class="boss-test-card ${status.finalReady ? 'is-ready' : ''}">
+                    <div class="boss-test-card-head">
+                        <div>
+                            <span>${escapeHtml(status.archetype || status.method)}</span>
+                            <h3>${escapeHtml(status.title)}</h3>
+                        </div>
+                        <div class="boss-test-state">
+                            <strong>${status.finalReady ? '可測最終觸發' : '流程測試中'}</strong>
+                            <span class="boss-link-badge ${status.battleTemplateLinked ? 'is-linked' : 'is-missing'}">
+                                ${status.battleTemplateLinked ? '戰鬥模板已接' : '缺戰鬥模板'}
+                            </span>
+                        </div>
+                    </div>
+                    <p>${escapeHtml(status.text || '')}</p>
+                    <div class="boss-rule-checks">${checks}</div>
+                    <div class="boss-test-grid">
+                        <div><b>入口</b><span>${(status.entries || []).length} 個</span></div>
+                        <div><b>戰鬥模板</b><span>${status.battleTemplateLinked ? `已接上｜${escapeHtml(status.bossId)}` : `尚未建立｜${escapeHtml(status.bossId)}`}</span></div>
+                        <div><b>巢穴顯示</b><span>${escapeHtml(lairStatusText)}</span></div>
+                        <div><b>情報來源</b><span>${sources}</span></div>
+                        <div><b>揭露方式</b><span>${reveals}</span></div>
+                        <div><b>地圖謎題</b><span>${escapeHtml(status.mapPuzzle?.label || '未設定')}</span></div>
+                        <div><b>捷徑</b><span>${escapeHtml(status.shortcut?.label || '未設定')}</span></div>
+                        <div><b>最終觸發</b><span>${escapeHtml(status.finalTrigger?.type || '未設定')}｜${escapeHtml(status.finalTrigger?.label || '')}</span></div>
+                    </div>
+                    <ul class="boss-clue-list">${clueList}</ul>
+                    <div class="boss-progress-list">${progressButtons}</div>
+                    <div class="boss-test-actions">
+                        <button type="button" data-boss-action="unlock-next" data-chain-id="${escapeHtml(status.id)}">解鎖下一線索</button>
+                        <button type="button" data-boss-action="unlock-all" data-chain-id="${escapeHtml(status.id)}">解鎖全部線索</button>
+                        <button type="button" data-boss-action="final-ready" data-chain-id="${escapeHtml(status.id)}">強制最終觸發</button>
+                        <button type="button" data-boss-action="teleport-boss-lair" data-chain-id="${escapeHtml(status.id)}" ${lairReady ? '' : 'disabled'}>定位巢穴</button>
+                        <button type="button" data-boss-action="challenge-boss-lair" data-chain-id="${escapeHtml(status.id)}" ${lairReady ? '' : 'disabled'}>挑戰 BOSS</button>
+                        <button type="button" data-boss-action="reset-chain" data-chain-id="${escapeHtml(status.id)}">重置此流程</button>
+                    </div>
+                </article>
+            `;
+        }).join('');
+
+        this.dom.bossTestContent.innerHTML = testerPanel + bossCards;
     }
 
     renderMap() {
@@ -410,107 +1029,242 @@ export default class AdventureScene {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
-        // Use centralized ZONE_COLORS (defined at module top)
-        const terrainIcons = { 'monster': '👾', 'player': '🧙', 'event': '❓', 'dungeon': '🏰' };
-        const monsterIcons = {
-            normal: '👾',
-            elite: '👹',
-            boss: '👿'
+        const visibleCells = this.worldMap.getVisibleCells();
+        const center = (x, y) => ({ cx: x + gridSize / 2, cy: y + gridSize / 2 });
+        const drawMapStone = (x, y, radius, color = 'rgba(214, 194, 145, 0.72)') => {
+            ctx.beginPath();
+            ctx.ellipse(x, y, radius * 0.9, radius * 0.62, -0.35, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(25, 20, 14, 0.42)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        };
+        const drawTerrainDecoration = (cell, x, y) => {
+            const { cx, cy } = center(x, y);
+            if (cell.data.type === 'home' || cell.data.type === 'wall') return;
+
+            const seed = ((cell.x + 3) * 37 + (cell.y + 7) * 53) % 19;
+            if (seed > 10) return;
+
+            ctx.save();
+            if (seed % 4 === 0) {
+                ctx.strokeStyle = 'rgba(188, 220, 158, 0.5)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 4; i += 1) {
+                    const ox = (i - 1.5) * gridSize * 0.08;
+                    ctx.beginPath();
+                    ctx.moveTo(cx + ox, cy + gridSize * 0.18);
+                    ctx.quadraticCurveTo(cx + ox * 0.5, cy, cx + ox * 1.4, cy - gridSize * 0.16);
+                    ctx.stroke();
+                }
+            } else if (seed % 4 === 1) {
+                drawMapStone(cx - gridSize * 0.08, cy + gridSize * 0.08, gridSize * 0.09, 'rgba(155, 147, 123, 0.52)');
+                drawMapStone(cx + gridSize * 0.12, cy - gridSize * 0.04, gridSize * 0.07, 'rgba(155, 147, 123, 0.42)');
+            } else if (seed % 4 === 2) {
+                ctx.strokeStyle = 'rgba(211, 188, 133, 0.38)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx - gridSize * 0.2, cy + gridSize * 0.08);
+                ctx.bezierCurveTo(cx - gridSize * 0.06, cy - gridSize * 0.02, cx + gridSize * 0.08, cy + gridSize * 0.2, cx + gridSize * 0.24, cy + gridSize * 0.04);
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = 'rgba(170, 138, 83, 0.42)';
+                ctx.fillStyle = 'rgba(64, 48, 29, 0.32)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.roundRect(cx - gridSize * 0.16, cy - gridSize * 0.12, gridSize * 0.32, gridSize * 0.2, 4);
+                ctx.fill();
+                ctx.stroke();
+            }
+            ctx.restore();
+        };
+        const drawLandmarkMarker = (cell, x, y) => {
+            const { cx, cy } = center(x, y);
+            ctx.save();
+            ctx.shadowColor = 'rgba(216, 181, 95, 0.58)';
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = 'rgba(222, 195, 126, 0.88)';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - gridSize * 0.28);
+            ctx.lineTo(cx + gridSize * 0.16, cy + gridSize * 0.2);
+            ctx.lineTo(cx - gridSize * 0.16, cy + gridSize * 0.2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(69, 49, 25, 0.72)';
+            ctx.stroke();
+            ctx.restore();
+        };
+        const drawDungeonMarker = (cell, x, y) => {
+            const { cx, cy } = center(x, y);
+            ctx.save();
+            ctx.shadowColor = cell.data.dungeonData?.color || 'rgba(125, 211, 252, 0.5)';
+            ctx.shadowBlur = 12;
+            ctx.strokeStyle = 'rgba(192, 207, 204, 0.78)';
+            ctx.fillStyle = 'rgba(18, 24, 28, 0.82)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - gridSize * 0.22, cy + gridSize * 0.22);
+            ctx.lineTo(cx - gridSize * 0.22, cy - gridSize * 0.02);
+            ctx.quadraticCurveTo(cx, cy - gridSize * 0.3, cx + gridSize * 0.22, cy - gridSize * 0.02);
+            ctx.lineTo(cx + gridSize * 0.22, cy + gridSize * 0.22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        };
+        const drawBossLairMarker = (cell, x, y) => {
+            const { cx, cy } = center(x, y);
+            const status = worldStoryManager.getBossLairStatus(cell.data.bossSiteId);
+            ctx.save();
+            ctx.shadowColor = 'rgba(248, 113, 113, 0.72)';
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = 'rgba(42, 18, 18, 0.9)';
+            ctx.strokeStyle = status.finalReady ? 'rgba(248, 113, 113, 0.92)' : 'rgba(248, 113, 113, 0.45)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy + gridSize * 0.05, gridSize * 0.26, gridSize * 0.18, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(248, 113, 113, 0.88)';
+            ctx.beginPath();
+            ctx.arc(cx - gridSize * 0.08, cy, gridSize * 0.035, 0, Math.PI * 2);
+            ctx.arc(cx + gridSize * 0.08, cy, gridSize * 0.035, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        };
+        const drawRiftMarker = (x, y) => {
+            const { cx, cy } = center(x, y);
+            ctx.save();
+            ctx.strokeStyle = 'rgba(155, 135, 255, 0.66)';
+            ctx.shadowColor = 'rgba(123, 97, 255, 0.5)';
+            ctx.shadowBlur = 14;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < 18; i += 1) {
+                const t = i / 3;
+                const r = gridSize * 0.03 * i;
+                const px = cx + Math.cos(t) * r;
+                const py = cy + Math.sin(t) * r;
+                if (i === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+            ctx.restore();
+        };
+        const drawHomeMarker = (x, y) => {
+            const { cx, cy } = center(x, y);
+            ctx.save();
+            ctx.fillStyle = 'rgba(208, 169, 94, 0.9)';
+            ctx.strokeStyle = 'rgba(61, 42, 21, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - gridSize * 0.26);
+            ctx.lineTo(cx + gridSize * 0.24, cy - gridSize * 0.04);
+            ctx.lineTo(cx + gridSize * 0.18, cy + gridSize * 0.22);
+            ctx.lineTo(cx - gridSize * 0.18, cy + gridSize * 0.22);
+            ctx.lineTo(cx - gridSize * 0.24, cy - gridSize * 0.04);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
         };
 
-        const visibleCells = this.worldMap.getVisibleCells();
-        
-        // Draw dynamic icons (monsters, events, dungeon, rift, home)
         visibleCells.forEach(cell => {
             const x = cell.x * gridSize - cameraX;
             const y = cell.y * gridSize - cameraY;
-            if (cell.data.type === 'monster') {
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                // Use unified icons based on monster type/rank only
-                const rank = (cell.data && (cell.data.monsterType || cell.data.rank)) || 'normal';
-                const icon = monsterIcons[rank] || monsterIcons.normal;
-                // give elites and bosses extra glow
-                if (rank === 'elite') {
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(255,165,0,0.6)';
-                    ctx.shadowBlur = 12;
-                    ctx.fillStyle = '#fff';
-                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
-                    ctx.restore();
-                } else if (rank === 'boss') {
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(183,28,28,0.8)';
-                    ctx.shadowBlur = 18;
-                    ctx.fillStyle = '#fff';
-                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
-                    ctx.restore();
-                } else {
-                    ctx.fillStyle = '#fff';
-                    ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
-                }
-            } else if (cell.data.type === 'event') {
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff';
-                const eventIcon = cell.data.eventData ? cell.data.eventData.icon : terrainIcons.event;
-                ctx.fillText(eventIcon, x + gridSize / 2, y + gridSize / 2);
+            drawTerrainDecoration(cell, x, y);
+        });
+
+        visibleCells.forEach(cell => {
+            const x = cell.x * gridSize - cameraX;
+            const y = cell.y * gridSize - cameraY;
+            if (cell.data.type === 'landmark') {
+                drawLandmarkMarker(cell, x, y);
             } else if (cell.data.type === 'dungeon') {
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const dungeonIcon = cell.data.dungeonData?.icon || terrainIcons.dungeon;
-                ctx.save();
-                ctx.shadowColor = cell.data.dungeonData?.color || '#ff6b6b';
-                ctx.shadowBlur = 10;
-                ctx.fillStyle = '#fff';
-                ctx.fillText(dungeonIcon, x + gridSize / 2, y + gridSize / 2);
-                ctx.restore();
+                drawDungeonMarker(cell, x, y);
             } else if (cell.data.type === 'rift') {
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.save();
-                ctx.shadowColor = '#7b61ff';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#fff';
-                const riftIcon = cell.data.riftData?.icon || '🌀';
-                ctx.fillText(riftIcon, x + gridSize / 2, y + gridSize / 2);
-                ctx.restore();
+                drawRiftMarker(x, y);
             } else if (cell.data.type === 'home') {
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.save();
-                ctx.shadowColor = '#ffb347';
-                ctx.shadowBlur = 15;
-                ctx.fillStyle = '#fff';
-                ctx.fillText('🏠', x + gridSize / 2, y + gridSize / 2);
-                ctx.restore();
+                drawHomeMarker(x, y);
+            }
+            if (cell.data.bossSiteId && worldStoryManager.isBossLairVisible(cell.data.bossSiteId)) {
+                drawBossLairMarker(cell, x, y);
             }
         });
         
-        // Player
         const playerX = this.worldMap.playerPos.x * gridSize - cameraX;
         const playerY = this.worldMap.playerPos.y * gridSize - cameraY;
-        
-        ctx.fillStyle = 'rgba(79, 172, 254, 0.3)';
-        ctx.fillRect(playerX, playerY, gridSize, gridSize);
-        ctx.strokeStyle = '#4facfe';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(playerX, playerY, gridSize, gridSize);
-        
-        ctx.font = `${gridSize * 0.7}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#fff';
-        ctx.fillText(terrainIcons.player, playerX + gridSize / 2, playerY + gridSize / 2);
+        const { cx: pcx, cy: pcy } = center(playerX, playerY);
+        ctx.save();
+        ctx.shadowColor = 'rgba(125, 211, 252, 0.66)';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = 'rgba(37, 99, 130, 0.82)';
+        ctx.strokeStyle = 'rgba(191, 219, 254, 0.92)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(pcx, pcy, gridSize * 0.23, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(236, 253, 245, 0.94)';
+        ctx.beginPath();
+        ctx.moveTo(pcx, pcy - gridSize * 0.17);
+        ctx.lineTo(pcx + gridSize * 0.08, pcy + gridSize * 0.08);
+        ctx.lineTo(pcx, pcy + gridSize * 0.04);
+        ctx.lineTo(pcx - gridSize * 0.08, pcy + gridSize * 0.08);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
     }
 
     // ===== 地圖事件處理 =====
     
+    handleLandmarkInteraction() {
+        const landmarkRef = this.worldMap.getCurrentLandmark?.();
+        if (!landmarkRef) {
+            this.isLocked = false;
+            return;
+        }
+
+        const outcome = worldStoryManager.visitLandmark(landmarkRef.id, {
+            zoneId: landmarkRef.zone,
+            source: 'adventure_map'
+        });
+        if ((outcome.newClues || []).length > 0 && this.dom.btnToggleClueBook && !this.clueBookOpen) {
+            this.dom.btnToggleClueBook.classList.add('has-new');
+        }
+        const clueHTML = (outcome.newClues || []).map(clue => `
+            <div class="event-reward">
+                <strong>新線索：${escapeHtml(clue.title)}</strong>
+                <p>${escapeHtml(clue.text)}</p>
+                <small>${escapeHtml(clue.lead || '')}</small>
+            </div>
+        `).join('');
+        const effectHTML = (outcome.effects || []).map(effect => `
+            <div class="event-reward">
+                <strong>${escapeHtml(effect.name)}</strong>
+                <p>${escapeHtml(effect.summary)}</p>
+            </div>
+        `).join('');
+        const resultHTML = `${clueHTML}${effectHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
+
+        this.updateWorldNarrativePanel({
+            landmark: outcome.landmark,
+            zoneId: landmarkRef.zone,
+            narrative: worldStoryManager.getNarrative({
+                zoneId: landmarkRef.zone,
+                landmarkId: landmarkRef.id
+            })
+        });
+        this.worldMap.clearCurrentLandmark();
+        this.showEventModal(
+            outcome.icon || '◆',
+            outcome.title || '未知地標',
+            outcome.description || '你抵達一處值得記錄的地方。',
+            resultHTML
+        );
+    }
+
     handleMapEvent() {
         const event = this.worldMap.getCurrentEvent();
         if (!event) return;
@@ -698,37 +1452,38 @@ export default class AdventureScene {
         const mechanicInfo = this.getDungeonMechanicDescription(dungeonData.mechanic?.type || dungeonType);
         
         const modalHTML = `
-            <div class="dungeon-entrance-modal" id="dungeon-entrance-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
-                <div class="dungeon-entrance-card" style="background: linear-gradient(145deg, #1a1f2e, #252b3d); padding: 24px; border-radius: 16px; max-width: 450px; width: 90%; border: 2px solid ${entranceConfig?.color || '#888'}; box-shadow: 0 0 30px ${entranceConfig?.color || '#888'}40;">
-                    <div class="dungeon-entrance-header" style="text-align: center; margin-bottom: 20px;">
-                        <div style="font-size: 48px; margin-bottom: 10px;">${dungeonData.icon}</div>
-                        <h2 style="color: ${entranceConfig?.color || '#fff'}; margin: 0 0 8px 0; font-size: 24px;">${dungeonData.name}</h2>
-                        <div style="color: #888; font-size: 14px;">等級需求: Lv.${dungeonData.recommendLevel}+ ${isLevelOK ? '✅' : '❌'}</div>
-                    </div>
-                    
-                    <div class="dungeon-entrance-info" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
-                        <p style="color: #ccc; font-size: 14px; margin: 0 0 12px 0;">${dungeonData.description}</p>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #aaa;">
-                            <span>🏰 樓層數: ${dungeonData.floors || dungeonData.bossFloor || 5}</span>
-                            <span>⚔️ 難度: ${'⭐'.repeat(dungeonData.difficulty || Math.min(5, Math.ceil(dungeonData.recommendLevel / 5)))}</span>
+            <div class="dungeon-entrance-modal" id="dungeon-entrance-modal" role="dialog" aria-modal="true">
+                <div class="dungeon-entrance-card dungeon-${escapeHtml(dungeonType)}" style="--dungeon-accent: ${escapeHtml(entranceConfig?.color || '#67d8ff')}">
+                    <header class="dungeon-entrance-header">
+                        <div class="dungeon-entrance-icon">${escapeHtml(dungeonData.icon || '')}</div>
+                        <div>
+                            <span>副本入口</span>
+                            <h2>${escapeHtml(dungeonData.name)}</h2>
+                            <p>${isLevelOK ? '等級符合' : '等級不足'} / Lv.${dungeonData.recommendLevel}+</p>
                         </div>
+                    </header>
+
+                    <section class="dungeon-entrance-info">
+                        <p>${escapeHtml(dungeonData.description || '')}</p>
+                        <div class="dungeon-entrance-stats">
+                            <span><b>難度</b>${escapeHtml(dungeonData.difficulty || '-')}</span>
+                            <span><b>層數</b>${dungeonData.floors || dungeonData.bossFloor || 5}</span>
+                            <span><b>Boss 層</b>${dungeonData.bossFloor || '-'}</span>
+                            <span><b>建議</b>Lv.${dungeonData.recommendLevel}</span>
+                        </div>
+                    </section>
+
+                    <section class="dungeon-mechanic-info">
+                        <b>${escapeHtml(mechanicInfo.name)}</b>
+                        <span>${escapeHtml(mechanicInfo.description)}</span>
+                    </section>
+
+                    <div class="dungeon-entrance-actions">
+                        <button id="btn-enter-dungeon" class="btn btn-primary" type="button" ${!isLevelOK ? 'disabled' : ''}>進入副本</button>
+                        <button id="btn-cancel-dungeon" class="btn btn-secondary" type="button">離開</button>
                     </div>
-                    
-                    <div class="dungeon-mechanic-info" style="background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-                        <div style="color: #ffa500; font-size: 13px; font-weight: bold; margin-bottom: 6px;">⚠️ 特殊機制: ${mechanicInfo.name}</div>
-                        <div style="color: #ccc; font-size: 12px;">${mechanicInfo.description}</div>
-                    </div>
-                    
-                    <div class="dungeon-entrance-actions" style="display: flex; gap: 12px; justify-content: center;">
-                        <button id="btn-enter-dungeon" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 16px; background: ${entranceConfig?.color || '#4a90d9'}; border: none; border-radius: 8px; color: white; cursor: pointer; ${!isLevelOK ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${!isLevelOK ? 'disabled' : ''}>
-                            ⚔️ 進入副本
-                        </button>
-                        <button id="btn-cancel-dungeon" class="btn btn-secondary" style="flex: 1; padding: 12px; font-size: 16px; background: #444; border: none; border-radius: 8px; color: white; cursor: pointer;">
-                            🚪 離開
-                        </button>
-                    </div>
-                    
-                    ${!isLevelOK ? '<div style="text-align: center; color: #ff6b6b; font-size: 12px; margin-top: 12px;">等級不足，無法進入此副本！</div>' : ''}
+
+                    ${!isLevelOK ? '<div class="dungeon-entrance-warning">等級不足，無法進入此副本。</div>' : ''}
                 </div>
             </div>
         `;
@@ -744,8 +1499,11 @@ export default class AdventureScene {
             if (!isLevelOK) return;
             modal.remove();
             this.worldMap.clearCurrentDungeon();
-            // 使用 main.js 的 enterDungeon 方法或直接跳轉
-            window.location.hash = `#dungeon-${dungeonType}`;
+            if (this.app?.enterDungeon) {
+                this.app.enterDungeon(dungeonType);
+            } else {
+                window.location.hash = `#dungeon-${dungeonType}`;
+            }
         });
         
         cancelBtn.addEventListener('click', () => {
@@ -774,11 +1532,11 @@ export default class AdventureScene {
             },
             cold: {
                 name: '極寒侵襲',
-                description: '寒氣逐漸累積，滿100點時會造成凍傷。需要定期取暖或使用抗寒藥劑。'
+                description: '寒氣逐漸累積，會定期消耗補給；寒冷滿100點時造成凍傷。'
             },
             puzzle: {
                 name: '古代謎題',
-                description: '每層都有謎題需要解開才能前進。解題可獲得額外獎勵。'
+                description: '需要收集石碑線索才能辨認機關順序，貿然啟動會觸發陷阱。'
             },
             maze: {
                 name: '迷霧迷宮',
@@ -786,7 +1544,7 @@ export default class AdventureScene {
             },
             burn: {
                 name: '灼熱地獄',
-                description: '持續受到灼燒傷害，HP會逐漸減少。建議攜帶大量治療道具。'
+                description: '持續受到灼燒傷害，並加速裝備耐久消耗。建議準備治療與抗火手段。'
             }
         };
         
@@ -1026,6 +1784,18 @@ export default class AdventureScene {
         this.isLocked = false;
     }
 
+    showWorldDiscovery(outcome = {}) {
+        const newClues = outcome.newClues || [];
+        if (newClues.length === 0) return;
+
+        const firstClue = newClues[0];
+        showGlobalToast('新線索', firstClue.title, 'info');
+        if (this.dom.btnToggleClueBook && !this.clueBookOpen) {
+            this.dom.btnToggleClueBook.classList.add('has-new');
+        }
+        this.updateWorldNarrativePanel();
+    }
+
     // ===== Battle Logic =====
 
     startBattle() {
@@ -1071,9 +1841,9 @@ export default class AdventureScene {
                                     if (res.destroyedArmor) this.updateEquipmentDisplay();
                                     this.updateUI();
                                     this.updatePlayerHUD();
-                                    this.showPlayerHitFeedback(res.damage);
-                                    this.endTurn();
-                                    if (res.playerHp <= 0) this.handleDefeat();
+                                    this.currentBattle?.showPlayerHitFeedback?.(res.damage);
+                                    this.currentBattle?.endTurn?.();
+                                    if (res.playerHp <= 0) this.currentBattle?.handleDefeat?.();
                                 } catch (e) {
                                     console.warn('Error handling auto-attack UI update:', e);
                                 }
@@ -1098,9 +1868,9 @@ export default class AdventureScene {
                                             if (res.destroyedArmor) this.updateEquipmentDisplay();
                                             this.updateUI();
                                             this.updatePlayerHUD();
-                                            this.showPlayerHitFeedback(res.damage);
-                                            this.endTurn();
-                                            if (res.playerHp <= 0) this.handleDefeat();
+                                            this.currentBattle?.showPlayerHitFeedback?.(res.damage);
+                                            this.currentBattle?.endTurn?.();
+                                            if (res.playerHp <= 0) this.currentBattle?.handleDefeat?.();
                                         } catch (e) {
                                             console.warn('Error handling auto-attack UI update:', e);
                                         }
@@ -1426,7 +2196,7 @@ export default class AdventureScene {
             stateInv.forEach(stack => {
                 const it = stack.item || {};
                 const slot = document.createElement('div');
-                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.className = `loot-slot rarity-frame rarity-${it.rarity || 'common'} ${it.rarity || 'common'}`;
                 slot.dataset.instanceId = stack.instanceId || '';
                 slot.innerHTML = `
                     <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '📦')}</div>
@@ -1436,6 +2206,7 @@ export default class AdventureScene {
                     </div>
                     <div class="slot-action"><div class="action-icon">→</div></div>
                 `;
+                attachItemTooltip(slot, it, { quantity: stack.quantity || 1, hint: '點擊移回戰利品' });
 
                 // Move from inventory back to loot pool
                 slot.onclick = () => {
@@ -1466,19 +2237,27 @@ export default class AdventureScene {
             }
 
             lootPool.forEach((it, idx) => {
+                const isBlueprint = it.autoUnlockedBlueprint || it.type === 'blueprint';
                 const slot = document.createElement('div');
-                slot.className = `loot-slot ${it.rarity || ''}`;
+                slot.className = `loot-slot rarity-frame rarity-${it.rarity || 'common'} ${it.rarity || 'common'} ${isBlueprint ? 'is-blueprint' : ''}`;
                 slot.innerHTML = `
-                    <div class="slot-action"><div class="action-icon">←</div></div>
+                    <div class="slot-action"><div class="action-icon">${isBlueprint ? '✓' : '←'}</div></div>
                     <div class="slot-info">
                         <div class="slot-name">${it.name}</div>
-                        <div class="slot-type">${it.type || ''}</div>
+                        <div class="slot-type">${isBlueprint ? '已登錄' : (it.type || '')}</div>
                     </div>
                     <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '')}</div>
                 `;
+                attachItemTooltip(slot, it, { quantity: it.quantity || 1, hint: isBlueprint ? '已登錄，可點擊移除提示' : '點擊放入背包' });
 
                 // Click to take from loot to inventory
                 slot.onclick = () => {
+                    if (isBlueprint) {
+                        lootPool.splice(idx, 1);
+                        updateLootPool();
+                        return;
+                    }
+
                     const success = GameManager.addToInventory(it, 1);
                     if (!success) {
                         showGlobalToast('背包已滿', '請先將左側物品移回右側或擴充背包。', 'warning');
@@ -1508,6 +2287,7 @@ export default class AdventureScene {
             this.lootCloseHandler = () => {
                 // send remaining loot to warehouse
                 lootPool.forEach(it => {
+                    if (it.autoUnlockedBlueprint || it.type === 'blueprint') return;
                     try { GameManager.addToWarehouse(it, 1); } catch (e) { console.warn('addToWarehouse failed', e); }
                 });
                 // hide modal
@@ -1828,6 +2608,7 @@ class AdventureBattleViewController {
         
         // 將掉落 ID 轉換成物品實例
         const droppedItems = [];
+        markMonsterKnown(this.monster, { zoneId });
         for (const drop of drops) {
             // 嘗試從材料資料庫獲取
             const item = resolveItemById(drop.itemId, {
@@ -1835,12 +2616,24 @@ class AdventureBattleViewController {
             });
             // 如果不是材料，嘗試從裝備資料庫獲取
             if (item) {
+                markItemKnown(drop.itemId);
                 droppedItems.push({
                     ...item,
                     quantity: drop.quantity,
                     instanceId: Date.now() + Math.random().toString(36).substr(2, 9)
                 });
             }
+        }
+
+        const blueprintUnlocks = rollRecipeBlueprintDrops({
+            monster: this.monster,
+            zoneId
+        });
+        const blueprintItems = createRecipeBlueprintDisplayItems(blueprintUnlocks);
+        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.recipeId));
+        if (blueprintItems.length > 0) {
+            droppedItems.push(...blueprintItems);
+            showGlobalToast('取得製作圖', blueprintItems.map(item => item.recipeName).join('、'), 'success');
         }
         
         this.player.exp += this.monster.exp;
@@ -1849,6 +2642,8 @@ class AdventureBattleViewController {
         
         // 任務系統：更新擊殺進度
         questManager.updateProgress(ObjectiveType.KILL, this.monster.id || this.monster.type, 1);
+        const storyOutcome = worldStoryManager.recordMonsterKill(this.monster, { zoneId });
+        this.scene.showWorldDiscovery(storyOutcome);
         
         setTimeout(() => {
             this.scene.endBattle(true);
@@ -1950,12 +2745,10 @@ AdventureScene.prototype.buildStaticLayer = function() {
         const octx = off.getContext('2d');
 
         // Draw background
-        octx.fillStyle = '#0a0a0a';
+        octx.fillStyle = '#09100f';
         octx.fillRect(0, 0, width, height);
 
-        // Use centralized ZONE_COLORS (defined at module top)
-
-        // Draw tiles (zones and walls) – avoid dynamic icons
+        // Draw tiles as a painted map surface, not a visible debug grid.
         for (let r = 0; r < map.rows; r++) {
             for (let c = 0; c < map.cols; c++) {
                 const cell = map.mapData[r][c];
@@ -1972,10 +2765,44 @@ AdventureScene.prototype.buildStaticLayer = function() {
                 octx.lineWidth = 1;
                 octx.strokeRect(x, y, gridSize, gridSize);
 
+                const seed = ((c + 11) * 97 + (r + 5) * 57) % 17;
+                if (seed % 4 === 0) {
+                    octx.fillStyle = zInfo.texture || 'rgba(255,255,255,0.08)';
+                    octx.beginPath();
+                    octx.ellipse(
+                        x + gridSize * (0.28 + (seed % 3) * 0.16),
+                        y + gridSize * (0.32 + (seed % 5) * 0.08),
+                        gridSize * 0.04,
+                        gridSize * 0.025,
+                        seed * 0.28,
+                        0,
+                        Math.PI * 2
+                    );
+                    octx.fill();
+                }
+
+                if (seed % 7 === 0) {
+                    octx.strokeStyle = zInfo.texture || 'rgba(255,255,255,0.08)';
+                    octx.lineWidth = 1;
+                    octx.beginPath();
+                    octx.moveTo(x + gridSize * 0.18, y + gridSize * 0.68);
+                    octx.bezierCurveTo(
+                        x + gridSize * 0.34,
+                        y + gridSize * 0.54,
+                        x + gridSize * 0.58,
+                        y + gridSize * 0.76,
+                        x + gridSize * 0.82,
+                        y + gridSize * 0.58
+                    );
+                    octx.stroke();
+                }
+
                 // Walls rendered in static layer
                 if (cell.type === 'wall') {
-                    octx.fillStyle = '#555';
-                    octx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
+                    octx.fillStyle = 'rgba(26, 28, 29, 0.86)';
+                    octx.fillRect(x + 4, y + 4, gridSize - 8, gridSize - 8);
+                    octx.strokeStyle = 'rgba(160, 150, 122, 0.2)';
+                    octx.strokeRect(x + 4, y + 4, gridSize - 8, gridSize - 8);
                 }
             }
         }

@@ -8,8 +8,10 @@ import { SetDatabase } from '../data/Equipment.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
+import { getAllPassiveCombatEffects } from '../data/PassiveCombatEffects.js';
 
 export default class LobbyScene {
     constructor(container, app) {
@@ -18,6 +20,10 @@ export default class LobbyScene {
         this.updateUI = this.updateUI.bind(this);
         this.handleWorldInteraction = this.handleWorldInteraction.bind(this);
         this.handleWorldRoute = this.handleWorldRoute.bind(this);
+        this.handleSaveExport = this.handleSaveExport.bind(this);
+        this.handleSaveImport = this.handleSaveImport.bind(this);
+        this.handleSaveFileSelected = this.handleSaveFileSelected.bind(this);
+        this.handleSaveReset = this.handleSaveReset.bind(this);
         
         // Warehouse filter state
         this.currentWarehouseFilter = 'all';
@@ -26,6 +32,7 @@ export default class LobbyScene {
         // Selected item for modal
         this.selectedItem = null;
         this.selectedItemSource = null; // 'warehouse' or 'inventory'
+        this.selectedPassiveSlot = 0;
 
         this.narrativeLines = [];
         this.ambientTimer = null;
@@ -58,6 +65,10 @@ export default class LobbyScene {
             townDialogueStream: this.container.querySelector('#town-dialogue-stream'),
             worldStage: this.container.querySelector('#world-stage'),
             worldStoryLog: this.container.querySelector('#world-story-log'),
+            saveExport: this.container.querySelector('#btn-save-export'),
+            saveImport: this.container.querySelector('#btn-save-import'),
+            saveReset: this.container.querySelector('#btn-save-reset'),
+            saveFileInput: this.container.querySelector('#save-file-input'),
             
             // Character info
             characterLevel: this.container.querySelector('#character-level'),
@@ -83,6 +94,8 @@ export default class LobbyScene {
             slotAccessory: this.container.querySelector('#slot-accessory'),
             // Active set bonuses display
             activeSetBonuses: this.container.querySelector('#active-set-bonuses'),
+            passiveEffectSlots: this.container.querySelector('#passive-effect-slots'),
+            passiveEffectLibrary: this.container.querySelector('#passive-effect-library'),
             
             // Modal is provided by centralized ItemDetailModal component
         };
@@ -95,6 +108,24 @@ export default class LobbyScene {
 
         this.container.querySelectorAll('[data-route]').forEach(route => {
             route.addEventListener('click', this.handleWorldRoute);
+        });
+
+        this.dom.saveExport?.addEventListener('click', this.handleSaveExport);
+        this.dom.saveImport?.addEventListener('click', this.handleSaveImport);
+        this.dom.saveReset?.addEventListener('click', this.handleSaveReset);
+        this.dom.saveFileInput?.addEventListener('change', this.handleSaveFileSelected);
+
+        this.dom.passiveEffectSlots?.addEventListener('click', (event) => {
+            const slotEl = event.target.closest?.('[data-passive-slot]');
+            if (!slotEl) return;
+            this.selectedPassiveSlot = Number(slotEl.dataset.passiveSlot) || 0;
+            this.renderPassiveCombatEffects(GameManager.state.character);
+        });
+
+        this.dom.passiveEffectLibrary?.addEventListener('click', (event) => {
+            const effectEl = event.target.closest?.('[data-passive-effect-id]');
+            if (!effectEl) return;
+            this.equipPassiveCombatEffect(effectEl.dataset.passiveEffectId);
         });
 
         // Warehouse filters
@@ -363,7 +394,74 @@ export default class LobbyScene {
 
     handleWorldRoute(event) {
         const route = event.currentTarget?.dataset?.route;
-        if (route) this.app.loadScene(route);
+        if (route) {
+            if (typeof this.app?.navigateTo === 'function') {
+                this.app.navigateTo(route);
+            } else {
+                this.app.loadScene(route);
+            }
+        }
+    }
+
+    async handleSaveExport() {
+        try {
+            const result = await GameManager.writeSaveFile();
+            const actionText = result?.mode === 'file-system' ? '已寫入 JSON 存檔' : '已下載 JSON 存檔';
+            this.pushTownNarrative('存檔', `${actionText}：${result?.filename || 'sds-save.json'}`, 'discovery');
+        } catch (error) {
+            if (error?.name === 'AbortError') return;
+            console.warn('Save export failed:', error);
+            this.pushTownNarrative('存檔失敗', error?.message || '無法匯出存檔。', 'warning');
+        }
+    }
+
+    handleSaveImport() {
+        this.dom.saveFileInput?.click();
+    }
+
+    async handleSaveFileSelected(event) {
+        const file = event.target?.files?.[0];
+        if (!file) return;
+
+        const confirmed = await confirmAction({
+            title: '讀取存檔',
+            message: '這會覆蓋目前進度，請先確認已經匯出備份。',
+            confirmText: '讀取',
+            cancelText: '取消',
+            type: 'warning'
+        });
+
+        if (!confirmed) {
+            event.target.value = '';
+            return;
+        }
+
+        try {
+            const saveData = await GameManager.importSaveFile(file);
+            this.updateUI(GameManager.state, 'all');
+            this.pushTownNarrative('讀取存檔', `已讀取 ${file.name}，版本 ${saveData.schemaVersion || 1}。`, 'discovery');
+        } catch (error) {
+            console.warn('Save import failed:', error);
+            this.pushTownNarrative('讀取失敗', error?.message || '存檔 JSON 格式不正確。', 'warning');
+        } finally {
+            event.target.value = '';
+        }
+    }
+
+    async handleSaveReset() {
+        const confirmed = await confirmAction({
+            title: '重置進度',
+            message: '這會清空角色、背包、倉庫、任務、塔與副本進度。',
+            confirmText: '重置',
+            cancelText: '取消',
+            type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        GameManager.resetSaveData();
+        this.updateUI(GameManager.state, 'all');
+        this.pushTownNarrative('進度重置', '已重置為新遊戲狀態。需要保留時請再匯出 JSON 存檔。', 'warning');
     }
 
     initializeTownNarrative() {
@@ -623,7 +721,7 @@ export default class LobbyScene {
             window.PerformanceUtils.processInChunks(filteredItems, (stack) => {
                 const item = stack.item;
                 const itemEl = document.createElement('div');
-                itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
+                itemEl.className = `item-card warehouse-item rarity-frame rarity-${item.rarity || 'common'}`;
 
                 let iconHTML;
                 if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
@@ -633,6 +731,7 @@ export default class LobbyScene {
                     <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
                     <div class="item-info"><div class="item-name">${item.name}</div></div>
                 `;
+                attachItemTooltip(itemEl, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
                 itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
                 container.appendChild(itemEl);
             }, {chunkSize: 40}).then(() => {
@@ -643,7 +742,7 @@ export default class LobbyScene {
             filteredItems.forEach(stack => {
                 const item = stack.item;
                 const itemEl = document.createElement('div');
-                itemEl.className = `item-card warehouse-item rarity-${item.rarity}`;
+                itemEl.className = `item-card warehouse-item rarity-frame rarity-${item.rarity || 'common'}`;
 
                 let iconHTML;
                 if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
@@ -653,6 +752,7 @@ export default class LobbyScene {
                     <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
                     <div class="item-info"><div class="item-name">${item.name}</div></div>
                 `;
+                attachItemTooltip(itemEl, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
                 itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
                 container.appendChild(itemEl);
             });

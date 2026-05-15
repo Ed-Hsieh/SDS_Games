@@ -163,7 +163,7 @@ export default class CasinoScene {
         await this.animateSlots();
         
         // 執行遊戲
-        const result = casinoSystem.playSlots(bet);
+        const result = casinoManager.playSlots(bet);
         
         // 顯示結果
         if (result.success) {
@@ -297,7 +297,7 @@ export default class CasinoScene {
         await this.animateRoulette();
         
         // 執行遊戲
-        const result = casinoSystem.playRoulette(bet, this.selectedBetType, this.selectedBetValue);
+        const result = casinoManager.playRoulette(bet, this.selectedBetType, this.selectedBetValue);
         
         if (result.success) {
             this.dom.rouletteResult.textContent = `${result.result.num}`;
@@ -350,7 +350,7 @@ export default class CasinoScene {
         await this.animateDice();
         
         // 執行遊戲
-        const result = casinoSystem.playDice(bet, this.selectedDiceBet);
+        const result = casinoManager.playDice(bet, this.selectedDiceBet);
         
         if (result.success) {
             const diceEmoji = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];

@@ -11,9 +11,9 @@ export const DefaultKnownRecipeIds = [
 
 export const RecipeDiscoveryDatabase = {
     bone_blade: {
-        source: '殘破製作圖匣',
-        clue: '圖紙邊角畫著骨片與鐵礦的固定比例。',
-        interactionId: 'field_blueprint_cache'
+        source: '怪物掉落',
+        clue: '低階怪物身上可能帶著粗糙但可用的武器圖紙。',
+        interactionId: 'monster_blueprint_drop'
     },
     wolf_cloak: {
         source: '殘破製作圖匣',
@@ -33,24 +33,24 @@ export const RecipeDiscoveryDatabase = {
 
     guardian_armor: {
         source: '刻痕石碑',
-        clue: '石碑拓印像是一副舊式守衛甲的結構圖。',
-        interactionId: 'ruin_tablet_trace'
+        clue: '石碑拓印會開啟通往洞窟的特殊調查，完成後才能解出守衛甲圖紙。',
+        interactionId: 'dungeon_cave_001'
     },
     gargoyle_bulwark: {
         source: '刻痕石碑',
-        clue: '碑面圖案描出石翼盾牌的折線與重心。',
-        interactionId: 'ruin_tablet_trace'
+        clue: '石碑留下第二段洞窟線索，必須完成深處調查才能拼出壁壘圖紙。',
+        interactionId: 'dungeon_cave_002'
     },
     bone_soul_staff: {
         source: '刻痕石碑',
-        clue: '石碑底部刻著骨杖與靈魂碎片的符號。',
-        interactionId: 'ruin_tablet_trace'
+        clue: '石碑底部的骨杖符號需要洞窟任務的後續拓印才能解讀。',
+        interactionId: 'dungeon_cave_002'
     },
 
     poison_dagger: {
-        source: '古代錢幣',
-        clue: '黑市收藏清單提到一把塗毒匕首。',
-        interactionId: 'merchant_ancient_coin'
+        source: '怪物掉落',
+        clue: '帶毒的怪物可能掉落薄刃匕首的破損圖紙。',
+        interactionId: 'monster_blueprint_drop'
     },
     goblin_trickster_charm: {
         source: '古代錢幣',
@@ -58,127 +58,127 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'merchant_ancient_coin'
     },
     hydra_fang_dagger: {
-        source: '古代錢幣',
-        clue: '黑市手記記載了多頭蛇牙的研磨角度。',
-        interactionId: 'merchant_ancient_coin'
+        source: '副本、菁英或首領掉落',
+        clue: '九頭蛇毒牙匕首圖紙只會出現在高威脅戰鬥的戰利品中。',
+        interactionId: 'strong_blueprint_drop'
     },
 
     shadow_blade: {
-        source: '遠古爐心',
-        clue: '熄滅爐心裡殘留暗影鋼的鍛造溫度。',
-        interactionId: 'dungeon_forge_relic'
+        source: '副本、菁英或首領掉落',
+        clue: '暗影之劍圖紙會從副本或高階敵人手上掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     shadow_armor: {
-        source: '遠古爐心',
-        clue: '爐心外殼上刻著暗影甲片的排列方式。',
-        interactionId: 'dungeon_forge_relic'
+        source: '副本、菁英或首領掉落',
+        clue: '暗影鎧甲圖紙需要挑戰副本、菁英或首領取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     shadow_ring: {
-        source: '遠古爐心',
-        clue: '灰燼中留下暗影戒指的內側符文。',
-        interactionId: 'dungeon_forge_relic'
+        source: '副本、菁英或首領掉落',
+        clue: '暗影戒指圖紙藏在高階戰鬥戰利品裡。',
+        interactionId: 'strong_blueprint_drop'
     },
     assassin_shadow_veil: {
-        source: '遠古爐心',
-        clue: '冷卻槽裡有一張殘缺的面紗圖紙。',
-        interactionId: 'dungeon_forge_relic'
+        source: '副本、菁英或首領掉落',
+        clue: '刺客影幕圖紙需要從副本或精銳敵人手中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     void_reaver: {
-        source: '遠古爐心',
-        clue: '爐心深處有一段關於虛空刃的禁用記錄。',
-        interactionId: 'dungeon_forge_relic'
+        source: '副本、菁英或首領掉落',
+        clue: '虛空裂刃圖紙只會在強力戰鬥掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
 
     mithril_sword: {
-        source: '秘銀研究',
-        clue: '鍛造師需要先完成秘銀研究。',
-        interactionId: 'commission_forge_002'
+        source: '副本、菁英或首領掉落',
+        clue: '秘銀長劍圖紙需要從高威脅戰鬥中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     fire_sword: {
-        source: '元素裂縫',
-        clue: '火焰配方需要從高溫裂縫中取得。',
-        interactionId: 'elemental_fire_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '烈焰之劍圖紙會在副本或強敵戰利品中出現。',
+        interactionId: 'strong_blueprint_drop'
     },
     ice_sword: {
-        source: '冰封雪峰',
-        clue: '霜寒配方藏在雪峰深處。',
-        interactionId: 'dungeon_snow_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '霜寒之劍圖紙需要挑戰副本、菁英或首領取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     frostbound_scepter: {
-        source: '冰封雪峰',
-        clue: '冰系法杖的圖紙需要雪峰線索。',
-        interactionId: 'dungeon_snow_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '霜縛權杖圖紙只會從強力戰鬥戰利品中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     nature_amulet: {
-        source: '迷霧叢林',
-        clue: '自然護符的編織法藏在叢林支線。',
-        interactionId: 'dungeon_jungle_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '自然護符圖紙需要從副本或精銳敵人身上取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     primal_focus: {
-        source: '迷霧叢林',
-        clue: '原始聚焦器需要叢林深處的圖騰拓印。',
-        interactionId: 'dungeon_jungle_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '原初聚能器圖紙只會在高階戰鬥後掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     earthwarden_aegis: {
-        source: '塔壁符文',
-        clue: '符文記錄了大地守護盾的結構。',
-        interactionId: 'tower_glyph_memory'
+        source: '副本、菁英或首領掉落',
+        clue: '大地守衛盾圖紙藏在高階戰鬥戰利品裡。',
+        interactionId: 'strong_blueprint_drop'
     },
     storm_spear: {
-        source: '塔壁符文',
-        clue: '符文間隙有風暴長槍的雷紋。',
-        interactionId: 'tower_glyph_memory'
+        source: '副本、菁英或首領掉落',
+        clue: '雷霆長矛圖紙需要挑戰強敵取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     titan_blade: {
-        source: '塔壁符文',
-        clue: '塔壁深處刻著泰坦之刃的比例。',
-        interactionId: 'tower_glyph_memory'
+        source: '副本、菁英或首領掉落',
+        clue: '泰坦之劍圖紙只會從高階首領或副本戰利品中掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     titan_armor: {
-        source: '塔壁符文',
-        clue: '符文背後藏著泰坦甲的分層圖。',
-        interactionId: 'tower_glyph_memory'
+        source: '副本、菁英或首領掉落',
+        clue: '泰坦之鎧圖紙只會從高階首領或副本戰利品中掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     titan_ring: {
-        source: '塔壁符文',
-        clue: '塔壁圓環刻痕對應泰坦戒指。',
-        interactionId: 'tower_glyph_memory'
+        source: '副本、菁英或首領掉落',
+        clue: '泰坦之戒圖紙只會從高階首領或副本戰利品中掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
 
     dragon_slayer: {
-        source: '古龍傳說',
-        clue: '屠龍劍圖紙需要龍族故事線。',
-        interactionId: 'dragon_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '屠龍劍圖紙需要從強力龍系戰鬥或首領戰利品中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     dragon_scale_armor: {
-        source: '古龍傳說',
-        clue: '龍鱗甲圖紙需要龍族故事線。',
-        interactionId: 'dragon_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '龍鱗鎧甲圖紙需要從高威脅戰鬥中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     dragon_amulet: {
-        source: '古龍傳說',
-        clue: '龍牙護符圖紙需要龍族故事線。',
-        interactionId: 'dragon_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '龍之護符圖紙會在強力戰鬥後掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     dragon_overlord_crown: {
-        source: '古龍傳說',
-        clue: '龍王冠冕圖紙需要龍族故事線終章。',
-        interactionId: 'dragon_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '龍王霸主冠圖紙只會從首領級戰利品中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     wyvern_scale_mail: {
-        source: '古龍傳說',
-        clue: '翼龍鱗甲圖紙需要龍族故事線。',
-        interactionId: 'dragon_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '翼龍鱗鎧圖紙需要從強力怪物戰利品中取得。',
+        interactionId: 'strong_blueprint_drop'
     },
     demonwar_helm: {
-        source: '煉獄深淵',
-        clue: '魔戰頭盔圖紙藏在煉獄戰場。',
-        interactionId: 'dungeon_hell_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '魔戰指揮盔圖紙只會從高階副本或首領戰利品中掉落。',
+        interactionId: 'strong_blueprint_drop'
     },
     slime_crown_ring: {
-        source: '怪物異變',
-        clue: '史萊姆王冠戒指需要特殊怪物線索。',
-        interactionId: 'slime_crown_trace'
+        source: '副本、菁英或首領掉落',
+        clue: '史萊姆之冠戒圖紙需要從特殊強敵身上掉落。',
+        interactionId: 'strong_blueprint_drop'
     }
 };
 

@@ -29,6 +29,7 @@ class QuestManager {
         
         // 初始化
         this.init();
+        GameManager.registerSaveSystem('quests', this);
     }
 
     init() {
@@ -522,12 +523,15 @@ class QuestManager {
     }
 
     deserialize(data) {
-        if (data.questStates) {
-            this.questStates = data.questStates;
-        }
-        if (data.stats) {
-            this.stats = data.stats;
-        }
+        this.questStates = data?.questStates || {};
+        this.stats = {
+            deathCount: 0,
+            gambleLossStreak: 0,
+            jackpotCount: 0,
+            maxEnhanceLevel: 0,
+            totalGambleProfit: 0,
+            ...(data?.stats || {})
+        };
     }
 }
 

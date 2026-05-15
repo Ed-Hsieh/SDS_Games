@@ -1,54 +1,73 @@
 <div class="adventure-scene">
-    <!-- 頂部資訊列 -->
-    <div class="adventure-header">
-        <div class="player-info-bar">
-            <div class="info-item">
-                <span class="info-label">等級</span>
-                <span class="info-value" id="adv-player-level">1</span>
+    <header class="adventure-header">
+        <div class="adventure-status-strip">
+            <div class="player-info-bar">
+                <div class="info-item">
+                    <span class="info-label">等級</span>
+                    <span class="info-value" id="adv-player-level">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">生命</span>
+                    <span class="info-value" id="adv-player-hp">100/100</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">金幣</span>
+                    <span class="info-value" id="adv-player-gold">1000</span>
+                </div>
             </div>
-            <div class="info-item">
-                <span class="info-label">生命</span>
-                <span class="info-value" id="adv-player-hp">100/100</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">💰</span>
-                <span class="info-value" id="adv-player-gold">1000</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">當前區域</span>
-                <span class="info-value zone-indicator" id="current-zone">安全區</span>
+            <div class="header-buttons">
+                <button class="btn btn-primary" id="btn-open-inventory">背包</button>
+                <button class="btn btn-secondary" id="btn-return-to-lobby">返回大廳</button>
             </div>
         </div>
-        <div class="header-buttons">
-            <button class="btn btn-primary" id="btn-open-inventory">🎒 背包</button>
-            <button class="btn btn-secondary" id="btn-return-to-lobby">🏠 返回大廳</button>
-        </div>
-    </div>
+    </header>
 
-    <!-- 地圖容器 -->
     <div class="map-container" id="map-container">
         <canvas id="world-map-canvas"></canvas>
-    </div>
 
-    <!-- 操作提示 -->
-    <div class="controls-hint">
-        <div class="hint-item"><span class="noshow">⬆️</span>⬆️</div>
-        <div class="hint-item">⬅️⬇️➡️ 移動</div>
-    </div>
+        <div class="location-toast" id="location-toast" aria-live="polite">
+            <div class="location-toast-kicker" id="location-toast-kicker">地點</div>
+            <h2 id="location-toast-title">村外近郊</h2>
+            <p id="location-toast-description">村莊外圍仍有人走動。</p>
+        </div>
 
-    <!-- 圖例 -->
-    <div class="map-legend">
-        <div class="legend-item">
-            <span class="legend-icon player-icon">🧙</span>
-            <span class="legend-text">玩家</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-icon monster-icon">👾</span>
-            <span class="legend-text">怪物</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-icon wall-icon">🧱</span>
-            <span class="legend-text">牆壁</span>
+        <button class="clue-book-tab" id="btn-toggle-clue-book" type="button" aria-expanded="false" aria-controls="clue-book-panel">
+            <span class="clue-book-tab-title">線索簿</span>
+        </button>
+
+        <button class="boss-test-tab" id="btn-toggle-boss-test" type="button" aria-expanded="false" aria-controls="boss-test-panel">
+            <span>BOSS 測試</span>
+        </button>
+
+        <aside class="clue-book-panel" id="clue-book-panel" aria-hidden="true">
+            <div class="clue-book-header">
+                <div>
+                    <span class="clue-book-kicker">旅行筆記</span>
+                    <h2>線索簿</h2>
+                </div>
+                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉線索簿">×</button>
+            </div>
+            <div class="clue-book-summary" id="clue-book-summary"></div>
+            <div class="clue-book-content" id="clue-book-content"></div>
+        </aside>
+
+        <aside class="boss-test-panel" id="boss-test-panel" aria-hidden="true">
+            <div class="boss-test-header">
+                <div>
+                    <span class="boss-test-kicker">開發測試</span>
+                    <h2>BOSS 流程檢查</h2>
+                </div>
+                <button class="boss-test-close" id="btn-close-boss-test" type="button" aria-label="關閉 BOSS 測試">×</button>
+            </div>
+            <div class="boss-test-toolbar">
+                <button class="boss-test-action" type="button" data-boss-action="reset-all">重置故事狀態</button>
+            </div>
+            <div class="boss-test-content" id="boss-test-content"></div>
+        </aside>
+
+        <div class="controls-hint">
+            <div class="hint-item">方向鍵 / WASD</div>
+            <div class="hint-item">移動與探索</div>
         </div>
     </div>
 </div>
@@ -131,13 +150,6 @@
                                 <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
                             </div>
                             <span class="vital-text" id="hud-hp-text">100/100</span>
-                        </div>
-                        <div class="vital-row">
-                            <span class="vital-label">魔力</span>
-                            <div class="vital-bar-track">
-                                <div class="vital-bar-fill mp-fill" id="hud-mp-bar" style="width: 100%;"></div>
-                            </div>
-                            <span class="vital-text" id="hud-mp-text">50/50</span>
                         </div>
                     </div>
                     <!-- 新增：Buff 狀態顯示 -->

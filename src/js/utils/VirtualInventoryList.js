@@ -1,3 +1,5 @@
+import { attachItemTooltip } from './ItemTooltip.js';
+
 const DEFAULT_ITEM_HEIGHT = 84;
 const DEFAULT_EMPTY_HTML = '<div class="empty-hint">背包空空如也...</div>';
 
@@ -74,7 +76,7 @@ export function renderVirtualInventoryList(owner, container, items = [], options
         poolWrapper.innerHTML = '';
         for (let index = 0; index < poolSize; index += 1) {
             const node = document.createElement('div');
-            node.className = 'item-card inventory-item';
+            node.className = 'item-card inventory-item rarity-frame';
             node.style.position = 'absolute';
             node.style.left = '0';
             node.style.right = '0';
@@ -118,9 +120,10 @@ export function updateVirtualInventoryList(owner, stateKey = '_virtualInventoryL
 
             node.style.display = '';
             node.dataset.instanceId = stack.instanceId || '';
-            node.className = `item-card inventory-item rarity-${item.rarity || 'common'}`;
+            node.className = `item-card inventory-item rarity-frame rarity-${item.rarity || 'common'}`;
             node.style.transform = `translateY(${dataIndex * itemHeight}px)`;
             renderItem(node, stack, dataIndex);
+            attachItemTooltip(node, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
         } else {
             node.style.display = 'none';
             node.dataset.instanceId = '';

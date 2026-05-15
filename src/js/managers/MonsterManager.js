@@ -7,6 +7,7 @@ import {
     LowLevelMonster,
     MediumLevelMonster,
     HighLevelMonster,
+    DeathLevelMonster,
     AllMonsters,
     TowerMonsters,
     MonsterType
@@ -100,6 +101,9 @@ export function createRandomMonsterForZone(zoneType, rng = Math.random) {
             break;
         case 'high':
             candidates = HighLevelMonster.slice();
+            break;
+        case 'death':
+            candidates = DeathLevelMonster.slice();
             break;
         case 'boss':
             candidates = AllMonsters.filter(m => m.type === MonsterType.BOSS || m.type === MonsterType.WORLD_BOSS);

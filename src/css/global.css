@@ -84,44 +84,6 @@ body {
 
 
 
-/* Modal Styles (Global) */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    z-index: 999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.modal-overlay.active {
-    display: flex;
-    opacity: 1;
-}
-
-.modal-card {
-    width: 320px;
-    background: linear-gradient(145deg, rgba(20, 30, 50, 0.95), rgba(10, 15, 25, 0.98));
-    border: 1px solid rgba(79, 172, 254, 0.3);
-    border-radius: 16px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(79, 172, 254, 0.2);
-    padding: 24px;
-    position: relative;
-    transform: translateY(20px);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.modal-overlay.active .modal-card {
-    transform: translateY(0);
-}
-
 /* Centralized scrollbar styles (template: .warehouse-list) */
 /* Applies the warehouse-list visual to common scrollable components */
     .warehouse-list::-webkit-scrollbar,
@@ -176,109 +138,6 @@ body {
     .component-item-detail-modal .item-detail-stats {
     scrollbar-width: thin;
     scrollbar-color: var(--scrollbar-thumb-start) var(--scrollbar-track);
-}
-
-.modal-close {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 24px;
-    cursor: pointer;
-}
-
-
-
-
-/* ===== Global Toast Notification ===== */
-#global-toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
-
-.global-toast {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 15px 20px;
-    background: linear-gradient(135deg, rgba(30, 40, 60, 0.95), rgba(20, 30, 50, 0.98));
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(0, 0, 0, 0.2);
-    min-width: 300px;
-    max-width: 450px;
-    pointer-events: auto;
-    transform: translateX(120%);
-    opacity: 0;
-    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.global-toast.toast-show {
-    transform: translateX(0);
-    opacity: 1;
-}
-
-.global-toast.toast-hiding {
-    transform: translateX(120%);
-    opacity: 0;
-}
-
-.global-toast .toast-icon {
-    font-size: 1.8rem;
-    flex-shrink: 0;
-}
-
-.global-toast .toast-content {
-    flex: 1;
-}
-
-.global-toast .toast-title {
-    font-size: 1rem;
-    font-weight: bold;
-    margin-bottom: 3px;
-}
-
-.global-toast .toast-message {
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.global-toast .toast-close {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    transition: color 0.2s;
-}
-
-
-
-
-/* Toast 類型樣式 */
-.global-toast.toast-success {
-    border-left: 4px solid #2ecc71;
-}
-
-.global-toast.toast-info {
-    border-left: 4px solid #4facfe;
-}
-
-.global-toast.toast-warning {
-    border-left: 4px solid #f6c453;
-}
-
-.global-toast.toast-error {
-    border-left: 4px solid #fb7185;
 }
 
 .app-confirm-overlay {
@@ -414,13 +273,6 @@ body {
 .component-item-detail-modal .item-detail-type { font-size:12px; color:rgba(255,255,255,0.6); margin-top:4px; }
 .component-item-detail-modal .is-hidden { display:none; }
 
-/* Rarity color helpers */
-.component-item-detail-modal .item-detail-name.rarity-common { color: var(--rarity-common); }
-.component-item-detail-modal .item-detail-name.rarity-uncommon { color: var(--rarity-uncommon); }
-.component-item-detail-modal .item-detail-name.rarity-rare { color: var(--rarity-rare); }
-.component-item-detail-modal .item-detail-name.rarity-epic { color: var(--rarity-epic); }
-.component-item-detail-modal .item-detail-name.rarity-legendary { color: var(--rarity-legendary); }
-
 .component-item-detail-modal .item-detail-stats { padding:12px; border-radius:10px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.04)); margin-bottom:8px; max-height:220px; overflow-y:auto; overflow-x:visible; }
 .component-item-detail-modal .stats-compare { display:flex; flex-direction:column; gap:6px; }
 .component-item-detail-modal .stat-row { display:flex; align-items:center; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.03); }
@@ -440,10 +292,6 @@ body {
 .component-item-detail-modal .affix-pill,
 .component-item-detail-modal .forge-attr-pill { display:inline-block; vertical-align:middle; margin-right:8px; }
 .component-item-detail-modal .affix-pill { padding:8px 10px; border-radius:10px; border:1px solid rgba(158,158,158,0.25); background:rgba(158,158,158,0.08); }
-.component-item-detail-modal .affix-pill.rarity-uncommon { background:rgba(30,255,0,0.06); border-color:rgba(30,255,0,0.25); }
-.component-item-detail-modal .affix-pill.rarity-rare { background:rgba(0,112,221,0.06); border-color:rgba(0,112,221,0.25); }
-.component-item-detail-modal .affix-pill.rarity-epic { background:rgba(163,53,238,0.06); border-color:rgba(163,53,238,0.25); }
-.component-item-detail-modal .affix-pill.rarity-legendary { background:rgba(255,128,0,0.06); border-color:rgba(255,128,0,0.25); }
 .component-item-detail-modal .affix-pill-name { font-weight:700; margin-bottom:4px; }
 .component-item-detail-modal .affix-pill-stats { font-size:12px; color:rgba(255,255,255,0.8); }
 .component-item-detail-modal .item-detail-potion-effects { margin-bottom:8px; }

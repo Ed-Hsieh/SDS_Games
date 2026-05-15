@@ -20,7 +20,7 @@ export const WorldInteractionDatabase = {
         oneTime: true,
         flags: ['foundBlueprintCache'],
         unlockQuests: ['commission_forge_001'],
-        unlockRecipes: ['bone_blade', 'wolf_cloak', 'wolf_fang_necklace', 'greater_health_potion'],
+        unlockRecipes: ['wolf_cloak', 'wolf_fang_necklace', 'greater_health_potion'],
         message: '你整理出一份和鍛造有關的製作線索。',
         repeatMessage: '圖匣裡只剩無法辨識的碎紙。',
         imageKeys: ['world.blueprint_cache', 'item.blueprint_scroll']
@@ -36,6 +36,18 @@ export const WorldInteractionDatabase = {
         repeatMessage: '公告欄上暫時沒有新的懸賞。',
         imageKeys: ['world.notice_board']
     },
+    special_bounty_notice: {
+        id: 'special_bounty_notice',
+        title: '特殊懸賞單',
+        source: InteractionSource.MAP_EVENT,
+        oneTime: true,
+        flags: ['readSpecialBountyNotice'],
+        unlockQuests: ['bounty_elite_001'],
+        unlockRecipes: [],
+        message: '你記下了特殊懸賞單的目標，新的高危委託已加入任務列表。',
+        repeatMessage: '這張特殊懸賞單的內容你已經記下了。',
+        imageKeys: ['world.notice_board']
+    },
     ruin_tablet_trace: {
         id: 'ruin_tablet_trace',
         title: '刻痕石碑',
@@ -43,7 +55,7 @@ export const WorldInteractionDatabase = {
         oneTime: true,
         flags: ['foundRuinTabletTrace'],
         unlockQuests: ['dungeon_cave_001'],
-        unlockRecipes: ['guardian_armor', 'gargoyle_bulwark', 'bone_soul_staff'],
+        unlockRecipes: [],
         message: '石碑上的刻痕不是文字，而是一條通往幽暗洞窟的舊路線。',
         repeatMessage: '你已經拓印過這座石碑。',
         imageKeys: ['world.ruin_tablet']
@@ -55,7 +67,7 @@ export const WorldInteractionDatabase = {
         oneTime: true,
         flags: ['foundTowerGlyphMemory'],
         unlockQuests: [],
-        unlockRecipes: ['storm_spear', 'earthwarden_aegis', 'titan_blade', 'titan_armor', 'titan_ring'],
+        unlockRecipes: [],
         message: '符文記錄了一段關於高階裝備的古老規則。',
         repeatMessage: '符文的光已經沉寂。',
         imageKeys: ['world.tower_glyph']
@@ -67,7 +79,7 @@ export const WorldInteractionDatabase = {
         oneTime: true,
         flags: ['foundDungeonForgeRelic'],
         unlockQuests: [],
-        unlockRecipes: ['shadow_blade', 'shadow_armor', 'shadow_ring', 'assassin_shadow_veil', 'void_reaver'],
+        unlockRecipes: [],
         message: '爐心雖然熄滅，仍殘留能重鑄詞條的痕跡。',
         repeatMessage: '爐心已經沒有新的反應。',
         imageKeys: ['world.ancient_forge_core']
@@ -79,7 +91,7 @@ export const WorldInteractionDatabase = {
         oneTime: true,
         flags: ['secretShopUnlocked', 'merchantAncientCoinAccepted'],
         unlockQuests: ['commission_merchant_001'],
-        unlockRecipes: ['poison_dagger', 'goblin_trickster_charm', 'hydra_fang_dagger'],
+        unlockRecipes: ['goblin_trickster_charm'],
         message: '古代錢幣打開了黑市的入口，也留下新的委託線索。',
         repeatMessage: '黑市入口已經被打開。',
         imageKeys: ['item.ancient_coin', 'world.black_market_door']

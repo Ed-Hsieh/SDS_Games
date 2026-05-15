@@ -8,10 +8,12 @@ import AdventureScene from './scenes/AdventureScene.js';
 import CasinoScene from './scenes/CasinoScene.js';
 import ForgeScene from './scenes/ForgeScene.js';
 import QuestScene from './scenes/QuestScene.js';
+import EncyclopediaScene from './scenes/EncyclopediaScene.js';
 import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
 // 導入共用的節奏條系統
 import './utils/RhythmBarSystem.js';
+import './utils/ItemTooltip.js';
 import './components/ItemDetailModal.js';
 
 class App {
@@ -29,6 +31,7 @@ class App {
             'casino': CasinoScene,
             'forge': ForgeScene,
             'quest': QuestScene,
+            'encyclopedia': EncyclopediaScene,
             'tower': null,  // 無盡塔 - 使用 towerScene 單例處理
             // 副本場景 - 使用 DungeonScene 處理
             'dungeon-cave': null,
@@ -61,6 +64,17 @@ class App {
             return true;
         }
         return false;
+    }
+
+    navigateTo(sceneName) {
+        if (!sceneName || !this.routes.hasOwnProperty(sceneName)) return;
+
+        if (window.location.hash.slice(1) === sceneName) {
+            this.loadScene(sceneName);
+            return;
+        }
+
+        window.location.hash = sceneName;
     }
 
     async loadScene(sceneName) {
@@ -150,7 +164,7 @@ class App {
     enterDungeon(dungeonType) {
         const routeName = `dungeon-${dungeonType}`;
         if (this.dungeonRoutes[routeName]) {
-            window.location.hash = routeName;
+            this.navigateTo(routeName);
         }
     }
 }

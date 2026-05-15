@@ -1,6 +1,6 @@
 /**
  * CharacterLogic.js
- * Pure helpers for character combat stats, buffs, equipment, skills, and growth.
+ * Pure helpers for character combat stats, buffs, equipment, passive combat effects, and growth.
  *
  * This module intentionally does not import DataModel.js. DataModel owns the
  * concrete classes, while this file only operates on character-shaped objects.
@@ -8,6 +8,13 @@
 import { normalizeItemType, readItemStat, readNumber } from './ItemSchema.js';
 import { SetDatabase } from '../data/Equipment.js';
 import { calculateActiveSetBonuses } from '../data/EquipmentBalance.js';
+import {
+    DefaultEquippedPassiveCombatEffectIds,
+    DefaultUnlockedPassiveCombatEffectIds,
+    PassiveCombatEffectSlotCount,
+    getPassiveCombatEffect,
+    getPassiveCombatEffects
+} from '../data/PassiveCombatEffects.js';
 
 function toPercentInt(raw) {
     const number = readNumber(raw);
@@ -36,6 +43,12 @@ function getEquipmentBonus(item, stat) {
     return readNumber(item?.affixBonuses?.[stat]) + readNumber(item?.enhancementBonuses?.[stat]);
 }
 
+function getPassiveBonus(character, stat) {
+    return getActivePassiveCombatEffects(character).reduce((sum, effect) => {
+        return sum + readNumber(effect?.bonuses?.[stat]);
+    }, 0);
+}
+
 export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
     const setBonuses = getSetBonusTotals(character);
@@ -46,7 +59,8 @@ export function getTotalAtk(character) {
         enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
     total += readNumber(setBonuses.atk);
-    total = Math.floor(total * (1 + toFraction(setBonuses.atkPercent) + toFraction(setBonuses.allStats) + enhancementAllStats));
+    total = Math.floor(total * (1 + toFraction(setBonuses.atkPercent) + toFraction(setBonuses.allStats) + enhancementAllStats + toFraction(getPassiveBonus(character, 'atkPercent'))));
+    total += readNumber(getPassiveBonus(character, 'atk'));
     total += getBuffValue(character, 'atk');
     return total;
 }
@@ -61,7 +75,8 @@ export function getTotalDef(character) {
         enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
     total += readNumber(setBonuses.def);
-    total = Math.floor(total * (1 + toFraction(setBonuses.defPercent) + toFraction(setBonuses.allStats) + enhancementAllStats));
+    total = Math.floor(total * (1 + toFraction(setBonuses.defPercent) + toFraction(setBonuses.allStats) + enhancementAllStats + toFraction(getPassiveBonus(character, 'defPercent'))));
+    total += readNumber(getPassiveBonus(character, 'def'));
     total += getBuffValue(character, 'def');
     return total;
 }
@@ -74,6 +89,7 @@ export function getCritChance(character) {
         totalCritChance += toFraction(getEquipmentBonus(item, 'critChance'));
     });
     totalCritChance += toFraction(setBonuses.critChance);
+    totalCritChance += toFraction(getPassiveBonus(character, 'critChance'));
     totalCritChance += toFraction(getBuffValue(character, 'critChance'));
     return Math.min(totalCritChance, 1.0);
 }
@@ -88,6 +104,7 @@ export function getCritDamage(character) {
         additionalCritDamage += toFraction(getEquipmentBonus(item, 'critDamage'));
     });
     additionalCritDamage += toFraction(setBonuses.critDamage);
+    additionalCritDamage += toFraction(getPassiveBonus(character, 'critDamage'));
     additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
     return totalCritDamage + additionalCritDamage;
 }
@@ -109,6 +126,7 @@ export function getAttackSpeed(character) {
         speedBonus += toFraction(getEquipmentBonus(item, 'attackSpeed'));
     });
     speedBonus += toFraction(setBonuses.attackSpeed);
+    speedBonus += toFraction(getPassiveBonus(character, 'attackSpeed'));
     speedBonus += toFraction(getBuffValue(character, 'attackSpeed'));
     return Math.max(0.1, baseSpeed * (1 + speedBonus));
 }
@@ -220,18 +238,58 @@ export function clearAllBuffs(character) {
 }
 
 export function initDefaultSkills(character, createDefaultSkills = null) {
-    character.skills = typeof createDefaultSkills === 'function' ? createDefaultSkills() : [];
+    initPassiveCombatEffects(character);
+    character.skills = [];
 }
 
 export function useSkill(character, skillIndex, target) {
-    if (!character.skills || skillIndex < 0 || skillIndex >= character.skills.length) return null;
-    const skill = character.skills[skillIndex];
-    return skill.use(character, target);
+    return null;
 }
 
 export function tickSkillCooldowns(character) {
-    if (!character.skills) return;
-    character.skills.forEach(skill => skill.reduceCooldown());
+    return;
+}
+
+export function initPassiveCombatEffects(character) {
+    if (!Array.isArray(character.unlockedPassiveEffectIds)) {
+        character.unlockedPassiveEffectIds = [...DefaultUnlockedPassiveCombatEffectIds];
+    }
+    if (!Array.isArray(character.equippedPassiveEffectIds)) {
+        character.equippedPassiveEffectIds = [...DefaultEquippedPassiveCombatEffectIds];
+    }
+    character.passiveEffectSlots = Math.max(1, Number(character.passiveEffectSlots) || PassiveCombatEffectSlotCount);
+    character.equippedPassiveEffectIds = character.equippedPassiveEffectIds
+        .filter(effectId => character.unlockedPassiveEffectIds.includes(effectId))
+        .slice(0, character.passiveEffectSlots);
+}
+
+export function getActivePassiveCombatEffects(character) {
+    initPassiveCombatEffects(character);
+    return getPassiveCombatEffects(character.equippedPassiveEffectIds);
+}
+
+export function unlockPassiveCombatEffect(character, effectId) {
+    if (!getPassiveCombatEffect(effectId)) return false;
+    initPassiveCombatEffects(character);
+    if (!character.unlockedPassiveEffectIds.includes(effectId)) {
+        character.unlockedPassiveEffectIds.push(effectId);
+    }
+    return true;
+}
+
+export function equipPassiveCombatEffect(character, effectId, slotIndex = 0) {
+    const effect = getPassiveCombatEffect(effectId);
+    if (!effect) return false;
+    initPassiveCombatEffects(character);
+    if (!character.unlockedPassiveEffectIds.includes(effectId)) return false;
+
+    const index = Math.max(0, Math.min(character.passiveEffectSlots - 1, Number(slotIndex) || 0));
+    const nextIds = [...character.equippedPassiveEffectIds];
+    const duplicateIndex = nextIds.indexOf(effectId);
+    if (duplicateIndex >= 0 && duplicateIndex !== index) nextIds[duplicateIndex] = null;
+    nextIds[index] = effectId;
+    character.equippedPassiveEffectIds = nextIds.filter(Boolean).slice(0, character.passiveEffectSlots);
+    return true;
 }
 
 export function equip(character, item) {
@@ -258,10 +316,6 @@ export function useItem(character, item) {
         const maxHp = character.maxHp || calculateMaxHp(character);
         character.hp = Math.min(maxHp, (character.hp || 0) + item.effect.hp);
     }
-    if (item.effect.mp) {
-        const maxMp = character.maxMp || 50;
-        character.mp = Math.min(maxMp, (character.mp || 0) + item.effect.mp);
-    }
     if (item.effect.exp) {
         character.exp = (character.exp || 0) + item.effect.exp;
         checkLevelUp(character);
@@ -274,7 +328,7 @@ export function calculateMaxHp(character) {
 }
 
 export function calculateMaxMp(character) {
-    return 50 + ((character.level || 1) * 5);
+    return 0;
 }
 
 export function calculateMaxExp(character) {
@@ -288,8 +342,6 @@ export function checkLevelUp(character) {
         character.exp -= getMaxExp();
         character.maxHp = calculateMaxHp(character);
         character.hp = character.maxHp;
-        character.maxMp = calculateMaxMp(character);
-        character.mp = character.maxMp;
         character.maxExp = calculateMaxExp(character);
     }
 }
@@ -321,6 +373,7 @@ export class CharacterHelper {
     getLifesteal() { return getLifesteal(this.data); }
     getDamageReduction() { return getDamageReduction(this.data); }
     getAffixHpBonus() { return getAffixHpBonus(this.data); }
+    getActivePassiveCombatEffects() { return getActivePassiveCombatEffects(this.data); }
 
     addBuff(type, value, duration) { return addBuff(this.data, type, value, duration); }
     getBuffValue(type) { return getBuffValue(this.data, type); }
@@ -329,6 +382,8 @@ export class CharacterHelper {
 
     useSkill(index, target) { return useSkill(this.data, index, target); }
     tickSkillCooldowns() { return tickSkillCooldowns(this.data); }
+    equipPassiveCombatEffect(effectId, slotIndex) { return equipPassiveCombatEffect(this.data, effectId, slotIndex); }
+    unlockPassiveCombatEffect(effectId) { return unlockPassiveCombatEffect(this.data, effectId); }
 
     equip(item) { return equip(this.data, item); }
     unequip(slot) { return unequip(this.data, slot); }
@@ -358,6 +413,10 @@ export default {
     initDefaultSkills,
     useSkill,
     tickSkillCooldowns,
+    initPassiveCombatEffects,
+    getActivePassiveCombatEffects,
+    unlockPassiveCombatEffect,
+    equipPassiveCombatEffect,
     equip,
     unequip,
     useItem,

@@ -252,19 +252,6 @@
 }
 .player-item:hover { background: rgba(79, 172, 254, 0.2); transform: translateX(3px); }
 
-/* Rarity Colors */
-.common { border-color: var(--rarity-common); }
-.uncommon { border-color: var(--rarity-uncommon); }
-.rare { border-color: var(--rarity-rare); }
-.epic { border-color: var(--rarity-epic); }
-.legendary { border-color: var(--rarity-legendary); }
-
-.player-item.common { border-left-color: var(--rarity-common); }
-.player-item.uncommon { border-left-color: var(--rarity-uncommon); }
-.player-item.rare { border-left-color: var(--rarity-rare); }
-.player-item.epic { border-left-color: var(--rarity-epic); }
-.player-item.legendary { border-left-color: var(--rarity-legendary); }
-
 /* Modal Specifics */
 .modal-header {
     display: flex;
@@ -275,35 +262,7 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.modal-icon-wrapper {
-    width: 64px;
-    height: 64px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid rgba(79, 172, 254, 0.3);
-}
-
-
-
-
 .modal-title { margin: 0 0 4px 0; font-size: 18px; color: #fff; }
-
-.modal-rarity-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
-}
-
-
-
 
 .stat-row {
     font-family: 'Consolas', monospace;
@@ -312,14 +271,6 @@
     background: rgba(79, 172, 254, 0.1);
     padding: 4px 8px;
     border-radius: 4px;
-}
-
-.modal-description {
-    font-size: 13px;
-    line-height: 1.5;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0;
-    font-style: italic;
 }
 
 .action-btn {
@@ -560,11 +511,6 @@
 }
 
 .loot-slot:hover { transform: scale(1.05); }
-.loot-slot.common { border-color: var(--rarity-common); color: var(--rarity-common); }
-.loot-slot.uncommon { border-color: var(--rarity-uncommon); color: var(--rarity-uncommon); }
-.loot-slot.rare { border-color: var(--rarity-rare); color: var(--rarity-rare); }
-.loot-slot.epic { border-color: var(--rarity-epic); color: var(--rarity-epic); }
-.loot-slot.legendary { border-color: var(--rarity-legendary); color: var(--rarity-legendary); }
 
 .slot-icon { font-size: 32px; margin-bottom: 4px; }
 .slot-name { font-size: 12px; text-align: center; }
@@ -1357,12 +1303,6 @@
     border: 1px solid;
 }
 
-.preview-item.common { border-color: #9e9e9e; }
-.preview-item.uncommon { border-color: #4caf50; }
-.preview-item.rare { border-color: #2196f3; }
-.preview-item.epic { border-color: #9c27b0; }
-.preview-item.legendary { border-color: #ff9800; }
-
 .preview-item .item-icon { font-size: 40px; }
 .preview-item .item-name { font-size: 16px; color: #fff; font-weight: bold; }
 .preview-item .item-stats { font-size: 13px; color: #aaa; display: flex; gap: 15px; }
@@ -1463,12 +1403,6 @@
     border-left: 3px solid;
 }
 
-.material-card.common { border-left-color: #9e9e9e; }
-.material-card.uncommon { border-left-color: #4caf50; }
-.material-card.rare { border-left-color: #2196f3; }
-.material-card.epic { border-left-color: #9c27b0; }
-.material-card.legendary { border-left-color: #ff9800; }
-
 .empty-inventory {
     color: #666;
     text-align: center;
@@ -1556,12 +1490,6 @@
     background: rgba(255, 152, 0, 0.22);
     box-shadow: 0 0 0 1px rgba(255, 152, 0, 0.45);
 }
-
-.equipment-card.common { border-left-color: #9e9e9e; }
-.equipment-card.uncommon { border-left-color: #4caf50; }
-.equipment-card.rare { border-left-color: #2196f3; }
-.equipment-card.epic { border-left-color: #9c27b0; }
-.equipment-card.legendary { border-left-color: #ff9800; }
 
 .card-icon { font-size: 28px; }
 .card-name { color: #fff; font-weight: bold; }
@@ -1671,17 +1599,6 @@
     font-size: 13px;
     border-left: 3px solid #9e9e9e;
 }
-
-.affix-item.rare { border-left-color: #2196f3; }
-.affix-item.epic { border-left-color: #9c27b0; }
-.affix-item.legendary { border-left-color: #ff9800; }
-
-
-
-
-
-
-
 
 
 
@@ -2341,21 +2258,6 @@
     border-radius: 8px;
 }
 
-.reward-item.rarity-rare {
-    background: rgba(33, 150, 243, 0.1);
-    border-color: rgba(33, 150, 243, 0.4);
-}
-
-.reward-item.rarity-epic {
-    background: rgba(156, 39, 176, 0.1);
-    border-color: rgba(156, 39, 176, 0.4);
-}
-
-.reward-item.rarity-legendary {
-    background: rgba(255, 152, 0, 0.1);
-    border-color: rgba(255, 152, 0, 0.4);
-}
-
 .reward-icon { font-size: 20px; }
 
 .reward-value {
@@ -2916,21 +2818,6 @@
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     margin: 8px 0;
-}
-
-.reward-item.legendary {
-    background: rgba(255, 152, 0, 0.2);
-    border: 2px solid rgba(255, 152, 0, 0.5);
-}
-
-.reward-item.epic {
-    background: rgba(156, 39, 176, 0.2);
-    border: 1px solid rgba(156, 39, 176, 0.4);
-}
-
-.reward-item.rare {
-    background: rgba(33, 150, 243, 0.2);
-    border: 1px solid rgba(33, 150, 243, 0.4);
 }
 
 .reward-icon { font-size: 28px; }
@@ -3577,60 +3464,10 @@
     font-weight: 600;
 }
 
-.affix-tag.common {
-    background: rgba(180, 180, 180, 0.3);
-    color: #b4b4b4;
-    border: 1px solid rgba(180, 180, 180, 0.5);
-}
-
-.affix-tag.uncommon {
-    background: rgba(76, 175, 80, 0.3);
-    color: #4caf50;
-    border: 1px solid rgba(76, 175, 80, 0.5);
-}
-
-.affix-tag.rare {
-    background: rgba(33, 150, 243, 0.3);
-    color: #2196f3;
-    border: 1px solid rgba(33, 150, 243, 0.5);
-}
-
-.affix-tag.epic {
-    background: rgba(156, 39, 176, 0.3);
-    color: #9c27b0;
-    border: 1px solid rgba(156, 39, 176, 0.5);
-}
-
-.affix-tag.legendary {
-    background: rgba(255, 152, 0, 0.3);
-    color: #ff9800;
-    border: 1px solid rgba(255, 152, 0, 0.5);
-    text-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
-}
-
 .result-durability {
     font-size: 12px;
     color: rgba(255, 255, 255, 0.7);
     margin-top: 6px;
-}
-
-.result-item.legendary {
-    color: #ff9800;
-    text-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
-}
-
-.result-item.epic {
-    color: #9c27b0;
-    text-shadow: 0 0 8px rgba(156, 39, 176, 0.6);
-}
-
-.result-item.rare {
-    color: #2196f3;
-    text-shadow: 0 0 8px rgba(33, 150, 243, 0.6);
-}
-
-.result-item.uncommon {
-    color: #4caf50;
 }
 
 /* ===== 物品詳情 Modal 詞綴和耐久度樣式 ===== */
@@ -3671,41 +3508,10 @@
     font-size: 11px;
 }
 
-.item-affix.common {
-    background: rgba(180, 180, 180, 0.15);
-    border-left: 2px solid #b4b4b4;
-}
-
-.item-affix.uncommon {
-    background: rgba(76, 175, 80, 0.15);
-    border-left: 2px solid #4caf50;
-}
-
-.item-affix.rare {
-    background: rgba(33, 150, 243, 0.15);
-    border-left: 2px solid #2196f3;
-}
-
-.item-affix.epic {
-    background: rgba(156, 39, 176, 0.15);
-    border-left: 2px solid #9c27b0;
-}
-
-.item-affix.legendary {
-    background: rgba(255, 152, 0, 0.15);
-    border-left: 2px solid #ff9800;
-}
-
 .affix-name {
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
 }
-
-.item-affix.common .affix-name { color: #b4b4b4; }
-.item-affix.uncommon .affix-name { color: #4caf50; }
-.item-affix.rare .affix-name { color: #2196f3; }
-.item-affix.epic .affix-name { color: #9c27b0; }
-.item-affix.legendary .affix-name { color: #ff9800; }
 
 .affix-stats {
     font-size: 10px;

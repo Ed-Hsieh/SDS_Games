@@ -15,20 +15,17 @@ export class Skill {
         this.type = type;
         this.icon = icon;
         this.description = description;
-        this.mpCost = mpCost;
-        this.cooldown = cooldown;       // 冷卻回合數
-        this.currentCooldown = 0;       // 當前剩餘冷卻
+        this.mpCost = 0;
+        this.cooldown = 0;
+        this.currentCooldown = 0;
     }
     
     canUse(character) {
-        return character.mp >= this.mpCost && this.currentCooldown === 0;
+        return false;
     }
     
     use(character, target) {
-        if (!this.canUse(character)) return null;
-        character.mp -= this.mpCost;
-        this.currentCooldown = this.cooldown;
-        return this.execute(character, target);
+        return null;
     }
     
     execute(character, target) {
@@ -132,11 +129,7 @@ export const DefaultSkills = {
 };
 
 export function createDefaultSkills() {
-    return [
-        new AttackSkill('fireball', '火球術', '🔥', '發射火球造成傷害', 15, 0, 1.5, 10),
-        new HealSkill('heal', '治療術', '✨', '恢復生命值', 20, 1, 30, 0.1),
-        new BuffSkill('battle_cry', '戰吼', '📣', '短時間提升攻擊力', 15, 3, 'atk', 20, 3)
-    ];
+    return [];
 }
 
 export class Item {
@@ -235,7 +228,7 @@ export class Accessory extends Equipment {
 export class Consumable extends Item {
     constructor(id, name, type, rarity, icon, description, price, effect) {
         super(id, name, type, rarity, icon, description, price);
-        this.effect = effect; // { hp: 50, mp: 30, exp: 100 }
+        this.effect = effect; // { hp: 50, exp: 100 }
     }
 }
 
@@ -250,8 +243,8 @@ export class CharacterManager {
         this.level = 1;
         this._hp = 120;      // 100 + (1 * 20) = 120
         this._maxHp = 120;
-        this._mp = 50;
-        this._maxMp = 50;
+        this._mp = 0;
+        this._maxMp = 0;
         this._exp = 0;
         this._maxExp = 100;
         this.gold = 100;
@@ -266,14 +259,16 @@ export class CharacterManager {
             accessory: null
         };
         
-        this.skills = [];
         this.activeBuffs = [];
+        this.unlockedPassiveEffectIds = [];
+        this.equippedPassiveEffectIds = [];
+        this.passiveEffectSlots = 3;
         
-        // 初始化技能
+        // 初始化永久戰鬥效果
         CharacterLogic.initDefaultSkills(this, createDefaultSkills);
     }
     
-    // ===== HP/MP/EXP Getters/Setters =====
+    // ===== HP/EXP Getters/Setters =====
     get hp() { return Number.isFinite(this._hp) ? this._hp : 0; }
     set hp(v) { this._hp = Math.max(0, Number(v) || 0); }
 
@@ -283,11 +278,11 @@ export class CharacterManager {
     }
     set maxHp(v) { this._maxHp = Math.max(1, Number(v) || 1); }
 
-    get mp() { return Number.isFinite(this._mp) ? this._mp : 0; }
-    set mp(v) { this._mp = Math.max(0, Number(v) || 0); }
+    get mp() { return 0; }
+    set mp(v) { this._mp = 0; }
 
-    get maxMp() { return Number.isFinite(this._maxMp) ? this._maxMp : 50; }
-    set maxMp(v) { this._maxMp = Math.max(0, Number(v) || 0); }
+    get maxMp() { return 0; }
+    set maxMp(v) { this._maxMp = 0; }
 
     get exp() { return Number.isFinite(this._exp) ? this._exp : 0; }
     set exp(v) { this._exp = Math.max(0, Number(v) || 0); }
@@ -323,7 +318,12 @@ export class CharacterManager {
     tickBuffs() { return CharacterLogic.tickBuffs(this); }
     clearAllBuffs() { return CharacterLogic.clearAllBuffs(this); }
     
-    // 技能系統
+    // 永久戰鬥效果
+    getActivePassiveCombatEffects() { return CharacterLogic.getActivePassiveCombatEffects(this); }
+    unlockPassiveCombatEffect(effectId) { return CharacterLogic.unlockPassiveCombatEffect(this, effectId); }
+    equipPassiveCombatEffect(effectId, slotIndex) { return CharacterLogic.equipPassiveCombatEffect(this, effectId, slotIndex); }
+
+    // 主動技能系統已移除；保留 no-op 以相容舊呼叫
     useSkill(index, target) { return CharacterLogic.useSkill(this, index, target); }
     tickSkillCooldowns() { return CharacterLogic.tickSkillCooldowns(this); }
     

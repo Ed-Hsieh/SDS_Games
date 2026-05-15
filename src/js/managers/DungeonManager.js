@@ -13,9 +13,10 @@ import {
     generateDungeonBoss,
     generateFloorEvent
 } from '../data/Dungeons.js';
+import GameManager from './GameManager.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig };
+export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig, generateFloorEvent };
 
 class DungeonManagerClass {
     constructor() {
@@ -47,6 +48,8 @@ class DungeonManagerClass {
         
         // 副本冷卻時間
         this.cooldowns = {};
+
+        GameManager.registerSaveSystem('dungeon', this);
         
         this.init();
     }
@@ -58,20 +61,31 @@ class DungeonManagerClass {
     // ==================== 存檔/讀檔 ====================
     
     loadProgress() {
-        const saved = localStorage.getItem('dungeon_progress');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.completionRecords = data.completionRecords || {};
-            this.cooldowns = data.cooldowns || {};
-        }
+        return this.serialize();
     }
     
     saveProgress() {
-        const data = {
-            completionRecords: this.completionRecords,
-            cooldowns: this.cooldowns
+        GameManager.markSaveDirty('dungeon');
+    }
+
+    serialize() {
+        return {
+            completionRecords: { ...this.completionRecords },
+            cooldowns: { ...this.cooldowns }
         };
-        localStorage.setItem('dungeon_progress', JSON.stringify(data));
+    }
+
+    deserialize(data = {}) {
+        this.completionRecords = data.completionRecords || {};
+        this.cooldowns = data.cooldowns || {};
+    }
+
+    resetProgress() {
+        this.currentDungeon = null;
+        this.currentFloor = 1;
+        this.steps = 0;
+        this.completionRecords = {};
+        this.cooldowns = {};
     }
     
     // ==================== 副本入口管理 ====================

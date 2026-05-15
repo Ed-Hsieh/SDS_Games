@@ -985,6 +985,127 @@ export const MonsterDatabase = {
         skills: ['apocalypse', 'void_rupture', 'demon_transformation', 'soul_harvest'],
         description: '企圖毀滅世界的魔王，最終的敵人。'
     },
+
+    // ==================== 世界故事 BOSS ====================
+    blood_moon_stag: {
+        id: 'blood_moon_stag',
+        name: '血月角鹿',
+        icon: '🦌',
+        type: MonsterType.BOSS,
+        element: MonsterElement.NONE,
+        level: 8,
+        hp: 420,
+        maxHp: 420,
+        attack: 30,
+        attackSpeed: 1.7,
+        defense: 10,
+        exp: 220,
+        gold: 180,
+        drops: [
+            { itemId: 'life_seed', chance: 0.7, quantity: [1, 2] },
+            { itemId: 'forest_essence', chance: 0.45, quantity: [1, 1] },
+            { itemId: 'rare_metal', chance: 0.18, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['dragon_charge', 'howl', 'regeneration'],
+        description: '只在血月痕跡完整時現身的古老獵物。'
+    },
+
+    drowned_oracle: {
+        id: 'drowned_oracle',
+        name: '溺聲神諭',
+        icon: '🔔',
+        type: MonsterType.BOSS,
+        element: MonsterElement.ICE,
+        level: 14,
+        hp: 560,
+        maxHp: 560,
+        attack: 40,
+        attackSpeed: 1.8,
+        defense: 16,
+        exp: 330,
+        gold: 260,
+        drops: [
+            { itemId: 'soul_fragment', chance: 0.7, quantity: [1, 2] },
+            { itemId: 'dark_crystal', chance: 0.35, quantity: [1, 1] },
+            { itemId: 'ancient_rune', chance: 0.25, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['sonic_screech', 'freeze', 'soul_drain'],
+        description: '被水聲與鐘鳴困住的預言殘響。'
+    },
+
+    ash_baron: {
+        id: 'ash_baron',
+        name: '灰燼男爵',
+        icon: '🔥',
+        type: MonsterType.BOSS,
+        element: MonsterElement.FIRE,
+        level: 18,
+        hp: 760,
+        maxHp: 760,
+        attack: 54,
+        attackSpeed: 1.9,
+        defense: 24,
+        exp: 430,
+        gold: 340,
+        drops: [
+            { itemId: 'ember_stone', chance: 0.75, quantity: [1, 2] },
+            { itemId: 'rare_metal', chance: 0.35, quantity: [1, 1] },
+            { itemId: 'cursed_shard', chance: 0.25, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['flame_burst', 'rally_troops', 'fire_shield'],
+        description: '以契約與煤印維繫領地的灰燼貴族。'
+    },
+
+    thorn_witch: {
+        id: 'thorn_witch',
+        name: '荊棘女巫',
+        icon: '🌿',
+        type: MonsterType.BOSS,
+        element: MonsterElement.EARTH,
+        level: 16,
+        hp: 640,
+        maxHp: 640,
+        attack: 46,
+        attackSpeed: 1.9,
+        defense: 18,
+        exp: 380,
+        gold: 300,
+        drops: [
+            { itemId: 'poison_gland', chance: 0.65, quantity: [1, 2] },
+            { itemId: 'spider_silk', chance: 0.45, quantity: [1, 2] },
+            { itemId: 'forest_essence', chance: 0.3, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['poison_spore', 'root_bind', 'life_drain'],
+        description: '只回應交易、草藥與顏色暗號的森林女巫。'
+    },
+
+    ambush_mantis: {
+        id: 'ambush_mantis',
+        name: '伏擊螳螂王',
+        icon: '🦗',
+        type: MonsterType.BOSS,
+        element: MonsterElement.NONE,
+        level: 13,
+        hp: 520,
+        maxHp: 520,
+        attack: 44,
+        attackSpeed: 1.25,
+        defense: 14,
+        exp: 310,
+        gold: 240,
+        drops: [
+            { itemId: 'poison_gland', chance: 0.7, quantity: [1, 2] },
+            { itemId: 'rare_metal', chance: 0.28, quantity: [1, 1] },
+            { itemId: 'shadow_shard', chance: 0.22, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['ambush', 'poison_bite', 'vanish'],
+        description: '會記住玩家路線，等誘餌與營火條件成熟後主動現身。'
+    },
 };
 
 export const TowerMonsterData = {
@@ -1456,7 +1577,6 @@ export const TowerMonsterData = {
         description: '世界初創時的古老巨人。',
         towerFloor: 19
     },
-    
     // 第20層 - 最終BOSS
     tower_void_king: {
         id: 'tower_void_king',

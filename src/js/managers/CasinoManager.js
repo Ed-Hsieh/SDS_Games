@@ -58,6 +58,7 @@ export default class CasinoManager {
         };
         this.dailyBonus = null;
         this.luckyStreak = 0;
+        GameManager.registerSaveSystem('casino', this);
     }
 
     /**
@@ -357,6 +358,32 @@ export default class CasinoManager {
             gamesPlayed: 0,
             jackpots: 0
         };
+        this.dailyBonus = null;
+        this.luckyStreak = 0;
+    }
+
+    serialize() {
+        return {
+            stats: { ...this.stats },
+            dailyBonus: this.dailyBonus,
+            luckyStreak: this.luckyStreak
+        };
+    }
+
+    deserialize(data = {}) {
+        this.stats = {
+            totalBet: 0,
+            totalWin: 0,
+            gamesPlayed: 0,
+            jackpots: 0,
+            ...(data.stats || {})
+        };
+        this.dailyBonus = data.dailyBonus || null;
+        this.luckyStreak = Math.max(0, Number(data.luckyStreak) || 0);
+    }
+
+    resetProgress() {
+        this.resetStats();
     }
 }
 

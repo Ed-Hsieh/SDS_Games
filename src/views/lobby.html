@@ -13,6 +13,13 @@
                     </div>
                 </div>
 
+                <div class="save-controls" aria-label="存檔操作">
+                    <button class="save-action" id="btn-save-export" type="button" title="匯出 JSON 存檔">存檔</button>
+                    <button class="save-action" id="btn-save-import" type="button" title="讀取 JSON 存檔">讀取</button>
+                    <button class="save-action save-action-danger" id="btn-save-reset" type="button" title="重置目前進度">重置</button>
+                    <input id="save-file-input" type="file" accept="application/json,.json" hidden>
+                </div>
+
                 <div class="traveler-core">
                     <div class="character-level">
                         <span class="character-level-label">等級</span>
@@ -73,6 +80,15 @@
                     <div id="active-set-bonuses" class="set-bonuses" aria-live="polite"></div>
                     <div id="character-set-status" class="character-set-status"></div>
                 </section>
+
+                <section class="passive-effect-panel" aria-label="永久戰鬥效果">
+                    <div class="passive-effect-head">
+                        <span>戰鬥記憶</span>
+                        <strong>永久戰鬥效果</strong>
+                    </div>
+                    <div class="passive-effect-slots" id="passive-effect-slots" aria-label="已裝備被動效果"></div>
+                    <div class="passive-effect-library" id="passive-effect-library" aria-label="可替換被動效果"></div>
+                </section>
             </section>
         </aside>
 
@@ -123,6 +139,10 @@
                     <button class="world-route hotspot-quest" data-route="quest">
                         <span class="hotspot-icon">📜</span>
                         <span class="hotspot-label">線索簿</span>
+                    </button>
+                    <button class="world-route hotspot-codex" data-route="encyclopedia">
+                        <span class="hotspot-icon">📖</span>
+                        <span class="hotspot-label">百科</span>
                     </button>
                     <button class="world-route hotspot-tower" data-route="tower">
                         <span class="hotspot-icon">🗼</span>

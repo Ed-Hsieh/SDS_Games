@@ -11,6 +11,38 @@ import { questManager, QuestStatus } from './QuestManager.js';
 import { getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 
+const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
+    low: [
+        'field_notice_board',
+        'weathered_route_tablet',
+        'special_bounty_notice'
+    ],
+    medium: [
+        'weathered_route_tablet',
+        'field_notice_board',
+        'special_bounty_notice'
+    ],
+    high: [
+        'weathered_route_tablet',
+        'special_bounty_notice',
+        'field_notice_board'
+    ],
+    boss: [
+        'weathered_route_tablet',
+        'special_bounty_notice',
+        'field_notice_board'
+    ]
+};
+
+function pickEventByIds(eventIds = [], rng = Math.random) {
+    const pool = eventIds
+        .map(eventId => EventDatabase.find(event => event.id === eventId))
+        .filter(Boolean);
+
+    if (pool.length === 0) return null;
+    return pool[Math.floor(rng() * pool.length)];
+}
+
 export function getEventForZone(zoneType, rng = Math.random) {
     if (!zoneType) zoneType = 'low';
 
@@ -61,6 +93,11 @@ export function getEventForZone(zoneType, rng = Math.random) {
     }
 
     return pool[Math.floor(rng() * pool.length)];
+}
+
+export function getMapQuestionEventForZone(zoneType = 'low', rng = Math.random) {
+    const eventIds = MAP_QUESTION_EVENT_IDS_BY_ZONE[zoneType] || MAP_QUESTION_EVENT_IDS_BY_ZONE.low;
+    return pickEventByIds(eventIds, rng) || getEventForZone(zoneType, rng);
 }
 
 function getWeightedRandomResults(randomResults, rng = Math.random) {
@@ -216,7 +253,8 @@ function applyResultToCharacter(char, result) {
 }
 
 export default {
-    getEventForZone
+    getEventForZone,
+    getMapQuestionEventForZone
 };
 
 /**
@@ -236,6 +274,14 @@ export class EventManagerClass {
      */
     triggerRandomEvent(zone = 'low') {
         const event = getEventForZone(zone);
+        if (!event) return null;
+
+        this.currentEvent = { ...event, zone };
+        return this.currentEvent;
+    }
+
+    triggerMapQuestionEvent(zone = 'low') {
+        const event = getMapQuestionEventForZone(zone);
         if (!event) return null;
 
         this.currentEvent = { ...event, zone };

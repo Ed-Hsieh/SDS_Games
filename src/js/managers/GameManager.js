@@ -8,6 +8,7 @@ import { ItemType, ItemRarity } from '../models/Enums.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem } from '../models/ItemSchema.js';
+import SaveManager from './SaveManager.js';
 
 class GameManager {
     constructor() {
@@ -15,21 +16,33 @@ class GameManager {
             return GameManager.instance;
         }
         this.listeners = [];
-        
-        this.state = {
-            character: new CharacterManager(),
-            inventory: [], // Array of stacked items: { item: Item, quantity: number }
-            inventoryCapacity: 10,
-            warehouse: [], // Array of stacked items (Unlimited capacity)
-            flags: {
-                secretShopUnlocked: false
-            }
-        };
+        this.saveManager = new SaveManager(this);
+        this.state = this.createInitialState();
 
         // Initialize with some items
         this.initInitialItems();
 
         GameManager.instance = this;
+    }
+
+    createInitialState() {
+        return {
+            character: new CharacterManager(),
+            inventory: [], // Array of stacked items: { item: Item, quantity: number }
+            inventoryCapacity: 10,
+            warehouse: [], // Array of stacked items (Unlimited capacity)
+            mapState: null,
+            flags: {
+                secretShopUnlocked: false
+            }
+        };
+    }
+
+    resetState() {
+        this.state = this.createInitialState();
+        this.initInitialItems();
+        this.notify('all');
+        return this.state;
     }
 
     initInitialItems() {
@@ -76,6 +89,46 @@ class GameManager {
             GameManager.instance = new GameManager();
         }
         return GameManager.instance;
+    }
+
+    registerSaveSystem(key, system) {
+        return this.saveManager.registerSystem(key, system);
+    }
+
+    markSaveDirty(reason = 'state') {
+        this.saveManager.markDirty(reason);
+    }
+
+    createSaveData() {
+        return this.saveManager.createSaveData();
+    }
+
+    exportSaveJson(spaces = 2) {
+        return this.saveManager.exportJson(spaces);
+    }
+
+    loadSaveData(saveData) {
+        return this.saveManager.loadSaveData(saveData);
+    }
+
+    downloadSaveFile(filename) {
+        return this.saveManager.downloadSaveFile(filename);
+    }
+
+    writeSaveFile(filename) {
+        return this.saveManager.writeSaveFile(filename);
+    }
+
+    importSaveFile(file) {
+        return this.saveManager.importFromFile(file);
+    }
+
+    readSaveFile() {
+        return this.saveManager.readSaveFile();
+    }
+
+    resetSaveData() {
+        return this.saveManager.resetToNewGame();
     }
     
     // ===== Helper Methods =====

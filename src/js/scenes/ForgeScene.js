@@ -10,6 +10,7 @@ import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMateri
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
 import { globalGoalTracker } from '../utils/GlobalGoalTracker.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
 
 export default class ForgeScene {
     constructor(container, app) {
@@ -192,7 +193,7 @@ export default class ForgeScene {
                 : '<span class="blueprint-badge">需要圖紙</span>';
             
             return `
-                <div class="recipe-card ${rarityClass} ${stateClass} ${selectedClass}" 
+                <div class="recipe-card rarity-frame rarity-${rarityClass} ${rarityClass} ${stateClass} ${selectedClass}"
                      data-recipe-id="${recipe.id}">
                     <div class="recipe-icon">${recipe.icon}</div>
                     <div class="recipe-info">
@@ -210,6 +211,20 @@ export default class ForgeScene {
         
         // 綁定點擊事件
         this.dom.recipeList.querySelectorAll('.recipe-card').forEach(card => {
+            const recipe = getRecipe(card.dataset.recipeId);
+            if (recipe?.result) {
+                attachItemTooltip(card, {
+                    ...recipe.result,
+                    name: recipe.name,
+                    icon: recipe.icon,
+                    type: recipe.type,
+                    rarity: recipe.rarity
+                }, {
+                    price: recipe.cost,
+                    priceLabel: '製作費',
+                    description: recipe.result?.desc || ''
+                });
+            }
             card.addEventListener('click', () => {
                 const recipeId = card.dataset.recipeId;
                 this.selectRecipe(recipeId);
@@ -310,7 +325,7 @@ export default class ForgeScene {
         // 顯示製作結果預覽
         const result = recipe.result;
         this.dom.craftResultPreview.innerHTML = `
-            <div class="preview-item ${result.rarity || 'common'}">
+            <div class="preview-item rarity-frame rarity-${result.rarity || 'common'} ${result.rarity || 'common'}">
                 <div class="item-icon">${result.icon}</div>
                 <div class="item-name">${result.name}</div>
                 <div class="item-stats">
@@ -351,7 +366,7 @@ export default class ForgeScene {
         
         // 更新選中顯示
         this.dom.selectedRecipe.innerHTML = `
-            <div class="selected-item ${recipe.rarity || 'common'}">
+            <div class="selected-item rarity-frame rarity-${recipe.rarity || 'common'} ${recipe.rarity || 'common'}">
                 <div class="item-icon">${recipe.icon}</div>
                 <div class="item-info">
                     <div class="item-name">${recipe.name}</div>
@@ -434,13 +449,18 @@ export default class ForgeScene {
         this.dom.materialsInventory.innerHTML = materials.map(stack => {
             const item = stack.item;
             return `
-                <div class="material-card ${item.rarity || 'common'}">
+                <div class="material-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
                     <span class="mat-icon">${item.icon || '📦'}</span>
                     <span class="mat-name">${item.name}</span>
                     <span class="mat-count">x${stack.quantity || 1}</span>
                 </div>
             `;
         }).join('');
+
+        this.dom.materialsInventory.querySelectorAll('.material-card').forEach((card, index) => {
+            const stack = materials[index];
+            if (stack?.item) attachItemTooltip(card, stack.item, { quantity: stack.quantity || 1 });
+        });
     }
 
     searchMaterials(query) {
@@ -588,7 +608,7 @@ export default class ForgeScene {
             resultEl.innerHTML = `
                 <div class="result-icon success">✅</div>
                 <div class="result-text">鍛造成功！</div>
-                <div class="result-item ${item.rarity || ''}">
+                <div class="result-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || ''}">
                     <span>${item.icon}</span>
                     <span>${item.name}</span>
                 </div>
@@ -641,7 +661,7 @@ export default class ForgeScene {
         if (!this.dom.affixEquipmentList) return;
         
         const card = document.createElement('div');
-        card.className = `equipment-card ${item.rarity || 'common'}`;
+        card.className = `equipment-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}`;
         
         const equippedBadge = isEquipped ? '<span class="equipped-badge">裝備中</span>' : '';
         const affixCount = item.affixes ? item.affixes.length : 0;
@@ -663,6 +683,7 @@ export default class ForgeScene {
             ${equippedBadge}
         `;
         
+        attachItemTooltip(card, item, { hint: '點擊選擇裝備' });
         card.addEventListener('click', () => this.selectAffixEquipment(item, isEquipped, slot));
         this.dom.affixEquipmentList.appendChild(card);
     }
@@ -673,7 +694,7 @@ export default class ForgeScene {
         // 更新選中顯示
         if (this.dom.selectedAffixEquipment) {
             this.dom.selectedAffixEquipment.innerHTML = `
-                <div class="selected-item ${item.rarity || 'common'}">
+                <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
                     <div class="item-icon">${item.icon || '⚔️'}</div>
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
@@ -700,7 +721,7 @@ export default class ForgeScene {
                     const rarityClass = affix.rarity || 'common';
                     const typeLabel = affix.type === 'prefix' ? '【前綴】' : '【後綴】';
                     const effectText = this.formatAffixEffect(affix);
-                    return `<div class="affix-item ${rarityClass}">${typeLabel} ${affix.name}: ${effectText}</div>`;
+                    return `<div class="affix-item rarity-frame rarity-${rarityClass} ${rarityClass}">${typeLabel} ${affix.name}: ${effectText}</div>`;
                 }).join('');
             } else {
                 this.dom.currentAffixesDisplay.innerHTML = '<div class="no-affixes">尚無詞綴</div>';
@@ -1000,7 +1021,7 @@ export default class ForgeScene {
         enhancementManager.initializeEnhancementState(item);
         const card = document.createElement('div');
         const isSelected = this.selectedEnhanceEquipment?.item === item;
-        card.className = `equipment-card ${item.rarity || 'common'} ${isSelected ? 'selected' : ''}`;
+        card.className = `equipment-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'} ${isSelected ? 'selected' : ''}`;
 
         const equippedBadge = isEquipped ? '<span class="equipped-badge">裝備中</span>' : '';
         const level = item.enhanceLevel || 0;
@@ -1019,6 +1040,7 @@ export default class ForgeScene {
             ${equippedBadge}
         `;
 
+        attachItemTooltip(card, item, { hint: '點擊選擇裝備' });
         card.addEventListener('click', () => this.selectEnhanceEquipment(item, isEquipped, slot));
         this.dom.enhanceEquipmentList.appendChild(card);
     }
@@ -1028,7 +1050,7 @@ export default class ForgeScene {
 
         if (this.dom.selectedEnhanceEquipment) {
             this.dom.selectedEnhanceEquipment.innerHTML = `
-                <div class="selected-item ${item.rarity || 'common'}">
+                <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
                     <div class="item-icon">${item.icon || '⚔️'}</div>
                     <div class="item-info">
                         <div class="item-name">${enhancementManager.getDisplayName(item)}</div>
@@ -1093,7 +1115,7 @@ export default class ForgeScene {
         }
 
         this.dom.enhanceMarksDisplay.innerHTML = marks.map(mark => `
-            <div class="affix-item ${mark.rarity || 'rare'}">
+            <div class="affix-item rarity-frame rarity-${mark.rarity || 'rare'} ${mark.rarity || 'rare'}">
                 +${mark.milestone} ${enhancementManager.getMarkDescription(mark)}
             </div>
         `).join('');

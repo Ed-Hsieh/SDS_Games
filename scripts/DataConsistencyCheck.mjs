@@ -3,6 +3,8 @@ import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { MonsterDatabase, TowerMonsterData } from '../src/js/data/Monsters.js';
 import { QuestDatabase, QuestRewardItems } from '../src/js/data/Quests.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
+import { RecipeDiscoveryDatabase } from '../src/js/data/RecipeDiscoveries.js';
+import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
 import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../src/js/data/DropPools.js';
 import { DungeonDatabase, DungeonEntranceConfig } from '../src/js/data/Dungeons.js';
 import { ShopData, SecretShopItems } from '../src/js/data/Items.js';
@@ -72,6 +74,20 @@ function collectMonsterIds() {
     return ids;
 }
 
+function collectDungeonMonsterIdsByDungeon() {
+    const byDungeon = new Map();
+
+    for (const [dungeonId, dungeon] of objectEntries(DungeonDatabase)) {
+        const ids = new Set();
+        for (const monster of dungeon.monsters?.common || []) addIfPresent(ids, monster.id);
+        for (const monster of dungeon.monsters?.elite || []) addIfPresent(ids, monster.id);
+        addIfPresent(ids, dungeon.monsters?.boss?.id);
+        byDungeon.set(dungeonId, ids);
+    }
+
+    return byDungeon;
+}
+
 function collectEquipmentIds() {
     const ids = new Set();
 
@@ -90,6 +106,7 @@ function collectEquipmentIds() {
 const knownItems = collectKnownItemIds();
 const knownEquipment = collectEquipmentIds();
 const knownMonsters = collectMonsterIds();
+const dungeonMonsterIdsByDungeon = collectDungeonMonsterIdsByDungeon();
 const problems = [];
 
 function push(section, message) {
@@ -214,6 +231,52 @@ for (const [id, pool] of objectEntries(MonsterUniqueDrops)) checkPool(`UniqueDro
 for (const [id, recipe] of objectEntries(RecipeDatabase)) {
     for (const material of recipe.materials || []) {
         if (!MaterialDatabase[material.id]) push('recipe-material', label(id, material.id));
+    }
+}
+
+const knownRecipeIds = new Set(Object.keys(RecipeDatabase));
+const blueprintDropRecipeIds = new Set();
+const directDropInteractionIds = new Set(['monster_blueprint_drop', 'strong_blueprint_drop']);
+
+for (const [sourceKey, entries] of objectEntries(BlueprintDropDatabase)) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+        push('blueprint-drop-source', `${sourceKey} has no drop entries`);
+        continue;
+    }
+
+    const sourceParts = sourceKey.split(':');
+    const dungeonId = sourceParts.length === 2 ? sourceParts[0] : null;
+    const monsterId = sourceParts.length === 2 ? sourceParts[1] : sourceParts[0];
+
+    if (sourceParts.length > 2 || !monsterId) {
+        push('blueprint-drop-source', `${sourceKey} is not monsterId or dungeonId:monsterId`);
+    } else if (dungeonId) {
+        const dungeonMonsterIds = dungeonMonsterIdsByDungeon.get(dungeonId);
+        if (!dungeonMonsterIds) {
+            push('blueprint-drop-source', `${sourceKey} references missing dungeon ${dungeonId}`);
+        } else if (!dungeonMonsterIds.has(monsterId)) {
+            push('blueprint-drop-source', `${sourceKey} references missing dungeon monster ${monsterId}`);
+        }
+    } else if (!knownMonsters.has(monsterId)) {
+        push('blueprint-drop-source', `${sourceKey} references missing monster ${monsterId}`);
+    }
+
+    entries.forEach((entry, index) => {
+        if (!knownRecipeIds.has(entry.recipeId)) {
+            push('blueprint-drop-recipe', `${sourceKey}[${index}] references missing recipe ${entry.recipeId}`);
+        }
+
+        if (!Number.isFinite(entry.chance) || entry.chance <= 0 || entry.chance > 1) {
+            push('blueprint-drop-chance', `${sourceKey}[${index}] has invalid chance ${entry.chance}`);
+        }
+
+        if (entry.recipeId) blueprintDropRecipeIds.add(entry.recipeId);
+    });
+}
+
+for (const [recipeId, discovery] of objectEntries(RecipeDiscoveryDatabase)) {
+    if (directDropInteractionIds.has(discovery.interactionId) && !blueprintDropRecipeIds.has(recipeId)) {
+        push('blueprint-drop-coverage', `${recipeId} uses ${discovery.interactionId} but has no direct monster drop`);
     }
 }
 

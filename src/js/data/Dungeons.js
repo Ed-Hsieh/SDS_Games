@@ -173,7 +173,7 @@ export const DungeonDatabase = {
         mechanic: {
             type: 'cold',
             name: '極寒環境',
-            description: '每移動 5 步，寒冷值 +10。達到 100 時每步損失 5% HP。',
+            description: '移動會累積寒冷並定期消耗補給；寒冷達到 100 時會受到凍傷。',
             icon: '🥶',
             effect: {
                 coldPerStep: 2,        // 每步增加寒冷值
@@ -261,7 +261,7 @@ export const DungeonDatabase = {
         mechanic: {
             type: 'puzzle',
             name: '遺跡機關',
-            description: '每層都有一個謎題機關，解開才能進入下一層。答錯會觸發陷阱。',
+            description: '需要先收集石碑線索才能辨認壓力板順序；未辨認就啟動會觸發陷阱。',
             icon: '🧩',
             effect: {
                 puzzleTypes: ['sequence', 'symbol', 'riddle'],
@@ -452,7 +452,7 @@ export const DungeonDatabase = {
         mechanic: {
             type: 'burn',
             name: '煉獄烈焰',
-            description: '每步損失 2% 最大 HP。裝備「烈焰護符」可免疫。',
+            description: '每步受到灼熱傷害，並定期加速武器與防具耐久消耗。裝備「烈焰護符」可免疫。',
             icon: '🔥',
             effect: {
                 damagePerStep: 0.02,    // 每步傷害

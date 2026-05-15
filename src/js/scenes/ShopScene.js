@@ -8,6 +8,7 @@ import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 
 export default class ShopScene {
@@ -289,7 +290,7 @@ export default class ShopScene {
             : '點擊出售';
         
         const el = document.createElement('div');
-        el.className = `item-card shop-flow-card rarity-${item.rarity || 'common'} mode-${mode}`;
+        el.className = `item-card shop-flow-card rarity-frame rarity-${item.rarity || 'common'} mode-${mode}`;
         if (!canAfford) el.classList.add('is-unaffordable');
         el.setAttribute('role', 'button');
         el.tabIndex = 0;
@@ -315,6 +316,12 @@ export default class ShopScene {
                 <div class="item-action-hint">${hintText}</div>
             </div>
         `;
+        attachItemTooltip(el, item, {
+            quantity,
+            price,
+            priceLabel: mode === 'buy' ? '購買' : '出售',
+            hint: mode === 'buy' ? '點擊確認購買' : '點擊確認出售'
+        });
         
         el.addEventListener('click', () => {
             this.openModal(trade, mode);

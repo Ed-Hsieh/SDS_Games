@@ -7,6 +7,7 @@
 import GameManager from './GameManager.js';
 import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
 import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
+import { markItemKnown, markMonsterKnown } from './EncyclopediaManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 
@@ -53,6 +54,7 @@ export default class TowerManager {
         this.listeners = [];
         
         // 載入存檔
+        GameManager.registerSaveSystem('tower', this);
         this.loadProgress();
     }
     
@@ -390,6 +392,8 @@ export default class TowerManager {
      * 計算獎勵
      */
     calculateRewards(monster, isBoss) {
+        markMonsterKnown(monster, { towerFloor: this.currentFloor });
+
         const rewards = {
             gold: monster.gold || 0,
             exp: monster.exp || 0,
@@ -407,6 +411,7 @@ export default class TowerManager {
             const bossEquipment = getBossEquipment(monster.id);
             if (bossEquipment) {
                 rewards.equipment = bossEquipment;
+                markItemKnown(bossEquipment.id);
             }
         }
         
@@ -416,6 +421,7 @@ export default class TowerManager {
         for (const drop of drops) {
             const item = resolveItemById(drop.itemId, { preferBossEquipment: true });
             if (item && item.id !== rewards.equipment?.id) {
+                markItemKnown(drop.itemId);
                 rewards.items.push({
                     ...item,
                     quantity: drop.quantity
@@ -549,29 +555,14 @@ export default class TowerManager {
      * 儲存進度
      */
     saveProgress() {
-        try {
-            const saveData = {
-                highestFloor: this.highestFloor
-            };
-            localStorage.setItem('towerProgress', JSON.stringify(saveData));
-        } catch (e) {
-            console.warn('無法儲存無盡塔進度:', e);
-        }
+        GameManager.markSaveDirty('tower');
     }
     
     /**
      * 載入進度
      */
     loadProgress() {
-        try {
-            const saveData = localStorage.getItem('towerProgress');
-            if (saveData) {
-                const data = JSON.parse(saveData);
-                this.highestFloor = data.highestFloor || 0;
-            }
-        } catch (e) {
-            console.warn('無法載入無盡塔進度:', e);
-        }
+        return this.serialize();
     }
     
     /**
@@ -581,7 +572,26 @@ export default class TowerManager {
         this.highestFloor = 0;
         this.currentFloor = 1;
         this.state = TowerState.IDLE;
-        localStorage.removeItem('towerProgress');
+        this.currentMonster = null;
+        this.battleLog = [];
+        this.collectedRewards = [];
+        this.notify('progress_reset', { highestFloor: this.highestFloor });
+    }
+
+    serialize() {
+        return {
+            highestFloor: this.highestFloor
+        };
+    }
+
+    deserialize(data = {}) {
+        this.highestFloor = Math.max(0, Number(data.highestFloor) || 0);
+        this.currentFloor = 1;
+        this.state = TowerState.IDLE;
+        this.currentMonster = null;
+        this.battleLog = [];
+        this.collectedRewards = [];
+        this.notify('progress_loaded', { highestFloor: this.highestFloor });
     }
     
     /**

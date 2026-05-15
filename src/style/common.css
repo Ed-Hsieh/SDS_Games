@@ -282,26 +282,6 @@ body {
     border-radius: 50%;
 }
 
-.item-rarity.common {
-    background-color: #9e9e9e;
-}
-
-.item-rarity.uncommon {
-    background-color: #4caf50;
-}
-
-.item-rarity.rare {
-    background-color: #2196f3;
-}
-
-.item-rarity.epic {
-    background-color: #9c27b0;
-}
-
-.item-rarity.legendary {
-    background-color: #ff9800;
-}
-
 /* ===== 通用彈窗樣式 ===== */
 .modal {
     display: none;

@@ -373,6 +373,46 @@ export const EventDatabase = [
     },
 
     {
+        id: 'field_notice_board',
+        name: '野外布告欄',
+        icon: '📌',
+        type: EventType.MYSTERY,
+        description: '道路旁立著一塊被風雨打磨的布告欄，上面釘著新的委託與懸賞。',
+        choices: [
+            {
+                text: '閱讀布告',
+                results: [
+                    { type: ResultType.WORLD_INTERACTION, interactionId: 'crossroads_notice_board' }
+                ]
+            },
+            {
+                text: '先離開',
+                results: []
+            }
+        ]
+    },
+
+    {
+        id: 'special_bounty_notice',
+        name: '特殊懸賞單',
+        icon: '📜',
+        type: EventType.MYSTERY,
+        description: '一張沒有署名的懸賞單被壓在石縫裡，內容指向比普通委託更危險的目標。',
+        choices: [
+            {
+                text: '接下線索',
+                results: [
+                    { type: ResultType.WORLD_INTERACTION, interactionId: 'special_bounty_notice' }
+                ]
+            },
+            {
+                text: '暫時不碰',
+                results: []
+            }
+        ]
+    },
+
+    {
         id: 'weathered_route_tablet',
         name: '風化路線石碑',
         icon: '🪨',
