@@ -19,7 +19,6 @@ export const STAT_LABELS = {
     def: '防禦力',
     defense: '防禦力',
     hp: '生命',
-    mp: '魔力',
     durability: '耐久度',
     critChance: '暴擊率',
     critDamage: '暴擊傷害',
@@ -29,7 +28,6 @@ export const STAT_LABELS = {
     lifesteal: '生命偷取',
     damageReduction: '傷害減免',
     hpRegen: '生命恢復',
-    mpRegen: '魔力恢復',
     fireDamage: '火焰傷害',
     iceDamage: '冰霜傷害',
     thunderDamage: '雷電傷害',
@@ -59,7 +57,6 @@ export const STAT_ICONS = {
     atk: '⚔️',
     def: '🛡️',
     hp: '❤️',
-    mp: '💙',
     durability: '🔧',
     critChance: '💥',
     critDamage: '🔥',
@@ -206,7 +203,6 @@ export function buildItemStatsHtml(item, options = {}) {
     }
 
     rows.push(statRow('hp', readItemStat(item, 'hp', [], 0), { label: item.type === 'potion' ? '恢復生命' : '生命' }));
-    rows.push(statRow('mp', readItemStat(item, 'mp', [], 0), { label: item.type === 'potion' ? '恢復魔力' : '魔力' }));
     rows.push(statRow('critChance', readItemStat(item, 'critChance', ['crit_chance'], 0), { format: 'percent' }));
     rows.push(statRow('critDamage', readItemStat(item, 'critDamage', ['crit_damage'], 0), { format: 'multiplierPercent' }));
     rows.push(statRow('weaponSpeed', readItemStat(item, 'weaponSpeed', ['weapon_speed'], 0), { suffix: 'x' }));

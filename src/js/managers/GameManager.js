@@ -292,21 +292,26 @@ class GameManager {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
         const stack = source.find(s => s.instanceId === instanceId);
         
-        if (!stack || !stack.item.effect) {
+        if (!stack || (!stack.item.effect && !stack.item.buff)) {
             return false;
         }
         
-        // Apply effect (no HP/MP check required)
+        // Apply effect
         const char = this.state.character;
-        if (stack.item.effect.hp) {
-            char.hp = Math.min(char.maxHp, char.hp + stack.item.effect.hp);
+        const effect = stack.item.effect || {};
+        if (effect.hp) {
+            const healingBonus = typeof char.getPassiveCombatBonus === 'function'
+                ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
+                : 0;
+            const healAmount = Math.max(1, Math.floor(effect.hp * (1 + healingBonus)));
+            char.hp = Math.min(char.maxHp, char.hp + healAmount);
         }
-        if (stack.item.effect.mp) {
-            char.mp = Math.min(char.maxMp, char.mp + stack.item.effect.mp);
-        }
-        if (stack.item.effect.exp) {
-            char.exp += stack.item.effect.exp;
+        if (effect.exp) {
+            char.exp += effect.exp;
             char.checkLevelUp();
+        }
+        if (stack.item.buff && typeof char.addBuff === 'function') {
+            char.addBuff(stack.item.buff.type, stack.item.buff.value, stack.item.buff.duration);
         }
         
         // Decrement quantity

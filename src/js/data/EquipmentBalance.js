@@ -149,7 +149,6 @@ export const AFFIX_STAT_KEYS = [
     AffixStat.ATK,
     AffixStat.DEF,
     AffixStat.HP,
-    AffixStat.MP,
     AffixStat.CRIT_CHANCE,
     AffixStat.CRIT_DAMAGE,
     AffixStat.ATTACK_SPEED,
@@ -166,7 +165,6 @@ export const AFFIX_STAT_KEYS = [
     AffixStat.REVIVE,
     AffixStat.ALL_STATS,
     AffixStat.HP_REGEN,
-    AffixStat.MP_REGEN,
     AffixStat.SLOW_CHANCE,
     AffixStat.STUN_CHANCE,
     AffixStat.BOSS_BONUS,
@@ -352,8 +350,6 @@ function emptySetBonuses() {
         defPercent: 0,
         hp: 0,
         hpPercent: 0,
-        mp: 0,
-        mpPercent: 0,
         critChance: 0,
         critDamage: 0,
         attackSpeed: 0,
@@ -398,12 +394,6 @@ export function normalizeSetEffects(effects = {}) {
                 break;
             case 'hpBonus':
                 normalized.hpPercent += normalizePercentFraction(value);
-                break;
-            case 'mp':
-                normalized.mp += Number(value) || 0;
-                break;
-            case 'mpBonus':
-                normalized.mpPercent += normalizePercentFraction(value);
                 break;
             case 'critChance':
             case 'critChanceBonus':

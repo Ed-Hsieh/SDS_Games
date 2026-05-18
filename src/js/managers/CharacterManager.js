@@ -7,7 +7,6 @@
  */
 
 import * as CharacterLogic from '../models/CharacterLogic.js';
-import { createDefaultSkills } from '../models/DataModel.js';
 
 export const getTotalAtk = CharacterLogic.getTotalAtk;
 export const getTotalDef = CharacterLogic.getTotalDef;
@@ -19,26 +18,24 @@ export const getAttackInterval = CharacterLogic.getAttackInterval;
 export const getLifesteal = CharacterLogic.getLifesteal;
 export const getDamageReduction = CharacterLogic.getDamageReduction;
 export const getAffixHpBonus = CharacterLogic.getAffixHpBonus;
+export const getPassiveCombatBonus = CharacterLogic.getPassiveCombatBonus;
 export const addBuff = CharacterLogic.addBuff;
 export const getBuffValue = CharacterLogic.getBuffValue;
 export const tickBuffs = CharacterLogic.tickBuffs;
 export const clearAllBuffs = CharacterLogic.clearAllBuffs;
-export const useSkill = CharacterLogic.useSkill;
-export const tickSkillCooldowns = CharacterLogic.tickSkillCooldowns;
+export const initPassiveCombatEffects = CharacterLogic.initPassiveCombatEffects;
+export const getActivePassiveCombatEffects = CharacterLogic.getActivePassiveCombatEffects;
+export const unlockPassiveCombatEffect = CharacterLogic.unlockPassiveCombatEffect;
+export const equipPassiveCombatEffect = CharacterLogic.equipPassiveCombatEffect;
 export const equip = CharacterLogic.equip;
 export const unequip = CharacterLogic.unequip;
 export const useItem = CharacterLogic.useItem;
 export const calculateMaxHp = CharacterLogic.calculateMaxHp;
-export const calculateMaxMp = CharacterLogic.calculateMaxMp;
 export const calculateMaxExp = CharacterLogic.calculateMaxExp;
 export const checkLevelUp = CharacterLogic.checkLevelUp;
 export const gainExp = CharacterLogic.gainExp;
 export const syncProperties = CharacterLogic.syncProperties;
 export const CharacterHelper = CharacterLogic.CharacterHelper;
-
-export function initDefaultSkills(character) {
-    return CharacterLogic.initDefaultSkills(character, createDefaultSkills);
-}
 
 export default {
     getTotalAtk,
@@ -51,18 +48,19 @@ export default {
     getLifesteal,
     getDamageReduction,
     getAffixHpBonus,
+    getPassiveCombatBonus,
     addBuff,
     getBuffValue,
     tickBuffs,
     clearAllBuffs,
-    initDefaultSkills,
-    useSkill,
-    tickSkillCooldowns,
+    initPassiveCombatEffects,
+    getActivePassiveCombatEffects,
+    unlockPassiveCombatEffect,
+    equipPassiveCombatEffect,
     equip,
     unequip,
     useItem,
     calculateMaxHp,
-    calculateMaxMp,
     calculateMaxExp,
     checkLevelUp,
     gainExp,

@@ -9,8 +9,11 @@ import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../managers/RecipeManager.js';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
+import { MonsterDatabase } from '../data/Monsters.js';
+import { DungeonDatabase } from '../data/Dungeons.js';
 import { globalGoalTracker } from '../utils/GlobalGoalTracker.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import { escapeHtml } from '../utils/ItemDisplay.js';
 
 export default class ForgeScene {
     constructor(container, app) {
@@ -251,6 +254,17 @@ export default class ForgeScene {
         return labels[type] || type;
     }
 
+    getRarityLabel(rarity) {
+        const labels = {
+            common: '普通',
+            uncommon: '優良',
+            rare: '稀有',
+            epic: '史詩',
+            legendary: '傳說'
+        };
+        return labels[String(rarity || 'common').toLowerCase()] || rarity || '普通';
+    }
+
     filterRecipes(filter) {
         this.recipeFilter = filter;
         
@@ -332,7 +346,6 @@ export default class ForgeScene {
                     ${resultStats.attack || result.attack ? `<span>⚔️ ${resultStats.attack || result.attack}</span>` : ''}
                     ${resultStats.defense || result.defense ? `<span>🛡️ ${resultStats.defense || result.defense}</span>` : ''}
                     ${resultStats.hp || result.hp ? `<span>❤️ +${resultStats.hp || result.hp}</span>` : ''}
-                    ${resultStats.mp || result.mp ? `<span>💙 +${resultStats.mp || result.mp}</span>` : ''}
                 </div>
                 <div class="item-desc">${result.desc || ''}</div>
             </div>
@@ -370,7 +383,7 @@ export default class ForgeScene {
                 <div class="item-icon">${recipe.icon}</div>
                 <div class="item-info">
                     <div class="item-name">${recipe.name}</div>
-                    <div class="item-rarity">${recipe.rarity || 'common'}</div>
+                    <div class="item-rarity">${this.getRarityLabel(recipe.rarity)}</div>
                 </div>
             </div>
         `;
@@ -378,6 +391,7 @@ export default class ForgeScene {
 
     renderCraftGuidance(recipe, missingMaterials, hasGold, gold, blueprintInfo = null) {
         if (!this.dom.craftGuidance) return;
+        const routeHtml = this.renderCraftRoute(recipe, blueprintInfo);
 
         if (blueprintInfo && !blueprintInfo.known) {
             const discovery = blueprintInfo.discovery;
@@ -388,6 +402,7 @@ export default class ForgeScene {
                 <div class="forge-missing-list">
                     <span class="forge-missing-chip">線索來源：${discovery?.source || '未知'}</span>
                 </div>
+                ${routeHtml}
             `;
             return;
         }
@@ -398,6 +413,7 @@ export default class ForgeScene {
             this.dom.craftGuidance.innerHTML = `
                 <strong>素材檢查完成</strong>
                 <span>材料與金幣足夠，可以製作。成功率 ${recipe.successRate}%。</span>
+                ${routeHtml}
             `;
             return;
         }
@@ -417,7 +433,83 @@ export default class ForgeScene {
             <strong>素材不足</strong>
             <span>先補齊缺口，再回來製作 ${recipe.name}。</span>
             <div class="forge-missing-list">${missingHtml}${goldHtml}</div>
+            ${routeHtml}
         `;
+    }
+
+    renderCraftRoute(recipe, blueprintInfo = null) {
+        const discovery = blueprintInfo?.discovery;
+        const drops = Array.isArray(blueprintInfo?.drops) ? blueprintInfo.drops : [];
+        const sourceChips = [];
+
+        if (discovery?.source) {
+            sourceChips.push({
+                label: discovery.source,
+                detail: discovery.clue || '世界互動或任務線索'
+            });
+        }
+
+        drops.slice(0, 5).forEach(drop => {
+            sourceChips.push({
+                label: this.getBlueprintDropSourceLabel(drop.sourceKey),
+                detail: `${Math.round((Number(drop.chance) || 0) * 100)}%`
+            });
+        });
+
+        const materialChips = (recipe.materials || []).slice(0, 5).map(mat => {
+            const material = getMaterial(mat.id);
+            return `${material?.icon || '◇'} ${material?.name || mat.id} x${mat.quantity}`;
+        });
+
+        return `
+            <div class="forge-route-map">
+                <div class="forge-route-step">
+                    <span>1</span>
+                    <div>
+                        <strong>取得圖紙</strong>
+                        <p>${sourceChips.length > 0
+                            ? sourceChips.map(source => `${escapeHtml(source.label)} · ${escapeHtml(source.detail)}`).join(' / ')
+                            : '預設已掌握或由世界線索解鎖'}</p>
+                    </div>
+                </div>
+                <div class="forge-route-step">
+                    <span>2</span>
+                    <div>
+                        <strong>準備素材</strong>
+                        <p>${materialChips.length > 0 ? materialChips.map(escapeHtml).join(' / ') : '不需要額外素材'}</p>
+                    </div>
+                </div>
+                <div class="forge-route-step">
+                    <span>3</span>
+                    <div>
+                        <strong>鍛造完成</strong>
+                        <p>${escapeHtml(recipe.name)} · ${recipe.cost}G · 成功率 ${recipe.successRate}%</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    getBlueprintDropSourceLabel(sourceKey = '') {
+        const raw = String(sourceKey || '');
+        const [dungeonId, monsterId] = raw.includes(':') ? raw.split(':') : [null, raw];
+        const dungeon = dungeonId ? DungeonDatabase[dungeonId] : null;
+        const monster = MonsterDatabase[monsterId] || this.findDungeonMonster(monsterId, dungeon);
+        const monsterName = monster?.name || monsterId || '未知來源';
+        return dungeon ? `${dungeon.name} / ${monsterName}` : monsterName;
+    }
+
+    findDungeonMonster(monsterId, preferredDungeon = null) {
+        const dungeons = preferredDungeon ? [preferredDungeon] : Object.values(DungeonDatabase);
+        for (const dungeon of dungeons) {
+            const groups = dungeon?.monsters || {};
+            for (const group of Object.values(groups)) {
+                const list = Array.isArray(group) ? group : [group];
+                const monster = list.find(entry => entry?.id === monsterId);
+                if (monster) return monster;
+            }
+        }
+        return null;
     }
 
     getMaterialCount(materialId, inventory) {

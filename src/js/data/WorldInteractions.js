@@ -36,6 +36,21 @@ export const WorldInteractionDatabase = {
         repeatMessage: '公告欄上暫時沒有新的懸賞。',
         imageKeys: ['world.notice_board']
     },
+    crossroads_beggar: {
+        id: 'crossroads_beggar',
+        title: '巷口流浪者',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: false,
+        flags: [],
+        unlockQuests: [],
+        unlockRecipes: [],
+        progressObjectives: [
+            { type: 'talk', target: 'beggar', amount: 1, message: '巷口流浪者的話被記入隱藏線索。' }
+        ],
+        message: '他低聲說：「口袋空了，人才會看見路邊真正有用的東西。」',
+        repeatMessage: '巷口流浪者仍坐在陰影裡，像是在等下一個一無所有的人。',
+        imageKeys: ['npc.beggar']
+    },
     special_bounty_notice: {
         id: 'special_bounty_notice',
         title: '特殊懸賞單',
@@ -89,12 +104,30 @@ export const WorldInteractionDatabase = {
         title: '古代錢幣',
         source: InteractionSource.VENDOR_ITEM,
         oneTime: true,
+        requiredItems: [{ id: 'ancient_coin', quantity: 1, name: '古代錢幣' }],
+        consumeRequiredItems: true,
         flags: ['secretShopUnlocked', 'merchantAncientCoinAccepted'],
         unlockQuests: ['commission_merchant_001'],
         unlockRecipes: ['goblin_trickster_charm'],
-        message: '古代錢幣打開了黑市的入口，也留下新的委託線索。',
+        missingMessage: '商人端詳著你，等著那枚真正的古代錢幣。',
+        message: '商人收下古代錢幣，暗巷裡的黑市入口被打開，也留下新的委託線索。',
         repeatMessage: '黑市入口已經被打開。',
         imageKeys: ['item.ancient_coin', 'world.black_market_door']
+    },
+    cartographer_map_fragment: {
+        id: 'cartographer_map_fragment',
+        title: '地圖碎片',
+        source: InteractionSource.VENDOR_ITEM,
+        oneTime: true,
+        requiredItems: [{ id: 'map_fragment', quantity: 1, name: '地圖碎片' }],
+        consumeRequiredItems: true,
+        flags: ['mapFragmentDelivered'],
+        unlockQuests: ['bounty_elite_001'],
+        unlockRecipes: [],
+        missingMessage: '這條線索需要一張可以辨認路徑的地圖碎片。',
+        message: '你把地圖碎片交給旅行商人，他拼出一段危險路徑，特殊懸賞被記入線索簿。',
+        repeatMessage: '這張地圖碎片已經被拼進商人的舊地圖。',
+        imageKeys: ['item.map_fragment', 'world.notice_board']
     }
 };
 

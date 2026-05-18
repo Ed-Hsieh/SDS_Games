@@ -83,9 +83,7 @@
     .item-card,
     .warehouse-item,
     .inventory-item,
-    .shop-item,
     .shop-flow-card,
-    .player-item,
     .player-inventory-item,
     .loot-slot,
     .loot-item,
@@ -1295,6 +1293,90 @@ input {
     padding: 3px 8px;
     color: #fde68a;
     font-weight: 700;
+}
+
+.forge-route-map {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.forge-route-step {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 26px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    padding: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.34);
+}
+
+.forge-route-step > span {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.12);
+    color: #7dd3fc;
+    font-weight: 900;
+}
+
+.forge-route-step div {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.forge-route-step strong {
+    color: #f8fafc;
+}
+
+.forge-route-step p {
+    margin: 0;
+    color: rgba(215, 225, 236, 0.72);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.scene-forge .craft-area {
+    min-width: 0 !important;
+    align-items: stretch !important;
+    overflow-x: hidden !important;
+}
+
+.scene-forge .selected-recipe,
+.scene-forge .recipe-info,
+.scene-forge .result-preview,
+.scene-forge .materials-required,
+.scene-forge .forge-craft-guidance,
+.scene-forge .craft-details,
+.scene-forge .preview-item {
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+.scene-forge .recipe-info {
+    width: min(100%, 520px) !important;
+    align-self: center;
+}
+
+.scene-forge .preview-item .item-desc,
+.scene-forge .selected-item,
+.scene-forge .material-req {
+    overflow-wrap: anywhere;
+}
+
+.scene-forge .selected-item .item-rarity {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    color: var(--ui-text-muted) !important;
+    text-transform: uppercase;
 }
 
 .forge-tabs,
@@ -2908,7 +2990,6 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)) !important;
 }
 
-.shop-item,
 .player-inventory-item,
 .adventure-inventory-list .item-card,
 .equipment-card,
@@ -2922,7 +3003,6 @@ body {
     box-shadow: none !important;
 }
 
-.shop-item:hover,
 .player-inventory-item:hover,
 .adventure-inventory-list .item-card:hover,
 .equipment-card:hover,
@@ -3699,6 +3779,100 @@ body {
     font-weight: 800;
 }
 
+.tower-scene .tower-floors-panel,
+.tower-scene .floors-list {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.tower-scene .tower-floors-panel::-webkit-scrollbar,
+.tower-scene .floors-list::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}
+
+.tower-scene .tower-monster-card .monster-info {
+    min-width: 0 !important;
+}
+
+.tower-scene .tower-monster-card .monster-hp-container {
+    position: relative !important;
+    display: grid !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    margin-bottom: 12px !important;
+}
+
+.tower-scene .tower-monster-card .hp-bar-track {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 16px !important;
+}
+
+.tower-scene .tower-monster-card .hp-text {
+    position: absolute !important;
+    inset: 0 !important;
+    transform: none !important;
+    height: 16px !important;
+    margin: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    color: #f8fafc !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.85) !important;
+    pointer-events: none !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.tower-scene .tower-player-battle-panel .player-info-bar {
+    display: grid !important;
+    grid-template-columns: minmax(88px, 136px) minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex-wrap: nowrap !important;
+}
+
+.tower-scene .tower-player-battle-panel .info-vital-bars {
+    min-width: 0 !important;
+}
+
+.tower-scene .tower-player-battle-panel .vital-row {
+    display: grid !important;
+    grid-template-columns: 48px minmax(0, 1fr) minmax(70px, max-content) !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+.tower-scene .tower-player-battle-panel .vital-label,
+.tower-scene .tower-player-battle-panel .vital-text {
+    white-space: nowrap !important;
+}
+
+.tower-scene .tower-player-battle-panel .vital-bar-track {
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 16px !important;
+}
+
+.tower-scene .tower-player-battle-panel .vital-text {
+    width: auto !important;
+    color: #f8fafc !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    text-align: right !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.tower-scene .tower-player-battle-panel .buff-indicators {
+    min-width: 36px !important;
+    justify-content: flex-end !important;
+}
+
 .quick-items {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
 }
@@ -4132,6 +4306,89 @@ body {
 
 .loot-value {
     font-size: 20px !important;
+}
+
+.loot-reveal-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    gap: 10px;
+    min-height: 74px;
+}
+
+.loot-reveal-card,
+.loot-reveal-empty {
+    min-width: 0;
+    min-height: 72px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.045);
+    opacity: 0;
+    transform: translateY(8px);
+    animation: lootRevealIn 360ms ease forwards;
+    animation-delay: var(--reveal-delay, 0ms);
+}
+
+.loot-reveal-card.is-highlight {
+    background:
+        linear-gradient(90deg, color-mix(in srgb, var(--rarity-color, var(--ui-accent)) 16%, transparent), transparent 48%),
+        rgba(255, 255, 255, 0.05);
+}
+
+.loot-reveal-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    font-size: 24px;
+}
+
+.loot-reveal-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.loot-reveal-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.loot-reveal-copy span,
+.loot-reveal-empty span {
+    color: var(--ui-text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+}
+
+.loot-reveal-copy strong,
+.loot-reveal-empty strong {
+    min-width: 0;
+    color: var(--ui-text);
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.loot-reveal-empty {
+    grid-template-columns: 1fr;
+    place-items: center;
+    text-align: center;
+}
+
+@keyframes lootRevealIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .loot-exchange-container {
@@ -4633,4 +4890,969 @@ body {
     .codex-drop-token {
         max-width: none;
     }
+}
+
+/* Shared combat feedback layer. */
+.battle-modal,
+.battle-content,
+.battle-state,
+.battle-header,
+.monster-display,
+.tower-monster-card,
+.player-info-bar,
+.tower-player-battle-panel,
+.combat-panel-bottom {
+    position: relative;
+}
+
+.combat-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.combat-rank-badge-elite {
+    color: #dbeafe;
+    border: 1px solid rgba(96, 165, 250, 0.55);
+    background: rgba(37, 99, 235, 0.18);
+    box-shadow: 0 0 18px rgba(96, 165, 250, 0.18);
+}
+
+.combat-rank-badge-boss {
+    color: #fde68a;
+    border: 1px solid rgba(245, 158, 11, 0.62);
+    background: rgba(120, 53, 15, 0.36);
+    box-shadow: 0 0 22px rgba(245, 158, 11, 0.26);
+}
+
+.combat-rank-elite:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-elite .avatar-hexagon {
+    border-color: rgba(96, 165, 250, 0.72) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(147, 197, 253, 0.18),
+        0 0 26px rgba(59, 130, 246, 0.18) !important;
+}
+
+.combat-rank-boss:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-boss .avatar-hexagon {
+    border-color: rgba(245, 158, 11, 0.86) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(253, 230, 138, 0.18),
+        0 0 34px rgba(245, 158, 11, 0.24),
+        0 0 70px rgba(127, 29, 29, 0.18) !important;
+}
+
+.combat-rank-boss.combat-boss-phase-2:is(.battle-header, .monster-display, .tower-monster-card) {
+    background:
+        radial-gradient(circle at 82% 12%, rgba(239, 68, 68, 0.2), transparent 34%),
+        rgba(255, 255, 255, 0.035) !important;
+}
+
+.combat-rank-boss.combat-boss-phase-3:is(.battle-header, .monster-display, .tower-monster-card) {
+    background:
+        radial-gradient(circle at 78% 16%, rgba(248, 113, 113, 0.3), transparent 32%),
+        linear-gradient(135deg, rgba(127, 29, 29, 0.24), rgba(24, 24, 27, 0.2)) !important;
+    animation: combatBossDangerPulse 1.35s ease-in-out infinite;
+}
+
+@keyframes combatBossDangerPulse {
+    0%, 100% { filter: saturate(1); }
+    50% { filter: saturate(1.35) brightness(1.06); }
+}
+
+.damage-number {
+    position: absolute !important;
+    left: 50%;
+    top: 50%;
+    z-index: 2400 !important;
+    pointer-events: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 900;
+    line-height: 1;
+    color: #f8fafc;
+    text-shadow:
+        0 0 8px rgba(0, 0, 0, 0.9),
+        0 2px 6px rgba(0, 0, 0, 0.72);
+    animation: combatDamageFloat 0.78s cubic-bezier(0.2, 0.9, 0.2, 1) forwards !important;
+    will-change: transform, opacity;
+}
+
+.damage-number.damage-normal {
+    font-size: 34px !important;
+    color: #f8fafc !important;
+}
+
+.damage-number.damage-critical,
+.damage-number.critical {
+    font-size: 52px !important;
+    color: #ff5c5c !important;
+    letter-spacing: 0;
+    text-shadow:
+        0 0 12px rgba(255, 92, 92, 0.95),
+        0 0 26px rgba(239, 68, 68, 0.62),
+        0 2px 8px rgba(0, 0, 0, 0.86) !important;
+    animation: combatCritFloat 0.86s cubic-bezier(0.12, 1.45, 0.28, 1) forwards !important;
+}
+
+.damage-number.damage-block {
+    font-size: 30px !important;
+    color: #93c5fd !important;
+    text-shadow: 0 0 16px rgba(96, 165, 250, 0.72), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
+}
+
+.damage-number.damage-dodge,
+.damage-number.miss {
+    font-size: 30px !important;
+    color: rgba(226, 232, 240, 0.72) !important;
+    font-style: italic;
+    text-shadow: 0 0 10px rgba(148, 163, 184, 0.42), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
+}
+
+.damage-number.damage-armor-break {
+    font-size: 42px !important;
+    color: #f59e0b !important;
+    text-shadow: 0 0 16px rgba(245, 158, 11, 0.72), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
+.damage-number.damage-dot {
+    font-size: 24px !important;
+    color: #c084fc !important;
+    text-shadow: 0 0 12px rgba(168, 85, 247, 0.62), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
+    animation-duration: 1.05s !important;
+}
+
+.damage-number.damage-heal {
+    font-size: 28px !important;
+    color: #86efac !important;
+    text-shadow: 0 0 12px rgba(34, 197, 94, 0.62), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
+}
+
+.player-damage-number {
+    z-index: 2600 !important;
+    font-size: 32px !important;
+    color: #fb7185 !important;
+    text-shadow:
+        0 0 12px rgba(248, 113, 113, 0.9),
+        0 0 24px rgba(220, 38, 38, 0.44),
+        0 2px 8px rgba(0, 0, 0, 0.86) !important;
+    animation: combatPlayerDamageFloat 0.9s cubic-bezier(0.18, 1.18, 0.26, 1) forwards !important;
+}
+
+.player-damage-number.damage-player-heavy {
+    font-size: 42px !important;
+    color: #ef4444 !important;
+    animation: combatPlayerDamageHeavyFloat 0.95s cubic-bezier(0.12, 1.36, 0.24, 1) forwards !important;
+}
+
+@keyframes combatDamageFloat {
+    0% { transform: translate(-50%, -50%) scale(0.82); opacity: 0; }
+    12% { transform: translate(-50%, -58%) scale(1.08); opacity: 1; }
+    38% { transform: translate(-50%, -80%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -124%) scale(0.95); opacity: 0; }
+}
+
+@keyframes combatCritFloat {
+    0% { transform: translate(-50%, -50%) scale(0.72) rotate(-2deg); opacity: 0; }
+    10% { transform: translate(-51%, -57%) scale(1.22) rotate(2deg); opacity: 1; }
+    18% { transform: translate(-49%, -62%) scale(0.95) rotate(-1deg); }
+    42% { transform: translate(-50%, -86%) scale(1.05) rotate(0deg); opacity: 1; }
+    100% { transform: translate(-50%, -132%) scale(0.98); opacity: 0; }
+}
+
+@keyframes combatPlayerDamageFloat {
+    0% { transform: translate(-50%, -38%) scale(0.82); opacity: 0; }
+    12% { transform: translate(-52%, -52%) scale(1.1); opacity: 1; }
+    36% { transform: translate(-48%, -76%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -118%) scale(0.92); opacity: 0; }
+}
+
+@keyframes combatPlayerDamageHeavyFloat {
+    0% { transform: translate(-50%, -38%) scale(0.72) rotate(-1deg); opacity: 0; }
+    10% { transform: translate(-54%, -54%) scale(1.2) rotate(2deg); opacity: 1; }
+    18% { transform: translate(-46%, -62%) scale(0.95) rotate(-2deg); }
+    44% { transform: translate(-50%, -88%) scale(1.04) rotate(0deg); opacity: 1; }
+    100% { transform: translate(-50%, -130%) scale(0.94); opacity: 0; }
+}
+
+.buff-indicators {
+    align-items: center;
+}
+
+.buff-indicator {
+    position: relative;
+    min-width: 34px;
+    min-height: 34px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    background: rgba(15, 23, 42, 0.5);
+}
+
+.buff-indicator[data-tooltip-title] {
+    cursor: help;
+}
+
+.buff-indicator[data-tooltip-title]::before,
+.buff-indicator[data-tooltip-title]::after {
+    position: absolute;
+    left: 50%;
+    z-index: 2700;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.buff-indicator[data-tooltip-title]::before {
+    content: attr(data-tooltip-title) "\A" attr(data-tooltip-body);
+    bottom: calc(100% + 10px);
+    width: max-content;
+    max-width: 220px;
+    padding: 8px 10px;
+    white-space: pre-line;
+    color: #f8fafc;
+    background: rgba(8, 13, 18, 0.96);
+    border: 1px solid rgba(132, 186, 198, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38), 0 0 18px rgba(125, 211, 252, 0.1);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.45;
+    text-align: left;
+}
+
+.buff-indicator[data-tooltip-title]::after {
+    content: "";
+    bottom: calc(100% + 5px);
+    width: 8px;
+    height: 8px;
+    background: rgba(8, 13, 18, 0.96);
+    border-right: 1px solid rgba(132, 186, 198, 0.3);
+    border-bottom: 1px solid rgba(132, 186, 198, 0.3);
+    transform: translate(-50%, 4px) rotate(45deg);
+}
+
+.buff-indicator[data-tooltip-title]:hover::before,
+.buff-indicator[data-tooltip-title]:focus-visible::before,
+.buff-indicator[data-tooltip-title]:hover::after,
+.buff-indicator[data-tooltip-title]:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.buff-indicator[data-tooltip-title]:hover::after,
+.buff-indicator[data-tooltip-title]:focus-visible::after {
+    transform: translate(-50%, 0) rotate(45deg);
+}
+
+.buff-indicator.status-positive {
+    border-color: rgba(74, 222, 128, 0.38);
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.1);
+}
+
+.buff-indicator.status-negative {
+    border-color: rgba(248, 113, 113, 0.48);
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.12);
+}
+
+.buff-indicator.passive {
+    border-color: rgba(250, 204, 21, 0.42);
+    box-shadow: 0 0 16px rgba(250, 204, 21, 0.12);
+}
+
+.buff-indicator .buff-icon {
+    display: block;
+    font-size: 17px;
+    line-height: 1;
+}
+
+.buff-indicator .buff-duration {
+    position: absolute;
+    right: 3px;
+    bottom: 2px;
+    min-width: 14px;
+    padding: 0 3px;
+    border-radius: 999px;
+    color: #f8fafc;
+    background: rgba(0, 0, 0, 0.58);
+    font-size: 9px;
+    font-weight: 900;
+    line-height: 1.25;
+}
+
+.combat-screen-flash,
+.hit-vignette {
+    pointer-events: none;
+}
+
+.combat-screen-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 2300;
+    opacity: 0;
+    border-radius: inherit;
+    transition: opacity 0.18s ease;
+}
+
+.combat-screen-flash.active {
+    opacity: 1;
+    animation: combatFlash 0.18s ease-out forwards;
+}
+
+.combat-screen-flash.flash-hit {
+    background: radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.18), transparent 58%);
+}
+
+.combat-screen-flash.flash-crit,
+.combat-screen-flash.flash-kill {
+    background: radial-gradient(circle at 50% 36%, rgba(255, 255, 255, 0.28), rgba(248, 113, 113, 0.16) 48%, transparent 72%);
+}
+
+.combat-screen-flash.flash-armorBreak,
+.combat-screen-flash.flash-phase {
+    background: radial-gradient(circle at 50% 35%, rgba(251, 191, 36, 0.28), rgba(245, 158, 11, 0.12) 45%, transparent 72%);
+}
+
+@keyframes combatFlash {
+    0% { opacity: 0; }
+    22% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.combat-impact-critical {
+    animation: combatCriticalShake 0.28s ease-out;
+}
+
+.combat-impact-phase {
+    animation: combatPhasePulse 0.42s ease-out;
+}
+
+.combat-slow-motion {
+    filter: saturate(1.18) contrast(1.06);
+}
+
+.combat-kill-freeze {
+    animation: combatKillFreeze 0.42s cubic-bezier(0.1, 0.85, 0.2, 1);
+}
+
+@keyframes combatCriticalShake {
+    0%, 100% { transform: translate(0, 0); }
+    18% { transform: translate(-7px, 2px); }
+    36% { transform: translate(6px, -2px); }
+    54% { transform: translate(-3px, 1px); }
+    72% { transform: translate(2px, -1px); }
+}
+
+@keyframes combatPhasePulse {
+    0% { filter: brightness(1); }
+    36% { filter: brightness(1.26) saturate(1.4); }
+    100% { filter: brightness(1); }
+}
+
+@keyframes combatKillFreeze {
+    0% { transform: scale(1); filter: brightness(1); }
+    18% { transform: scale(1.012); filter: brightness(1.28) saturate(1.35); }
+    58% { transform: scale(1.006); filter: brightness(1.18) saturate(1.2); }
+    100% { transform: scale(1); filter: brightness(1); }
+}
+
+.combat-phase-warning {
+    position: absolute;
+    left: 50%;
+    top: 18px;
+    z-index: 2450;
+    width: min(460px, calc(100% - 32px));
+    transform: translateX(-50%);
+    padding: 12px 16px;
+    border: 1px solid rgba(245, 158, 11, 0.7);
+    border-radius: 8px;
+    color: #fff7ed;
+    text-align: center;
+    background: rgba(24, 17, 9, 0.92);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.36), 0 0 34px rgba(245, 158, 11, 0.2);
+    animation: combatPhaseWarning 1.4s ease forwards;
+}
+
+.combat-phase-warning .phase-kicker {
+    display: block;
+    margin-bottom: 2px;
+    color: #fbbf24;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+}
+
+.combat-phase-warning strong {
+    display: block;
+    font-size: 18px;
+    letter-spacing: 0;
+}
+
+@keyframes combatPhaseWarning {
+    0% { transform: translate(-50%, -8px); opacity: 0; }
+    15%, 75% { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, -10px); opacity: 0; }
+}
+
+/* Unified rarity surfaces: stable, non-flashing presentation for monsters and items. */
+:root {
+    --rarity-common-soft: rgba(158, 158, 158, 0.055);
+    --rarity-uncommon-soft: rgba(76, 175, 80, 0.07);
+    --rarity-rare-soft: rgba(33, 150, 243, 0.075);
+    --rarity-epic-soft: rgba(156, 39, 176, 0.08);
+    --rarity-legendary-soft: rgba(255, 152, 0, 0.085);
+}
+
+.rarity-frame.rarity-common,
+.rarity-common,
+.common {
+    --rarity-soft: rgba(158, 158, 158, 0.055) !important;
+}
+
+.rarity-frame.rarity-uncommon,
+.rarity-uncommon,
+.uncommon {
+    --rarity-soft: rgba(76, 175, 80, 0.07) !important;
+}
+
+.rarity-frame.rarity-rare,
+.rarity-rare,
+.rare {
+    --rarity-soft: rgba(33, 150, 243, 0.075) !important;
+}
+
+.rarity-frame.rarity-epic,
+.rarity-epic,
+.epic {
+    --rarity-soft: rgba(156, 39, 176, 0.08) !important;
+}
+
+.rarity-frame.rarity-legendary,
+.rarity-legendary,
+.legendary {
+    --rarity-soft: rgba(255, 152, 0, 0.085) !important;
+}
+
+:is(
+    .item-card,
+    .warehouse-item,
+    .inventory-item,
+    .shop-flow-card,
+    .player-inventory-item,
+    .loot-slot,
+    .loot-item,
+    .recipe-card,
+    .preview-item,
+    .selected-item,
+    .material-card,
+    .equipment-card,
+    .reward-item,
+    .affix-item,
+    .affix-tag,
+    .result-item,
+    .item-affix,
+    .item-tooltip-card,
+    .passive-effect-slot,
+    .passive-effect-choice,
+    .codex-list-row,
+    .codex-drop-token,
+    .codex-portrait
+):is(.rarity-frame, .common, .uncommon, .rare, .epic, .legendary, .rarity-common, .rarity-uncommon, .rarity-rare, .rarity-epic, .rarity-legendary) {
+    border-width: 1px !important;
+    border-style: solid !important;
+    border-color: color-mix(in srgb, var(--rarity-border, var(--ui-border)) 74%, rgba(237, 242, 244, 0.18)) !important;
+    background-color: color-mix(in srgb, var(--rarity-border, #edf2f4) 6%, rgba(15, 19, 25, 0.86)) !important;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.035), var(--rarity-soft, rgba(255, 255, 255, 0.035))) !important;
+    background-size: auto !important;
+    box-shadow:
+        inset 3px 0 0 color-mix(in srgb, var(--rarity-border, rgba(237, 242, 244, 0.3)) 72%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--rarity-border, rgba(237, 242, 244, 0.16)) 18%, transparent),
+        0 10px 22px rgba(0, 0, 0, 0.16) !important;
+    animation: none !important;
+    filter: none !important;
+}
+
+:is(
+    .item-card,
+    .warehouse-item,
+    .inventory-item,
+    .shop-flow-card,
+    .player-inventory-item,
+    .loot-slot,
+    .loot-item,
+    .recipe-card,
+    .preview-item,
+    .selected-item,
+    .material-card,
+    .equipment-card,
+    .reward-item,
+    .affix-item,
+    .affix-tag,
+    .result-item,
+    .item-affix,
+    .item-tooltip-card,
+    .passive-effect-slot,
+    .passive-effect-choice,
+    .codex-list-row,
+    .codex-drop-token,
+    .codex-portrait
+):is(.rarity-frame, .common, .uncommon, .rare, .epic, .legendary, .rarity-common, .rarity-uncommon, .rarity-rare, .rarity-epic, .rarity-legendary)::before,
+:is(
+    .item-card,
+    .warehouse-item,
+    .inventory-item,
+    .shop-flow-card,
+    .player-inventory-item,
+    .loot-slot,
+    .loot-item,
+    .recipe-card,
+    .preview-item,
+    .selected-item,
+    .material-card,
+    .equipment-card,
+    .reward-item,
+    .affix-item,
+    .affix-tag,
+    .result-item,
+    .item-affix,
+    .item-tooltip-card,
+    .passive-effect-slot,
+    .passive-effect-choice,
+    .codex-list-row,
+    .codex-drop-token,
+    .codex-portrait
+):is(.rarity-frame, .common, .uncommon, .rare, .epic, .legendary, .rarity-common, .rarity-uncommon, .rarity-rare, .rarity-epic, .rarity-legendary)::after {
+    animation: none !important;
+    background-image: none !important;
+    background: none !important;
+}
+
+:is(
+    .item-card,
+    .warehouse-item,
+    .inventory-item,
+    .shop-flow-card,
+    .player-inventory-item,
+    .loot-slot,
+    .loot-item,
+    .recipe-card,
+    .preview-item,
+    .selected-item,
+    .material-card,
+    .equipment-card,
+    .reward-item,
+    .affix-item,
+    .affix-tag,
+    .result-item,
+    .item-affix,
+    .item-tooltip-card,
+    .passive-effect-slot,
+    .passive-effect-choice,
+    .codex-list-row,
+    .codex-drop-token,
+    .codex-portrait
+):is(.rarity-frame, .common, .uncommon, .rare, .epic, .legendary, .rarity-common, .rarity-uncommon, .rarity-rare, .rarity-epic, .rarity-legendary):hover {
+    border-color: color-mix(in srgb, var(--rarity-border, var(--ui-border)) 86%, #ffffff) !important;
+    background-color: color-mix(in srgb, var(--rarity-border, #edf2f4) 8%, rgba(18, 23, 30, 0.9)) !important;
+    box-shadow:
+        inset 3px 0 0 color-mix(in srgb, var(--rarity-border, rgba(237, 242, 244, 0.3)) 84%, transparent),
+        inset 0 0 0 1px color-mix(in srgb, var(--rarity-border, rgba(237, 242, 244, 0.16)) 22%, transparent),
+        0 12px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.adventure-inventory-list .item-card::before,
+.shop-flow-card::before,
+.loot-slot::before,
+.recipe-card::before,
+.equipment-card::before,
+.codex-list-row::before,
+.codex-drop-token::before,
+.codex-portrait::before {
+    animation: none !important;
+    background: none !important;
+    opacity: 0 !important;
+}
+
+.combat-rank-elite:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-boss:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-boss.combat-boss-phase-2:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-boss.combat-boss-phase-3:is(.battle-header, .monster-display, .tower-monster-card) {
+    animation: none !important;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.018)),
+        rgba(16, 20, 27, 0.82) !important;
+}
+
+.combat-rank-elite:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-elite .avatar-hexagon {
+    border-color: rgba(96, 165, 250, 0.68) !important;
+    box-shadow:
+        inset 3px 0 0 rgba(96, 165, 250, 0.5),
+        inset 0 0 0 1px rgba(147, 197, 253, 0.14),
+        0 12px 26px rgba(0, 0, 0, 0.2) !important;
+}
+
+.combat-rank-boss:is(.battle-header, .monster-display, .tower-monster-card),
+.combat-rank-boss .avatar-hexagon {
+    border-color: rgba(245, 158, 11, 0.72) !important;
+    box-shadow:
+        inset 3px 0 0 rgba(245, 158, 11, 0.58),
+        inset 0 0 0 1px rgba(253, 230, 138, 0.15),
+        0 14px 30px rgba(0, 0, 0, 0.22) !important;
+}
+
+/* Combat monster card reset: remove loud rarity/BOSS effects and keep information readable. */
+.battle-modal .battle-header,
+.tower-scene .battle-header.tower-monster-card,
+.battle-header.tower-monster-card,
+.monster-display {
+    display: grid !important;
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    align-items: center !important;
+    justify-content: stretch !important;
+    gap: 16px !important;
+    width: 100% !important;
+    min-height: 128px !important;
+    margin: 0 0 12px !important;
+    padding: 16px 18px !important;
+    border: 1px solid rgba(132, 186, 198, 0.18) !important;
+    border-radius: 8px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.92) !important;
+    box-shadow: none !important;
+    animation: none !important;
+    filter: none !important;
+    overflow: hidden !important;
+}
+
+.battle-header.tower-monster-card.combat-rank-elite,
+.battle-modal .battle-header.combat-rank-elite,
+.monster-display.combat-rank-elite {
+    border-color: rgba(132, 186, 198, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.94) !important;
+    box-shadow: inset 3px 0 0 rgba(96, 165, 250, 0.62) !important;
+}
+
+.battle-header.tower-monster-card.combat-rank-boss,
+.battle-modal .battle-header.combat-rank-boss,
+.monster-display.combat-rank-boss,
+.battle-header.tower-monster-card.combat-rank-boss.combat-boss-phase-2,
+.battle-header.tower-monster-card.combat-rank-boss.combat-boss-phase-3 {
+    border-color: rgba(132, 186, 198, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.94) !important;
+    box-shadow: inset 3px 0 0 rgba(216, 171, 72, 0.76) !important;
+    animation: none !important;
+}
+
+.battle-header .monster-avatar-frame,
+.tower-monster-card .monster-avatar-frame,
+.battle-modal .monster-avatar-frame {
+    width: 76px !important;
+    height: 76px !important;
+    flex: 0 0 76px !important;
+    position: relative !important;
+    filter: none !important;
+}
+
+.battle-header .avatar-hexagon,
+.tower-monster-card .avatar-hexagon,
+.battle-modal .avatar-hexagon {
+    width: 100% !important;
+    height: 100% !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid rgba(132, 186, 198, 0.24) !important;
+    border-radius: 8px !important;
+    background: rgba(9, 13, 18, 0.76) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    animation: none !important;
+}
+
+.battle-header.combat-rank-elite .avatar-hexagon,
+.monster-display.combat-rank-elite .avatar-hexagon {
+    border-color: rgba(96, 165, 250, 0.5) !important;
+    box-shadow: inset 3px 0 0 rgba(96, 165, 250, 0.58) !important;
+}
+
+.battle-header.combat-rank-boss .avatar-hexagon,
+.monster-display.combat-rank-boss .avatar-hexagon {
+    border-color: rgba(216, 171, 72, 0.54) !important;
+    box-shadow: inset 3px 0 0 rgba(216, 171, 72, 0.62) !important;
+}
+
+.battle-header .avatar-hexagon::before,
+.battle-header .avatar-hexagon::after,
+.tower-monster-card .avatar-hexagon::before,
+.tower-monster-card .avatar-hexagon::after,
+.battle-modal .avatar-hexagon::before,
+.battle-modal .avatar-hexagon::after,
+.battle-header .avatar-glow,
+.tower-monster-card .avatar-glow,
+.battle-modal .avatar-glow,
+.combat-card-glow {
+    display: none !important;
+    animation: none !important;
+    background: none !important;
+}
+
+.battle-header .monster-icon,
+.tower-monster-card .monster-icon,
+.battle-modal .monster-icon {
+    font-size: 36px !important;
+    line-height: 1 !important;
+    filter: none !important;
+    text-shadow: none !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+.battle-header .monster-info,
+.tower-monster-card .monster-info,
+.battle-modal .monster-info {
+    min-width: 0 !important;
+    width: 100% !important;
+}
+
+.battle-header .monster-name-bar,
+.tower-monster-card .monster-name-bar,
+.battle-modal .monster-name-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    margin: 0 0 10px !important;
+    min-width: 0 !important;
+    flex-wrap: wrap !important;
+}
+
+.battle-header .monster-name,
+.tower-monster-card .monster-name,
+.battle-modal .monster-name {
+    color: #edf2f4 !important;
+    font-size: 22px !important;
+    font-weight: 900 !important;
+    line-height: 1.05 !important;
+    letter-spacing: 0 !important;
+    text-shadow: none !important;
+}
+
+.battle-header .monster-level,
+.tower-monster-card .monster-level,
+.battle-modal .monster-level,
+.combat-rank-badge {
+    min-height: 26px !important;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    color: rgba(226, 232, 240, 0.86) !important;
+    background: rgba(255, 255, 255, 0.055) !important;
+    border: 1px solid rgba(132, 186, 198, 0.22) !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+}
+
+.combat-rank-badge-boss {
+    color: #e7c46a !important;
+    background: rgba(216, 171, 72, 0.08) !important;
+    border-color: rgba(216, 171, 72, 0.38) !important;
+}
+
+.battle-header .monster-hp-container,
+.tower-monster-card .monster-hp-container,
+.battle-modal .monster-hp-container {
+    position: relative !important;
+    display: grid !important;
+    align-items: center !important;
+    width: min(100%, 520px) !important;
+    min-width: 0 !important;
+    margin: 0 0 12px !important;
+}
+
+.battle-header .hp-bar-track,
+.tower-monster-card .hp-bar-track,
+.battle-modal .hp-bar-track {
+    width: 100% !important;
+    height: 14px !important;
+    border: 1px solid rgba(132, 186, 198, 0.18) !important;
+    border-radius: 999px !important;
+    background: rgba(6, 9, 13, 0.7) !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+.battle-header .hp-bar-fill,
+.tower-monster-card .hp-bar-fill,
+.battle-modal .hp-bar-fill {
+    height: 100% !important;
+    border-radius: inherit !important;
+    background: #b84f56 !important;
+    box-shadow: none !important;
+    transition: width 0.22s ease !important;
+    overflow: hidden !important;
+}
+
+.battle-header .hp-bar-shine,
+.tower-monster-card .hp-bar-shine,
+.battle-modal .hp-bar-shine {
+    display: none !important;
+}
+
+.battle-header .hp-text,
+.tower-monster-card .hp-text,
+.battle-modal .hp-text {
+    position: absolute !important;
+    inset: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    height: 14px !important;
+    margin: 0 !important;
+    color: rgba(248, 250, 252, 0.92) !important;
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    text-align: center !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.48) !important;
+    transform: none !important;
+    pointer-events: none !important;
+}
+
+.battle-header .monster-stats,
+.tower-monster-card .monster-stats,
+.battle-modal .monster-stats {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+}
+
+.battle-header .stat-badge,
+.tower-monster-card .stat-badge,
+.battle-modal .stat-badge {
+    min-height: 30px !important;
+    padding: 5px 11px !important;
+    border-radius: 999px !important;
+    color: rgba(226, 232, 240, 0.9) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    border: 1px solid rgba(132, 186, 198, 0.18) !important;
+    box-shadow: none !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+}
+
+.battle-header .stat-badge.stat-atk,
+.tower-monster-card .stat-badge.stat-atk {
+    border-color: rgba(184, 79, 86, 0.34) !important;
+    color: rgba(248, 196, 200, 0.92) !important;
+}
+
+.battle-header .stat-badge.stat-def,
+.tower-monster-card .stat-badge.stat-def {
+    border-color: rgba(96, 165, 250, 0.3) !important;
+    color: rgba(191, 219, 254, 0.92) !important;
+}
+
+/* Modal combat header uses .battle-header as a wrapper; the real card is .monster-display. */
+.battle-modal .battle-header:not(.tower-monster-card),
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card) {
+    display: block !important;
+    width: 100% !important;
+    min-height: auto !important;
+    margin: 0 0 12px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    animation: none !important;
+    filter: none !important;
+    overflow: visible !important;
+}
+
+.battle-modal .battle-header:not(.tower-monster-card).combat-rank-elite,
+.battle-modal .battle-header:not(.tower-monster-card).combat-rank-boss,
+.battle-modal .battle-header:not(.tower-monster-card).combat-boss-phase-2,
+.battle-modal .battle-header:not(.tower-monster-card).combat-boss-phase-3,
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card).combat-rank-elite,
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card).combat-rank-boss,
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card).combat-boss-phase-2,
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card).combat-boss-phase-3 {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    animation: none !important;
+    filter: none !important;
+}
+
+.battle-modal .battle-header:not(.tower-monster-card) > .monster-display,
+.dungeon-combat-overlay .battle-header:not(.tower-monster-card) > .monster-display {
+    display: grid !important;
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    align-items: center !important;
+    justify-content: stretch !important;
+    gap: 16px !important;
+    width: 100% !important;
+    min-height: 116px !important;
+    margin: 0 !important;
+    padding: 16px 18px !important;
+    border: 1px solid rgba(132, 186, 198, 0.18) !important;
+    border-radius: 8px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.92) !important;
+    box-shadow: none !important;
+    animation: none !important;
+    filter: none !important;
+    overflow: hidden !important;
+}
+
+.battle-modal .battle-header.combat-rank-elite:not(.tower-monster-card) > .monster-display,
+.dungeon-combat-overlay .battle-header.combat-rank-elite:not(.tower-monster-card) > .monster-display,
+.battle-modal .monster-display.combat-rank-elite,
+.dungeon-combat-overlay .monster-display.combat-rank-elite {
+    border-color: rgba(132, 186, 198, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.94) !important;
+    box-shadow: inset 3px 0 0 rgba(96, 165, 250, 0.62) !important;
+}
+
+.battle-modal .battle-header.combat-rank-boss:not(.tower-monster-card) > .monster-display,
+.dungeon-combat-overlay .battle-header.combat-rank-boss:not(.tower-monster-card) > .monster-display,
+.battle-modal .monster-display.combat-rank-boss,
+.dungeon-combat-overlay .monster-display.combat-rank-boss {
+    border-color: rgba(132, 186, 198, 0.2) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+        rgba(18, 22, 29, 0.94) !important;
+    box-shadow: inset 3px 0 0 rgba(216, 171, 72, 0.76) !important;
+    animation: none !important;
+    filter: none !important;
+}
+
+.battle-header .hp-bar-liquid,
+.tower-monster-card .hp-bar-liquid,
+.battle-modal .hp-bar-liquid {
+    display: none !important;
+    animation: none !important;
+    background: none !important;
+}
+
+.battle-header .hp-bar-fill,
+.tower-monster-card .hp-bar-fill,
+.battle-modal .hp-bar-fill {
+    background-color: #b84f56 !important;
+    background-image: none !important;
 }

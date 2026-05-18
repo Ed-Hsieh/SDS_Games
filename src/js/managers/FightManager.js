@@ -75,6 +75,20 @@ function sumPercentFromEquipment(equipmentSlots, keys) {
     return total;
 }
 
+function getPassiveCombatBonus(character, stat) {
+    return typeof character?.getPassiveCombatBonus === 'function'
+        ? Math.max(0, Number(character.getPassiveCombatBonus(stat)) || 0)
+        : 0;
+}
+
+function applyMonsterDamagePassiveMitigation(monster, player, damage) {
+    let mitigation = getPassiveCombatBonus(player, 'monsterDamageReduction');
+    if (monster?.isBoss) mitigation += getPassiveCombatBonus(player, 'bossDamageReduction');
+    if (monster?.isElite) mitigation += getPassiveCombatBonus(player, 'eliteDamageReduction');
+    const clamped = Math.min(0.75, mitigation);
+    return clamped > 0 ? Math.max(1, Math.floor(damage * (1 - clamped))) : damage;
+}
+
 export function normalizeMonsterCombatStats(monster) {
     if (!monster) return monster;
 
@@ -154,7 +168,18 @@ export function computeMonsterAttack(monster, player) {
     const def = player.getTotalDef ? player.getTotalDef() : (player.def || 0);
     const normalizedMonster = normalizeMonsterCombatStats(monster);
     const raw = (normalizedMonster.attack || 0) - def;
-    const damage = Math.max(1, Math.floor(raw));
+    let damage = Math.max(1, Math.floor(raw));
+    const damageReduction = typeof player.getDamageReduction === 'function'
+        ? Number(player.getDamageReduction()) || 0
+        : 0;
+    if (damageReduction > 0) {
+        damage = Math.max(1, Math.floor(damage * (1 - Math.min(damageReduction, 0.75))));
+    }
+    damage = applyMonsterDamagePassiveMitigation(
+        normalizedMonster,
+        player,
+        damage
+    );
     return { damage };
 }
 
@@ -195,9 +220,11 @@ export function applyDamage(attacker, target, damageObj) {
     // Apply HP change
     if (typeof target.hp === 'number') {
         target.hp = Math.max(0, target.hp - finalDamage);
+        if ('currentHp' in target) target.currentHp = target.hp;
     } else if (target.setHP) {
         const newHP = Math.max(0, beforeHP - finalDamage);
         target.setHP(newHP);
+        if ('currentHp' in target) target.currentHp = newHP;
     }
 
     // Lifesteal: apply to attacker if present

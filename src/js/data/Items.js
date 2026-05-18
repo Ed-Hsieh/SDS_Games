@@ -24,15 +24,15 @@ export const ShopData = {
         items: [
             // 基礎恢復藥水
             { id: 'health_potion', name: '生命藥水', icon: '🧪', type: 'potion', rarity: 'common', hp: 50, price: 50, desc: '恢復少量生命值。' },
-            { id: 'mana_potion', name: '魔力藥水', icon: '💙', type: 'potion', rarity: 'uncommon', mp: 30, price: 80, desc: '恢復少量魔力值。' },
-            { id: 'elixir', name: '萬能藥', icon: '✨', type: 'potion', rarity: 'rare', hp: 100, mp: 50, price: 300, desc: '完全恢復狀態的神奇藥水。' },
+            { id: 'first_aid_potion', name: '急救藥水', icon: '🩹', type: 'potion', rarity: 'uncommon', hp: 80, price: 80, desc: '恢復中量生命值。' },
+            { id: 'elixir', name: '萬能藥', icon: '✨', type: 'potion', rarity: 'rare', hp: 160, price: 300, desc: '大幅恢復生命狀態的神奇藥水。' },
             // 新增：增益藥水
-            { id: 'strength_potion', name: '力量藥水', icon: '💪', type: 'potion', rarity: 'uncommon', buff: { type: 'atk', value: 15, duration: 5 }, price: 120, desc: '暫時提升攻擊力 +15，持續5回合。' },
-            { id: 'defense_potion', name: '防禦藥水', icon: '🛡️', type: 'potion', rarity: 'uncommon', buff: { type: 'def', value: 10, duration: 5 }, price: 100, desc: '暫時提升防禦力 +10，持續5回合。' },
-            { id: 'lucky_potion', name: '幸運藥水', icon: '🍀', type: 'potion', rarity: 'rare', buff: { type: 'critChance', value: 0.15, duration: 5 }, price: 200, desc: '暫時提升爆擊率 +15%，持續5回合。' },
+            { id: 'strength_potion', name: '力量藥水', icon: '💪', type: 'potion', rarity: 'uncommon', buff: { type: 'atk', value: 15, duration: 5 }, price: 120, desc: '暫時提升攻擊力 +15，約5秒。' },
+            { id: 'defense_potion', name: '防禦藥水', icon: '🛡️', type: 'potion', rarity: 'uncommon', buff: { type: 'def', value: 10, duration: 5 }, price: 100, desc: '暫時提升防禦力 +10，約5秒。' },
+            { id: 'lucky_potion', name: '幸運藥水', icon: '🍀', type: 'potion', rarity: 'rare', buff: { type: 'critChance', value: 0.15, duration: 5 }, price: 200, desc: '暫時提升爆擊率 +15%，約5秒。' },
             // 新增：大型恢復藥水
             { id: 'greater_health_potion', name: '大型生命藥水', icon: '❤️', type: 'potion', rarity: 'uncommon', hp: 100, price: 120, desc: '恢復大量生命值。' },
-            { id: 'greater_mana_potion', name: '大型魔力藥水', icon: '💎', type: 'potion', rarity: 'uncommon', mp: 60, price: 150, desc: '恢復大量魔力值。' }
+            { id: 'emergency_potion', name: '緊急生命藥水', icon: '💎', type: 'potion', rarity: 'rare', hp: 180, price: 150, desc: '在危急時快速恢復大量生命值。' }
         ]
     },
     merchant: {
@@ -55,12 +55,12 @@ export const ShopData = {
         npcPortrait: '',
         dialogue: '知識即力量。這些捲軸記載著失落的技藝。',
         items: [
-            { id: 'fire_scroll', name: '火球術捲軸', icon: '🔥', type: 'scroll', rarity: 'uncommon', price: 120, desc: '記載著火球術的魔法捲軸。' },
-            { id: 'ice_scroll', name: '冰霜術捲軸', icon: '❄️', type: 'scroll', rarity: 'uncommon', price: 120, desc: '記載著冰霜術的魔法捲軸。' },
+            { id: 'sharp_focus_manual', name: '銳利專注手記', icon: '🎯', type: 'book', rarity: 'uncommon', passiveEffectId: 'sharp_focus', price: 120, desc: '記錄提高爆擊判讀的戰鬥心得。' },
+            { id: 'guard_memory_manual', name: '守勢記憶手記', icon: '🛡️', type: 'book', rarity: 'uncommon', passiveEffectId: 'guard_memory', price: 120, desc: '記錄穩定防守姿態的戰鬥心得。' },
             { id: 'ancient_tome', name: '古代典籍', icon: '📕', type: 'book', rarity: 'epic', price: 800, desc: '一本記載著古代歷史的厚重書籍。' },
-            // 新增：技能書
-            { id: 'thunder_scroll', name: '雷電術捲軸', icon: '⚡', type: 'scroll', rarity: 'rare', price: 250, desc: '記載著強力雷電術的捲軸。' },
-            { id: 'heal_scroll', name: '治療術捲軸', icon: '💚', type: 'scroll', rarity: 'uncommon', price: 150, desc: '記載著治療術的捲軸。' }
+            // 新增：戰鬥效果手記
+            { id: 'quick_rhythm_manual', name: '迅捷節奏手記', icon: '⚡', type: 'book', rarity: 'rare', passiveEffectId: 'quick_rhythm', price: 250, desc: '記錄提高攻擊頻率的戰鬥心得。' },
+            { id: 'fatal_reading_manual', name: '致命判讀手記', icon: '💥', type: 'book', rarity: 'rare', passiveEffectId: 'fatal_reading', price: 150, desc: '記錄提高爆擊傷害的戰鬥心得。' }
         ]
     }
 };
@@ -73,8 +73,8 @@ export const SecretShopItems = [
     // 傳說飾品：高爆擊
     { id: 'time_amulet', name: '時間護符', icon: '⏰', type: 'accessory', rarity: 'legendary', attack: 5, defense: 5, critChance: 0.3, critDamage: 2.0, price: 6000, desc: '可以操控時間的神秘護符。' },
     // 新增：傳說藥水
-    { id: 'immortal_elixir', name: '不死藥劑', icon: '⭐', type: 'potion', rarity: 'legendary', hp: 999, mp: 999, price: 3000, desc: '傳說中的不死藥劑，完全恢復一切。' },
-    { id: 'berserker_potion', name: '狂戰士藥劑', icon: '😈', type: 'potion', rarity: 'legendary', buff: { type: 'atk', value: 50, duration: 3 }, price: 2000, desc: '使你暫時化身為狂戰士，攻擊力大幅提升！' },
+    { id: 'immortal_elixir', name: '不死藥劑', icon: '⭐', type: 'potion', rarity: 'legendary', hp: 999, price: 3000, desc: '傳說中的不死藥劑，完全恢復生命。' },
+    { id: 'berserker_potion', name: '狂戰士藥劑', icon: '😈', type: 'potion', rarity: 'legendary', buff: { type: 'atk', value: 50, duration: 3 }, price: 2000, desc: '使你暫時化身為狂戰士，攻擊力短時間大幅提升！' },
     // 高級鍛造素材
     { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: 'material', rarity: 'rare', price: 450, desc: '高階裝備製作與重鑄常用的礦物。' },
     { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: 'material', rarity: 'rare', price: 650, desc: '可用於特殊裝備與高階鍛造。' },

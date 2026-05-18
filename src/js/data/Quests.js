@@ -1045,7 +1045,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 0,
-                // items: ['mystery_box'] // 開啟獲得隨機稀有道具
+                items: ['mystery_box']
             },
             unlocks: ['hidden_dark_deal'],
             dialogue: {
@@ -1072,7 +1072,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.TALK, target: 'beggar', count: 1, description: '與乞丐對話' }
             ],
             rewards: {
-                // items: ['beggars_wisdom'] // 金幣獲取 +10%
+                items: ['beggars_wisdom']
             },
             dialogue: {
                 start: '你也淪落到這個地步了嗎？來，我教你一些生存的智慧...',
@@ -1094,7 +1094,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.KILL, target: 'any', count: 1, description: '在下次戰鬥中獲勝' }
             ],
             rewards: {
-                // items: ['phoenix_feather'] // 死亡時自動復活一次
+                items: ['phoenix_feather']
             },
             dialogue: {
                 start: '死亡...不是終點。你開始明白了。',
@@ -1116,7 +1116,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.GAMBLE_WIN, target: 'any', count: 1, description: '再贏一次' }
             ],
             rewards: {
-                // items: ['gamblers_fallacy'] // 連敗後勝率提升
+                items: ['gamblers_fallacy']
             },
             dialogue: {
                 start: '都說賭博害人...但你還是要繼續嗎？',
@@ -1138,7 +1138,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.COLLECT, target: 'soul_fragment', count: 3, description: '收集靈魂碎片 3 個' }
             ],
             rewards: {
-                // items: ['demon_contract'] // 所有屬性 +10，但每場戰鬥扣 5% HP
+                items: ['demon_contract']
             },
             dialogue: {
                 start: '你已經踏入了深淵...願意走得更深嗎？',
@@ -1160,7 +1160,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.GAMBLE_WIN, target: 'slots', count: 7, description: '在老虎機連續獲勝 7 次' }
             ],
             rewards: {
-                // items: ['lucky_charm_7'] // 所有機率判定 +7%
+                items: ['lucky_charm_7']
             },
             dialogue: {
                 start: '七...這個數字似乎與你有緣。',
@@ -1182,7 +1182,7 @@ export const QuestDatabase = {
                 { type: ObjectiveType.ENHANCE, target: 'legendary', count: 1, description: '強化傳說裝備 1 次' }
             ],
             rewards: {
-                // items: ['transcend_stone'] // 突破強化上限
+                items: ['transcend_stone']
             },
             dialogue: {
                 start: '+10 不是終點，只是新的起點...',
@@ -1210,7 +1210,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 5000,
                 exp: 2000,
-                // items: ['dungeon_master_badge']
+                items: ['dungeon_master_badge']
             },
             dialogue: {
                 start: '五大副本的征服者...這是屬於真正英雄的稱號。',

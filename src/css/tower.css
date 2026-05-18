@@ -320,7 +320,7 @@
 
 
 
-.hp-bar, .mp-bar {
+.hp-bar {
     width: 150px;
     height: 20px;
     background: #333;
@@ -340,13 +340,7 @@
     background: linear-gradient(90deg, #e74c3c, #c0392b);
 }
 
-.mp-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3498db, #2980b9);
-    transition: width 0.3s;
-}
-
-.hp-text, .mp-text {
+.hp-text {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -363,68 +357,8 @@
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
-/* battle log removed */
-
 /* 戰鬥操作 */
-.battle-actions {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding: 15px 0;
-}
 
-.btn-action {
-    padding: 12px 25px;
-    font-size: 1rem;
-    border: 2px solid #444;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
-    min-width: 100px;
-}
-
-.btn-action.attack {
-    background: linear-gradient(135deg, #e74c3c, #c0392b);
-    color: #fff;
-    border-color: #e74c3c;
-}
-
-.btn-action.attack:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5);
-}
-
-.btn-action.skill {
-    background: linear-gradient(135deg, #9b59b6, #8e44ad);
-    color: #fff;
-    border-color: #9b59b6;
-}
-
-.btn-action.skill:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(155, 89, 182, 0.5);
-}
-
-.btn-action.item {
-    background: linear-gradient(135deg, #2ecc71, #27ae60);
-    color: #fff;
-    border-color: #2ecc71;
-}
-
-.btn-action.item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.5);
-}
-
-.btn-action.flee {
-    background: rgba(255, 255, 255, 0.1);
-    color: #aaa;
-}
-
-.btn-action.flee:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-}
 
 /* 結果狀態 */
 .result-state {
@@ -642,7 +576,6 @@
 }
 
 /* ===== 彈出選單 ===== */
-.skill-menu-popup,
 .item-menu-popup {
     position: fixed;
     top: 0;
@@ -945,10 +878,6 @@
     background: linear-gradient(90deg, #2ecc71, #27ae60);
 }
 
-.tower-player-battle-panel .vital-bar-fill.mp-fill {
-    background: linear-gradient(90deg, #3498db, #2980b9);
-}
-
 .tower-player-battle-panel .vital-text {
     width: 70px;
     text-align: right;
@@ -1066,5 +995,3 @@
 .tower-action-deck .flee-card .card-title {
     color: #95a5a6;
 }
-
-/* battle log removed */

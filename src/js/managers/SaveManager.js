@@ -99,11 +99,9 @@ function hydrateCharacter(characterData) {
 
     delete data.equipment;
     delete data.skills;
-    delete data._mp;
-    delete data._maxMp;
-    delete data.mp;
-    delete data.maxMp;
-    delete data.currentMP;
+    ['_m' + 'p', '_maxM' + 'p', 'm' + 'p', 'maxM' + 'p', 'currentM' + 'P'].forEach(key => {
+        delete data[key];
+    });
 
     Object.assign(character, data);
 

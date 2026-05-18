@@ -9,7 +9,17 @@ import GameManager from '../managers/GameManager.js';
 import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { worldStoryManager } from '../managers/WorldStoryManager.js';
+import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import {
+    renderCombatMonster,
+    renderCombatPlayer,
+    renderCombatBuffIndicators,
+    showCombatDamageNumber,
+    showCombatPlayerHitFeedback,
+    showCombatKillFreeze
+} from '../utils/CombatUI.js';
 
 // Preload FightManager engine
 let FightManager = null;
@@ -68,7 +78,6 @@ class DungeonSceneClass {
         
         // 緩存 DOM
         this.cacheElements();
-        this.applyDungeonControls(dungeonType);
         
         // 初始化 Canvas
         const canvasReady = this.initCanvas();
@@ -89,11 +98,6 @@ class DungeonSceneClass {
         this.addMessage(`📍 進入 ${dungeonData.name} 第 ${this.currentFloor} 層`);
         this.addMessage(`💡 ${dungeonData.environment?.ambiance || '小心前進...'}`);
         questManager.updateProgress(ObjectiveType.DUNGEON_FLOOR, this.dungeonType, 1);
-        
-        // 雪峰特殊提示
-        if (dungeonType === 'snow') {
-            this.addMessage('❄️ 天寒地凍：此副本無法使用技能！', 'warning');
-        }
         
     }
     
@@ -120,14 +124,6 @@ class DungeonSceneClass {
         });
     }
 
-    applyDungeonControls(dungeonType) {
-        if (!this.dom.btnSkill) return;
-
-        const skillDisabled = dungeonType === 'snow';
-        this.dom.btnSkill.disabled = skillDisabled;
-        this.dom.btnSkill.title = skillDisabled ? '極寒環境會干擾技能施放' : '';
-    }
-    
     cacheElements() {
         // 使用統一的 ID 結構
         this.dom = {
@@ -140,8 +136,6 @@ class DungeonSceneClass {
             playerLevel: document.getElementById('player-level'),
             playerHp: document.getElementById('player-hp'),
             playerHpBar: document.getElementById('player-hp-bar'),
-            playerMp: document.getElementById('player-mp'),
-            playerMpBar: document.getElementById('player-mp-bar'),
             
             // 機制面板
             mechanicPanel: document.getElementById('mechanic-panel'),
@@ -169,8 +163,7 @@ class DungeonSceneClass {
             hudPlayerName: document.getElementById('hud-player-name'),
             hudHpBar: document.getElementById('hud-hp-bar'),
             hudHpText: document.getElementById('hud-hp-text'),
-            hudMpBar: document.getElementById('hud-mp-bar'),
-            hudMpText: document.getElementById('hud-mp-text'),
+            buffIndicators: document.getElementById('buff-indicators'),
             weaponIcon: document.getElementById('weapon-icon'),
             weaponName: document.getElementById('weapon-name'),
             weaponDamage: document.getElementById('weapon-damage'),
@@ -178,7 +171,6 @@ class DungeonSceneClass {
             
             // 行動按鈕
             btnAttack: document.getElementById('action-weapon') || document.getElementById('btn-attack'),
-            btnSkill: document.getElementById('action-skill') || document.getElementById('btn-skill'),
             btnItem: document.getElementById('action-potion') || document.getElementById('btn-item'),
             btnFlee: document.getElementById('action-flee') || document.getElementById('btn-flee'),
             btnExit: document.getElementById('btn-exit'),
@@ -242,7 +234,6 @@ class DungeonSceneClass {
         
         // 戰鬥按鈕
         this.dom.btnAttack?.addEventListener('click', () => this.playerAttack());
-        this.dom.btnSkill?.addEventListener('click', () => this.playerUseSkill());
         this.dom.btnItem?.addEventListener('click', () => this.playerUseItem());
         this.dom.btnFlee?.addEventListener('click', () => this.playerFlee());
         
@@ -454,6 +445,35 @@ class DungeonSceneClass {
         this.dungeonMap.updateExplored?.();
     }
 
+    getPassiveCombatBonus(stat) {
+        const char = GameManager.getCharacter();
+        return typeof char?.getPassiveCombatBonus === 'function'
+            ? Math.max(0, Number(char.getPassiveCombatBonus(stat)) || 0)
+            : 0;
+    }
+
+    reduceByPassive(amount, stat, cap = 0.8) {
+        const reduction = Math.min(cap, this.getPassiveCombatBonus(stat));
+        return Math.max(1, Math.floor(amount * (1 - reduction)));
+    }
+
+    applyPassiveHealingBonus(amount) {
+        const bonus = this.getPassiveCombatBonus('healingReceived');
+        return Math.max(1, Math.floor(amount * (1 + bonus)));
+    }
+
+    getDungeonDamageMitigation(reason = '') {
+        const text = String(reason);
+        let reduction = this.getPassiveCombatBonus('hazardDamageReduction');
+
+        if (/毒|沼|中毒/.test(text)) reduction += this.getPassiveCombatBonus('poisonMitigation');
+        if (/寒|冰|雪|補給不足/.test(text)) reduction += this.getPassiveCombatBonus('coldMitigation');
+        if (/火|炎|灼|岩漿|煉獄/.test(text)) reduction += this.getPassiveCombatBonus('burnMitigation');
+        if (/陷阱|機關|突襲|錯誤/.test(text)) reduction += this.getPassiveCombatBonus('trapDamageReduction');
+
+        return Math.min(0.8, reduction);
+    }
+
     processCaveStep() {
         if (this.stepCount % 6 !== 0) return;
 
@@ -468,7 +488,8 @@ class DungeonSceneClass {
         const mechanic = DungeonDatabase[this.dungeonType]?.mechanic;
         const hasWarmth = this.hasCounterItem('warm_cloak') || this.hasCounterItem('heart_of_ice') || this.hasEquipmentSpecial('coldImmune');
         const maxCold = mechanic?.effect?.maxCold ?? 100;
-        const coldGain = hasWarmth ? 1 : (mechanic?.effect?.coldPerStep ?? 2);
+        const baseColdGain = hasWarmth ? 1 : (mechanic?.effect?.coldPerStep ?? 2);
+        const coldGain = this.reduceByPassive(baseColdGain, 'coldGainReduction', 0.75);
 
         this.mechanicState.cold = Math.min(maxCold, this.mechanicState.cold + coldGain);
 
@@ -519,6 +540,7 @@ class DungeonSceneClass {
 
         let chance = DungeonDatabase[this.dungeonType]?.mechanic?.effect?.lostChance ?? 0.3;
         chance -= this.mechanicState.markers * 0.07;
+        chance -= this.getPassiveCombatBonus('lostChanceReduction');
         if (protectedByItem) chance *= 0.5;
         chance = Math.max(0.05, chance);
 
@@ -603,6 +625,13 @@ class DungeonSceneClass {
     consumeColdSupply(hasWarmth = false) {
         const stack = this.findConsumableStack();
         if (stack && !hasWarmth) {
+            const savedSupply = Math.random() < Math.min(0.8, this.getPassiveCombatBonus('snowSupplySaving'));
+            if (savedSupply) {
+                this.mechanicState.supplyStress += 1;
+                this.addMessage('雪行節拍讓這次補給消耗被保留下來。', 'success');
+                return true;
+            }
+
             stack.quantity = Number(stack.quantity ?? 1) - 1;
             if (stack.quantity <= 0) {
                 const inventory = GameManager.state.inventory || [];
@@ -631,6 +660,11 @@ class DungeonSceneClass {
     applyHellDurabilityPressure() {
         this.mechanicState.durabilityStress += 1;
         const destroyed = [];
+        const savedDurability = Math.random() < Math.min(0.8, this.getPassiveCombatBonus('durabilityLossReduction'));
+        if (savedDurability) {
+            this.addMessage('餘燼淬身讓裝備避開了這次高溫磨耗。', 'success');
+            return;
+        }
 
         const weaponDestroyed = GameManager.reduceWeaponDurability?.();
         if (weaponDestroyed) destroyed.push(weaponDestroyed.name || '武器');
@@ -651,9 +685,12 @@ class DungeonSceneClass {
         const char = GameManager.getCharacter();
         if (!char || amount <= 0) return 0;
 
-        const finalAmount = Math.max(1, Math.floor(amount));
+        const baseAmount = Math.max(1, Math.floor(amount));
+        const mitigation = this.getDungeonDamageMitigation(reason);
+        const finalAmount = Math.max(1, Math.floor(baseAmount * (1 - mitigation)));
+        const mitigatedText = finalAmount < baseAmount ? `（技能減免 ${baseAmount - finalAmount}）` : '';
         char.hp = Math.max(0, (char.hp || 0) - finalAmount);
-        this.addMessage(`${reason}：受到 ${finalAmount} 點傷害。`, type);
+        this.addMessage(`${reason}：受到 ${finalAmount} 點傷害${mitigatedText}。`, type);
         GameManager.markSaveDirty?.('dungeon-damage');
         return finalAmount;
     }
@@ -662,7 +699,7 @@ class DungeonSceneClass {
         return (GameManager.state.inventory || []).find(stack => {
             const item = stack?.item;
             const quantity = Number(stack?.quantity ?? 1);
-            return quantity > 0 && (item?.type === 'potion' || Boolean(item?.effect?.hp) || Boolean(item?.effect?.mp));
+            return quantity > 0 && (item?.type === 'potion' || Boolean(item?.effect?.hp) || Boolean(item?.buff));
         }) || null;
     }
 
@@ -683,11 +720,12 @@ class DungeonSceneClass {
 
     getPuzzleFragmentRequired() {
         if (this.hasCounterItem('ancient_codex') || this.hasEquipmentSpecial('puzzleHint')) return 1;
-        return 2;
+        return Math.max(1, 2 - Math.floor(this.getPassiveCombatBonus('puzzleClueBonus')));
     }
 
     getMarkerRequired() {
-        return DungeonDatabase.jungle?.mechanic?.effect?.markerRequired ?? 3;
+        const baseRequired = DungeonDatabase.jungle?.mechanic?.effect?.markerRequired ?? 3;
+        return Math.max(1, baseRequired - Math.floor(this.getPassiveCombatBonus('markerRequirementReduction')));
     }
 
     getMazeInterval() {
@@ -728,7 +766,8 @@ class DungeonSceneClass {
         const char = GameManager.getCharacter();
         const eventName = event.name || '未知事件';
         const healPlayer = percent => {
-            const amount = Math.max(1, Math.floor((char.maxHp || 100) * percent));
+            const baseAmount = Math.max(1, Math.floor((char.maxHp || 100) * percent));
+            const amount = this.applyPassiveHealingBonus(baseAmount);
             char.hp = Math.min(char.maxHp || 100, (char.hp || 0) + amount);
             this.addMessage(`💚 ${eventName}：恢復 ${amount} 生命`, 'success');
             return amount;
@@ -746,8 +785,7 @@ class DungeonSceneClass {
                     return;
                 }
                 if (event.damage) {
-                    char.hp = Math.max(1, (char.hp || 1) - event.damage);
-                    this.addMessage(`⚠️ ${eventName}：受到 ${event.damage} 點傷害`, 'danger');
+                    this.applyDungeonDamage(event.damage, eventName, 'danger');
                 }
                 if (event.poison) {
                     this.mechanicState.poisonSteps = Math.max(this.mechanicState.poisonSteps, event.poison.duration || 3);
@@ -760,8 +798,7 @@ class DungeonSceneClass {
                 }
                 break;
             case 'lava':
-                char.hp = Math.max(1, (char.hp || 1) - (event.damage || 0));
-                this.addMessage(`🔥 ${eventName}：受到 ${event.damage || 0} 點傷害`, 'danger');
+                this.applyDungeonDamage(event.damage || 0, eventName, 'danger');
                 break;
             case 'treasure': {
                 const gold = rollGold(event.goldRange);
@@ -786,8 +823,9 @@ class DungeonSceneClass {
                 }
                 break;
             case 'blizzard':
-                this.mechanicState.cold = Math.min(100, this.mechanicState.cold + (event.coldIncrease || 0));
-                this.addMessage(`❄️ ${eventName}：寒意上升 ${event.coldIncrease || 0}`, 'warning');
+                const coldIncrease = this.reduceByPassive(event.coldIncrease || 0, 'coldGainReduction', 0.75);
+                this.mechanicState.cold = Math.min(100, this.mechanicState.cold + coldIncrease);
+                this.addMessage(`❄️ ${eventName}：寒意上升 ${coldIncrease}`, 'warning');
                 break;
             case 'puzzle_bonus':
                 this.mechanicState.puzzleFragments = Math.min(
@@ -969,52 +1007,21 @@ class DungeonSceneClass {
     
     updateMonsterDisplay() {
         if (!this.currentMonster) return;
-        
-        const m = this.currentMonster;
-        if (this.dom.monsterIcon) this.dom.monsterIcon.textContent = m.icon;
-        if (this.dom.monsterName) {
-            this.dom.monsterName.textContent = m.name;
-        }
-        if (this.dom.monsterLevel) this.dom.monsterLevel.textContent = m.level || '?';
-        if (this.dom.monsterHp) this.dom.monsterHp.textContent = `${m.hp}/${m.maxHp}`;
-        if (this.dom.monsterAtk) this.dom.monsterAtk.textContent = m.attack ?? m.atk ?? 0;
-        if (this.dom.monsterDef) this.dom.monsterDef.textContent = m.defense ?? m.def ?? 0;
-        if (this.dom.monsterHpBar) {
-            this.dom.monsterHpBar.style.width = `${(m.hp / m.maxHp) * 100}%`;
-        }
+        renderCombatMonster(this.dom.combatOverlay || document, this.currentMonster);
     }
 
     updateBattlePlayerDisplay() {
         const char = GameManager.getCharacter();
         if (!char) return;
 
-        const hpMax = char.maxHp || 100;
-        const mpMax = char.maxMp || 50;
-        const hp = char.hp || 0;
-        const mp = char.mp || 0;
-        const weapon = char.equipment?.weapon || null;
+        renderCombatPlayer(this.dom.combatOverlay || document, char, {
+            inventory: GameManager.state.inventory,
+            fallbackName: '冒險者'
+        });
+    }
 
-        if (this.dom.hudPlayerLevel) this.dom.hudPlayerLevel.textContent = char.level || 1;
-        if (this.dom.hudPlayerName) this.dom.hudPlayerName.textContent = char.name || '冒險者';
-        if (this.dom.hudHpText) this.dom.hudHpText.textContent = `${hp}/${hpMax}`;
-        if (this.dom.hudHpBar) this.dom.hudHpBar.style.width = `${Math.max(0, Math.min(100, (hp / hpMax) * 100))}%`;
-        if (this.dom.hudMpText) this.dom.hudMpText.textContent = `${mp}/${mpMax}`;
-        if (this.dom.hudMpBar) this.dom.hudMpBar.style.width = `${Math.max(0, Math.min(100, (mp / mpMax) * 100))}%`;
-
-        if (this.dom.weaponIcon) this.dom.weaponIcon.textContent = weapon?.icon || '⚔️';
-        if (this.dom.weaponName) this.dom.weaponName.textContent = weapon?.name || '徒手攻擊';
-        if (this.dom.weaponDamage) {
-            const attack = typeof char.getTotalAtk === 'function' ? char.getTotalAtk() : char.baseAtk || 0;
-            this.dom.weaponDamage.textContent = attack;
-        }
-        if (this.dom.potionQuantity) {
-            const potionCount = (GameManager.state.inventory || []).reduce((sum, stack) => {
-                const item = stack?.item;
-                const isPotion = item?.type === 'potion' || item?.effect?.hp || item?.effect?.mp;
-                return isPotion ? sum + (Number(stack.quantity) || 1) : sum;
-            }, 0);
-            this.dom.potionQuantity.textContent = potionCount > 0 ? `x${potionCount}` : '無';
-        }
+    renderBuffIndicators(char) {
+        renderCombatBuffIndicators(this.dom.buffIndicators, char);
     }
     
     playerAttack() {
@@ -1045,14 +1052,6 @@ class DungeonSceneClass {
             this.endBattle(true);
             return;
         }
-    }
-    
-    playerUseSkill() {
-        if (this.dungeonType === 'snow') {
-            this.addMessage('極寒環境干擾技能施放，先降低寒冷或準備保暖道具。', 'warning');
-            return;
-        }
-        this.addMessage('⚡ 技能系統整合中...', 'info');
     }
     
     playerUseItem() {
@@ -1119,6 +1118,7 @@ class DungeonSceneClass {
             chance = 0.44;
         }
 
+        chance += this.getPassiveCombatBonus('fleeChanceBonus');
         if (this.hasEquipmentSpecial('moveSpeed')) chance += 0.1;
         return Math.max(0.15, Math.min(0.8, chance));
     }
@@ -1127,7 +1127,8 @@ class DungeonSceneClass {
         if (this.dungeonType !== 'jungle') return;
 
         const char = GameManager.getCharacter();
-        const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.08));
+        const reduction = Math.min(0.8, this.getPassiveCombatBonus('retreatCostReduction'));
+        const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.08 * (1 - reduction)));
         this.applyDungeonDamage(damage, '毒沼撤退成本', 'warning');
         this.addMessage('毒沼地形讓撤退變得沉重。', 'warning');
     }
@@ -1156,54 +1157,14 @@ class DungeonSceneClass {
     }
 
     showMonsterDamageNumber(damage, isCrit = false) {
-        const battleHeader = this.dom.combatOverlay?.querySelector('.battle-header');
-        if (!battleHeader) return;
-
-        const damageEl = document.createElement('div');
-        damageEl.className = `damage-number ${isCrit ? 'critical' : ''}`;
-        damageEl.textContent = isCrit ? `-${damage}!!` : `-${damage}`;
-
-        const hpContainer = battleHeader.querySelector('.monster-hp-container');
-        if (hpContainer) {
-            const rect = hpContainer.getBoundingClientRect();
-            const headerRect = battleHeader.getBoundingClientRect();
-            const dx = rect.left - headerRect.left + rect.width / 2;
-            const dy = rect.top - headerRect.top - 10;
-            damageEl.style.transform = `translate(${dx}px, ${dy}px)`;
-            damageEl.style.willChange = 'transform';
-        }
-
-        battleHeader.appendChild(damageEl);
-        setTimeout(() => damageEl.remove(), 800);
+        showCombatDamageNumber(this.dom.combatOverlay, damage, {
+            type: damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal',
+            isCrit
+        });
     }
 
     showPlayerHitFeedback(damage = 0) {
-        const overlay = this.dom.combatOverlay;
-        if (!overlay) return;
-
-        const char = GameManager.getCharacter();
-        const maxHp = char?.maxHp || 100;
-        const hpPercent = ((char?.hp || 0) / maxHp) * 100;
-        const damagePercent = (damage / maxHp) * 100;
-
-        let vignetteEl = overlay.querySelector('.hit-vignette');
-        if (!vignetteEl) {
-            vignetteEl = document.createElement('div');
-            vignetteEl.className = 'hit-vignette';
-            overlay.appendChild(vignetteEl);
-        }
-
-        vignetteEl.className = `hit-vignette active ${hpPercent < 30 ? 'high' : 'normal'}`;
-        setTimeout(() => vignetteEl.classList.remove('active'), 120);
-
-        const battleContent = overlay.querySelector('.battle-content');
-        if (battleContent) {
-            let shakeClass = 'shake-small';
-            if (damagePercent > 40) shakeClass = 'shake-large';
-            else if (damagePercent > 15) shakeClass = 'shake-medium';
-            battleContent.classList.add(shakeClass);
-            setTimeout(() => battleContent.classList.remove(shakeClass), 400);
-        }
+        showCombatPlayerHitFeedback(this.dom.combatOverlay, GameManager.getCharacter(), damage);
     }
     
     endBattle(victory, fled = false) {
@@ -1253,17 +1214,46 @@ class DungeonSceneClass {
         }
 
         this.isInCombat = false;
-        this.currentMonster = null;
-        this.hideBattleModal();
-        this.renderMap();
-        this.updateUI();
         try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
+
+        const finishBattleCleanup = () => {
+            this.currentMonster = null;
+            this.hideBattleModal();
+            this.renderMap();
+            this.updateUI();
+        };
+
+        if (victory && !fled) {
+            showCombatKillFreeze(this.dom.combatOverlay);
+            setTimeout(finishBattleCleanup, 360);
+        } else {
+            finishBattleCleanup();
+        }
     }
     
     handleBossVictory() {
         const dungeonData = DungeonDatabase[this.dungeonType];
         questManager.updateProgress(ObjectiveType.DUNGEON_BOSS, `${this.dungeonType}_boss`, 1);
         questManager.updateProgress(ObjectiveType.DUNGEON_CLEAR, this.dungeonType, 1);
+        const bossId = `${this.dungeonType}_boss`;
+        const clearStoryOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_COMPLETED, {
+            dungeonId: this.dungeonType,
+            dungeon: dungeonData,
+            source: 'dungeon_clear'
+        });
+        const bossStoryOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_BOSS_DEFEATED, {
+            dungeonId: this.dungeonType,
+            bossId,
+            monsterId: dungeonData?.monsters?.boss?.id || bossId,
+            source: 'dungeon_boss'
+        });
+        const newStoryClues = [
+            ...(clearStoryOutcome.newClues || []),
+            ...(bossStoryOutcome.newClues || [])
+        ];
+        if (newStoryClues.length > 0) {
+            this.addMessage(`新線索：${newStoryClues[0].title}`, 'info');
+        }
         this.awardDungeonBossTreasures(dungeonData);
         this.addMessage(`🏆 通關 ${dungeonData.name}！`, 'legendary');
         
@@ -1347,7 +1337,7 @@ class DungeonSceneClass {
     
     useHealingSpring() {
         const char = GameManager.getCharacter();
-        const healAmount = Math.floor(char.maxHp * 0.3);
+        const healAmount = this.applyPassiveHealingBonus(Math.floor(char.maxHp * 0.3));
         char.hp = Math.min(char.maxHp, char.hp + healAmount);
         
         this.addMessage(`⛲ 恢復 ${healAmount} 生命`, 'success');
@@ -1719,8 +1709,6 @@ class DungeonSceneClass {
         if (this.dom.playerLevel) this.dom.playerLevel.textContent = char.level || 1;
         if (this.dom.playerHp) this.dom.playerHp.textContent = `${char.hp || 0}/${char.maxHp || 100}`;
         if (this.dom.playerHpBar) this.dom.playerHpBar.style.width = `${((char.hp || 0) / (char.maxHp || 100)) * 100}%`;
-        if (this.dom.playerMp) this.dom.playerMp.textContent = `${char.mp || 0}/${char.maxMp || 50}`;
-        if (this.dom.playerMpBar) this.dom.playerMpBar.style.width = `${((char.mp || 0) / (char.maxMp || 50)) * 100}%`;
         this.updateBattlePlayerDisplay();
         
         this.updateMechanicPanel();

@@ -71,7 +71,7 @@ export const EventDatabase = [
         name: '生命之泉',
         icon: '⛲',
         type: EventType.BLESSING,
-        description: '清澈的泉水從岩石間湧出，散發著淡淡的魔力光芒。',
+        description: '清澈的泉水從岩石間湧出，散發著淡淡的生命微光。',
         choices: [
             {
                 text: '飲用泉水',
@@ -476,7 +476,7 @@ export const EventDatabase = [
                 ]
             },
             {
-                text: '接受耐力試煉',
+                text: '接受生命試煉',
                 cost: { gold: 150 },
                 results: [
                     { type: ResultType.STAT, stat: 'maxHp', value: 25, message: '你通過了試煉！生命值大幅提升！' }

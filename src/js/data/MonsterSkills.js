@@ -68,7 +68,7 @@ const SkillNames = {
     life_drain: '生命汲取',
     lightning_bolt: '閃電箭',
     lightning_dive: '雷霆俯衝',
-    mana_drain: '魔力汲取',
+    focus_break: '專注破壞',
     multi_bite: '連環撕咬',
     multishot: '多重射擊',
     nature_wrath: '自然之怒',
@@ -236,7 +236,7 @@ const ExplicitProfiles = {
     dark_curse: { category: '弱化', attackReductionPercent: 25, defenseReductionPercent: 20, duration: 5, cooldown: 8 },
     shadow_domain: { category: '領域', damageTakenIncreasePercent: 20, attackReductionPercent: 15, duration: 6, cooldown: 10 },
     heat_aura: { category: '領域', burnDpsPercent: 8, target: '周圍', duration: 6, cooldown: 9 },
-    mana_drain: { category: '弱化', damagePercent: 80, cooldownIncreasePercent: 20, duration: 4, cooldown: 6 },
+    focus_break: { category: '弱化', damagePercent: 80, attackSpeedReductionPercent: 20, duration: 4, cooldown: 6 },
     life_drain: { category: '吸收', damagePercent: 110, healPercent: 50, cooldown: 6 },
     soul_drain: { category: '吸收', damagePercent: 125, healPercent: 35, attackReductionPercent: 15, duration: 4, cooldown: 7 },
     devour: { category: '吸收', damagePercent: 140, healPercent: 30, cooldown: 7 },
@@ -424,7 +424,7 @@ export function getMonsterSkillRows(skill) {
             : Number(skill.burnDamageBoost);
         rows.push(['燃燒強化', `+${percent(boost)}`]);
     }
-    if (skill.cooldownIncreasePercent != null) rows.push(['技能冷卻增加', `+${percent(skill.cooldownIncreasePercent)}`]);
+    if (skill.cooldownIncreasePercent != null) rows.push(['行動節奏干擾', `+${percent(skill.cooldownIncreasePercent)}`]);
 
     return rows;
 }

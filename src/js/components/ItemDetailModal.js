@@ -75,14 +75,11 @@ class ItemDetailModal {
             String(opts.typeText).toLowerCase().includes('potion')
         );
 
-        if (!isPotion || !(item.hp || item.mp || item.effect)) return '';
+        if (!isPotion || !(item.hp || item.effect)) return '';
 
         const rows = [];
         if (item.hp) {
             rows.push(`<div class="stat-row"><div class="stat-left"><div class="stat-label">❤️ <span>生命</span></div></div><div class="stat-right"><span class="stat-base">+${escapeHtml(item.hp)}</span></div></div>`);
-        }
-        if (item.mp) {
-            rows.push(`<div class="stat-row"><div class="stat-left"><div class="stat-label">💙 <span>魔力</span></div></div><div class="stat-right"><span class="stat-base">+${escapeHtml(item.mp)}</span></div></div>`);
         }
         if (item.effect) {
             rows.push(`<div class="stat-row"><div class="stat-left"><div class="stat-label">✨ <span>效果</span></div></div><div class="stat-right"><span class="stat-effect-value">${renderEffectHtml(item.effect)}</span></div></div>`);
@@ -151,7 +148,7 @@ class ItemDetailModal {
                 });
             }
 
-            const hasBaseStats = item.atk || item.attack || item.def || item.defense || item.hp || item.mp || item.durability || item.dur || item.durabilityMax || item.critChance || item.critDamage || item.attackSpeed;
+            const hasBaseStats = item.atk || item.attack || item.def || item.defense || item.hp || item.durability || item.dur || item.durabilityMax || item.critChance || item.critDamage || item.attackSpeed;
             const hasAffixContribs = Object.keys(affixContribs).length > 0;
 
             if (hasBaseStats || hasAffixContribs) {
@@ -179,7 +176,6 @@ class ItemDetailModal {
                 push('def', getStatIcon('def'), getStatLabel('def'), item.def ?? item.defense);
                 push('durability', getStatIcon('durability'), getStatLabel('durability'), item.durability ?? item.dur ?? item.durabilityMax);
                 push('hp', getStatIcon('hp'), getStatLabel('hp'), item.hp);
-                push('mp', getStatIcon('mp'), getStatLabel('mp'), item.mp);
                 push('critChance', getStatIcon('critChance'), getStatLabel('critChance'), item.critChance, 'percent');
                 push('critDamage', getStatIcon('critDamage'), getStatLabel('critDamage'), item.critDamage, 'multiplierPercent');
                 push('attackSpeed', getStatIcon('attackSpeed'), getStatLabel('attackSpeed'), item.attackSpeed);
@@ -203,12 +199,11 @@ class ItemDetailModal {
             if (typeof eff === 'object') {
                 const parts = [];
                 if (eff.hp) parts.push(`<span class="item-effect-part">❤️ 恢復 ${escapeHtml(eff.hp)} 生命</span>`);
-                if (eff.mp) parts.push(`<span class="item-effect-part">💙 恢復 ${escapeHtml(eff.mp)} 魔力</span>`);
                 if (eff.exp) parts.push(`<span class="item-effect-part">✨ 經驗 +${escapeHtml(eff.exp)}</span>`);
                 if (eff.duration) parts.push(`<span class="item-effect-part">⏳ 持續 ${escapeHtml(eff.duration)}s</span>`);
                 // generic remaining keys
                 for (const [k, v] of Object.entries(eff)) {
-                    if (['hp','mp','exp','duration'].includes(k)) continue;
+                    if (['hp','exp','duration'].includes(k)) continue;
                     parts.push(`<span class="item-effect-part">${escapeHtml(k.replace(/([A-Z])/g, ' $1'))}: ${escapeHtml(v)}</span>`);
                 }
                 return parts.join(' • ');

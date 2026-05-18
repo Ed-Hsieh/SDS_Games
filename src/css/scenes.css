@@ -1,306 +1,5 @@
 /* ===== Scene Specific Styles ===== */
 
-/* --- Marketplace / Shop Scene --- */
-/* Dedicated shop styles live in src/style/marketplace.css. Keep this legacy
-   block inert so it cannot override the maintained marketplace stylesheet. */
-@media not all {
-
-/* Top Navigation Grid */
-.market-tactical-grid {
-    position: relative;
-    height: 15vh;
-    flex-shrink: 0;
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 4px;
-    padding: 8px;
-    background: linear-gradient(180deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.3));
-    border-bottom: 2px solid rgba(79, 172, 254, 0.5);
-}
-
-.grid-tile {
-    position: relative;
-    aspect-ratio: 1 / 1;
-    cursor: pointer;
-    /* 優化：只動畫 GPU 友善的屬性 */
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.grid-tile.locked {
-    cursor: not-allowed;
-    opacity: 0.4;
-}
-
-.tile-floor {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, rgba(30, 40, 60, 0.9), rgba(20, 30, 50, 0.95));
-    border: 2px solid rgba(79, 172, 254, 0.3);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    /* 優化：使用 transform/邊框/box-shadow 的專屬過渡 */
-    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.grid-tile:hover:not(.locked) .tile-floor {
-    border-color: rgba(79, 172, 254, 0.8);
-    transform: translateY(-2px);
-}
-
-.grid-tile.active .tile-floor {
-    border-color: #ffd700;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(255, 215, 0, 0.8);
-}
-
-.shop-icon { font-size: 32px; margin-bottom: 4px; }
-.shop-label { font-size: 10px; font-weight: 700; color: rgba(255, 255, 255, 0.8); text-transform: uppercase; }
-
-/* Player Token */
-.player-token {
-    position: absolute;
-    width: calc(12.5% - 4px);
-    height: calc(100% - 16px);
-    top: 8px;
-    left: 8px; /* 基礎定位，實際位移用 transform */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    z-index: 10;
-    transform: translateX(0);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-}
-.token-avatar { font-size: 48px; filter: drop-shadow(0 4px 8px rgba(255, 215, 0, 0.8)); }
-
-/* Main Content Area */
-.market-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    overflow: hidden;
-}
-
-/* Left Panel: NPC */
-.npc-panel {
-    width: 40%;
-    height: 100%;
-    position: relative;
-    background: linear-gradient(145deg, rgba(11, 17, 32, 0.6), rgba(13, 23, 38, 0.8));
-    border-right: 2px solid rgba(79, 172, 254, 0.3);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.npc-portrait-container {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: radial-gradient(circle, rgba(30, 40, 60, 0.5), rgba(10, 15, 25, 0.9));
-    border-bottom: 2px solid rgba(79, 172, 254, 0.2);
-    overflow: hidden;
-}
-
-.npc-portrait-container.drag-over-valid {
-    background: radial-gradient(circle, rgba(255, 215, 0, 0.3), rgba(255, 165, 0, 0.1));
-    box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.5);
-}
-
-.npc-portrait {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    border-radius: 12px;
-    border: 3px solid rgba(79, 172, 254, 0.4);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
-
-.drop-hint {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 0.6);
-    padding: 8px 16px;
-    border-radius: 20px;
-    border: 1px solid rgba(79, 172, 254, 0.3);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.npc-portrait-container.drag-over-valid .drop-hint { opacity: 1; }
-
-.npc-dialogue {
-    height: 150px;
-    padding: 16px;
-    background: rgba(0, 0, 0, 0.4);
-}
-
-.dialogue-box {
-    height: 100%;
-    background: rgba(20, 30, 50, 0.8);
-    border: 2px solid rgba(79, 172, 254, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    font-size: 14px;
-    color: #e0e0e0;
-    overflow-y: auto;
-}
-
-/* Right Panel: Trade */
-.trade-panel {
-    width: 60%;
-    height: 100%;
-    background: linear-gradient(145deg, rgba(13, 23, 38, 0.8), rgba(11, 17, 32, 0.6));
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.trade-section {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-}
-
-.trade-section.vendor-section { border-bottom: 2px solid rgba(79, 172, 254, 0.3); }
-.trade-section.player-section { background: rgba(0, 0, 0, 0.2); }
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.4);
-    border-bottom: 1px solid rgba(79, 172, 254, 0.2);
-    flex-shrink: 0;
-}
-
-.section-header h3 {
-    margin: 0;
-    font-size: 14px;
-    color: #4facfe;
-    text-transform: uppercase;
-}
-
-.gold-display {
-    font-size: 14px;
-    font-weight: 700;
-    color: #ffd700;
-    font-family: 'Consolas', monospace;
-}
-
-.shop-inventory {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-    align-content: start;
-}
-
-.player-inventory-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-/* Items */
-.shop-item {
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid;
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.shop-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4); }
-
-.player-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.4);
-    border-radius: 6px;
-    border-left: 4px solid;
-    cursor: pointer;
-    transition: transform 0.2s ease, opacity 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-.player-item:hover { background: rgba(79, 172, 254, 0.2); transform: translateX(3px); }
-
-/* Modal Specifics */
-.modal-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.modal-title { margin: 0 0 4px 0; font-size: 18px; color: #fff; }
-
-.stat-row {
-    font-family: 'Consolas', monospace;
-    font-size: 13px;
-    color: #4facfe;
-    background: rgba(79, 172, 254, 0.1);
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.action-btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
-    text-transform: uppercase;
-}
-
-.action-btn.buy-btn {
-    background: linear-gradient(90deg, #11998e, #38ef7d);
-    color: #000;
-    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.4);
-}
-
-.action-btn.sell-btn {
-    background: linear-gradient(90deg, #cb2d3e, #ef473a);
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(239, 71, 58, 0.4);
-}
-}
-
 /* ===== 冒險場景樣式 ===== */
 .scene-adventure {
     width: 100vw;
@@ -516,7 +215,6 @@
 .slot-name { font-size: 12px; text-align: center; }
 .empty-state { grid-column: 1 / -1; text-align: center; color: #aaa; padding: 20px; }
 
-/* 技能面板已移除（相關樣式刪除） */
 
 /* ===== Buff 指示器 ===== */
 .buff-indicators {
@@ -2593,13 +2291,6 @@
     width: 100%;
 }
 
-.status-bar.mp-bar {
-    background: linear-gradient(90deg, #3498db, #5dade2);
-    width: 100%;
-}
-
-
-
 
 /* 戰鬥區域 */
 .combat-area {
@@ -2766,11 +2457,6 @@
     color: #fff;
 }
 
-.btn-skill {
-    background: linear-gradient(135deg, #9c27b0, #673ab7);
-    color: #fff;
-}
-
 .btn-item {
     background: linear-gradient(135deg, #ff9800, #ffc107);
     color: #000;
@@ -2780,11 +2466,6 @@
     background: rgba(255, 255, 255, 0.1);
     border: 2px solid rgba(255, 255, 255, 0.3);
     color: #fff;
-}
-
-.btn-action:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* 獎勵面板 */
@@ -3189,12 +2870,6 @@
 .btn-attack {
     background: linear-gradient(135deg, #e74c3c, #c0392b);
     border-color: #e74c3c;
-    color: #fff;
-}
-
-.btn-skill {
-    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-    border-color: #9c27b0;
     color: #fff;
 }
 

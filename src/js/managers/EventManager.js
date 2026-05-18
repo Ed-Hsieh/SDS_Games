@@ -120,8 +120,8 @@ function generateEventItem(itemType) {
         case 'random':
         default: {
             const items = [
-                new Consumable(`event_potion_${timestamp}`, '神秘藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '來自異世界的神秘藥水', 100, { hp: 80, mp: 40 }),
-                new Item(`event_crystal_${timestamp}`, '魔力水晶', ItemType.MATERIAL, ItemRarity.EPIC, '💎', '蘊含強大魔力的水晶', 200)
+                new Consumable(`event_potion_${timestamp}`, '神秘藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '來自異世界的神秘藥水', 100, { hp: 120 }),
+                new Item(`event_crystal_${timestamp}`, '星輝水晶', ItemType.MATERIAL, ItemRarity.EPIC, '💎', '蘊含星輝能量的水晶', 200)
             ];
             return items[Math.floor(Math.random() * items.length)];
         }

@@ -1446,7 +1446,7 @@ export const TowerMonsterData = {
             { itemId: 'magic_crystal', chance: 1.0, quantity: [2, 2] },
             { itemId: 'spectral_staff', chance: 0.3, quantity: [1, 1] }
         ],
-        skills: ['soul_bolt', 'mana_drain'],
+        skills: ['soul_bolt', 'focus_break'],
         description: '死後仍追求魔法的亡靈法師。',
         towerFloor: 14
     },

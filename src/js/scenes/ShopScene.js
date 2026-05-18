@@ -448,11 +448,22 @@ export default class ShopScene {
         this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
     }
 
-    handleItemDrop(item) {
-        if (item.isSecretKey) {
-            const outcome = worldInteractionManager.trigger('merchant_ancient_coin', {
+    handleItemDrop(itemData) {
+        const trade = this.getTradeEntry(itemData, 'sell');
+        const item = trade.item || {};
+        const interactionId = item.isSecretKey || item.id === 'ancient_coin'
+            ? 'merchant_ancient_coin'
+            : item.id === 'map_fragment'
+                ? 'cartographer_map_fragment'
+                : null;
+
+        if (interactionId) {
+            const outcome = worldInteractionManager.trigger(interactionId, {
                 source: 'vendor',
                 shopId: this.currentShopId,
+                providedItemId: item.id,
+                providedInstanceId: trade.instanceId,
+                fromWarehouse: false,
                 toast: false
             });
 
@@ -462,6 +473,7 @@ export default class ShopScene {
 
             const message = outcome.messages?.join(' ') || '黑市入口已經開啟。';
             this.showFeedback(outcome.success ? '線索觸發' : '沒有新的反應', message, outcome.success ? 'success' : 'info');
+            this.renderPlayerInventory(GameManager.state?.inventory || []);
         } else {
             this.showFeedback('沒有新的反應', '這件物品沒有觸發新的線索。', 'info');
         }

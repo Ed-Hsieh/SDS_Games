@@ -80,7 +80,7 @@ export function createRuntimeItem(itemData) {
         );
     } else if (type === ItemType.POTION) {
         const effect = cloneData(itemData.effect || {});
-        for (const key of ['hp', 'mp', 'exp']) {
+        for (const key of ['hp', 'exp']) {
             const value = readItemStat(itemData, key, [], undefined);
             if (value !== undefined && value !== null) effect[key] = value;
         }

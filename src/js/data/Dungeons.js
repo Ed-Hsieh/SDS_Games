@@ -326,7 +326,7 @@ export const DungeonDatabase = {
             },
             random: [
                 { id: 'ancient_gear', name: '遠古齒輪', icon: '⚙️', type: 'material', rarity: 'rare', price: 180 },
-                { id: 'mana_crystal', name: '魔力水晶', icon: '🔮', type: 'material', rarity: 'rare', price: 220 },
+                { id: 'arcane_crystal', name: '星輝水晶', icon: '🔮', type: 'material', rarity: 'rare', price: 220 },
                 { id: 'rune_fragment', name: '符文碎片', icon: '📜', type: 'material', rarity: 'uncommon', price: 100 }
             ]
         },
@@ -457,8 +457,7 @@ export const DungeonDatabase = {
             effect: {
                 damagePerStep: 0.02,    // 每步傷害
                 fireDamageBonus: 1.5,   // 火系怪物傷害加成
-                healingReduction: 0.5,  // 治療效果減半
-                cooldownIncrease: 1     // 技能冷卻增加
+                healingReduction: 0.5  // 治療效果減半
             },
             counterItem: 'flame_amulet',  // 烈焰護符可免疫
             alternativeCounter: 'fire_resist_potion'  // 或使用抗火藥水
@@ -471,7 +470,7 @@ export const DungeonDatabase = {
                 { type: 'lava', name: '岩漿噴發', damage: 50, chance: 0.15 },
                 { type: 'trap', name: '惡魔突襲', monsterType: 'elite', chance: 0.12 },
                 { type: 'curse', name: '詛咒領域', effect: 'curse', debuff: { attack: -10, defense: -10 }, duration: 10, chance: 0.1 },
-                { type: 'soul_well', name: '靈魂之井', healPercent: 0.5, mpRestore: 1.0, chance: 0.05 },
+                { type: 'soul_well', name: '靈魂之井', healPercent: 0.5, chance: 0.05 },
                 { type: 'treasure', name: '惡魔寶庫', goldRange: [200, 500], chance: 0.08 },
                 { type: 'contract', name: '惡魔契約', choice: true, chance: 0.1 }  // 可選擇簽訂或拒絕
             ]

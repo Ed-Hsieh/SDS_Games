@@ -17,6 +17,15 @@ import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
+import {
+    renderCombatMonster,
+    renderCombatPlayer,
+    renderCombatBuffIndicators,
+    renderCombatActionDeck,
+    showCombatDamageNumber,
+    showCombatPlayerHitFeedback,
+    showCombatKillFreeze
+} from '../utils/CombatUI.js';
 
 // Preload FightManager for unified management (fallback to promise if not ready)
 let FightManager = null;
@@ -47,6 +56,8 @@ export default class AdventureScene {
         this.clueBookOpen = false;
         this.bossTestOpen = false;
         this.currentLocationKey = null;
+        this.locationToastRecentKeys = new Map();
+        this.locationToastRepeatCooldownMs = 12000;
         this.locationToastTimer = null;
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
         
@@ -386,6 +397,9 @@ export default class AdventureScene {
             // 追蹤探索進度（任務系統）
             const zone = this.worldMap.getCurrentZone();
             questManager.updateProgress(ObjectiveType.EXPLORE, zone, 1);
+            this.showWorldDiscovery(worldStoryManager.recordZoneExploration(zone, {
+                source: 'adventure_map'
+            }));
             
             if (result === 'battle') {
                 this.isLocked = true;
@@ -442,14 +456,31 @@ export default class AdventureScene {
 
         if (locationKey !== this.currentLocationKey) {
             this.currentLocationKey = locationKey;
-            this.showLocationToast(narrative);
+            this.showLocationToast(narrative, {
+                force: Boolean(override),
+                locationKey
+            });
         }
         this.renderClueBook();
         this.renderBossTestPanel();
     }
 
-    showLocationToast(narrative) {
+    showLocationToast(narrative, options = {}) {
         if (!this.dom.locationToast) return;
+
+        const locationKey = options.locationKey || `${narrative?.title || 'unknown'}:${narrative?.description || ''}`;
+        const now = Date.now();
+        const lastShownAt = this.locationToastRecentKeys.get(locationKey) || 0;
+        if (!options.force && now - lastShownAt < this.locationToastRepeatCooldownMs) {
+            return;
+        }
+
+        this.locationToastRecentKeys.set(locationKey, now);
+        for (const [key, shownAt] of this.locationToastRecentKeys.entries()) {
+            if (now - shownAt > this.locationToastRepeatCooldownMs * 2) {
+                this.locationToastRecentKeys.delete(key);
+            }
+        }
 
         if (this.dom.locationToastKicker) {
             this.dom.locationToastKicker.textContent = narrative.landmark ? '發現地點' : '進入區域';
@@ -604,8 +635,6 @@ export default class AdventureScene {
         if (!char) return;
         char.level = 1;
         char.maxHp = typeof char.calculateMaxHp === 'function' ? char.calculateMaxHp() : 120;
-        char.maxMp = 55;
-        char.mp = char.maxMp;
         char.maxExp = 100;
         char.exp = 0;
         char.baseAtk = 5;
@@ -624,8 +653,6 @@ export default class AdventureScene {
         char.level = nextLevel;
         char.maxHp = typeof char.calculateMaxHp === 'function' ? char.calculateMaxHp() : 100 + nextLevel * 20;
         char.hp = char.maxHp;
-        char.maxMp = 50 + nextLevel * 5;
-        char.mp = char.maxMp;
         char.maxExp = Math.floor(100 * Math.pow(1.2, nextLevel - 1));
         char.exp = 0;
         if (typeof char.syncProperties === 'function') char.syncProperties();
@@ -1297,7 +1324,10 @@ export default class AdventureScene {
                 break;
                 
             case 'healing':
-                const healAmount = Math.floor(char.maxHp * event.healPercent);
+                const healingBonus = typeof char.getPassiveCombatBonus === 'function'
+                    ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
+                    : 0;
+                const healAmount = Math.floor(char.maxHp * event.healPercent * (1 + healingBonus));
                 const actualHeal = Math.min(healAmount, char.maxHp - char.hp);
                 char.hp += actualHeal;
                 resultHTML = `<div class="event-heal">💚 恢復了 ${actualHeal} 點生命！</div>`;
@@ -1570,7 +1600,6 @@ export default class AdventureScene {
                         </p>
                         <ul style="color: #8cc63f; font-size: 13px; margin: 0; padding-left: 20px;">
                             <li style="margin-bottom: 6px;">💚 完全恢復生命值</li>
-                            <li style="margin-bottom: 6px;">💙 完全恢復魔力值</li>
                             <li>✨ 清除所有負面狀態</li>
                         </ul>
                     </div>
@@ -1602,8 +1631,6 @@ export default class AdventureScene {
             if (char) {
                 char.hp = char.maxHp || 100;
                 char.currentHP = char.maxHp || 100;
-                char.mp = char.maxMp || 50;
-                char.currentMP = char.maxMp || 50;
                 
                 // 清除負面狀態（如果有的話）
                 if (char.debuffs) {
@@ -1754,7 +1781,7 @@ export default class AdventureScene {
             // 生成藥水
             const potions = [
                 new Consumable(`treasure_hp_${timestamp}`, '生命藥水', ItemType.POTION, rarity, '🧪', '恢復生命值的藥水', 50, { hp: 50 }),
-                new Consumable(`treasure_mp_${timestamp}`, '魔力藥水', ItemType.POTION, rarity, '💙', '恢復魔力值的藥水', 60, { mp: 30 })
+                new Consumable(`treasure_medkit_${timestamp}`, '急救藥水', ItemType.POTION, rarity, '🩹', '恢復大量生命值的藥水', 60, { hp: 80 })
             ];
             return potions[Math.floor(Math.random() * potions.length)];
         } else if (itemType < 0.6) {
@@ -1812,10 +1839,7 @@ export default class AdventureScene {
         this.updateMonsterDisplay();
         this.updatePlayerHUD();
         this.updateActionDeck();
-        this.updateBuffIndicators();
-        // battle log removed
-        
-        this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
+        this.updateBuffIndicators();        this.rhythmSystem = new RhythmBarSystem(GameManager.getCharacter(), this.container);
         this.rhythmSystem.start();
 
         // Disable attack button until engine is ready to avoid race conditions
@@ -1924,9 +1948,7 @@ export default class AdventureScene {
         const result = this.rhythmSystem.judgeHit();
         
         // 冷卻中無法攻擊
-        if (result.type === 'cooldown') {
-            // battle log removed
-            return;
+        if (result.type === 'cooldown') {            return;
         }
         
         // 傳遞 hitType 給戰鬥系統
@@ -1946,9 +1968,7 @@ export default class AdventureScene {
         const inventory = GameManager.state.inventory;
         const potionStack = inventory.find(stack => stack.item.type === 'potion');
         
-        if (!potionStack || potionStack.quantity <= 0) {
-            // battle log removed
-            return;
+        if (!potionStack || potionStack.quantity <= 0) {            return;
         }
         
         const potion = potionStack.item;
@@ -1956,22 +1976,19 @@ export default class AdventureScene {
         
         // 使用藥水
         if (potion.effect?.hp) {
-            const healAmount = Math.min(potion.effect.hp, char.maxHp - char.hp);
+            const healingBonus = typeof char.getPassiveCombatBonus === 'function'
+                ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
+                : 0;
+            const healAmount = Math.min(
+                Math.max(1, Math.floor(potion.effect.hp * (1 + healingBonus))),
+                char.maxHp - char.hp
+            );
             char.hp += healAmount;
-            // battle log removed
         }
-        if (potion.effect?.mp) {
-            const mpAmount = Math.min(potion.effect.mp, char.maxMp - char.mp);
-            char.mp += mpAmount;
-            // battle log removed
-        }
-        
         // 處理 Buff 藥水
         if (potion.buff) {
             char.addBuff(potion.buff.type, potion.buff.value, potion.buff.duration);
-            const buffNames = { 'atk': '攻擊力', 'def': '防禦力', 'critChance': '爆擊率' };
-            // battle log removed
-            this.updateBuffIndicators();
+            const buffNames = { 'atk': '攻擊力', 'def': '防禦力', 'critChance': '爆擊率' };            this.updateBuffIndicators();
         }
         
         // 減少數量
@@ -1987,132 +2004,31 @@ export default class AdventureScene {
         this.updateUI();
     }
     
-    // 技能面板 UI 已移除 - 不再在 DOM 中渲染技能卡
+    // 玩家戰鬥操作維持攻擊、道具、逃跑；戰術技能顯示於 Buff 區。
     
     // 新增：更新 Buff 顯示
     updateBuffIndicators() {
-        if (!this.dom.buffIndicators) return;
-        
-        const char = GameManager.getCharacter();
-        this.dom.buffIndicators.innerHTML = '';
-        
-        const buffIcons = {
-            'atk': '⚔️',
-            'def': '🛡️',
-            'critChance': '🎯',
-            'critDamage': '💥'
-        };
-        
-        char.activeBuffs.forEach(buff => {
-            const buffEl = document.createElement('div');
-            buffEl.className = 'buff-indicator';
-            buffEl.innerHTML = `
-                <span class="buff-icon">${buffIcons[buff.type] || '✨'}</span>
-                <span class="buff-duration">${buff.duration}</span>
-            `;
-            buffEl.title = `${buff.type} +${buff.value} (${buff.duration}回合)`;
-            this.dom.buffIndicators.appendChild(buffEl);
-        });
+        renderCombatBuffIndicators(this.dom.buffIndicators, GameManager.getCharacter());
     }
 
     updateMonsterDisplay() {
         if (!this.currentBattle) return;
-        const monster = this.currentBattle.monster;
-        
-        this.container.querySelector('#battle-monster-icon').textContent = monster.icon;
-        this.container.querySelector('#battle-monster-name').textContent = monster.name;
-        this.container.querySelector('#battle-monster-level').textContent = monster.level;
-        this.container.querySelector('#battle-monster-hp-text').textContent = `${monster.hp}/${monster.maxHp}`;
-        this.container.querySelector('#battle-monster-atk').textContent = monster.attack;
-        this.container.querySelector('#battle-monster-def').textContent = monster.defense;
-        
-        const hpPercent = (monster.hp / monster.maxHp) * 100;
-        this.container.querySelector('#battle-monster-hp-bar').style.width = hpPercent + '%';
+        renderCombatMonster(this.container, this.currentBattle.monster);
     }
 
     updatePlayerHUD() {
-        const char = GameManager.getCharacter();
-        
-        // 更新等級
-        const levelEl = this.container.querySelector('#hud-player-level');
-        if (levelEl) levelEl.textContent = char.level;
-        
-        // 更新玩家名稱
-        const nameEl = this.container.querySelector('#hud-player-name');
-        if (nameEl) nameEl.textContent = char.name || '冒險者';
-        
-        // 更新HP條
-        const hpBarEl = this.container.querySelector('#hud-hp-bar');
-        const hpTextEl = this.container.querySelector('#hud-hp-text');
-        if (hpBarEl) {
-            const hpPercent = (char.hp / char.maxHp) * 100;
-            hpBarEl.style.width = hpPercent + '%';
-        }
-        if (hpTextEl) hpTextEl.textContent = `${char.hp}/${char.maxHp}`;
-        
-        // 更新MP條
-        const mpBarEl = this.container.querySelector('#hud-mp-bar');
-        const mpTextEl = this.container.querySelector('#hud-mp-text');
-        if (mpBarEl) {
-            const mpPercent = (char.mp / char.maxMp) * 100;
-            mpBarEl.style.width = mpPercent + '%';
-        }
-        if (mpTextEl) mpTextEl.textContent = `${char.mp}/${char.maxMp}`;
+        renderCombatPlayer(this.container, GameManager.getCharacter(), {
+            inventory: GameManager.state.inventory,
+            fallbackName: '冒險者'
+        });
     }
 
     updateActionDeck() {
-        const char = GameManager.getCharacter();
-        const inventory = GameManager.state.inventory;
-        
-        // Slot A: 武器卡片
-        const weapon = char.equipment.weapon;
-        const weaponIconEl = this.container.querySelector('#weapon-icon');
-        const weaponNameEl = this.container.querySelector('#weapon-name');
-        const weaponDamageEl = this.container.querySelector('#weapon-damage');
-        
-        if (weapon) {
-            if (weaponIconEl) {
-                if (weapon.image) {
-                    weaponIconEl.innerHTML = `<img src="${weapon.image}" alt="${weapon.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    weaponIconEl.textContent = weapon.icon || '⚔️';
-                }
-            }
-            if (weaponNameEl) weaponNameEl.textContent = weapon.name;
-        } else {
-            if (weaponIconEl) weaponIconEl.textContent = '✊';
-            if (weaponNameEl) weaponNameEl.textContent = '拳頭';
-        }
-        if (weaponDamageEl) weaponDamageEl.textContent = char.getTotalAtk();
-        
-        // Slot B: 藥水快捷槽
-        const potionStack = inventory.find(stack => stack.item.type === 'potion');
-        const potionIconEl = this.container.querySelector('#potion-icon');
-        const potionNameEl = this.container.querySelector('#potion-name');
-        const potionHealEl = this.container.querySelector('#potion-heal');
-        const potionQtyEl = this.container.querySelector('#potion-quantity');
-        const potionCard = this.container.querySelector('#action-potion');
-        
-        if (potionStack) {
-            const potion = potionStack.item;
-            if (potionIconEl) {
-                if (potion.image) {
-                    potionIconEl.innerHTML = `<img src="${potion.image}" alt="${potion.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    potionIconEl.textContent = potion.icon || '🧪';
-                }
-            }
-            if (potionNameEl) potionNameEl.textContent = potion.name;
-            if (potionHealEl) potionHealEl.textContent = `+${potion.effect?.hp || 0}`;
-            if (potionQtyEl) potionQtyEl.textContent = `x${potionStack.quantity}`;
-            if (potionCard) potionCard.classList.remove('disabled');
-        } else {
-            if (potionIconEl) potionIconEl.textContent = '🧪';
-            if (potionNameEl) potionNameEl.textContent = 'No Potion';
-            if (potionHealEl) potionHealEl.textContent = '+0';
-            if (potionQtyEl) potionQtyEl.textContent = 'x0';
-            if (potionCard) potionCard.classList.add('disabled');
-        }
+        renderCombatActionDeck(this.container, GameManager.getCharacter(), {
+            inventory: GameManager.state.inventory,
+            unarmedName: '拳頭',
+            emptyPotionName: '沒有補給'
+        });
     }
     
     /**
@@ -2167,16 +2083,81 @@ export default class AdventureScene {
 
     showLoot(exp, gold, items) {
         this.dom.lootModal.style.display = 'flex';
-        this.container.querySelector('#exp-gained').textContent = `+${exp} 經驗`;
-        this.container.querySelector('#gold-gained').textContent = `+${gold}`;
+        const lootTitle = this.dom.lootModal.querySelector('.modal-header h2');
+        const expEl = this.container.querySelector('#exp-gained');
+        const goldEl = this.container.querySelector('#gold-gained');
+        if (lootTitle) lootTitle.textContent = '戰鬥勝利';
+        if (expEl) expEl.textContent = `+${exp} 經驗`;
+        if (goldEl) goldEl.textContent = `+${gold}`;
 
         // Local lootPool (array of item objects)
         let lootPool = Array.isArray(items) ? items.slice() : [];
+        const initialLoot = lootPool.slice();
 
         const lootContainer = this.dom.lootItems;
         const inventoryPanel = this.container.querySelector('#loot-current-inventory');
         const capacityBadge = this.container.querySelector('#loot-inventory-capacity');
         const countBadge = this.container.querySelector('#loot-count');
+        const revealStrip = this.container.querySelector('#loot-reveal-strip');
+
+        const rarityRank = {
+            common: 1,
+            uncommon: 2,
+            rare: 3,
+            epic: 4,
+            legendary: 5
+        };
+        const rarityLabel = {
+            common: '普通',
+            uncommon: '優良',
+            rare: '稀有',
+            epic: '史詩',
+            legendary: '傳說'
+        };
+        const getRarity = item => String(item?.rarity || 'common').toLowerCase();
+        const getRarityRank = item => rarityRank[getRarity(item)] || 1;
+        const topDrop = initialLoot.reduce((best, item) => (
+            !best || getRarityRank(item) > getRarityRank(best) ? item : best
+        ), null);
+
+        if (lootTitle && topDrop && getRarityRank(topDrop) >= rarityRank.rare) {
+            lootTitle.textContent = `${rarityLabel[getRarity(topDrop)] || '稀有'}戰利品`;
+        }
+
+        if (revealStrip) {
+            if (initialLoot.length === 0) {
+                revealStrip.innerHTML = `
+                    <div class="loot-reveal-empty">
+                        <span>本次沒有物品掉落</span>
+                        <strong>獲得經驗與金幣</strong>
+                    </div>
+                `;
+            } else {
+                const revealItems = initialLoot
+                    .slice()
+                    .sort((a, b) => getRarityRank(b) - getRarityRank(a))
+                    .slice(0, 5);
+
+                revealStrip.innerHTML = revealItems.map((item, index) => {
+                    const rarity = getRarity(item);
+                    const isBlueprint = item.autoUnlockedBlueprint || item.type === 'blueprint';
+                    const highlight = getRarityRank(item) >= rarityRank.rare || isBlueprint;
+                    const icon = item.image
+                        ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+                        : escapeHtml(item.icon || (isBlueprint ? '📜' : '◇'));
+                    return `
+                        <article class="loot-reveal-card rarity-frame rarity-${rarity} ${highlight ? 'is-highlight' : ''}"
+                            style="--reveal-delay:${index * 70}ms">
+                            <div class="loot-reveal-icon">${icon}</div>
+                            <div class="loot-reveal-copy">
+                                <span>${isBlueprint ? '圖紙登錄' : `${rarityLabel[rarity] || rarity}掉落`}</span>
+                                <strong>${escapeHtml(item.name || '未知物品')}</strong>
+                            </div>
+                        </article>
+                    `;
+                }).join('');
+            }
+        }
 
         // Helper to render player's current inventory (left panel)
         const updatePlayerInventory = () => {
@@ -2238,8 +2219,10 @@ export default class AdventureScene {
 
             lootPool.forEach((it, idx) => {
                 const isBlueprint = it.autoUnlockedBlueprint || it.type === 'blueprint';
+                const rarity = getRarity(it);
                 const slot = document.createElement('div');
-                slot.className = `loot-slot rarity-frame rarity-${it.rarity || 'common'} ${it.rarity || 'common'} ${isBlueprint ? 'is-blueprint' : ''}`;
+                slot.className = `loot-slot rarity-frame rarity-${rarity} ${rarity} ${isBlueprint ? 'is-blueprint' : ''}`;
+                slot.style.setProperty('--reveal-delay', `${Math.min(idx, 8) * 45}ms`);
                 slot.innerHTML = `
                     <div class="slot-action"><div class="action-icon">${isBlueprint ? '✓' : '←'}</div></div>
                     <div class="slot-info">
@@ -2391,44 +2374,11 @@ class AdventureBattleViewController {
     // 技能戰鬥 API 已移除（Adventure 的 BattleController 中）
     
     showDamageNumber(damage, isCrit, isMiss) {
-        const battleHeader = this.scene.container.querySelector('.battle-header');
-        if (!battleHeader) return;
-        
-        const damageEl = document.createElement('div');
-        damageEl.className = 'damage-number';
-        
-        if (isMiss) {
-            damageEl.textContent = '失誤';
-            damageEl.classList.add('miss');
-        } else if (isCrit) {
-            damageEl.textContent = `-${damage}!!`;
-            damageEl.classList.add('critical');
-        } else {
-            damageEl.textContent = `-${damage}`;
-        }
-        
-        // 定位在怪物HP條上方中心
-        const hpContainer = battleHeader.querySelector('.monster-hp-container');
-        if (hpContainer) {
-            const rect = hpContainer.getBoundingClientRect();
-            const headerRect = battleHeader.getBoundingClientRect();
-            
-            const dx = (rect.left - headerRect.left + rect.width / 2);
-            const dy = (rect.top - headerRect.top - 10);
-            // Use transform instead of left/top to avoid layout thrash
-            damageEl.style.transform = `translate(0px, 0px)`;
-            damageEl.style.transform = `translate(${dx}px, ${dy}px)`;
-            damageEl.style.willChange = 'transform';
-        }
-        
-        battleHeader.appendChild(damageEl);
-        
-        // 0.8秒後移除
-        setTimeout(() => {
-            if (damageEl.parentNode) {
-                damageEl.parentNode.removeChild(damageEl);
-            }
-        }, 800);
+        showCombatDamageNumber(this.scene.container, damage, {
+            type: isMiss ? 'dodge' : damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal',
+            isCrit,
+            isMiss
+        });
     }
     
     startCooldown(duration) {
@@ -2548,54 +2498,17 @@ class AdventureBattleViewController {
         this.player.tickBuffs();
         this.scene.updateBuffIndicators();
         
-        // 減少技能冷卻
-        this.player.tickSkillCooldowns();
-        // 技能面板已移除，無需更新 UI
+        // 玩家主動技能已移除；戰術技能不需要冷卻更新。
     }
     
     showPlayerHitFeedback(damage) {
         const battleModal = this.scene.container.querySelector('.battle-modal');
-        if (!battleModal) return;
-        
-        // 計算傷害百分比
-        const damagePercent = (damage / this.player.maxHp) * 100;
-        
-        // 1. 紅色vignette效果
-        let vignetteEl = battleModal.querySelector('.hit-vignette');
-        if (!vignetteEl) {
-            vignetteEl = document.createElement('div');
-            vignetteEl.className = 'hit-vignette';
-            battleModal.appendChild(vignetteEl);
-        }
-        
-        // 低血量時強度提高
-        const hpPercent = (this.player.hp / this.player.maxHp) * 100;
-        const intensity = hpPercent < 30 ? 'high' : 'normal';
-        
-        vignetteEl.className = 'hit-vignette active ' + intensity;
-        setTimeout(() => {
-            vignetteEl.classList.remove('active');
-        }, 100);
-        
-        // 2. 鏡頭震動效果
-        const battleContent = battleModal.querySelector('.battle-content');
-        if (battleContent) {
-            let shakeClass = 'shake-small';
-            if (damagePercent > 40) {
-                shakeClass = 'shake-large';
-            } else if (damagePercent > 15) {
-                shakeClass = 'shake-medium';
-            }
-            
-            battleContent.classList.add(shakeClass);
-            setTimeout(() => {
-                battleContent.classList.remove(shakeClass);
-            }, 400);
-        }
+        showCombatPlayerHitFeedback(battleModal, this.player, damage);
     }
 
     handleVictory() {
         this.battleEnded = true;
+        showCombatKillFreeze(this.scene.container.querySelector('.battle-modal') || this.scene.container);
         
         // 使用 DropManager 的 resolve + generate 流程取得掉落物品
         const zoneId = this.monster.zoneId

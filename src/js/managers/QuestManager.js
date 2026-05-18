@@ -9,11 +9,14 @@ import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 import { getMaterial } from './MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { unlockRecipesForInteraction } from './BlueprintManager.js';
+import { worldStoryManager } from './WorldStoryManager.js';
+import { StoryEventTypes } from '../data/StoryProgressMap.js';
 
 class QuestManager {
     constructor() {
         // 任務狀態存儲
         this.questStates = {}; // { questId: { status, progress: [], startTime } }
+        this.handleGameStateUpdate = this.handleGameStateUpdate.bind(this);
         
         // 統計數據（用於隱藏任務觸發）
         this.stats = {
@@ -29,6 +32,7 @@ class QuestManager {
         
         // 初始化
         this.init();
+        GameManager.subscribe(this.handleGameStateUpdate);
         GameManager.registerSaveSystem('quests', this);
     }
 
@@ -66,7 +70,13 @@ class QuestManager {
             startTime: Date.now()
         };
 
-        this.notify('quest_accepted', { quest, questId });
+        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_ACCEPTED, {
+            questId,
+            quest,
+            source: 'quest_manager'
+        });
+
+        this.notify('quest_accepted', { quest, questId, storyOutcome });
         
         return { 
             success: true, 
@@ -136,13 +146,22 @@ class QuestManager {
         this.checkHiddenQuestTriggers('quest_complete', questId);
         const blueprintUnlocks = unlockRecipesForInteraction(questId);
 
-        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks });
+        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_COMPLETED, {
+            questId,
+            quest,
+            rewards,
+            blueprintUnlocks,
+            source: 'quest_manager'
+        });
+
+        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome });
 
         return {
             success: true,
             message: quest.dialogue?.complete || `完成任務：${quest.name}`,
             rewards,
-            blueprintUnlocks
+            blueprintUnlocks,
+            storyOutcome
         };
     }
 
@@ -158,7 +177,12 @@ class QuestManager {
             };
             
             const quest = getQuestById(questId);
-            this.notify('quest_unlocked', { quest, questId });
+            const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_UNLOCKED, {
+                questId,
+                quest,
+                source: 'quest_manager'
+            });
+            this.notify('quest_unlocked', { quest, questId, storyOutcome });
         }
     }
 
@@ -258,7 +282,12 @@ class QuestManager {
             // 檢查是否所有目標都完成
             if (this.checkQuestCompletion(questId)) {
                 state.status = QuestStatus.COMPLETED;
-                this.notify('quest_ready', { questId, quest });
+                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
+                    questId,
+                    quest,
+                    source: 'quest_manager'
+                });
+                this.notify('quest_ready', { questId, quest, storyOutcome });
             }
         }
 
@@ -318,6 +347,57 @@ class QuestManager {
         if (!state || state.status !== QuestStatus.ACTIVE) return false;
 
         return state.progress.every(prog => prog.current >= prog.required);
+    }
+
+    handleGameStateUpdate(state, type) {
+        if (!['all', 'inventory', 'warehouse'].includes(type)) return;
+        this.syncCollectObjectives(state);
+    }
+
+    syncCollectObjectives(state = GameManager.state) {
+        let updated = false;
+        const countItem = itemId => {
+            const countIn = stacks => (stacks || [])
+                .filter(stack => stack?.item?.id === itemId)
+                .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
+            return countIn(state?.inventory) + countIn(state?.warehouse);
+        };
+
+        for (const [questId, questState] of Object.entries(this.questStates)) {
+            if (questState.status !== QuestStatus.ACTIVE) continue;
+
+            const quest = getQuestById(questId);
+            if (!quest) continue;
+
+            questState.progress.forEach((prog, index) => {
+                if (prog.type !== ObjectiveType.COLLECT) return;
+
+                const owned = countItem(prog.target);
+                const nextValue = Math.min(owned, prog.required);
+                if (nextValue === prog.current) return;
+
+                prog.current = nextValue;
+                updated = true;
+                this.notify('progress_updated', {
+                    questId,
+                    quest,
+                    objectiveIndex: index,
+                    progress: prog
+                });
+            });
+
+            if (this.checkQuestCompletion(questId)) {
+                questState.status = QuestStatus.COMPLETED;
+                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
+                    questId,
+                    quest,
+                    source: 'quest_manager'
+                });
+                this.notify('quest_ready', { questId, quest, storyOutcome });
+            }
+        }
+
+        return updated;
     }
 
     // ==================== 隱藏任務觸發 ====================

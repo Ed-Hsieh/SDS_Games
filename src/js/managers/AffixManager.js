@@ -29,7 +29,6 @@ function normalizeStatKey(stat) {
         def: AffixStat.DEF,
         defense: AffixStat.DEF,
         hp: AffixStat.HP,
-        mp: AffixStat.MP,
         critchance: AffixStat.CRIT_CHANCE,
         'crit_chance': AffixStat.CRIT_CHANCE,
         critdamage: AffixStat.CRIT_DAMAGE,

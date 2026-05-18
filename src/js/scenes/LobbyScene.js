@@ -4,7 +4,7 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
-import { SetDatabase } from '../data/Equipment.js';
+import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
@@ -24,6 +24,7 @@ export default class LobbyScene {
         this.handleSaveImport = this.handleSaveImport.bind(this);
         this.handleSaveFileSelected = this.handleSaveFileSelected.bind(this);
         this.handleSaveReset = this.handleSaveReset.bind(this);
+        this.handlePassiveEffectKeydown = this.handlePassiveEffectKeydown.bind(this);
         
         // Warehouse filter state
         this.currentWarehouseFilter = 'all';
@@ -96,6 +97,8 @@ export default class LobbyScene {
             activeSetBonuses: this.container.querySelector('#active-set-bonuses'),
             passiveEffectSlots: this.container.querySelector('#passive-effect-slots'),
             passiveEffectLibrary: this.container.querySelector('#passive-effect-library'),
+            passiveEffectModal: this.container.querySelector('#passive-effect-modal'),
+            passiveEffectClose: this.container.querySelector('#passive-effect-close'),
             
             // Modal is provided by centralized ItemDetailModal component
         };
@@ -120,6 +123,7 @@ export default class LobbyScene {
             if (!slotEl) return;
             this.selectedPassiveSlot = Number(slotEl.dataset.passiveSlot) || 0;
             this.renderPassiveCombatEffects(GameManager.state.character);
+            this.openPassiveEffectModal();
         });
 
         this.dom.passiveEffectLibrary?.addEventListener('click', (event) => {
@@ -127,6 +131,11 @@ export default class LobbyScene {
             if (!effectEl) return;
             this.equipPassiveCombatEffect(effectEl.dataset.passiveEffectId);
         });
+        this.dom.passiveEffectClose?.addEventListener('click', () => this.closePassiveEffectModal());
+        this.dom.passiveEffectModal?.addEventListener('click', (event) => {
+            if (event.target === this.dom.passiveEffectModal) this.closePassiveEffectModal();
+        });
+        document.addEventListener('keydown', this.handlePassiveEffectKeydown);
 
         // Warehouse filters
         const warehouseFilters = this.container.querySelectorAll('.warehouse-filter');
@@ -282,6 +291,7 @@ export default class LobbyScene {
             
             // Update equipment slots
             this.updateEquipmentSlots(state.character.equipment);
+            this.renderPassiveCombatEffects(state.character);
 
             // Compute and render active set bonuses (if any)
             try {
@@ -297,49 +307,9 @@ export default class LobbyScene {
                 console.warn('Failed to calculate/render set bonuses:', e);
             }
 
-            // Render per-set status under CHARACTER (name: equipped/total — active effects)
+            // Render owned/equipped set goals so set hunting has a visible target.
             try {
-                if (this.dom.characterSetStatus) {
-                    const equippedIds = [];
-                    if (state.character && state.character.equipment) {
-                        for (const slot in state.character.equipment) {
-                            const itm = state.character.equipment[slot];
-                            if (itm && itm.id) equippedIds.push(itm.id);
-                        }
-                    }
-
-                    const lines = [];
-                    for (const setId of Object.keys(SetDatabase)) {
-                        const setInfo = SetDatabase[setId];
-                        if (!setInfo || !Array.isArray(setInfo.pieces)) continue;
-                        const total = setInfo.pieces.length;
-                        const count = setInfo.pieces.filter(pid => equippedIds.includes(pid)).length;
-                        if (count === 0) continue; // only show sets with at least one piece equipped
-
-                        // Title: 套裝名稱 (X/X)
-                        const titleHtml = `<div class="set-line set-title">${setInfo.name} (${count}/${total})</div>`;
-
-                        // Build bonuses (only show active ones). If none active, only show title.
-                        const bonuses = Array.isArray(setInfo.bonuses) ? [...setInfo.bonuses].sort((a, b) => (a.required || 0) - (b.required || 0)) : [];
-                        const activeBonuses = bonuses.filter(b => (b.required || 0) <= count);
-
-                        if (activeBonuses.length > 0) {
-                            const bonusHtml = activeBonuses.map(b => {
-                                const req = b.required || 0;
-                                const name = b.name || (req + '件');
-                                const desc = b.description || b.name || (b.effects ? JSON.stringify(b.effects) : '');
-                                return `<div class="set-bonus set-bonus-active">${name}: ${desc}</div>`;
-                            }).join('');
-
-                            lines.push(titleHtml + bonusHtml);
-                        } else {
-                            // only show the title to notify player they have partial set
-                            lines.push(titleHtml);
-                        }
-                    }
-
-                    this.dom.characterSetStatus.innerHTML = lines.length > 0 ? lines.join('') : '';
-                }
+                this.renderSetCollectionGoals(state);
             } catch (e) {
                 console.warn('Failed to render character set status:', e);
             }
@@ -374,6 +344,116 @@ export default class LobbyScene {
             this.renderWorldStage();
         }
 
+    }
+
+    renderSetCollectionGoals(state) {
+        const target = this.dom.characterSetStatus;
+        if (!target) return;
+
+        const ownedIds = new Set();
+        const equippedIds = new Set();
+        const collectFrom = stack => {
+            const item = stack?.item || stack;
+            if (item?.id) ownedIds.add(item.id);
+        };
+
+        Object.values(state?.character?.equipment || {}).forEach(item => {
+            if (item?.id) {
+                ownedIds.add(item.id);
+                equippedIds.add(item.id);
+            }
+        });
+        (state?.inventory || []).forEach(collectFrom);
+        (state?.warehouse || []).forEach(collectFrom);
+
+        const goals = Object.values(SetDatabase)
+            .filter(setInfo => setInfo && Array.isArray(setInfo.pieces) && setInfo.pieces.length > 0)
+            .map(setInfo => {
+                const pieces = setInfo.pieces.map(pieceId => {
+                    const item = EquipmentDatabase[pieceId] || { id: pieceId, name: pieceId, icon: '◇' };
+                    return {
+                        id: pieceId,
+                        item,
+                        owned: ownedIds.has(pieceId),
+                        equipped: equippedIds.has(pieceId)
+                    };
+                });
+                const ownedCount = pieces.filter(piece => piece.owned).length;
+                const equippedCount = pieces.filter(piece => piece.equipped).length;
+                const nextBonus = (setInfo.bonuses || [])
+                    .slice()
+                    .sort((a, b) => (a.required || 0) - (b.required || 0))
+                    .find(bonus => (bonus.required || 0) > equippedCount);
+                return {
+                    ...setInfo,
+                    pieces,
+                    ownedCount,
+                    equippedCount,
+                    total: pieces.length,
+                    nextBonus
+                };
+            })
+            .sort((a, b) => {
+                if (b.ownedCount !== a.ownedCount) return b.ownedCount - a.ownedCount;
+                if (b.equippedCount !== a.equippedCount) return b.equippedCount - a.equippedCount;
+                return a.total - b.total;
+            });
+
+        const activeGoals = goals.filter(goal => goal.ownedCount > 0);
+        const visibleGoals = (activeGoals.length > 0 ? activeGoals : goals).slice(0, 5);
+        const completedCount = goals.filter(goal => goal.ownedCount >= goal.total).length;
+        const collectingCount = activeGoals.length;
+
+        target.innerHTML = `
+            <div class="set-goal-board">
+                <div class="set-goal-head">
+                    <span>套裝收集</span>
+                    <strong>${completedCount}/${goals.length} 完整</strong>
+                </div>
+                <div class="set-goal-list">
+                    ${visibleGoals.map(goal => this.renderSetGoalCard(goal)).join('')}
+                </div>
+                ${collectingCount === 0
+                    ? '<p class="set-goal-note">尚未取得套裝部件。擊敗菁英、BOSS 或副本首領後，相關套裝會在這裡開始追蹤。</p>'
+                    : ''}
+            </div>
+        `;
+    }
+
+    renderSetGoalCard(goal) {
+        const percent = Math.round((goal.ownedCount / Math.max(1, goal.total)) * 100);
+        const missingPieces = goal.pieces.filter(piece => !piece.owned).slice(0, 2);
+        const nextText = goal.nextBonus
+            ? `${goal.nextBonus.required} 件效果：${goal.nextBonus.name || goal.nextBonus.description || '套裝效果'}`
+            : '套裝已收集完整';
+        const missingText = missingPieces.length > 0
+            ? `缺少 ${missingPieces.map(piece => piece.item.name).join('、')}`
+            : '所有部件已取得';
+
+        return `
+            <article class="set-goal-card ${goal.ownedCount >= goal.total ? 'is-complete' : ''}">
+                <div class="set-goal-title">
+                    <span class="set-goal-icon">${goal.icon || '◆'}</span>
+                    <strong>${escapeHtml(goal.name || goal.id)}</strong>
+                    <span>${goal.ownedCount}/${goal.total}</span>
+                </div>
+                <div class="set-goal-meter" aria-label="${escapeHtml(goal.name || goal.id)} 收集進度">
+                    <div class="set-goal-meter-fill" style="width:${percent}%"></div>
+                </div>
+                <div class="set-piece-row">
+                    ${goal.pieces.map(piece => `
+                        <span class="set-piece-chip ${piece.owned ? 'is-owned' : 'is-missing'} ${piece.equipped ? 'is-equipped' : ''}"
+                            aria-label="${escapeHtml(piece.item.name || piece.id)}">
+                            ${escapeHtml(piece.item.icon || '◇')}
+                        </span>
+                    `).join('')}
+                </div>
+                <div class="set-goal-copy">
+                    <span>${escapeHtml(nextText)}</span>
+                    <small>${escapeHtml(missingText)}</small>
+                </div>
+            </article>
+        `;
     }
 
     handleWorldInteraction(event) {
@@ -618,6 +698,135 @@ export default class LobbyScene {
             clearInterval(this.ambientTimer);
             this.ambientTimer = null;
         }
+        document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
+    }
+
+    handlePassiveEffectKeydown(event) {
+        if (event.key === 'Escape' && this.dom?.passiveEffectModal?.classList.contains('active')) {
+            this.closePassiveEffectModal();
+        }
+    }
+
+    openPassiveEffectModal() {
+        if (!this.dom?.passiveEffectModal) return;
+        this.dom.passiveEffectModal.classList.add('active');
+        this.dom.passiveEffectModal.setAttribute('aria-hidden', 'false');
+        this.dom.passiveEffectLibrary?.querySelector('.passive-effect-choice.is-equipped')?.focus?.();
+    }
+
+    closePassiveEffectModal() {
+        if (!this.dom?.passiveEffectModal) return;
+        this.dom.passiveEffectModal.classList.remove('active');
+        this.dom.passiveEffectModal.setAttribute('aria-hidden', 'true');
+    }
+
+    formatPassiveBonusText(effect) {
+        const bonuses = effect?.bonuses || {};
+        const percent = (value) => `+${Math.round(Number(value || 0) * 100)}%`;
+        const reduction = (value) => `-${Math.round(Number(value || 0) * 100)}%`;
+        const rows = [];
+        if (bonuses.critChance) rows.push(`爆擊率 ${percent(bonuses.critChance)}`);
+        if (bonuses.critDamage) rows.push(`爆擊傷害 ${percent(bonuses.critDamage)}`);
+        if (bonuses.attackSpeed) rows.push(`攻擊頻率 ${percent(bonuses.attackSpeed)}`);
+        if (bonuses.atkPercent) rows.push(`攻擊 ${percent(bonuses.atkPercent)}`);
+        if (bonuses.defPercent) rows.push(`防禦 ${percent(bonuses.defPercent)}`);
+        if (bonuses.atk) rows.push(`攻擊 +${bonuses.atk}`);
+        if (bonuses.def) rows.push(`防禦 +${bonuses.def}`);
+        if (bonuses.poisonMitigation) rows.push(`中毒傷害 ${reduction(bonuses.poisonMitigation)}`);
+        if (bonuses.coldGainReduction) rows.push(`寒冷累積 ${reduction(bonuses.coldGainReduction)}`);
+        if (bonuses.coldMitigation) rows.push(`冰雪傷害 ${reduction(bonuses.coldMitigation)}`);
+        if (bonuses.snowSupplySaving) rows.push(`補給節省 ${Math.round(Number(bonuses.snowSupplySaving || 0) * 100)}%`);
+        if (bonuses.burnMitigation) rows.push(`灼熱傷害 ${reduction(bonuses.burnMitigation)}`);
+        if (bonuses.durabilityLossReduction) rows.push(`耐久磨耗 ${reduction(bonuses.durabilityLossReduction)}`);
+        if (bonuses.lostChanceReduction) rows.push(`迷路機率 ${reduction(bonuses.lostChanceReduction)}`);
+        if (bonuses.markerRequirementReduction) rows.push(`路標需求 -${bonuses.markerRequirementReduction}`);
+        if (bonuses.retreatCostReduction) rows.push(`撤退代價 ${reduction(bonuses.retreatCostReduction)}`);
+        if (bonuses.fleeChanceBonus) rows.push(`撤退成功 ${percent(bonuses.fleeChanceBonus)}`);
+        if (bonuses.puzzleClueBonus) rows.push(`石碑判讀 +${bonuses.puzzleClueBonus}`);
+        if (bonuses.trapDamageReduction) rows.push(`陷阱傷害 ${reduction(bonuses.trapDamageReduction)}`);
+        if (bonuses.healingReceived) rows.push(`恢復量 ${percent(bonuses.healingReceived)}`);
+        if (bonuses.bossDamageReduction) rows.push(`Boss 傷害 ${reduction(bonuses.bossDamageReduction)}`);
+        if (bonuses.eliteDamageReduction) rows.push(`菁英傷害 ${reduction(bonuses.eliteDamageReduction)}`);
+        return rows.join(' / ') || '無效果';
+    }
+
+    renderPassiveCombatEffects(character) {
+        if (!this.dom?.passiveEffectSlots || !this.dom?.passiveEffectLibrary || !character) return;
+
+        const slotCount = Math.max(1, Number(character.passiveEffectSlots) || 1);
+        this.selectedPassiveSlot = Math.max(0, Math.min(slotCount - 1, this.selectedPassiveSlot || 0));
+
+        const equippedIds = Array.isArray(character.equippedPassiveEffectIds)
+            ? character.equippedPassiveEffectIds
+            : (character.getActivePassiveCombatEffects?.() || []).map(effect => effect.id);
+        const unlockedIds = new Set(Array.isArray(character.unlockedPassiveEffectIds) ? character.unlockedPassiveEffectIds : []);
+        const effects = getAllPassiveCombatEffects();
+
+        this.dom.passiveEffectSlots.innerHTML = Array.from({ length: slotCount }, (_, index) => {
+            const effectId = equippedIds[index];
+            const effect = effects.find(item => item.id === effectId);
+            const selectedClass = '';
+            if (!effect) {
+                return `
+                    <button class="passive-effect-slot is-empty${selectedClass}" type="button" data-passive-slot="${index}" aria-haspopup="dialog">
+                        <span class="passive-effect-slot-index">${index + 1}</span>
+                        <span class="passive-effect-copy">
+                            <strong>未裝備技能</strong>
+                            <small>選擇一個常駐效果</small>
+                        </span>
+                        <span class="passive-effect-action">選擇</span>
+                    </button>
+                `;
+            }
+
+            return `
+                <button class="passive-effect-slot rarity-frame rarity-${escapeHtml(effect.rarity || 'common')}${selectedClass}" type="button" data-passive-slot="${index}" aria-haspopup="dialog">
+                    <span class="passive-effect-icon">${escapeHtml(effect.icon || '◆')}</span>
+                    <span class="passive-effect-copy">
+                        <strong>${escapeHtml(effect.name)}</strong>
+                        <small>${escapeHtml(this.formatPassiveBonusText(effect))}</small>
+                    </span>
+                    <span class="passive-effect-action">更換</span>
+                </button>
+            `;
+        }).join('');
+
+        this.dom.passiveEffectLibrary.innerHTML = effects.map(effect => {
+            const unlocked = unlockedIds.has(effect.id);
+            const equipped = equippedIds.includes(effect.id);
+            const disabledClass = unlocked ? '' : ' is-locked';
+            const equippedClass = equipped ? ' is-equipped' : '';
+            return `
+                <button class="passive-effect-choice rarity-frame rarity-${escapeHtml(effect.rarity || 'common')}${disabledClass}${equippedClass}"
+                    type="button"
+                    data-passive-effect-id="${escapeHtml(effect.id)}"
+                    ${unlocked ? '' : 'disabled'}>
+                    <span class="passive-effect-icon">${escapeHtml(effect.icon || '◆')}</span>
+                    <span class="passive-effect-choice-copy">
+                        <strong>${escapeHtml(effect.name)}</strong>
+                        <small>${escapeHtml(this.formatPassiveBonusText(effect))}</small>
+                    </span>
+                    <span class="passive-effect-state">${equipped ? '已裝備' : (unlocked ? '可替換' : '未解鎖')}</span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    equipPassiveCombatEffect(effectId) {
+        const character = GameManager.state.character;
+        if (!character?.equipPassiveCombatEffect) return;
+
+        const ok = character.equipPassiveCombatEffect(effectId, this.selectedPassiveSlot);
+        if (!ok) {
+            showGlobalToast('無法替換', '這個戰術技能尚未解鎖。', 'warning');
+            return;
+        }
+
+        GameManager.markSaveDirty?.('passive-combat-effect');
+        GameManager.notify('all');
+        this.renderPassiveCombatEffects(character);
+        this.closePassiveEffectModal();
+        showGlobalToast('戰術技能已替換', '新的常駐效果會直接套用在接下來的探索與戰鬥。', 'success');
     }
     
     updateEquipmentSlots(equipment) {

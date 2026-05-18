@@ -173,17 +173,6 @@
     margin: 2px 0;
 }
 
-.noshow {
-    visibility: hidden;
-}
-
-.map-legend,
-.legend-item,
-.legend-icon,
-.legend-text {
-    display: none;
-}
-
 /* ===== 線索簿 ===== */
 .clue-book-tab {
     position: absolute;
@@ -2793,11 +2782,6 @@
 .vital-bar-fill.hp-fill {
     background: linear-gradient(90deg, #ef5350, #f44336);
     box-shadow: 0 0 10px rgba(244, 67, 54, 0.6);
-}
-
-.vital-bar-fill.mp-fill {
-    background: linear-gradient(90deg, #42a5f5, #1e88e5);
-    box-shadow: 0 0 10px rgba(33, 150, 243, 0.6);
 }
 
 .vital-text {

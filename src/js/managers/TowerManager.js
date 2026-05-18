@@ -28,9 +28,9 @@ export const TowerState = {
 const TOWER_CONFIG = {
     maxFloor: 20,
     bossFloors: [5, 10, 15, 20],
-    // 每層休息點（可恢復部分HP/MP）
+    // 每層休息點（可恢復部分 HP）
     restFloors: [5, 10, 15],
-    restHealPercent: 0.3,  // 休息恢復 30% HP/MP
+    restHealPercent: 0.3,  // 休息恢復 30% HP
     // 通關獎勵倍率
     clearBonusMultiplier: {
         5: 1.5,
@@ -116,6 +116,11 @@ export default class TowerManager {
         // MonsterDatabase). Pass the template object so createMonsterInstance
         // can initialize correctly.
         this.currentMonster = createMonsterInstance(monsterData);
+        this.currentMonster.isBoss = this.isBossFloor(this.currentFloor);
+        this.currentMonster.isElite = Boolean(this.currentMonster.isElite);
+        this.currentMonster.maxHp = this.currentMonster.maxHp ?? this.currentMonster.hp ?? this.currentMonster.currentHp ?? 1;
+        this.currentMonster.hp = this.currentMonster.hp ?? this.currentMonster.currentHp ?? this.currentMonster.maxHp;
+        this.currentMonster.currentHp = this.currentMonster.currentHp ?? this.currentMonster.hp;
         this.state = TowerState.IN_BATTLE;
         this.battleLog = [];
         
@@ -166,7 +171,6 @@ export default class TowerManager {
         
         // 回合結束處理
         character.tickBuffs();
-        character.tickSkillCooldowns();
         
         this.notify('battle_round', { roundLog, monster, character });
         
@@ -245,21 +249,6 @@ export default class TowerManager {
                 }
             }
             
-        } else if (action.type === 'skill') {
-            // 使用技能
-            const skillResult = character.useSkill(action.skillIndex, monster);
-            if (skillResult) {
-                damage = skillResult.damage || 0;
-                message = skillResult.message;
-                
-                // 處理 Buff
-                if (skillResult.buff) {
-                    character.addBuff(skillResult.buff.type, skillResult.buff.value, skillResult.buff.duration);
-                }
-            } else {
-                message = '技能使用失敗！';
-            }
-            
         } else if (action.type === 'item') {
             // 使用道具（這裡簡化處理）
             message = '使用了道具。';
@@ -297,6 +286,15 @@ export default class TowerManager {
         const normalizedReduction = Math.abs(damageReduction) > 1 ? damageReduction / 100 : damageReduction;
         if (normalizedReduction > 0) {
             damage = Math.floor(damage * (1 - Math.min(normalizedReduction, 0.75)));
+        }
+
+        const passiveReduction = typeof character.getPassiveCombatBonus === 'function'
+            ? (monster.isBoss ? Number(character.getPassiveCombatBonus('bossDamageReduction')) || 0 : 0)
+                + (monster.isElite ? Number(character.getPassiveCombatBonus('eliteDamageReduction')) || 0 : 0)
+                + (Number(character.getPassiveCombatBonus('monsterDamageReduction')) || 0)
+            : 0;
+        if (passiveReduction > 0) {
+            damage = Math.max(1, Math.floor(damage * (1 - Math.min(passiveReduction, 0.75))));
         }
         
         // 應用傷害
@@ -494,12 +492,10 @@ export default class TowerManager {
     restHeal() {
         const character = GameManager.getCharacter();
         const healAmount = Math.floor(character.maxHp * TOWER_CONFIG.restHealPercent);
-        const mpAmount = Math.floor(character.maxMp * TOWER_CONFIG.restHealPercent);
         
         character.hp = Math.min(character.maxHp, character.hp + healAmount);
-        character.mp = Math.min(character.maxMp, character.mp + mpAmount);
         
-        this.notify('rest_heal', { healAmount, mpAmount });
+        this.notify('rest_heal', { healAmount });
     }
     
     /**

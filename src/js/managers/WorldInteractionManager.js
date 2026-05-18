@@ -9,6 +9,8 @@ import { getQuestById } from '../data/Quests.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { unlockRecipeBlueprints } from './BlueprintManager.js';
+import { worldStoryManager } from './WorldStoryManager.js';
+import { StoryEventTypes } from '../data/StoryProgressMap.js';
 
 class WorldInteractionManager {
     constructor() {
@@ -21,6 +23,41 @@ class WorldInteractionManager {
 
     hasResolved(interactionId) {
         return Boolean(GameManager.getFlag(this.getResolvedFlag(interactionId)));
+    }
+
+    getItemCount(itemId) {
+        const countIn = stacks => (stacks || [])
+            .filter(stack => stack?.item?.id === itemId)
+            .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
+        return countIn(GameManager.state?.inventory) + countIn(GameManager.state?.warehouse);
+    }
+
+    getMissingRequiredItems(interaction) {
+        return (interaction.requiredItems || []).filter(item => {
+            const required = Math.max(1, Number(item.quantity) || 1);
+            return this.getItemCount(item.id) < required;
+        });
+    }
+
+    consumeRequiredItems(interaction, context = {}) {
+        if (!interaction.consumeRequiredItems) return true;
+
+        for (const requirement of interaction.requiredItems || []) {
+            let remaining = Math.max(1, Number(requirement.quantity) || 1);
+
+            if (context.providedInstanceId && context.providedItemId === requirement.id && remaining > 0) {
+                const removed = GameManager.removeItemByInstanceId(context.providedInstanceId, Boolean(context.fromWarehouse));
+                if (removed) remaining -= 1;
+            }
+
+            while (remaining > 0) {
+                const removed = GameManager.removeMaterial(requirement.id, 1);
+                if (!removed) return false;
+                remaining -= 1;
+            }
+        }
+
+        return true;
     }
 
     trigger(interactionId, context = {}) {
@@ -40,9 +77,30 @@ class WorldInteractionManager {
             };
         }
 
+        const missingItems = this.getMissingRequiredItems(interaction);
+        if (missingItems.length > 0) {
+            const missingText = missingItems
+                .map(item => `${item.name || item.id} x${item.quantity || 1}`)
+                .join('、');
+            return {
+                success: false,
+                interaction,
+                missingItems,
+                messages: [interaction.missingMessage || `缺少特殊道具：${missingText}`]
+            };
+        }
+
         const messages = [];
         const unlockedQuests = [];
         const recipeUnlocks = unlockRecipeBlueprints(interaction.unlockRecipes || []);
+
+        if (!this.consumeRequiredItems(interaction, context)) {
+            return {
+                success: false,
+                interaction,
+                messages: ['特殊道具交付失敗，請確認物品仍在背包或倉庫中。']
+            };
+        }
 
         for (const flag of interaction.flags || []) {
             GameManager.setFlag(flag, true);
@@ -70,6 +128,19 @@ class WorldInteractionManager {
         for (const unlock of recipeUnlocks) {
             if (unlock.newlyUnlocked) messages.push(`取得製作圖：${unlock.recipe.name}`);
         }
+        for (const progress of interaction.progressObjectives || []) {
+            if (!progress?.type || !progress?.target) continue;
+            const changed = questManager.updateProgress(progress.type, progress.target, progress.amount || 1);
+            if (changed && progress.message) messages.push(progress.message);
+        }
+
+        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.WORLD_INTERACTION, {
+            interactionId,
+            interaction,
+            unlockedQuestIds: unlockedQuests.map(quest => quest.id),
+            unlockedRecipeIds: recipeUnlocks.filter(unlock => unlock.newlyUnlocked).map(unlock => unlock.recipeId),
+            source: context.source || interaction.source
+        });
 
         const entry = {
             id: interactionId,
@@ -77,7 +148,8 @@ class WorldInteractionManager {
             source: context.source || interaction.source,
             timestamp: Date.now(),
             unlockedQuests: unlockedQuests.map(quest => quest.id),
-            unlockedRecipes: recipeUnlocks.filter(unlock => unlock.newlyUnlocked).map(unlock => unlock.recipeId)
+            unlockedRecipes: recipeUnlocks.filter(unlock => unlock.newlyUnlocked).map(unlock => unlock.recipeId),
+            storyEvents: storyOutcome.appliedRules || []
         };
         this.journal.unshift(entry);
 
@@ -91,6 +163,7 @@ class WorldInteractionManager {
             messages,
             unlockedQuests,
             unlockedRecipes: recipeUnlocks,
+            storyOutcome,
             entry
         };
     }

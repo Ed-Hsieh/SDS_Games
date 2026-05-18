@@ -4,8 +4,16 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { towerManager, TowerState, getBossEquipment } from '../managers/TowerManager.js';
-import { getTowerMonster } from '../managers/MonsterManager.js';
+import * as FightManager from '../managers/FightManager.js';
+import { towerManager, TowerState } from '../managers/TowerManager.js';
+import {
+    renderCombatMonster,
+    renderCombatPlayer,
+    renderCombatBuffIndicators,
+    showCombatDamageNumber,
+    showCombatPlayerHitFeedback,
+    showCombatKillFreeze
+} from '../utils/CombatUI.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 
 class TowerScene {
@@ -26,6 +34,8 @@ class TowerScene {
         this.handleExitClick = this.exitTower.bind(this);
         this.app = null; // 由 main.js 設定
         this.rhythmSystem = null; // 節奏條系統
+        this.battleEngine = null;
+        this.finishingBattle = false;
     }
     
     // 設定 app 參考
@@ -50,6 +60,9 @@ class TowerScene {
         if (status.state === TowerState.IN_BATTLE) {
             this.showBattleState();
             this.updateBattleUI();
+            this.createBattleEngine(status.currentMonster);
+            this.initRhythmSystem();
+            this.startRhythmBar();
         } else {
             this.showIdleState();
             this.selectFloor(status.currentFloor || 1);
@@ -74,22 +87,20 @@ class TowerScene {
         // 戰鬥狀態
         this.battleStateEl = document.getElementById('battle-state');
         this.battleFloorEl = document.getElementById('battle-floor');
-        this.playerHpFillEl = document.getElementById('player-hp-fill');
-        this.playerHpTextEl = document.getElementById('player-hp-text');
-        this.playerMpFillEl = document.getElementById('player-mp-fill');
-        this.playerMpTextEl = document.getElementById('player-mp-text');
-        this.monsterNameEl = document.getElementById('monster-name');
-        this.monsterIconEl = document.getElementById('monster-icon');
-        this.monsterLevelEl = document.getElementById('monster-level');
-        this.monsterAtkEl = document.getElementById('monster-atk');
-        this.monsterDefEl = document.getElementById('monster-def');
-        this.monsterHpFillEl = document.getElementById('monster-hp-fill');
-        this.monsterHpTextEl = document.getElementById('monster-hp-text');
-        this.battlePlayerLevelEl = document.getElementById('battle-player-level');
+        this.playerHpFillEl = document.getElementById('hud-hp-bar') || document.getElementById('player-hp-fill');
+        this.playerHpTextEl = document.getElementById('hud-hp-text') || document.getElementById('player-hp-text');
+        this.buffIndicatorsEl = document.getElementById('buff-indicators') || document.getElementById('tower-buff-indicators');
+        this.monsterNameEl = document.getElementById('battle-monster-name') || document.getElementById('monster-name');
+        this.monsterIconEl = document.getElementById('battle-monster-icon') || document.getElementById('monster-icon');
+        this.monsterLevelEl = document.getElementById('battle-monster-level') || document.getElementById('monster-level');
+        this.monsterAtkEl = document.getElementById('battle-monster-atk') || document.getElementById('monster-atk');
+        this.monsterDefEl = document.getElementById('battle-monster-def') || document.getElementById('monster-def');
+        this.monsterHpFillEl = document.getElementById('battle-monster-hp-bar') || document.getElementById('monster-hp-fill');
+        this.monsterHpTextEl = document.getElementById('battle-monster-hp-text') || document.getElementById('monster-hp-text');
+        this.battlePlayerLevelEl = document.getElementById('hud-player-level') || document.getElementById('battle-player-level');
 
         // 戰鬥按鈕
         this.btnAttack = document.getElementById('btn-attack');
-        this.btnSkill = document.getElementById('btn-skill');
         this.btnItem = document.getElementById('btn-item');
         this.btnFlee = document.getElementById('btn-flee');
 
@@ -105,7 +116,6 @@ class TowerScene {
         // 玩家狀態面板
         this.playerLevelEl = document.getElementById('player-level');
         this.playerStatHpEl = document.getElementById('player-stat-hp');
-        this.playerStatMpEl = document.getElementById('player-stat-mp');
         this.playerStatAtkEl = document.getElementById('player-stat-atk');
         this.playerStatDefEl = document.getElementById('player-stat-def');
         this.playerStatGoldEl = document.getElementById('player-stat-gold');
@@ -129,7 +139,6 @@ class TowerScene {
 
         // 戰鬥操作 - 使用節奏條系統
         this.btnAttack?.addEventListener('click', this.handleAttackButtonClick);
-        // Skill UI removed: skill button no longer opens a skill menu
         this.btnItem?.addEventListener('click', this.handleItemButtonClick);
         this.btnFlee?.addEventListener('click', this.handleFleeButtonClick);
 
@@ -155,6 +164,7 @@ class TowerScene {
     cleanup() {
         this.unbindEvents();
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         if (this.systemsSubscribed) {
             towerManager.unsubscribe(this.handleTowerEvent);
             GameManager.unsubscribe(this.handleGameEvent);
@@ -410,7 +420,6 @@ class TowerScene {
 
         if (this.playerLevelEl) this.playerLevelEl.textContent = char.level;
         if (this.playerStatHpEl) this.playerStatHpEl.textContent = `${char.hp}/${char.maxHp}`;
-        if (this.playerStatMpEl) this.playerStatMpEl.textContent = `${char.mp}/${char.maxMp}`;
         if (this.playerStatAtkEl) this.playerStatAtkEl.textContent = char.getTotalAtk();
         if (this.playerStatDefEl) this.playerStatDefEl.textContent = char.getTotalDef();
         if (this.playerStatGoldEl) this.playerStatGoldEl.textContent = GameManager.getGold();
@@ -441,6 +450,37 @@ class TowerScene {
 
     // ===== 戰鬥控制 =====
 
+    createBattleEngine(monster) {
+        if (!monster) return;
+
+        this.destroyBattleEngine();
+        this.finishingBattle = false;
+        this.battleEngine = new FightManager.BattleController(GameManager.getCharacter(), monster);
+        this.battleEngine._onAutoAttack = (res) => {
+            if (!res || this.finishingBattle) return;
+            if (res.destroyedArmor) this.updatePlayerStats();
+            showCombatPlayerHitFeedback(this.battleStateEl, GameManager.getCharacter(), res.damage || 0);
+            this.updateBattleUI();
+
+            if (res.playerHp <= 0) {
+                this.finishBattleDefeat();
+            }
+        };
+
+        this.battleEngine.beginBattle();
+        this.battleEngine.startAutoAttack();
+    }
+
+    destroyBattleEngine() {
+        if (!this.battleEngine) return;
+        try {
+            this.battleEngine.endBattle?.();
+        } catch (error) {
+            console.warn('[TowerScene] Failed to stop battle engine:', error);
+        }
+        this.battleEngine = null;
+    }
+
     startBattle() {
         const status = towerManager.getStatus();
 
@@ -462,13 +502,60 @@ class TowerScene {
     }
 
     executeAction(action) {
-        const result = towerManager.executeBattleRound(action);
-        if (!result.success && result.message) {
-            this.showMessage(result.message);
+        const status = towerManager.getStatus();
+        const monster = status.currentMonster;
+        if (status.state !== TowerState.IN_BATTLE || !monster) {
+            this.showMessage('目前不在戰鬥中。');
+            return;
+        }
+
+        if (!this.battleEngine) {
+            this.createBattleEngine(monster);
+        }
+
+        if (action.type !== 'attack') return;
+
+        const hitType = action.hitType || 'hit';
+        const res = this.battleEngine?.playerAttack(hitType);
+        if (!res) return;
+
+        if (res.destroyedWeapon) {
+            this.showMessage(`${res.destroyedWeapon.name} 已損壞。`, 'warning');
+        }
+
+        const damage = res.applyRes?.finalDamage ?? 0;
+        showCombatDamageNumber(this.battleStateEl, damage, {
+            type: hitType === 'miss' ? 'dodge' : damage <= 0 ? 'block' : res.computeRes?.isCrit ? 'critical' : 'normal',
+            isCrit: Boolean(res.computeRes?.isCrit),
+            isMiss: hitType === 'miss'
+        });
+        this.updateBattleUI();
+
+        if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+            this.finishBattleVictory();
         }
     }
 
-    // Skill usage via TowerScene removed; towerManager still processes skill actions if invoked programmatically
+    finishBattleVictory() {
+        if (this.finishingBattle || towerManager.getStatus().state !== TowerState.IN_BATTLE) return;
+        this.finishingBattle = true;
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        showCombatKillFreeze(this.battleStateEl);
+        setTimeout(() => {
+            towerManager.handleVictory();
+            this.finishingBattle = false;
+        }, 360);
+    }
+
+    finishBattleDefeat() {
+        if (this.finishingBattle || towerManager.getStatus().state !== TowerState.IN_BATTLE) return;
+        this.finishingBattle = true;
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        towerManager.handleDefeat();
+        this.finishingBattle = false;
+    }
 
     useItem(instanceId) {
         const result = GameManager.useConsumable(instanceId);
@@ -515,6 +602,7 @@ class TowerScene {
         if (!confirmed) return;
 
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         towerManager.abandonChallenge();
         this.showIdleState();
         this.renderFloorsList();
@@ -522,6 +610,7 @@ class TowerScene {
     }
 
     goNextFloor() {
+        this.destroyBattleEngine();
         const result = towerManager.nextFloor();
         if (result.success) {
             this.showIdleState();
@@ -533,6 +622,7 @@ class TowerScene {
     }
 
     retryBattle() {
+        this.destroyBattleEngine();
         const status = towerManager.getStatus();
         towerManager.startChallenge(status.currentFloor);
         this.showIdleState();
@@ -540,6 +630,7 @@ class TowerScene {
 
     exitTower() {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         towerManager.abandonChallenge();
         if (this.app) {
             this.app.loadScene('lobby');
@@ -558,6 +649,7 @@ class TowerScene {
     onBattleStart(data) {
         this.showBattleState();
         this.updateBattleUI();
+        this.createBattleEngine(data.monster);
         
         if (this.battleFloorEl) {
             this.battleFloorEl.textContent = data.floor;
@@ -601,11 +693,13 @@ class TowerScene {
 
     onBattleVictory(data) {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         this.showResultState(true, data);
     }
 
     onBattleDefeat(data) {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         this.showResultState(false, data);
     }
 
@@ -629,6 +723,7 @@ class TowerScene {
     // ===== UI 狀態切換 =====
 
     showIdleState() {
+        this.destroyBattleEngine();
         this.idleStateEl?.classList.remove('hidden');
         this.battleStateEl?.classList.add('hidden');
         this.resultStateEl?.classList.add('hidden');
@@ -699,29 +794,20 @@ class TowerScene {
         const status = towerManager.getStatus();
         const monster = status.currentMonster;
 
-        // 更新玩家血量
-        if (this.playerHpFillEl && this.playerHpTextEl) {
-            const hpPercent = (char.hp / char.maxHp) * 100;
-            this.playerHpFillEl.style.width = `${hpPercent}%`;
-            this.playerHpTextEl.textContent = `${char.hp}/${char.maxHp}`;
-        }
-
-        // 更新玩家魔力
-        if (this.playerMpFillEl && this.playerMpTextEl) {
-            const mpPercent = (char.mp / char.maxMp) * 100;
-            this.playerMpFillEl.style.width = `${mpPercent}%`;
-            this.playerMpTextEl.textContent = `${char.mp}/${char.maxMp}`;
-        }
-
-        // 更新怪物血量
-        if (monster && this.monsterHpFillEl && this.monsterHpTextEl) {
-            const hpPercent = (monster.currentHp / monster.hp) * 100;
-            this.monsterHpFillEl.style.width = `${hpPercent}%`;
-            this.monsterHpTextEl.textContent = `${monster.currentHp}/${monster.hp}`;
+        renderCombatPlayer(this.battleStateEl, char, {
+            inventory: GameManager.getInventory(),
+            fallbackName: '冒險者'
+        });
+        if (monster) {
+            renderCombatMonster(this.battleStateEl, monster, { level: monster.level || status.currentFloor });
         }
 
         // 更新右側面板
         this.updatePlayerStats();
+    }
+
+    renderBuffIndicators(char) {
+        renderCombatBuffIndicators(this.buffIndicatorsEl, char);
     }
 
     showMessage(message, type = 'info') {

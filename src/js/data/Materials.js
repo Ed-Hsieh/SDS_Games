@@ -22,7 +22,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.COMMON,
         price: 5,
         description: '史萊姆的身體凝膠，可用於製作基礎藥水。',
-        craftUse: ['health_potion_s', 'mana_potion_s']
+        craftUse: ['health_potion_s', 'antidote']
     },
     
     beast_hide: {
@@ -356,13 +356,13 @@ export const MaterialDatabase = {
     
     magic_crystal: {
         id: 'magic_crystal',
-        name: '魔力結晶',
+        name: '星輝結晶',
         icon: '💎',
         type: ItemType.MATERIAL,
         rarity: ItemRarity.RARE,
         price: 120,
-        description: '凝聚的魔力結晶。',
-        craftUse: ['focus_reforge', 'magic_weapon']
+        description: '凝聚星輝能量的結晶。',
+        craftUse: ['focus_reforge', 'crystal_weapon']
     },
     
     commander_blade: {

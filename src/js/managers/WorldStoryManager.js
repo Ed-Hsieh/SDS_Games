@@ -10,6 +10,11 @@ import {
     WorldLandmarks,
     WorldStoryChains
 } from '../data/WorldStories.js';
+import {
+    StoryActionTypes,
+    StoryEventTypes,
+    getStoryEventRules
+} from '../data/StoryProgressMap.js';
 import { BossMonsterIds } from '../data/Monsters.js';
 
 const BossTemplateIdSet = new Set(Array.isArray(BossMonsterIds) ? BossMonsterIds : []);
@@ -49,6 +54,131 @@ class WorldStoryManager {
 
     getClueMetaFlag(clueId) {
         return `world.clue.${clueId}.meta`;
+    }
+
+    getStoryEventCounterFlag(counterKey) {
+        return `world.storyCounter.${counterKey}`;
+    }
+
+    hasStoryProgress(chainId, progressId) {
+        return Boolean(GameManager.getFlag(this.getStoryProgressFlag(chainId, progressId)));
+    }
+
+    getRuleCounterKey(rule, payload = {}) {
+        const rawKey = rule?.counter?.key || rule?.id || 'unknown';
+        return String(rawKey).replace(/\{(\w+)\}/g, (_, key) => String(payload[key] ?? 'unknown'));
+    }
+
+    updateRuleCounter(rule, payload = {}) {
+        if (!rule?.counter) {
+            return { passed: true, count: null, required: null };
+        }
+
+        const key = this.getRuleCounterKey(rule, payload);
+        const flag = this.getStoryEventCounterFlag(key);
+        const previous = Number(GameManager.getFlag(flag)) || 0;
+        const amount = Math.max(1, Number(payload.amount ?? rule.counter.amount ?? 1) || 1);
+        const count = previous + amount;
+        const required = Math.max(1, Number(rule.counter.required) || 1);
+
+        GameManager.setFlag(flag, count);
+
+        return {
+            key,
+            count,
+            required,
+            passed: count >= required
+        };
+    }
+
+    applyStoryAction(action, context = {}) {
+        if (!action?.type) return null;
+
+        switch (action.type) {
+            case StoryActionTypes.REVEAL_CLUE: {
+                const clue = this.revealClue(action.clueId, context);
+                return clue ? { type: action.type, clue } : null;
+            }
+            case StoryActionTypes.REVEAL_NEXT_CLUE: {
+                const clue = this.revealNextClue(action.chainId, context);
+                return clue ? { type: action.type, chainId: action.chainId, clue } : null;
+            }
+            case StoryActionTypes.RECORD_PROGRESS: {
+                const alreadyCompleted = this.hasStoryProgress(action.chainId, action.progressId);
+                const status = this.recordProgress(action.chainId, action.progressId, context);
+                return !alreadyCompleted && status
+                    ? { type: action.type, chainId: action.chainId, progressId: action.progressId, status }
+                    : null;
+            }
+            case StoryActionTypes.MARK_FINAL_READY: {
+                const alreadyReady = Boolean(GameManager.getFlag(this.getStoryFinalReadyFlag(action.chainId))?.ready);
+                const status = this.markFinalReady(action.chainId, context);
+                return !alreadyReady && status
+                    ? { type: action.type, chainId: action.chainId, status }
+                    : null;
+            }
+            default:
+                return null;
+        }
+    }
+
+    applyStoryEvent(eventType, payload = {}) {
+        const rules = getStoryEventRules(eventType, payload);
+        const outcome = {
+            eventType,
+            payload,
+            appliedRules: [],
+            newClues: [],
+            progressUpdates: [],
+            finalReady: []
+        };
+
+        for (const rule of rules) {
+            const counter = this.updateRuleCounter(rule, payload);
+            if (!counter.passed) {
+                outcome.appliedRules.push({
+                    id: rule.id,
+                    pending: true,
+                    counter
+                });
+                continue;
+            }
+
+            const effects = [];
+            for (const action of rule.actions || []) {
+                const effect = this.applyStoryAction(action, {
+                    ...payload,
+                    source: payload.source || eventType,
+                    eventType,
+                    ruleId: rule.id
+                });
+                if (!effect) continue;
+
+                effects.push(effect);
+                if (effect.clue) outcome.newClues.push(effect.clue);
+                if (effect.type === StoryActionTypes.RECORD_PROGRESS) outcome.progressUpdates.push(effect);
+                if (effect.type === StoryActionTypes.MARK_FINAL_READY) outcome.finalReady.push(effect);
+            }
+
+            if (effects.length > 0) {
+                outcome.appliedRules.push({
+                    id: rule.id,
+                    counter,
+                    effects
+                });
+            }
+        }
+
+        return outcome;
+    }
+
+    recordZoneExploration(zoneId, context = {}) {
+        if (!zoneId) return { newClues: [] };
+        return this.applyStoryEvent(StoryEventTypes.ZONE_EXPLORED, {
+            ...context,
+            zoneId,
+            source: context.source || 'zone_explored'
+        });
     }
 
     hasClue(clueId) {
@@ -131,6 +261,17 @@ class WorldStoryManager {
             if (clue) newClues.push(clue);
         }
 
+        const storyEventOutcome = this.applyStoryEvent(StoryEventTypes.LANDMARK_VISITED, {
+            ...context,
+            landmarkId,
+            zoneId: context.zoneId,
+            firstVisit,
+            source: context.source || 'landmark'
+        });
+        if (storyEventOutcome.newClues?.length) {
+            newClues.push(...storyEventOutcome.newClues);
+        }
+
         const effects = (landmark.effectIds || []).map(getTerrainEffect).filter(Boolean);
         const relatedStories = (landmark.storyChainIds || [])
             .map(chainId => this.getStorySummary(chainId))
@@ -145,6 +286,7 @@ class WorldStoryManager {
             description: firstVisit ? landmark.arrival : landmark.repeat,
             messages: newClues.map(clue => clue.text),
             newClues,
+            storyEvents: storyEventOutcome,
             effects,
             relatedStories
         };
@@ -174,7 +316,16 @@ class WorldStoryManager {
             }
         }
 
-        return { newClues };
+        const storyEventOutcome = this.applyStoryEvent(StoryEventTypes.MONSTER_KILL, {
+            ...context,
+            monsterId,
+            source: context.source || 'monster_kill'
+        });
+        if (storyEventOutcome.newClues?.length) {
+            newClues.push(...storyEventOutcome.newClues);
+        }
+
+        return { newClues, storyEvents: storyEventOutcome };
     }
 
     recordProgress(chainId, progressId, context = {}) {

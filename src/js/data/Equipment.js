@@ -899,7 +899,7 @@ export const EquipmentDatabase = {
             critDamage: 1.6,
             weaponSpeed: 0.9,
             attackSpeed: 0.9,
-            mp: 30
+            hp: 30
         },
         price: 250,
         description: '森林守護者留下的法杖，充滿自然之力。',
@@ -923,7 +923,7 @@ export const EquipmentDatabase = {
             critDamage: 1.8,
             weaponSpeed: 0.8,
             attackSpeed: 0.85,
-            mp: 50
+            hp: 50
         },
         price: 600,
         description: '巫妖的法杖，充滿死亡的氣息。',
@@ -992,7 +992,7 @@ export const EquipmentDatabase = {
             defense: 15,
             critChance: 0.10,
             critDamage: 1.7,
-            mp: 80
+            hp: 80
         },
         price: 1800,
         description: '融合四大元素之力的神秘寶珠。',

@@ -49,6 +49,10 @@ function getPassiveBonus(character, stat) {
     }, 0);
 }
 
+export function getPassiveCombatBonus(character, stat) {
+    return getPassiveBonus(character, stat);
+}
+
 export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
     const setBonuses = getSetBonusTotals(character);
@@ -189,6 +193,7 @@ export function getDamageReduction(character) {
         }
     });
     reduction += toPercentInt(setBonuses.damageReduction) / 100;
+    reduction += toFraction(getPassiveBonus(character, 'damageReduction'));
     return Math.min(reduction, 0.75);
 }
 
@@ -237,30 +242,23 @@ export function clearAllBuffs(character) {
     character.activeBuffs = [];
 }
 
-export function initDefaultSkills(character, createDefaultSkills = null) {
-    initPassiveCombatEffects(character);
-    character.skills = [];
-}
-
-export function useSkill(character, skillIndex, target) {
-    return null;
-}
-
-export function tickSkillCooldowns(character) {
-    return;
-}
-
 export function initPassiveCombatEffects(character) {
-    if (!Array.isArray(character.unlockedPassiveEffectIds)) {
-        character.unlockedPassiveEffectIds = [...DefaultUnlockedPassiveCombatEffectIds];
-    }
-    if (!Array.isArray(character.equippedPassiveEffectIds)) {
+    const unlockedIds = Array.isArray(character.unlockedPassiveEffectIds)
+        ? character.unlockedPassiveEffectIds
+        : [];
+    character.unlockedPassiveEffectIds = Array.from(new Set([
+        ...unlockedIds,
+        ...DefaultUnlockedPassiveCombatEffectIds
+    ])).filter(effectId => Boolean(getPassiveCombatEffect(effectId)));
+
+    if (!Array.isArray(character.equippedPassiveEffectIds) || character.equippedPassiveEffectIds.length === 0) {
         character.equippedPassiveEffectIds = [...DefaultEquippedPassiveCombatEffectIds];
     }
-    character.passiveEffectSlots = Math.max(1, Number(character.passiveEffectSlots) || PassiveCombatEffectSlotCount);
-    character.equippedPassiveEffectIds = character.equippedPassiveEffectIds
-        .filter(effectId => character.unlockedPassiveEffectIds.includes(effectId))
-        .slice(0, character.passiveEffectSlots);
+    character.passiveEffectSlots = PassiveCombatEffectSlotCount;
+    character.equippedPassiveEffectIds = Array.from({ length: character.passiveEffectSlots }, (_, index) => {
+        const effectId = character.equippedPassiveEffectIds[index];
+        return character.unlockedPassiveEffectIds.includes(effectId) ? effectId : null;
+    });
 }
 
 export function getActivePassiveCombatEffects(character) {
@@ -284,11 +282,11 @@ export function equipPassiveCombatEffect(character, effectId, slotIndex = 0) {
     if (!character.unlockedPassiveEffectIds.includes(effectId)) return false;
 
     const index = Math.max(0, Math.min(character.passiveEffectSlots - 1, Number(slotIndex) || 0));
-    const nextIds = [...character.equippedPassiveEffectIds];
+    const nextIds = Array.from({ length: character.passiveEffectSlots }, (_, slot) => character.equippedPassiveEffectIds[slot] || null);
     const duplicateIndex = nextIds.indexOf(effectId);
     if (duplicateIndex >= 0 && duplicateIndex !== index) nextIds[duplicateIndex] = null;
     nextIds[index] = effectId;
-    character.equippedPassiveEffectIds = nextIds.filter(Boolean).slice(0, character.passiveEffectSlots);
+    character.equippedPassiveEffectIds = nextIds.slice(0, character.passiveEffectSlots);
     return true;
 }
 
@@ -325,10 +323,6 @@ export function useItem(character, item) {
 
 export function calculateMaxHp(character) {
     return 100 + ((character.level || 1) * 20);
-}
-
-export function calculateMaxMp(character) {
-    return 0;
 }
 
 export function calculateMaxExp(character) {
@@ -373,6 +367,7 @@ export class CharacterHelper {
     getLifesteal() { return getLifesteal(this.data); }
     getDamageReduction() { return getDamageReduction(this.data); }
     getAffixHpBonus() { return getAffixHpBonus(this.data); }
+    getPassiveCombatBonus(stat) { return getPassiveCombatBonus(this.data, stat); }
     getActivePassiveCombatEffects() { return getActivePassiveCombatEffects(this.data); }
 
     addBuff(type, value, duration) { return addBuff(this.data, type, value, duration); }
@@ -380,8 +375,6 @@ export class CharacterHelper {
     tickBuffs() { return tickBuffs(this.data); }
     clearAllBuffs() { return clearAllBuffs(this.data); }
 
-    useSkill(index, target) { return useSkill(this.data, index, target); }
-    tickSkillCooldowns() { return tickSkillCooldowns(this.data); }
     equipPassiveCombatEffect(effectId, slotIndex) { return equipPassiveCombatEffect(this.data, effectId, slotIndex); }
     unlockPassiveCombatEffect(effectId) { return unlockPassiveCombatEffect(this.data, effectId); }
 
@@ -406,13 +399,11 @@ export default {
     getLifesteal,
     getDamageReduction,
     getAffixHpBonus,
+    getPassiveCombatBonus,
     addBuff,
     getBuffValue,
     tickBuffs,
     clearAllBuffs,
-    initDefaultSkills,
-    useSkill,
-    tickSkillCooldowns,
     initPassiveCombatEffects,
     getActivePassiveCombatEffects,
     unlockPassiveCombatEffect,
@@ -421,7 +412,6 @@ export default {
     unequip,
     useItem,
     calculateMaxHp,
-    calculateMaxMp,
     calculateMaxExp,
     checkLevelUp,
     gainExp,

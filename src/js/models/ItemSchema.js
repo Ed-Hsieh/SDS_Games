@@ -192,8 +192,10 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.maxStack !== undefined) item.maxStack = itemData.maxStack;
     if (itemData.special !== undefined) item.special = itemData.special;
     if (itemData.stats) item.stats = cloneData(itemData.stats);
+    if (itemData.buff) item.buff = cloneData(itemData.buff);
+    if (itemData.passiveEffectId) item.passiveEffectId = itemData.passiveEffectId;
 
-    for (const key of ['hp', 'mp', 'exp']) {
+    for (const key of ['hp', 'exp']) {
         const value = itemData[key] ?? stats[key];
         if (value !== undefined && value !== null) item[key] = value;
     }

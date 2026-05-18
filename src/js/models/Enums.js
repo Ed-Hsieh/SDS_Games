@@ -33,7 +33,6 @@ export const AffixStat = {
     ATK: 'atk',
     DEF: 'def',
     HP: 'hp',
-    MP: 'mp',
     CRIT_CHANCE: 'critChance',
     CRIT_DAMAGE: 'critDamage',
     ATTACK_SPEED: 'attackSpeed',
@@ -57,7 +56,6 @@ export const AffixStat = {
     REVIVE: 'revive',
     ALL_STATS: 'allStats', // 全屬性加成
     HP_REGEN: 'hpRegen',
-    MP_REGEN: 'mpRegen',
     SLOW_CHANCE: 'slowChance',
     STUN_CHANCE: 'stunChance',
     BOSS_BONUS: 'bossBonus',
@@ -102,14 +100,6 @@ export const SpecialEffectDescriptions = {
 export const ItemCategory = {
     EQUIPMENT: 'equipment',
     ITEMS: 'items'
-};
-
-// ===== 技能類型 =====
-export const SkillType = {
-    ATTACK: 'attack',      // 攻擊技能
-    HEAL: 'heal',          // 治療技能
-    BUFF: 'buff',          // 增益技能
-    DEBUFF: 'debuff'       // 減益技能
 };
 
 // ===== 掉落來源類型 =====
