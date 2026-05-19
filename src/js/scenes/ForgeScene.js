@@ -318,7 +318,7 @@ export default class ForgeScene {
         return `
             <div class="recipe-discovery-note ${empty ? 'is-empty' : ''}">
                 <strong>${hiddenCount} 份製作圖尚未取得</strong>
-                <span>探索公告欄、圖匣、石碑、副本或特殊物品後，相關配方會出現在這裡。</span>
+                <span>透過怪物掉落、副本、任務或特殊事件取得圖紙後，相關配方會出現在這裡。</span>
             </div>
         `;
     }

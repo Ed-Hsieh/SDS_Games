@@ -498,6 +498,36 @@ export const RecipeDatabase = {
         }
     },
 
+    silver_thread_hook: {
+        id: 'silver_thread_hook',
+        name: '銀絲伏獵鉤',
+        icon: '🪝',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.UNCOMMON,
+        materials: [
+            { id: 'spider_silk', quantity: 3 },
+            { id: 'poison_gland', quantity: 1 },
+            { id: 'iron_ore', quantity: 2 }
+        ],
+        cost: 160,
+        successRate: 88,
+        result: {
+            id: 'crafted_silver_thread_hook',
+            name: '銀絲伏獵鉤',
+            icon: '🪝',
+            type: EquipmentType.ACCESSORY,
+            rarity: ItemRarity.UNCOMMON,
+            stats: {
+                attack: 2,
+                defense: 1,
+                critChance: 0.06,
+                critDamage: 0
+            },
+            specialEffects: [ { type: AffixStat.DODGE_CHANCE, value: 5 } ],
+            desc: '把銀絲反扣成鉤。它不保證你比較勇敢，只保證你逃跑時比較不會被自己絆倒。'
+        }
+    },
+
     nature_amulet: {
         id: 'nature_amulet',
         name: '自然護符',
@@ -525,6 +555,36 @@ export const RecipeDatabase = {
             },
             specialEffects: [ { type: AffixStat.HP, value: 20 } ],
             desc: '蘊含自然之力的護符。'
+        }
+    },
+
+    blood_moon_pendant: {
+        id: 'blood_moon_pendant',
+        name: '血月角墜',
+        icon: '🦌',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'life_seed', quantity: 1 },
+            { id: 'forest_essence', quantity: 2 },
+            { id: 'rare_metal', quantity: 1 }
+        ],
+        cost: 360,
+        successRate: 72,
+        result: {
+            id: 'crafted_blood_moon_pendant',
+            name: '血月角墜',
+            icon: '🦌',
+            type: EquipmentType.ACCESSORY,
+            rarity: ItemRarity.RARE,
+            stats: {
+                attack: 4,
+                defense: 2,
+                critChance: 0.1,
+                critDamage: 0
+            },
+            specialEffects: [ { type: AffixStat.CRIT_DAMAGE, value: 15 } ],
+            desc: '由折斷鹿角磨成的吊墜。靠近耳邊時會聽見很小聲、很憤怒的撞牆聲。'
         }
     },
 

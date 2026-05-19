@@ -112,7 +112,7 @@ export const WorldClues = {
         chainId: 'forest_guardian',
         source: '石碑',
         text: '拓印上出現古樹與守衛者的輪廓，狼群只是守門的第一層。',
-        lead: '收集足夠線索後，森林守衛者的巢穴會變得可追蹤。'
+        lead: '收集足夠線索後，古樹守衛的核心地會變得可追蹤。'
     },
     black_bark_sample: {
         id: 'black_bark_sample',
@@ -135,8 +135,8 @@ export const WorldClues = {
         title: '殘留龍焰',
         chainId: 'elder_dragon',
         source: '黑焰邊境',
-        text: '龍焰沒有直接焚毀地面，反而像是沿著某條裂縫把黑暗壓回去。',
-        lead: '古龍也許不是單純的災厄。'
+        text: '龍焰沒有四散燃燒，而是沿著裂縫往北收束，像有什麼龐然之物把地脈熱流拖走。',
+        lead: '這不是能談判的守護痕跡，而是更高威脅留下的方向。'
     }
 };
 
@@ -266,16 +266,16 @@ Object.assign(WorldClues, {
 export const WorldStoryChains = {
     forest_guardian: {
         id: 'forest_guardian',
-        title: '狼嚎與古樹守衛',
+        title: '發黑樹皮與古樹守衛',
         bossId: 'forest_guardian',
         method: '追蹤型',
-        premise: '狼群異常聚集，最後線索指向被古老力量驅使的森林守衛者。',
+        premise: '腐根溪谷的千年神木被剝離核心樹皮，地脈反噬讓守衛者陷入無意識防衛。',
         clueIds: ['bloodied_arrow_pouch', 'wolf_fang_marks', 'mist_tablet_rubbing', 'black_bark_sample'],
         stages: [
-            { minClues: 0, text: '村外只有零散狼嚎，還不足以判斷源頭。' },
-            { minClues: 1, text: '狼群不是隨機出沒，它們正在把人趕離某條舊路。' },
-            { minClues: 2, text: '線索開始集中到霧碑丘與古樹根域，似乎有首領級存在。' },
-            { minClues: 3, text: '森林守衛者的巢穴位置逐漸明確，缺的只是最後的確認方式。' }
+            { minClues: 0, text: '溪谷方向偶爾有焦黑煙霧，但還看不出森林為何失控。' },
+            { minClues: 1, text: '獵人遺物與狼群痕跡顯示，某條舊路正在被刻意清空。' },
+            { minClues: 2, text: '霧碑與焦黑根系指向同一件事：神木核心曾被外力剝離。' },
+            { minClues: 3, text: '古樹守衛的位置逐漸明確，牠不是入侵者，而是失控的受害者。' }
         ]
     },
     lich: {
@@ -294,13 +294,13 @@ export const WorldStoryChains = {
         id: 'elder_dragon',
         title: '古龍與黑焰裂縫',
         bossId: 'elder_dragon',
-        method: '先行傳說 / 後期反轉',
-        premise: '村莊傳說把古龍稱為災厄，但邊境痕跡顯示牠也可能是封印的守門者。',
+        method: '先行傳說 / 終局伏筆',
+        premise: '村莊傳說把古龍稱為災厄，邊境痕跡則顯示牠正把地脈精華拖往北方。',
         clueIds: ['dragon_heat_trace', 'black_bark_sample'],
         stages: [
             { minClues: 0, text: '所有人都說古龍造成異變，但還沒有人真正走到黑焰源頭。' },
-            { minClues: 1, text: '龍焰痕跡不像攻擊，更像壓制。終局真相開始偏離村莊傳聞。' },
-            { minClues: 2, text: '森林污染與龍焰裂縫連成同一條線，古龍也許不是最終答案。' }
+            { minClues: 1, text: '龍焰痕跡像是拖拽地脈熱流的路線，不是普通怪物能留下的傷口。' },
+            { minClues: 2, text: '森林污染與龍焰裂縫連成同一條線，北方邊境正在聚集大量地脈精華。' }
         ]
     }
 };
@@ -389,9 +389,9 @@ const BossFlowDesigns = {
             { id: 'solve_tablet_hint', label: '解讀霧碑拓印', type: '解謎' }
         ],
         revealMethods: ['模糊方向', '新地標', '地圖標記'],
-        mapPuzzle: { id: 'mist_fang_route', label: '依牙痕、箭袋、碑文排列出狼王舊巢方向' },
+        mapPuzzle: { id: 'mist_fang_route', label: '依牙痕、箭袋、碑文排列出古樹根心方向' },
         shortcut: { id: 'hunter_cut', label: '修復獵人棧道，跳過一段高危追蹤' },
-        finalTrigger: { id: 'enter_old_den', label: '進入狼王舊巢', type: '進入巢穴', requiredClues: 3, requiredProgress: 2 }
+        finalTrigger: { id: 'enter_root_heart', label: '進入古樹根心', type: '進入巢穴', requiredClues: 3, requiredProgress: 2 }
     },
     lich: {
         archetype: '封印型',
@@ -507,11 +507,50 @@ export const WorldLandmarks = [
         zones: ['low'],
         effectIds: ['open_trail'],
         visible: 'always',
-        storyChainIds: ['forest_guardian'],
-        clueIds: ['bloodied_arrow_pouch'],
-        arrival: '木板路邊留著拖行痕跡，斷裂的箭袋卡在棧道縫裡。',
-        repeat: '你再次檢查棧道，狼毛仍卡在箭袋的裂口處。',
-        mapHint: '獵人舊路，適合開始追蹤狼群異常。'
+        storyChainIds: ['ambush_mantis', 'forest_guardian'],
+        clueIds: ['silk_tripwire'],
+        arrival: '木板路邊沒有腳印，只有幾條銀色細線橫在回程方向。',
+        repeat: '銀絲被你撥開後又出現在相近的位置，像有人重新量過這條路。',
+        mapHint: '獵人舊路，適合開始調查銀絲伏擊。'
+    },
+    {
+        id: 'old_campfire_site',
+        name: '舊營火點',
+        icon: '🔥',
+        zones: ['low'],
+        effectIds: ['safe_camp'],
+        visible: 'always',
+        storyChainIds: ['ambush_mantis'],
+        clueIds: ['survivor_warning'],
+        arrival: '灰燼裡插著半截木牌，上面只剩一句話：不要在同一段路點第二次火。',
+        repeat: '營火灰燼被撥成細長弧線，像是在標出某種伏擊距離。',
+        mapHint: '倖存者留下警告的營地。'
+    },
+    {
+        id: 'cut_roadsign',
+        name: '被割裂的木牌',
+        icon: '🪧',
+        zones: ['low'],
+        effectIds: ['open_trail'],
+        visible: 'always',
+        storyChainIds: ['ambush_mantis'],
+        clueIds: ['snapped_bait_hook'],
+        arrival: '路牌被整齊切成兩半，斷面旁掛著一枚折斷的誘餌鉤。',
+        repeat: '你能看見木牌切口旁的新鮮細痕，像是刀鋒剛擦過。',
+        mapHint: '可確認誘餌鉤與銀絲伏擊的關聯。'
+    },
+    {
+        id: 'silver_snare_pass',
+        name: '銀絲伏道',
+        icon: '🕸️',
+        zones: ['low', 'medium'],
+        effectIds: ['lair_pressure'],
+        visible: 'always',
+        storyChainIds: ['ambush_mantis'],
+        clueIds: [],
+        arrival: '這段小路太安靜，安靜到每一步都像踩在看不見的線上。',
+        repeat: '銀絲伏道沒有首領裸露等待，只有越來越明顯的被觀察感。',
+        mapHint: '銀鐮伏獵者的最終伏擊敘事地標。'
     },
     {
         id: 'broken_horn_camp',
@@ -520,7 +559,7 @@ export const WorldLandmarks = [
         zones: ['low', 'medium'],
         effectIds: ['safe_camp'],
         visible: 'always',
-        storyChainIds: ['forest_guardian'],
+        storyChainIds: ['forest_guardian', 'blood_moon_stag'],
         clueIds: ['black_bark_sample'],
         arrival: '營火早已熄滅，木樁上掛著半截獸角與發黑的樹皮。',
         repeat: '營地仍能短暫避風，但周圍的狼嚎比上次更靠近。',
@@ -554,16 +593,29 @@ export const WorldLandmarks = [
     },
     {
         id: 'old_wolf_den',
-        name: '狼王舊巢',
+        name: '古樹根心',
         icon: '🐺',
         zones: ['high'],
         effectIds: ['lair_pressure'],
         visible: 'always',
         storyChainIds: ['forest_guardian'],
         clueIds: [],
-        arrival: '巢穴裡沒有狼王，只有大量被刻意堆起的骨頭與古樹根鬚。',
-        repeat: '這裡不是終點，比較像某個首領留下的前哨。',
-        mapHint: '首領戰前的壓迫地標，之後可改成特殊觸發點。'
+        arrival: '根鬚從岩縫裡伸出，像一顆被迫裸露在地表下方的心臟。',
+        repeat: '焦黑根鬚仍在緩慢收縮，守衛者的痛苦沒有完全平息。',
+        mapHint: '古樹守衛者的核心追蹤地標。'
+    },
+    {
+        id: 'moon_moss_slope',
+        name: '月苔坡',
+        icon: '🌙',
+        zones: ['medium'],
+        effectIds: ['rot_mist'],
+        visible: 'always',
+        storyChainIds: ['blood_moon_stag'],
+        clueIds: ['moon_moss_sample'],
+        arrival: '坡面苔蘚在陰影裡泛著暗紅色，像把鹿角撞擊的路線一段段染出來。',
+        repeat: '月苔乾裂得更快，表示角鹿今晚可能又繞回這裡。',
+        mapHint: '完成誘導標記後，可縮小血月角鹿狩獵範圍。'
     },
     {
         id: 'charred_obelisk',

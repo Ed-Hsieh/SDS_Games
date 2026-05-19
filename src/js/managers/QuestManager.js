@@ -11,6 +11,7 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 import { unlockRecipesForInteraction } from './BlueprintManager.js';
 import { worldStoryManager } from './WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
+import { showGlobalToast } from '../utils/UIFeedback.js';
 
 class QuestManager {
     constructor() {
@@ -300,8 +301,8 @@ class QuestManager {
      * @param {string} message - 訊息內容
      * @param {string} type - 類型 (success, info, warning, error)
      */
-    showGlobalToast(title, message, type = 'info') {
-        return null;
+    showGlobalToast(title, message, type = 'info', options = {}) {
+        return showGlobalToast(title, message, type, options);
     }
     
     /**
@@ -584,6 +585,7 @@ class QuestManager {
     }
 
     notify(eventType, data) {
+        this.showQuestToast(eventType, data);
         this.listeners.forEach(callback => {
             try {
                 callback(eventType, data);
@@ -591,6 +593,48 @@ class QuestManager {
                 console.error('Quest event handler error:', e);
             }
         });
+    }
+
+    showQuestToast(eventType, data = {}) {
+        if (typeof document === 'undefined') return;
+
+        const questName = data.quest?.name || data.questId || '未知任務';
+
+        if (eventType === 'quest_ready') {
+            showGlobalToast('任務完成', `「${questName}」可以領取獎勵。`, 'quest', { duration: 5200 });
+            return;
+        }
+
+        if (eventType === 'quest_completed') {
+            const rewardText = this.getRewardToastText(data.rewards, data.blueprintUnlocks);
+            showGlobalToast('獎勵已領取', rewardText || `「${questName}」已結案。`, 'success');
+            return;
+        }
+
+        if (eventType === 'hidden_quest_discovered') {
+            showGlobalToast('發現隱藏任務', `「${questName}」已加入線索簿。`, 'quest');
+        }
+    }
+
+    getRewardToastText(rewards = {}, blueprintUnlocks = []) {
+        const parts = [];
+
+        if (rewards.gold) parts.push(`${rewards.gold}G`);
+        if (rewards.exp) parts.push(`${rewards.exp} 經驗`);
+
+        const itemNames = [
+            ...(rewards.items || []).map(item => item.name).filter(Boolean),
+            ...(rewards.materials || []).map(item => `${item.name} x${item.quantity || 1}`).filter(Boolean)
+        ];
+        if (itemNames.length > 0) parts.push(itemNames.join('、'));
+
+        const newBlueprints = (blueprintUnlocks || [])
+            .filter(entry => entry.newlyUnlocked)
+            .map(entry => entry.recipe?.name)
+            .filter(Boolean);
+        if (newBlueprints.length > 0) parts.push(`製作圖：${newBlueprints.join('、')}`);
+
+        return parts.length > 0 ? `獲得 ${parts.join(' / ')}` : '';
     }
 
     // ==================== 存檔/讀檔 ====================

@@ -748,12 +748,19 @@
 
 .dungeon-entrance-card {
     --dungeon-accent: #67d8ff;
-    width: min(520px, 100%);
+    width: min(640px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    scrollbar-width: none;
     border: 1px solid color-mix(in srgb, var(--dungeon-accent) 58%, transparent);
     border-radius: 8px;
     background: linear-gradient(180deg, rgba(15, 24, 32, 0.98), rgba(7, 12, 18, 0.98));
     box-shadow: 0 22px 60px rgba(0, 0, 0, 0.48), 0 0 28px color-mix(in srgb, var(--dungeon-accent) 18%, transparent);
     padding: 18px;
+}
+
+.dungeon-entrance-card::-webkit-scrollbar {
+    display: none;
 }
 
 .dungeon-entrance-header {
@@ -823,6 +830,59 @@
 
 .dungeon-entrance-stats b {
     color: #93d8f1;
+}
+
+.dungeon-story-hook {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 14px;
+    padding: 14px;
+    border: 1px solid color-mix(in srgb, var(--dungeon-accent) 36%, transparent);
+    border-left-width: 4px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--dungeon-accent) 12%, transparent), rgba(255, 255, 255, 0.035));
+}
+
+.dungeon-story-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--dungeon-accent);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.dungeon-story-meta span {
+    letter-spacing: 0.06em;
+}
+
+.dungeon-story-title {
+    color: #f6ead4;
+    font-weight: 800;
+}
+
+.dungeon-story-hook p {
+    margin: 0;
+    color: #c8d2d6;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+.dungeon-story-quote {
+    color: #f7d38b !important;
+    font-weight: 800;
+}
+
+.dungeon-unlock-note {
+    width: fit-content;
+    padding: 6px 9px;
+    border: 1px solid rgba(245, 158, 11, 0.34);
+    border-radius: 999px;
+    color: #f4d28b;
+    background: rgba(245, 158, 11, 0.1);
+    font-size: 12px;
+    font-weight: 800;
 }
 
 .dungeon-mechanic-info {
@@ -1837,7 +1897,6 @@
 
 
 .loot-slot:hover {
-    transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
     border-color: rgba(79, 172, 254, 0.8);
 }
@@ -2169,7 +2228,6 @@
 }
 
 .adventure-inventory-list .item-card:hover {
-    transform: translateX(4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 

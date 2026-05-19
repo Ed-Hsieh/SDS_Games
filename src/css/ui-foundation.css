@@ -211,6 +211,10 @@
     transform: translateY(0);
 }
 
+.game-item-tooltip[hidden] {
+    display: none;
+}
+
 .item-tooltip-card {
     padding: 12px;
     border-radius: 8px;
@@ -3012,7 +3016,7 @@ body {
 .floor-item:hover {
     background: rgba(125, 211, 252, 0.11) !important;
     border-color: rgba(125, 211, 252, 0.42) !important;
-    transform: translateY(-1px) !important;
+    transform: none !important;
 }
 
 .gold-display,
@@ -4484,7 +4488,7 @@ body {
 }
 
 .loot-slot:hover {
-    transform: translateY(-1px) !important;
+    transform: none !important;
     box-shadow: none !important;
 }
 

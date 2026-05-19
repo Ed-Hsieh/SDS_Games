@@ -1,4 +1,4 @@
-import { attachItemTooltip } from './ItemTooltip.js';
+import { attachItemTooltip, detachItemTooltip } from './ItemTooltip.js';
 
 const DEFAULT_ITEM_HEIGHT = 84;
 const DEFAULT_EMPTY_HTML = '<div class="empty-hint">背包空空如也...</div>';
@@ -27,6 +27,8 @@ export function renderVirtualInventoryList(owner, container, items = [], options
     const itemHeight = options.itemHeight || DEFAULT_ITEM_HEIGHT;
     const emptyHtml = options.emptyHtml || DEFAULT_EMPTY_HTML;
     const renderItem = options.renderItem || defaultRenderInventoryItem;
+    const enableTooltip = options.tooltip !== false;
+    const tooltipOptions = options.tooltipOptions || null;
 
     container.style.position = 'relative';
     container.style.overflowY = 'auto';
@@ -41,7 +43,9 @@ export function renderVirtualInventoryList(owner, container, items = [], options
             items: [],
             itemHeight,
             pool: [],
-            renderItem
+            renderItem,
+            enableTooltip,
+            tooltipOptions
         };
         return;
     }
@@ -92,7 +96,9 @@ export function renderVirtualInventoryList(owner, container, items = [], options
         itemHeight,
         pool,
         poolWrapper,
-        renderItem
+        renderItem,
+        enableTooltip,
+        tooltipOptions
     };
 
     updateVirtualInventoryList(owner, stateKey);
@@ -102,7 +108,7 @@ export function updateVirtualInventoryList(owner, stateKey = '_virtualInventoryL
     const state = owner?.[stateKey];
     if (!state || !state.container || !state.pool || state.pool.length === 0) return;
 
-    const { container, items, itemHeight, pool, renderItem } = state;
+    const { container, items, itemHeight, pool, renderItem, enableTooltip, tooltipOptions } = state;
     const scrollTop = container.scrollTop || 0;
     const viewportHeight = container.clientHeight || 400;
     const firstIndex = Math.floor(scrollTop / itemHeight);
@@ -123,10 +129,19 @@ export function updateVirtualInventoryList(owner, stateKey = '_virtualInventoryL
             node.className = `item-card inventory-item rarity-frame rarity-${item.rarity || 'common'}`;
             node.style.transform = `translateY(${dataIndex * itemHeight}px)`;
             renderItem(node, stack, dataIndex);
-            attachItemTooltip(node, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
+            if (enableTooltip) {
+                attachItemTooltip(node, item, {
+                    quantity: stack.quantity || 1,
+                    hint: '點擊開啟操作',
+                    ...(tooltipOptions || {})
+                });
+            } else {
+                detachItemTooltip(node);
+            }
         } else {
             node.style.display = 'none';
             node.dataset.instanceId = '';
+            detachItemTooltip(node);
         }
     }
 }

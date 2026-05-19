@@ -3,6 +3,8 @@
  * 副本資料庫 - 5個獨特副本的完整配置
  */
 
+import { DungeonStoryDatabase } from './DungeonStories.js';
+
 // ==================== 副本類型 ====================
 export const DungeonType = {
     CAVE: 'cave',       // 洞窟
@@ -36,35 +38,35 @@ export const DungeonEntranceConfig = {
         icon: '🏔️', 
         color: '#8b7355',
         zones: ['low', 'medium'],
-        description: '一個被黑暗籠罩的地下洞穴'
+        description: '地脈斷裂後，黑色岩層開始蠕動重組的地下裂谷。'
     },
     snow: { 
         name: '冰封雪峰', 
         icon: '❄️', 
         color: '#87ceeb',
         zones: ['medium', 'high'],
-        description: '終年積雪的山峰'
+        description: '聖火熔爐被封凍後，暴風雪吞噬山脊的極寒雪峰。'
     },
     ruins: { 
         name: '遠古遺跡', 
         icon: '🏛️', 
         color: '#daa520',
         zones: ['medium', 'high'],
-        description: '失落文明的遺跡'
+        description: '仍在盲目執行防衛協定的地脈監測神殿。'
     },
     jungle: { 
         name: '迷霧叢林', 
         icon: '🌴', 
         color: '#228b22',
         zones: ['high'],
-        description: '被迷霧籠罩的神秘叢林'
+        description: '劇毒迷霧腐爛魔法生態後形成的移動迷宮。'
     },
     hell: { 
         name: '煉獄深淵', 
         icon: '🔥', 
         color: '#dc143c',
         zones: ['boss'],
-        description: '通往地獄的裂縫'
+        description: '魔王封印破裂後，地脈之血流出的深淵裂谷。'
     }
 };
 
@@ -75,7 +77,8 @@ export const DungeonDatabase = {
         id: DungeonType.CAVE,
         name: '幽暗洞窟',
         icon: '🏔️',
-        description: '一個被黑暗籠罩的地下洞穴，據說深處藏有古老的寶藏。',
+        description: '地脈斷裂後，黑色岩層開始蠕動重組的地下裂谷。礦工布蘭的日誌仍被白骨緊緊護在懷中。',
+        story: DungeonStoryDatabase.cave,
         difficulty: DungeonDifficulty.EASY,
         recommendLevel: 3,
         floors: 3,
@@ -163,7 +166,8 @@ export const DungeonDatabase = {
         id: DungeonType.SNOW,
         name: '冰封雪峰',
         icon: '❄️',
-        description: '終年積雪的山峰，傳說山頂住著一條遠古冰龍。',
+        description: '沉鐘神諭引發的氣候異變封死聖火熔爐，冰霜巨龍在魔力逆流中驚醒。',
+        story: DungeonStoryDatabase.snow,
         difficulty: DungeonDifficulty.NORMAL,
         recommendLevel: 6,
         floors: 4,
@@ -251,7 +255,8 @@ export const DungeonDatabase = {
         id: DungeonType.RUINS,
         name: '遠古遺跡',
         icon: '🏛️',
-        description: '失落文明的遺跡，充滿了機關與謎題。',
+        description: '千年前監測地脈的黃金神殿，如今仍以盲目的防衛協定清除所有活體。',
+        story: DungeonStoryDatabase.ruins,
         difficulty: DungeonDifficulty.HARD,
         recommendLevel: 10,
         floors: 5,
@@ -344,7 +349,8 @@ export const DungeonDatabase = {
         id: DungeonType.JUNGLE,
         name: '迷霧叢林',
         icon: '🌴',
-        description: '被迷霧籠罩的神秘叢林，無數冒險者在此迷失。',
+        description: '靈草被飛龍奪走後，劇毒迷霧腐爛了叢林，也逼瘋了深處的九頭蛇。',
+        story: DungeonStoryDatabase.jungle,
         difficulty: DungeonDifficulty.EXPERT,
         recommendLevel: 15,
         floors: 6,
@@ -442,7 +448,8 @@ export const DungeonDatabase = {
         id: DungeonType.HELL,
         name: '煉獄深淵',
         icon: '🔥',
-        description: '通往地獄的裂縫，只有最強大的勇者才能生還。',
+        description: '魔王封印破裂後，地底最暴虐的火元素意志從地脈傷口中湧出。',
+        story: DungeonStoryDatabase.hell,
         difficulty: DungeonDifficulty.NIGHTMARE,
         recommendLevel: 20,
         floors: 7,
@@ -487,23 +494,23 @@ export const DungeonDatabase = {
                 { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, attack: 55, defense: 25, exp: 250, gold: [200, 400], special: '地獄火：每回合對全體造成 15 點傷害' }
             ],
             boss: {
-                id: 'demon_king', name: '魔王·炎獄', icon: '👹',
+                id: 'demon_king', name: '惡魔領主・炎獄', icon: '👹',
                 hp: 1000, attack: 60, defense: 35, exp: 1000, gold: [1000, 2000],
                 skills: [
                     { name: '末日審判', aoe: true, damage: 80, description: '召喚地獄之火焚燒一切' },
                     { name: '深淵凝視', effect: 'fear', duration: 3, atkDebuff: 0.5, description: '凝視使目標陷入極度恐懼' },
                     { name: '惡魔召喚', effect: 'summon', monsterIds: ['imp', 'imp', 'hell_hound'], description: '召喚惡魔僕從' },
                     { name: '煉獄領域', effect: 'field', burnDamageBoost: 2, duration: 5, description: '強化煉獄環境' },
-                    { name: '魔王之怒', damage: 100, selfHeal: 200, cooldown: 5, description: '全力一擊並恢復生命' }
+                    { name: '地脈怒焰', damage: 100, selfHeal: 200, cooldown: 5, description: '將地脈裂縫的烈焰凝成全力一擊，並修補自身熔岩外殼' }
                 ],
                 phases: [
-                    { hpThreshold: 0.75, message: '「可笑...這就是凡人的力量嗎？」' },
-                    { hpThreshold: 0.5, message: '「有點意思...那就讓你見識真正的地獄！」', summon: true },
-                    { hpThreshold: 0.25, message: '「不可能！區區凡人竟然...！」', atkBoost: 2, defBoost: 0.5 }
+                    { hpThreshold: 0.75, message: '炎獄拍擊裂谷，熔岩河開始逆流。' },
+                    { hpThreshold: 0.5, message: '炎獄吞下深淵餘火，煉獄領域開始擴張。', summon: true },
+                    { hpThreshold: 0.25, message: '地脈傷口被撕得更深，炎獄進入失控狀態。', atkBoost: 2, defBoost: 0.5 }
                 ],
                 dialogue: {
-                    encounter: '愚蠢的凡人，你踏入了不該來的地方。在這裡，你將體會到永恆的痛苦！',
-                    defeat: '不...這不可能！我是魔王...我是...不朽的...'
+                    encounter: '地脈在流血，凡人。你只是下一撮灰。',
+                    defeat: '火種...不會...熄滅...'
                 }
             }
         },
@@ -511,11 +518,11 @@ export const DungeonDatabase = {
         treasures: {
             guaranteed: {
                 id: 'crown_of_hell',
-                name: '地獄王冠',
+                name: '煉獄王冠',
                 icon: '👑',
                 type: 'accessory',
                 rarity: 'legendary',
-                description: '魔王的王冠，蘊含著煉獄的力量。',
+                description: '從炎獄崩解的熔岩核心中冷卻出的冠冕，仍像地脈傷口一樣發燙。',
                 stats: { attack: 30, defense: 20, hp: 100 },
                 special: { 
                     burnImmune: true, 

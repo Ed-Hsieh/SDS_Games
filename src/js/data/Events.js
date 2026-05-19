@@ -354,13 +354,13 @@ export const EventDatabase = [
 
     {
         id: 'abandoned_blueprint_cache',
-        name: '殘破製作圖匣',
+        name: '遺落鍛造筆記',
         icon: '📜',
         type: EventType.MYSTERY,
-        description: '路邊的碎木匣裡夾著幾張被雨水泡皺的圖紙。紙面上的標記像是某種鍛造記錄。',
+        description: '路邊散著幾頁被雨水泡皺的鍛造筆記，內容不像完整圖紙，更像某個委託的前置線索。',
         choices: [
             {
-                text: '整理圖紙',
+                text: '整理筆記',
                 results: [
                     { type: ResultType.WORLD_INTERACTION, interactionId: 'field_blueprint_cache' }
                 ]

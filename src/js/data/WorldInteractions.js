@@ -15,14 +15,14 @@ export const InteractionSource = {
 export const WorldInteractionDatabase = {
     field_blueprint_cache: {
         id: 'field_blueprint_cache',
-        title: '殘破製作圖匣',
+        title: '遺落鍛造筆記',
         source: InteractionSource.MAP_EVENT,
         oneTime: true,
         flags: ['foundBlueprintCache'],
         unlockQuests: ['commission_forge_001'],
-        unlockRecipes: ['wolf_cloak', 'wolf_fang_necklace', 'greater_health_potion'],
-        message: '你整理出一份和鍛造有關的製作線索。',
-        repeatMessage: '圖匣裡只剩無法辨識的碎紙。',
+        unlockRecipes: [],
+        message: '你整理出一份和鍛造委託有關的線索，真正的圖紙仍需要從怪物、任務或副本取得。',
+        repeatMessage: '筆記裡剩下的內容已經不足以推進新的研究。',
         imageKeys: ['world.blueprint_cache', 'item.blueprint_scroll']
     },
     crossroads_notice_board: {
@@ -171,8 +171,8 @@ export const ImageAssetRequests = [
     {
         key: 'world.blueprint_cache',
         type: 'object',
-        usage: '地圖事件：殘破製作圖匣。',
-        promptHint: 'small broken scroll case with blueprint fragments, transparent background'
+        usage: '地圖事件：遺落鍛造筆記，觸發鍛造委託線索。',
+        promptHint: 'weathered blacksmith notebook and loose workshop notes, transparent background'
     },
     {
         key: 'item.blueprint_scroll',

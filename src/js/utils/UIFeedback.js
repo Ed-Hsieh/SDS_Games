@@ -5,11 +5,71 @@ const TOAST_ICONS = {
     info: 'ℹ️',
     warning: '⚠️',
     error: '❌',
-    danger: '⚠️'
+    danger: '⚠️',
+    quest: '📜'
 };
 
+let toastContainer = null;
+let toastId = 0;
+
+function ensureToastContainer() {
+    if (toastContainer?.isConnected) return toastContainer;
+
+    toastContainer = document.createElement('div');
+    toastContainer.className = 'app-toast-stack';
+    toastContainer.setAttribute('aria-live', 'polite');
+    toastContainer.setAttribute('aria-atomic', 'false');
+    document.body.appendChild(toastContainer);
+    return toastContainer;
+}
+
+function getToastType(type) {
+    return ['success', 'info', 'warning', 'error', 'danger', 'quest'].includes(type) ? type : 'info';
+}
+
 export function showGlobalToast(title, message, type = 'info', options = {}) {
-    return null;
+    if (typeof document === 'undefined') return null;
+
+    const safeType = getToastType(type);
+    const container = ensureToastContainer();
+    const id = `app-toast-${toastId += 1}`;
+    const duration = Number(options.duration) > 0 ? Number(options.duration) : 4200;
+    const toast = document.createElement('article');
+    let dismissed = false;
+
+    toast.id = id;
+    toast.className = `app-toast app-toast-${safeType}`;
+    toast.setAttribute('role', safeType === 'error' || safeType === 'danger' ? 'alert' : 'status');
+    toast.innerHTML = `
+        <div class="app-toast-icon">${TOAST_ICONS[safeType] || TOAST_ICONS.info}</div>
+        <div class="app-toast-copy">
+            <strong>${escapeHtml(title || '提示')}</strong>
+            ${message ? `<span>${escapeHtml(message)}</span>` : ''}
+        </div>
+        <button class="app-toast-close" type="button" aria-label="關閉提示">×</button>
+    `;
+
+    const dismiss = () => {
+        if (dismissed) return;
+        dismissed = true;
+        toast.classList.add('is-leaving');
+        window.setTimeout(() => toast.remove(), 180);
+    };
+
+    toast.querySelector('.app-toast-close')?.addEventListener('click', dismiss);
+    toast.addEventListener('click', event => {
+        if (event.target === toast) dismiss();
+    });
+
+    container.prepend(toast);
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
+
+    while (container.children.length > 5) {
+        container.lastElementChild?.remove();
+    }
+
+    window.setTimeout(dismiss, duration);
+    return toast;
 }
 
 export function confirmAction({

@@ -209,7 +209,7 @@
     transition: transform 0.2s, opacity 0.2s, background-color 0.2s, border-color 0.2s, color 0.2s;
 }
 
-.loot-slot:hover { transform: scale(1.05); }
+.loot-slot:hover { transform: none; }
 
 .slot-icon { font-size: 32px; margin-bottom: 4px; }
 .slot-name { font-size: 12px; text-align: center; }

@@ -567,8 +567,6 @@ export default class LobbyScene {
     getTownFlags() {
         return {
             board: Boolean(GameManager.getFlag('readCrossroadsNoticeBoard')),
-            blueprintCache: Boolean(GameManager.getFlag('foundBlueprintCache')),
-            ruinTablet: Boolean(GameManager.getFlag('foundRuinTabletTrace')),
             towerGlyph: Boolean(GameManager.getFlag('foundTowerGlyphMemory')),
             dungeonForge: Boolean(GameManager.getFlag('foundDungeonForgeRelic')),
             secretShop: Boolean(GameManager.getFlag('secretShopUnlocked'))
@@ -581,12 +579,6 @@ export default class LobbyScene {
         if (flags.secretShop) {
             return '你從街角回到廣場，市集的燈影裡多了一條不在地圖上的窄路。有人把古代錢幣的符號刻在門框內側。';
         }
-        if (flags.ruinTablet) {
-            return '拓印紙還帶著石粉，城鎮邊緣的舊路線逐漸連成形狀。鍛造鋪那邊有人在低聲討論洞窟裡的爐火。';
-        }
-        if (flags.blueprintCache) {
-            return '殘破圖紙被攤在桌上晾乾，墨線雖然斷裂，仍能看出幾種可行的鍛造方式。';
-        }
         if (flags.board) {
             return '公告欄上的新紙被風吹得沙沙作響，南門路標的拓印讓安全區外的異常變得更難忽略。';
         }
@@ -597,8 +589,6 @@ export default class LobbyScene {
     getTownTitle() {
         const flags = this.getTownFlags();
         if (flags.secretShop) return '十字路與暗巷';
-        if (flags.ruinTablet) return '十字路與舊碑';
-        if (flags.blueprintCache) return '十字路與鍛造鋪';
         return '城鎮十字路';
     }
 
@@ -614,12 +604,6 @@ export default class LobbyScene {
 
         if (flags.board) {
             lines.push('公告欄旁有人停下腳步，又很快離開。那份路標拓印仍指向南門外。');
-        }
-        if (flags.blueprintCache) {
-            lines.push('圖匣碎片被壓在桌角，幾道鍛造線條在燈下變得比白天更清楚。');
-        }
-        if (flags.ruinTablet) {
-            lines.push('石碑拓印乾得很慢，紙面上的刻痕像一條藏在地底的路。');
         }
         if (flags.secretShop) {
             lines.push('市集深處的燈籠沒有掛招牌，卻總有人避開守衛往那裡走。');

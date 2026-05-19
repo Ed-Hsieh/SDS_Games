@@ -271,21 +271,21 @@ export const MonsterDatabase = {
         description: '森林的守護者，防禦極高。'
     },
     
-    // 第二章 BOSS
+    // 第一章 BOSS
     forest_guardian: {
         id: 'forest_guardian',
-        name: '森林守衛者',
+        name: '古樹守衛',
         icon: '🌲',
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
-        level: 5,
-        hp: 300,
-        maxHp: 300,
-        attack: 20,
+        level: 6,
+        hp: 320,
+        maxHp: 320,
+        attack: 22,
         attackSpeed: 2.2,
         defense: 12,
-        exp: 150,
-        gold: 100,
+        exp: 170,
+        gold: 120,
         drops: [
             { itemId: 'guardian_branch', chance: 1.0, quantity: [1, 1] },
             { itemId: 'forest_essence', chance: 0.5, quantity: [1, 1] }
@@ -295,7 +295,7 @@ export const MonsterDatabase = {
             { equipmentId: 'forest_guardian_crown', chance: 0.10 }
         ],
         skills: ['nature_wrath', 'root_bind', 'regeneration'],
-        description: '守護森林的古老存在。'
+        description: '腐根溪谷的千年神木，核心樹皮被剝離後陷入無意識防衛。'
     },
 
     // ==================== 第三章：廢墟遺跡 (Lv.6-10) ====================
@@ -1085,26 +1085,26 @@ export const MonsterDatabase = {
 
     ambush_mantis: {
         id: 'ambush_mantis',
-        name: '伏擊螳螂王',
+        name: '銀鐮伏獵者',
         icon: '🦗',
         type: MonsterType.BOSS,
         element: MonsterElement.NONE,
-        level: 13,
-        hp: 520,
-        maxHp: 520,
-        attack: 44,
+        level: 4,
+        hp: 260,
+        maxHp: 260,
+        attack: 18,
         attackSpeed: 1.25,
-        defense: 14,
-        exp: 310,
-        gold: 240,
+        defense: 8,
+        exp: 130,
+        gold: 110,
         drops: [
             { itemId: 'poison_gland', chance: 0.7, quantity: [1, 2] },
-            { itemId: 'rare_metal', chance: 0.28, quantity: [1, 1] },
-            { itemId: 'shadow_shard', chance: 0.22, quantity: [1, 1] }
+            { itemId: 'spider_silk', chance: 0.55, quantity: [1, 2] },
+            { itemId: 'rare_metal', chance: 0.16, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['ambush', 'poison_bite', 'vanish'],
-        description: '會記住玩家路線，等誘餌與營火條件成熟後主動現身。'
+        description: '被龍威驅離地底的遠古節肢巨獸，會記住玩家路線並主動伏擊。'
     },
 };
 

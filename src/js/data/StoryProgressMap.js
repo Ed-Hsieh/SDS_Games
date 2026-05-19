@@ -43,8 +43,8 @@ export const StoryProgressRules = [
         event: E.WORLD_INTERACTION,
         match: { interactionId: 'crossroads_notice_board' },
         actions: [
-            clue('hunter_board_notice'),
-            nextClue('forest_guardian')
+            clue('survivor_warning'),
+            nextClue('ambush_mantis')
         ]
     },
     {
@@ -123,7 +123,8 @@ export const StoryProgressRules = [
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_001' },
         actions: [
-            clue('bloodied_arrow_pouch')
+            clue('silk_tripwire'),
+            progress('ambush_mantis', 'repeat_route')
         ]
     },
     {
@@ -175,7 +176,27 @@ export const StoryProgressRules = [
         match: { zoneId: 'low' },
         counter: { key: 'zone.low', required: 3 },
         actions: [
-            clue('bloodied_arrow_pouch')
+            clue('silk_tripwire'),
+            progress('ambush_mantis', 'repeat_route')
+        ]
+    },
+    {
+        id: 'low-zone-exploration-finds-bait-hook',
+        event: E.ZONE_EXPLORED,
+        match: { zoneId: 'low' },
+        counter: { key: 'zone.low.bait', required: 5 },
+        actions: [
+            clue('snapped_bait_hook'),
+            progress('ambush_mantis', 'craft_bait_hook')
+        ]
+    },
+    {
+        id: 'low-zone-exploration-confirms-campfire-risk',
+        event: E.ZONE_EXPLORED,
+        match: { zoneId: 'low' },
+        counter: { key: 'zone.low.campfire', required: 8 },
+        actions: [
+            progress('ambush_mantis', 'survive_second_campfire')
         ]
     },
     {
@@ -222,7 +243,34 @@ export const StoryProgressRules = [
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'hunter_boardwalk' },
         actions: [
-            clue('bloodied_arrow_pouch')
+            clue('silk_tripwire'),
+            progress('ambush_mantis', 'repeat_route')
+        ]
+    },
+    {
+        id: 'old-campfire-confirms-survivor-warning',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'old_campfire_site' },
+        actions: [
+            clue('survivor_warning'),
+            progress('ambush_mantis', 'survive_second_campfire')
+        ]
+    },
+    {
+        id: 'cut-roadsign-confirms-bait-hook',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'cut_roadsign' },
+        actions: [
+            clue('snapped_bait_hook'),
+            progress('ambush_mantis', 'craft_bait_hook')
+        ]
+    },
+    {
+        id: 'silver-snare-pass-confirms-ambush-loop',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'silver_snare_pass' },
+        actions: [
+            progress('ambush_mantis', 'repeat_route')
         ]
     },
     {
@@ -242,6 +290,15 @@ export const StoryProgressRules = [
             clue('mist_tablet_rubbing'),
             progress('forest_guardian', 'solve_tablet_hint'),
             progress('lich', 'cleanse_tablets')
+        ]
+    },
+    {
+        id: 'moon-moss-slope-builds-stag-track',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'moon_moss_slope' },
+        actions: [
+            clue('moon_moss_sample'),
+            progress('blood_moon_stag', 'mark_moon_moss')
         ]
     },
     {
@@ -301,6 +358,25 @@ export const StoryProgressRules = [
         actions: [
             clue('silk_tripwire'),
             progress('ambush_mantis', 'repeat_route')
+        ]
+    },
+    {
+        id: 'ambush-mantis-defeat-opens-forest-trail',
+        event: E.MONSTER_KILL,
+        match: { monsterId: 'ambush_mantis' },
+        actions: [
+            clue('bloodied_arrow_pouch'),
+            progress('forest_guardian', 'track_mist_marks')
+        ]
+    },
+    {
+        id: 'forest-guardian-defeat-opens-blood-moon',
+        event: E.MONSTER_KILL,
+        match: { monsterId: 'forest_guardian' },
+        actions: [
+            clue('hunter_board_notice'),
+            clue('moon_moss_sample'),
+            progress('blood_moon_stag', 'mark_moon_moss')
         ]
     },
     {

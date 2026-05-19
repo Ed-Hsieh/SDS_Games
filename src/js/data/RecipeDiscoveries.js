@@ -16,40 +16,45 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'monster_blueprint_drop'
     },
     wolf_cloak: {
-        source: '殘破製作圖匣',
-        clue: '圖紙用粗線標出獸皮縫合的受力點。',
-        interactionId: 'field_blueprint_cache'
+        source: '野狼掉落',
+        clue: '野狼身上偶爾會帶著獵人遺失的獸皮斗篷圖紙。',
+        interactionId: 'monster_blueprint_drop'
     },
     wolf_fang_necklace: {
-        source: '殘破製作圖匣',
-        clue: '圖紙背面記著以獸牙作為護符核心的做法。',
-        interactionId: 'field_blueprint_cache'
+        source: '野狼掉落',
+        clue: '擊退野狼時，可能從牠們拖回巢穴的雜物裡找到獸牙護符圖紙。',
+        interactionId: 'monster_blueprint_drop'
     },
     greater_health_potion: {
-        source: '殘破製作圖匣',
-        clue: '夾頁裡有一份被藥水漬染開的高階藥劑比例。',
-        interactionId: 'field_blueprint_cache'
+        source: '任務獎勵',
+        clue: '完成城鎮委託後，藥師會交出一份更穩定的高階藥劑比例。',
+        interactionId: 'main_002'
     },
 
     guardian_armor: {
-        source: '刻痕石碑',
-        clue: '石碑拓印會開啟通往洞窟的特殊調查，完成後才能解出守衛甲圖紙。',
+        source: '幽暗洞窟任務',
+        clue: '完成洞窟特殊調查後，才能解出守衛甲圖紙。',
         interactionId: 'dungeon_cave_001'
     },
     gargoyle_bulwark: {
-        source: '刻痕石碑',
-        clue: '石碑留下第二段洞窟線索，必須完成深處調查才能拼出壁壘圖紙。',
+        source: '幽暗洞窟任務',
+        clue: '完成洞窟深處調查後，才能拼出壁壘圖紙。',
         interactionId: 'dungeon_cave_002'
     },
     bone_soul_staff: {
-        source: '刻痕石碑',
-        clue: '石碑底部的骨杖符號需要洞窟任務的後續拓印才能解讀。',
+        source: '幽暗洞窟任務',
+        clue: '洞窟任務的後續紀錄能拼出骨杖圖紙。',
         interactionId: 'dungeon_cave_002'
     },
 
     poison_dagger: {
         source: '怪物掉落',
         clue: '帶毒的怪物可能掉落薄刃匕首的破損圖紙。',
+        interactionId: 'monster_blueprint_drop'
+    },
+    silver_thread_hook: {
+        source: '銀鐮伏獵者掉落',
+        clue: '銀絲伏獵鉤圖紙會在銀鐮伏獵者戰利品中出現。',
         interactionId: 'monster_blueprint_drop'
     },
     goblin_trickster_charm: {
@@ -112,6 +117,11 @@ export const RecipeDiscoveryDatabase = {
     nature_amulet: {
         source: '副本、菁英或首領掉落',
         clue: '自然護符圖紙需要從副本或精銳敵人身上取得。',
+        interactionId: 'strong_blueprint_drop'
+    },
+    blood_moon_pendant: {
+        source: '血月角鹿掉落',
+        clue: '血月角墜圖紙只會在完成血月角鹿狩獵後掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     primal_focus: {

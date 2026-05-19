@@ -885,7 +885,7 @@ export const EquipmentDatabase = {
         dropFrom: ['tower_hell_knight']
     },
 
-    // ===== 第2章 BOSS - 森林守衛者 =====
+    // ===== 第一章 BOSS - 古樹守衛 =====
     tower_guardian_staff: {
         id: 'tower_guardian_staff',
         name: '守護者之杖',

@@ -8,8 +8,20 @@ import { ShopData, SecretShopItems } from '../managers/ShopManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
-import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import { attachItemTooltip, closeItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
+
+function cloneShopItem(item) {
+    if (!item) return item;
+    if (typeof structuredClone === 'function') {
+        try {
+            return structuredClone(item);
+        } catch (error) {
+            // Fall through to JSON cloning for plain shop records.
+        }
+    }
+    return JSON.parse(JSON.stringify(item));
+}
 
 export default class ShopScene {
     constructor(container, app) {
@@ -353,6 +365,7 @@ export default class ShopScene {
     }
 
     openModal(itemData, mode) {
+        closeItemTooltip();
         const trade = itemData?.item ? itemData : this.getTradeEntry(itemData, mode);
         const { item, quantity, price } = trade;
         const canAfford = mode !== 'buy' || this.getPlayerGold() >= price;
@@ -405,7 +418,7 @@ export default class ShopScene {
     }
 
     handleBuy(trade) {
-        const { item, price } = trade;
+        const { item, quantity, price } = trade;
         const itemName = item.name || '物品';
 
         if (this.getPlayerGold() < price || !GameManager.removeGold(price)) {
@@ -413,7 +426,8 @@ export default class ShopScene {
             return;
         }
 
-        const added = GameManager.addToInventory(item);
+        const purchasedItem = cloneShopItem(item);
+        const added = GameManager.addToInventory(purchasedItem, quantity);
         if (!added) {
             GameManager.addGold(price);
             this.showFeedback('背包已滿', `「${itemName}」無法放入背包，金幣已退回。`, 'error');

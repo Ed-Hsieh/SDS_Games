@@ -14,7 +14,7 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
-import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import { closeItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import {
@@ -1480,7 +1480,21 @@ export default class AdventureScene {
         const char = GameManager.getCharacter();
         const isLevelOK = char.level >= dungeonData.recommendLevel;
         const mechanicInfo = this.getDungeonMechanicDescription(dungeonData.mechanic?.type || dungeonType);
-        
+        const story = dungeonData.story || null;
+        const storyPickup = story?.pickup || null;
+        const storyHTML = storyPickup ? `
+                    <section class="dungeon-story-hook">
+                        <div class="dungeon-story-meta">
+                            <span>${escapeHtml(story.chapterType || '副本故事')}</span>
+                            <b>${escapeHtml(story.subtitle || '')}</b>
+                        </div>
+                        <div class="dungeon-story-title">${escapeHtml(storyPickup.label || '拾獲物件')}｜${escapeHtml(storyPickup.title || '')}</div>
+                        <p class="dungeon-story-quote">「${escapeHtml(storyPickup.quote || '')}」</p>
+                        ${story.synopsis ? `<p>${escapeHtml(story.synopsis)}</p>` : ''}
+                        ${story.mechanicUnlock ? `<div class="dungeon-unlock-note">通關解鎖｜${escapeHtml(story.mechanicUnlock.title || '')}</div>` : ''}
+                    </section>
+        ` : '';
+
         const modalHTML = `
             <div class="dungeon-entrance-modal" id="dungeon-entrance-modal" role="dialog" aria-modal="true">
                 <div class="dungeon-entrance-card dungeon-${escapeHtml(dungeonType)}" style="--dungeon-accent: ${escapeHtml(entranceConfig?.color || '#67d8ff')}">
@@ -1502,6 +1516,8 @@ export default class AdventureScene {
                             <span><b>建議</b>Lv.${dungeonData.recommendLevel}</span>
                         </div>
                     </section>
+
+                    ${storyHTML}
 
                     <section class="dungeon-mechanic-info">
                         <b>${escapeHtml(mechanicInfo.name)}</b>
@@ -2187,8 +2203,6 @@ export default class AdventureScene {
                     </div>
                     <div class="slot-action"><div class="action-icon">→</div></div>
                 `;
-                attachItemTooltip(slot, it, { quantity: stack.quantity || 1, hint: '點擊移回戰利品' });
-
                 // Move from inventory back to loot pool
                 slot.onclick = () => {
                     const instanceId = slot.dataset.instanceId;
@@ -2231,8 +2245,6 @@ export default class AdventureScene {
                     </div>
                     <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '')}</div>
                 `;
-                attachItemTooltip(slot, it, { quantity: it.quantity || 1, hint: isBlueprint ? '已登錄，可點擊移除提示' : '點擊放入背包' });
-
                 // Click to take from loot to inventory
                 slot.onclick = () => {
                     if (isBlueprint) {
@@ -2632,7 +2644,8 @@ AdventureScene.prototype.renderInventory = function() {
     if (!this.dom.inventoryList) return;
 
     renderVirtualInventoryList(this, this.dom.inventoryList, state.inventory || [], {
-        stateKey: '_adventureInventoryList'
+        stateKey: '_adventureInventoryList',
+        tooltip: false
     });
 };
 
@@ -2817,6 +2830,7 @@ AdventureScene.prototype.renderEquipmentSlots = function() {
 
 AdventureScene.prototype.showInventoryItemModal = function(stack) {
     const item = stack.item;
+    closeItemTooltip();
     const isEquipment = item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory';
     const isConsumable = item.type === 'potion' || item.type === 'scroll';
     // Actions
@@ -2899,6 +2913,7 @@ AdventureScene.prototype.showInventoryItemModal = function(stack) {
 };
 
 AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
+    closeItemTooltip();
     const actions = [];
     const unequipBtn = document.createElement('button');
     unequipBtn.className = 'btn btn-warning';
@@ -2919,10 +2934,14 @@ AdventureScene.prototype.showEquipmentModal = function(item, slotType) {
 };
 
 AdventureScene.prototype.closeItemDetailModal = function() {
+    closeItemTooltip();
+    if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') {
+        window.ItemDetailModal.close();
+        return;
+    }
+
     const modal = this.dom.itemModal;
-    if (!modal) return;
-    
-    modal.classList.remove('active');
+    if (modal) modal.classList.remove('active');
 };
 
 /**

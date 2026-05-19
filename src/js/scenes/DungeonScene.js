@@ -97,6 +97,14 @@ class DungeonSceneClass {
         // 顯示進入訊息
         this.addMessage(`📍 進入 ${dungeonData.name} 第 ${this.currentFloor} 層`);
         this.addMessage(`💡 ${dungeonData.environment?.ambiance || '小心前進...'}`);
+        if (dungeonData.story?.pickup) {
+            const pickup = dungeonData.story.pickup;
+            this.addMessage(`📖 ${pickup.label}：${pickup.title}`, 'info');
+            this.addMessage(`「${pickup.quote}」`, 'info');
+        }
+        if (dungeonData.story?.mechanicUnlock) {
+            this.addMessage(`通關目標：${dungeonData.story.mechanicUnlock.title}`, 'reward');
+        }
         questManager.updateProgress(ObjectiveType.DUNGEON_FLOOR, this.dungeonType, 1);
         
     }

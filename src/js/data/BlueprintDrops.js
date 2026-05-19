@@ -14,6 +14,10 @@ export const BlueprintDropDatabase = {
     skeleton_warrior: [
         { recipeId: 'bone_blade', chance: 0.12 }
     ],
+    wild_wolf: [
+        { recipeId: 'wolf_cloak', chance: 0.08 },
+        { recipeId: 'wolf_fang_necklace', chance: 0.06 }
+    ],
     poison_spider: [
         { recipeId: 'poison_dagger', chance: 0.08 }
     ],
@@ -29,7 +33,16 @@ export const BlueprintDropDatabase = {
         { recipeId: 'slime_crown_ring', chance: 0.01 }
     ],
     forest_guardian: [
-        { recipeId: 'slime_crown_ring', chance: 0.08 }
+        { recipeId: 'guardian_armor', chance: 0.16 },
+        { recipeId: 'nature_amulet', chance: 0.12 }
+    ],
+    ambush_mantis: [
+        { recipeId: 'silver_thread_hook', chance: 0.18 },
+        { recipeId: 'poison_dagger', chance: 0.10 }
+    ],
+    blood_moon_stag: [
+        { recipeId: 'blood_moon_pendant', chance: 0.18 },
+        { recipeId: 'nature_amulet', chance: 0.10 }
     ],
     shadow_soldier: [
         { recipeId: 'shadow_blade', chance: 0.05 },

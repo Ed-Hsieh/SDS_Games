@@ -169,6 +169,8 @@ if (typeof document !== 'undefined') {
         if (nextTarget && activeTarget.contains(nextTarget)) return;
         hideTooltip();
     });
+
+    document.addEventListener('pointerdown', hideTooltip, true);
 }
 
 if (typeof window !== 'undefined') {

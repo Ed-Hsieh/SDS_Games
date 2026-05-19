@@ -18,7 +18,7 @@ This document records image assets that are useful for the next world-building p
 
 | Key | Purpose |
 | --- | --- |
-| `world.blueprint_cache` | 地圖事件：殘破製作圖匣，觸發鍛造製作圖線索。 |
+| `world.blueprint_cache` | 地圖事件：遺落鍛造筆記，觸發鍛造委託線索。 |
 | `world.notice_board` | 大廳世界物件：冒險公告欄，觸發懸賞與城鎮委託線索。 |
 | `world.ruin_tablet` | 遺跡石碑，未來可觸發探索/支線。 |
 | `world.cave_route_tablet` | 指向幽暗洞窟的路線石碑，可沿用或延伸 `world.ruin_tablet`。 |
