@@ -25,16 +25,44 @@ export const WorldInteractionDatabase = {
         repeatMessage: '筆記裡剩下的內容已經不足以推進新的研究。',
         imageKeys: ['world.blueprint_cache', 'item.blueprint_scroll']
     },
+    village_elder_intro: {
+        id: 'village_elder_intro',
+        title: '村長的交代',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: true,
+        flags: ['metVillageElder'],
+        unlockQuests: ['main_001'],
+        unlockRecipes: [],
+        autoAcceptQuests: true,
+        showQuestUnlockMessages: false,
+        message: '村長請你先確認南門外近郊是否還能通行，也提醒你去找書記記下城外異常。',
+        repeatMessage: '村長已經交代過第一段旅程。',
+        imageKeys: ['npc.village_elder', 'world.notice_board']
+    },
     crossroads_notice_board: {
         id: 'crossroads_notice_board',
         title: '冒險公告欄',
         source: InteractionSource.WORLD_OBJECT,
         oneTime: true,
         flags: ['readCrossroadsNoticeBoard'],
-        unlockQuests: ['main_001', 'bounty_001'],
-        message: '公告欄上貼著城外路標拓印與新的懸賞。有人把安全區的異常標成了第一條旅途線索。',
-        repeatMessage: '公告欄上暫時沒有新的懸賞。',
+        unlockQuests: [],
+        message: '公告欄上有幾張剛釘好的紙，字跡潦草，只看得出南門外最近很不安寧。真正能整理成線索的人應該是書記。',
+        repeatMessage: '公告欄上暫時沒有新的完整委託。',
         imageKeys: ['world.notice_board']
+    },
+    scholar_slime_request: {
+        id: 'scholar_slime_request',
+        title: '書記的史萊姆紀錄',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: true,
+        flags: ['heardScholarSlimeRequest'],
+        unlockQuests: ['bounty_001'],
+        unlockRecipes: [],
+        autoAcceptQuests: true,
+        showQuestUnlockMessages: false,
+        message: '書記把城外史萊姆增生的聽聞寫進線索簿：農田附近需要先清出一條安全線。',
+        repeatMessage: '史萊姆增生的紀錄已經寫進線索簿。',
+        imageKeys: ['npc.scholar', 'world.notice_board']
     },
     crossroads_beggar: {
         id: 'crossroads_beggar',

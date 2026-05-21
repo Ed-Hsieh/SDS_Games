@@ -51,17 +51,17 @@
                     </div>
                 </div>
 
-                <!-- 任務目標 -->
+                <!-- 線索紀錄 -->
                 <div class="quest-objectives">
-                    <h4>📋 任務目標</h4>
+                    <h4>📋 線索紀錄</h4>
                     <ul class="objectives-list" id="detail-objectives">
                         <!-- 動態生成 -->
                     </ul>
                 </div>
 
-                <!-- 任務獎勵 -->
+                <!-- 回報收穫 -->
                 <div class="quest-rewards">
-                    <h4>🎁 任務獎勵</h4>
+                    <h4>🎁 回報收穫</h4>
                     <div class="rewards-grid" id="detail-rewards">
                         <!-- 動態生成 -->
                     </div>
@@ -71,15 +71,11 @@
                 <div class="quest-actions" id="detail-actions">
                     <button class="quest-btn accept-btn" id="btn-accept">
                         <span class="btn-icon">✅</span>
-                        接受任務
+                        開始記錄
                     </button>
                     <button class="quest-btn abandon-btn hidden" id="btn-abandon">
                         <span class="btn-icon">❌</span>
                         放棄任務
-                    </button>
-                    <button class="quest-btn complete-btn hidden" id="btn-complete">
-                        <span class="btn-icon">🏆</span>
-                        領取獎勵
                     </button>
                 </div>
             </div>
@@ -93,15 +89,15 @@
             返回大廳
         </button>
         <div class="quest-summary">
-            <span class="summary-item" title="進行中">
-                <span class="summary-icon">⚔️</span>
+            <span class="summary-item" title="紀錄中">
+                <span class="summary-icon">✎</span>
                 <span id="summary-active">0</span>
             </span>
-            <span class="summary-item" title="可領取">
-                <span class="summary-icon">🏆</span>
+            <span class="summary-item" title="可回報">
+                <span class="summary-icon">📌</span>
                 <span id="summary-completed">0</span>
             </span>
-            <span class="summary-item" title="已完成">
+            <span class="summary-item" title="已記錄">
                 <span class="summary-icon">✓</span>
                 <span id="summary-finished">0</span>
             </span>

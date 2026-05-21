@@ -3,6 +3,7 @@ import { questManager, ObjectiveType, QuestStatus } from '../managers/QuestManag
 import { RecipeDatabase, canCraft } from '../managers/RecipeManager.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { getEquipmentBalanceGrade, RARITY_SEQUENCE, normalizeEquipmentKind } from '../data/EquipmentBalance.js';
+import { getQuestStory } from '../data/QuestStories.js';
 import { escapeHtml } from './ItemDisplay.js';
 
 const ROUTE_LABELS = {
@@ -151,13 +152,16 @@ class GlobalGoalTracker {
     buildQuestGoal() {
         const completed = questManager.getCompletedQuests()[0];
         if (completed) {
+            const story = getQuestStory(completed, completed.state);
+            const reporter = story.reportTo?.name || '委託人';
+            const route = story.reportTo?.route || 'lobby';
             return {
-                icon: '✓',
+                icon: '📌',
                 tone: 'success',
-                title: '任務可領取',
-                description: `「${completed.name}」已完成，先領獎避免進度被忽略。`,
-                route: 'quest',
-                actionLabel: '領取',
+                title: '線索可回報',
+                description: `「${completed.name}」已補齊，回去找${reporter}確認後續。`,
+                route,
+                actionLabel: story.reportTo?.label || `回去找${reporter}`,
                 progress: 100
             };
         }
@@ -168,7 +172,7 @@ class GlobalGoalTracker {
             return {
                 icon: active.icon || '!',
                 tone: 'primary',
-                title: `追蹤：${active.name}`,
+                title: `線索：${active.name}`,
                 description: objective.description,
                 route: this.getObjectiveRoute(objective.type),
                 actionLabel: ROUTE_LABELS[this.getObjectiveRoute(objective.type)] || '前往',
@@ -181,11 +185,12 @@ class GlobalGoalTracker {
             .find(quest => quest.state?.status === QuestStatus.AVAILABLE);
 
         if (available) {
+            const story = getQuestStory(available, available.state);
             return {
                 icon: available.icon || '+',
                 tone: 'warning',
                 title: '有任務可接取',
-                description: `「${available.name}」可以接取，接下來的行動會更有方向。`,
+                description: story?.current || `「${available.name}」可以接取，接下來的行動會更有方向。`,
                 route: 'quest',
                 actionLabel: '查看',
                 progress: 0
@@ -193,12 +198,12 @@ class GlobalGoalTracker {
         }
 
         return {
-            icon: '!',
+            icon: '🏘',
             tone: 'info',
-            title: '建立主要目標',
-            description: '目前沒有追蹤中的任務，先到任務板選一個目標。',
-            route: 'quest',
-            actionLabel: '任務',
+            title: '先找村長',
+            description: '初到城鎮，先和村長碰面，確認誰需要幫忙、城外哪裡出了問題。',
+            route: 'lobby',
+            actionLabel: '交談',
             progress: 0
         };
     }
@@ -213,12 +218,21 @@ class GlobalGoalTracker {
         const current = Number(state.current || 0);
         const required = Math.max(1, Number(state.required || objective.count || 1));
         const percent = Math.floor((current / required) * 100);
+        const story = getQuestStory(quest, quest.state);
+        const narrative = this.getStoryObjectiveText(story, index);
 
         return {
             type: objective.type || state.type,
-            description: `${objective.description || this.getObjectiveFallback(objective)} (${current}/${required})`,
+            description: narrative || objective.description || this.getObjectiveFallback(objective),
             progress: percent
         };
+    }
+
+    getStoryObjectiveText(story, index) {
+        const entry = story?.objectives?.[index];
+        if (typeof entry === 'string') return entry;
+        if (entry && typeof entry.text === 'string') return entry.text;
+        return '';
     }
 
     getObjectiveFallback(objective) {

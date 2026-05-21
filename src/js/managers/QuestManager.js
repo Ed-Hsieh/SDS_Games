@@ -115,7 +115,7 @@ class QuestManager {
     }
 
     /**
-     * 完成任務（領取獎勵）
+     * 完成任務（回報後發放獎勵）
      */
     completeQuest(questId) {
         const quest = getQuestById(questId);
@@ -538,7 +538,7 @@ class QuestManager {
     }
 
     /**
-     * 獲取待領獎的任務
+     * 獲取待回報的任務
      */
     getCompletedQuests() {
         return Object.entries(this.questStates)
@@ -601,18 +601,18 @@ class QuestManager {
         const questName = data.quest?.name || data.questId || '未知任務';
 
         if (eventType === 'quest_ready') {
-            showGlobalToast('任務完成', `「${questName}」可以領取獎勵。`, 'quest', { duration: 5200 });
+            showGlobalToast('線索補齊', `「${questName}」可以回報。`, 'quest', { duration: 5200 });
             return;
         }
 
         if (eventType === 'quest_completed') {
             const rewardText = this.getRewardToastText(data.rewards, data.blueprintUnlocks);
-            showGlobalToast('獎勵已領取', rewardText || `「${questName}」已結案。`, 'success');
+            showGlobalToast('回報完成', rewardText || `「${questName}」已收錄。`, 'success');
             return;
         }
 
         if (eventType === 'hidden_quest_discovered') {
-            showGlobalToast('發現隱藏任務', `「${questName}」已加入線索簿。`, 'quest');
+            showGlobalToast('新的聽聞', `「${questName}」已寫入線索簿。`, 'quest');
         }
     }
 

@@ -1,4 +1,4 @@
-import { getItemDescription, normalizeItemType, readItemStat, readNumber } from '../models/ItemSchema.js';
+import { getItemDescription, normalizeItemType, readEquipmentStats, readItemStat, readNumber } from '../models/ItemSchema.js';
 
 export const ITEM_TYPE_TEXT = {
     weapon: '武器',
@@ -11,6 +11,14 @@ export const ITEM_TYPE_TEXT = {
     key: '鑰匙',
     book: '書籍',
     quest: '任務道具'
+};
+
+export const ITEM_RARITY_TEXT = {
+    common: '普通',
+    uncommon: '優良',
+    rare: '稀有',
+    epic: '史詩',
+    legendary: '傳說'
 };
 
 export const STAT_LABELS = {
@@ -145,6 +153,57 @@ export function getStatIcon(key) {
     return STAT_ICONS[key] || (isPercentStat(key) ? '✨' : '');
 }
 
+function normalizeStatKey(key) {
+    if (!key) return key;
+
+    const raw = String(key);
+    const normalized = raw.toLowerCase();
+    const aliases = {
+        attack: 'atk',
+        defense: 'def',
+        critchance: 'critChance',
+        crit_chance: 'critChance',
+        critdamage: 'critDamage',
+        crit_damage: 'critDamage',
+        attackspeed: 'attackSpeed',
+        attack_speed: 'attackSpeed',
+        weaponspeed: 'weaponSpeed',
+        weapon_speed: 'weaponSpeed',
+        lifesteal: 'lifesteal',
+        life_steal: 'lifesteal',
+        damagereduction: 'damageReduction',
+        damage_reduction: 'damageReduction',
+        dodgechance: 'dodgeChance',
+        dodge_chance: 'dodgeChance',
+        armorpenetration: 'armorPenetration',
+        armor_penetration: 'armorPenetration',
+        allstats: 'allStats',
+        all_stats: 'allStats',
+        doublestrike: 'double_strike',
+        double_strike: 'double_strike',
+        damagereflect: 'damage_reflect',
+        damage_reflect: 'damage_reflect',
+        goldbonus: 'gold_bonus',
+        gold_bonus: 'gold_bonus',
+        expbonus: 'exp_bonus',
+        exp_bonus: 'exp_bonus',
+        dropbonus: 'drop_bonus',
+        drop_bonus: 'drop_bonus',
+        hpregen: 'hpRegen',
+        hp_regen: 'hpRegen',
+        slowchance: 'slowChance',
+        slow_chance: 'slowChance',
+        stunchance: 'stunChance',
+        stun_chance: 'stunChance',
+        bossbonus: 'bossBonus',
+        boss_bonus: 'bossBonus',
+        voiddamage: 'voidDamage',
+        void_damage: 'voidDamage'
+    };
+
+    return aliases[normalized] || raw;
+}
+
 function statRow(key, value, options = {}) {
     if (value === undefined || value === null || value === 0) return '';
 
@@ -163,9 +222,255 @@ function statRow(key, value, options = {}) {
     return `<div class="item-detail-stat"><span>${escapeHtml(`${icon ? `${icon} ` : ''}${label}`)}</span><span class="value">${escapeHtml(formatted)}</span></div>`;
 }
 
+function readDisplayStat(item, primaryKey, aliases = [], format = 'number', fallback = undefined) {
+    const rawValue = readItemStat(item, primaryKey, aliases, fallback);
+    if (rawValue === undefined || rawValue === null) return undefined;
+
+    const number = Number(rawValue);
+    if (!Number.isFinite(number)) return undefined;
+
+    if (format === 'percent') return normalizePercentValue(number);
+    if (format === 'multiplierPercent') return normalizeMultiplierPercentValue(number);
+    return number;
+}
+
+function collectBonusStats(item) {
+    const bonusStats = {};
+
+    const addContribution = (key, rawValue) => {
+        if (rawValue === undefined || rawValue === null || rawValue === 0) return;
+
+        const normalizedKey = normalizeStatKey(key);
+        const number = Number(rawValue);
+        if (!Number.isFinite(number)) return;
+
+        const displayValue = isPercentStat(normalizedKey) ? normalizePercentValue(number) : number;
+        if (displayValue === 0) return;
+
+        const displayKey = normalizedKey === 'attackSpeed' ? 'attackSpeedBonus' : normalizedKey;
+        bonusStats[displayKey] = (bonusStats[displayKey] || 0) + displayValue;
+    };
+
+    if (Array.isArray(item?.affixes) && item.affixes.length > 0) {
+        item.affixes.forEach(affix => {
+            if (!affix?.stats) return;
+            for (const [key, value] of Object.entries(affix.stats)) {
+                addContribution(key, value);
+            }
+        });
+    } else if (item?.affixBonuses) {
+        for (const [key, value] of Object.entries(item.affixBonuses)) {
+            addContribution(key, value);
+        }
+    }
+
+    if (item?.enhancementBonuses) {
+        for (const [key, value] of Object.entries(item.enhancementBonuses)) {
+            addContribution(key, value);
+        }
+    }
+
+    if (Array.isArray(item?.specialEffects) && item.specialEffects.length > 0) {
+        item.specialEffects.forEach(effect => {
+            if (!effect?.type) return;
+            addContribution(effect.type, effect.value);
+        });
+    }
+
+    return bonusStats;
+}
+
+export function buildItemStatEntries(item, options = {}) {
+    if (!item) return [];
+
+    const normalizedType = normalizeItemType(item.type);
+    const equipmentStats = isEquipmentType(normalizedType)
+        ? readEquipmentStats(item, normalizedType)
+        : null;
+    const includePotionRecovery = options.includePotionRecovery !== false;
+    const bonusStats = collectBonusStats(item);
+    const entries = [];
+    const hasExplicitStat = (primaryKey, aliases = []) => readItemStat(item, primaryKey, aliases, null) !== null;
+
+    const push = (key, baseValue, entryOptions = {}) => {
+        const normalizedKey = normalizeStatKey(key);
+        const bonusKey = entryOptions.bonusKey || normalizedKey;
+        const bonus = bonusStats[bonusKey] || 0;
+        const base = baseValue ?? 0;
+
+        if ((baseValue === undefined || baseValue === null || base === 0) && bonus === 0) return;
+
+        entries.push({
+            key: normalizedKey,
+            icon: entryOptions.icon ?? getStatIcon(normalizedKey),
+            label: entryOptions.label ?? getStatLabel(normalizedKey),
+            base,
+            bonus,
+            suffix: entryOptions.suffix || '',
+            max: entryOptions.max
+        });
+    };
+
+    push('atk', equipmentStats ? equipmentStats.atk : readDisplayStat(item, 'atk', ['attack']));
+    push('def', equipmentStats ? equipmentStats.def : readDisplayStat(item, 'def', ['defense']));
+
+    if (equipmentStats && equipmentStats.durability !== null) {
+        const durability = equipmentStats.durability;
+        if (durability !== undefined && durability !== null) {
+            push('durability', durability, { max: equipmentStats.maxDurability ?? durability });
+        }
+    }
+
+    if (includePotionRecovery || normalizedType !== 'potion') {
+        const hpLabel = normalizedType === 'potion' || normalizedType === 'consumable' ? '恢復生命' : getStatLabel('hp');
+        push('hp', readDisplayStat(item, 'hp'), { label: hpLabel });
+    }
+
+    push('critChance', equipmentStats ? normalizePercentValue(equipmentStats.critChance) : readDisplayStat(item, 'critChance', ['crit_chance'], 'percent'), { suffix: '%' });
+    push('critDamage', equipmentStats ? normalizeMultiplierPercentValue(equipmentStats.critDamage) : readDisplayStat(item, 'critDamage', ['crit_damage'], 'multiplierPercent'), { suffix: 'critMultiplier' });
+    if (normalizedType === 'weapon' || hasExplicitStat('weaponSpeed', ['weapon_speed'])) {
+        push('weaponSpeed', equipmentStats ? equipmentStats.weaponSpeed : readDisplayStat(item, 'weaponSpeed', ['weapon_speed']), { suffix: 'x' });
+    }
+    if (normalizedType === 'weapon' || hasExplicitStat('attackSpeed', ['attack_speed'])) {
+        push('attackSpeed', equipmentStats ? equipmentStats.attackSpeed : readDisplayStat(item, 'attackSpeed', ['attack_speed']), { suffix: 's' });
+    }
+
+    for (const [key, value] of Object.entries(bonusStats)) {
+        const normalizedKey = normalizeStatKey(key);
+        if (!value || entries.some(entry => entry.key === normalizedKey)) continue;
+        entries.push({
+            key: normalizedKey,
+            icon: getStatIcon(normalizedKey),
+            label: getStatLabel(normalizedKey),
+            base: 0,
+            bonus: value,
+            suffix: isPercentStat(normalizedKey) ? '%' : ''
+        });
+    }
+
+    return entries;
+}
+
+function formatEntryNumber(value) {
+    return formatPlainNumber(value);
+}
+
+export function formatItemStatEntryValue(entry, value, options = {}) {
+    const prefix = options.prefix ?? '+';
+
+    if (entry.suffix === 's') {
+        const speed = Number(value);
+        if (!Number.isFinite(speed) || speed <= 0) return '—';
+        const seconds = 1 / speed;
+        return `${formatEntryNumber(seconds)} Sec/Hit`;
+    }
+
+    if (entry.suffix === 'critMultiplier') {
+        const multiplier = Number(value) / 100;
+        if (!Number.isFinite(multiplier)) return '—';
+        return `x${formatEntryNumber(multiplier)}`;
+    }
+
+    if (entry.suffix === '%') return `${prefix}${formatEntryNumber(value)}%`;
+    if (entry.suffix === 'x') return `${formatEntryNumber(value)}x`;
+    if (entry.key === 'durability' && options.includeMax && entry.max !== undefined && entry.max !== null) {
+        return `${formatEntryNumber(value)}/${formatEntryNumber(entry.max)}`;
+    }
+    return `${prefix}${formatEntryNumber(value)}`;
+}
+
+export function formatItemStatEntryTotal(entry, options = {}) {
+    const total = Number(entry?.base || 0) + Number(entry?.bonus || 0);
+    const prefix = options.prefix ?? (
+        entry?.key === 'durability' || entry?.suffix === 'x' || entry?.suffix === 'critMultiplier'
+            ? ''
+            : '+'
+    );
+
+    return formatItemStatEntryValue(entry, total, {
+        includeMax: options.includeMax !== false,
+        prefix
+    });
+}
+
+export function buildItemStatChipsHtml(item, options = {}) {
+    const entries = buildItemStatEntries(item, options);
+    const limit = Number.isFinite(Number(options.limit)) ? Number(options.limit) : entries.length;
+    const visibleEntries = entries.slice(0, Math.max(0, limit));
+    const chipClass = options.chipClass || 'item-stat-chip';
+
+    if (visibleEntries.length === 0) {
+        return options.emptyText
+            ? `<span class="${escapeHtml(chipClass)} is-empty">${escapeHtml(options.emptyText)}</span>`
+            : '';
+    }
+
+    const html = visibleEntries.map(entry => `
+        <span class="${escapeHtml(chipClass)}">
+            <span>${escapeHtml(`${entry.icon ? `${entry.icon} ` : ''}${entry.label}`)}</span>
+            <strong>${escapeHtml(formatItemStatEntryTotal(entry))}</strong>
+        </span>
+    `).join('');
+
+    const hiddenCount = entries.length - visibleEntries.length;
+    if (hiddenCount > 0 && options.showMore !== false) {
+        return `${html}<span class="${escapeHtml(chipClass)} is-more">+${hiddenCount}</span>`;
+    }
+
+    return html;
+}
+
+function statEntryRow(entry) {
+    const base = Number(entry.base || 0);
+    const bonus = Number(entry.bonus || 0);
+    const total = base + bonus;
+
+    if (!Number.isFinite(total) || total === 0) return '';
+
+    const label = entry.label || getStatLabel(entry.key);
+    const icon = entry.icon || getStatIcon(entry.key);
+    const value = formatItemStatEntryTotal(entry);
+    const bonusSign = bonus > 0 ? '+' : '-';
+    const bonusText = bonus !== 0
+        ? ` (${bonusSign}${formatItemStatEntryValue(entry, Math.abs(bonus), { prefix: '' })})`
+        : '';
+
+    return `<div class="item-detail-stat"><span>${escapeHtml(`${icon ? `${icon} ` : ''}${label}`)}</span><span class="value">${escapeHtml(`${value}${bonusText}`)}</span></div>`;
+}
+
 export function getItemTypeText(type) {
     const normalized = normalizeItemType(type);
     return ITEM_TYPE_TEXT[normalized] || normalized || '未知類型';
+}
+
+export function getItemRarityText(rarity) {
+    const normalized = String(rarity || 'common').toLowerCase();
+    return ITEM_RARITY_TEXT[normalized] || rarity || '普通';
+}
+
+export function buildItemDisplayModel(item, options = {}) {
+    const rarity = item?.rarity || options.rarity || 'common';
+    return {
+        id: item?.id || options.id || '',
+        name: item?.name || options.name || '未知物品',
+        icon: item?.icon || options.icon || '◆',
+        image: item?.image || options.image || '',
+        type: item?.type || options.type || '',
+        rarity,
+        typeText: options.typeText ?? getItemTypeText(item?.type || options.type),
+        rarityText: options.rarityText ?? getItemRarityText(rarity),
+        description: options.description ?? getItemDisplayDescription(item, ''),
+        stats: buildItemStatEntries(item, options)
+    };
+}
+
+export function isEquipmentType(type) {
+    const normalized = normalizeItemType(type);
+    return normalized === 'weapon' || normalized === 'armor' || normalized === 'accessory';
+}
+
+export function shouldDisplayDurability(item) {
+    return Boolean(item && isEquipmentType(item.type));
 }
 
 export function getItemDisplayDescription(item, fallback = '沒有描述') {
@@ -193,21 +498,7 @@ export function formatAffixStats(stats) {
 export function buildItemStatsHtml(item, options = {}) {
     if (!item) return '';
 
-    const rows = [];
-    rows.push(statRow('atk', readItemStat(item, 'atk', ['attack'], 0)));
-    rows.push(statRow('def', readItemStat(item, 'def', ['defense'], 0)));
-
-    const durability = readItemStat(item, 'durability', ['dur'], undefined);
-    if (durability !== undefined && durability !== null) {
-        rows.push(statRow('durability', `${durability}/${item.maxDurability ?? 50}`, { label: '耐久度', raw: true }));
-    }
-
-    rows.push(statRow('hp', readItemStat(item, 'hp', [], 0), { label: item.type === 'potion' ? '恢復生命' : '生命' }));
-    rows.push(statRow('critChance', readItemStat(item, 'critChance', ['crit_chance'], 0), { format: 'percent' }));
-    rows.push(statRow('critDamage', readItemStat(item, 'critDamage', ['crit_damage'], 0), { format: 'multiplierPercent' }));
-    rows.push(statRow('weaponSpeed', readItemStat(item, 'weaponSpeed', ['weapon_speed'], 0), { suffix: 'x' }));
-    rows.push(statRow('attackSpeed', readItemStat(item, 'attackSpeed', ['attack_speed'], 0), { suffix: 'x' }));
-
+    const rows = buildItemStatEntries(item, options).map(statEntryRow);
     let html = rows.filter(Boolean).join('');
     if (options.includeAffixes !== false && Array.isArray(item.affixes) && item.affixes.length > 0) {
         const affixes = item.affixes.map(affix => {

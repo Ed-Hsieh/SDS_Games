@@ -349,6 +349,24 @@
     background: rgba(19, 60, 39, 0.66);
 }
 
+.npc-hotspot {
+    border-color: rgba(233, 189, 101, 0.32);
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.08), rgba(10, 14, 18, 0.82));
+}
+
+.npc-hotspot.is-ready::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--gold);
+    box-shadow: 0 0 14px rgba(233, 189, 101, 0.82);
+}
+
 .hotspot-icon {
     font-size: 22px;
     line-height: 1;
@@ -364,8 +382,12 @@
     overflow-wrap: anywhere;
 }
 
+.hotspot-elder { left: 50%; top: 15%; --hotspot-x: -50%; }
 .hotspot-board { left: 9%; top: 26%; }
+.hotspot-herbalist { right: 9%; top: 26%; }
 .hotspot-beggar { left: 34%; bottom: 29%; }
+.hotspot-blacksmith-npc { left: 31%; bottom: 19%; }
+.hotspot-scholar { right: 34%; bottom: 29%; }
 .hotspot-shop { left: 8%; bottom: 24%; }
 .hotspot-forge { left: 23%; bottom: 7%; }
 .hotspot-gamble { left: 50%; bottom: 25%; --hotspot-x: -50%; }
@@ -389,6 +411,235 @@
     font-weight: 700;
     line-height: 1.62;
     overflow-wrap: anywhere;
+}
+
+.town-dialogue-modal[hidden] {
+    display: none;
+}
+
+.town-dialogue-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 6000;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(3, 6, 10, 0.58);
+    backdrop-filter: blur(8px);
+}
+
+.town-dialogue-card {
+    position: relative;
+    width: min(720px, 100%);
+    max-height: min(78vh, 720px);
+    padding: 22px;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    gap: 16px;
+    border: 1px solid rgba(233, 189, 101, 0.34);
+    border-radius: 12px;
+    background:
+        linear-gradient(135deg, rgba(36, 26, 16, 0.96), rgba(10, 16, 22, 0.98)),
+        #10161d;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.56);
+    cursor: pointer;
+    outline: none;
+}
+
+.town-dialogue-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(237, 242, 244, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(237, 242, 244, 0.74);
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.town-dialogue-close:hover,
+.town-dialogue-close:focus-visible {
+    color: #fff;
+    border-color: rgba(233, 189, 101, 0.52);
+    outline: none;
+}
+
+.town-dialogue-person {
+    min-width: 0;
+    padding-right: 44px;
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+}
+
+.town-dialogue-avatar {
+    width: 64px;
+    height: 64px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(233, 189, 101, 0.32);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 34px;
+}
+
+.town-dialogue-person span {
+    color: var(--gold);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.town-dialogue-person strong {
+    display: block;
+    margin-top: 2px;
+    color: #fff7e6;
+    font-size: 30px;
+    line-height: 1.1;
+}
+
+.town-dialogue-lines {
+    min-height: 0;
+    overflow-y: auto;
+    display: grid;
+    gap: 10px;
+    padding-right: 4px;
+    scrollbar-width: none;
+}
+
+.town-dialogue-lines::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.town-dialogue-line {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 12px;
+    border: 1px solid rgba(237, 242, 244, 0.1);
+    border-radius: 10px;
+    background: rgba(5, 8, 12, 0.44);
+}
+
+.town-dialogue-line.is-new {
+    animation: townDialogueLineFade 0.24s ease-out both;
+}
+
+.town-dialogue-line.is-player {
+    background: rgba(39, 76, 96, 0.26);
+}
+
+.town-dialogue-line-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 22px;
+}
+
+.town-dialogue-line-copy {
+    min-width: 0;
+}
+
+.town-dialogue-line-copy strong {
+    color: var(--gold);
+    font-size: 13px;
+}
+
+.town-dialogue-line-copy p {
+    margin: 3px 0 0;
+    color: rgba(237, 242, 244, 0.9);
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.town-dialogue-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1.1em;
+    margin-left: 3px;
+    border-radius: 2px;
+    background: rgba(233, 189, 101, 0.88);
+    vertical-align: -0.18em;
+    animation: townDialogueCursorBlink 0.72s steps(2, start) infinite;
+}
+
+.town-dialogue-effects {
+    display: grid;
+    gap: 6px;
+}
+
+.town-dialogue-effect {
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(120, 185, 141, 0.13);
+    color: rgba(222, 255, 232, 0.92);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.town-dialogue-effects:empty {
+    display: none;
+}
+
+.town-dialogue-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    border-top: 1px solid rgba(237, 242, 244, 0.1);
+    padding-top: 14px;
+}
+
+.town-dialogue-route,
+.town-dialogue-done {
+    min-width: 120px;
+    min-height: 44px;
+    border: 1px solid rgba(237, 242, 244, 0.18);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(237, 242, 244, 0.86);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.town-dialogue-route {
+    border-color: rgba(233, 189, 101, 0.44);
+    background: rgba(233, 189, 101, 0.12);
+    color: #fff2c8;
+}
+
+.town-dialogue-route:hover,
+.town-dialogue-done:hover {
+    border-color: rgba(233, 189, 101, 0.66);
+    background: rgba(233, 189, 101, 0.16);
+}
+
+@keyframes townDialogueLineFade {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes townDialogueCursorBlink {
+    50% {
+        opacity: 0;
+    }
 }
 
 .character-info {
@@ -1471,8 +1722,12 @@
         min-height: 62px;
     }
 
+    .hotspot-elder { left: 50%; top: 14%; --hotspot-x: -50%; }
     .hotspot-board { left: 7%; }
+    .hotspot-herbalist { right: 7%; top: 24%; }
     .hotspot-beggar { left: 30%; bottom: 30%; }
+    .hotspot-blacksmith-npc { left: 34%; bottom: 18%; }
+    .hotspot-scholar { right: 30%; bottom: 30%; }
     .hotspot-shop { left: 6%; bottom: 26%; }
     .hotspot-forge { left: 16%; bottom: 10%; }
     .hotspot-gamble { left: 50%; bottom: 22%; --hotspot-x: -50%; }
@@ -1485,5 +1740,33 @@
     .storage-board {
         grid-template-columns: 1fr;
         grid-template-rows: auto;
+    }
+
+    .town-dialogue-card {
+        padding: 18px;
+        max-height: 84vh;
+    }
+
+    .town-dialogue-person {
+        grid-template-columns: 52px minmax(0, 1fr);
+    }
+
+    .town-dialogue-avatar {
+        width: 52px;
+        height: 52px;
+        font-size: 28px;
+    }
+
+    .town-dialogue-person strong {
+        font-size: 24px;
+    }
+
+    .town-dialogue-actions {
+        flex-direction: column;
+    }
+
+    .town-dialogue-route,
+    .town-dialogue-done {
+        width: 100%;
     }
 }

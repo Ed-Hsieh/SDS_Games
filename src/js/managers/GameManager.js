@@ -32,6 +32,15 @@ class GameManager {
             inventoryCapacity: 10,
             warehouse: [], // Array of stacked items (Unlimited capacity)
             mapState: null,
+            ui: {
+                townNarrative: {
+                    lines: [],
+                    lastNarrativeAt: 0,
+                    lastNarrativeTone: null,
+                    resetOnNextLobby: false,
+                    resetReason: null
+                }
+            },
             flags: {
                 secretShopUnlocked: false
             }
@@ -129,6 +138,46 @@ class GameManager {
 
     resetSaveData() {
         return this.saveManager.resetToNewGame();
+    }
+
+    getTownNarrativeState() {
+        if (!this.state.ui || typeof this.state.ui !== 'object') {
+            this.state.ui = {};
+        }
+
+        if (!this.state.ui.townNarrative || typeof this.state.ui.townNarrative !== 'object') {
+            this.state.ui.townNarrative = {};
+        }
+
+        const townNarrative = this.state.ui.townNarrative;
+        if (!Array.isArray(townNarrative.lines)) {
+            townNarrative.lines = [];
+        }
+        if (!Number.isFinite(Number(townNarrative.lastNarrativeAt))) {
+            townNarrative.lastNarrativeAt = 0;
+        }
+        if (!['ambient', 'discovery', 'warning'].includes(townNarrative.lastNarrativeTone)) {
+            townNarrative.lastNarrativeTone = null;
+        }
+
+        return townNarrative;
+    }
+
+    resetTownNarrativeState() {
+        const townNarrative = this.getTownNarrativeState();
+        townNarrative.lines = [];
+        townNarrative.lastNarrativeAt = 0;
+        townNarrative.lastNarrativeTone = null;
+        townNarrative.resetOnNextLobby = false;
+        townNarrative.resetReason = null;
+        return townNarrative;
+    }
+
+    requestTownNarrativeReset(reason = 'adventure_return') {
+        const townNarrative = this.getTownNarrativeState();
+        townNarrative.resetOnNextLobby = true;
+        townNarrative.resetReason = reason;
+        return townNarrative;
     }
     
     // ===== Helper Methods =====
@@ -413,6 +462,67 @@ class GameManager {
         this.notify('warehouse');
         return true;
     }
+
+    grantSetEquipmentForTesting(setIds = ['wolf_hunter', 'ancient_relic'], equipSetId = 'wolf_hunter') {
+        const ids = Array.isArray(setIds) ? setIds : [setIds];
+        const added = [];
+        const equipped = [];
+
+        const hasItem = (itemId) => {
+            const equippedItems = Object.values(this.state.character?.equipment || {}).filter(Boolean);
+            return equippedItems.some(item => item?.id === itemId)
+                || (this.state.inventory || []).some(stack => stack?.item?.id === itemId)
+                || (this.state.warehouse || []).some(stack => stack?.item?.id === itemId);
+        };
+
+        for (const setId of ids) {
+            const set = SetDatabase[setId];
+            if (!set || !Array.isArray(set.pieces)) continue;
+
+            for (const pieceId of set.pieces) {
+                if (hasItem(pieceId)) continue;
+                if (this.addEquipmentById(pieceId, true, 1)) {
+                    added.push(pieceId);
+                }
+            }
+        }
+
+        const setToEquip = SetDatabase[equipSetId];
+        if (setToEquip && Array.isArray(setToEquip.pieces)) {
+            for (const pieceId of setToEquip.pieces) {
+                const alreadyEquipped = Object.values(this.state.character?.equipment || {})
+                    .some(item => item?.id === pieceId);
+                if (alreadyEquipped) continue;
+
+                let stack = (this.state.warehouse || []).find(entry => entry?.item?.id === pieceId);
+                if (stack && this.equipItem(stack.instanceId, true)) {
+                    equipped.push(pieceId);
+                    continue;
+                }
+
+                stack = (this.state.inventory || []).find(entry => entry?.item?.id === pieceId);
+                if (stack && this.equipItem(stack.instanceId, false)) {
+                    equipped.push(pieceId);
+                }
+            }
+        }
+
+        this.markSaveDirty?.('test-set-equipment');
+        this.notify('all');
+
+        return {
+            added,
+            equipped,
+            sets: ids
+                .map(setId => SetDatabase[setId])
+                .filter(Boolean)
+                .map(set => ({
+                    id: set.id,
+                    name: set.name,
+                    pieces: set.pieces
+                }))
+        };
+    }
     
     sellItem(instanceId, fromWarehouse = false) {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
@@ -677,7 +787,9 @@ class GameManager {
     }
 }
 
-export default GameManager.getInstance();
+const gameManagerInstance = GameManager.getInstance();
+
+export default gameManagerInstance;
 
 // 重新導出常用的 Model 類型，供 Scenes 使用（避免 Scenes 直接引用 Model）
 export { Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity };

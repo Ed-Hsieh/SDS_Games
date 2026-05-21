@@ -39,15 +39,6 @@ function finalReady(chainId) {
 
 export const StoryProgressRules = [
     {
-        id: 'notice-board-starts-hunt-rumors',
-        event: E.WORLD_INTERACTION,
-        match: { interactionId: 'crossroads_notice_board' },
-        actions: [
-            clue('survivor_warning'),
-            nextClue('ambush_mantis')
-        ]
-    },
-    {
         id: 'special-bounty-points-to-blood-moon',
         event: E.WORLD_INTERACTION,
         match: { interactionId: 'special_bounty_notice' },

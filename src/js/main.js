@@ -11,6 +11,7 @@ import QuestScene from './scenes/QuestScene.js';
 import EncyclopediaScene from './scenes/EncyclopediaScene.js';
 import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
+import GameManager from './managers/GameManager.js';
 // 導入共用的節奏條系統
 import './utils/RhythmBarSystem.js';
 import './utils/ItemTooltip.js';
@@ -80,6 +81,17 @@ class App {
     async loadScene(sceneName) {
         const loadToken = ++this.sceneLoadToken;
         const viewName = this.dungeonRoutes[sceneName] ? 'dungeon' : sceneName;
+        const previousSceneName = this.currentSceneName || null;
+
+        if (
+            sceneName === 'lobby'
+            && (
+                previousSceneName === 'adventure'
+                || this.dungeonRoutes[previousSceneName]
+            )
+        ) {
+            GameManager.requestTownNarrativeReset('adventure_return');
+        }
 
         // Cleanup current scene if it has a cleanup method
         if (this.currentScene && typeof this.currentScene.cleanup === 'function') {
@@ -136,6 +148,7 @@ class App {
                 this.currentScene = DungeonScene;
                 DungeonScene.init(dungeonType);
             }
+            this.currentSceneName = sceneName;
 
         } catch (error) {
             console.error('Error loading scene:', error);

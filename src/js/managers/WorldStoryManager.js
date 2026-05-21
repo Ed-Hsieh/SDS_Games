@@ -185,6 +185,48 @@ class WorldStoryManager {
         return Boolean(GameManager.getFlag(this.getClueFlag(clueId)));
     }
 
+    prunePrematureClueUnlocks() {
+        const prematureClues = [
+            {
+                clueId: 'survivor_warning',
+                chainId: 'ambush_mantis',
+                requiredLandmarkId: 'old_campfire_site',
+                sources: ['dialogue:village_elder', 'world_object', 'world_interaction']
+            }
+        ];
+
+        let changed = false;
+        for (const entry of prematureClues) {
+            if (!GameManager.getFlag(this.getClueFlag(entry.clueId))) continue;
+
+            const metaFlag = this.getClueMetaFlag(entry.clueId);
+            const meta = GameManager.getFlag(metaFlag) || {};
+            const reachedRequiredPlace = Boolean(GameManager.getFlag(this.getLandmarkVisitedFlag(entry.requiredLandmarkId)))
+                || meta.landmarkId === entry.requiredLandmarkId;
+            if (reachedRequiredPlace) continue;
+
+            const source = String(meta.source || '');
+            const sourceLooksPremature = !source || entry.sources.some(prefix => source === prefix || source.startsWith(`${prefix}:`));
+            if (!sourceLooksPremature) continue;
+
+            delete GameManager.state.flags[this.getClueFlag(entry.clueId)];
+            delete GameManager.state.flags[metaFlag];
+
+            const orderFlag = this.getClueOrderFlag();
+            const order = Array.isArray(GameManager.getFlag(orderFlag))
+                ? GameManager.getFlag(orderFlag).filter(clueId => clueId !== entry.clueId)
+                : [];
+            if (order.length > 0) GameManager.setFlag(orderFlag, order);
+            else delete GameManager.state.flags[orderFlag];
+
+            changed = true;
+            this.updateStoryStage(entry.chainId);
+        }
+
+        if (changed) GameManager.markSaveDirty?.('world-story-clue-prune');
+        return changed;
+    }
+
     revealClue(clueId, context = {}) {
         const clue = getClue(clueId);
         if (!clue || this.hasClue(clueId)) return null;
@@ -216,6 +258,7 @@ class WorldStoryManager {
     }
 
     getStoryClueCount(chainId) {
+        this.prunePrematureClueUnlocks();
         const chain = getStoryChain(chainId);
         if (!chain) return 0;
         return (chain.clueIds || []).filter(clueId => this.hasClue(clueId)).length;
@@ -426,6 +469,7 @@ class WorldStoryManager {
     }
 
     getDiscoveredClues(chainId = null) {
+        this.prunePrematureClueUnlocks();
         const order = Array.isArray(GameManager.getFlag(this.getClueOrderFlag()))
             ? GameManager.getFlag(this.getClueOrderFlag())
             : [];

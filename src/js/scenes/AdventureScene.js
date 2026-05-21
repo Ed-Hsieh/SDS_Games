@@ -13,8 +13,7 @@ import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
-import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
-import { closeItemTooltip } from '../utils/ItemTooltip.js';
+import { attachItemTooltip, closeItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import {
@@ -313,7 +312,7 @@ export default class AdventureScene {
         if (this.dom.attackBtn) this.dom.attackBtn.addEventListener('click', () => this.handleAttackClick());
         
         const returnBtn = this.container.querySelector('#btn-return-to-lobby');
-        if (returnBtn) returnBtn.addEventListener('click', () => this.app.loadScene('lobby'));
+        if (returnBtn) returnBtn.addEventListener('click', () => this.app.navigateTo('lobby'));
 
         if (this.dom.btnToggleClueBook) {
             this.dom.btnToggleClueBook.addEventListener('click', () => this.toggleClueBook());
@@ -1657,7 +1656,7 @@ export default class AdventureScene {
                 }
             }
             // 返回大廳
-            this.app.loadScene('lobby');
+            this.app.navigateTo('lobby');
         });
         
         cancelBtn.addEventListener('click', () => {
@@ -2108,7 +2107,6 @@ export default class AdventureScene {
 
         // Local lootPool (array of item objects)
         let lootPool = Array.isArray(items) ? items.slice() : [];
-        const initialLoot = lootPool.slice();
 
         const lootContainer = this.dom.lootItems;
         const inventoryPanel = this.container.querySelector('#loot-current-inventory');
@@ -2116,13 +2114,6 @@ export default class AdventureScene {
         const countBadge = this.container.querySelector('#loot-count');
         const revealStrip = this.container.querySelector('#loot-reveal-strip');
 
-        const rarityRank = {
-            common: 1,
-            uncommon: 2,
-            rare: 3,
-            epic: 4,
-            legendary: 5
-        };
         const rarityLabel = {
             common: '普通',
             uncommon: '優良',
@@ -2131,48 +2122,34 @@ export default class AdventureScene {
             legendary: '傳說'
         };
         const getRarity = item => String(item?.rarity || 'common').toLowerCase();
-        const getRarityRank = item => rarityRank[getRarity(item)] || 1;
-        const topDrop = initialLoot.reduce((best, item) => (
-            !best || getRarityRank(item) > getRarityRank(best) ? item : best
-        ), null);
-
-        if (lootTitle && topDrop && getRarityRank(topDrop) >= rarityRank.rare) {
-            lootTitle.textContent = `${rarityLabel[getRarity(topDrop)] || '稀有'}戰利品`;
-        }
-
+        const getQuantity = item => Math.max(1, Number(item?.quantity) || 1);
+        const getTypeLabel = item => {
+            if (item?.autoUnlockedBlueprint || item?.type === 'blueprint') return '圖紙';
+            const typeLabels = {
+                material: '材料',
+                potion: '藥水',
+                consumable: '消耗品',
+                weapon: '武器',
+                armor: '防具',
+                accessory: '飾品',
+                scroll: '卷軸'
+            };
+            return typeLabels[item?.type] || String(item?.type || '物品').toUpperCase();
+        };
+        const getIconHtml = item => item?.image
+            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+            : escapeHtml(item?.icon || (item?.autoUnlockedBlueprint ? '📜' : '◇'));
+        const attachLootTooltip = (element, item, options = {}) => {
+            attachItemTooltip(element, item, {
+                quantity: getQuantity(item),
+                typeText: getTypeLabel(item),
+                rarityText: rarityLabel[getRarity(item)] || getRarity(item),
+                ...options
+            });
+        };
         if (revealStrip) {
-            if (initialLoot.length === 0) {
-                revealStrip.innerHTML = `
-                    <div class="loot-reveal-empty">
-                        <span>本次沒有物品掉落</span>
-                        <strong>獲得經驗與金幣</strong>
-                    </div>
-                `;
-            } else {
-                const revealItems = initialLoot
-                    .slice()
-                    .sort((a, b) => getRarityRank(b) - getRarityRank(a))
-                    .slice(0, 5);
-
-                revealStrip.innerHTML = revealItems.map((item, index) => {
-                    const rarity = getRarity(item);
-                    const isBlueprint = item.autoUnlockedBlueprint || item.type === 'blueprint';
-                    const highlight = getRarityRank(item) >= rarityRank.rare || isBlueprint;
-                    const icon = item.image
-                        ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
-                        : escapeHtml(item.icon || (isBlueprint ? '📜' : '◇'));
-                    return `
-                        <article class="loot-reveal-card rarity-frame rarity-${rarity} ${highlight ? 'is-highlight' : ''}"
-                            style="--reveal-delay:${index * 70}ms">
-                            <div class="loot-reveal-icon">${icon}</div>
-                            <div class="loot-reveal-copy">
-                                <span>${isBlueprint ? '圖紙登錄' : `${rarityLabel[rarity] || rarity}掉落`}</span>
-                                <strong>${escapeHtml(item.name || '未知物品')}</strong>
-                            </div>
-                        </article>
-                    `;
-                }).join('');
-            }
+            revealStrip.hidden = true;
+            revealStrip.innerHTML = '';
         }
 
         // Helper to render player's current inventory (left panel)
@@ -2186,23 +2163,26 @@ export default class AdventureScene {
             inventoryPanel.innerHTML = '';
 
             if (stateInv.length === 0) {
-                inventoryPanel.innerHTML = '<div class="empty-state">背包是空的<br><span class="hint-arrow">←</span> 點擊右側戰利品放入背包</div>';
+                inventoryPanel.innerHTML = '<div class="empty-state loot-grid-empty">背包是空的</div>';
                 return;
             }
 
             stateInv.forEach(stack => {
                 const it = stack.item || {};
-                const slot = document.createElement('div');
-                slot.className = `loot-slot rarity-frame rarity-${it.rarity || 'common'} ${it.rarity || 'common'}`;
+                const quantity = Math.max(1, Number(stack.quantity) || 1);
+                const rarity = getRarity(it);
+                const slot = document.createElement('button');
+                slot.type = 'button';
+                slot.className = `loot-slot loot-grid-cell rarity-frame rarity-${rarity} ${rarity}`;
                 slot.dataset.instanceId = stack.instanceId || '';
+                slot.setAttribute('aria-label', `${it.name || '未知物品'}，點擊移回戰利品暫存`);
                 slot.innerHTML = `
-                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '📦')}</div>
-                    <div class="slot-info">
-                        <div class="slot-name">${it.name || '未知'}</div>
-                        <div class="slot-type">${it.type || ''} ${stack.quantity && stack.quantity > 1 ? ` x${stack.quantity}` : ''}</div>
-                    </div>
-                    <div class="slot-action"><div class="action-icon">→</div></div>
+                    <div class="slot-icon">${getIconHtml(it)}</div>
+                    ${quantity > 1 ? `<span class="slot-quantity">x${quantity}</span>` : ''}
+                    <div class="slot-name">${escapeHtml(it.name || '未知')}</div>
+                    <span class="slot-action" aria-hidden="true">→</span>
                 `;
+                attachLootTooltip(slot, { ...it, quantity }, { hint: '點擊移回戰利品暫存' });
                 // Move from inventory back to loot pool
                 slot.onclick = () => {
                     const instanceId = slot.dataset.instanceId;
@@ -2210,7 +2190,8 @@ export default class AdventureScene {
                     const removed = GameManager.removeItemByInstanceId(instanceId, false);
                     if (removed) {
                         // removed is the item instance
-                        lootPool.push(removed);
+                        closeItemTooltip();
+                        lootPool.push({ ...removed, quantity });
                         updatePlayerInventory();
                         updateLootPool();
                     }
@@ -2227,33 +2208,36 @@ export default class AdventureScene {
             lootContainer.innerHTML = '';
 
             if (lootPool.length === 0) {
-                lootContainer.innerHTML = '<div class="empty-state">戰利品已整理完畢</div>';
+                lootContainer.innerHTML = '<div class="empty-state loot-grid-empty">戰利品已整理完畢</div>';
                 return;
             }
 
             lootPool.forEach((it, idx) => {
                 const isBlueprint = it.autoUnlockedBlueprint || it.type === 'blueprint';
                 const rarity = getRarity(it);
-                const slot = document.createElement('div');
-                slot.className = `loot-slot rarity-frame rarity-${rarity} ${rarity} ${isBlueprint ? 'is-blueprint' : ''}`;
+                const quantity = getQuantity(it);
+                const slot = document.createElement('button');
+                slot.type = 'button';
+                slot.className = `loot-slot loot-grid-cell rarity-frame rarity-${rarity} ${rarity} ${isBlueprint ? 'is-blueprint' : ''}`;
                 slot.style.setProperty('--reveal-delay', `${Math.min(idx, 8) * 45}ms`);
+                slot.setAttribute('aria-label', `${it.name || '未知物品'}，${isBlueprint ? '點擊整理圖紙紀錄' : '點擊放入背包'}`);
                 slot.innerHTML = `
-                    <div class="slot-action"><div class="action-icon">${isBlueprint ? '✓' : '←'}</div></div>
-                    <div class="slot-info">
-                        <div class="slot-name">${it.name}</div>
-                        <div class="slot-type">${isBlueprint ? '已登錄' : (it.type || '')}</div>
-                    </div>
-                    <div class="slot-icon">${it.image ? `<img src="${it.image}" alt="${it.name}" style="width:100%;height:100%;object-fit:contain;">` : (it.icon || '')}</div>
+                    <div class="slot-icon">${getIconHtml(it)}</div>
+                    ${quantity > 1 ? `<span class="slot-quantity">x${quantity}</span>` : ''}
+                    <div class="slot-name">${escapeHtml(it.name || '未知物品')}</div>
+                    <span class="slot-action" aria-hidden="true">${isBlueprint ? '✓' : '←'}</span>
                 `;
+                attachLootTooltip(slot, it, { hint: isBlueprint ? '圖紙已登錄，點擊收起紀錄' : '點擊放入背包' });
                 // Click to take from loot to inventory
                 slot.onclick = () => {
+                    closeItemTooltip();
                     if (isBlueprint) {
                         lootPool.splice(idx, 1);
                         updateLootPool();
                         return;
                     }
 
-                    const success = GameManager.addToInventory(it, 1);
+                    const success = GameManager.addToInventory(it, quantity);
                     if (!success) {
                         showGlobalToast('背包已滿', '請先將左側物品移回右側或擴充背包。', 'warning');
                         return;
@@ -2283,8 +2267,9 @@ export default class AdventureScene {
                 // send remaining loot to warehouse
                 lootPool.forEach(it => {
                     if (it.autoUnlockedBlueprint || it.type === 'blueprint') return;
-                    try { GameManager.addToWarehouse(it, 1); } catch (e) { console.warn('addToWarehouse failed', e); }
+                    try { GameManager.addToWarehouse(it, getQuantity(it)); } catch (e) { console.warn('addToWarehouse failed', e); }
                 });
+                closeItemTooltip();
                 // hide modal
                 this.dom.lootModal.style.display = 'none';
                 // cleanup
@@ -2622,7 +2607,7 @@ AdventureScene.prototype.openInventoryModal = function() {
 
 AdventureScene.prototype.closeInventoryModal = function() {
     if (!this.dom.inventoryModal) return;
-    
+
     this.dom.inventoryModal.classList.remove('active');
     setTimeout(() => {
         this.dom.inventoryModal.style.display = 'none';
@@ -2631,7 +2616,7 @@ AdventureScene.prototype.closeInventoryModal = function() {
 
 AdventureScene.prototype.renderInventory = function() {
     const state = GameManager.state;
-    
+
     // Update capacity
     if (this.dom.inventoryCapacity) {
         this.dom.inventoryCapacity.textContent = `${state.inventory.length}/${state.inventoryCapacity}`;
@@ -2640,18 +2625,44 @@ AdventureScene.prototype.renderInventory = function() {
     // Render equipment slots
     this.renderEquipmentSlots();
     
-    // Render inventory items using shared virtualization + DOM reuse
     if (!this.dom.inventoryList) return;
 
-    renderVirtualInventoryList(this, this.dom.inventoryList, state.inventory || [], {
-        stateKey: '_adventureInventoryList',
-        tooltip: false
+    const inventory = state.inventory || [];
+    this.dom.inventoryList.innerHTML = '';
+
+    if (inventory.length === 0) {
+        this.dom.inventoryList.innerHTML = '<div class="empty-hint inventory-grid-empty">背包空空如也...</div>';
+        return;
+    }
+
+    inventory.forEach(stack => {
+        const item = stack.item || {};
+        const quantity = Math.max(1, Number(stack.quantity) || 1);
+        const rarity = item.rarity || 'common';
+        const itemEl = document.createElement('button');
+        itemEl.type = 'button';
+        itemEl.className = `item-card inventory-item adventure-inventory-cell rarity-frame rarity-${rarity}`;
+        itemEl.dataset.instanceId = stack.instanceId || '';
+        itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
+
+        const iconHtml = item.image
+            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+            : escapeHtml(item.icon || '📦');
+
+        itemEl.innerHTML = `
+            <div class="item-icon">${iconHtml}</div>
+            ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
+            <div class="item-name">${escapeHtml(item.name || '未知')}</div>
+        `;
+
+        attachItemTooltip(itemEl, item, { quantity, hint: '點擊開啟操作' });
+        this.dom.inventoryList.appendChild(itemEl);
     });
 };
 
 // Update visible inventory items (virtualization renderer)
 AdventureScene.prototype.updateVisibleInventoryItems = function() {
-    updateVirtualInventoryList(this, '_adventureInventoryList');
+    // The adventure inventory is now a compact icon grid, so no virtualization refresh is needed.
 };
 
 // Build static layer canvas for the whole map (backgrounds, grid, walls)

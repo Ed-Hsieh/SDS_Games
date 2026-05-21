@@ -223,11 +223,11 @@
         <div class="modal-body">
             <!-- 獎勵統計 -->
             <div class="loot-summary">
-                <div class="loot-stat">
-                    <span class="loot-label">經驗值</span>
+                <div class="loot-stat loot-stat-exp">
+                    <span class="loot-label">經驗</span>
                     <span class="loot-value exp-value" id="exp-gained">+50 經驗</span>
                 </div>
-                <div class="loot-stat">
+                <div class="loot-stat loot-stat-gold">
                     <span class="loot-label">金幣</span>
                     <span class="loot-value gold-value" id="gold-gained">+30</span>
                 </div>
@@ -284,7 +284,7 @@
             <div class="inventory-layout">
                 <!-- 左側：角色裝備 -->
                 <div class="equipment-panel">
-                    <div class="panel-title">👤 已裝備</div>
+                    <div class="panel-title">👤 角色裝備</div>
                     <div class="equipment-slots" id="adv-equipment-slots">
                         <!-- 武器槽 -->
                         <div class="equipment-slot empty" id="adv-slot-weapon" data-slot-type="weapon">
@@ -308,7 +308,7 @@
                 </div>
                 <!-- 右側：背包物品 -->
                 <div class="inventory-panel">
-                    <div class="panel-title">🎒 背包</div>
+                    <div class="panel-title">🎒 背包格</div>
                     <div class="adventure-inventory-list" id="adventure-inventory-list">
                         <!-- 背包物品動態插入 -->
                     </div>

@@ -3,14 +3,13 @@
  * Logic for the Lobby scene (Hall).
  */
 import GameManager from '../managers/GameManager.js';
-import { enhancementManager } from '../managers/EnhancementManager.js';
-import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
-import { renderVirtualInventoryList, updateVirtualInventoryList } from '../utils/VirtualInventoryList.js';
-import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import { attachItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
+import { buildEquippedSetSummaryHtml } from '../utils/SetDisplay.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
+import { dialogueManager } from '../managers/DialogueManager.js';
 import { getAllPassiveCombatEffects } from '../data/PassiveCombatEffects.js';
 
 export default class LobbyScene {
@@ -20,11 +19,18 @@ export default class LobbyScene {
         this.updateUI = this.updateUI.bind(this);
         this.handleWorldInteraction = this.handleWorldInteraction.bind(this);
         this.handleWorldRoute = this.handleWorldRoute.bind(this);
+        this.handleTownNpc = this.handleTownNpc.bind(this);
+        this.handleTownDialogueAdvance = this.handleTownDialogueAdvance.bind(this);
+        this.closeTownDialogue = this.closeTownDialogue.bind(this);
+        this.handleTownDialogueRoute = this.handleTownDialogueRoute.bind(this);
         this.handleSaveExport = this.handleSaveExport.bind(this);
         this.handleSaveImport = this.handleSaveImport.bind(this);
         this.handleSaveFileSelected = this.handleSaveFileSelected.bind(this);
         this.handleSaveReset = this.handleSaveReset.bind(this);
+        this.handleGrantTestSets = this.handleGrantTestSets.bind(this);
         this.handlePassiveEffectKeydown = this.handlePassiveEffectKeydown.bind(this);
+        this.handlePrepTabClick = this.handlePrepTabClick.bind(this);
+        this.closePrepModal = this.closePrepModal.bind(this);
         
         // Warehouse filter state
         this.currentWarehouseFilter = 'all';
@@ -34,12 +40,16 @@ export default class LobbyScene {
         this.selectedItem = null;
         this.selectedItemSource = null; // 'warehouse' or 'inventory'
         this.selectedPassiveSlot = 0;
+        this.activeTownDialogue = null;
+        this.townDialogueTypeTimer = null;
+        this.townDialogueAutoTimer = null;
 
         this.narrativeLines = [];
         this.ambientTimer = null;
         this.ambientIndex = 0;
         this.lastNarrativeAt = 0;
         this.lastNarrativeTone = null;
+        this.renderedNarrativeCount = 0;
     }
 
     init() {
@@ -66,10 +76,25 @@ export default class LobbyScene {
             townDialogueStream: this.container.querySelector('#town-dialogue-stream'),
             worldStage: this.container.querySelector('#world-stage'),
             worldStoryLog: this.container.querySelector('#world-story-log'),
+            townDialogueModal: this.container.querySelector('#town-dialogue-modal'),
+            townDialogueCard: this.container.querySelector('.town-dialogue-card'),
+            townDialogueClose: this.container.querySelector('#town-dialogue-close'),
+            townDialogueDone: this.container.querySelector('#town-dialogue-done'),
+            townDialogueRoute: this.container.querySelector('#town-dialogue-route'),
+            townDialogueAvatar: this.container.querySelector('#town-dialogue-avatar'),
+            townDialogueRole: this.container.querySelector('#town-dialogue-role'),
+            townDialogueName: this.container.querySelector('#town-dialogue-name'),
+            townDialogueLines: this.container.querySelector('#town-dialogue-lines'),
+            townDialogueEffects: this.container.querySelector('#town-dialogue-effects'),
             saveExport: this.container.querySelector('#btn-save-export'),
             saveImport: this.container.querySelector('#btn-save-import'),
             saveReset: this.container.querySelector('#btn-save-reset'),
+            grantTestSets: this.container.querySelector('#btn-grant-test-sets'),
             saveFileInput: this.container.querySelector('#save-file-input'),
+            prepModal: this.container.querySelector('#lobby-prep-modal'),
+            prepDialog: this.container.querySelector('.lobby-prep-dialog'),
+            prepClose: this.container.querySelector('#lobby-prep-close'),
+            prepTitle: this.container.querySelector('#lobby-prep-title'),
             
             // Character info
             characterLevel: this.container.querySelector('#character-level'),
@@ -80,9 +105,6 @@ export default class LobbyScene {
             hpText: this.container.querySelector('#hp-text'),
             expBar: this.container.querySelector('#exp-bar'),
             expText: this.container.querySelector('#exp-text'),
-            // Character set status
-            characterSetStatus: this.container.querySelector('#character-set-status'),
-            
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
             inventoryList: this.container.querySelector('#inventory-list'),
@@ -113,10 +135,30 @@ export default class LobbyScene {
             route.addEventListener('click', this.handleWorldRoute);
         });
 
+        this.container.querySelectorAll('[data-npc-id]').forEach(npc => {
+            npc.addEventListener('click', this.handleTownNpc);
+        });
+
+        this.dom.townDialogueClose?.addEventListener('click', this.closeTownDialogue);
+        this.dom.townDialogueDone?.addEventListener('click', this.closeTownDialogue);
+        this.dom.townDialogueRoute?.addEventListener('click', this.handleTownDialogueRoute);
+        this.dom.townDialogueCard?.addEventListener('click', this.handleTownDialogueAdvance);
+        this.dom.townDialogueModal?.addEventListener('click', event => {
+            if (event.target === this.dom.townDialogueModal) this.closeTownDialogue();
+        });
+
         this.dom.saveExport?.addEventListener('click', this.handleSaveExport);
         this.dom.saveImport?.addEventListener('click', this.handleSaveImport);
         this.dom.saveReset?.addEventListener('click', this.handleSaveReset);
+        this.dom.grantTestSets?.addEventListener('click', this.handleGrantTestSets);
         this.dom.saveFileInput?.addEventListener('change', this.handleSaveFileSelected);
+        this.container.querySelectorAll('[data-prep-tab]').forEach(tabButton => {
+            tabButton.addEventListener('click', this.handlePrepTabClick);
+        });
+        this.dom.prepClose?.addEventListener('click', this.closePrepModal);
+        this.dom.prepModal?.addEventListener('click', event => {
+            if (event.target === this.dom.prepModal) this.closePrepModal();
+        });
 
         this.dom.passiveEffectSlots?.addEventListener('click', (event) => {
             const slotEl = event.target.closest?.('[data-passive-slot]');
@@ -277,7 +319,7 @@ export default class LobbyScene {
                 const maxHP = state.character.maxHp || 100;
                 const hpPercent = (currentHP / maxHP) * 100;
                 this.dom.hpBar.style.width = `${hpPercent}%`;
-                this.dom.hpText.textContent = `${currentHP} / ${maxHP}`;
+                this.dom.hpText.textContent = `生命：${currentHP} / ${maxHP}`;
             }
             
             // EXP bar
@@ -286,32 +328,20 @@ export default class LobbyScene {
                 const maxEXP = state.character.maxExp || state.character.maxEXP || 100;
                 const expPercent = (currentEXP / maxEXP) * 100;
                 this.dom.expBar.style.width = `${expPercent}%`;
-                this.dom.expText.textContent = `${currentEXP} / ${maxEXP}`;
+                this.dom.expText.textContent = `經驗：${currentEXP} / ${maxEXP}`;
             }
             
             // Update equipment slots
             this.updateEquipmentSlots(state.character.equipment);
             this.renderPassiveCombatEffects(state.character);
 
-            // Compute and render active set bonuses (if any)
+            // Show equipped set hints inside the equipment card.
             try {
-                const setResult = enhancementManager.calculateSetBonuses(state.character);
                 if (this.dom.activeSetBonuses) {
-                    if (setResult.descriptions && setResult.descriptions.length > 0) {
-                        this.dom.activeSetBonuses.innerHTML = setResult.descriptions.map(d => `<div class="set-desc">${d}</div>`).join('');
-                    } else {
-                        this.dom.activeSetBonuses.innerHTML = '';
-                    }
+                    this.dom.activeSetBonuses.innerHTML = buildEquippedSetSummaryHtml(state);
                 }
             } catch (e) {
-                console.warn('Failed to calculate/render set bonuses:', e);
-            }
-
-            // Render owned/equipped set goals so set hunting has a visible target.
-            try {
-                this.renderSetCollectionGoals(state);
-            } catch (e) {
-                console.warn('Failed to render character set status:', e);
+                console.warn('Failed to render set hints:', e);
             }
         }
         
@@ -332,128 +362,13 @@ export default class LobbyScene {
                 this.dom.inventoryMax.textContent = state.inventoryCapacity || 10;
             }
             
-            // Render inventory items using shared virtualization + DOM reuse
-            if (this.dom.inventoryList) {
-                renderVirtualInventoryList(this, this.dom.inventoryList, state.inventory || [], {
-                    stateKey: '_lobbyInventoryList'
-                });
-            }
+            this.renderLobbyInventoryGrid(state.inventory || []);
         }
 
         if (type === 'all' || type === 'flags') {
             this.renderWorldStage();
         }
 
-    }
-
-    renderSetCollectionGoals(state) {
-        const target = this.dom.characterSetStatus;
-        if (!target) return;
-
-        const ownedIds = new Set();
-        const equippedIds = new Set();
-        const collectFrom = stack => {
-            const item = stack?.item || stack;
-            if (item?.id) ownedIds.add(item.id);
-        };
-
-        Object.values(state?.character?.equipment || {}).forEach(item => {
-            if (item?.id) {
-                ownedIds.add(item.id);
-                equippedIds.add(item.id);
-            }
-        });
-        (state?.inventory || []).forEach(collectFrom);
-        (state?.warehouse || []).forEach(collectFrom);
-
-        const goals = Object.values(SetDatabase)
-            .filter(setInfo => setInfo && Array.isArray(setInfo.pieces) && setInfo.pieces.length > 0)
-            .map(setInfo => {
-                const pieces = setInfo.pieces.map(pieceId => {
-                    const item = EquipmentDatabase[pieceId] || { id: pieceId, name: pieceId, icon: '◇' };
-                    return {
-                        id: pieceId,
-                        item,
-                        owned: ownedIds.has(pieceId),
-                        equipped: equippedIds.has(pieceId)
-                    };
-                });
-                const ownedCount = pieces.filter(piece => piece.owned).length;
-                const equippedCount = pieces.filter(piece => piece.equipped).length;
-                const nextBonus = (setInfo.bonuses || [])
-                    .slice()
-                    .sort((a, b) => (a.required || 0) - (b.required || 0))
-                    .find(bonus => (bonus.required || 0) > equippedCount);
-                return {
-                    ...setInfo,
-                    pieces,
-                    ownedCount,
-                    equippedCount,
-                    total: pieces.length,
-                    nextBonus
-                };
-            })
-            .sort((a, b) => {
-                if (b.ownedCount !== a.ownedCount) return b.ownedCount - a.ownedCount;
-                if (b.equippedCount !== a.equippedCount) return b.equippedCount - a.equippedCount;
-                return a.total - b.total;
-            });
-
-        const activeGoals = goals.filter(goal => goal.ownedCount > 0);
-        const visibleGoals = (activeGoals.length > 0 ? activeGoals : goals).slice(0, 5);
-        const completedCount = goals.filter(goal => goal.ownedCount >= goal.total).length;
-        const collectingCount = activeGoals.length;
-
-        target.innerHTML = `
-            <div class="set-goal-board">
-                <div class="set-goal-head">
-                    <span>套裝收集</span>
-                    <strong>${completedCount}/${goals.length} 完整</strong>
-                </div>
-                <div class="set-goal-list">
-                    ${visibleGoals.map(goal => this.renderSetGoalCard(goal)).join('')}
-                </div>
-                ${collectingCount === 0
-                    ? '<p class="set-goal-note">尚未取得套裝部件。擊敗菁英、BOSS 或副本首領後，相關套裝會在這裡開始追蹤。</p>'
-                    : ''}
-            </div>
-        `;
-    }
-
-    renderSetGoalCard(goal) {
-        const percent = Math.round((goal.ownedCount / Math.max(1, goal.total)) * 100);
-        const missingPieces = goal.pieces.filter(piece => !piece.owned).slice(0, 2);
-        const nextText = goal.nextBonus
-            ? `${goal.nextBonus.required} 件效果：${goal.nextBonus.name || goal.nextBonus.description || '套裝效果'}`
-            : '套裝已收集完整';
-        const missingText = missingPieces.length > 0
-            ? `缺少 ${missingPieces.map(piece => piece.item.name).join('、')}`
-            : '所有部件已取得';
-
-        return `
-            <article class="set-goal-card ${goal.ownedCount >= goal.total ? 'is-complete' : ''}">
-                <div class="set-goal-title">
-                    <span class="set-goal-icon">${goal.icon || '◆'}</span>
-                    <strong>${escapeHtml(goal.name || goal.id)}</strong>
-                    <span>${goal.ownedCount}/${goal.total}</span>
-                </div>
-                <div class="set-goal-meter" aria-label="${escapeHtml(goal.name || goal.id)} 收集進度">
-                    <div class="set-goal-meter-fill" style="width:${percent}%"></div>
-                </div>
-                <div class="set-piece-row">
-                    ${goal.pieces.map(piece => `
-                        <span class="set-piece-chip ${piece.owned ? 'is-owned' : 'is-missing'} ${piece.equipped ? 'is-equipped' : ''}"
-                            aria-label="${escapeHtml(piece.item.name || piece.id)}">
-                            ${escapeHtml(piece.item.icon || '◇')}
-                        </span>
-                    `).join('')}
-                </div>
-                <div class="set-goal-copy">
-                    <span>${escapeHtml(nextText)}</span>
-                    <small>${escapeHtml(missingText)}</small>
-                </div>
-            </article>
-        `;
     }
 
     handleWorldInteraction(event) {
@@ -483,6 +398,324 @@ export default class LobbyScene {
         }
     }
 
+    handleTownNpc(event) {
+        const npcId = event.currentTarget?.dataset?.npcId;
+        if (!npcId) return;
+
+        const outcome = dialogueManager.startDialogue(npcId, { source: 'lobby' });
+        this.renderTownDialogueModal(outcome);
+
+        this.renderWorldStage();
+    }
+
+    renderTownDialogueModal(outcome) {
+        if (!this.dom?.townDialogueModal || !outcome?.npc) return;
+
+        const { npc, lines = [], effectMessages = [], route = null, routeLabel = '前往' } = outcome;
+        const visibleLines = lines.filter(line => line.speaker !== '冒險者');
+        this.activeTownDialogue = {
+            npc,
+            lines: visibleLines.length > 0 ? visibleLines : [{
+                speaker: npc.name || '居民',
+                avatar: npc.avatar || '💬',
+                text: '他暫時沒有新的話要說。'
+            }],
+            effectMessages,
+            route,
+            routeLabel,
+            tone: outcome.tone || (outcome.success ? 'discovery' : 'ambient'),
+            currentIndex: 0,
+            currentText: '',
+            isTyping: false,
+            lineComplete: false,
+            renderedIndexes: new Set(),
+            loggedIndexes: new Set(),
+            effectsLogged: false
+        };
+
+        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.textContent = npc.avatar || '💬';
+        if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
+        if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
+        if (this.dom.townDialogueLines) this.dom.townDialogueLines.innerHTML = '';
+        if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.innerHTML = '';
+        if (this.dom.townDialogueRoute) this.dom.townDialogueRoute.hidden = true;
+        if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
+
+        this.dom.townDialogueModal.hidden = false;
+        this.startTownDialogueLine();
+        this.dom.townDialogueCard?.focus?.();
+    }
+
+    clearTownDialogueTimers() {
+        if (this.townDialogueTypeTimer) {
+            clearTimeout(this.townDialogueTypeTimer);
+            this.townDialogueTypeTimer = null;
+        }
+        if (this.townDialogueAutoTimer) {
+            clearTimeout(this.townDialogueAutoTimer);
+            this.townDialogueAutoTimer = null;
+        }
+    }
+
+    getCurrentTownDialogueLine() {
+        const dialogue = this.activeTownDialogue;
+        return dialogue?.lines?.[dialogue.currentIndex] || null;
+    }
+
+    startTownDialogueLine() {
+        const dialogue = this.activeTownDialogue;
+        const line = this.getCurrentTownDialogueLine();
+        if (!dialogue || !line) return;
+
+        this.clearTownDialogueTimers();
+        dialogue.currentText = '';
+        dialogue.isTyping = true;
+        dialogue.lineComplete = false;
+        this.renderTownDialogueLines();
+        this.renderTownDialogueActions(false);
+
+        const fullText = line.text || '';
+        if (!fullText) {
+            this.completeTownDialogueLine();
+            return;
+        }
+
+        const typeNext = () => {
+            if (this.activeTownDialogue !== dialogue || this.dom?.townDialogueModal?.hidden) return;
+            const activeLine = this.getCurrentTownDialogueLine();
+            const text = activeLine?.text || '';
+
+            if (dialogue.currentText.length >= text.length) {
+                this.completeTownDialogueLine();
+                return;
+            }
+
+            const remaining = text.length - dialogue.currentText.length;
+            const chunkSize = remaining > 24 ? 2 : 1;
+            dialogue.currentText = text.slice(0, dialogue.currentText.length + chunkSize);
+            this.renderTownDialogueLines();
+
+            const lastChar = dialogue.currentText.at(-1) || '';
+            const delay = /[，。！？、；：]/.test(lastChar) ? 110 : 28;
+            this.townDialogueTypeTimer = setTimeout(typeNext, delay);
+        };
+
+        typeNext();
+    }
+
+    renderTownDialogueLines() {
+        const dialogue = this.activeTownDialogue;
+        if (!dialogue || !this.dom?.townDialogueLines) return;
+
+        for (let index = 0; index <= dialogue.currentIndex; index += 1) {
+            if (!dialogue.renderedIndexes.has(index)) {
+                this.appendTownDialogueLine(index);
+            }
+        }
+
+        this.updateTownDialogueLineState();
+        this.dom.townDialogueLines.scrollTop = this.dom.townDialogueLines.scrollHeight;
+    }
+
+    appendTownDialogueLine(index) {
+        const dialogue = this.activeTownDialogue;
+        const line = dialogue?.lines?.[index];
+        if (!dialogue || !line || !this.dom?.townDialogueLines) return;
+
+        const article = document.createElement('article');
+        article.className = 'town-dialogue-line is-new';
+        article.dataset.lineIndex = String(index);
+
+        const icon = document.createElement('div');
+        icon.className = 'town-dialogue-line-icon';
+        icon.textContent = line.avatar || '💬';
+
+        const copy = document.createElement('div');
+        copy.className = 'town-dialogue-line-copy';
+
+        const speaker = document.createElement('strong');
+        speaker.textContent = line.speaker || dialogue.npc.name || '居民';
+
+        const paragraph = document.createElement('p');
+        const text = document.createElement('span');
+        text.className = 'town-dialogue-text';
+        text.textContent = index === dialogue.currentIndex ? dialogue.currentText : (line.text || '');
+        paragraph.appendChild(text);
+
+        copy.appendChild(speaker);
+        copy.appendChild(paragraph);
+        article.appendChild(icon);
+        article.appendChild(copy);
+        this.dom.townDialogueLines.appendChild(article);
+        dialogue.renderedIndexes.add(index);
+
+        setTimeout(() => {
+            article.classList.remove('is-new');
+        }, 320);
+    }
+
+    updateTownDialogueLineState() {
+        const dialogue = this.activeTownDialogue;
+        if (!dialogue || !this.dom?.townDialogueLines) return;
+
+        this.dom.townDialogueLines.querySelectorAll('.town-dialogue-line').forEach(article => {
+            const index = Number(article.dataset.lineIndex);
+            const line = dialogue.lines[index];
+            const isCurrent = index === dialogue.currentIndex;
+            const text = article.querySelector('.town-dialogue-text');
+            const paragraph = article.querySelector('p');
+
+            article.classList.toggle('is-typing', isCurrent && dialogue.isTyping);
+            if (text) {
+                text.textContent = isCurrent ? dialogue.currentText : (line?.text || '');
+            }
+
+            let cursor = article.querySelector('.town-dialogue-cursor');
+            if (isCurrent && dialogue.isTyping) {
+                if (!cursor && paragraph) {
+                    cursor = document.createElement('span');
+                    cursor.className = 'town-dialogue-cursor';
+                    cursor.setAttribute('aria-hidden', 'true');
+                    paragraph.appendChild(cursor);
+                }
+            } else {
+                cursor?.remove();
+            }
+        });
+    }
+
+    completeTownDialogueLine(scheduleAuto = true) {
+        const dialogue = this.activeTownDialogue;
+        const line = this.getCurrentTownDialogueLine();
+        if (!dialogue || !line) return;
+
+        if (this.townDialogueTypeTimer) {
+            clearTimeout(this.townDialogueTypeTimer);
+            this.townDialogueTypeTimer = null;
+        }
+
+        dialogue.currentText = line.text || '';
+        dialogue.isTyping = false;
+        dialogue.lineComplete = true;
+        this.renderTownDialogueLines();
+        this.logTownDialogueLine(dialogue.currentIndex);
+
+        const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
+        if (finished) {
+            this.renderTownDialogueActions(true);
+            return;
+        }
+
+        this.renderTownDialogueActions(false);
+        if (scheduleAuto) {
+            this.townDialogueAutoTimer = setTimeout(() => {
+                this.advanceTownDialogueLine();
+            }, 900);
+        }
+    }
+
+    advanceTownDialogueLine() {
+        const dialogue = this.activeTownDialogue;
+        if (!dialogue || this.dom?.townDialogueModal?.hidden) return;
+
+        this.clearTownDialogueTimers();
+        const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
+        if (finished) {
+            this.renderTownDialogueActions(true);
+            return;
+        }
+
+        dialogue.currentIndex += 1;
+        this.startTownDialogueLine();
+    }
+
+    logTownDialogueLine(index) {
+        const dialogue = this.activeTownDialogue;
+        const line = dialogue?.lines?.[index];
+        if (!dialogue || !line || dialogue.loggedIndexes.has(index)) return;
+
+        dialogue.loggedIndexes.add(index);
+        this.pushTownNarrative(line.speaker, line.text, dialogue.tone);
+    }
+
+    renderTownDialogueActions(finished) {
+        const dialogue = this.activeTownDialogue;
+        if (!dialogue) return;
+
+        if (this.dom.townDialogueEffects) {
+            this.dom.townDialogueEffects.innerHTML = finished
+                ? dialogue.effectMessages.map(message => (
+                    `<div class="town-dialogue-effect">${escapeHtml(message)}</div>`
+                )).join('')
+                : '';
+        }
+
+        if (finished && !dialogue.effectsLogged) {
+            for (const message of dialogue.effectMessages || []) {
+                this.pushTownNarrative('線索更新', message, 'discovery');
+            }
+            dialogue.effectsLogged = true;
+            this.scrollTownDialogueLinesToEnd();
+        }
+
+        if (this.dom.townDialogueRoute) {
+            this.dom.townDialogueRoute.hidden = !finished || !dialogue.route;
+            this.dom.townDialogueRoute.textContent = dialogue.routeLabel || '前往';
+            this.dom.townDialogueRoute.dataset.route = dialogue.route || '';
+        }
+        if (this.dom.townDialogueDone) {
+            this.dom.townDialogueDone.hidden = !finished;
+        }
+
+        if (finished) {
+            this.scrollTownDialogueLinesToEnd();
+        }
+    }
+
+    scrollTownDialogueLinesToEnd() {
+        const lines = this.dom?.townDialogueLines;
+        if (!lines) return;
+
+        const scroll = () => {
+            lines.scrollTop = lines.scrollHeight;
+        };
+        scroll();
+        requestAnimationFrame(scroll);
+    }
+
+    handleTownDialogueAdvance(event) {
+        if (event?.target?.closest?.('button')) return;
+        const dialogue = this.activeTownDialogue;
+        if (!dialogue || this.dom?.townDialogueModal?.hidden) return;
+
+        if (dialogue.isTyping) {
+            this.completeTownDialogueLine();
+            return;
+        }
+
+        if (dialogue.lineComplete && dialogue.currentIndex < dialogue.lines.length - 1) {
+            this.advanceTownDialogueLine();
+        }
+    }
+
+    closeTownDialogue() {
+        if (!this.dom?.townDialogueModal) return;
+        this.clearTownDialogueTimers();
+        this.dom.townDialogueModal.hidden = true;
+        this.activeTownDialogue = null;
+    }
+
+    handleTownDialogueRoute() {
+        const route = this.dom?.townDialogueRoute?.dataset?.route;
+        if (!route) return;
+        this.closeTownDialogue();
+        if (typeof this.app?.navigateTo === 'function') {
+            this.app.navigateTo(route);
+        } else {
+            this.app.loadScene(route);
+        }
+    }
+
     async handleSaveExport() {
         try {
             const result = await GameManager.writeSaveFile();
@@ -497,6 +730,22 @@ export default class LobbyScene {
 
     handleSaveImport() {
         this.dom.saveFileInput?.click();
+    }
+
+    handleGrantTestSets() {
+        if (typeof GameManager.grantSetEquipmentForTesting !== 'function') {
+            showGlobalToast('測試套裝失敗', '目前版本沒有套裝測試入口。', 'warning');
+            return;
+        }
+
+        const result = GameManager.grantSetEquipmentForTesting(['wolf_hunter', 'ancient_relic'], 'wolf_hunter');
+        this.updateUI(GameManager.state, 'all');
+        this.switchPrepTab('character');
+        showGlobalToast(
+            '已加入測試套裝',
+            `已穿上狼獵套裝，遠古遺物套裝放入倉庫。新增 ${result.added.length} 件，穿上 ${result.equipped.length} 件。`,
+            'success'
+        );
     }
 
     async handleSaveFileSelected(event) {
@@ -550,11 +799,31 @@ export default class LobbyScene {
             this.ambientTimer = null;
         }
 
-        this.narrativeLines = [];
+        const narrativeState = GameManager.getTownNarrativeState();
+        const shouldResetForAdventureReturn = Boolean(narrativeState.resetOnNextLobby);
+
+        if (shouldResetForAdventureReturn) {
+            GameManager.resetTownNarrativeState();
+        }
+
+        const activeNarrativeState = GameManager.getTownNarrativeState();
+        this.narrativeLines = activeNarrativeState.lines;
+        this.lastNarrativeAt = Number(activeNarrativeState.lastNarrativeAt) || 0;
+        this.lastNarrativeTone = activeNarrativeState.lastNarrativeTone || null;
+
         if (this.dom.townNarrativeTitle) {
             this.dom.townNarrativeTitle.textContent = this.getTownTitle();
         }
-        this.pushTownNarrative('抵達', this.getReturnNarrative(), 'ambient');
+
+        if (this.narrativeLines.length === 0) {
+            this.pushTownNarrative(
+                shouldResetForAdventureReturn ? '返城' : '抵達',
+                this.getReturnNarrative(),
+                'ambient'
+            );
+        } else {
+            this.renderTownNarrative({ force: true });
+        }
 
         this.ambientTimer = setInterval(() => {
             const recentDiscovery = this.lastNarrativeTone === 'discovery'
@@ -622,39 +891,88 @@ export default class LobbyScene {
 
         const allowedTones = new Set(['ambient', 'discovery', 'warning']);
         const safeTone = allowedTones.has(tone) ? tone : 'ambient';
+        const narrativeState = GameManager.getTownNarrativeState();
+        if (this.narrativeLines !== narrativeState.lines) {
+            this.narrativeLines = narrativeState.lines;
+        }
 
         this.narrativeLines.push({
             title: title || '城鎮片刻',
             message: message || '街道暫時安靜下來。',
-            tone: safeTone
+            tone: safeTone,
+            createdAt: Date.now()
         });
         this.lastNarrativeAt = Date.now();
         this.lastNarrativeTone = safeTone;
+        narrativeState.lastNarrativeAt = this.lastNarrativeAt;
+        narrativeState.lastNarrativeTone = this.lastNarrativeTone;
 
-        if (this.narrativeLines.length > 30) {
+        const removedOldest = this.narrativeLines.length > 30;
+        if (removedOldest) {
             this.narrativeLines.shift();
         }
 
         if (this.dom.townNarrativeTitle) {
             this.dom.townNarrativeTitle.textContent = this.getTownTitle();
         }
-        this.renderTownNarrative();
+        this.renderTownNarrative({ animateNew: !removedOldest, removedOldest });
     }
 
-    renderTownNarrative() {
+    createTownNarrativeEntry(line, { isNew = false } = {}) {
+        const article = document.createElement('article');
+        article.className = `town-story-entry is-${line.tone || 'ambient'}${isNew ? ' is-new' : ''}`;
+
+        const title = document.createElement('span');
+        title.className = 'world-log-title';
+        title.textContent = line.title || '城鎮片刻';
+
+        const message = document.createElement('p');
+        message.className = 'world-log-message';
+        message.textContent = line.message || '街道暫時安靜下來。';
+
+        article.appendChild(title);
+        article.appendChild(message);
+
+        if (isNew) {
+            setTimeout(() => {
+                article.classList.remove('is-new');
+            }, 480);
+        }
+
+        return article;
+    }
+
+    renderTownNarrative({ animateNew = false, removedOldest = false, force = false } = {}) {
         if (!this.dom?.townDialogueStream) return;
 
         const latestLine = this.narrativeLines[this.narrativeLines.length - 1];
         if (!latestLine) return;
 
-        this.dom.townDialogueStream.innerHTML = this.narrativeLines.map(line => `
-            <article class="town-story-entry is-${line.tone}">
-                <span class="world-log-title">${escapeHtml(line.title)}</span>
-                <p class="world-log-message">${escapeHtml(line.message)}</p>
-            </article>
-        `).join('');
+        const stream = this.dom.townDialogueStream;
 
-        this.dom.townDialogueStream.scrollTop = this.dom.townDialogueStream.scrollHeight;
+        if (force) {
+            stream.innerHTML = '';
+            this.renderedNarrativeCount = 0;
+        } else if (removedOldest) {
+            stream.querySelector('.town-story-entry')?.remove();
+            this.renderedNarrativeCount = Math.max(0, this.renderedNarrativeCount - 1);
+        }
+
+        if (this.renderedNarrativeCount > this.narrativeLines.length) {
+            stream.innerHTML = '';
+            this.renderedNarrativeCount = 0;
+        }
+
+        for (let index = this.renderedNarrativeCount; index < this.narrativeLines.length; index += 1) {
+            const isNewest = index === this.narrativeLines.length - 1;
+            stream.appendChild(this.createTownNarrativeEntry(this.narrativeLines[index], {
+                isNew: animateNew && isNewest
+            }));
+        }
+
+        this.renderedNarrativeCount = this.narrativeLines.length;
+
+        stream.scrollTop = stream.scrollHeight;
 
         if (this.dom.worldStoryLog) {
             this.dom.worldStoryLog.classList.toggle('is-discovery', latestLine.tone === 'discovery');
@@ -669,6 +987,11 @@ export default class LobbyScene {
             const interactionId = hotspot.dataset.interactionId;
             hotspot.classList.toggle('is-resolved', worldInteractionManager.hasResolved(interactionId));
         });
+
+        this.container.querySelectorAll('[data-npc-id]').forEach(hotspot => {
+            const npcId = hotspot.dataset.npcId;
+            hotspot.classList.toggle('is-ready', dialogueManager.hasFreshDialogue(npcId));
+        });
     }
 
     cleanup() {
@@ -682,12 +1005,75 @@ export default class LobbyScene {
             clearInterval(this.ambientTimer);
             this.ambientTimer = null;
         }
+        this.clearTownDialogueTimers();
         document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
     }
 
     handlePassiveEffectKeydown(event) {
+        if (event.key === 'Escape' && this.dom?.townDialogueModal && !this.dom.townDialogueModal.hidden) {
+            this.closeTownDialogue();
+            return;
+        }
+        if (event.key === 'Escape' && this.dom?.prepModal?.classList.contains('active')) {
+            this.closePrepModal();
+            return;
+        }
         if (event.key === 'Escape' && this.dom?.passiveEffectModal?.classList.contains('active')) {
             this.closePassiveEffectModal();
+        }
+    }
+
+    handlePrepTabClick(event) {
+        const tab = event.currentTarget?.dataset?.prepTab || 'character';
+        if (this.dom?.prepModal?.classList.contains('active')) {
+            this.switchPrepTab(tab);
+            return;
+        }
+        this.openPrepModal(tab);
+    }
+
+    openPrepModal(tab = 'character') {
+        if (!this.dom?.prepModal) return;
+        this.switchPrepTab(tab);
+        this.dom.prepModal.classList.add('active');
+        this.dom.prepModal.setAttribute('aria-hidden', 'false');
+        this.dom.prepClose?.focus?.();
+    }
+
+    closePrepModal() {
+        if (!this.dom?.prepModal) return;
+        this.dom.prepModal.classList.remove('active');
+        this.dom.prepModal.setAttribute('aria-hidden', 'true');
+        this.container.querySelectorAll('[data-prep-tab]').forEach(button => {
+            button.classList.remove('is-active');
+        });
+    }
+
+    switchPrepTab(tab = 'character') {
+        const targetTab = tab || 'character';
+        const titleMap = {
+            character: '冒險者管理',
+            inventory: '背包整理',
+            warehouse: '倉庫整理',
+            system: '存檔管理'
+        };
+
+        this.container.querySelectorAll('[data-prep-tab]').forEach(button => {
+            const active = button.dataset.prepTab === targetTab;
+            button.classList.toggle('is-active', active);
+            if (button.classList.contains('lobby-prep-tab')) {
+                button.setAttribute('aria-selected', active ? 'true' : 'false');
+            }
+        });
+
+        this.container.querySelectorAll('[data-prep-pane]').forEach(pane => {
+            const active = pane.dataset.prepPane === targetTab;
+            pane.classList.toggle('is-active', active);
+            pane.hidden = !active;
+        });
+
+        if (this.dom?.prepTitle) {
+            this.dom.prepTitle.textContent = titleMap[targetTab] || titleMap.character;
         }
     }
 
@@ -813,68 +1199,96 @@ export default class LobbyScene {
         showGlobalToast('戰術技能已替換', '新的常駐效果會直接套用在接下來的探索與戰鬥。', 'success');
     }
     
-    updateEquipmentSlots(equipment) {
-        // Update weapon slot
-        if (this.dom.slotWeapon) {
-            const weapon = equipment.weapon;
-            if (weapon) {
-                this.dom.slotWeapon.classList.remove('empty');
-                const iconEl = this.dom.slotWeapon.querySelector('.equipment-slot-icon');
-                if (weapon.image) {
-                    iconEl.innerHTML = `<img src="${weapon.image}" alt="${weapon.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    iconEl.innerHTML = weapon.icon || '⚔️';
-                }
-                this.dom.slotWeapon.querySelector('.equipment-slot-name').textContent = weapon.name;
-            } else {
-                this.dom.slotWeapon.classList.add('empty');
-                this.dom.slotWeapon.querySelector('.equipment-slot-icon').innerHTML = '⚔️';
-                this.dom.slotWeapon.querySelector('.equipment-slot-name').textContent = '未裝備';
+    updateEquipmentSlots(equipment = {}) {
+        this.updateEquipmentSlot(this.dom.slotWeapon, equipment.weapon, {
+            label: '武器',
+            icon: '⚔️',
+            emptyName: '未裝備武器'
+        });
+        this.updateEquipmentSlot(this.dom.slotArmor, equipment.armor, {
+            label: '防具',
+            icon: '🛡️',
+            emptyName: '未裝備防具'
+        });
+        this.updateEquipmentSlot(this.dom.slotAccessory, equipment.accessory, {
+            label: '飾品',
+            icon: '💍',
+            emptyName: '未裝備飾品'
+        });
+    }
+
+    updateEquipmentSlot(slotEl, item, fallback) {
+        if (!slotEl) return;
+
+        const iconEl = slotEl.querySelector('.equipment-slot-icon');
+        const nameEl = slotEl.querySelector('.equipment-slot-name');
+        const rarityClasses = ['common', 'uncommon', 'rare', 'epic', 'legendary']
+            .flatMap(rarity => [`rarity-${rarity}`, rarity]);
+
+        slotEl.classList.remove('rarity-frame', ...rarityClasses);
+
+        if (item) {
+            const rarity = item.rarity || 'common';
+            slotEl.classList.remove('empty');
+            slotEl.classList.add('rarity-frame', `rarity-${rarity}`);
+            slotEl.setAttribute('aria-label', `${fallback.label}：${item.name || '未知裝備'}，點擊開啟操作`);
+
+            if (iconEl) {
+                iconEl.innerHTML = item.image
+                    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+                    : escapeHtml(item.icon || fallback.icon);
             }
+            if (nameEl) nameEl.textContent = item.name || '未知裝備';
+            attachItemTooltip(slotEl, item, { hint: '點擊開啟操作' });
+            return;
         }
-        
-        // Update armor slot
-        if (this.dom.slotArmor) {
-            const armor = equipment.armor;
-            if (armor) {
-                this.dom.slotArmor.classList.remove('empty');
-                const iconEl = this.dom.slotArmor.querySelector('.equipment-slot-icon');
-                if (armor.image) {
-                    iconEl.innerHTML = `<img src="${armor.image}" alt="${armor.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    iconEl.innerHTML = armor.icon || '🛡️';
-                }
-                this.dom.slotArmor.querySelector('.equipment-slot-name').textContent = armor.name;
-            } else {
-                this.dom.slotArmor.classList.add('empty');
-                this.dom.slotArmor.querySelector('.equipment-slot-icon').innerHTML = '🛡️';
-                this.dom.slotArmor.querySelector('.equipment-slot-name').textContent = '未裝備';
-            }
-        }
-        
-        // Update accessory slot
-        if (this.dom.slotAccessory) {
-            const accessory = equipment.accessory;
-            if (accessory) {
-                this.dom.slotAccessory.classList.remove('empty');
-                const iconEl = this.dom.slotAccessory.querySelector('.equipment-slot-icon');
-                if (accessory.image) {
-                    iconEl.innerHTML = `<img src="${accessory.image}" alt="${accessory.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                } else {
-                    iconEl.innerHTML = accessory.icon || '💍';
-                }
-                this.dom.slotAccessory.querySelector('.equipment-slot-name').textContent = accessory.name;
-            } else {
-                this.dom.slotAccessory.classList.add('empty');
-                this.dom.slotAccessory.querySelector('.equipment-slot-icon').innerHTML = '💍';
-                this.dom.slotAccessory.querySelector('.equipment-slot-name').textContent = '未裝備';
-            }
-        }
+
+        slotEl.classList.add('empty');
+        slotEl.setAttribute('aria-label', fallback.emptyName);
+        if (iconEl) iconEl.innerHTML = fallback.icon;
+        if (nameEl) nameEl.textContent = '未裝備';
+        detachItemTooltip(slotEl);
     }
 
     // Update visible inventory items for Lobby virtualization
     updateVisibleInventoryItemsLobby() {
-        updateVirtualInventoryList(this, '_lobbyInventoryList');
+        // Lobby inventory is rendered as a compact icon grid.
+    }
+
+    renderLobbyInventoryGrid(inventory = []) {
+        if (!this.dom.inventoryList) return;
+
+        const container = this.dom.inventoryList;
+        container.innerHTML = '';
+
+        if (!inventory.length) {
+            container.innerHTML = '<div class="empty-hint inventory-grid-empty">背包空空如也...</div>';
+            return;
+        }
+
+        inventory.forEach(stack => {
+            const item = stack.item || {};
+            const quantity = Math.max(1, Number(stack.quantity) || 1);
+            const rarity = item.rarity || 'common';
+            const itemEl = document.createElement('button');
+            itemEl.type = 'button';
+            itemEl.className = `item-card inventory-item lobby-inventory-cell rarity-frame rarity-${rarity}`;
+            itemEl.dataset.instanceId = stack.instanceId || '';
+            itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
+
+            const iconHTML = item.image
+                ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+                : escapeHtml(item.icon || '📦');
+
+            itemEl.innerHTML = `
+                <div class="item-icon">${iconHTML}</div>
+                ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
+                <div class="item-name">${escapeHtml(item.name || '未知')}</div>
+            `;
+
+            attachItemTooltip(itemEl, item, { quantity, hint: '點擊開啟操作' });
+            container.appendChild(itemEl);
+        });
     }
     
     // ===== Warehouse Methods =====
@@ -905,51 +1319,47 @@ export default class LobbyScene {
         const container = this.dom.warehouseList;
         container.innerHTML = '';
         if (!filteredItems || filteredItems.length === 0) {
-            container.innerHTML = '<div class="empty-hint">倉庫空空如也...</div>';
+            container.innerHTML = '<div class="empty-hint inventory-grid-empty">倉庫空空如也...</div>';
             return;
         }
 
         // Use processInChunks to avoid long main-thread tasks
         if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
             window.PerformanceUtils.processInChunks(filteredItems, (stack) => {
-                const item = stack.item;
-                const itemEl = document.createElement('div');
-                itemEl.className = `item-card warehouse-item rarity-frame rarity-${item.rarity || 'common'}`;
-
-                let iconHTML;
-                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                else iconHTML = item.icon || '📦';
-
-                itemEl.innerHTML = `
-                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
-                    <div class="item-info"><div class="item-name">${item.name}</div></div>
-                `;
-                attachItemTooltip(itemEl, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
-                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
-                container.appendChild(itemEl);
+                container.appendChild(this.createWarehouseItemElement(stack));
             }, {chunkSize: 40}).then(() => {
                 // done
             });
         } else {
             // Fallback synchronous render
             filteredItems.forEach(stack => {
-                const item = stack.item;
-                const itemEl = document.createElement('div');
-                itemEl.className = `item-card warehouse-item rarity-frame rarity-${item.rarity || 'common'}`;
-
-                let iconHTML;
-                if (item.image) iconHTML = `<img src="${item.image}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: contain;">`;
-                else iconHTML = item.icon || '📦';
-
-                itemEl.innerHTML = `
-                    <div class="item-icon">${iconHTML}${stack.quantity > 1 ? `<span class="quantity-badge">x${stack.quantity}</span>` : ''}</div>
-                    <div class="item-info"><div class="item-name">${item.name}</div></div>
-                `;
-                attachItemTooltip(itemEl, item, { quantity: stack.quantity || 1, hint: '點擊開啟操作' });
-                itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
-                container.appendChild(itemEl);
+                container.appendChild(this.createWarehouseItemElement(stack));
             });
         }
+    }
+
+    createWarehouseItemElement(stack) {
+        const item = stack.item || {};
+        const quantity = Math.max(1, Number(stack.quantity) || 1);
+        const rarity = item.rarity || 'common';
+        const itemEl = document.createElement('button');
+        itemEl.type = 'button';
+        itemEl.className = `item-card warehouse-item lobby-inventory-cell rarity-frame rarity-${rarity}`;
+        itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
+
+        const iconHTML = item.image
+            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+            : escapeHtml(item.icon || '📦');
+
+        itemEl.innerHTML = `
+            <div class="item-icon">${iconHTML}</div>
+            ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
+            <div class="item-name">${escapeHtml(item.name || '未知')}</div>
+        `;
+
+        attachItemTooltip(itemEl, item, { quantity, hint: '點擊開啟操作' });
+        itemEl.addEventListener('click', () => this.showItemModal(stack, 'warehouse'));
+        return itemEl;
     }
     
     switchWarehouseFilter(filter) {

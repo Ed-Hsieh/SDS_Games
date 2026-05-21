@@ -6,14 +6,17 @@ import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
 import { affixManager } from '../managers/AffixManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
-import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../managers/RecipeManager.js';
+import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
-import { MonsterDatabase } from '../data/Monsters.js';
-import { DungeonDatabase } from '../data/Dungeons.js';
 import { globalGoalTracker } from '../utils/GlobalGoalTracker.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
-import { escapeHtml } from '../utils/ItemDisplay.js';
+import {
+    buildItemDisplayModel,
+    buildItemStatChipsHtml,
+    escapeHtml,
+    getItemRarityText
+} from '../utils/ItemDisplay.js';
 
 export default class ForgeScene {
     constructor(container, app) {
@@ -62,8 +65,6 @@ export default class ForgeScene {
             recipeInfo: this.container.querySelector('#recipe-info'),
             craftResultPreview: this.container.querySelector('#craft-result-preview'),
             materialsList: this.container.querySelector('#materials-list'),
-            craftCost: this.container.querySelector('#craft-cost'),
-            craftSuccessRate: this.container.querySelector('#craft-success-rate'),
             craftGuidance: this.container.querySelector('#forge-craft-guidance'),
             btnCraft: this.container.querySelector('#btn-craft'),
             craftResult: this.container.querySelector('#craft-result'),
@@ -186,7 +187,8 @@ export default class ForgeScene {
             const blueprintInfo = getRecipeBlueprintInfo(recipe.id);
             const known = blueprintInfo.known;
             const craftable = canCraft(recipe.id, inventory, warehouse);
-            const rarityClass = recipe.rarity || 'common';
+            const model = this.getRecipeDisplayModel(recipe);
+            const rarityClass = model.rarity || 'common';
             const selectedClass = this.selectedRecipe?.id === recipe.id ? 'selected' : '';
             const stateClass = known
                 ? (craftable ? 'craftable' : 'locked')
@@ -198,12 +200,19 @@ export default class ForgeScene {
             return `
                 <div class="recipe-card rarity-frame rarity-${rarityClass} ${rarityClass} ${stateClass} ${selectedClass}"
                      data-recipe-id="${recipe.id}">
-                    <div class="recipe-icon">${recipe.icon}</div>
+                    <div class="recipe-icon">${escapeHtml(model.icon)}</div>
                     <div class="recipe-info">
-                        <div class="recipe-name">${recipe.name}</div>
-                        <div class="recipe-type">${this.getTypeLabel(recipe.type)}</div>
+                        <div class="recipe-card-head">
+                            <div class="recipe-name">${escapeHtml(model.name)}</div>
+                            ${badge}
+                        </div>
+                        <div class="recipe-type recipe-meta">
+                            <span>${escapeHtml(model.typeText)}</span>
+                            <span>${escapeHtml(model.rarityText)}</span>
+                            <span>${escapeHtml(recipe.cost)}G</span>
+                            <span>成功率 ${escapeHtml(recipe.successRate)}%</span>
+                        </div>
                     </div>
-                    ${badge}
                 </div>
             `;
         }).join('') + this.renderHiddenBlueprintNote(hiddenCount);
@@ -215,19 +224,7 @@ export default class ForgeScene {
         // 綁定點擊事件
         this.dom.recipeList.querySelectorAll('.recipe-card').forEach(card => {
             const recipe = getRecipe(card.dataset.recipeId);
-            if (recipe?.result) {
-                attachItemTooltip(card, {
-                    ...recipe.result,
-                    name: recipe.name,
-                    icon: recipe.icon,
-                    type: recipe.type,
-                    rarity: recipe.rarity
-                }, {
-                    price: recipe.cost,
-                    priceLabel: '製作費',
-                    description: recipe.result?.desc || ''
-                });
-            }
+            this.attachRecipeTooltip(card, recipe);
             card.addEventListener('click', () => {
                 const recipeId = card.dataset.recipeId;
                 this.selectRecipe(recipeId);
@@ -255,14 +252,48 @@ export default class ForgeScene {
     }
 
     getRarityLabel(rarity) {
-        const labels = {
-            common: '普通',
-            uncommon: '優良',
-            rare: '稀有',
-            epic: '史詩',
-            legendary: '傳說'
+        return getItemRarityText(rarity);
+    }
+
+    getRecipeDisplayModel(recipe) {
+        return buildItemDisplayModel(this.getRecipeTooltipItem(recipe), {
+            typeText: this.getTypeLabel(recipe?.result?.type || recipe?.type),
+            rarity: recipe?.result?.rarity || recipe?.rarity || 'common'
+        });
+    }
+
+    getRecipeTooltipItem(recipe) {
+        const result = recipe?.result || {};
+        return {
+            ...result,
+            name: result.name || recipe?.name,
+            icon: result.icon || recipe?.icon,
+            type: result.type || recipe?.type,
+            rarity: result.rarity || recipe?.rarity || 'common',
+            description: result.description || result.desc || '',
+            desc: result.desc || result.description || ''
         };
-        return labels[String(rarity || 'common').toLowerCase()] || rarity || '普通';
+    }
+
+    getRecipeTooltipOptions(recipe, extraOptions = {}) {
+        const result = recipe?.result || {};
+        const footerRows = [
+            ['成功率', `${recipe?.successRate ?? 0}%`],
+            ...(Array.isArray(extraOptions.footerRows) ? extraOptions.footerRows : [])
+        ];
+
+        return {
+            price: recipe?.cost,
+            priceLabel: '製作費',
+            description: result.description || result.desc || '',
+            ...extraOptions,
+            footerRows
+        };
+    }
+
+    attachRecipeTooltip(element, recipe, extraOptions = {}) {
+        if (!element || !recipe?.result) return;
+        attachItemTooltip(element, this.getRecipeTooltipItem(recipe), this.getRecipeTooltipOptions(recipe, extraOptions));
     }
 
     filterRecipes(filter) {
@@ -297,6 +328,7 @@ export default class ForgeScene {
         globalGoalTracker.setForgeRecipe(null);
 
         if (this.dom.selectedRecipe) {
+            this.dom.selectedRecipe.style.display = '';
             this.dom.selectedRecipe.innerHTML = `
                 <div class="empty-slot">
                     <span class="empty-icon">📜</span>
@@ -331,31 +363,47 @@ export default class ForgeScene {
         const blueprintInfo = getRecipeBlueprintInfo(recipe.id);
         const blueprintKnown = blueprintInfo.known;
         const craftable = canCraft(recipe.id, inventory, warehouse);
-        const missingMaterials = getMissingMaterials(recipe.id, inventory, warehouse);
         const gold = GameManager.getGold() || 0;
         const hasGold = gold >= recipe.cost;
         const resultStats = recipe.result?.stats || {};
+        const result = recipe.result || {};
+        const model = this.getRecipeDisplayModel(recipe);
+        const rarity = model.rarity || 'common';
+        const rateClass = this.getRateClass(recipe.successRate);
         
         // 顯示製作結果預覽
-        const result = recipe.result;
         this.dom.craftResultPreview.innerHTML = `
-            <div class="preview-item rarity-frame rarity-${result.rarity || 'common'} ${result.rarity || 'common'}">
-                <div class="item-icon">${result.icon}</div>
-                <div class="item-name">${result.name}</div>
-                <div class="item-stats">
-                    ${resultStats.attack || result.attack ? `<span>⚔️ ${resultStats.attack || result.attack}</span>` : ''}
-                    ${resultStats.defense || result.defense ? `<span>🛡️ ${resultStats.defense || result.defense}</span>` : ''}
-                    ${resultStats.hp || result.hp ? `<span>❤️ +${resultStats.hp || result.hp}</span>` : ''}
+            <div class="preview-item forge-preview-item rarity-frame rarity-${escapeHtml(rarity)} ${escapeHtml(rarity)}">
+                <div class="forge-preview-head">
+                    <div class="forge-preview-icon">${escapeHtml(model.icon)}</div>
+                    <div class="forge-preview-body">
+                        <div class="forge-preview-heading">
+                            <div class="item-name">${escapeHtml(model.name)}</div>
+                            <div class="forge-preview-meta">
+                                <span>${escapeHtml(model.typeText)}</span>
+                                <span>${escapeHtml(model.rarityText)}</span>
+                                <span>${escapeHtml(recipe.cost)} 金幣</span>
+                            </div>
+                        </div>
+                        <span class="forge-success-pill ${rateClass}">成功率 ${escapeHtml(recipe.successRate)}%</span>
+                    </div>
                 </div>
-                <div class="item-desc">${result.desc || ''}</div>
+                <div class="forge-preview-stats">
+                    ${this.renderCraftStatChips(resultStats, result)}
+                </div>
+                ${model.description ? `<div class="forge-preview-desc">${escapeHtml(model.description)}</div>` : ''}
             </div>
         `;
         
         // 顯示所需材料
-        this.dom.materialsList.innerHTML = recipe.materials.map(mat => {
+        const materialRows = recipe.materials.map(mat => {
             const material = getMaterial(mat.id);
             const owned = this.getMaterialCount(mat.id, inventory);
             const enough = owned >= mat.quantity;
+            return { mat, material, owned, enough };
+        });
+
+        this.dom.materialsList.innerHTML = materialRows.map(({ mat, material, owned, enough }) => {
             
             return `
                 <div class="material-req ${enough ? 'enough' : 'not-enough'}">
@@ -365,151 +413,77 @@ export default class ForgeScene {
                 </div>
             `;
         }).join('');
+
+        this.dom.materialsList.querySelectorAll('.material-req').forEach((rowEl, index) => {
+            const row = materialRows[index];
+            if (!row?.material) return;
+            attachItemTooltip(rowEl, row.material, {
+                footerRows: [
+                    ['持有', `${row.owned}`],
+                    ['需求', `${row.mat.quantity}`]
+                ],
+                hint: row.enough ? '材料已足夠' : '材料不足'
+            });
+        });
         
-        // 費用和成功率
-        this.dom.craftCost.textContent = `${recipe.cost} 金幣`;
-        this.dom.craftCost.className = `cost-value ${hasGold ? '' : 'not-enough'}`;
-        this.dom.craftSuccessRate.textContent = `${recipe.successRate}%`;
-        this.renderCraftGuidance(recipe, missingMaterials, hasGold, gold, blueprintInfo);
+        this.renderCraftGuidance(recipe, gold, blueprintInfo);
         
         // 按鈕狀態
         this.dom.btnCraft.disabled = !blueprintKnown || !craftable || !hasGold;
         
-        this.dom.recipeInfo.style.display = 'block';
+        this.dom.recipeInfo.style.display = 'grid';
         
-        // 更新選中顯示
-        this.dom.selectedRecipe.innerHTML = `
-            <div class="selected-item rarity-frame rarity-${recipe.rarity || 'common'} ${recipe.rarity || 'common'}">
-                <div class="item-icon">${recipe.icon}</div>
-                <div class="item-info">
-                    <div class="item-name">${recipe.name}</div>
-                    <div class="item-rarity">${this.getRarityLabel(recipe.rarity)}</div>
-                </div>
-            </div>
-        `;
+        if (this.dom.selectedRecipe) {
+            this.dom.selectedRecipe.style.display = 'none';
+        }
     }
 
-    renderCraftGuidance(recipe, missingMaterials, hasGold, gold, blueprintInfo = null) {
+    renderCraftGuidance(recipe, gold, blueprintInfo = null) {
         if (!this.dom.craftGuidance) return;
-        const routeHtml = this.renderCraftRoute(recipe, blueprintInfo);
+        this.dom.craftGuidance.hidden = false;
 
         if (blueprintInfo && !blueprintInfo.known) {
             const discovery = blueprintInfo.discovery;
             this.dom.craftGuidance.className = 'forge-craft-guidance blueprint';
             this.dom.craftGuidance.innerHTML = `
                 <strong>製作圖未取得</strong>
-                <span>${discovery?.clue || '這份配方需要先在世界中找到圖紙。'}</span>
                 <div class="forge-missing-list">
-                    <span class="forge-missing-chip">線索來源：${discovery?.source || '未知'}</span>
+                    <span class="forge-missing-chip">圖紙來源：${discovery?.source || '世界探索'}</span>
                 </div>
-                ${routeHtml}
             `;
             return;
         }
 
         const goldNeed = Math.max(0, recipe.cost - gold);
-        if (missingMaterials.length === 0 && hasGold) {
-            this.dom.craftGuidance.className = 'forge-craft-guidance ready';
+        if (goldNeed > 0) {
+            this.dom.craftGuidance.className = 'forge-craft-guidance blocked';
             this.dom.craftGuidance.innerHTML = `
-                <strong>素材檢查完成</strong>
-                <span>材料與金幣足夠，可以製作。成功率 ${recipe.successRate}%。</span>
-                ${routeHtml}
+                <strong>金幣不足</strong>
+                <div class="forge-missing-list">
+                    <span class="forge-missing-chip">金幣 ${gold}/${recipe.cost}</span>
+                </div>
             `;
             return;
         }
 
-        const missingHtml = missingMaterials.map(mat => {
-            const material = getMaterial(mat.id);
-            return `
-                <span class="forge-missing-chip">
-                    ${material?.icon || '◇'} ${material?.name || mat.id} ${mat.owned}/${mat.required}
-                </span>
-            `;
-        }).join('');
-        const goldHtml = goldNeed > 0 ? `<span class="forge-missing-chip">金幣 ${gold}/${recipe.cost}</span>` : '';
-
-        this.dom.craftGuidance.className = 'forge-craft-guidance blocked';
-        this.dom.craftGuidance.innerHTML = `
-            <strong>素材不足</strong>
-            <span>先補齊缺口，再回來製作 ${recipe.name}。</span>
-            <div class="forge-missing-list">${missingHtml}${goldHtml}</div>
-            ${routeHtml}
-        `;
+        this.dom.craftGuidance.hidden = true;
+        this.dom.craftGuidance.innerHTML = '';
     }
 
-    renderCraftRoute(recipe, blueprintInfo = null) {
-        const discovery = blueprintInfo?.discovery;
-        const drops = Array.isArray(blueprintInfo?.drops) ? blueprintInfo.drops : [];
-        const sourceChips = [];
-
-        if (discovery?.source) {
-            sourceChips.push({
-                label: discovery.source,
-                detail: discovery.clue || '世界互動或任務線索'
-            });
-        }
-
-        drops.slice(0, 5).forEach(drop => {
-            sourceChips.push({
-                label: this.getBlueprintDropSourceLabel(drop.sourceKey),
-                detail: `${Math.round((Number(drop.chance) || 0) * 100)}%`
-            });
-        });
-
-        const materialChips = (recipe.materials || []).slice(0, 5).map(mat => {
-            const material = getMaterial(mat.id);
-            return `${material?.icon || '◇'} ${material?.name || mat.id} x${mat.quantity}`;
-        });
-
-        return `
-            <div class="forge-route-map">
-                <div class="forge-route-step">
-                    <span>1</span>
-                    <div>
-                        <strong>取得圖紙</strong>
-                        <p>${sourceChips.length > 0
-                            ? sourceChips.map(source => `${escapeHtml(source.label)} · ${escapeHtml(source.detail)}`).join(' / ')
-                            : '預設已掌握或由世界線索解鎖'}</p>
-                    </div>
-                </div>
-                <div class="forge-route-step">
-                    <span>2</span>
-                    <div>
-                        <strong>準備素材</strong>
-                        <p>${materialChips.length > 0 ? materialChips.map(escapeHtml).join(' / ') : '不需要額外素材'}</p>
-                    </div>
-                </div>
-                <div class="forge-route-step">
-                    <span>3</span>
-                    <div>
-                        <strong>鍛造完成</strong>
-                        <p>${escapeHtml(recipe.name)} · ${recipe.cost}G · 成功率 ${recipe.successRate}%</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    getBlueprintDropSourceLabel(sourceKey = '') {
-        const raw = String(sourceKey || '');
-        const [dungeonId, monsterId] = raw.includes(':') ? raw.split(':') : [null, raw];
-        const dungeon = dungeonId ? DungeonDatabase[dungeonId] : null;
-        const monster = MonsterDatabase[monsterId] || this.findDungeonMonster(monsterId, dungeon);
-        const monsterName = monster?.name || monsterId || '未知來源';
-        return dungeon ? `${dungeon.name} / ${monsterName}` : monsterName;
-    }
-
-    findDungeonMonster(monsterId, preferredDungeon = null) {
-        const dungeons = preferredDungeon ? [preferredDungeon] : Object.values(DungeonDatabase);
-        for (const dungeon of dungeons) {
-            const groups = dungeon?.monsters || {};
-            for (const group of Object.values(groups)) {
-                const list = Array.isArray(group) ? group : [group];
-                const monster = list.find(entry => entry?.id === monsterId);
-                if (monster) return monster;
+    renderCraftStatChips(stats = {}, result = {}, options = {}) {
+        const itemLike = {
+            ...result,
+            stats: {
+                ...(result.stats || {}),
+                ...(stats || {})
             }
-        }
-        return null;
+        };
+
+        return buildItemStatChipsHtml(itemLike, {
+            ...options,
+            chipClass: 'forge-stat-chip',
+            emptyText: '無額外數值'
+        });
     }
 
     getMaterialCount(materialId, inventory) {
@@ -671,6 +645,7 @@ export default class ForgeScene {
         if (!resultEl) return;
         
         resultEl.style.display = 'flex';
+        resultEl.className = 'craft-result is-info';
         resultEl.innerHTML = `
             <div class="result-icon spinning">⚒️</div>
             <div class="result-text">鍛造中...</div>
@@ -684,6 +659,7 @@ export default class ForgeScene {
         if (!resultEl) return;
         
         if (success) {
+            resultEl.className = 'craft-result is-success';
             // 顯示詞綴資訊
             let affixInfo = '';
             if (item.affixes && item.affixes.length > 0) {
@@ -707,7 +683,10 @@ export default class ForgeScene {
                 ${affixInfo}
                 ${durabilityInfo}
             `;
+            const resultItemEl = resultEl.querySelector('.result-item');
+            if (resultItemEl) attachItemTooltip(resultItemEl, item, { hint: '已放入背包' });
         } else {
+            resultEl.className = 'craft-result is-error';
             resultEl.innerHTML = `
                 <div class="result-icon fail">❌</div>
                 <div class="result-text">鍛造失敗！材料已損失...</div>
@@ -794,6 +773,11 @@ export default class ForgeScene {
                     </div>
                 </div>
             `;
+            attachItemTooltip(
+                this.dom.selectedAffixEquipment.querySelector('.selected-item'),
+                item,
+                { hint: '目前選擇的重鑄裝備' }
+            );
         }
         
         // 顯示詞綴資訊
@@ -1150,6 +1134,11 @@ export default class ForgeScene {
                     </div>
                 </div>
             `;
+            attachItemTooltip(
+                this.dom.selectedEnhanceEquipment.querySelector('.selected-item'),
+                item,
+                { hint: '目前選擇的強化裝備' }
+            );
         }
 
         this.showEnhanceInfo(item);

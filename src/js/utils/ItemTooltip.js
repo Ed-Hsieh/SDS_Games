@@ -7,6 +7,7 @@ import {
     buildItemStatsHtml,
     escapeHtml,
     getItemDisplayDescription,
+    getItemRarityText,
     getItemTypeText
 } from './ItemDisplay.js';
 import { getSellPrice } from '../models/ItemSchema.js';
@@ -48,10 +49,6 @@ function getFooterRows(item, options = {}) {
         if (sellPrice > 0) rows.push(['售價', `${sellPrice}G`]);
     }
 
-    if (item?.durability != null) {
-        rows.push(['耐久', `${item.durability}/${item.maxDurability ?? 50}`]);
-    }
-
     if (Array.isArray(options.footerRows)) {
         for (const row of options.footerRows) {
             if (!Array.isArray(row) || row.length < 2) continue;
@@ -67,7 +64,7 @@ function renderTooltip(payload) {
     const options = payload?.options || {};
     const rarity = item.rarity || options.rarity || 'common';
     const typeText = options.typeText ?? getItemTypeText(item.type);
-    const rarityText = options.rarityText ?? rarity;
+    const rarityText = options.rarityText ?? getItemRarityText(rarity);
     const description = options.description ?? getItemDisplayDescription(item, '');
     const statsHtml = options.statsHtml ?? buildItemStatsHtml(item, { includeAffixes: true });
     const footerRows = getFooterRows(item, options);

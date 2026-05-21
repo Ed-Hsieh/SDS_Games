@@ -92,6 +92,7 @@ class WorldInteractionManager {
 
         const messages = [];
         const unlockedQuests = [];
+        const acceptedQuests = [];
         const recipeUnlocks = unlockRecipeBlueprints(interaction.unlockRecipes || []);
 
         if (!this.consumeRequiredItems(interaction, context)) {
@@ -119,11 +120,21 @@ class WorldInteractionManager {
                 const quest = getQuestById(questId);
                 unlockedQuests.push(quest || { id: questId, name: questId });
             }
+
+            const latest = questManager.getQuestState(questId);
+            if (interaction.autoAcceptQuests === true && latest.status === QuestStatus.AVAILABLE) {
+                const accepted = questManager.acceptQuest(questId);
+                if (accepted.success) {
+                    acceptedQuests.push(accepted.quest || getQuestById(questId) || { id: questId, name: questId });
+                }
+            }
         }
 
         if (interaction.message) messages.push(interaction.message);
-        for (const quest of unlockedQuests) {
-            messages.push(`新的任務線索已記錄：${quest.name}`);
+        if (interaction.showQuestUnlockMessages !== false) {
+            for (const quest of unlockedQuests) {
+                messages.push(`新的任務線索已記錄：${quest.name}`);
+            }
         }
         for (const unlock of recipeUnlocks) {
             if (unlock.newlyUnlocked) messages.push(`取得製作圖：${unlock.recipe.name}`);
@@ -162,6 +173,7 @@ class WorldInteractionManager {
             interaction,
             messages,
             unlockedQuests,
+            acceptedQuests,
             unlockedRecipes: recipeUnlocks,
             storyOutcome,
             entry

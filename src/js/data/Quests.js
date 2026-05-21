@@ -16,7 +16,7 @@ export const QuestStatus = {
     LOCKED: 'locked',       // 未解鎖
     AVAILABLE: 'available', // 可接取
     ACTIVE: 'active',       // 進行中
-    COMPLETED: 'completed', // 已完成（待領獎）
+    COMPLETED: 'completed', // 已完成（待回報）
     FINISHED: 'finished'    // 已結束
 };
 
@@ -52,9 +52,9 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📖',
-            description: '你決定踏上冒險之旅。首先，去探索附近的安全區域，熟悉這個世界。',
+            description: '村長請你先確認南門外近郊。這不是壯舉，只是讓城鎮知道哪些路還能走。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '探索安全區 3 次' }
+                { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '確認南門外近郊 3 處路線' }
             ],
             rewards: {
                 gold: 100,
@@ -67,8 +67,8 @@ export const QuestDatabase = {
             },
             unlocks: ['main_002'], // 完成後解鎖
             dialogue: {
-                start: '每個英雄都有起點。你的冒險，從這裡開始...',
-                complete: '不錯！你已經掌握了基本的探索技巧。'
+                start: '村長把南門外的路線交給你確認。',
+                complete: '你把第一份近郊路線帶回城鎮。'
             }
         },
         {
@@ -77,9 +77,9 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '⚔️',
-            description: '是時候面對你的第一場戰鬥了。擊敗幾隻弱小的怪物來證明自己。',
+            description: '近郊的路線還能走，但怪物正在靠近道路。先清出一段能讓村民通行的安全線。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'any', count: 5, description: '擊敗任意怪物 5 隻' }
+                { type: ObjectiveType.KILL, target: 'any', count: 5, description: '清理近郊徘徊的怪物 5 隻' }
             ],
             rewards: {
                 gold: 150,
@@ -89,10 +89,10 @@ export const QuestDatabase = {
                     { id: 'iron_ore', quantity: 5 }
                 ]
             },
-            unlocks: ['main_003', 'bounty_001'],
+            unlocks: ['main_003'],
             dialogue: {
-                start: '戰鬥是冒險者的日常。不要害怕，勇敢面對！',
-                complete: '做得好！你已經是個合格的戰士了。'
+                start: '怪物離路太近，城鎮需要一條能走的安全線。',
+                complete: '近郊暫時安靜下來。'
             }
         },
         {
@@ -642,13 +642,13 @@ export const QuestDatabase = {
     bounty: [
         {
             id: 'bounty_001',
-            name: '史萊姆獵人',
+            name: '書記的史萊姆紀錄',
             type: QuestType.BOUNTY,
             icon: '🎯',
-            description: '村民受到史萊姆的困擾。幫忙清除它們！',
+            description: '書記記下村民的聽聞：城外史萊姆靠近農田，需要先清掉一小批確認狀況。',
             repeatable: true,
             objectives: [
-                { type: ObjectiveType.KILL, target: 'slime', count: 10, description: '擊敗史萊姆 10 隻' }
+                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '消滅靠近農田的史萊姆 5 個' }
             ],
             rewards: {
                 gold: 80,

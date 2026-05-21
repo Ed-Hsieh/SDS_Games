@@ -1,15 +1,14 @@
 import { getSellPrice } from '../models/ItemSchema.js';
+import GameManager from '../managers/GameManager.js';
 import {
+    buildItemStatEntries,
     formatAffixStats,
     escapeHtml,
+    formatItemStatEntryValue,
     getItemDisplayDescription,
-    getItemTypeText,
-    getStatIcon,
-    getStatLabel,
-    isPercentStat,
-    normalizeMultiplierPercentValue,
-    normalizePercentValue
+    getItemTypeText
 } from '../utils/ItemDisplay.js';
+import { buildItemSetInfoHtml } from '../utils/SetDisplay.js';
 
 class ItemDetailModal {
     constructor() {
@@ -33,9 +32,14 @@ class ItemDetailModal {
                             <div class="item-detail-type"></div>
                         </div>
                     </div>
+                    <div class="item-detail-main-grid">
                         <div class="item-detail-stats"></div>
+                        <div class="item-detail-side">
+                            <div class="item-detail-set is-hidden"></div>
+                            <div class="item-detail-affixes is-hidden"></div>
+                        </div>
+                    </div>
                         <div class="item-detail-potion-effects is-hidden"></div>
-                        <div class="item-detail-affixes is-hidden"></div>
                         <div class="item-detail-description"></div>
                 </div>
                 <div class="modal-footer">
@@ -51,6 +55,7 @@ class ItemDetailModal {
         this.nameEl = this.container.querySelector('.item-detail-name');
         this.typeEl = this.container.querySelector('.item-detail-type');
         this.statsEl = this.container.querySelector('.item-detail-stats');
+        this.setEl = this.container.querySelector('.item-detail-set');
         this.affixesEl = this.container.querySelector('.item-detail-affixes');
         this.priceEl = this.container.querySelector('.item-detail-price');
         this.descEl = this.container.querySelector('.item-detail-description');
@@ -108,88 +113,11 @@ class ItemDetailModal {
         this.typeEl.textContent = opts.typeText || getItemTypeText(item.type);
         this.descEl.textContent = opts.description || getItemDisplayDescription(item, '');
 
-        // stats: support structured `opts.stats` (array) OR `opts.statsHtml` (raw HTML)
-        // We'll auto-build a structured view if item has stats or affixes, overriding statsHtml if needed.
-        // This ensures the aggregated base + (+bonus) format is always shown.
+        // stats: support structured `opts.stats` (array) OR `opts.statsHtml` (raw HTML).
+        // Equipment stat rows are centralized in ItemDisplay so hover cards and detail modals stay aligned.
         if (!Array.isArray(opts.stats) && item) {
-            const affixContribs = {};
-            const addContribution = (key, rawValue) => {
-                if (rawValue === undefined || rawValue === null || rawValue === 0) return;
-
-                const number = Number(rawValue);
-                if (!Number.isFinite(number)) return;
-
-                const displayValue = isPercentStat(key) ? normalizePercentValue(number) : number;
-                if (displayValue === 0) return;
-
-                const displayKey = key === 'attackSpeed' ? 'attackSpeedBonus' : key;
-                affixContribs[displayKey] = (affixContribs[displayKey] || 0) + displayValue;
-            };
-
-            if (Array.isArray(item.affixes) && item.affixes.length > 0) {
-                item.affixes.forEach(aff => {
-                    if (!aff || !aff.stats) return;
-                    for (const [key, value] of Object.entries(aff.stats)) {
-                        addContribution(key, value);
-                    }
-                });
-            }
-
-            if (Object.keys(affixContribs).length === 0 && item.affixBonuses) {
-                for (const [key, value] of Object.entries(item.affixBonuses)) {
-                    addContribution(key, value);
-                }
-            }
-
-            if (Array.isArray(item.specialEffects) && item.specialEffects.length > 0) {
-                item.specialEffects.forEach(eff => {
-                    if (!eff || !eff.type) return;
-                    addContribution(String(eff.type), eff.value);
-                });
-            }
-
-            const hasBaseStats = item.atk || item.attack || item.def || item.defense || item.hp || item.durability || item.dur || item.durabilityMax || item.critChance || item.critDamage || item.attackSpeed;
-            const hasAffixContribs = Object.keys(affixContribs).length > 0;
-
-            if (hasBaseStats || hasAffixContribs) {
-                const built = [];
-                const readBase = (baseVal, format = 'number') => {
-                    if (baseVal === undefined || baseVal === null) return undefined;
-
-                    const number = Number(baseVal);
-                    if (!Number.isFinite(number)) return undefined;
-
-                    if (format === 'percent') return normalizePercentValue(number);
-                    if (format === 'multiplierPercent') return normalizeMultiplierPercentValue(number);
-                    return number;
-                };
-                const push = (key, icon, label, baseVal, format = 'number') => {
-                    const base = readBase(baseVal, format);
-                    const bonus = affixContribs[key] || 0;
-                    if ((base !== undefined && base !== 0) || bonus !== 0) {
-                        const suffix = (key === 'attackSpeed') ? 's' : (format === 'percent' || format === 'multiplierPercent' ? '%' : '');
-                        built.push({ key, icon, label, base: base || 0, bonus, suffix });
-                    }
-                };
-
-                push('atk', getStatIcon('atk'), getStatLabel('atk'), item.atk ?? item.attack);
-                push('def', getStatIcon('def'), getStatLabel('def'), item.def ?? item.defense);
-                push('durability', getStatIcon('durability'), getStatLabel('durability'), item.durability ?? item.dur ?? item.durabilityMax);
-                push('hp', getStatIcon('hp'), getStatLabel('hp'), item.hp);
-                push('critChance', getStatIcon('critChance'), getStatLabel('critChance'), item.critChance, 'percent');
-                push('critDamage', getStatIcon('critDamage'), getStatLabel('critDamage'), item.critDamage, 'multiplierPercent');
-                push('attackSpeed', getStatIcon('attackSpeed'), getStatLabel('attackSpeed'), item.attackSpeed);
-
-                for (const [k, v] of Object.entries(affixContribs)) {
-                    if (built.find(b => b.key === k)) continue;
-                    if (!v || v === 0) continue;
-                    built.push({ key: k, icon: getStatIcon(k), label: getStatLabel(k), base: 0, bonus: v, suffix: isPercentStat(k) ? '%' : '' });
-                }
-
-                if (built.length > 0) {
-                    opts.stats = built;
-                }
-            }
+            const built = buildItemStatEntries(item, { includePotionRecovery: false });
+            if (built.length > 0) opts.stats = built;
         }
 
         // helper to render effect objects (avoid [object Object])
@@ -214,19 +142,10 @@ class ItemDetailModal {
         if (Array.isArray(opts.stats)) {
             // build comparison rows with aligned label/value columns
             // helper to format numbers and percentages
-            const formatValue = (val, suffix) => {
-                const v = (val === undefined || val === null) ? 0 : Number(val);
-                if (suffix === '%') {
-                    return (Math.abs(v % 1) > 0 ? v.toFixed(2) : v.toFixed(0)) + '%';
-                }
-                if (suffix === 's') {
-                    // val is attacks per second -> convert to seconds per attack
-                    if (v <= 0) return '—';
-                    const sec = 1 / v;
-                    return (Math.abs(sec % 1) > 0 ? sec.toFixed(2) : sec.toFixed(0)) + ' Sec/Hit';
-                }
-                return (Math.abs(v % 1) > 0 ? v.toFixed(2) : v.toFixed(0));
-            };
+            const formatValue = (val, stat = null, prefix = '') => formatItemStatEntryValue(stat || {}, val, {
+                includeMax: true,
+                prefix
+            });
 
             const rows = opts.stats.map(s => {
                 const iconHtml = s.icon ? `<span class="stat-icon">${escapeHtml(s.icon)}</span>` : '';
@@ -240,7 +159,7 @@ class ItemDetailModal {
                     // show seconds per attack and delta in seconds
                     const baseSec = baseVal ? (baseVal === 0 ? Infinity : (1 / Number(baseVal))) : null;
                     const totalSec = totalVal === 0 ? Infinity : (1 / Number(totalVal));
-                    totalPart = `<span class="stat-base">${formatValue(totalVal, s.suffix)}</span>`;
+                    totalPart = `<span class="stat-base">${formatValue(totalVal, s, '')}</span>`;
                     if (bonusVal !== 0) {
                         const diffSec = (baseSec !== null && isFinite(baseSec) && isFinite(totalSec)) ? (totalSec - baseSec) : 0;
                         const sign = diffSec < 0 ? '' : '+'; // negative means faster
@@ -248,9 +167,11 @@ class ItemDetailModal {
                         bonusPart = `<span class="stat-bonus">(${sign}${diffStr}s)</span>`;
                     }
                 } else {
-                    totalPart = `<span class="stat-base">${formatValue(totalVal, s.suffix)}</span>`;
+                    const totalPrefix = s.key === 'durability' || s.suffix === 'x' || s.suffix === 'critMultiplier' ? '' : '+';
+                    totalPart = `<span class="stat-base">${formatValue(totalVal, s, totalPrefix)}</span>`;
+                    const bonusSign = bonusVal > 0 ? '+' : '-';
                     bonusPart = (bonusVal !== 0)
-                        ? `<span class="stat-bonus">(+${formatValue(bonusVal, s.suffix)})</span>`
+                        ? `<span class="stat-bonus">(${bonusSign}${formatValue(Math.abs(bonusVal), s, '')})</span>`
                         : '';
                 }
                 const valueHtml = `<div class="stat-right">${totalPart}${bonusPart}</div>`;
@@ -267,6 +188,15 @@ class ItemDetailModal {
             this.statsEl.innerHTML = (potionHtml || '') + (opts.statsHtml || '');
         } else {
             this.statsEl.innerHTML = '';
+        }
+
+        const setHtml = opts.setHtml ?? buildItemSetInfoHtml(item, GameManager.state, { compact: false });
+        if (setHtml) {
+            this.setEl.innerHTML = setHtml;
+            this.setEl.classList.remove('is-hidden');
+        } else {
+            this.setEl.innerHTML = '';
+            this.setEl.classList.add('is-hidden');
         }
 
         // affixes / forge attributes area (show in body, horizontally). Accepts `opts.forgeAttrs` as array or HTML string
@@ -300,6 +230,11 @@ class ItemDetailModal {
             this.affixesEl.classList.add('is-hidden');
             this.affixesEl.innerHTML = '';
         }
+
+        this.container.classList.toggle(
+            'has-detail-side',
+            !this.setEl.classList.contains('is-hidden') || !this.affixesEl.classList.contains('is-hidden')
+        );
 
         // Note: forge/affix bonuses are now merged into `opts.stats` above so there's no separate forge block.
 
@@ -360,6 +295,7 @@ class ItemDetailModal {
             // clear content to avoid stale handlers
             this.actionsEl.innerHTML = '';
             if (this.priceEl) this.priceEl.innerHTML = '';
+            this.container.classList.remove('has-detail-side');
         }, 240);
     }
 

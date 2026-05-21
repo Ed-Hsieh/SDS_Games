@@ -6,16 +6,25 @@
 export const QuestStoryDatabase = {
     main_001: {
         arc: '裂痕前夜',
-        source: '冒險公告欄',
-        location: '城鎮外圍',
-        speaker: { name: '旅人手記', avatar: '📖' },
-        discovery: '公告欄上釘著一份南門路標拓印，爪痕切過安全區的舊路線。',
-        available: '手記上寫著：先確認附近道路是否仍能通行。這不是英雄試煉，只是活下去的第一步。',
-        active: '安全區的腳印越來越雜，你需要把周圍路線摸清楚。',
-        completed: '你已記下附近地形，回到城鎮整理第一份路線圖。',
-        finished: '安全區的路線被重新標註，更多地方開始向你敞開。',
-        nextLead: '探索安全區，確認城鎮外圍的變化。',
-        route: 'adventure'
+        source: '村長的交代',
+        location: '城鎮十字路',
+        speaker: { name: '村長', avatar: '🏘️' },
+        discovery: '村長說南門外的獵人還沒回來，要你先確認近郊道路是否仍能通行。',
+        available: '村長請你先去南門外近郊走一圈，確認哪些路還能走，哪些路只是看起來能走。',
+        active: '你記得村長的交代：先看路、再看怪物，活著回報比英勇失蹤有用。',
+        completed: '你把近郊路線重新記下，城鎮終於知道南門外還有哪幾條路能用。',
+        finished: '第一份路線紀錄完成後，村長開始把更深入的問題交給你。',
+        nextLead: '前往南門外近郊，確認 3 處路線。',
+        route: 'adventure',
+        reportTo: {
+            npcId: 'village_elder',
+            name: '村長',
+            route: 'lobby',
+            label: '回去找村長'
+        },
+        objectives: [
+            '村長請我先確認南門外近郊，記下 3 處還能通行的路線。'
+        ]
     },
     main_002: {
         arc: '裂痕前夜',
@@ -28,7 +37,13 @@ export const QuestStoryDatabase = {
         completed: '怪物數量被壓下來了，巡守隊留下的路標終於能看清。',
         finished: '你證明了自己不是只會整理地圖的人。',
         nextLead: '在冒險區擊敗怪物，確認你能承受實戰。',
-        route: 'adventure'
+        route: 'adventure',
+        reportTo: {
+            npcId: 'village_elder',
+            name: '村長',
+            route: 'lobby',
+            label: '回去找村長'
+        }
     },
     main_003: {
         arc: '裂痕前夜',
@@ -41,7 +56,13 @@ export const QuestStoryDatabase = {
         completed: '強化完成後，劍身的裂紋被穩住了。',
         finished: '鍛造鋪開始願意讓你接觸更深的技術。',
         nextLead: '前往鑄造，完成一次裝備強化。',
-        route: 'forge'
+        route: 'forge',
+        reportTo: {
+            npcId: 'blacksmith',
+            name: '鍛造師',
+            route: 'lobby',
+            label: '回去找鍛造師'
+        }
     },
     main_004: {
         arc: '城中暗流',
@@ -97,16 +118,25 @@ export const QuestStoryDatabase = {
     },
     bounty_001: {
         arc: '城鎮委託',
-        source: '冒險公告欄',
-        location: '城鎮廣場',
-        speaker: { name: '公告欄', avatar: '🎯' },
-        discovery: '木板上貼著新的懸賞，墨水還沒乾。',
-        available: '史萊姆開始靠近農田，村民需要有人處理掉牠們。',
-        active: '去安全區清理史萊姆，帶回足夠證明。',
-        completed: '農田恢復安靜，公告欄旁多了一袋金幣。',
-        finished: '小懸賞讓城鎮重新注意到你的名字。',
-        nextLead: '在安全區擊敗史萊姆。',
-        route: 'adventure'
+        source: '書記的求助',
+        location: '舊書桌',
+        speaker: { name: '書記', avatar: '📚' },
+        discovery: '書記說最近城外史萊姆變多了，村民擔心牠們繼續往農田靠近。',
+        available: '書記請你消滅 5 個史萊姆，先確認這是不是單純增生，還是地脈異常的前兆。',
+        active: '書記已把這件事寫進線索簿：清掉靠近農田的史萊姆，再回來比對時間與地點。',
+        completed: '史萊姆數量被壓下來，書記終於能把「黏糊糊的聲音」改寫成比較正式的紀錄。',
+        finished: '書記在紀錄旁加了一行小字：史萊姆不是原因，只是第一個浮上來的症狀。',
+        nextLead: '到南門外近郊，消滅靠近農田的史萊姆。',
+        route: 'adventure',
+        reportTo: {
+            npcId: 'town_scholar',
+            name: '書記',
+            route: 'lobby',
+            label: '回去找書記'
+        },
+        objectives: [
+            '書記說最近城外史萊姆變多了，請我消滅 5 個靠近農田的史萊姆。'
+        ]
     },
     commission_forge_001: {
         arc: '鍛造圖紙',
@@ -201,7 +231,26 @@ export function getQuestStory(questData, state = null) {
         discovery: story.discovery || questData?.description || '',
         current: statusText,
         nextLead: story.nextLead || getFallbackNextLead(questData),
-        route: story.route || null
+        route: story.route || null,
+        reportTo: story.reportTo || getFallbackReportTo(questData),
+        objectives: Array.isArray(story.objectives) ? story.objectives : null
+    };
+}
+
+function getFallbackReportTo(questData = {}) {
+    const npcMap = {
+        blacksmith: { name: '鍛造師', route: 'lobby' },
+        merchant: { name: '旅行商人', route: 'shop' },
+        casino_owner: { name: '賭場老闆', route: 'casino' }
+    };
+    const reporter = npcMap[questData.npc];
+    if (!reporter) return null;
+
+    return {
+        npcId: questData.npc,
+        name: reporter.name,
+        route: reporter.route,
+        label: `回去找${reporter.name}`
     };
 }
 
