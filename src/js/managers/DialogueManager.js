@@ -90,6 +90,7 @@ class DialogueManager {
     }
 
     hasFreshDialogue(npcId) {
+        this.prepareContextualDialogue(npcId);
         const dialogue = this.getAvailableDialogue(npcId);
         if (!dialogue) return false;
         if (dialogue.once && !this.hasSeen(npcId, dialogue.id)) return true;
@@ -140,6 +141,7 @@ class DialogueManager {
             };
         }
 
+        this.prepareContextualDialogue(npcId);
         const dialogue = this.getAvailableDialogue(npcId);
         if (!dialogue) {
             return {
@@ -174,6 +176,12 @@ class DialogueManager {
             route: dialogue.route || npc.route || null,
             routeLabel: dialogue.routeLabel || npc.routeLabel || '前往'
         };
+    }
+
+    prepareContextualDialogue(npcId) {
+        if (npcId === 'street_beggar') {
+            questManager.ensureBrokeQuestActive?.({ announce: true });
+        }
     }
 
     resolveDialogueNarrativeSummary(npc, dialogue = {}, effectMessages = []) {

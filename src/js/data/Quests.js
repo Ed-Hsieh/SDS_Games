@@ -127,9 +127,9 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '🕸️',
-            description: '獵人棧道的銀絲不是隨機陷阱，而是在丈量回程路。重複路線、營火與誘餌會把銀鐮伏獵者引出來。',
+            description: '獵人棧道的銀絲不是隨機陷阱，而是在丈量回程路。讀懂線索後，帶著銀絲誘餌到伏道反設陷阱。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'ambush_mantis', count: 1, description: '觸發伏擊並擊敗銀鐮伏獵者' }
+                { type: ObjectiveType.KILL, target: 'ambush_mantis', count: 1, description: '在銀絲伏道設置誘餌並擊敗銀鐮伏獵者' }
             ],
             rewards: {
                 gold: 220,
@@ -1070,6 +1070,7 @@ export const QuestDatabase = {
             id: 'hidden_broke',
             name: '一無所有',
             type: QuestType.HIDDEN,
+            npc: 'street_beggar',
             icon: '💸',
             description: '當你失去一切時，或許能發現新的可能...',
             trigger: {

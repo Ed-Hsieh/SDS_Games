@@ -42,6 +42,7 @@ export const ShopData = {
         items: [
             { id: 'ancient_coin', name: '古代錢幣', icon: '🪙', type: 'key', rarity: 'legendary', price: 1000, isSecretKey: true, desc: '一枚古老的錢幣，似乎隱藏著秘密。' },
             { id: 'map_fragment', name: '地圖碎片', icon: '🗺️', type: 'quest', rarity: 'uncommon', price: 150, desc: '一張破舊的地圖碎片。' },
+            { id: 'silver_thread_bait', name: '銀絲誘餌', icon: '🪝', type: 'quest', rarity: 'uncommon', price: 90, sellPrice: 20, stackable: true, maxStack: 9, desc: '纏著細銀絲的小鉤，只有在銀絲最密的伏道設下，才可能把潛伏者引出來。' },
             // 新增：飾品
             { id: 'silver_ring', name: '銀戒指', icon: '💍', type: 'accessory', rarity: 'uncommon', attack: 3, defense: 3, critChance: 0.05, critDamage: 1.3, price: 180, desc: '簡單但精緻的銀戒指。' },
             { id: 'lucky_charm', name: '幸運符', icon: '🧿', type: 'accessory', rarity: 'rare', attack: 0, defense: 0, critChance: 0.12, critDamage: 1.6, price: 350, desc: '帶來好運的神秘符咒。' },

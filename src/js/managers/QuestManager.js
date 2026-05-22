@@ -351,6 +351,10 @@ class QuestManager {
     }
 
     handleGameStateUpdate(state, type) {
+        if (type === 'all' || type === 'gold') {
+            this.checkHiddenQuestTriggers('gold', Number(state?.character?.gold ?? GameManager.getGold()) || 0);
+        }
+
         if (!['all', 'inventory', 'warehouse'].includes(type)) return;
         this.syncCollectObjectives(state);
     }
@@ -465,6 +469,11 @@ class QuestManager {
             }
 
             if (triggered) {
+                if (quest.id === 'hidden_broke') {
+                    this.ensureBrokeQuestActive({ announce: true });
+                    return;
+                }
+
                 this.unlockQuest(quest.id);
                 this.notify('hidden_quest_discovered', { quest });
             }
@@ -472,14 +481,31 @@ class QuestManager {
 
         // 特殊：金幣為 0 時檢查
         if (triggerType === 'gold' || GameManager.getGold() === 0) {
-            const brokeQuest = hiddenQuests.find(q => q.id === 'hidden_broke');
-            if (brokeQuest && GameManager.getGold() === 0 &&
-                (!this.questStates['hidden_broke'] || 
-                 this.questStates['hidden_broke'].status === QuestStatus.LOCKED)) {
-                this.unlockQuest('hidden_broke');
+            this.ensureBrokeQuestActive({ announce: true });
+        }
+    }
+
+    ensureBrokeQuestActive({ announce = false } = {}) {
+        const brokeQuest = getQuestById('hidden_broke');
+        if (!brokeQuest || GameManager.getGold() !== 0) return null;
+
+        const currentState = this.getQuestState('hidden_broke');
+        const wasLocked = !this.questStates['hidden_broke'] || currentState.status === QuestStatus.LOCKED;
+
+        if (wasLocked) {
+            this.unlockQuest('hidden_broke');
+            if (announce) {
                 this.notify('hidden_quest_discovered', { quest: brokeQuest });
             }
         }
+
+        const latestState = this.getQuestState('hidden_broke');
+        if (latestState.status === QuestStatus.AVAILABLE) {
+            const accepted = this.acceptQuest('hidden_broke');
+            return accepted.success ? accepted.quest : brokeQuest;
+        }
+
+        return latestState.status === QuestStatus.ACTIVE ? brokeQuest : null;
     }
 
     // ==================== 查詢方法 ====================

@@ -75,10 +75,10 @@ export const QuestStoryDatabase = {
         speaker: { name: '倖存者警告', avatar: '🔥' },
         discovery: '舊營火點留下警告：不要在同一段路點燃第二次火，牠會記得光的位置。',
         available: '銀絲不在前路，而在你可能回頭的位置。這不是巢穴，是伏擊。',
-        active: '沿著獵人棧道、舊營火與被割裂的木牌拼出銀絲收束的位置，讓銀鐮伏獵者主動現身。',
+        active: '沿著獵人棧道、舊營火與被割裂的木牌拼出銀絲收束的位置，再帶著銀絲誘餌回到伏道設陷。',
         completed: '銀鐮伏獵者被擊敗後，獵人棧道重新開放。你第一次看見地圖會因怪物行為而改變。',
         finished: '道路打通後，腐根溪谷的焦黑煙霧終於不再只是遠方的模糊陰影。',
-        nextLead: '探索獵人棧道、舊營火點與被割裂的木牌，觸發銀鐮伏獵者。',
+        nextLead: '取得足夠線索後，帶著銀絲誘餌前往銀絲伏道設陷。',
         route: 'adventure',
         reportTo: {
             npcId: 'village_elder',

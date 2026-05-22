@@ -174,18 +174,75 @@ function formatDuration(value, fallback = '') {
 
 function createStatusIcon(effect, options = {}) {
     const el = document.createElement('div');
+    updateStatusIcon(el, effect, options);
+    return el;
+}
+
+function getStatusIconKey(effect, options = {}, index = 0) {
+    if (options.key) return options.key;
+    const id = effect.id || effect.type || effect.name || 'effect';
+    const source = effect.source || options.source || '';
+    const mode = options.passive ? 'passive' : options.polarity || 'status';
+    return `${mode}:${id}:${source}:${index}`;
+}
+
+function updateStatusIcon(el, effect, options = {}) {
     const polarity = options.polarity || 'positive';
     const isPassive = Boolean(options.passive);
     el.className = `buff-indicator status-${polarity}${isPassive ? ' passive' : ''}`;
     el.dataset.effectType = effect.type || effect.id || '';
-    el.innerHTML = `
-        <span class="buff-icon">${escapeHtml(effect.icon || options.icon || '◆')}</span>
-        <span class="buff-duration">${escapeHtml(options.durationText ?? formatDuration(effect.duration, isPassive ? '∞' : ''))}</span>
-    `;
+
+    let iconEl = el.querySelector('.buff-icon');
+    if (!iconEl) {
+        iconEl = document.createElement('span');
+        iconEl.className = 'buff-icon';
+        el.appendChild(iconEl);
+    }
+
+    let durationEl = el.querySelector('.buff-duration');
+    if (!durationEl) {
+        durationEl = document.createElement('span');
+        durationEl.className = 'buff-duration';
+        el.appendChild(durationEl);
+    }
+
+    iconEl.textContent = effect.icon || options.icon || '◆';
+    durationEl.textContent = options.durationText ?? formatDuration(effect.duration, isPassive ? '∞' : '');
     el.dataset.tooltipTitle = effect.name || effect.type || '狀態';
     el.dataset.tooltipBody = effect.description || options.description || '';
     el.setAttribute('aria-label', `${el.dataset.tooltipTitle}${el.dataset.tooltipBody ? `，${el.dataset.tooltipBody}` : ''}`);
-    return el;
+}
+
+function syncStatusIcons(container, entries) {
+    if (!container) return;
+
+    Array.from(container.children)
+        .filter(child => !child.dataset?.statusKey)
+        .forEach(child => child.remove());
+
+    const existing = new Map(
+        Array.from(container.children)
+            .filter(child => child.dataset?.statusKey)
+            .map(child => [child.dataset.statusKey, child])
+    );
+    const orderedNodes = [];
+
+    entries.forEach((entry, index) => {
+        const key = getStatusIconKey(entry.effect, entry.options, index);
+        const el = existing.get(key) || createStatusIcon(entry.effect, entry.options);
+        el.dataset.statusKey = key;
+        updateStatusIcon(el, entry.effect, entry.options);
+        orderedNodes.push(el);
+        existing.delete(key);
+    });
+
+    existing.forEach(el => el.remove());
+    orderedNodes.forEach((el, index) => {
+        const currentNode = container.children[index] || null;
+        if (currentNode !== el) {
+            container.insertBefore(el, currentNode);
+        }
+    });
 }
 
 function getMonsterStatusEffects(monster) {
@@ -216,14 +273,15 @@ function renderMonsterStatusIndicators(root, monster) {
         host.appendChild(row);
     }
 
-    row.innerHTML = '';
-    effects.forEach(effect => {
-        row.appendChild(createStatusIcon(effect, {
+    syncStatusIcons(row, effects.map((effect, index) => ({
+        effect,
+        options: {
+            key: `monster:${effect.type || effect.id}:${effect.source || ''}:${index}`,
             polarity: 'negative',
             durationText: formatDuration(effect.duration),
             description: effect.description || ''
-        }));
-    });
+        }
+    })));
 }
 
 export function renderCombatMonster(root, monster, options = {}) {
@@ -285,22 +343,72 @@ export function renderCombatActionDeck(root, character, options = {}) {
     potionCard?.classList.toggle('disabled', !stack);
 }
 
+export function isCombatActionCooling(card) {
+    return Boolean(card?.classList?.contains('is-cooling'));
+}
+
+export function clearCombatActionCooldown(card) {
+    if (!card) return;
+    if (card._combatCooldownFrame) {
+        cancelAnimationFrame(card._combatCooldownFrame);
+        card._combatCooldownFrame = null;
+    }
+    card.classList.remove('is-cooling');
+    card.removeAttribute('aria-disabled');
+    card.style.removeProperty('--cooldown-progress');
+}
+
+export function startCombatActionCooldown(card, durationSeconds = 1) {
+    if (!card || isCombatActionCooling(card)) return false;
+
+    const totalMs = Math.max(1, Number(durationSeconds) * 1000 || 1000);
+    let ring = card.querySelector('.action-cooldown-ring');
+    if (!ring) {
+        ring = document.createElement('span');
+        ring.className = 'action-cooldown-ring';
+        ring.setAttribute('aria-hidden', 'true');
+        ring.innerHTML = '<span class="action-cooldown-value">0</span>';
+        card.appendChild(ring);
+    }
+
+    const startedAt = performance.now();
+    card.classList.add('is-cooling');
+    card.setAttribute('aria-disabled', 'true');
+    card.style.setProperty('--cooldown-progress', '0%');
+
+    const tick = () => {
+        const elapsedRatio = Math.min(1, Math.max(0, (performance.now() - startedAt) / totalMs));
+        card.style.setProperty('--cooldown-progress', `${elapsedRatio * 100}%`);
+        if (elapsedRatio < 1) {
+            card._combatCooldownFrame = requestAnimationFrame(tick);
+        } else {
+            clearCombatActionCooldown(card);
+        }
+    };
+    card._combatCooldownFrame = requestAnimationFrame(tick);
+    return true;
+}
+
 export function renderCombatBuffIndicators(container, character) {
     if (!container || !character) return;
-    container.innerHTML = '';
 
     const passiveEffects = typeof character.getActivePassiveCombatEffects === 'function'
         ? character.getActivePassiveCombatEffects()
         : [];
+    const entries = [];
 
-    for (const effect of passiveEffects) {
-        container.appendChild(createStatusIcon(effect, {
-            passive: true,
-            polarity: 'positive',
-            durationText: '∞',
-            description: '常駐戰術技能'
-        }));
-    }
+    passiveEffects.forEach((effect, index) => {
+        entries.push({
+            effect,
+            options: {
+                key: `passive:${effect.id || effect.type || index}`,
+                passive: true,
+                polarity: 'positive',
+                durationText: '∞',
+                description: '常駐戰術技能'
+            }
+        });
+    });
 
     const buffIcons = {
         atk: '⚔️',
@@ -316,21 +424,35 @@ export function renderCombatBuffIndicators(container, character) {
         slow: '🧊'
     };
 
-    for (const buff of character.activeBuffs || []) {
-        container.appendChild(createStatusIcon({
-            ...buff,
-            icon: buff.icon || buffIcons[buff.type] || '✨',
-            description: `+${buff.value ?? 0}`
-        }, { polarity: 'positive' }));
-    }
+    (character.activeBuffs || []).forEach((buff, index) => {
+        entries.push({
+            effect: {
+                ...buff,
+                icon: buff.icon || buffIcons[buff.type] || '✨',
+                description: `+${buff.value ?? 0}`
+            },
+            options: {
+                key: `buff:${buff.id || buff.type || index}:${index}`,
+                polarity: 'positive'
+            }
+        });
+    });
 
-    for (const debuff of character.debuffs || []) {
-        container.appendChild(createStatusIcon({
-            ...debuff,
-            icon: debuff.icon || buffIcons[debuff.type] || '◆',
-            description: debuff.description || `-${debuff.value ?? 0}`
-        }, { polarity: 'negative' }));
-    }
+    (character.debuffs || []).forEach((debuff, index) => {
+        entries.push({
+            effect: {
+                ...debuff,
+                icon: debuff.icon || buffIcons[debuff.type] || '◆',
+                description: debuff.description || `-${debuff.value ?? 0}`
+            },
+            options: {
+                key: `debuff:${debuff.id || debuff.type || index}:${index}`,
+                polarity: 'negative'
+            }
+        });
+    });
+
+    syncStatusIcons(container, entries);
 }
 
 export function showCombatDamageNumber(root, damage, options = {}) {
@@ -377,9 +499,8 @@ export function showCombatDamageNumber(root, damage, options = {}) {
     }
 
     battleHeader.appendChild(damageEl);
-    if ((type === 'normal' || type === 'hit') && numericDamage > 0) {
-        triggerCombatImpact(root, { intensity: 'normal', flash: 'hit' });
-    }
+    // Normal hits rely on the damage number only. Repeated full-screen flashes made
+    // real-time combat feel like the whole interface was flickering.
     if (type === 'critical' || type === 'crit') {
         triggerCombatImpact(root, { intensity: 'critical', flash: 'crit', slowMotion: true });
     }
@@ -387,25 +508,16 @@ export function showCombatDamageNumber(root, damage, options = {}) {
         triggerCombatImpact(root, { intensity: 'medium', flash: 'armorBreak' });
     }
     if (type === 'doubleStrike') {
-        triggerCombatImpact(root, { intensity: 'combo', flash: 'doubleStrike' });
+        triggerCombatImpact(root, { intensity: 'combo' });
     }
     if (type === 'reflect') {
-        triggerCombatImpact(root, { intensity: 'medium', flash: 'reflect' });
+        triggerCombatImpact(root, { intensity: 'medium' });
     }
     if (type === 'revive') {
         triggerCombatImpact(root, { intensity: 'phase', flash: 'revive', slowMotion: true });
     }
-    if (type === 'lifesteal' || type === 'heal') {
-        triggerCombatImpact(root, { intensity: 'soft', flash: 'heal' });
-    }
     if (type === 'statusStun') {
         triggerCombatImpact(root, { intensity: 'medium', flash: 'thunder' });
-    }
-    if (type === 'statusSlow') {
-        triggerCombatImpact(root, { intensity: 'soft', flash: 'ice' });
-    }
-    if (type === 'statusPoison') {
-        triggerCombatImpact(root, { intensity: 'soft', flash: 'poison' });
     }
     setTimeout(() => damageEl.remove(), 800);
 }
@@ -443,7 +555,7 @@ export function showCombatKillFreeze(root) {
     const surface = getCombatSurface(root);
     if (!surface) return;
     surface.classList.add('combat-kill-freeze');
-    triggerCombatImpact(surface, { intensity: 'critical', flash: 'kill', slowMotion: true });
+    triggerCombatImpact(surface, { intensity: 'medium', slowMotion: true });
     setTimeout(() => surface.classList.remove('combat-kill-freeze'), 420);
 }
 
@@ -484,6 +596,8 @@ export function showCombatPlayerHitFeedback(root, character, damage = 0) {
     if (damagePercent > 40) shakeClass = 'shake-large';
     else if (damagePercent > 15) shakeClass = 'shake-medium';
     battleContent.classList.add(shakeClass);
-    triggerCombatImpact(root, { intensity: damagePercent > 15 ? 'medium' : 'normal', flash: 'hit' });
+    if (damagePercent > 15) {
+        triggerCombatImpact(root, { intensity: 'medium' });
+    }
     setTimeout(() => battleContent.classList.remove(shakeClass), 400);
 }

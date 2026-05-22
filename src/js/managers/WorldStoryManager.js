@@ -18,6 +18,7 @@ import {
 import { BossMonsterIds } from '../data/Monsters.js';
 
 const BossTemplateIdSet = new Set(Array.isArray(BossMonsterIds) ? BossMonsterIds : []);
+const ManualTriggerBossIds = new Set(['ambush_mantis']);
 
 function clampStage(stages, clueCount) {
     if (!Array.isArray(stages) || stages.length === 0) return null;
@@ -673,10 +674,24 @@ class WorldStoryManager {
         const progress = this.getStoryProgress(chainId);
         const completedProgress = progress.filter(item => item.completed).length;
         const finalTrigger = chain.finalTrigger || {};
-        const requiredClues = Number(finalTrigger.requiredClues) || Math.min(2, chain.clueIds?.length || 0);
-        const requiredProgress = Number(finalTrigger.requiredProgress) || 1;
+        const requiredClueIds = Array.isArray(finalTrigger.requiredClueIds)
+            ? finalTrigger.requiredClueIds.filter(Boolean)
+            : [];
+        const requiredProgressIds = Array.isArray(finalTrigger.requiredProgressIds)
+            ? finalTrigger.requiredProgressIds.filter(Boolean)
+            : [];
+        const discoveredClueIds = new Set(discoveredClues.map(clue => clue.id));
+        const completedProgressIds = new Set(progress.filter(item => item.completed).map(item => item.id));
+        const requiredClues = requiredClueIds.length || Number(finalTrigger.requiredClues) || Math.min(2, chain.clueIds?.length || 0);
+        const requiredProgress = requiredProgressIds.length || Number(finalTrigger.requiredProgress) || 1;
+        const cluesReady = requiredClueIds.length > 0
+            ? requiredClueIds.every(clueId => discoveredClueIds.has(clueId))
+            : discoveredClues.length >= requiredClues;
+        const progressReady = requiredProgressIds.length > 0
+            ? requiredProgressIds.every(progressId => completedProgressIds.has(progressId))
+            : completedProgress >= requiredProgress;
         const finalReadyFlag = GameManager.getFlag(this.getStoryFinalReadyFlag(chainId));
-        const readyByProgress = discoveredClues.length >= requiredClues && completedProgress >= requiredProgress;
+        const readyByProgress = cluesReady && progressReady;
 
         return {
             ...this.getStorySummary(chainId),
@@ -691,8 +706,10 @@ class WorldStoryManager {
             shortcut: chain.shortcut || null,
             finalTrigger,
             discoveredClues,
+            requiredClueIds,
             requiredClues,
             completedProgress,
+            requiredProgressIds,
             requiredProgress,
             finalReady: Boolean(finalReadyFlag?.ready || readyByProgress),
             validation: this.validateBossFlow(chainId)
@@ -717,12 +734,15 @@ class WorldStoryManager {
         }
 
         const status = this.getBossFlowStatus(chain.id);
+        const requiresManualTrigger = ManualTriggerBossIds.has(bossId);
+
         return {
             bossId,
             chainId: chain.id,
             title: chain.title,
             hasStory: true,
-            visible: Boolean(status?.finalReady && status?.battleTemplateLinked),
+            visible: Boolean(!requiresManualTrigger && status?.finalReady && status?.battleTemplateLinked),
+            requiresManualTrigger,
             finalReady: Boolean(status?.finalReady),
             battleTemplateLinked: Boolean(status?.battleTemplateLinked),
             requiredClues: status?.requiredClues || 0,

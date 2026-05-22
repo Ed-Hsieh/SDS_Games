@@ -10,6 +10,8 @@ import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
 import { getLandmark, getWorldLandmarks } from '../data/WorldStories.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 
+const ManualTriggerBossIds = new Set(['ambush_mantis']);
+
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
 // 這裡重新導出以保持向後相容
 export { DungeonEntranceConfig };
@@ -199,6 +201,8 @@ export default class WorldMap {
         const allZonesOrder = ['low', 'medium', 'high', 'death'];
 
         for (const bossId of allBossIds) {
+            if (ManualTriggerBossIds.has(bossId)) continue;
+
             const bossTemplate = MonsterManager.getMonster ? MonsterManager.getMonster(bossId) : null;
             if (!bossTemplate) continue;
 
@@ -401,6 +405,7 @@ export default class WorldMap {
     }
 
     findBossSite(bossId) {
+        if (ManualTriggerBossIds.has(bossId)) return null;
         return this.bossSites.find(site => site.bossId === bossId) || null;
     }
 
@@ -411,6 +416,32 @@ export default class WorldMap {
         this.playerPos.y = site.y;
         this.updateCamera();
         return site;
+    }
+
+    findLandmarkSite(landmarkId) {
+        if (!landmarkId) return null;
+        return this.landmarks.find(site => site.landmarkId === landmarkId) || null;
+    }
+
+    teleportToLandmark(landmarkId) {
+        const site = this.findLandmarkSite(landmarkId);
+        if (!site) return null;
+
+        this.playerPos.x = site.x;
+        this.playerPos.y = site.y;
+        const cell = this.mapData?.[site.y]?.[site.x];
+        this.currentLandmark = {
+            id: landmarkId,
+            data: cell?.landmarkData || getLandmark(landmarkId),
+            zone: cell?.zone || 'low'
+        };
+        this.updateCamera();
+
+        return {
+            ...site,
+            zone: cell?.zone || 'low',
+            data: cell?.landmarkData || null
+        };
     }
 
     findDungeonSite(dungeonType) {
@@ -509,7 +540,7 @@ export default class WorldMap {
             
             const cell = this.mapData[newY][newX];
 
-            if (cell.bossSiteId && worldStoryManager.isBossLairVisible(cell.bossSiteId)) {
+            if (cell.bossSiteId && !ManualTriggerBossIds.has(cell.bossSiteId) && worldStoryManager.isBossLairVisible(cell.bossSiteId)) {
                 if (GameManager.getFlag('debug.noBattles')) {
                     return null;
                 }

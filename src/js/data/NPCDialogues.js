@@ -267,6 +267,25 @@ export const TownDialogueDatabase = {
 
     street_beggar: [
         {
+            id: 'beggar_broke_wisdom',
+            priority: 120,
+            tone: 'discovery',
+            conditions: [
+                { type: 'questStatus', questId: 'hidden_broke', status: 'active' }
+            ],
+            narrativeTitle: '一無所有',
+            narrativeSummary: '你在身無分文時回到暗巷。巷口流浪者沒有嘲笑你，只把真正窮過的人才懂的生存方法塞進你的手札。這條聽聞不是委託，而是一種活下去的眼力。',
+            lines: [
+                { speaker: 'npc', text: '現在才像話。口袋空到連灰塵都搬家了，眼睛反而開始能看見東西。' },
+                { speaker: 'npc', text: '記住，沒錢不是最糟。最糟的是明明沒錢，還相信自己很體面。你要找路，就先學會看別人不願看的角落。' },
+                { speaker: 'npc', text: '拿去，這不是施捨。這叫做前輩把摔過的坑畫給你看。下次跌進去，至少可以挑個比較淺的。' }
+            ],
+            effects: [
+                { type: 'questProgress', objectiveType: 'talk', target: 'beggar', amount: 1, message: '巷口流浪者把一無所有時的生存法則寫進你的手札。' },
+                { type: 'completeQuest', questId: 'hidden_broke', message: '你從巷口流浪者那裡學到一種窮到發亮的生存智慧。' }
+            ]
+        },
+        {
             id: 'beggar_first_talk',
             priority: 90,
             once: true,

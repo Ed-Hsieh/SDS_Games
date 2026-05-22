@@ -17,6 +17,9 @@ import {
     renderCombatMonster,
     renderCombatPlayer,
     renderCombatBuffIndicators,
+    clearCombatActionCooldown,
+    isCombatActionCooling,
+    startCombatActionCooldown,
     showCombatDamageNumber,
     showCombatPlayerHitFeedback,
     showCombatKillFreeze
@@ -1036,6 +1039,7 @@ class DungeonSceneClass {
     showBattleModal() {
         // 統一使用 combat-overlay
         if (this.dom.combatOverlay) {
+            this.clearActionCooldowns();
             if (this.dom.messageLog) this.dom.messageLog.innerHTML = '';
             this.dom.combatOverlay.classList.remove('hidden');
         } else {
@@ -1046,9 +1050,16 @@ class DungeonSceneClass {
     }
     
     hideBattleModal() {
+        this.clearActionCooldowns();
         if (this.dom.combatOverlay) {
             this.dom.combatOverlay.classList.add('hidden');
         }
+    }
+
+    clearActionCooldowns() {
+        [this.dom.btnAttack, this.dom.btnItem, this.dom.btnFlee]
+            .filter(Boolean)
+            .forEach(card => clearCombatActionCooldown(card));
     }
     
     updateMonsterDisplay() {
@@ -1078,6 +1089,7 @@ class DungeonSceneClass {
     
     playerAttack() {
         if (!this.isInCombat || !this.currentMonster) return;
+        if (isCombatActionCooling(this.dom.btnAttack)) return;
 
         if (!this._engine) {
             console.error('Fight engine not initialized; cannot perform player attack.');
@@ -1087,6 +1099,7 @@ class DungeonSceneClass {
         // For dungeon simple action, treat as a normal hit
         const res = this._engine.playerAttack('hit');
         if (!res) return;
+        startCombatActionCooldown(this.dom.btnAttack, GameManager.getCharacter()?.getAttackSpeed?.() || 1);
 
         const applyRes = res.applyRes || {};
         if (res.destroyedWeapon) this.addMessage('⚠️ 你的武器被破壞了！', 'warning');
@@ -1121,6 +1134,7 @@ class DungeonSceneClass {
     
     playerUseItem() {
         if (!this.isInCombat) return;
+        if (isCombatActionCooling(this.dom.btnItem)) return;
 
         const stack = this.findConsumableStack();
         if (!stack) {
@@ -1136,6 +1150,7 @@ class DungeonSceneClass {
         }
 
         this.addMessage(`使用 ${itemName}，角色狀態已更新。`, 'success');
+        startCombatActionCooldown(this.dom.btnItem, 1);
         this.updateUI();
         this.updateBattlePlayerDisplay();
         GameManager.markSaveDirty?.('dungeon-use-item');
@@ -1143,12 +1158,14 @@ class DungeonSceneClass {
     
     playerFlee() {
         if (!this.isInCombat) return;
+        if (isCombatActionCooling(this.dom.btnFlee)) return;
         
         if (this.currentMonster.isBoss) {
             this.addMessage('👑 無法從 Boss 戰中逃跑！', 'danger');
             return;
         }
 
+        startCombatActionCooldown(this.dom.btnFlee, 1);
         const fleeChance = this.getDungeonFleeChance();
         if (Math.random() < fleeChance) {
             this.applyDungeonRetreatCost();

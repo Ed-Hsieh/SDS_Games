@@ -251,7 +251,7 @@ Object.assign(WorldClues, {
         chainId: 'ambush_mantis',
         source: '製作',
         text: '誘餌鉤被整齊切斷，切面太新，代表某種東西一直跟在你後面。',
-        lead: '製作誘餌後連續探索，可能讓牠主動現身。'
+        lead: '帶著銀絲誘餌前往銀絲最密的伏道，才能反設陷阱引牠現身。'
     },
     survivor_warning: {
         id: 'survivor_warning',
@@ -489,7 +489,15 @@ const BossFlowDesigns = {
         revealMethods: ['特殊事件', '模糊方向', 'NPC 對話'],
         mapPuzzle: { id: 'ambush_loop', label: '找出哪段回程路會讓銀絲收束' },
         shortcut: { id: 'reverse_trap', label: '用誘餌鉤反設陷阱，提早觸發伏擊' },
-        finalTrigger: { id: 'boss_ambushes_player', label: '讓 BOSS 主動伏擊', type: '被伏擊', requiredClues: 2, requiredProgress: 2 }
+        finalTrigger: {
+            id: 'boss_ambushes_player',
+            label: '在銀絲伏道設置銀絲誘餌',
+            type: '被伏擊',
+            requiredClues: 2,
+            requiredClueIds: ['silk_tripwire', 'snapped_bait_hook'],
+            requiredProgress: 2,
+            requiredProgressIds: ['repeat_route', 'craft_bait_hook']
+        }
     }
 };
 
@@ -534,7 +542,7 @@ export const WorldLandmarks = [
         effectIds: ['open_trail'],
         visible: 'always',
         storyChainIds: ['ambush_mantis'],
-        clueIds: ['snapped_bait_hook'],
+        clueIds: [],
         arrival: '路牌被整齊切成兩半，斷面旁掛著一枚折斷的誘餌鉤。',
         repeat: '你能看見木牌切口旁的新鮮細痕，像是刀鋒剛擦過。',
         mapHint: '可確認誘餌鉤與銀絲伏擊的關聯。'

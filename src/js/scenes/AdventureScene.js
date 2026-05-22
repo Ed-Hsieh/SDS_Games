@@ -22,10 +22,24 @@ import {
     renderCombatPlayer,
     renderCombatBuffIndicators,
     renderCombatActionDeck,
+    clearCombatActionCooldown,
+    isCombatActionCooling,
+    startCombatActionCooldown,
     showCombatDamageNumber,
     showCombatPlayerHitFeedback,
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
+
+const AMBUSH_MANTIS_CHAIN_ID = 'ambush_mantis';
+const AMBUSH_MANTIS_BOSS_ID = 'ambush_mantis';
+const AMBUSH_MANTIS_BAIT_ITEM_ID = 'silver_thread_bait';
+const AMBUSH_MANTIS_TRIGGER_LANDMARK_ID = 'silver_snare_pass';
+const AMBUSH_MANTIS_RELATED_LANDMARKS = new Set([
+    'hunter_boardwalk',
+    'old_campfire_site',
+    'cut_roadsign',
+    AMBUSH_MANTIS_TRIGGER_LANDMARK_ID
+]);
 
 // Preload FightManager for unified management (fallback to promise if not ready)
 let FightManager = null;
@@ -152,6 +166,7 @@ export default class AdventureScene {
             
             // Battle Modal
             battleModal: this.container.querySelector('#battle-modal'),
+            battleBody: this.container.querySelector('#battle-modal .battle-body'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
             buffIndicators: this.container.querySelector('#buff-indicators'),
@@ -337,7 +352,7 @@ export default class AdventureScene {
         
         if (this.dom.fleeBtn) this.dom.fleeBtn.addEventListener('click', () => this.handleFleeClick());
         if (this.dom.lootCloseBtn) this.dom.lootCloseBtn.addEventListener('click', () => {
-            this.dom.lootModal.style.display = 'none';
+            if (!this.lootCloseHandler) this.closeBattleResult();
         });
     }
 
@@ -708,6 +723,15 @@ export default class AdventureScene {
         const status = worldStoryManager.getBossFlowStatus(chainId);
         if (!status?.finalReady || !status?.battleTemplateLinked) return null;
 
+        if (chainId === AMBUSH_MANTIS_CHAIN_ID) {
+            const landmark = this.worldMap?.teleportToLandmark?.(AMBUSH_MANTIS_TRIGGER_LANDMARK_ID);
+            if (!landmark) return null;
+            this.currentLocationKey = null;
+            this.renderMap();
+            this.updateWorldNarrativePanel();
+            return { ...landmark, bossId: status.bossId, manualTrigger: true };
+        }
+
         const site = this.worldMap?.teleportToBossSite?.(status.bossId);
         if (!site) return null;
         this.currentLocationKey = null;
@@ -717,8 +741,9 @@ export default class AdventureScene {
     }
 
     challengeBossLairForTesting(chainId) {
+        const status = worldStoryManager.getBossFlowStatus(chainId);
         const site = this.teleportToBossLairForTesting(chainId);
-        if (!site) return null;
+        if (!site || !status) return null;
 
         GameManager.setFlag('debug.noAmbientEncounters', false);
         GameManager.setFlag('debug.noBattles', false);
@@ -726,7 +751,7 @@ export default class AdventureScene {
 
         const cell = this.worldMap?.mapData?.[site.y]?.[site.x];
         const zone = cell?.zone || this.worldMap?.getCurrentZone?.() || 'low';
-        if (!this.worldMap?.createBossEncounter?.(site.bossId, zone)) return null;
+        if (!this.worldMap?.createBossEncounter?.(status.bossId, zone)) return null;
 
         this.isLocked = true;
         this.toggleBossTestPanel(false);
@@ -1215,7 +1240,7 @@ export default class AdventureScene {
             } else if (cell.data.type === 'home') {
                 drawHomeMarker(x, y);
             }
-            if (cell.data.bossSiteId && worldStoryManager.isBossLairVisible(cell.data.bossSiteId)) {
+            if (cell.data.bossSiteId && cell.data.bossSiteId !== AMBUSH_MANTIS_BOSS_ID && worldStoryManager.isBossLairVisible(cell.data.bossSiteId)) {
                 drawBossLairMarker(cell, x, y);
             }
         });
@@ -1246,6 +1271,133 @@ export default class AdventureScene {
 
     // ===== 地圖事件處理 =====
     
+    getInventoryItemCount(itemId) {
+        return (GameManager.state?.inventory || [])
+            .filter(stack => stack?.item?.id === itemId)
+            .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
+    }
+
+    consumeInventoryItem(itemId, quantity = 1) {
+        const inventory = GameManager.state?.inventory || [];
+        let remaining = Math.max(1, Number(quantity) || 1);
+
+        for (let index = inventory.length - 1; index >= 0 && remaining > 0; index -= 1) {
+            const stack = inventory[index];
+            if (stack?.item?.id !== itemId) continue;
+
+            const stackQuantity = Math.max(1, Number(stack.quantity) || 1);
+            const used = Math.min(stackQuantity, remaining);
+            const nextQuantity = stackQuantity - used;
+            remaining -= used;
+
+            if (nextQuantity <= 0) {
+                inventory.splice(index, 1);
+            } else {
+                stack.quantity = nextQuantity;
+            }
+        }
+
+        if (remaining > 0) return false;
+
+        GameManager.markSaveDirty?.('consume-adventure-item');
+        GameManager.notify('inventory');
+        return true;
+    }
+
+    getAmbushMantisBaitState(landmarkId) {
+        if (!AMBUSH_MANTIS_RELATED_LANDMARKS.has(landmarkId)) return null;
+
+        const status = worldStoryManager.getBossFlowStatus(AMBUSH_MANTIS_CHAIN_ID);
+        const baitCount = this.getInventoryItemCount(AMBUSH_MANTIS_BAIT_ITEM_ID);
+        const defeated = worldStoryManager.hasMonsterDefeated?.(AMBUSH_MANTIS_BOSS_ID);
+        const atTriggerLandmark = landmarkId === AMBUSH_MANTIS_TRIGGER_LANDMARK_ID;
+
+        return {
+            status,
+            baitCount,
+            defeated,
+            atTriggerLandmark,
+            canTrigger: Boolean(status?.finalReady && status?.battleTemplateLinked && atTriggerLandmark && baitCount > 0 && !defeated)
+        };
+    }
+
+    renderAmbushMantisBaitPanel(landmarkId) {
+        const state = this.getAmbushMantisBaitState(landmarkId);
+        if (!state) return '';
+
+        const clueText = `${state.status?.discoveredClues?.length || 0}/${state.status?.requiredClues || 2}`;
+        const progressText = `${state.status?.completedProgress || 0}/${state.status?.requiredProgress || 2}`;
+
+        let title = '銀絲伏擊';
+        let body = '銀絲在路邊收束，像是在等待某個足夠貪心的人把脖子伸過去。';
+        let action = '';
+
+        if (state.defeated) {
+            title = '伏道已靜';
+            body = '銀鐮伏獵者已被擊敗。銀絲仍掛在枝葉間，但不再像活物一樣重新丈量你的腳步。';
+        } else if (!state.status?.finalReady) {
+            title = '線索尚未收束';
+            body = `目前線索 ${clueText}，推進 ${progressText}。你還無法判斷牠會在哪一段回程路出手。`;
+        } else if (!state.atTriggerLandmark) {
+            title = '不是設陷位置';
+            body = '這裡能讀到銀絲的方向，但誘餌不能隨便丟。線索指向銀絲最密的伏道。';
+        } else if (state.baitCount <= 0) {
+            title = '缺少銀絲誘餌';
+            body = '你已經知道牠會怎麼觀察路線，但還需要銀絲誘餌才能把牠從暗處逼出來。旅行商人也許願意賣這種不太吉利的小玩意。';
+        } else {
+            body = `你手上有 ${state.baitCount} 個銀絲誘餌。把它掛在回程路上，銀鐮伏獵者就會以為自己才是獵人。`;
+            action = `
+                <button class="btn btn-primary ambush-bait-action" type="button" data-ambush-mantis-bait="true">
+                    設置銀絲誘餌
+                </button>
+            `;
+        }
+
+        return `
+            <div class="ambush-bait-panel">
+                <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <p>${escapeHtml(body)}</p>
+                </div>
+                ${action}
+            </div>
+        `;
+    }
+
+    bindAmbushMantisBaitAction(landmarkId, zoneId) {
+        const button = this.dom.eventResult?.querySelector?.('[data-ambush-mantis-bait="true"]');
+        if (!button) return;
+        button.addEventListener('click', () => this.triggerAmbushMantisFromBait(landmarkId, zoneId), { once: true });
+    }
+
+    triggerAmbushMantisFromBait(landmarkId, zoneId) {
+        const state = this.getAmbushMantisBaitState(landmarkId);
+        if (!state?.canTrigger) {
+            showGlobalToast('無法設置誘餌', '這裡還不是銀鐮伏獵者會出手的位置，或是你缺少誘餌。', 'warning');
+            return;
+        }
+
+        if (!this.consumeInventoryItem(AMBUSH_MANTIS_BAIT_ITEM_ID, 1)) {
+            showGlobalToast('缺少銀絲誘餌', '背包裡沒有可用的銀絲誘餌。', 'warning');
+            return;
+        }
+
+        if (this.dom.eventModal) this.dom.eventModal.style.display = 'none';
+        if (!this.worldMap?.createBossEncounter?.(AMBUSH_MANTIS_BOSS_ID, zoneId || 'low')) {
+            showGlobalToast('伏擊失敗', '銀絲劇烈震動，但沒有任何東西現身。', 'error');
+            this.isLocked = false;
+            return;
+        }
+
+        GameManager.setFlag('world.story.ambush_mantis.usedSilverBait', {
+            landmarkId,
+            usedAt: Date.now()
+        });
+        GameManager.markSaveDirty?.('ambush-mantis-bait-trigger');
+        this.isLocked = true;
+        this.startBattle();
+    }
+
     handleLandmarkInteraction() {
         const landmarkRef = this.worldMap.getCurrentLandmark?.();
         if (!landmarkRef) {
@@ -1273,7 +1425,8 @@ export default class AdventureScene {
                 <p>${escapeHtml(effect.summary)}</p>
             </div>
         `).join('');
-        const resultHTML = `${clueHTML}${effectHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
+        const ambushBaitHTML = this.renderAmbushMantisBaitPanel(landmarkRef.id);
+        const resultHTML = `${clueHTML}${effectHTML}${ambushBaitHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
 
         this.updateWorldNarrativePanel({
             landmark: outcome.landmark,
@@ -1290,6 +1443,7 @@ export default class AdventureScene {
             outcome.description || '你抵達一處值得記錄的地方。',
             resultHTML
         );
+        this.bindAmbushMantisBaitAction(landmarkRef.id, landmarkRef.zone);
     }
 
     handleMapEvent() {
@@ -1850,6 +2004,13 @@ export default class AdventureScene {
         
         this.battleLog = []; // 清空戰鬥日誌
         this.currentBattle = new AdventureBattleViewController(GameManager.getCharacter(), monster, this);
+        this.dom.battleModal.classList.remove('battle-result-mode');
+        if (this.dom.battleBody) this.dom.battleBody.hidden = false;
+        if (this.dom.lootModal) {
+            this.dom.lootModal.classList.remove('is-entering');
+            this.dom.lootModal.style.display = 'none';
+        }
+        this.clearActionCooldowns();
         this.dom.battleModal.style.display = 'flex';
         
         this.updateMonsterDisplay();
@@ -1942,8 +2103,17 @@ export default class AdventureScene {
         };
     }
 
-    endBattle(victory) {
-        this.dom.battleModal.style.display = 'none';
+    endBattle(victory, options = {}) {
+        const { keepModalOpen = false, keepLocked = false } = options;
+        if (!keepModalOpen) {
+            this.dom.battleModal.classList.remove('battle-result-mode');
+            if (this.dom.battleBody) this.dom.battleBody.hidden = false;
+            if (this.dom.lootModal) {
+                this.dom.lootModal.classList.remove('is-entering');
+                this.dom.lootModal.style.display = 'none';
+            }
+            this.dom.battleModal.style.display = 'none';
+        }
         if (this.rhythmSystem) {
             this.rhythmSystem.stop();
             this.rhythmSystem = null;
@@ -1962,14 +2132,14 @@ export default class AdventureScene {
         try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = true; } catch (e) {}
 
         this.currentBattle = null;
-        
+
         // 清除戰鬥結束時的 Buff
         const char = GameManager.getCharacter();
         char.clearAllBuffs();
-        
+
         // 解除移動鎖定
-        this.isLocked = false;
-        
+        if (!keepLocked) this.isLocked = false;
+
         this.updateUI();
     }
 
@@ -1990,6 +2160,9 @@ export default class AdventureScene {
 
     handleFleeClick() {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
+        const fleeCard = this.container.querySelector('#action-flee');
+        if (isCombatActionCooling(fleeCard)) return;
+        startCombatActionCooldown(fleeCard, 1);
         this.currentBattle.flee();
     }
     
@@ -1997,7 +2170,9 @@ export default class AdventureScene {
 
     handlePotionUse() {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
-        
+        const potionCard = this.container.querySelector('#action-potion');
+        if (isCombatActionCooling(potionCard)) return;
+
         const inventory = GameManager.state.inventory;
         const potionStack = inventory.find(stack => stack.item.type === 'potion');
         
@@ -2030,7 +2205,8 @@ export default class AdventureScene {
             const index = inventory.indexOf(potionStack);
             if (index > -1) inventory.splice(index, 1);
         }
-        
+        startCombatActionCooldown(potionCard, 1);
+
         // 更新UI
         this.updatePlayerHUD();
         this.updateActionDeck();
@@ -2062,6 +2238,13 @@ export default class AdventureScene {
             unarmedName: '拳頭',
             emptyPotionName: '沒有補給'
         });
+    }
+
+    clearActionCooldowns() {
+        ['#action-weapon', '#action-potion', '#action-flee', '#btn-attack', '#btn-item', '#btn-flee']
+            .map(selector => this.container.querySelector(selector))
+            .filter(Boolean)
+            .forEach(card => clearCombatActionCooldown(card));
     }
     
     /**
@@ -2115,11 +2298,15 @@ export default class AdventureScene {
     }
 
     showLoot(exp, gold, items) {
+        this.dom.battleModal?.classList.add('battle-result-mode');
+        if (this.dom.battleBody) this.dom.battleBody.hidden = true;
+        this.dom.lootModal.classList.remove('is-entering');
         this.dom.lootModal.style.display = 'flex';
+
         const lootTitle = this.dom.lootModal.querySelector('.modal-header h2');
         const expEl = this.container.querySelector('#exp-gained');
         const goldEl = this.container.querySelector('#gold-gained');
-        if (lootTitle) lootTitle.textContent = '戰鬥勝利';
+        if (lootTitle) lootTitle.textContent = '戰鬥結算';
         if (expEl) expEl.textContent = `+${exp} 經驗`;
         if (goldEl) goldEl.textContent = `+${gold}`;
 
@@ -2288,8 +2475,8 @@ export default class AdventureScene {
                     try { GameManager.addToWarehouse(it, getQuantity(it)); } catch (e) { console.warn('addToWarehouse failed', e); }
                 });
                 closeItemTooltip();
-                // hide modal
-                this.dom.lootModal.style.display = 'none';
+                // hide result stage
+                this.closeBattleResult();
                 // cleanup
                 lootPool = [];
                 updatePlayerInventory();
@@ -2300,6 +2487,20 @@ export default class AdventureScene {
             };
             closeBtn.addEventListener('click', this.lootCloseHandler);
         }
+    }
+
+    closeBattleResult() {
+        if (this.dom.lootModal) {
+            this.dom.lootModal.classList.remove('is-entering');
+            this.dom.lootModal.style.display = 'none';
+        }
+        if (this.dom.battleBody) this.dom.battleBody.hidden = false;
+        if (this.dom.battleModal) {
+            this.dom.battleModal.classList.remove('battle-result-mode');
+            this.dom.battleModal.style.display = 'none';
+        }
+        this.isLocked = false;
+        this.updateUI();
     }
 }
 
@@ -2402,43 +2603,36 @@ class AdventureBattleViewController {
     startCooldown(duration) {
         this.attackCooldown = true;
         const attackBtn = this.scene.container.querySelector('#action-weapon');
-        
-        // 禁用按鈕
-        attackBtn.disabled = true;
-        
-        // 創建冷卻遮罩 (Fan Scan Mode)
-        let cooldownOverlay = attackBtn.querySelector('.cooldown-overlay');
-        if (!cooldownOverlay) {
-            cooldownOverlay = document.createElement('div');
-            cooldownOverlay.className = 'cooldown-overlay';
-            cooldownOverlay.innerHTML = '<span class="cooldown-timer"></span>';
-            attackBtn.appendChild(cooldownOverlay);
+        if (!attackBtn) return;
+
+        let cooldownRing = attackBtn.querySelector('.action-cooldown-ring');
+        if (!cooldownRing) {
+            cooldownRing = document.createElement('span');
+            cooldownRing.className = 'action-cooldown-ring';
+            cooldownRing.innerHTML = '<span class="action-cooldown-value">0</span>';
+            attackBtn.appendChild(cooldownRing);
         }
-        
-        const timer = cooldownOverlay.querySelector('.cooldown-timer');
-        cooldownOverlay.style.display = 'flex';
-        
+        const timer = cooldownRing.querySelector('.action-cooldown-value');
+        attackBtn.classList.add('is-cooling');
+        attackBtn.setAttribute('aria-disabled', 'true');
+
         const startTime = Date.now();
         const updateCooldown = () => {
             const elapsed = (Date.now() - startTime) / 1000;
             const remaining = Math.max(0, duration - elapsed);
-            const progress = (remaining / duration) * 100; // 100% -> 0%
-            
-            // 更新 CSS 變數以驅動扇形掃描
+            const progress = duration > 0 ? (1 - remaining / duration) * 100 : 100;
+
             attackBtn.style.setProperty('--cooldown-progress', `${progress}%`);
-            
-            // 更新數字
-            timer.textContent = remaining.toFixed(1);
-            
+            if (timer) timer.textContent = remaining >= 1 ? String(Math.ceil(remaining)) : remaining.toFixed(1);
+
             if (remaining > 0) {
                 requestAnimationFrame(updateCooldown);
             } else {
-                // 冷卻結束
-                cooldownOverlay.style.display = 'none';
-                attackBtn.disabled = false;
+                attackBtn.classList.remove('is-cooling');
+                attackBtn.removeAttribute('aria-disabled');
                 attackBtn.style.removeProperty('--cooldown-progress');
                 this.attackCooldown = false;
-                
+
                 // 恢復節奏條並生成新的隨機區域
                 if (this.scene.rhythmSystem) {
                     this.scene.rhythmSystem.resume();
@@ -2539,6 +2733,7 @@ class AdventureBattleViewController {
     }
 
     handleVictory() {
+        if (this.battleEnded) return;
         this.battleEnded = true;
         showCombatKillFreeze(this.scene.container.querySelector('.battle-modal') || this.scene.container);
         
@@ -2590,16 +2785,16 @@ class AdventureBattleViewController {
         this.player.exp += exp;
         this.player.checkLevelUp();
         GameManager.addGold(gold);
-        
+
         // 任務系統：更新擊殺進度
         questManager.updateProgress(ObjectiveType.KILL, this.monster.id || this.monster.type, 1);
         const storyOutcome = worldStoryManager.recordMonsterKill(this.monster, { zoneId });
         this.scene.showWorldDiscovery(storyOutcome);
-        
+
         setTimeout(() => {
-            this.scene.endBattle(true);
+            this.scene.endBattle(true, { keepModalOpen: true, keepLocked: true });
             this.scene.showLoot(exp, gold, droppedItems);
-        }, 1500);
+        }, 360);
     }
 
     handleDefeat() {

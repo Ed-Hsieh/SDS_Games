@@ -195,16 +195,6 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'low-zone-exploration-finds-bait-hook',
-        event: E.ZONE_EXPLORED,
-        match: { zoneId: 'low' },
-        counter: { key: 'zone.low.bait', required: 5 },
-        actions: [
-            clue('snapped_bait_hook'),
-            progress('ambush_mantis', 'craft_bait_hook')
-        ]
-    },
-    {
         id: 'low-zone-exploration-confirms-campfire-risk',
         event: E.ZONE_EXPLORED,
         match: { zoneId: 'low' },
@@ -275,6 +265,7 @@ export const StoryProgressRules = [
         id: 'cut-roadsign-confirms-bait-hook',
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'cut_roadsign' },
+        requires: [{ type: 'clue', clueId: 'silk_tripwire' }],
         actions: [
             clue('snapped_bait_hook'),
             progress('ambush_mantis', 'craft_bait_hook')

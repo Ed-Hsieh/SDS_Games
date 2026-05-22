@@ -10,6 +10,9 @@ import {
     renderCombatMonster,
     renderCombatPlayer,
     renderCombatBuffIndicators,
+    clearCombatActionCooldown,
+    isCombatActionCooling,
+    startCombatActionCooldown,
     showCombatDamageNumber,
     showCombatPlayerHitFeedback,
     showCombatKillFreeze
@@ -634,8 +637,12 @@ class TowerScene {
     // Skill menu UI removed for Tower scene
 
     showItemMenu() {
+        if (isCombatActionCooling(this.btnItem)) return;
         const inventory = GameManager.getInventory();
         const potions = inventory.filter(stack => stack.item.type === 'potion');
+        if (potions.length > 0) {
+            startCombatActionCooldown(this.btnItem, 1);
+        }
 
         const itemsHtml = potions.map(stack =>
             `<button class="item-btn" 
@@ -657,6 +664,7 @@ class TowerScene {
     }
 
     async fleeBattle() {
+        if (isCombatActionCooling(this.btnFlee)) return;
         const confirmed = await confirmAction({
             title: '確認逃跑',
             message: '逃跑會重置目前的無盡塔挑戰進度。',
@@ -667,6 +675,7 @@ class TowerScene {
 
         if (!confirmed) return;
 
+        startCombatActionCooldown(this.btnFlee, 1);
         this.stopRhythmBar();
         this.destroyBattleEngine();
         towerManager.abandonChallenge();
@@ -790,18 +799,21 @@ class TowerScene {
 
     showIdleState() {
         this.destroyBattleEngine();
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.remove('hidden');
         this.battleStateEl?.classList.add('hidden');
         this.resultStateEl?.classList.add('hidden');
     }
 
     showBattleState() {
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.add('hidden');
         this.battleStateEl?.classList.remove('hidden');
         this.resultStateEl?.classList.add('hidden');
     }
 
     showResultState(isVictory, data) {
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.add('hidden');
         this.battleStateEl?.classList.add('hidden');
         this.resultStateEl?.classList.remove('hidden');
@@ -870,6 +882,12 @@ class TowerScene {
 
         // 更新右側面板
         this.updatePlayerStats();
+    }
+
+    clearActionCooldowns() {
+        [this.btnAttack, this.btnItem, this.btnFlee]
+            .filter(Boolean)
+            .forEach(card => clearCombatActionCooldown(card));
     }
 
     renderBuffIndicators(char) {
