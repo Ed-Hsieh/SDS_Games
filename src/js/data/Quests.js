@@ -52,9 +52,10 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📖',
-            description: '村長請你先確認南門外近郊。這不是壯舉，只是讓城鎮知道哪些路還能走。',
+            description: '村長請你先找書記確認線索簿的記錄方式，再到南門外近郊確認哪些路還能走。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '確認南門外近郊 3 處路線' }
+                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, description: '先找書記確認線索簿的記錄方式' },
+                { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '再確認南門外近郊 3 處路線' }
             ],
             rewards: {
                 gold: 100,
@@ -67,19 +68,19 @@ export const QuestDatabase = {
             },
             unlocks: ['main_002'], // 完成後解鎖
             dialogue: {
-                start: '村長把南門外的路線交給你確認。',
+                start: '村長請你先找書記，再出城確認南門外的路線。',
                 complete: '你把第一份近郊路線帶回城鎮。'
             }
         },
         {
             id: 'main_002',
-            name: '初次戰鬥',
+            name: '農田邊的黏液聲',
             type: QuestType.MAIN,
             chapter: 1,
-            icon: '⚔️',
-            description: '近郊的路線還能走，但怪物正在靠近道路。先清出一段能讓村民通行的安全線。',
+            icon: '📚',
+            description: '書記把村民的聽聞整理成第一份線索：城外史萊姆正在靠近農田，這不是普通增生。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'any', count: 5, description: '清理近郊徘徊的怪物 5 隻' }
+                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '消滅靠近農田的史萊姆 5 個' }
             ],
             rewards: {
                 gold: 150,
@@ -91,17 +92,17 @@ export const QuestDatabase = {
             },
             unlocks: ['main_003'],
             dialogue: {
-                start: '怪物離路太近，城鎮需要一條能走的安全線。',
-                complete: '近郊暫時安靜下來。'
+                start: '書記把農田附近的異常寫進線索簿。',
+                complete: '史萊姆增生被壓下來，但這更像地脈異常的第一個症狀。'
             }
         },
         {
             id: 'main_003',
-            name: '裝備強化',
+            name: '斷裂誘餌鉤',
             type: QuestType.MAIN,
             chapter: 1,
             icon: '⚒️',
-            description: '拜訪鍛造師，學習如何強化你的裝備。',
+            description: '獵人棧道旁出現被整齊切斷的誘餌鉤。鍛造師認為那不是刀痕，而是某種會記住路線的東西留下的。',
             objectives: [
                 { type: ObjectiveType.ENHANCE, target: 'any', count: 1, description: '強化任意裝備 1 次' }
             ],
@@ -116,101 +117,109 @@ export const QuestDatabase = {
             },
             unlocks: ['main_004', 'commission_forge_001'],
             dialogue: {
-                start: '好的裝備需要維護和強化。去找鍛造師吧！',
-                complete: '現在你知道如何讓裝備更強了。'
+                start: '鍛造師要你先把裝備整好，再去試探獵人棧道。',
+                complete: '誘餌鉤被修成能反向設陷的形狀。獵人棧道的銀絲開始有了脈絡。'
             }
         },
         {
             id: 'main_004',
-            name: '賭徒的誘惑',
+            name: '銀絲伏道',
             type: QuestType.MAIN,
             chapter: 1,
-            icon: '🎰',
-            description: '聽說城裡有個賭場...去看看吧，但要小心！',
+            icon: '🕸️',
+            description: '獵人棧道的銀絲不是隨機陷阱，而是在丈量回程路。重複路線、營火與誘餌會把銀鐮伏獵者引出來。',
             objectives: [
-                { type: ObjectiveType.GAMBLE_WIN, target: 'any', count: 3, description: '在賭場獲勝 3 次' }
+                { type: ObjectiveType.KILL, target: 'ambush_mantis', count: 1, description: '觸發伏擊並擊敗銀鐮伏獵者' }
             ],
             rewards: {
-                gold: 200,
-                exp: 70
+                gold: 220,
+                exp: 140,
+                materials: [
+                    { id: 'spider_silk', quantity: 2 },
+                    { id: 'poison_gland', quantity: 1 }
+                ]
             },
-            unlocks: ['main_005', 'commission_casino_001'],
+            unlocks: ['main_005'],
             dialogue: {
-                start: '賭場是個危險的地方...但也充滿機會。',
-                complete: '看來運氣站在你這邊。但別太沉迷...'
+                start: '銀絲伏道沒有首領等在原地。牠會等你犯下可預測的錯。',
+                complete: '銀鐮伏獵者倒下後，獵人棧道終於能重新通行。'
             }
         },
         {
             id: 'main_005',
-            name: '深入危險區',
+            name: '發黑樹皮',
             type: QuestType.MAIN,
-            chapter: 2,
-            icon: '💀',
-            description: '你已經足夠強大了。是時候挑戰更危險的區域。',
+            chapter: 1,
+            icon: '🪵',
+            description: '獵人棧道重新打通後，腐根溪谷的焦黑煙霧變得清楚。狼群、霧碑與發黑樹皮都指向同一個核心。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'medium', count: 5, description: '探索普通區 5 次' },
-                { type: ObjectiveType.KILL, target: 'medium_monster', count: 3, description: '擊敗普通區怪物 3 隻' }
+                { type: ObjectiveType.KILL, target: 'wild_wolf', count: 5, description: '擊敗被污染痕跡驅趕的野狼 5 隻' },
+                { type: ObjectiveType.KILL, target: 'forest_guardian', count: 1, description: '追蹤並擊敗古樹守衛' }
             ],
             rewards: {
-                gold: 300,
-                exp: 150,
+                gold: 320,
+                exp: 220,
                 materials: [
-                    { id: 'spider_silk', quantity: 2 },
-                    { id: 'poison_gland', quantity: 1 },
-                    { id: 'bone_fragment', quantity: 3 }
+                    { id: 'ancient_bark', quantity: 3 },
+                    { id: 'forest_essence', quantity: 1 },
+                    { id: 'life_seed', quantity: 1 }
                 ]
             },
-            unlocks: ['main_006', 'bounty_002'],
+            unlocks: ['main_006'],
             dialogue: {
-                start: '前方的路更加危險，但獎勵也更豐厚...',
-                complete: '你的實力已經得到證明！'
+                start: '森林不是主動攻擊人類。有人剝走了它的核心，讓守衛者痛到只剩防衛本能。',
+                complete: '古樹守衛倒下後，溪谷火勢減弱，污染卻順著水流擴散。'
             }
         },
         {
             id: 'main_006',
-            name: '命運的抉擇',
+            name: '血月下的折角',
             type: QuestType.MAIN,
-            chapter: 2,
-            icon: '🌟',
-            description: '一個神秘的事件正在等待你。觸發並解決它！',
+            chapter: 1,
+            icon: '🦌',
+            description: '神木污染滲入溪流後，血月角鹿開始在夜裡撞碎巨石。這不是新的災難，而是上一場災難的回聲。',
             objectives: [
-                { type: ObjectiveType.EVENT, target: 'any', count: 3, description: '觸發並完成 3 個隨機事件' }
+                { type: ObjectiveType.KILL, target: 'blood_moon_stag', count: 1, description: '完成月苔誘導並擊敗血月角鹿' }
             ],
             rewards: {
-                gold: 500,
-                exp: 200
+                gold: 420,
+                exp: 260,
+                materials: [
+                    { id: 'life_seed', quantity: 2 },
+                    { id: 'forest_essence', quantity: 1 },
+                    { id: 'rare_metal', quantity: 1 }
+                ]
             },
-            unlocks: ['main_007'],
+            unlocks: ['main_007', 'dungeon_cave_001'],
             dialogue: {
-                start: '命運的絲線正在交織...你的選擇將決定未來。',
-                complete: '你已經學會了面對命運的考驗。'
+                start: '角鹿不是守門人，而是喝下污染溪水後失控的受害者。追上牠，第一章才算收束。',
+                complete: '血月退去後，石階鎮外暫時穩定，但所有線索都指向更高處的霧碑丘陵。'
             }
         },
         {
             id: 'main_007',
-            name: '終極挑戰',
+            name: '丘陵的執念',
             type: QuestType.MAIN,
-            chapter: 3,
-            icon: '👑',
-            description: '前往 Boss 區域，面對最強大的敵人！',
+            chapter: 2,
+            icon: '🪨',
+            description: '第一章的災害沒有真正結束，只是讓你看見更深的裂縫。霧碑丘陵的石碑、草藥與亡靈開始把事件推向第二章。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'boss', count: 1, description: '進入 Boss 區域' },
-                { type: ObjectiveType.KILL, target: 'lich', count: 1, description: '擊敗巫妖' }
+                { type: ObjectiveType.EXPLORE, target: 'high', count: 3, description: '探索霧碑丘陵 3 處地點' },
+                { type: ObjectiveType.KILL, target: 'high_monster', count: 3, description: '擊敗高威脅區怪物 3 隻' }
             ],
             rewards: {
-                gold: 500,
-                exp: 200,
+                gold: 520,
+                exp: 300,
                 materials: [
                     { id: 'dark_crystal', quantity: 2 },
-                    { id: 'ancient_bark', quantity: 5 },
-                    { id: 'life_seed', quantity: 2 }
+                    { id: 'ancient_rune', quantity: 1 }
                 ]
             },
-            unlocks: ['main_008'],
+            unlocks: [],
             requiredLevel: 8,
             dialogue: {
-                start: '遺跡深處潛伏著一個可怕的存在...巫妖。',
-                complete: '巫妖被擊敗了！但這只是開始...'
+                start: '霧碑丘陵不是單一事件。女巫、神諭、巫妖與人類貴族的問題會從這裡逐步展開。',
+                complete: '你跨過第一章的邊境災害，開始看見整片大陸如何一起斷裂。'
             }
         },
         // ==================== 第四章：暗影入侵 (Lv.10-14) ====================

@@ -177,6 +177,7 @@ export class CharacterManager {
     getLifesteal() { return CharacterLogic.getLifesteal(this); }
     getDamageReduction() { return CharacterLogic.getDamageReduction(this); }
     getAffixHpBonus() { return CharacterLogic.getAffixHpBonus(this); }
+    getCombatEffectTotals() { return CharacterLogic.getCombatEffectTotals(this); }
     
     // Buff 系統
     addBuff(type, value, duration) { return CharacterLogic.addBuff(this, type, value, duration); }

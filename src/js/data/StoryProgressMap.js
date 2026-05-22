@@ -42,6 +42,7 @@ export const StoryProgressRules = [
         id: 'special-bounty-points-to-blood-moon',
         event: E.WORLD_INTERACTION,
         match: { interactionId: 'special_bounty_notice' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('hunter_board_notice'),
             progress('blood_moon_stag', 'set_hunt_marker')
@@ -68,9 +69,7 @@ export const StoryProgressRules = [
         id: 'beggar-seeds-villager-request',
         event: E.WORLD_INTERACTION,
         match: { interactionId: 'crossroads_beggar' },
-        actions: [
-            clue('villager_herb_request')
-        ]
+        actions: []
     },
     {
         id: 'ancient-coin-opens-smuggler-thread',
@@ -85,6 +84,7 @@ export const StoryProgressRules = [
         id: 'map-fragment-points-to-stag-route',
         event: E.WORLD_INTERACTION,
         match: { interactionId: 'cartographer_map_fragment' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('broken_horn_map'),
             progress('blood_moon_stag', 'compare_migration')
@@ -119,21 +119,41 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'main-002-turns-combat-into-tracking',
+        id: 'main-002-turns-slime-into-silver-thread',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_002' },
         actions: [
-            clue('wolf_fang_marks'),
-            progress('forest_guardian', 'kill_wolves')
+            clue('silk_tripwire'),
+            progress('ambush_mantis', 'repeat_route')
         ]
     },
     {
-        id: 'main-005-expands-to-mid-zone-mystery',
+        id: 'main-003-prepares-reverse-trap',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_003' },
+        actions: [
+            clue('snapped_bait_hook'),
+            progress('ambush_mantis', 'craft_bait_hook')
+        ]
+    },
+    {
+        id: 'main-004-reopens-forest-trail',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_004' },
+        actions: [
+            clue('bloodied_arrow_pouch'),
+            progress('forest_guardian', 'track_mist_marks')
+        ]
+    },
+    {
+        id: 'main-005-turns-forest-into-blood-moon',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_005' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
-            clue('black_bark_sample'),
-            progress('forest_guardian', 'track_mist_marks')
+            clue('hunter_board_notice'),
+            clue('moon_moss_sample'),
+            progress('blood_moon_stag', 'mark_moon_moss')
         ]
     },
     {
@@ -153,11 +173,14 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'lich-main-quest-opens-final-state',
+        id: 'main-007-opens-hill-threads',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_007' },
         actions: [
-            finalReady('lich')
+            progress('thorn_witch', 'deliver_herbs'),
+            clue('carved_stone_shard'),
+            clue('villager_herb_request'),
+            progress('lich', 'collect_rune_shards')
         ]
     },
 
@@ -204,6 +227,7 @@ export const StoryProgressRules = [
         event: E.ZONE_EXPLORED,
         match: { zoneId: 'medium' },
         counter: { key: 'zone.medium', required: 5 },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('moon_moss_sample'),
             progress('blood_moon_stag', 'mark_moon_moss')
@@ -287,6 +311,7 @@ export const StoryProgressRules = [
         id: 'moon-moss-slope-builds-stag-track',
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'moon_moss_slope' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('moon_moss_sample'),
             progress('blood_moon_stag', 'mark_moon_moss')
@@ -316,6 +341,7 @@ export const StoryProgressRules = [
         id: 'alpha-wolf-feeds-blood-moon-track',
         event: E.MONSTER_KILL,
         match: { monsterId: 'tower_alpha_wolf' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('moon_moss_sample'),
             progress('blood_moon_stag', 'mark_moon_moss')
@@ -412,8 +438,8 @@ export const StoryProgressRules = [
         event: E.DUNGEON_COMPLETED,
         match: { dungeonId: 'jungle' },
         actions: [
-            clue('thorn_trade_bead'),
             progress('thorn_witch', 'deliver_herbs'),
+            clue('thorn_trade_bead'),
             progress('ambush_mantis', 'survive_second_campfire')
         ]
     },

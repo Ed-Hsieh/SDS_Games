@@ -7,6 +7,7 @@
 import GameManager from './GameManager.js';
 import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
 import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
+import { getEquipmentEffectTotals, getRewardEffectTotals } from './EquipmentEffectResolver.js';
 import { markItemKnown, markMonsterKnown } from './EncyclopediaManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -192,6 +193,7 @@ export default class TowerManager {
         let weaponDestroyed = null;
         
         if (action.type === 'attack') {
+            const effects = getEquipmentEffectTotals(character);
             // 武器耐久度消耗
             weaponDestroyed = GameManager.reduceWeaponDurability();
             if (weaponDestroyed) {
@@ -237,15 +239,34 @@ export default class TowerManager {
                     message += `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
                 }
             }
+
+            if (damage > 0) {
+                if ((monster.isBoss || monster.type === 'boss') && effects.bossBonus > 0) {
+                    damage += Math.floor(damage * (effects.bossBonus / 100));
+                }
+                const maxMonsterHp = monster.maxHp || monster.hp || monster.currentHp || 0;
+                if (effects.execute > 0 && maxMonsterHp > 0 && (monster.currentHp || monster.hp || 0) <= maxMonsterHp * 0.5) {
+                    damage += Math.floor(damage * (effects.execute / 100));
+                }
+                if (effects.fire > 0) damage += Math.floor(damage * (effects.fire / 100));
+                if (effects.voidDamage > 0) damage += Math.floor(damage * (effects.voidDamage / 100));
+                if (effects.doubleStrike > 0 && Math.random() * 100 < effects.doubleStrike) {
+                    const extraDamage = Math.max(1, Math.floor(damage * 0.5));
+                    damage += extraDamage;
+                    message += ` 觸發雙重打擊，追加 ${extraDamage} 點傷害。`;
+                }
+            }
             
             // 生命偷取（僅在造成傷害時觸發）
             if (damage > 0) {
-                // Prefer character.getLifesteal() if available (returns fraction), otherwise fallback to raw weapon property
-                const lifesteal = (typeof character.getLifesteal === 'function') ? character.getLifesteal() : (character.equipment.weapon?.lifesteal || 0);
+                const lifesteal = effects.lifesteal;
                 if (lifesteal > 0) {
-                    const healAmount = Math.floor(damage * (lifesteal / 100));
+                    const missingHp = Math.max(0, character.maxHp - character.hp);
+                    const healAmount = missingHp > 0
+                        ? Math.min(missingHp, Math.max(1, Math.floor(damage * (lifesteal / 100))))
+                        : 0;
                     character.hp = Math.min(character.maxHp, character.hp + healAmount);
-                    message += ` 偷取 ${healAmount} 點生命。`;
+                    if (healAmount > 0) message += ` 偷取 ${healAmount} 點生命。`;
                 }
             }
             
@@ -274,10 +295,22 @@ export default class TowerManager {
     executeMonsterAction(monster, character) {
         const monsterAtk = monster.atk ?? monster.attack ?? 10;
         const playerDef = character.getTotalDef();
+        const effects = getEquipmentEffectTotals(character);
         
         // 計算傷害
         let damage = Math.max(1, monsterAtk - playerDef * 0.5);
         damage = Math.floor(damage);
+
+        if (effects.dodgeChance > 0 && Math.random() * 100 < effects.dodgeChance) {
+            return {
+                actor: 'monster',
+                action: 'attack',
+                damage: 0,
+                message: `${monster.name} 攻擊落空，你閃避了這次攻擊。`,
+                targetHp: character.hp,
+                dodged: true
+            };
+        }
         
         // 傷害減免
         const damageReduction = typeof character.getDamageReduction === 'function'
@@ -301,6 +334,20 @@ export default class TowerManager {
         character.hp = Math.max(0, character.hp - damage);
         
         let message = `${monster.name} 攻擊你，造成 ${damage} 點傷害。`;
+
+        let reflectedDamage = 0;
+        if (damage > 0 && effects.damageReflect > 0) {
+            reflectedDamage = Math.max(1, Math.floor(damage * (effects.damageReflect / 100)));
+            monster.currentHp = Math.max(0, (monster.currentHp ?? monster.hp ?? 0) - reflectedDamage);
+            message += ` 反彈 ${reflectedDamage} 點傷害。`;
+        }
+
+        let revived = false;
+        if (character.hp <= 0 && effects.revive > 0 && Math.random() * 100 < effects.revive) {
+            character.hp = Math.max(1, Math.floor(character.maxHp * 0.3));
+            revived = true;
+            message += ` 你觸發復活，勉強站了起來。`;
+        }
         
         // 防具耐久度消耗
         const armorDestroyed = GameManager.reduceArmorDurability();
@@ -314,7 +361,9 @@ export default class TowerManager {
             damage,
             message,
             targetHp: character.hp,
-            armorDestroyed: armorDestroyed
+            armorDestroyed: armorDestroyed,
+            reflectedDamage,
+            revived
         };
     }
     
@@ -398,6 +447,7 @@ export default class TowerManager {
             items: [],
             equipment: null
         };
+        const rewardEffects = getRewardEffectTotals(GameManager.getCharacter());
         
         // BOSS 層獎勵加成
         if (isBoss) {
@@ -412,10 +462,16 @@ export default class TowerManager {
                 markItemKnown(bossEquipment.id);
             }
         }
+
+        rewards.gold = Math.floor(rewards.gold * (1 + (rewardEffects.goldBonus || 0) / 100));
+        rewards.exp = Math.floor(rewards.exp * (1 + (rewardEffects.expBonus || 0) / 100));
         
         // 計算掉落物品（使用 resolve + generate）
         const sources = resolveDropSources({ monster });
-        const drops = generateDropsFromSources(sources, { rng: Math.random });
+        const drops = generateDropsFromSources(sources, {
+            rng: Math.random,
+            dropBonus: rewardEffects.dropBonus
+        });
         for (const drop of drops) {
             const item = resolveItemById(drop.itemId, { preferBossEquipment: true });
             if (item && item.id !== rewards.equipment?.id) {

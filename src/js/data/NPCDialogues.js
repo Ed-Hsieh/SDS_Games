@@ -19,9 +19,7 @@ export const TownNPCDatabase = {
         name: '鍛造師',
         avatar: '⚒️',
         role: '負責修整武器與研究圖紙',
-        location: '鍛造鋪',
-        route: 'forge',
-        routeLabel: '前往鍛造'
+        location: '鍛造鋪'
     },
     herbalist: {
         id: 'herbalist',
@@ -60,10 +58,12 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'questStatus', questId: 'main_001', status: 'locked' }
             ],
+            narrativeTitle: '村長的交代',
+            narrativeSummary: '你與村長對話完畢後，取得第一段行動順序：先找書記確認線索簿的記錄方式，再前往南門外近郊確認路線。',
             lines: [
                 { speaker: 'npc', text: '你是新來的冒險者吧。很好，城鎮現在缺人手，尤其缺那種會先聽完話再衝出去的人。' },
-                { speaker: 'npc', text: '先去南門外近郊走一圈，確認路還能不能通。不要急著往深處跑，英雄故事通常不會記錄第一天就摔進溝裡的人。' },
-                { speaker: 'npc', text: '回來前也去找書記。他把城外聽聞整理成線索簿，誰需要幫忙、哪裡有異常，你看那本就不會像在森林裡猜謎。' }
+                { speaker: 'npc', text: '先去找書記。他把城外聽聞整理成線索簿，誰需要幫忙、哪裡有異常，都得先有地方記下來。' },
+                { speaker: 'npc', text: '等他教你怎麼記，再去南門外近郊走一圈。不要急著往深處跑，英雄故事通常不會記錄第一天就摔進溝裡的人。' }
             ],
             effects: [
                 { type: 'worldInteraction', interactionId: 'village_elder_intro' }
@@ -73,11 +73,28 @@ export const TownDialogueDatabase = {
             id: 'elder_main_001_active',
             priority: 80,
             conditions: [
-                { type: 'questStatus', questId: 'main_001', status: 'active' }
+                { type: 'questStatus', questId: 'main_001', status: 'active' },
+                { type: 'notFlag', flag: 'metTownScholarForRoute' }
             ],
+            narrativeTitle: '先找書記',
+            narrativeSummary: '村長提醒你，第一件事不是出城，而是先找書記確認線索簿的記錄方式。把聽聞寫對，比一頭撞進草叢更有用。',
             lines: [
-                { speaker: 'npc', text: '別在廣場繞圈了，剛剛說的事還沒做完。先去南門外近郊確認 3 處路線。' },
-                { speaker: 'npc', text: '看到怪物痕跡就記下來。能打就打，不能打就回來。活著回報比英勇失蹤有用。' }
+                { speaker: 'npc', text: '別在廣場繞圈了，剛剛說的事還沒做完。先去找書記。' },
+                { speaker: 'npc', text: '他會告訴你哪些東西該記、哪些只是酒館裡被講大的故事。記清楚再出門，比拿頭測路安全。' }
+            ]
+        },
+        {
+            id: 'elder_main_001_after_scholar',
+            priority: 81,
+            conditions: [
+                { type: 'questStatus', questId: 'main_001', status: 'active' },
+                { type: 'flag', flag: 'metTownScholarForRoute' }
+            ],
+            narrativeTitle: '南門外近郊',
+            narrativeSummary: '你已經找過書記。村長現在只提醒你一件事：到南門外近郊確認 3 處可通行路線，然後活著回來回報。',
+            lines: [
+                { speaker: 'npc', text: '書記那邊弄好了？很好，現在可以出城了。' },
+                { speaker: 'npc', text: '去南門外近郊確認 3 處路線。看到怪物痕跡就記下來，能打就打，不能打就回來。活著回報比英勇失蹤有用。' }
             ]
         },
         {
@@ -88,9 +105,11 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'questStatus', questId: 'main_001', status: 'completed' }
             ],
+            narrativeTitle: '路線回報',
+            narrativeSummary: '你把南門外近郊的路線交給村長。城鎮準備重新標記可通行道路，而村長的語氣暗示：真正要靠近道路的東西，才剛開始露出痕跡。',
             lines: [
                 { speaker: 'npc', text: '你回來了。靴子上有南門外的濕土，袖口還沾著草籽，看來不是在廣場繞三圈假裝冒險。很好。' },
-                { speaker: 'npc', text: '這些路線我會讓守衛重新標上去。接下來要確認的，就不是路還能不能走，而是什麼東西開始靠近路了。' }
+                { speaker: 'npc', text: '這些路線我會讓守衛重新標上去。接下來去找書記，他剛剛整理的下一份聽聞，應該可以正式動手了。' }
             ],
             effects: [
                 { type: 'completeQuest', questId: 'main_001', message: '村長把你的近郊路線紀錄收進城鎮地圖。' }
@@ -100,26 +119,51 @@ export const TownDialogueDatabase = {
         },
         {
             id: 'elder_main_002_ready',
-            priority: 92,
+            priority: 78,
             conditions: [
-                { type: 'questStatus', questId: 'main_002', status: 'completed' }
+                { type: 'questStatus', questId: 'main_002', status: 'active' }
             ],
+            narrativeTitle: '史萊姆聽聞',
+            narrativeSummary: '你與村長確認了書記的委託。農田邊的史萊姆不是單純麻煩，而像是某種更深異常冒出地表前的試探。',
             lines: [
-                { speaker: 'npc', text: '怪物被壓下去了？很好。這代表我們還有時間，也代表更深處的東西還沒正式走到門口。' },
-                { speaker: 'npc', text: '把你看到的痕跡直接說給我聽。線索簿負責提醒你路在哪裡，不負責替我聽報告。' }
+                { speaker: 'npc', text: '書記請你處理農田邊的史萊姆，先照他的紀錄走。小麻煩如果放著不管，通常會很努力地長成大麻煩。' },
+                { speaker: 'npc', text: '等史萊姆清完，回去找書記。他會把時間和地點補進線索簿，我只負責提醒你別在泥裡睡著。' }
+            ]
+        },
+        {
+            id: 'elder_main_004_active',
+            priority: 82,
+            conditions: [
+                { type: 'questStatus', questId: 'main_004', status: 'active' }
             ],
-            effects: [
-                { type: 'completeQuest', questId: 'main_002', message: '村長把近郊怪物的異常記入巡守紀錄。' }
+            narrativeTitle: '獵人棧道',
+            narrativeSummary: '村長把獵人棧道的異常重新說了一遍。銀絲不像巢穴，更像一種觀察行人的陷阱；舊營火、木牌與誘餌鉤應該被一起追查。',
+            lines: [
+                { speaker: 'npc', text: '獵人棧道不是普通封路。銀絲會出現在回程方向，代表那東西在觀察人的習慣。' },
+                { speaker: 'npc', text: '別把牠當成等在巢穴裡的怪物。照著舊營火、木牌和誘餌鉤去推，讓牠自己犯錯。' }
+            ]
+        },
+        {
+            id: 'elder_main_006_active',
+            priority: 82,
+            conditions: [
+                { type: 'questStatus', questId: 'main_006', status: 'active' }
             ],
-            route: 'quest',
-            routeLabel: '查看線索簿'
+            narrativeTitle: '血月回聲',
+            narrativeSummary: '村長把血月角鹿視為森林污染的第二個傷口。接下來該追的不是公告文字，而是月苔、碎角與夜裡被撞裂的石頭。',
+            lines: [
+                { speaker: 'npc', text: '血月角鹿不是新的源頭，是森林污染順著溪流跑出去後留下的第二個傷口。' },
+                { speaker: 'npc', text: '追牠時不要只看地圖。看月苔、碎角和夜裡被撞裂的石頭，它們比公告欄誠實得多。' }
+            ]
         },
         {
             id: 'elder_after_notice',
             priority: 45,
             conditions: [
-                { type: 'flag', flag: 'metVillageElder' }
+                { type: 'questStatus', questId: 'main_002', statuses: ['active', 'completed', 'finished'] }
             ],
+            narrativeTitle: '城鎮提醒',
+            narrativeSummary: '村長把城鎮裡幾個重要去處又念了一次。你記下南門外、書記、鍛造鋪與藥師的方向，這些地方會逐步把邊境異常串起來。',
             lines: [
                 { speaker: 'npc', text: '你現在要記住三個地方：南門外、書記的線索簿、鍛造鋪。前兩個讓你知道該去哪，第三個讓你去了以後比較不會被折成兩段。' },
                 { speaker: 'npc', text: '藥師也需要人手。她說最近城外的凝膠味道變了，我不知道凝膠正常該是什麼味道，但她聽起來很認真。' }
@@ -138,14 +182,27 @@ export const TownDialogueDatabase = {
     blacksmith: [
         {
             id: 'blacksmith_first_note',
-            priority: 90,
+            priority: 50,
             once: true,
+            narrativeTitle: '鍛造鋪',
+            narrativeSummary: '你與鍛造師打過照面。他對你的舊劍很不放心，也讓你明白：城外帶回來的礦石、怪物部件與圖紙，會直接影響你能走多遠。',
             lines: [
                 { speaker: 'npc', text: '你那把舊劍還能用，但我說「能用」的標準很寬。拿來烤肉也算能用。' },
                 { speaker: 'npc', text: '帶回鐵礦石、怪物部件或真正的圖紙，我就能讓你的裝備少一點像事故現場。' }
+            ]
+        },
+        {
+            id: 'blacksmith_main_003_active',
+            priority: 86,
+            conditions: [
+                { type: 'questStatus', questId: 'main_003', status: 'active' }
             ],
-            route: 'forge',
-            routeLabel: '前往鍛造'
+            narrativeTitle: '斷裂誘餌鉤',
+            narrativeSummary: '鍛造師看過那枚斷鉤後，認為獵人棧道的切痕不像普通野獸。你需要先整理裝備，再帶著能反設陷阱的誘餌回到路上。',
+            lines: [
+                { speaker: 'npc', text: '這枚斷鉤的切口太乾淨，不像狼也不像盜賊。它比較像某種東西順手量了一下你的脖子寬度。' },
+                { speaker: 'npc', text: '先完成一次強化。誘餌鉤可以修，問題是拿著誘餌的人也得撐得住第一下。' }
+            ]
         },
         {
             id: 'blacksmith_forge_commission',
@@ -153,22 +210,19 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'questStatus', questId: 'commission_forge_001', statuses: ['available', 'active', 'completed'] }
             ],
+            narrativeTitle: '圖紙研究',
+            narrativeSummary: '鍛造師提醒你，真正有價值的圖紙多半藏在怪物、菁英與副本首領身上。鍛造鋪不只是商店，而會慢慢變成戰力成長的核心。',
             lines: [
                 { speaker: 'npc', text: '那份鍛造筆記不是完整圖紙，只是方向。真正有價值的圖紙，多半黏在怪物、菁英或副本首領身上。' },
-                { speaker: 'player', text: '聽起來很不衛生。' },
-                { speaker: 'npc', text: '冒險者的經濟模型通常都不太衛生。' }
-            ],
-            route: 'forge',
-            routeLabel: '整理圖紙'
+                { speaker: 'npc', text: '聽起來很不衛生？很好，代表你開始理解冒險者的經濟模型了。' }
+            ]
         },
         {
             id: 'blacksmith_default',
             priority: 1,
             lines: [
                 { speaker: 'npc', text: '城外的東西越來越硬，代表我的生意會變好，也代表大家的日子會變差。很不幸，兩件事通常一起發生。' }
-            ],
-            route: 'forge',
-            routeLabel: '前往鍛造'
+            ]
         }
     ],
 
@@ -177,8 +231,10 @@ export const TownDialogueDatabase = {
             id: 'herbalist_slime_hint',
             priority: 70,
             conditions: [
-                { type: 'questStatus', questId: 'bounty_001', statuses: ['available', 'active'] }
+                { type: 'questStatus', questId: 'main_002', statuses: ['active', 'completed'] }
             ],
+            narrativeTitle: '藥師的判斷',
+            narrativeSummary: '藥師認為史萊姆靠近農田不是偶然。土裡的魔力味道正在改變，凝膠樣本也許能讓她判斷異常是不是從地脈往外滲。',
             lines: [
                 { speaker: 'npc', text: '史萊姆靠近農田不是因為牠們忽然熱愛農業。土裡的魔力味道變了。' },
                 { speaker: 'npc', text: '如果你清掉牠們，順手帶回凝膠。我能做藥，村民能安心，史萊姆也終於不用被誤會成農夫。' }
@@ -188,8 +244,11 @@ export const TownDialogueDatabase = {
             id: 'herbalist_witch_foreshadow',
             priority: 40,
             conditions: [
+                { type: 'questStatus', questId: 'main_007', statuses: ['active', 'completed', 'finished'] },
                 { type: 'flag', flag: 'readCrossroadsNoticeBoard' }
             ],
+            narrativeTitle: '草藥失蹤',
+            narrativeSummary: '藥師提到草藥像是被人照著清單拔走。這不像野獸行為，反而像某種懂得年份與價值的交換規則。',
             lines: [
                 { speaker: 'npc', text: '最近草藥像被人按清單拔走。不是野獸，野獸不會挑年份，也不會留下那種漂亮到讓人不舒服的切口。' },
                 { speaker: 'npc', text: '如果有人向你索要大量特殊草藥，先問價，再問命。順序很重要。' }
@@ -212,10 +271,11 @@ export const TownDialogueDatabase = {
             priority: 90,
             once: true,
             tone: 'discovery',
+            narrativeTitle: '巷口低語',
+            narrativeSummary: '你與巷口流浪者談完後，總覺得他不是單純在討生活。你轉身離開時，似乎有人在暗巷口停了一下；也許只是你多疑，也許不是。',
             lines: [
                 { speaker: 'npc', text: '口袋空了，人才會看見路邊真正有用的東西。你現在口袋還不夠空，但眼神差不多了。' },
-                { speaker: 'player', text: '這算祝福嗎？' },
-                { speaker: 'npc', text: '算便宜的預言。真正的預言通常要收訂金。' }
+                { speaker: 'npc', text: '這算不算祝福？算便宜的預言。真正的預言通常要收訂金。' }
             ],
             effects: [
                 { type: 'worldInteraction', interactionId: 'crossroads_beggar' }
@@ -227,6 +287,8 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'flag', flag: 'secretShopUnlocked' }
             ],
+            narrativeTitle: '暗巷入口',
+            narrativeSummary: '巷口流浪者知道暗巷的門已經開了。他沒有阻止你，只提醒你：會收古代錢幣的人，通常也會收更麻煩的代價。',
             lines: [
                 { speaker: 'npc', text: '暗巷的門開了？那就記住，會收古代錢幣的人，通常也會收你不想付的東西。' }
             ]
@@ -242,6 +304,43 @@ export const TownDialogueDatabase = {
 
     town_scholar: [
         {
+            id: 'scholar_main_002_available',
+            priority: 98,
+            once: true,
+            tone: 'discovery',
+            conditions: [
+                { type: 'questStatus', questId: 'main_002', status: 'available' }
+            ],
+            narrativeTitle: '書記的異常紀錄',
+            narrativeSummary: '你與書記核對了南門外的聽聞。農田附近的史萊姆數量異常，書記把它視為地脈問題浮上地表前的第一個可追蹤症狀。',
+            lines: [
+                { speaker: 'npc', text: '村長把南門外的路線記回來了？很好，現在那些「聽說」終於可以排成順序。' },
+                { speaker: 'npc', text: '最近城外史萊姆變多，尤其靠近農田那一帶。村民說夜裡會聽見黏糊糊的聲音，這句話我其實很不想寫進正式紀錄。' },
+                { speaker: 'npc', text: '先清掉 5 個靠近農田的史萊姆。這不是原因本身，而是地脈異常浮上地表的第一個症狀。' }
+            ],
+            effects: [
+                { type: 'worldInteraction', interactionId: 'scholar_slime_request' },
+                { type: 'acceptQuest', questId: 'main_002', message: '書記把史萊姆調查列為下一步。' }
+            ],
+            route: 'quest',
+            routeLabel: '查看線索簿'
+        },
+        {
+            id: 'scholar_main_002_active',
+            priority: 84,
+            conditions: [
+                { type: 'questStatus', questId: 'main_002', status: 'active' }
+            ],
+            narrativeTitle: '農田邊的黏液聲',
+            narrativeSummary: '書記提醒你，史萊姆的方向比數量更重要。若牠們都從同一側靠近農田，那就不是普通增生，而是地底某處正在把牠們往外推。',
+            lines: [
+                { speaker: 'npc', text: '農田邊的史萊姆要先清掉。記得看牠們從哪個方向靠近，線索簿需要的是順序，不是單純的數量。' },
+                { speaker: 'npc', text: '如果你聞到甜味，別靠太近。上次有人說那是青蘋果，後來我們花了一整天清洗他的靴子。' }
+            ],
+            route: 'adventure',
+            routeLabel: '前往冒險區'
+        },
+        {
             id: 'scholar_slime_report',
             priority: 100,
             once: true,
@@ -249,6 +348,8 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'questStatus', questId: 'bounty_001', status: 'completed' }
             ],
+            narrativeTitle: '史萊姆紀錄',
+            narrativeSummary: '你把史萊姆增生的結果交給書記。書記把時間、方位與農田位置排在一起，判斷這更像地脈把某種異常往地表推。',
             lines: [
                 { speaker: 'npc', text: '你回來得剛好。我已經把農田附近的時間、方位和黏液味道都留了空格。最後一項其實可以不用填得太詳細。' },
                 { speaker: 'npc', text: '史萊姆數量被壓下去了，但牠們靠近農田這件事本身更重要。這不像普通增生，比較像地脈把某種東西往地表推。' },
@@ -267,30 +368,66 @@ export const TownDialogueDatabase = {
             tone: 'discovery',
             conditions: [
                 { type: 'flag', flag: 'metVillageElder' },
+                { type: 'questStatus', questId: 'main_001', status: 'active' },
+                { type: 'questStatus', questId: 'main_002', status: 'locked' },
                 { type: 'questStatus', questId: 'bounty_001', status: 'locked' }
             ],
+            narrativeTitle: '第一份記錄',
+            narrativeSummary: '你找過書記後，知道線索簿會依照發現順序留下紀錄。書記先替你開了一頁空白：南門外近郊，三處可通行路線。',
             lines: [
                 { speaker: 'npc', text: '村長讓你來看線索簿？很好，終於有人願意把「聽說」變成「可追蹤」。' },
-                { speaker: 'npc', text: '最近城外史萊姆變多了，尤其靠近農田那一帶。村民說夜裡會聽見黏糊糊的聲音，這句話我其實很不想寫進正式紀錄。' },
-                { speaker: 'npc', text: '先幫我消滅 5 個史萊姆。我會把這件事記在你的線索簿裡，至少它比「到處看看」更像一個開始。' }
+                { speaker: 'npc', text: '今天先不談怪物。你要去南門外近郊，記下 3 處還能通行的路線。' },
+                { speaker: 'npc', text: '路線、方向、看到的痕跡，都照順序寫。等你回來，我們再把那些真正會咬人的麻煩排進去。' }
             ],
             effects: [
-                { type: 'worldInteraction', interactionId: 'scholar_slime_request' }
+                { type: 'setFlag', flag: 'metTownScholarForRoute', value: true },
+                { type: 'questProgress', objectiveType: 'talk', target: 'town_scholar', amount: 1, message: '書記替你開啟了第一頁南門外近郊紀錄。' }
             ],
-            route: 'quest',
-            routeLabel: '查看線索簿'
+            route: 'adventure',
+            routeLabel: '前往南門外'
         },
         {
             id: 'scholar_first_leyline',
             priority: 80,
             once: true,
+            narrativeTitle: '地脈概念',
+            narrativeSummary: '書記用很不安心的方式解釋了地脈：它不是一條河，而像全大陸共用的繩結。若北方有人猛拉，石階鎮這邊遲早也會斷出聲音。',
             lines: [
                 { speaker: 'npc', text: '地脈不是河流，比較像全大陸共用的一條爛繩子。現在有人從北邊猛拉，南邊自然會一起斷。' },
-                { speaker: 'player', text: '你說得很學術，也很不安心。' },
-                { speaker: 'npc', text: '學術的作用之一，就是把不安心分類保存。' }
+                { speaker: 'npc', text: '這句話很學術，也很不安心。學術的作用之一，就是把不安心分類保存。' }
             ],
             route: 'encyclopedia',
             routeLabel: '查看紀錄'
+        },
+        {
+            id: 'scholar_main_005_active',
+            priority: 82,
+            conditions: [
+                { type: 'questStatus', questId: 'main_005', status: 'active' }
+            ],
+            narrativeTitle: '發黑樹皮',
+            narrativeSummary: '書記認為發黑樹皮不是普通燃燒，而像高熱力量剝離核心後留下的傷口。狼牙痕、霧碑拓印與溪谷煙霧應該一起追查。',
+            lines: [
+                { speaker: 'npc', text: '發黑樹皮不是燒焦，外層仍然潮濕。它像是被某種高熱力量剝走後，留下來的傷口。' },
+                { speaker: 'npc', text: '狼牙痕、霧碑拓印和溪谷煙霧要一起看。只看其中一個，你會以為森林在發怒；三個放在一起，就像森林在喊疼。' }
+            ],
+            route: 'adventure',
+            routeLabel: '前往腐根溪谷'
+        },
+        {
+            id: 'scholar_chapter2_opening',
+            priority: 82,
+            conditions: [
+                { type: 'questStatus', questId: 'main_007', statuses: ['available', 'active'] }
+            ],
+            narrativeTitle: '丘陵的執念',
+            narrativeSummary: '書記把霧碑丘陵描述成多條線索同時打開的地方。石碑、草藥、潮聲與亡靈不會立刻拼成答案，你需要先記清每個人說過什麼。',
+            lines: [
+                { speaker: 'npc', text: '霧碑丘陵會比邊境更麻煩。第一章像一條傷口，第二章比較像有人把整張繃帶撕開。' },
+                { speaker: 'npc', text: '石碑、草藥、潮聲和亡靈會從不同方向冒出來。不要急著把它們塞成同一個答案，先把每個人說過的話記清楚。' }
+            ],
+            route: 'adventure',
+            routeLabel: '前往霧碑丘陵'
         },
         {
             id: 'scholar_after_board',
@@ -298,6 +435,8 @@ export const TownDialogueDatabase = {
             conditions: [
                 { type: 'flag', flag: 'heardScholarSlimeRequest' }
             ],
+            narrativeTitle: '線索排序',
+            narrativeSummary: '書記提醒你，怪物本身只是表面。真正重要的是時間、地點與方向能不能排成順序；如果能，線索就會開始說話。',
             lines: [
                 { speaker: 'npc', text: '史萊姆只是最容易看見的異常。牠們往農田靠，不是因為突然開始關心收成。' },
                 { speaker: 'npc', text: '把擊殺紀錄帶回來，我會比對農田、南門外和獵人棧道的時間。線索如果能排成順序，就會開始說話。' }

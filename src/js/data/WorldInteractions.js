@@ -35,7 +35,7 @@ export const WorldInteractionDatabase = {
         unlockRecipes: [],
         autoAcceptQuests: true,
         showQuestUnlockMessages: false,
-        message: '村長請你先確認南門外近郊是否還能通行，也提醒你去找書記記下城外異常。',
+        message: '村長請你先找書記確認線索簿的記錄方式，再前往南門外近郊確認路線。',
         repeatMessage: '村長已經交代過第一段旅程。',
         imageKeys: ['npc.village_elder', 'world.notice_board']
     },
@@ -56,11 +56,11 @@ export const WorldInteractionDatabase = {
         source: InteractionSource.WORLD_OBJECT,
         oneTime: true,
         flags: ['heardScholarSlimeRequest'],
-        unlockQuests: ['bounty_001'],
+        unlockQuests: ['main_002'],
         unlockRecipes: [],
         autoAcceptQuests: true,
         showQuestUnlockMessages: false,
-        message: '書記把城外史萊姆增生的聽聞寫進線索簿：農田附近需要先清出一條安全線。',
+        message: '書記把農田邊的史萊姆異常整理成下一份調查，請你清掉 5 個靠近農田的史萊姆。',
         repeatMessage: '史萊姆增生的紀錄已經寫進線索簿。',
         imageKeys: ['npc.scholar', 'world.notice_board']
     },

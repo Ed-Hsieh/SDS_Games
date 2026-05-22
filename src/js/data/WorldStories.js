@@ -612,7 +612,7 @@ export const WorldLandmarks = [
         effectIds: ['rot_mist'],
         visible: 'always',
         storyChainIds: ['blood_moon_stag'],
-        clueIds: ['moon_moss_sample'],
+        clueIds: [],
         arrival: '坡面苔蘚在陰影裡泛著暗紅色，像把鹿角撞擊的路線一段段染出來。',
         repeat: '月苔乾裂得更快，表示角鹿今晚可能又繞回這裡。',
         mapHint: '完成誘導標記後，可縮小血月角鹿狩獵範圍。'

@@ -6501,6 +6501,7 @@ body {
 .world-stage-town .hotspot-herbalist { right: 12%; top: 32%; }
 .world-stage-town .hotspot-shop { left: 11%; bottom: 26%; }
 .world-stage-town .hotspot-blacksmith-npc { left: 27%; bottom: 17%; }
+.world-stage-town .hotspot-forge { left: 23%; bottom: 8%; }
 .world-stage-town .hotspot-beggar { left: 35%; bottom: 31%; }
 .world-stage-town .hotspot-gamble { left: 50%; bottom: 25%; --hotspot-x: -50%; }
 .world-stage-town .hotspot-scholar { right: 35%; bottom: 31%; }
@@ -7129,6 +7130,7 @@ body {
 .world-stage-town .hotspot-gamble { left: 50%; bottom: 27%; --hotspot-x: -50%; }
 .world-stage-town .hotspot-shop { left: 20%; bottom: 25%; }
 .world-stage-town .hotspot-blacksmith-npc { left: 31%; bottom: 20%; }
+.world-stage-town .hotspot-forge { left: 20%; bottom: 12%; }
 .world-stage-town .hotspot-tower { right: 11%; bottom: 24%; }
 
 .town-narrative-whisper {
@@ -8073,6 +8075,53 @@ body {
     text-shadow: 0 0 12px rgba(34, 197, 94, 0.62), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
 }
 
+.damage-number.damage-status {
+    font-size: 24px !important;
+    color: #bae6fd !important;
+    text-shadow: 0 0 14px rgba(56, 189, 248, 0.56), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
+}
+
+.damage-number.damage-status-stun {
+    color: #fde047 !important;
+    text-shadow: 0 0 14px rgba(250, 204, 21, 0.82), 0 0 26px rgba(59, 130, 246, 0.38), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+    animation: combatStatusSnap 0.76s cubic-bezier(0.14, 1.28, 0.24, 1) forwards !important;
+}
+
+.damage-number.damage-status-slow {
+    color: #bae6fd !important;
+    text-shadow: 0 0 14px rgba(125, 211, 252, 0.72), 0 0 28px rgba(14, 165, 233, 0.28), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
+.damage-number.damage-status-poison {
+    color: #d8b4fe !important;
+    text-shadow: 0 0 14px rgba(168, 85, 247, 0.72), 0 0 28px rgba(34, 197, 94, 0.24), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
+.damage-number.damage-double-strike {
+    font-size: 36px !important;
+    color: #fef08a !important;
+    text-shadow: 0 0 15px rgba(250, 204, 21, 0.74), 0 0 30px rgba(245, 158, 11, 0.28), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+    animation: combatComboFloat 0.82s cubic-bezier(0.14, 1.36, 0.24, 1) forwards !important;
+}
+
+.damage-number.damage-reflect {
+    font-size: 30px !important;
+    color: #93c5fd !important;
+    text-shadow: 0 0 15px rgba(96, 165, 250, 0.76), 0 0 28px rgba(56, 189, 248, 0.32), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
+.damage-number.damage-revive {
+    font-size: 38px !important;
+    color: #fef3c7 !important;
+    text-shadow: 0 0 16px rgba(251, 191, 36, 0.82), 0 0 34px rgba(74, 222, 128, 0.28), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+    animation: combatReviveFloat 1.05s cubic-bezier(0.12, 1.24, 0.22, 1) forwards !important;
+}
+
+.damage-number.damage-lifesteal {
+    color: #86efac !important;
+    text-shadow: 0 0 14px rgba(34, 197, 94, 0.76), 0 0 26px rgba(16, 185, 129, 0.26), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
 .player-damage-number {
     z-index: 2600 !important;
     font-size: 32px !important;
@@ -8105,6 +8154,28 @@ body {
     100% { transform: translate(-50%, -132%) scale(0.98); opacity: 0; }
 }
 
+@keyframes combatComboFloat {
+    0% { transform: translate(-55%, -42%) scale(0.76) rotate(-6deg); opacity: 0; }
+    12% { transform: translate(-40%, -58%) scale(1.16) rotate(3deg); opacity: 1; }
+    36% { transform: translate(-62%, -78%) scale(1) rotate(-2deg); opacity: 1; }
+    100% { transform: translate(-50%, -128%) scale(0.92) rotate(0); opacity: 0; }
+}
+
+@keyframes combatStatusSnap {
+    0% { transform: translate(-50%, -46%) scale(0.72); opacity: 0; filter: blur(1px); }
+    14% { transform: translate(-50%, -58%) scale(1.2); opacity: 1; filter: blur(0); }
+    22% { transform: translate(-47%, -60%) scale(0.96); }
+    38% { transform: translate(-53%, -76%) scale(1.04); opacity: 1; }
+    100% { transform: translate(-50%, -124%) scale(0.95); opacity: 0; }
+}
+
+@keyframes combatReviveFloat {
+    0% { transform: translate(-50%, -32%) scale(0.7); opacity: 0; }
+    16% { transform: translate(-50%, -54%) scale(1.16); opacity: 1; }
+    56% { transform: translate(-50%, -72%) scale(1.02); opacity: 1; }
+    100% { transform: translate(-50%, -112%) scale(0.96); opacity: 0; }
+}
+
 @keyframes combatPlayerDamageFloat {
     0% { transform: translate(-50%, -38%) scale(0.82); opacity: 0; }
     12% { transform: translate(-52%, -52%) scale(1.1); opacity: 1; }
@@ -8122,6 +8193,32 @@ body {
 
 .buff-indicators {
     align-items: center;
+}
+
+.monster-status-effects {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    margin-top: 8px;
+}
+
+.monster-status-effects .buff-indicator[data-effect-type="stun"] {
+    border-color: rgba(250, 204, 21, 0.62);
+    background: rgba(113, 63, 18, 0.34);
+    box-shadow: 0 0 18px rgba(250, 204, 21, 0.16), inset 0 0 12px rgba(59, 130, 246, 0.08);
+}
+
+.monster-status-effects .buff-indicator[data-effect-type="slow"] {
+    border-color: rgba(125, 211, 252, 0.62);
+    background: rgba(14, 116, 144, 0.24);
+    box-shadow: 0 0 18px rgba(125, 211, 252, 0.14);
+}
+
+.monster-status-effects .buff-indicator[data-effect-type="poison"] {
+    border-color: rgba(192, 132, 252, 0.62);
+    background: rgba(88, 28, 135, 0.28);
+    box-shadow: 0 0 18px rgba(168, 85, 247, 0.14), inset 0 0 10px rgba(34, 197, 94, 0.08);
 }
 
 .buff-indicator {
@@ -8258,6 +8355,28 @@ body {
     background: radial-gradient(circle at 50% 35%, rgba(251, 191, 36, 0.28), rgba(245, 158, 11, 0.12) 45%, transparent 72%);
 }
 
+.combat-screen-flash.flash-thunder,
+.combat-screen-flash.flash-doubleStrike {
+    background: radial-gradient(circle at 50% 35%, rgba(254, 240, 138, 0.3), rgba(59, 130, 246, 0.14) 48%, transparent 72%);
+}
+
+.combat-screen-flash.flash-ice {
+    background: radial-gradient(circle at 50% 35%, rgba(186, 230, 253, 0.26), rgba(14, 165, 233, 0.12) 45%, transparent 72%);
+}
+
+.combat-screen-flash.flash-poison {
+    background: radial-gradient(circle at 50% 35%, rgba(216, 180, 254, 0.24), rgba(34, 197, 94, 0.12) 48%, transparent 72%);
+}
+
+.combat-screen-flash.flash-reflect {
+    background: radial-gradient(circle at 50% 35%, rgba(147, 197, 253, 0.3), rgba(15, 23, 42, 0.16) 48%, transparent 72%);
+}
+
+.combat-screen-flash.flash-revive,
+.combat-screen-flash.flash-heal {
+    background: radial-gradient(circle at 50% 36%, rgba(187, 247, 208, 0.24), rgba(251, 191, 36, 0.12) 48%, transparent 72%);
+}
+
 @keyframes combatFlash {
     0% { opacity: 0; }
     22% { opacity: 1; }
@@ -8268,8 +8387,24 @@ body {
     animation: combatCriticalShake 0.28s ease-out;
 }
 
+.combat-impact-normal {
+    animation: combatSoftPulse 0.22s ease-out;
+}
+
 .combat-impact-phase {
     animation: combatPhasePulse 0.42s ease-out;
+}
+
+.combat-impact-medium {
+    animation: combatMediumShake 0.24s ease-out;
+}
+
+.combat-impact-combo {
+    animation: combatComboShake 0.28s ease-out;
+}
+
+.combat-impact-soft {
+    animation: combatSoftPulse 0.28s ease-out;
 }
 
 .combat-slow-motion {
@@ -8286,6 +8421,26 @@ body {
     36% { transform: translate(6px, -2px); }
     54% { transform: translate(-3px, 1px); }
     72% { transform: translate(2px, -1px); }
+}
+
+@keyframes combatMediumShake {
+    0%, 100% { transform: translate(0, 0); }
+    22% { transform: translate(-3px, 1px); }
+    48% { transform: translate(3px, -1px); }
+    70% { transform: translate(-1px, 0); }
+}
+
+@keyframes combatComboShake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-4px, -1px); }
+    40% { transform: translate(5px, 1px); }
+    62% { transform: translate(-2px, 0); }
+}
+
+@keyframes combatSoftPulse {
+    0% { filter: brightness(1); }
+    45% { filter: brightness(1.12) saturate(1.12); }
+    100% { filter: brightness(1); }
 }
 
 @keyframes combatPhasePulse {

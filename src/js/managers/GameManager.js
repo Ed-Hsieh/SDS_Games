@@ -622,16 +622,27 @@ class GameManager {
         if (!stack || !stack.item.isEquipment()) return false;
         
         const item = stack.item;
-        const slotType = item.type;
-        const oldItem = this.state.character.equipment[slotType];
+        const previousEquipment = { ...(this.state.character.equipment || {}) };
+        const equipped = this.state.character.equip(item);
+        if (!equipped) return false;
+
+        const equippedSlot = Object.keys(this.state.character.equipment || {})
+            .find(slotType => this.state.character.equipment[slotType] === item);
+        if (!equippedSlot) {
+            this.state.character.equipment = previousEquipment;
+            return false;
+        }
+
+        const oldItem = previousEquipment[equippedSlot];
         
         // Remove from source
         const index = source.findIndex(s => s.instanceId === instanceId);
+        if (index < 0) {
+            this.state.character.equipment = previousEquipment;
+            return false;
+        }
         source.splice(index, 1);
-        
-        // Equip new item
-        this.state.character.equip(item);
-        
+
         // Return old item to source
         if (oldItem) {
             source.push({

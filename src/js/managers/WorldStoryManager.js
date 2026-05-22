@@ -36,6 +36,10 @@ class WorldStoryManager {
         return `world.landmark.${landmarkId}.visited`;
     }
 
+    getMonsterDefeatedFlag(monsterId) {
+        return `world.monster.${monsterId}.defeated`;
+    }
+
     getStoryStageFlag(chainId) {
         return `world.story.${chainId}.stage`;
     }
@@ -62,6 +66,35 @@ class WorldStoryManager {
 
     hasStoryProgress(chainId, progressId) {
         return Boolean(GameManager.getFlag(this.getStoryProgressFlag(chainId, progressId)));
+    }
+
+    hasMonsterDefeated(monsterId) {
+        return Boolean(GameManager.getFlag(this.getMonsterDefeatedFlag(monsterId)));
+    }
+
+    ruleRequirementsPassed(requires = [], payload = {}) {
+        if (!Array.isArray(requires) || requires.length === 0) return true;
+
+        return requires.every(requirement => {
+            if (!requirement?.type) return true;
+
+            switch (requirement.type) {
+                case 'monsterDefeated':
+                    return this.hasMonsterDefeated(requirement.monsterId);
+                case 'flag':
+                    return Boolean(GameManager.getFlag(requirement.flag)) === (requirement.value ?? true);
+                case 'notFlag':
+                    return !Boolean(GameManager.getFlag(requirement.flag));
+                case 'clue':
+                    return this.hasClue(requirement.clueId);
+                case 'storyProgress':
+                    return this.hasStoryProgress(requirement.chainId, requirement.progressId);
+                case 'payload':
+                    return payload[requirement.key] === requirement.value;
+                default:
+                    return true;
+            }
+        });
     }
 
     getRuleCounterKey(rule, payload = {}) {
@@ -134,6 +167,8 @@ class WorldStoryManager {
         };
 
         for (const rule of rules) {
+            if (!this.ruleRequirementsPassed(rule.requires, payload)) continue;
+
             const counter = this.updateRuleCounter(rule, payload);
             if (!counter.passed) {
                 outcome.appliedRules.push({
@@ -192,6 +227,42 @@ class WorldStoryManager {
                 chainId: 'ambush_mantis',
                 requiredLandmarkId: 'old_campfire_site',
                 sources: ['dialogue:village_elder', 'world_object', 'world_interaction']
+            },
+            {
+                clueId: 'hunter_board_notice',
+                chainId: 'blood_moon_stag',
+                requiredMonsterDefeated: 'forest_guardian',
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'moon_moss_sample',
+                chainId: 'blood_moon_stag',
+                requiredMonsterDefeated: 'forest_guardian',
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'broken_horn_map',
+                chainId: 'blood_moon_stag',
+                requiredMonsterDefeated: 'forest_guardian',
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'thorn_trade_bead',
+                chainId: 'thorn_witch',
+                requiredProgress: { chainId: 'thorn_witch', progressId: 'deliver_herbs' },
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'villager_herb_request',
+                chainId: 'thorn_witch',
+                requiredProgress: { chainId: 'thorn_witch', progressId: 'deliver_herbs' },
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'green_bargain_mark',
+                chainId: 'thorn_witch',
+                requiredProgress: { chainId: 'thorn_witch', progressId: 'deliver_herbs' },
+                exemptSources: ['boss_test_panel']
             }
         ];
 
@@ -203,10 +274,22 @@ class WorldStoryManager {
             const meta = GameManager.getFlag(metaFlag) || {};
             const reachedRequiredPlace = Boolean(GameManager.getFlag(this.getLandmarkVisitedFlag(entry.requiredLandmarkId)))
                 || meta.landmarkId === entry.requiredLandmarkId;
-            if (reachedRequiredPlace) continue;
+            const defeatedRequiredMonster = entry.requiredMonsterDefeated
+                ? this.hasMonsterDefeated(entry.requiredMonsterDefeated)
+                : true;
+            const progressRequirementMet = entry.requiredProgress
+                ? this.hasStoryProgress(entry.requiredProgress.chainId, entry.requiredProgress.progressId)
+                : true;
+            const placeRequirementMet = entry.requiredLandmarkId ? reachedRequiredPlace : true;
+            if (placeRequirementMet && defeatedRequiredMonster && progressRequirementMet) continue;
 
             const source = String(meta.source || '');
-            const sourceLooksPremature = !source || entry.sources.some(prefix => source === prefix || source.startsWith(`${prefix}:`));
+            const sourceIsExempt = (entry.exemptSources || []).some(prefix => source === prefix || source.startsWith(`${prefix}:`));
+            if (sourceIsExempt) continue;
+
+            const sourceLooksPremature = !entry.sources?.length
+                || !source
+                || entry.sources.some(prefix => source === prefix || source.startsWith(`${prefix}:`));
             if (!sourceLooksPremature) continue;
 
             delete GameManager.state.flags[this.getClueFlag(entry.clueId)];
@@ -338,6 +421,17 @@ class WorldStoryManager {
     recordMonsterKill(monster, context = {}) {
         const monsterId = typeof monster === 'string' ? monster : monster?.id;
         if (!monsterId) return { newClues: [] };
+
+        const defeatedFlag = this.getMonsterDefeatedFlag(monsterId);
+        const previousDefeat = GameManager.getFlag(defeatedFlag);
+        const previousCount = typeof previousDefeat === 'object'
+            ? Number(previousDefeat.count) || 0
+            : (previousDefeat ? 1 : 0);
+        GameManager.setFlag(defeatedFlag, {
+            defeated: true,
+            count: previousCount + 1,
+            updatedAt: Date.now()
+        });
 
         const newClues = [];
         for (const trigger of getMonsterClueTriggers(monsterId)) {

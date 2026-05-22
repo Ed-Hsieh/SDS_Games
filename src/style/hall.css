@@ -589,6 +589,14 @@
     font-weight: 800;
 }
 
+.town-dialogue-effect.is-hint {
+    border: 1px solid rgba(233, 189, 101, 0.2);
+    background: rgba(233, 189, 101, 0.08);
+    color: rgba(255, 242, 200, 0.78);
+    font-size: 13px;
+    font-weight: 700;
+}
+
 .town-dialogue-effects:empty {
     display: none;
 }
@@ -601,7 +609,6 @@
     padding-top: 14px;
 }
 
-.town-dialogue-route,
 .town-dialogue-done {
     min-width: 120px;
     min-height: 44px;
@@ -613,13 +620,6 @@
     font-weight: 900;
 }
 
-.town-dialogue-route {
-    border-color: rgba(233, 189, 101, 0.44);
-    background: rgba(233, 189, 101, 0.12);
-    color: #fff2c8;
-}
-
-.town-dialogue-route:hover,
 .town-dialogue-done:hover {
     border-color: rgba(233, 189, 101, 0.66);
     background: rgba(233, 189, 101, 0.16);
@@ -1765,7 +1765,6 @@
         flex-direction: column;
     }
 
-    .town-dialogue-route,
     .town-dialogue-done {
         width: 100%;
     }

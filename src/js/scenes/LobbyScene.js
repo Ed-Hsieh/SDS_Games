@@ -22,7 +22,6 @@ export default class LobbyScene {
         this.handleTownNpc = this.handleTownNpc.bind(this);
         this.handleTownDialogueAdvance = this.handleTownDialogueAdvance.bind(this);
         this.closeTownDialogue = this.closeTownDialogue.bind(this);
-        this.handleTownDialogueRoute = this.handleTownDialogueRoute.bind(this);
         this.handleSaveExport = this.handleSaveExport.bind(this);
         this.handleSaveImport = this.handleSaveImport.bind(this);
         this.handleSaveFileSelected = this.handleSaveFileSelected.bind(this);
@@ -80,7 +79,6 @@ export default class LobbyScene {
             townDialogueCard: this.container.querySelector('.town-dialogue-card'),
             townDialogueClose: this.container.querySelector('#town-dialogue-close'),
             townDialogueDone: this.container.querySelector('#town-dialogue-done'),
-            townDialogueRoute: this.container.querySelector('#town-dialogue-route'),
             townDialogueAvatar: this.container.querySelector('#town-dialogue-avatar'),
             townDialogueRole: this.container.querySelector('#town-dialogue-role'),
             townDialogueName: this.container.querySelector('#town-dialogue-name'),
@@ -141,7 +139,6 @@ export default class LobbyScene {
 
         this.dom.townDialogueClose?.addEventListener('click', this.closeTownDialogue);
         this.dom.townDialogueDone?.addEventListener('click', this.closeTownDialogue);
-        this.dom.townDialogueRoute?.addEventListener('click', this.handleTownDialogueRoute);
         this.dom.townDialogueCard?.addEventListener('click', this.handleTownDialogueAdvance);
         this.dom.townDialogueModal?.addEventListener('click', event => {
             if (event.target === this.dom.townDialogueModal) this.closeTownDialogue();
@@ -411,7 +408,15 @@ export default class LobbyScene {
     renderTownDialogueModal(outcome) {
         if (!this.dom?.townDialogueModal || !outcome?.npc) return;
 
-        const { npc, lines = [], effectMessages = [], route = null, routeLabel = '前往' } = outcome;
+        const {
+            npc,
+            lines = [],
+            effectMessages = [],
+            narrativeTitle = null,
+            narrativeSummary = null,
+            route = null,
+            routeLabel = '前往'
+        } = outcome;
         const visibleLines = lines.filter(line => line.speaker !== '冒險者');
         this.activeTownDialogue = {
             npc,
@@ -423,13 +428,16 @@ export default class LobbyScene {
             effectMessages,
             route,
             routeLabel,
+            narrativeTitle,
+            narrativeSummary,
+            notebookHint: null,
+            notebookHintResolved: false,
             tone: outcome.tone || (outcome.success ? 'discovery' : 'ambient'),
             currentIndex: 0,
             currentText: '',
             isTyping: false,
             lineComplete: false,
             renderedIndexes: new Set(),
-            loggedIndexes: new Set(),
             effectsLogged: false
         };
 
@@ -438,7 +446,6 @@ export default class LobbyScene {
         if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
         if (this.dom.townDialogueLines) this.dom.townDialogueLines.innerHTML = '';
         if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.innerHTML = '';
-        if (this.dom.townDialogueRoute) this.dom.townDialogueRoute.hidden = true;
         if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
 
         this.dom.townDialogueModal.hidden = false;
@@ -598,7 +605,6 @@ export default class LobbyScene {
         dialogue.isTyping = false;
         dialogue.lineComplete = true;
         this.renderTownDialogueLines();
-        this.logTownDialogueLine(dialogue.currentIndex);
 
         const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
         if (finished) {
@@ -629,40 +635,29 @@ export default class LobbyScene {
         this.startTownDialogueLine();
     }
 
-    logTownDialogueLine(index) {
-        const dialogue = this.activeTownDialogue;
-        const line = dialogue?.lines?.[index];
-        if (!dialogue || !line || dialogue.loggedIndexes.has(index)) return;
-
-        dialogue.loggedIndexes.add(index);
-        this.pushTownNarrative(line.speaker, line.text, dialogue.tone);
-    }
-
     renderTownDialogueActions(finished) {
         const dialogue = this.activeTownDialogue;
         if (!dialogue) return;
 
         if (this.dom.townDialogueEffects) {
+            if (finished && !dialogue.notebookHintResolved) {
+                dialogue.notebookHint = this.resolveTownDialogueNotebookHint(dialogue);
+                dialogue.notebookHintResolved = true;
+            }
+            const effectEntries = finished ? this.getTownDialogueEffectEntries(dialogue) : [];
             this.dom.townDialogueEffects.innerHTML = finished
-                ? dialogue.effectMessages.map(message => (
-                    `<div class="town-dialogue-effect">${escapeHtml(message)}</div>`
+                ? effectEntries.map(entry => (
+                    `<div class="town-dialogue-effect${entry.type === 'hint' ? ' is-hint' : ''}">${escapeHtml(entry.message)}</div>`
                 )).join('')
                 : '';
         }
 
         if (finished && !dialogue.effectsLogged) {
-            for (const message of dialogue.effectMessages || []) {
-                this.pushTownNarrative('線索更新', message, 'discovery');
-            }
+            this.logTownDialogueSummary(dialogue);
             dialogue.effectsLogged = true;
             this.scrollTownDialogueLinesToEnd();
         }
 
-        if (this.dom.townDialogueRoute) {
-            this.dom.townDialogueRoute.hidden = !finished || !dialogue.route;
-            this.dom.townDialogueRoute.textContent = dialogue.routeLabel || '前往';
-            this.dom.townDialogueRoute.dataset.route = dialogue.route || '';
-        }
         if (this.dom.townDialogueDone) {
             this.dom.townDialogueDone.hidden = !finished;
         }
@@ -670,6 +665,50 @@ export default class LobbyScene {
         if (finished) {
             this.scrollTownDialogueLinesToEnd();
         }
+    }
+
+    logTownDialogueSummary(dialogue) {
+        const summary = dialogue?.narrativeSummary;
+        if (!summary) return;
+
+        const title = dialogue.narrativeTitle
+            || (dialogue.effectMessages?.length ? '交談後的紀錄' : '交談片刻');
+        this.pushTownNarrative(title, summary, 'discovery');
+    }
+
+    getTownDialogueEffectEntries(dialogue) {
+        const entries = (dialogue.effectMessages || []).map(message => ({
+            type: 'effect',
+            message
+        }));
+        if (dialogue.notebookHint) {
+            entries.push({
+                type: 'hint',
+                message: dialogue.notebookHint
+            });
+        }
+        return entries;
+    }
+
+    resolveTownDialogueNotebookHint(dialogue) {
+        const messages = dialogue?.effectMessages || [];
+        if (messages.length === 0) return null;
+
+        const looksLikeStoryUpdate = dialogue.route === 'quest'
+            || messages.some(message => /線索|紀錄|任務|聽聞/.test(String(message)));
+        if (!looksLikeStoryUpdate) return null;
+
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+
+        const now = Date.now();
+        const lastShownAt = Number(GameManager.state.ui.lastNotebookHintAt) || 0;
+        if (now - lastShownAt < 120000) return null;
+
+        GameManager.state.ui.lastNotebookHintAt = now;
+        GameManager.markSaveDirty?.('notebook-hint');
+        return '線索簿已更新。需要確認下一步時，可從右上角的旅人手札翻閱最新紀錄。';
     }
 
     scrollTownDialogueLinesToEnd() {
@@ -703,17 +742,6 @@ export default class LobbyScene {
         this.clearTownDialogueTimers();
         this.dom.townDialogueModal.hidden = true;
         this.activeTownDialogue = null;
-    }
-
-    handleTownDialogueRoute() {
-        const route = this.dom?.townDialogueRoute?.dataset?.route;
-        if (!route) return;
-        this.closeTownDialogue();
-        if (typeof this.app?.navigateTo === 'function') {
-            this.app.navigateTo(route);
-        } else {
-            this.app.loadScene(route);
-        }
     }
 
     async handleSaveExport() {

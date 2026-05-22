@@ -6,6 +6,7 @@
 import DungeonMap, { DungeonTileType, DungeonTileIcons } from '../utils/DungeonMap.js';
 import { DungeonDatabase, DungeonEntranceConfig, generateFloorEvent } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
+import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
@@ -947,23 +948,7 @@ class DungeonSceneClass {
                     if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
                     try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
                     try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
-                    // register auto-attack callback to update UI
-                    try {
-                        if (this._engine) {
-                            this._engine._onAutoAttack = (res) => {
-                                if (!res) return;
-                                try {
-                                    if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-                                    this.updateUI();
-                                    this.updateBattlePlayerDisplay();
-                                    this.showPlayerHitFeedback(res.damage || 0);
-                                    if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
-                                } catch (e) {
-                                    console.warn('Dungeon auto-attack UI handler failed:', e);
-                                }
-                            };
-                        }
-                    } catch (e) {}
+                    this.configureFightEngineCallbacks(this._engine);
             } else {
                 FightManagerReady.then(mod => {
                     if (mod && mod.BattleController) {
@@ -971,28 +956,81 @@ class DungeonSceneClass {
                             if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
                             try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
                             try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
-                            try {
-                                if (this._engine) {
-                                    this._engine._onAutoAttack = (res) => {
-                                        if (!res) return;
-                                        try {
-                                            if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-                                            this.updateUI();
-                                            this.updateBattlePlayerDisplay();
-                                            this.showPlayerHitFeedback(res.damage || 0);
-                                            if (res && res.playerHp !== undefined && res.playerHp <= 0) this.handlePlayerDeath();
-                                        } catch (e) {
-                                            console.warn('Dungeon auto-attack UI handler failed:', e);
-                                        }
-                                    };
-                                }
-                            } catch (e) {}
+                            this.configureFightEngineCallbacks(this._engine);
                     }
                 }).catch(err => console.warn('Failed to initialize FightManager engine for dungeon:', err));
             }
         } catch (e) {
             console.warn('Error initializing dungeon fight engine:', e);
         }
+    }
+
+    configureFightEngineCallbacks(engine) {
+        if (!engine) return;
+
+        engine._onAutoAttack = (res) => {
+            if (!res) return;
+            try {
+                if (res.stunned) {
+                    this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法行動。`, 'info');
+                    this.updateMonsterDisplay();
+                } else if (res.dodged) {
+                    this.addMessage(`${this.currentMonster.name} 攻擊落空。`, 'info');
+                } else if (typeof res.damage === 'number') {
+                    this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                    this.showPlayerHitFeedback(res.damage || 0);
+                }
+                if (res.reflectedDamage > 0) {
+                    this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
+                    this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
+                    this.updateMonsterDisplay();
+                }
+                if (res.revived) {
+                    this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
+                    this.updateBattlePlayerDisplay();
+                }
+                this.updateUI();
+                this.updateBattlePlayerDisplay();
+                if (res.playerHp !== undefined && res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
+                if (this.isCurrentMonsterDefeated()) this.endBattle(true);
+            } catch (e) {
+                console.warn('Dungeon auto-attack UI handler failed:', e);
+            }
+        };
+
+        engine._onStatusApplied = (events = []) => {
+            events.forEach(event => this.addCombatStatusMessage(event));
+            this.updateMonsterDisplay();
+        };
+
+        engine._onStatusTick = (events = []) => {
+            events.forEach(event => {
+                if (event.type === 'poison') {
+                    this.addMessage(`☠️ 毒素造成 ${event.damage} 點傷害`, 'player-action');
+                    this.showMonsterDamageNumber(event.damage, false, 'dot');
+                }
+                this.updateMonsterDisplay();
+                if (event.targetDefeated) this.endBattle(true);
+            });
+        };
+    }
+
+    addCombatStatusMessage(effect) {
+        if (!effect) return;
+        const monsterName = this.currentMonster?.name || '敵人';
+        const messages = {
+            stun: `⚡ ${monsterName} 陷入暈眩，短時間無法行動。`,
+            slow: `❄️ ${monsterName} 被冰霜拖慢，攻擊頻率降低 ${Math.round(effect.percent || 0)}%。`,
+            poison: `☠️ ${monsterName} 中毒，每秒受到 ${effect.dps || 0} 傷害。`
+        };
+        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison' };
+        const labelMap = {
+            stun: '⚡ 暈眩',
+            slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
+            poison: `☠️ 中毒 ${effect.dps || 0}/秒`
+        };
+        this.showMonsterDamageNumber(0, false, typeMap[effect.type] || 'status', labelMap[effect.type] || '狀態');
+        this.addMessage(messages[effect.type] || `${monsterName} 受到狀態影響。`, 'player-action');
     }
     
     showBattleModal() {
@@ -1016,6 +1054,12 @@ class DungeonSceneClass {
     updateMonsterDisplay() {
         if (!this.currentMonster) return;
         renderCombatMonster(this.dom.combatOverlay || document, this.currentMonster);
+    }
+
+    isCurrentMonsterDefeated() {
+        if (!this.currentMonster) return false;
+        const hp = this.currentMonster.hp ?? this.currentMonster.currentHp ?? 0;
+        return hp <= 0;
     }
 
     updateBattlePlayerDisplay() {
@@ -1048,9 +1092,22 @@ class DungeonSceneClass {
         if (res.destroyedWeapon) this.addMessage('⚠️ 你的武器被破壞了！', 'warning');
 
         if (applyRes && typeof applyRes.finalDamage === 'number') {
+            const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
+            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage);
             this.addMessage(`⚔️ 造成 ${applyRes.finalDamage} 點傷害`, 'player-action');
-            this.showMonsterDamageNumber(applyRes.finalDamage, Boolean(res.computeRes?.isCrit));
+            this.showMonsterDamageNumber(primaryDamage || applyRes.finalDamage, Boolean(res.computeRes?.isCrit));
+            if (doubleStrikeDamage > 0) {
+                this.addMessage(`⚡ 雙重打擊追加 ${doubleStrikeDamage} 點傷害`, 'player-action');
+                this.showMonsterDamageNumber(doubleStrikeDamage, false, 'doubleStrike', `⚡ 連擊 -${doubleStrikeDamage}`);
+            }
             this.updateMonsterDisplay();
+        }
+
+        if (applyRes && applyRes.lifestealRecovered > 0) {
+            this.addMessage(`💚 吸取 ${applyRes.lifestealRecovered} 生命`, 'success');
+            this.showMonsterDamageNumber(applyRes.lifestealRecovered, false, 'lifesteal', `❤ 吸血 +${applyRes.lifestealRecovered}`);
+            this.updateUI();
+            this.updateBattlePlayerDisplay();
         }
 
         // Check monster death
@@ -1102,11 +1159,26 @@ class DungeonSceneClass {
             this.addMessage(`撤退失敗。當前撤退成功率 ${Math.round(fleeChance * 100)}%。`, 'danger');
             if (this._engine && typeof this._engine.monsterAttack === 'function') {
                 const res = this._engine.monsterAttack();
-                if (res && typeof res.damage === 'number') this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-                this.showPlayerHitFeedback(res?.damage || 0);
+                if (res?.stunned) {
+                    this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法追擊。`, 'info');
+                    this.updateMonsterDisplay();
+                } else if (res && typeof res.damage === 'number') {
+                    this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
+                    this.showPlayerHitFeedback(res.damage || 0);
+                }
+                if (res?.reflectedDamage > 0) {
+                    this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
+                    this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
+                    this.updateMonsterDisplay();
+                }
+                if (res?.revived) {
+                    this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
+                    this.updateBattlePlayerDisplay();
+                }
                 this.updateUI();
                 this.updateBattlePlayerDisplay();
-                if (res && res.playerHp <= 0) this.handlePlayerDeath();
+                if (res && res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
+                if (this.isCurrentMonsterDefeated()) this.endBattle(true);
             } else {
                 // Engine not present — log error
                 console.error('Fight engine not initialized; cannot perform monster attack after failed flee.');
@@ -1152,22 +1224,36 @@ class DungeonSceneClass {
         const res = this._engine.monsterAttack();
         if (!res) return;
 
-        if (res && typeof res.damage === 'number') {
+        if (res.stunned) {
+            this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法行動。`, 'info');
+            this.updateMonsterDisplay();
+        } else if (res && typeof res.damage === 'number') {
             this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
             this.showPlayerHitFeedback(res.damage);
+        }
+        if (res.reflectedDamage > 0) {
+            this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
+            this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
+            this.updateMonsterDisplay();
+        }
+        if (res.revived) {
+            this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
+            this.updateBattlePlayerDisplay();
         }
 
         if (res && res.playerHp !== undefined) {
             this.updateUI();
             this.updateBattlePlayerDisplay();
-            if (res.playerHp <= 0) this.handlePlayerDeath();
+            if (res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
+            if (this.isCurrentMonsterDefeated()) this.endBattle(true);
         }
     }
 
-    showMonsterDamageNumber(damage, isCrit = false) {
+    showMonsterDamageNumber(damage, isCrit = false, type = null, label = null) {
         showCombatDamageNumber(this.dom.combatOverlay, damage, {
-            type: damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal',
-            isCrit
+            type: type || (damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal'),
+            isCrit,
+            label
         });
     }
 
@@ -1181,13 +1267,15 @@ class DungeonSceneClass {
             const gold = Array.isArray(m.gold)
                 ? m.gold[0] + Math.floor(Math.random() * (m.gold[1] - m.gold[0]))
                 : Number(m.gold) || 0;
-            const exp = m.exp;
+            const char = GameManager.getCharacter();
+            const rewardEffects = getRewardEffectTotals(char);
+            const finalGold = Math.floor(gold * (1 + (rewardEffects.goldBonus || 0) / 100));
+            const exp = Math.floor((m.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
             
             this.addMessage(`🎉 擊敗 ${m.name}！`, 'success');
-            this.addMessage(`💰 +${gold} 金幣  ⭐ +${exp} 經驗`, 'reward');
+            this.addMessage(`💰 +${finalGold} 金幣  ⭐ +${exp} 經驗`, 'reward');
             
-            GameManager.addGold(gold);
-            const char = GameManager.getCharacter();
+            GameManager.addGold(finalGold);
             char.exp += exp;
             char.checkLevelUp();
             markMonsterKnown(m, { dungeonId: this.dungeonType });

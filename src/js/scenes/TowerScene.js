@@ -459,12 +459,63 @@ class TowerScene {
         this.battleEngine._onAutoAttack = (res) => {
             if (!res || this.finishingBattle) return;
             if (res.destroyedArmor) this.updatePlayerStats();
-            showCombatPlayerHitFeedback(this.battleStateEl, GameManager.getCharacter(), res.damage || 0);
+            if (res.stunned) {
+                showCombatDamageNumber(this.battleStateEl, 0, { type: 'statusStun', label: '⚡ 暈眩' });
+            } else if (res.damage > 0) {
+                showCombatPlayerHitFeedback(this.battleStateEl, GameManager.getCharacter(), res.damage || 0);
+            }
+            if (res.reflectedDamage > 0) {
+                showCombatDamageNumber(this.battleStateEl, res.reflectedDamage, {
+                    type: 'reflect',
+                    label: `🛡 反傷 -${res.reflectedDamage}`
+                });
+            }
+            if (res.revived) {
+                showCombatDamageNumber(this.battleStateEl, 0, {
+                    type: 'revive',
+                    label: '✨ 復甦'
+                });
+            }
             this.updateBattleUI();
 
-            if (res.playerHp <= 0) {
+            if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+                this.finishBattleVictory();
+            } else if (res.playerHp <= 0 && !res.revived) {
                 this.finishBattleDefeat();
             }
+        };
+        this.battleEngine._onStatusApplied = (events = []) => {
+            if (this.finishingBattle) return;
+            events.forEach(event => {
+                const labels = {
+                    stun: '⚡ 暈眩',
+                    slow: `❄️ 緩速 ${Math.round(event.percent || 0)}%`,
+                    poison: `☠️ 中毒 ${event.dps || 0}/秒`
+                };
+                const types = {
+                    stun: 'statusStun',
+                    slow: 'statusSlow',
+                    poison: 'statusPoison'
+                };
+                showCombatDamageNumber(this.battleStateEl, 0, {
+                    type: types[event.type] || 'status',
+                    label: labels[event.type] || '狀態'
+                });
+            });
+            this.updateBattleUI();
+        };
+        this.battleEngine._onStatusTick = (events = []) => {
+            if (this.finishingBattle) return;
+            events.forEach(event => {
+                if (event.type === 'poison') {
+                    showCombatDamageNumber(this.battleStateEl, event.damage || 0, {
+                        type: 'dot',
+                        label: `☠️ -${event.damage || 0}`
+                    });
+                }
+                if (event.targetDefeated) this.finishBattleVictory();
+            });
+            this.updateBattleUI();
         };
 
         this.battleEngine.beginBattle();
@@ -523,12 +574,27 @@ class TowerScene {
             this.showMessage(`${res.destroyedWeapon.name} 已損壞。`, 'warning');
         }
 
-        const damage = res.applyRes?.finalDamage ?? 0;
-        showCombatDamageNumber(this.battleStateEl, damage, {
+        const applyRes = res.applyRes || {};
+        const damage = applyRes.finalDamage ?? 0;
+        const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
+        const primaryDamage = Math.max(0, damage - doubleStrikeDamage);
+        showCombatDamageNumber(this.battleStateEl, primaryDamage || damage, {
             type: hitType === 'miss' ? 'dodge' : damage <= 0 ? 'block' : res.computeRes?.isCrit ? 'critical' : 'normal',
             isCrit: Boolean(res.computeRes?.isCrit),
             isMiss: hitType === 'miss'
         });
+        if (doubleStrikeDamage > 0) {
+            showCombatDamageNumber(this.battleStateEl, doubleStrikeDamage, {
+                type: 'doubleStrike',
+                label: `⚡ 連擊 -${doubleStrikeDamage}`
+            });
+        }
+        if (applyRes.lifestealRecovered > 0) {
+            showCombatDamageNumber(this.battleStateEl, applyRes.lifestealRecovered, {
+                type: 'lifesteal',
+                label: `❤ 吸血 +${applyRes.lifestealRecovered}`
+            });
+        }
         this.updateBattleUI();
 
         if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {

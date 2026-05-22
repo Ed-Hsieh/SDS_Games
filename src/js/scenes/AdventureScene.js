@@ -7,13 +7,14 @@ import WorldMap from '../utils/WorldMap.js';
 import { eventManager } from '../managers/EventManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
+import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { createRecipeBlueprintDisplayItems, rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
-import { attachItemTooltip, closeItemTooltip } from '../utils/ItemTooltip.js';
+import { attachItemTooltip, closeItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import {
@@ -1871,24 +1872,7 @@ export default class AdventureScene {
                 }
                     try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
                     try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
-                    // Register auto-attack callback so the scene updates UI when engine attacks
-                    try {
-                        if (this.currentBattle._engine) {
-                            this.currentBattle._engine._onAutoAttack = (res) => {
-                                if (!res) return;
-                                try {
-                                    if (res.destroyedArmor) this.updateEquipmentDisplay();
-                                    this.updateUI();
-                                    this.updatePlayerHUD();
-                                    this.currentBattle?.showPlayerHitFeedback?.(res.damage);
-                                    this.currentBattle?.endTurn?.();
-                                    if (res.playerHp <= 0) this.currentBattle?.handleDefeat?.();
-                                } catch (e) {
-                                    console.warn('Error handling auto-attack UI update:', e);
-                                }
-                            };
-                        }
-                    } catch (e) {}
+                    this.configureFightEngineCallbacks(this.currentBattle._engine);
             } else {
                 // If not ready yet, wait for the dynamic import to resolve
                 FightManagerReady.then(mod => {
@@ -1899,29 +1883,63 @@ export default class AdventureScene {
                         }
                             try { if (this.dom && this.dom.attackBtn) this.dom.attackBtn.disabled = false; } catch (e) {}
                             try { if (this.currentBattle._engine && typeof this.currentBattle._engine.beginBattle === 'function') this.currentBattle._engine.beginBattle(); } catch (e) {}
-                            try {
-                                if (this.currentBattle._engine) {
-                                    this.currentBattle._engine._onAutoAttack = (res) => {
-                                        if (!res) return;
-                                        try {
-                                            if (res.destroyedArmor) this.updateEquipmentDisplay();
-                                            this.updateUI();
-                                            this.updatePlayerHUD();
-                                            this.currentBattle?.showPlayerHitFeedback?.(res.damage);
-                                            this.currentBattle?.endTurn?.();
-                                            if (res.playerHp <= 0) this.currentBattle?.handleDefeat?.();
-                                        } catch (e) {
-                                            console.warn('Error handling auto-attack UI update:', e);
-                                        }
-                                    };
-                                }
-                            } catch (e) {}
+                            this.configureFightEngineCallbacks(this.currentBattle._engine);
                     }
                 }).catch(err => console.warn('Failed to initialize FightManager engine:', err));
             }
         } catch (e) {
             console.warn('Error initializing FightManager engine:', e);
         }
+    }
+
+    configureFightEngineCallbacks(engine) {
+        if (!engine) return;
+
+        engine._onAutoAttack = (res) => {
+            if (!res) return;
+            try {
+                if (res.destroyedArmor) this.updateEquipmentDisplay();
+                this.updateUI();
+                this.updatePlayerHUD();
+
+                if (res.stunned) {
+                    this.currentBattle?.showStatusFeedback?.({ type: 'stun', name: '暈眩', icon: '⚡' });
+                    this.updateMonsterDisplay();
+                } else if (res.damage > 0) {
+                    this.currentBattle?.showPlayerHitFeedback?.(res.damage);
+                }
+
+                if (res.reflectedDamage > 0) {
+                    this.currentBattle?.showEffectNumber?.('reflect', res.reflectedDamage, `🛡 反傷 -${res.reflectedDamage}`);
+                    this.updateMonsterDisplay();
+                }
+                if (res.revived) {
+                    this.currentBattle?.showEffectNumber?.('revive', 0, '✨ 復甦');
+                    this.updatePlayerHUD();
+                }
+
+                this.currentBattle?.endTurn?.();
+                if (res.playerHp <= 0 && !res.revived) this.currentBattle?.handleDefeat?.();
+                if (this.currentBattle?.monster?.isDead?.()) this.currentBattle?.handleVictory?.();
+            } catch (e) {
+                console.warn('Error handling auto-attack UI update:', e);
+            }
+        };
+
+        engine._onStatusApplied = (events = []) => {
+            events.forEach(event => this.currentBattle?.showStatusFeedback?.(event));
+            this.updateMonsterDisplay();
+        };
+
+        engine._onStatusTick = (events = []) => {
+            events.forEach(event => {
+                this.currentBattle?.showStatusTickFeedback?.(event);
+                this.updateMonsterDisplay();
+                if (event.targetDefeated) {
+                    this.currentBattle?.handleVictory?.();
+                }
+            });
+        };
     }
 
     endBattle(victory) {
@@ -2312,54 +2330,25 @@ class AdventureBattleViewController {
         const computeRes = res.computeRes || {};
         const applyRes = res.applyRes || {};
 
-        // thunder (attack speed) visual
-        const thunderBuffPercent = computeRes.thunderBuffPercent || computeRes.breakdown?.thunderPercent || 0;
-        if (thunderBuffPercent && thunderBuffPercent > 0) {
-            const buffVal = thunderBuffPercent / 100;
-            this.player.addBuff('attackSpeed', buffVal, 1);
-            const header = this.scene.container.querySelector('.battle-header');
-            if (header) {
-                const el = document.createElement('div');
-                el.className = 'player-status-thunder';
-                el.textContent = `⚡ 攻速 +${thunderBuffPercent}%`;
-                el.style.position = 'absolute';
-                el.style.right = '12px';
-                el.style.top = '8px';
-                el.style.padding = '4px 8px';
-                el.style.background = 'rgba(255,215,0,0.95)';
-                el.style.color = '#000';
-                el.style.borderRadius = '6px';
-                header.appendChild(el);
-                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
-            }
-        }
-
         // show miss
         if (hitType === 'miss') this.showDamageNumber(0, false, true);
 
         // show actual final damage
         if (applyRes && typeof applyRes.finalDamage === 'number') {
-            this.showDamageNumber(applyRes.finalDamage, computeRes.isCrit, false);
+            const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
+            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage);
+            this.showDamageNumber(primaryDamage || applyRes.finalDamage, computeRes.isCrit, false);
+            if (doubleStrikeDamage > 0) {
+                this.showEffectNumber('doubleStrike', doubleStrikeDamage, `⚡ 連擊 -${doubleStrikeDamage}`);
+            }
             this.scene.updateMonsterDisplay();
         }
 
         // lifesteal feedback
         if (applyRes && applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
-            const header = this.scene.container.querySelector('.battle-header');
-            if (header) {
-                const el = document.createElement('div');
-                el.className = 'player-status-lifesteal';
-                el.textContent = `❤ 恢復 ${applyRes.lifestealRecovered}`;
-                el.style.position = 'absolute';
-                el.style.left = '12px';
-                el.style.top = '8px';
-                el.style.padding = '4px 8px';
-                el.style.background = 'rgba(255,105,180,0.95)';
-                el.style.color = '#000';
-                el.style.borderRadius = '6px';
-                header.appendChild(el);
-                setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
-            }
+            this.showEffectNumber('lifesteal', applyRes.lifestealRecovered, `❤ 吸血 +${applyRes.lifestealRecovered}`);
+            this.scene.updateUI();
+            this.scene.updatePlayerHUD();
         }
 
         // Victory handled by scene when engine marks monster dead
@@ -2376,6 +2365,38 @@ class AdventureBattleViewController {
             isCrit,
             isMiss
         });
+    }
+
+    showEffectNumber(type, amount = 0, label = null) {
+        showCombatDamageNumber(this.scene.container, amount, { type, label });
+    }
+
+    showStatusFeedback(effect) {
+        if (!effect) return;
+        const textMap = {
+            stun: '⚡ 暈眩',
+            slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
+            poison: `☠️ 中毒 ${effect.dps || 0}/秒`
+        };
+        const typeMap = {
+            stun: 'statusStun',
+            slow: 'statusSlow',
+            poison: 'statusPoison'
+        };
+        showCombatDamageNumber(this.scene.container, 0, {
+            type: typeMap[effect.type] || 'status',
+            label: textMap[effect.type] || effect.name || '狀態'
+        });
+    }
+
+    showStatusTickFeedback(event) {
+        if (!event) return;
+        if (event.type === 'poison') {
+            showCombatDamageNumber(this.scene.container, event.damage || 0, {
+                type: 'dot',
+                label: `☠️ -${event.damage || 0}`
+            });
+        }
     }
     
     startCooldown(duration) {
@@ -2445,15 +2466,29 @@ class AdventureBattleViewController {
                 this.scene.updateUI();
                 this.scene.updatePlayerHUD();
 
-                // Player hit feedback
-                this.showPlayerHitFeedback(res.damage);
+                if (res.stunned) {
+                    this.showStatusFeedback({ type: 'stun', name: '暈眩', icon: '⚡' });
+                    this.scene.updateMonsterDisplay();
+                } else if (res.damage > 0) {
+                    this.showPlayerHitFeedback(res.damage);
+                }
+
+                if (res.reflectedDamage > 0) {
+                    this.showEffectNumber('reflect', res.reflectedDamage, `🛡 反傷 -${res.reflectedDamage}`);
+                    this.scene.updateMonsterDisplay();
+                }
+                if (res.revived) {
+                    this.showEffectNumber('revive', 0, '✨ 復甦');
+                    this.scene.updatePlayerHUD();
+                }
 
                 // End turn housekeeping
                 this.endTurn();
 
-                if (res.playerHp <= 0) {
+                if (res.playerHp <= 0 && !res.revived) {
                     this.handleDefeat();
                 }
+                if (this.monster.isDead?.()) this.handleVictory();
 
                 return;
             }
@@ -2513,8 +2548,13 @@ class AdventureBattleViewController {
             || this.scene?.worldMap?.getCurrentZone?.()
             || null;
         const sources = resolveDropSources({ monster: this.monster, zoneId });
-        const drops = generateDropsFromSources(sources, { rng: Math.random });
-        const gold = this.monster.gold || 0;
+        const rewardEffects = getRewardEffectTotals(this.player);
+        const drops = generateDropsFromSources(sources, {
+            rng: Math.random,
+            dropBonus: rewardEffects.dropBonus
+        });
+        const baseGold = this.monster.gold || 0;
+        const gold = Math.floor(baseGold * (1 + (rewardEffects.goldBonus || 0) / 100));
         
         // 將掉落 ID 轉換成物品實例
         const droppedItems = [];
@@ -2546,7 +2586,8 @@ class AdventureBattleViewController {
             showGlobalToast('取得製作圖', blueprintItems.map(item => item.recipeName).join('、'), 'success');
         }
         
-        this.player.exp += this.monster.exp;
+        const exp = Math.floor((this.monster.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
+        this.player.exp += exp;
         this.player.checkLevelUp();
         GameManager.addGold(gold);
         
@@ -2557,7 +2598,7 @@ class AdventureBattleViewController {
         
         setTimeout(() => {
             this.scene.endBattle(true);
-            this.scene.showLoot(this.monster.exp, gold, droppedItems);
+            this.scene.showLoot(exp, gold, droppedItems);
         }, 1500);
     }
 
@@ -2586,7 +2627,26 @@ class AdventureBattleViewController {
             // Do not fallback to scheduling the old scene monsterAttack to avoid duplicate
             // countdowns or unexpected extra hits during engine transition.
             if (this._engine && typeof this._engine.monsterAttack === 'function') {
-                this._engine.monsterAttack();
+                const res = this._engine.monsterAttack();
+                if (res?.stunned) {
+                    this.showStatusFeedback({ type: 'stun', name: '暈眩', icon: '⚡' });
+                    this.scene.updateMonsterDisplay();
+                } else if (res) {
+                    if (res.destroyedArmor) this.scene.updateEquipmentDisplay();
+                    this.scene.updateUI();
+                    this.scene.updatePlayerHUD();
+                    if (res.damage > 0) this.showPlayerHitFeedback(res.damage);
+                    if (res.reflectedDamage > 0) {
+                        this.showEffectNumber('reflect', res.reflectedDamage, `🛡 反傷 -${res.reflectedDamage}`);
+                        this.scene.updateMonsterDisplay();
+                    }
+                    if (res.revived) {
+                        this.showEffectNumber('revive', 0, '✨ 復甦');
+                        this.scene.updatePlayerHUD();
+                    }
+                    if (res.playerHp <= 0 && !res.revived) this.handleDefeat();
+                    if (this.monster.isDead?.()) this.handleVictory();
+                }
             } else {
                 console.warn('Fight engine not initialized; cannot perform monster attack after failed flee.');
             }
@@ -2759,84 +2819,40 @@ AdventureScene.prototype.buildStaticLayer = function() {
 AdventureScene.prototype.renderEquipmentSlots = function() {
     const state = GameManager.state;
     const equipment = state.character.equipment;
-    
-    // Weapon slot
-    if (this.dom.slotWeapon) {
-        const weapon = equipment.weapon;
-        if (weapon) {
-            this.dom.slotWeapon.classList.remove('empty');
-            this.dom.slotWeapon.classList.add('equipped');
-            const iconEl = this.dom.slotWeapon.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotWeapon.querySelector('.equipment-slot-name');
+
+    const renderSlot = (slotEl, item, fallbackIcon) => {
+        if (!slotEl) return;
+
+        const iconEl = slotEl.querySelector('.equipment-slot-icon');
+        const nameEl = slotEl.querySelector('.equipment-slot-name');
+
+        if (item) {
+            slotEl.classList.remove('empty');
+            slotEl.classList.add('equipped');
+            slotEl.setAttribute('aria-label', `查看 ${item.name || '裝備'}`);
+
             if (iconEl) {
-                if (weapon.image) {
-                    iconEl.innerHTML = `<img src="${weapon.image}" alt="${weapon.name}">`;
-                } else {
-                    iconEl.textContent = weapon.icon || '⚔️';
-                }
+                iconEl.innerHTML = item.image
+                    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
+                    : escapeHtml(item.icon || fallbackIcon);
             }
-            if (nameEl) nameEl.textContent = weapon.name;
-        } else {
-            this.dom.slotWeapon.classList.add('empty');
-            this.dom.slotWeapon.classList.remove('equipped');
-            const iconEl = this.dom.slotWeapon.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotWeapon.querySelector('.equipment-slot-name');
-            if (iconEl) iconEl.textContent = '⚔️';
-            if (nameEl) nameEl.textContent = '未裝備';
+            if (nameEl) nameEl.textContent = item.name || '已裝備';
+
+            attachItemTooltip(slotEl, item, { hint: '點擊開啟操作' });
+            return;
         }
-    }
-    
-    // Armor slot
-    if (this.dom.slotArmor) {
-        const armor = equipment.armor;
-        if (armor) {
-            this.dom.slotArmor.classList.remove('empty');
-            this.dom.slotArmor.classList.add('equipped');
-            const iconEl = this.dom.slotArmor.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotArmor.querySelector('.equipment-slot-name');
-            if (iconEl) {
-                if (armor.image) {
-                    iconEl.innerHTML = `<img src="${armor.image}" alt="${armor.name}">`;
-                } else {
-                    iconEl.textContent = armor.icon || '🛡️';
-                }
-            }
-            if (nameEl) nameEl.textContent = armor.name;
-        } else {
-            this.dom.slotArmor.classList.add('empty');
-            this.dom.slotArmor.classList.remove('equipped');
-            const iconEl = this.dom.slotArmor.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotArmor.querySelector('.equipment-slot-name');
-            if (iconEl) iconEl.textContent = '🛡️';
-            if (nameEl) nameEl.textContent = '未裝備';
-        }
-    }
-    
-    // Accessory slot
-    if (this.dom.slotAccessory) {
-        const accessory = equipment.accessory;
-        if (accessory) {
-            this.dom.slotAccessory.classList.remove('empty');
-            this.dom.slotAccessory.classList.add('equipped');
-            const iconEl = this.dom.slotAccessory.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotAccessory.querySelector('.equipment-slot-name');
-            if (iconEl) {
-                if (accessory.image) {
-                    iconEl.innerHTML = `<img src="${accessory.image}" alt="${accessory.name}">`;
-                } else {
-                    iconEl.textContent = accessory.icon || '💍';
-                }
-            }
-            if (nameEl) nameEl.textContent = accessory.name;
-        } else {
-            this.dom.slotAccessory.classList.add('empty');
-            this.dom.slotAccessory.classList.remove('equipped');
-            const iconEl = this.dom.slotAccessory.querySelector('.equipment-slot-icon');
-            const nameEl = this.dom.slotAccessory.querySelector('.equipment-slot-name');
-            if (iconEl) iconEl.textContent = '💍';
-            if (nameEl) nameEl.textContent = '未裝備';
-        }
-    }
+
+        slotEl.classList.add('empty');
+        slotEl.classList.remove('equipped');
+        slotEl.removeAttribute('aria-label');
+        detachItemTooltip(slotEl);
+        if (iconEl) iconEl.textContent = fallbackIcon;
+        if (nameEl) nameEl.textContent = '未裝備';
+    };
+
+    renderSlot(this.dom.slotWeapon, equipment.weapon, '⚔️');
+    renderSlot(this.dom.slotArmor, equipment.armor, '🛡️');
+    renderSlot(this.dom.slotAccessory, equipment.accessory, '💍');
 };
 
 AdventureScene.prototype.showInventoryItemModal = function(stack) {

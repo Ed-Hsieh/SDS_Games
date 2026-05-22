@@ -6,8 +6,6 @@
  * concrete classes, while this file only operates on character-shaped objects.
  */
 import { normalizeItemType, readItemStat, readNumber } from './ItemSchema.js';
-import { SetDatabase } from '../data/Equipment.js';
-import { calculateActiveSetBonuses } from '../data/EquipmentBalance.js';
 import {
     DefaultEquippedPassiveCombatEffectIds,
     DefaultUnlockedPassiveCombatEffectIds,
@@ -15,6 +13,7 @@ import {
     getPassiveCombatEffect,
     getPassiveCombatEffects
 } from '../data/PassiveCombatEffects.js';
+import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
 
 function toPercentInt(raw) {
     const number = readNumber(raw);
@@ -35,14 +34,6 @@ function normalizeEquipmentSlot(item) {
     return normalizeItemType(item.type);
 }
 
-function getSetBonusTotals(character) {
-    return calculateActiveSetBonuses(character, SetDatabase).bonuses;
-}
-
-function getEquipmentBonus(item, stat) {
-    return readNumber(item?.affixBonuses?.[stat]) + readNumber(item?.enhancementBonuses?.[stat]);
-}
-
 function getPassiveBonus(character, stat) {
     return getActivePassiveCombatEffects(character).reduce((sum, effect) => {
         return sum + readNumber(effect?.bonuses?.[stat]);
@@ -53,47 +44,46 @@ export function getPassiveCombatBonus(character, stat) {
     return getPassiveBonus(character, stat);
 }
 
+function getResolvedEquipmentEffects(character, options = {}) {
+    initPassiveCombatEffects(character);
+    return getEquipmentEffectTotals(character, options);
+}
+
+export function getCombatEffectTotals(character) {
+    return getResolvedEquipmentEffects(character);
+}
+
 export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
-    const setBonuses = getSetBonusTotals(character);
-    let enhancementAllStats = 0;
+    const effects = getResolvedEquipmentEffects(character);
     Object.values(character.equipment || {}).forEach(item => {
         total += readItemStat(item, 'atk', 'attack');
-        total += getEquipmentBonus(item, 'atk');
-        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
-    total += readNumber(setBonuses.atk);
-    total = Math.floor(total * (1 + toFraction(setBonuses.atkPercent) + toFraction(setBonuses.allStats) + enhancementAllStats + toFraction(getPassiveBonus(character, 'atkPercent'))));
-    total += readNumber(getPassiveBonus(character, 'atk'));
+    total += readNumber(effects.atk);
+    total = Math.floor(total * (1 + toFraction(effects.atkPercent) + toFraction(effects.allStats)));
     total += getBuffValue(character, 'atk');
     return total;
 }
 
 export function getTotalDef(character) {
     let total = readNumber(character.baseDef);
-    const setBonuses = getSetBonusTotals(character);
-    let enhancementAllStats = 0;
+    const effects = getResolvedEquipmentEffects(character);
     Object.values(character.equipment || {}).forEach(item => {
         total += readItemStat(item, 'def', 'defense');
-        total += getEquipmentBonus(item, 'def');
-        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
     });
-    total += readNumber(setBonuses.def);
-    total = Math.floor(total * (1 + toFraction(setBonuses.defPercent) + toFraction(setBonuses.allStats) + enhancementAllStats + toFraction(getPassiveBonus(character, 'defPercent'))));
-    total += readNumber(getPassiveBonus(character, 'def'));
+    total += readNumber(effects.def);
+    total = Math.floor(total * (1 + toFraction(effects.defPercent) + toFraction(effects.allStats)));
     total += getBuffValue(character, 'def');
     return total;
 }
 
 export function getCritChance(character) {
     let totalCritChance = 0.05;
-    const setBonuses = getSetBonusTotals(character);
+    const effects = getResolvedEquipmentEffects(character);
     Object.values(character.equipment || {}).forEach(item => {
         totalCritChance += toFraction(readItemStat(item, 'critChance', 'crit_chance'));
-        totalCritChance += toFraction(getEquipmentBonus(item, 'critChance'));
     });
-    totalCritChance += toFraction(setBonuses.critChance);
-    totalCritChance += toFraction(getPassiveBonus(character, 'critChance'));
+    totalCritChance += toFraction(effects.critChance);
     totalCritChance += toFraction(getBuffValue(character, 'critChance'));
     return Math.min(totalCritChance, 1.0);
 }
@@ -101,14 +91,12 @@ export function getCritChance(character) {
 export function getCritDamage(character) {
     let totalCritDamage = 1.5;
     let additionalCritDamage = 0;
-    const setBonuses = getSetBonusTotals(character);
+    const effects = getResolvedEquipmentEffects(character);
     Object.values(character.equipment || {}).forEach(item => {
         const critDamage = readItemStat(item, 'critDamage', 'crit_damage');
         if (critDamage) additionalCritDamage += critDamage - 1.5;
-        additionalCritDamage += toFraction(getEquipmentBonus(item, 'critDamage'));
     });
-    additionalCritDamage += toFraction(setBonuses.critDamage);
-    additionalCritDamage += toFraction(getPassiveBonus(character, 'critDamage'));
+    additionalCritDamage += toFraction(effects.critDamage);
     additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
     return totalCritDamage + additionalCritDamage;
 }
@@ -120,17 +108,12 @@ export function getWeaponSpeed(character) {
 
 export function getAttackSpeed(character) {
     let baseSpeed = 1.0;
-    const setBonuses = getSetBonusTotals(character);
+    const effects = getResolvedEquipmentEffects(character);
     const weapon = character.equipment?.weapon;
     if (weapon?.attackSpeed) {
         baseSpeed = readNumber(weapon.attackSpeed, 1.0);
     }
-    let speedBonus = 0;
-    Object.values(character.equipment || {}).forEach(item => {
-        speedBonus += toFraction(getEquipmentBonus(item, 'attackSpeed'));
-    });
-    speedBonus += toFraction(setBonuses.attackSpeed);
-    speedBonus += toFraction(getPassiveBonus(character, 'attackSpeed'));
+    let speedBonus = toFraction(effects.attackSpeed);
     speedBonus += toFraction(getBuffValue(character, 'attackSpeed'));
     return Math.max(0.1, baseSpeed * (1 + speedBonus));
 }
@@ -140,76 +123,18 @@ export function getAttackInterval(character) {
 }
 
 export function getLifesteal(character) {
-    let lifesteal = 0;
-    const setBonuses = getSetBonusTotals(character);
-    Object.values(character.equipment || {}).forEach(item => {
-        if (!item) return;
-
-        if (item.lifesteal !== undefined && item.lifesteal !== null) lifesteal += toPercentInt(item.lifesteal);
-        if (item.lifeStealBonus !== undefined && item.lifeStealBonus !== null) lifesteal += toPercentInt(item.lifeStealBonus);
-
-        if (item.affixBonuses) {
-            if (item.affixBonuses.lifesteal !== undefined && item.affixBonuses.lifesteal !== null) lifesteal += toPercentInt(item.affixBonuses.lifesteal);
-            if (item.affixBonuses.lifeStealBonus !== undefined && item.affixBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.affixBonuses.lifeStealBonus);
-        }
-        if (item.enhancementBonuses) {
-            if (item.enhancementBonuses.lifesteal !== undefined && item.enhancementBonuses.lifesteal !== null) lifesteal += toPercentInt(item.enhancementBonuses.lifesteal);
-            if (item.enhancementBonuses.lifeStealBonus !== undefined && item.enhancementBonuses.lifeStealBonus !== null) lifesteal += toPercentInt(item.enhancementBonuses.lifeStealBonus);
-        }
-
-        if (Array.isArray(item.affixes)) {
-            for (const affix of item.affixes) {
-                if (!affix?.stats) continue;
-                if (affix.stats.lifesteal !== undefined && affix.stats.lifesteal !== null) lifesteal += toPercentInt(affix.stats.lifesteal);
-                if (affix.stats.lifeStealBonus !== undefined && affix.stats.lifeStealBonus !== null) lifesteal += toPercentInt(affix.stats.lifeStealBonus);
-            }
-        }
-
-        if (Array.isArray(item.specialEffects)) {
-            for (const effect of item.specialEffects) {
-                const type = String(effect?.type || '').toLowerCase();
-                if ((type.includes('life') && type.includes('steal')) || type === 'lifesteal' || type === 'life_steal') {
-                    lifesteal += toPercentInt(effect.value);
-                }
-            }
-        }
-    });
-
-    lifesteal += toPercentInt(setBonuses.lifesteal);
-    return lifesteal;
+    return getResolvedEquipmentEffects(character).lifesteal;
 }
 
 export function getDamageReduction(character) {
-    let reduction = 0;
-    const setBonuses = getSetBonusTotals(character);
-    Object.values(character.equipment || {}).forEach(item => {
-        if (!item) return;
-        if (item.damageReduction !== undefined && item.damageReduction !== null) reduction += toPercentInt(item.damageReduction) / 100;
-        if (item.affixBonuses?.damageReduction !== undefined && item.affixBonuses.damageReduction !== null) {
-            reduction += toPercentInt(item.affixBonuses.damageReduction) / 100;
-        }
-        if (item.enhancementBonuses?.damageReduction !== undefined && item.enhancementBonuses.damageReduction !== null) {
-            reduction += toPercentInt(item.enhancementBonuses.damageReduction) / 100;
-        }
-    });
-    reduction += toPercentInt(setBonuses.damageReduction) / 100;
-    reduction += toFraction(getPassiveBonus(character, 'damageReduction'));
+    const reduction = getResolvedEquipmentEffects(character).damageReduction / 100;
     return Math.min(reduction, 0.75);
 }
 
 export function getAffixHpBonus(character) {
-    let bonus = 0;
-    const setBonuses = getSetBonusTotals(character);
-    let enhancementAllStats = 0;
-    Object.values(character.equipment || {}).forEach(item => {
-        bonus += readNumber(readItemStat(item, 'hp', [], 0));
-        bonus += getEquipmentBonus(item, 'hp');
-        enhancementAllStats += toFraction(item?.enhancementBonuses?.allStats);
-    });
-    bonus += readNumber(setBonuses.hp);
-    if (enhancementAllStats > 0) {
-        bonus = Math.floor(bonus * (1 + enhancementAllStats));
-    }
+    const effects = getResolvedEquipmentEffects(character, { includeBaseStats: true });
+    let bonus = readNumber(effects.hp);
+    if (effects.allStats > 0) bonus = Math.floor(bonus * (1 + toFraction(effects.allStats)));
     return bonus;
 }
 
@@ -367,6 +292,7 @@ export class CharacterHelper {
     getLifesteal() { return getLifesteal(this.data); }
     getDamageReduction() { return getDamageReduction(this.data); }
     getAffixHpBonus() { return getAffixHpBonus(this.data); }
+    getCombatEffectTotals() { return getCombatEffectTotals(this.data); }
     getPassiveCombatBonus(stat) { return getPassiveCombatBonus(this.data, stat); }
     getActivePassiveCombatEffects() { return getActivePassiveCombatEffects(this.data); }
 
@@ -399,6 +325,7 @@ export default {
     getLifesteal,
     getDamageReduction,
     getAffixHpBonus,
+    getCombatEffectTotals,
     getPassiveCombatBonus,
     addBuff,
     getBuffValue,

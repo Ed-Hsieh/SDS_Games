@@ -4,6 +4,8 @@
 
 支線、副本、零散委託尚未定稿，不在本文件中自行補完。
 
+章節份量與後續擴張規則見：[CHAPTER_STORY_GROWTH_PLAN.md](D:/TestProj/SDS_Games/docs/CHAPTER_STORY_GROWTH_PLAN.md)
+
 ## 核心世界觀
 
 艾瑟利亞大陸的古老歷史中，魔王阿薩謝爾與古龍是兩股截然不同的毀滅力量。

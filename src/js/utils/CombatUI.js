@@ -188,6 +188,44 @@ function createStatusIcon(effect, options = {}) {
     return el;
 }
 
+function getMonsterStatusEffects(monster) {
+    const now = Date.now();
+    return (monster?.statusEffects || [])
+        .filter(effect => !effect.expiresAt || effect.expiresAt > now)
+        .map(effect => ({
+            ...effect,
+            duration: effect.expiresAt ? Math.max(0, (effect.expiresAt - now) / 1000) : effect.duration
+        }));
+}
+
+function renderMonsterStatusIndicators(root, monster) {
+    const host = find(root, '.monster-info, .tower-monster-card');
+    if (!host) return;
+
+    let row = host.querySelector('.monster-status-effects');
+    const effects = getMonsterStatusEffects(monster);
+
+    if (effects.length === 0) {
+        row?.remove();
+        return;
+    }
+
+    if (!row) {
+        row = document.createElement('div');
+        row.className = 'monster-status-effects';
+        host.appendChild(row);
+    }
+
+    row.innerHTML = '';
+    effects.forEach(effect => {
+        row.appendChild(createStatusIcon(effect, {
+            polarity: 'negative',
+            durationText: formatDuration(effect.duration),
+            description: effect.description || ''
+        }));
+    });
+}
+
 export function renderCombatMonster(root, monster, options = {}) {
     if (!root || !monster) return;
 
@@ -205,6 +243,7 @@ export function renderCombatMonster(root, monster, options = {}) {
     const hpBar = find(root, '#battle-monster-hp-bar, #monster-hp-fill');
     if (hpBar) hpBar.style.width = `${hpPercent}%`;
     applyMonsterFrame(root, monster);
+    renderMonsterStatusIndicators(root, monster);
 }
 
 export function renderCombatPlayer(root, character, options = {}) {
@@ -312,7 +351,15 @@ export function showCombatDamageNumber(root, damage, options = {}) {
         armorBreak: { text: '破防', className: 'damage-armor-break' },
         armor_break: { text: '破防', className: 'damage-armor-break' },
         dot: { text: `-${numericDamage}`, className: 'damage-dot' },
-        heal: { text: `+${numericDamage}`, className: 'damage-heal' }
+        heal: { text: `+${numericDamage}`, className: 'damage-heal' },
+        lifesteal: { text: options.label || `吸血 +${numericDamage}`, className: 'damage-heal damage-lifesteal' },
+        doubleStrike: { text: options.label || `連擊 -${numericDamage}`, className: 'damage-double-strike' },
+        reflect: { text: options.label || `反傷 -${numericDamage}`, className: 'damage-reflect' },
+        revive: { text: options.label || '復活', className: 'damage-revive' },
+        status: { text: options.label || '狀態', className: 'damage-status' },
+        statusStun: { text: options.label || '暈眩', className: 'damage-status damage-status-stun' },
+        statusSlow: { text: options.label || '緩速', className: 'damage-status damage-status-slow' },
+        statusPoison: { text: options.label || '中毒', className: 'damage-status damage-status-poison' }
     }[type] || { text: `-${numericDamage}`, className: 'damage-normal' };
 
     const damageEl = document.createElement('div');
@@ -330,11 +377,35 @@ export function showCombatDamageNumber(root, damage, options = {}) {
     }
 
     battleHeader.appendChild(damageEl);
+    if ((type === 'normal' || type === 'hit') && numericDamage > 0) {
+        triggerCombatImpact(root, { intensity: 'normal', flash: 'hit' });
+    }
     if (type === 'critical' || type === 'crit') {
         triggerCombatImpact(root, { intensity: 'critical', flash: 'crit', slowMotion: true });
     }
     if (type === 'armorBreak' || type === 'armor_break') {
         triggerCombatImpact(root, { intensity: 'medium', flash: 'armorBreak' });
+    }
+    if (type === 'doubleStrike') {
+        triggerCombatImpact(root, { intensity: 'combo', flash: 'doubleStrike' });
+    }
+    if (type === 'reflect') {
+        triggerCombatImpact(root, { intensity: 'medium', flash: 'reflect' });
+    }
+    if (type === 'revive') {
+        triggerCombatImpact(root, { intensity: 'phase', flash: 'revive', slowMotion: true });
+    }
+    if (type === 'lifesteal' || type === 'heal') {
+        triggerCombatImpact(root, { intensity: 'soft', flash: 'heal' });
+    }
+    if (type === 'statusStun') {
+        triggerCombatImpact(root, { intensity: 'medium', flash: 'thunder' });
+    }
+    if (type === 'statusSlow') {
+        triggerCombatImpact(root, { intensity: 'soft', flash: 'ice' });
+    }
+    if (type === 'statusPoison') {
+        triggerCombatImpact(root, { intensity: 'soft', flash: 'poison' });
     }
     setTimeout(() => damageEl.remove(), 800);
 }
@@ -344,8 +415,12 @@ export function triggerCombatImpact(root, options = {}) {
     if (!surface) return;
 
     const intensity = options.intensity || 'normal';
-    surface.classList.add(`combat-impact-${intensity}`);
-    setTimeout(() => surface.classList.remove(`combat-impact-${intensity}`), 380);
+    const impactClass = `combat-impact-${intensity}`;
+    surface.classList.remove(impactClass);
+    // Force a reflow so repeated hits of the same type replay the animation.
+    void surface.offsetWidth;
+    surface.classList.add(impactClass);
+    setTimeout(() => surface.classList.remove(impactClass), 380);
 
     if (options.flash) {
         let flashEl = surface.querySelector('.combat-screen-flash');

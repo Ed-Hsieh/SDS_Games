@@ -56,11 +56,14 @@ class DialogueManager {
         const story = getQuestStory(completedQuest, completedQuest.state);
         const reportName = story.reportTo?.name || npc.name;
         const reportMessage = `${reportName}把「${completedQuest.name}」的紀錄歸檔。`;
+        const nextLead = story.finished || story.nextLead || '城鎮裡的下一段動向正在浮上來。';
 
         return {
             id: `report_${completedQuest.id}`,
             priority: 86,
             tone: 'discovery',
+            narrativeTitle: '回報完成',
+            narrativeSummary: `你向${reportName}回報了「${completedQuest.name}」。這段紀錄被收進旅人手札，${nextLead}`,
             lines: [
                 {
                     speaker: 'npc',
@@ -68,7 +71,7 @@ class DialogueManager {
                 },
                 {
                     speaker: 'npc',
-                    text: '這份紀錄我會收下。線索簿可以告訴你下一步往哪裡走，但回報這種事，還是得找到當初開口的人。'
+                    text: '這份紀錄我會收下。接下來如果有新動向，城鎮裡會先有人露出那種「我有麻煩要交給你」的表情。'
                 }
             ],
             effects: [
@@ -96,7 +99,7 @@ class DialogueManager {
     dialogueChangesState(dialogue) {
         return (dialogue?.effects || []).some(effect => {
             if (!effect?.type) return false;
-            return ['worldInteraction', 'questProgress', 'completeQuest', 'setFlag'].includes(effect.type);
+            return ['worldInteraction', 'questProgress', 'acceptQuest', 'completeQuest', 'setFlag'].includes(effect.type);
         });
     }
 
@@ -165,10 +168,28 @@ class DialogueManager {
             dialogue,
             lines,
             effectMessages,
+            narrativeTitle: dialogue.narrativeTitle || null,
+            narrativeSummary: this.resolveDialogueNarrativeSummary(npc, dialogue, effectMessages),
             tone: dialogue.tone || 'ambient',
             route: dialogue.route || npc.route || null,
             routeLabel: dialogue.routeLabel || npc.routeLabel || '前往'
         };
+    }
+
+    resolveDialogueNarrativeSummary(npc, dialogue = {}, effectMessages = []) {
+        if (typeof dialogue.narrativeSummary === 'string' && dialogue.narrativeSummary.trim()) {
+            return dialogue.narrativeSummary.trim();
+        }
+
+        if (effectMessages.length > 0) {
+            return `你與${npc.name}交談完畢，新的情況被整理成旅人手札裡的一段紀錄。城鎮的下一步，不再只是廣場上的閒聊。`;
+        }
+
+        if (dialogue.tone === 'discovery') {
+            return `你與${npc.name}談完後，城鎮裡多了一條值得追蹤的動向。`;
+        }
+
+        return null;
     }
 
     resolveLine(line, npc) {
@@ -213,6 +234,12 @@ class DialogueManager {
             if (effect.type === 'questProgress') {
                 const changed = questManager.updateProgress(effect.objectiveType, effect.target, effect.amount || 1);
                 if (changed && effect.message) messages.push(effect.message);
+                continue;
+            }
+
+            if (effect.type === 'acceptQuest') {
+                const result = questManager.acceptQuest(effect.questId);
+                if (result.success && effect.message) messages.push(effect.message);
                 continue;
             }
 
