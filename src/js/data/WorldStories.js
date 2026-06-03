@@ -5,7 +5,7 @@ export const ZoneProfiles = {
         dangerLabel: '低威脅',
         icon: '🌿',
         summary: '村莊外圍仍有人走動，獵徑、木牌與舊營火讓你能辨認回程方向。',
-        hint: '適合收集基礎材料、觀察怪物痕跡，並開始第一批線索鏈。',
+        hint: '適合收集基礎材料、觀察怪物痕跡，並開始第一批痕跡鏈。',
         effectIds: ['open_trail']
     },
     medium: {
@@ -23,7 +23,7 @@ export const ZoneProfiles = {
         dangerLabel: '高威脅',
         icon: '🪨',
         summary: '霧把遠處的輪廓吞掉，石碑、爪痕與破碎盔甲像是刻意排成一條路。',
-        hint: '這裡的線索會開始指向首領與古代封印，但撤退成本也明顯升高。',
+        hint: '這裡的痕跡會開始指向首領與古代封印，但撤退成本也明顯升高。',
         effectIds: ['thick_fog', 'old_seal']
     },
     death: {
@@ -63,7 +63,7 @@ export const TerrainEffects = {
         id: 'old_seal',
         name: '古代封印',
         type: 'story',
-        summary: '石碑文字會隨線索逐步可讀，部分首領需要解讀後才會露出路徑。',
+        summary: '石碑文字會隨拓片逐步可讀，部分首領需要解讀後才會露出路徑。',
         gameplay: '可作為特殊圖紙、首領追蹤與結局碎片的觸發條件。'
     },
     safe_camp: {
@@ -85,7 +85,88 @@ export const TerrainEffects = {
         name: '焦灼空氣',
         type: 'attrition',
         summary: '熱浪會消耗裝備與藥水，也會把龍系痕跡保存得更清楚。',
-        gameplay: '未來可加速耐久消耗，並提高龍系線索與素材收益。'
+        gameplay: '未來可加速耐久消耗，並提高龍系痕跡與素材收益。'
+    }
+};
+
+export const WorldEncounterProfiles = {
+    south_gate_farmland: {
+        id: 'south_gate_farmland',
+        name: '南門農田',
+        storyNodeId: 'south_gate_farmland',
+        entries: [
+            { id: 'slime', weight: 55 },
+            { id: 'giant_rat', weight: 20 },
+            { id: 'goblin', weight: 10 },
+            { id: 'wild_wolf', weight: 8 },
+            { id: 'poison_spider', weight: 7 }
+        ]
+    },
+    south_gate_farmland_focus: {
+        id: 'south_gate_farmland_focus',
+        name: '史萊姆靠近農田',
+        storyNodeId: 'south_gate_farmland',
+        questIds: ['main_002'],
+        ambientRates: { battle: 0.16, event: 0.025 },
+        entries: [
+            { id: 'slime', weight: 72 },
+            { id: 'giant_rat', weight: 14 },
+            { id: 'goblin', weight: 6 },
+            { id: 'wild_wolf', weight: 5 },
+            { id: 'poison_spider', weight: 3 }
+        ]
+    },
+    rotroot_wolf_track: {
+        id: 'rotroot_wolf_track',
+        name: '腐根溪谷狼跡',
+        storyNodeId: 'rotroot_ravine',
+        entries: [
+            { id: 'wild_wolf', weight: 38 },
+            { id: 'poison_spider', weight: 22 },
+            { id: 'goblin', weight: 16 },
+            { id: 'giant_rat', weight: 14 },
+            { id: 'slime', weight: 10 }
+        ]
+    },
+    rotroot_wolf_track_focus: {
+        id: 'rotroot_wolf_track_focus',
+        name: '狼群靠近腐根溪谷',
+        storyNodeId: 'rotroot_ravine',
+        questIds: ['main_005'],
+        ambientRates: { battle: 0.18, event: 0.035 },
+        entries: [
+            { id: 'wild_wolf', weight: 64 },
+            { id: 'poison_spider', weight: 16 },
+            { id: 'goblin', weight: 10 },
+            { id: 'giant_rat', weight: 7 },
+            { id: 'slime', weight: 3 }
+        ]
+    },
+    blood_moon_track: {
+        id: 'blood_moon_track',
+        name: '月苔坡獸徑',
+        storyNodeId: 'moon_moss_slope',
+        entries: [
+            { id: 'wild_wolf', weight: 34 },
+            { id: 'poison_spider', weight: 22 },
+            { id: 'goblin', weight: 18 },
+            { id: 'giant_rat', weight: 16 },
+            { id: 'slime', weight: 10 }
+        ]
+    },
+    blood_moon_track_focus: {
+        id: 'blood_moon_track_focus',
+        name: '角鹿出沒前的月苔坡',
+        storyNodeId: 'moon_moss_slope',
+        questIds: ['main_006'],
+        ambientRates: { battle: 0.17, event: 0.04 },
+        entries: [
+            { id: 'wild_wolf', weight: 48 },
+            { id: 'poison_spider', weight: 20 },
+            { id: 'goblin', weight: 16 },
+            { id: 'giant_rat', weight: 11 },
+            { id: 'slime', weight: 5 }
+        ]
     }
 };
 
@@ -112,7 +193,7 @@ export const WorldClues = {
         chainId: 'forest_guardian',
         source: '石碑',
         text: '拓印上出現古樹與守衛者的輪廓，狼群只是守門的第一層。',
-        lead: '收集足夠線索後，古樹守衛的核心地會變得可追蹤。'
+        lead: '收集足夠痕跡後，古樹守衛的核心地會變得可追蹤。'
     },
     black_bark_sample: {
         id: 'black_bark_sample',
@@ -315,7 +396,7 @@ Object.assign(WorldStoryChains, {
         clueIds: ['hunter_board_notice', 'moon_moss_sample', 'broken_horn_map'],
         stages: [
             { minClues: 0, text: '你只知道有一頭角鹿在夜裡反覆出沒。' },
-            { minClues: 1, text: '線索指向牠會沿著林徑與溪谷交界移動。' },
+            { minClues: 1, text: '痕跡指向牠會沿著林徑與溪谷交界移動。' },
             { minClues: 2, text: '牠今晚的活動範圍已能被縮到兩個地點。' },
             { minClues: 3, text: '只要放置誘導標記，就能把牠逼向月苔坡。' }
         ]
@@ -381,7 +462,7 @@ Object.assign(WorldStoryChains, {
 const BossFlowDesigns = {
     forest_guardian: {
         archetype: '追蹤型',
-        entries: ['怪物掉落', '地圖痕跡', '石碑線索', '藏寶圖定位'],
+        entries: ['怪物掉落', '地圖痕跡', '石碑拓片', '藏寶圖定位'],
         infoSources: ['怪物掉落', '地圖痕跡', '石碑', '藏寶圖'],
         progressMethods: [
             { id: 'kill_wolves', label: '擊殺狼群並比對牙痕', type: '擊殺' },
@@ -509,14 +590,36 @@ for (const [chainId, design] of Object.entries(BossFlowDesigns)) {
 
 export const WorldLandmarks = [
     {
+        id: 'south_gate_farmland',
+        name: '南門農田',
+        icon: '🌾',
+        zones: ['low'],
+        effectIds: ['open_trail'],
+        visible: 'always',
+        chapter: 1,
+        questIds: ['main_001', 'main_002'],
+        storyChainIds: ['ambush_mantis'],
+        clueIds: [],
+        encounterProfileId: 'south_gate_farmland',
+        focusEncounterProfileId: 'south_gate_farmland_focus',
+        encounterRadius: 4,
+        mapOffset: { x: 0, y: 4 },
+        arrival: '南門外的田埂被黏液拖出亮痕，村民說昨晚水溝邊一直傳來濕答答的聲音。',
+        repeat: '田埂上的黏液又新了一層，史萊姆似乎更常沿著水溝靠近城鎮。',
+        mapHint: '村長要你確認的近郊路線，也是書記提到史萊姆增生的位置。'
+    },
+    {
         id: 'hunter_boardwalk',
         name: '獵人棧道',
         icon: '🪵',
         zones: ['low'],
         effectIds: ['open_trail'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_004'],
         storyChainIds: ['ambush_mantis', 'forest_guardian'],
-        clueIds: ['silk_tripwire'],
+        clueIds: [],
+        mapOffset: { x: -4, y: 4 },
         arrival: '木板路邊沒有腳印，只有幾條銀色細線橫在回程方向。',
         repeat: '銀絲被你撥開後又出現在相近的位置，像有人重新量過這條路。',
         mapHint: '獵人舊路，適合開始調查銀絲伏擊。'
@@ -528,8 +631,11 @@ export const WorldLandmarks = [
         zones: ['low'],
         effectIds: ['safe_camp'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_004'],
         storyChainIds: ['ambush_mantis'],
-        clueIds: ['survivor_warning'],
+        clueIds: [],
+        mapOffset: { x: -6, y: 6 },
         arrival: '灰燼裡插著半截木牌，上面只剩一句話：不要在同一段路點第二次火。',
         repeat: '營火灰燼被撥成細長弧線，像是在標出某種伏擊距離。',
         mapHint: '倖存者留下警告的營地。'
@@ -541,8 +647,11 @@ export const WorldLandmarks = [
         zones: ['low'],
         effectIds: ['open_trail'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
+        mapOffset: { x: -7, y: 7 },
         arrival: '路牌被整齊切成兩半，斷面旁掛著一枚折斷的誘餌鉤。',
         repeat: '你能看見木牌切口旁的新鮮細痕，像是刀鋒剛擦過。',
         mapHint: '可確認誘餌鉤與銀絲伏擊的關聯。'
@@ -554,8 +663,11 @@ export const WorldLandmarks = [
         zones: ['low', 'medium'],
         effectIds: ['lair_pressure'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
+        mapOffset: { x: -9, y: 9 },
         arrival: '這段小路太安靜，安靜到每一步都像踩在看不見的線上。',
         repeat: '銀絲伏道沒有首領裸露等待，只有越來越明顯的被觀察感。',
         mapHint: '銀鐮伏獵者的最終伏擊敘事地標。'
@@ -567,8 +679,15 @@ export const WorldLandmarks = [
         zones: ['low', 'medium'],
         effectIds: ['safe_camp'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_005'],
         storyChainIds: ['forest_guardian', 'blood_moon_stag'],
-        clueIds: ['black_bark_sample'],
+        clueIds: [],
+        encounterProfileId: 'rotroot_wolf_track',
+        focusEncounterProfileId: 'rotroot_wolf_track_focus',
+        focusQuestIds: ['main_005'],
+        encounterRadius: 4,
+        mapOffset: { x: -11, y: 7 },
         arrival: '營火早已熄滅，木樁上掛著半截獸角與發黑的樹皮。',
         repeat: '營地仍能短暫避風，但周圍的狼嚎比上次更靠近。',
         mapHint: '可作為探索節奏的停靠點，也可能藏著支線物證。'
@@ -580,11 +699,18 @@ export const WorldLandmarks = [
         zones: ['medium'],
         effectIds: ['rot_mist'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_005'],
         storyChainIds: ['forest_guardian'],
-        clueIds: ['black_bark_sample'],
+        clueIds: [],
+        encounterProfileId: 'rotroot_wolf_track',
+        focusEncounterProfileId: 'rotroot_wolf_track_focus',
+        focusQuestIds: ['main_005'],
+        encounterRadius: 5,
+        mapOffset: { x: -14, y: 9 },
         arrival: '腐爛根系把溪水染成深褐色，岸邊有被狼群踩亂的藥草叢。',
         repeat: '溪谷的濕霧仍在變厚，像是有什麼從地底往上滲。',
-        mapHint: '毒性材料與狼群線索交會的地點。'
+        mapHint: '毒性材料與狼群痕跡交會的地點。'
     },
     {
         id: 'mist_tablet_hill',
@@ -593,8 +719,15 @@ export const WorldLandmarks = [
         zones: ['high'],
         effectIds: ['thick_fog', 'old_seal'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_005'],
         storyChainIds: ['forest_guardian', 'lich'],
-        clueIds: ['mist_tablet_rubbing'],
+        clueIds: [],
+        encounterProfileId: 'rotroot_wolf_track',
+        focusEncounterProfileId: 'rotroot_wolf_track_focus',
+        focusQuestIds: ['main_005'],
+        encounterRadius: 4,
+        mapOffset: { x: -18, y: 11 },
         arrival: '石碑被霧包住，表面的刻痕在你靠近後才像露水一樣浮出。',
         repeat: '拓印邊緣多出幾道你之前看不懂的線，像是指向森林更深處。',
         mapHint: '石碑、古代文字與首領追蹤的重要節點。'
@@ -606,8 +739,15 @@ export const WorldLandmarks = [
         zones: ['high'],
         effectIds: ['lair_pressure'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_005'],
         storyChainIds: ['forest_guardian'],
         clueIds: [],
+        encounterProfileId: 'rotroot_wolf_track',
+        focusEncounterProfileId: 'rotroot_wolf_track_focus',
+        focusQuestIds: ['main_005'],
+        encounterRadius: 4,
+        mapOffset: { x: -21, y: 14 },
         arrival: '根鬚從岩縫裡伸出，像一顆被迫裸露在地表下方的心臟。',
         repeat: '焦黑根鬚仍在緩慢收縮，守衛者的痛苦沒有完全平息。',
         mapHint: '古樹守衛者的核心追蹤地標。'
@@ -619,8 +759,15 @@ export const WorldLandmarks = [
         zones: ['medium'],
         effectIds: ['rot_mist'],
         visible: 'always',
+        chapter: 1,
+        questIds: ['main_006'],
         storyChainIds: ['blood_moon_stag'],
         clueIds: [],
+        encounterProfileId: 'blood_moon_track',
+        focusEncounterProfileId: 'blood_moon_track_focus',
+        focusQuestIds: ['main_006'],
+        encounterRadius: 5,
+        mapOffset: { x: -13, y: 14 },
         arrival: '坡面苔蘚在陰影裡泛著暗紅色，像把鹿角撞擊的路線一段段染出來。',
         repeat: '月苔乾裂得更快，表示角鹿今晚可能又繞回這裡。',
         mapHint: '完成誘導標記後，可縮小血月角鹿狩獵範圍。'
@@ -633,7 +780,7 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'old_seal'],
         visible: 'always',
         storyChainIds: ['elder_dragon'],
-        clueIds: ['dragon_heat_trace'],
+        clueIds: [],
         arrival: '方尖碑沒有被龍焰熔掉，反而像被龍焰固定住，裂縫下方傳出沉悶回響。',
         repeat: '碑面仍有熱度，但你已能分辨哪些痕跡是攻擊，哪些像是封印。',
         mapHint: '終局真相的早期伏筆，不要求玩家立刻完成。'
@@ -641,12 +788,6 @@ export const WorldLandmarks = [
 ];
 
 export const MonsterClueTriggers = [
-    {
-        monsterIds: ['wild_wolf'],
-        clueId: 'wolf_fang_marks',
-        chance: 0.35,
-        message: '你在野狼牙根附近發現不自然的黑色刻痕。'
-    },
     {
         monsterIds: ['stone_golem', 'stone_golem_mini', 'ancient_guardian', 'rune_keeper'],
         clueId: 'carved_stone_shard',
@@ -660,12 +801,6 @@ export const MonsterClueTriggers = [
         message: '龍焰殘留沒有擴散，而是沿著裂縫被壓成一條線。'
     },
     {
-        monsterIds: ['wild_wolf', 'tower_alpha_wolf'],
-        clueId: 'moon_moss_sample',
-        chance: 0.18,
-        message: '狼爪縫裡卡著一點會在月光下泛紅的苔蘚。'
-    },
-    {
         monsterIds: ['slime', 'poison_spider'],
         clueId: 'oracle_shell',
         chance: 0.16,
@@ -677,12 +812,6 @@ export const MonsterClueTriggers = [
         chance: 0.14,
         message: '骸骨胸袋裡有一頁被灰燼燒出洞的帳冊。'
     },
-    {
-        monsterIds: ['poison_spider'],
-        clueId: 'silk_tripwire',
-        chance: 0.18,
-        message: '蛛絲的固定方式不像捕食，更像在記錄你的回程路線。'
-    }
 ];
 
 export function getZoneProfile(zoneId) {
@@ -703,6 +832,10 @@ export function getLandmarksForZone(zoneId) {
 
 export function getWorldLandmarks() {
     return [...WorldLandmarks];
+}
+
+export function getWorldEncounterProfile(profileId) {
+    return WorldEncounterProfiles[profileId] || null;
 }
 
 export function getClue(clueId) {

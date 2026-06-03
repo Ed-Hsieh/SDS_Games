@@ -10,7 +10,7 @@ export const QuestStoryDatabase = {
         location: '城鎮十字路',
         speaker: { name: '村長', avatar: '🏘️' },
         discovery: '村長說南門外的獵人還沒回來，但他要你先找書記學會怎麼記錄線索，再出城確認道路。',
-        available: '村長請你先找書記確認線索簿的記錄方式，再去南門外近郊走一圈。',
+        available: '村長請你先找書記確認旅人手札的記錄方式，再去南門外近郊走一圈。',
         active: '你記得村長的交代：先找書記，讓聽聞有地方落筆；再看路、再看怪物。',
         completed: '你把近郊路線重新記下，城鎮終於知道南門外還有哪幾條路能用。',
         finished: '第一份路線紀錄完成後，村長開始把更深入的問題交給你。',
@@ -23,7 +23,7 @@ export const QuestStoryDatabase = {
             label: '回去找村長'
         },
         objectives: [
-            '村長請我先找書記確認線索簿的記錄方式。',
+            '村長請我先找書記確認旅人手札的記錄方式。',
             '再前往南門外近郊，記下 3 處還能通行的路線。'
         ]
     },
@@ -32,7 +32,7 @@ export const QuestStoryDatabase = {
         source: '書記的異常紀錄',
         location: '舊書桌',
         speaker: { name: '書記', avatar: '📚' },
-        discovery: '書記把村民的聽聞寫成第一份線索：農田邊的史萊姆正在變多。',
+        discovery: '書記把村民的聽聞寫成第一份紀錄：農田邊的史萊姆正在變多。',
         available: '這不是英雄委託，只是一件夠小、卻足以證明地脈異常正在靠近城鎮的麻煩事。',
         active: '清掉靠近農田的史萊姆，再回來讓書記比對時間、地點與黏液味道。最後一項聽起來很不體面，但他很堅持。',
         completed: '史萊姆數量被壓下來，書記終於能把「黏糊糊的聲音」改寫成比較正式的紀錄。',
@@ -151,7 +151,7 @@ export const QuestStoryDatabase = {
         speaker: { name: '書記', avatar: '📚' },
         discovery: '書記說最近城外史萊姆變多了，村民擔心牠們繼續往農田靠近。',
         available: '書記請你消滅 5 個史萊姆，先確認這是不是單純增生，還是地脈異常的前兆。',
-        active: '書記已把這件事寫進線索簿：清掉靠近農田的史萊姆，再回來比對時間與地點。',
+        active: '書記已把這件事寫進旅人手札：清掉靠近農田的史萊姆，再回來比對時間與地點。',
         completed: '史萊姆數量被壓下來，書記終於能把「黏糊糊的聲音」改寫成比較正式的紀錄。',
         finished: '書記在紀錄旁加了一行小字：史萊姆不是原因，只是第一個浮上來的症狀。',
         nextLead: '到南門外近郊，消滅靠近農田的史萊姆。',
@@ -253,7 +253,7 @@ export function getQuestStory(questData, state = null) {
 
     return {
         arc: story.arc || getFallbackArc(questData),
-        source: story.source || '任務線索',
+        source: story.source || '任務紀錄',
         location: story.location || getFallbackLocation(questData),
         speaker: story.speaker || getFallbackSpeaker(questData),
         discovery: story.discovery || questData?.description || '',

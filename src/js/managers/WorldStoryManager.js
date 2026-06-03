@@ -18,7 +18,7 @@ import {
 import { BossMonsterIds } from '../data/Monsters.js';
 
 const BossTemplateIdSet = new Set(Array.isArray(BossMonsterIds) ? BossMonsterIds : []);
-const ManualTriggerBossIds = new Set(['ambush_mantis']);
+const ManualTriggerBossIds = new Set(['ambush_mantis', 'forest_guardian', 'blood_moon_stag']);
 
 function clampStage(stages, clueCount) {
     if (!Array.isArray(stages) || stages.length === 0) return null;
@@ -224,10 +224,28 @@ class WorldStoryManager {
     prunePrematureClueUnlocks() {
         const prematureClues = [
             {
+                clueId: 'silk_tripwire',
+                chainId: 'ambush_mantis',
+                requiredLandmarkId: 'hunter_boardwalk',
+                exemptSources: ['boss_test_panel']
+            },
+            {
                 clueId: 'survivor_warning',
                 chainId: 'ambush_mantis',
                 requiredLandmarkId: 'old_campfire_site',
-                sources: ['dialogue:village_elder', 'world_object', 'world_interaction']
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'snapped_bait_hook',
+                chainId: 'ambush_mantis',
+                requiredLandmarkId: 'cut_roadsign',
+                exemptSources: ['boss_test_panel']
+            },
+            {
+                clueId: 'black_bark_sample',
+                chainId: 'forest_guardian',
+                requiredLandmarkId: 'rotroot_ravine',
+                exemptSources: ['boss_test_panel']
             },
             {
                 clueId: 'hunter_board_notice',
@@ -238,6 +256,7 @@ class WorldStoryManager {
             {
                 clueId: 'moon_moss_sample',
                 chainId: 'blood_moon_stag',
+                requiredLandmarkId: 'moon_moss_slope',
                 requiredMonsterDefeated: 'forest_guardian',
                 exemptSources: ['boss_test_panel']
             },
@@ -711,6 +730,7 @@ class WorldStoryManager {
             completedProgress,
             requiredProgressIds,
             requiredProgress,
+            requiresManualTrigger: ManualTriggerBossIds.has(chain.bossId || chainId),
             finalReady: Boolean(finalReadyFlag?.ready || readyByProgress),
             validation: this.validateBossFlow(chainId)
         };

@@ -5,12 +5,14 @@
 import GameManager from '../managers/GameManager.js';
 import EventManager, { eventManager } from '../managers/EventManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
+import { questManager, QuestStatus } from '../managers/QuestManager.js';
 import { BossMonsterIds } from '../data/Monsters.js';
 import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
-import { getLandmark, getWorldLandmarks } from '../data/WorldStories.js';
+import { getLandmark, getWorldEncounterProfile, getWorldLandmarks } from '../data/WorldStories.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 
-const ManualTriggerBossIds = new Set(['ambush_mantis']);
+const ManualTriggerBossIds = new Set(['ambush_mantis', 'forest_guardian', 'blood_moon_stag']);
+const SlimeQuestId = 'main_002';
 
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
 // 這裡重新導出以保持向後相容
@@ -266,28 +268,87 @@ export default class WorldMap {
     _placeLandmarks(data, zoneCandidates) {
         this.landmarks = [];
 
+        const placedIds = new Set();
+        const landmarks = getWorldLandmarks();
+        const hasFixedPlacement = landmark => Number.isFinite(landmark?.mapOffset?.x)
+            && Number.isFinite(landmark?.mapOffset?.y);
+        const isAllowedZone = (landmark, cell) => {
+            const zones = landmark.zones || ['low'];
+            return zones.includes(cell?.zone);
+        };
+        const canPlace = (landmark, pos) => {
+            if (!landmark || !pos) return false;
+            if (pos.x < 0 || pos.x >= this.cols || pos.y < 0 || pos.y >= this.rows) return false;
+            const cell = data[pos.y]?.[pos.x];
+            return Boolean(cell && cell.type === 'empty' && isAllowedZone(landmark, cell));
+        };
+        const findNearestPlacement = (landmark, target) => {
+            if (canPlace(landmark, target)) return target;
+
+            const searchRadius = Math.max(1, Number(landmark.mapOffset?.searchRadius) || 5);
+            for (let radius = 1; radius <= searchRadius; radius += 1) {
+                const candidates = [];
+                for (let dy = -radius; dy <= radius; dy += 1) {
+                    for (let dx = -radius; dx <= radius; dx += 1) {
+                        if (Math.max(Math.abs(dx), Math.abs(dy)) !== radius) continue;
+                        const pos = { x: target.x + dx, y: target.y + dy };
+                        if (canPlace(landmark, pos)) candidates.push(pos);
+                    }
+                }
+                if (candidates.length > 0) {
+                    candidates.sort((a, b) => {
+                        const da = Math.abs(a.x - target.x) + Math.abs(a.y - target.y);
+                        const db = Math.abs(b.x - target.x) + Math.abs(b.y - target.y);
+                        return da - db || a.y - b.y || a.x - b.x;
+                    });
+                    return candidates[0];
+                }
+            }
+
+            return null;
+        };
+        const getFixedPosition = (landmark) => {
+            if (!hasFixedPlacement(landmark)) return null;
+            const anchor = this.homePos || this.playerPos || {
+                x: Math.floor(this.cols / 2),
+                y: Math.floor(this.rows / 2)
+            };
+            return {
+                x: anchor.x + landmark.mapOffset.x,
+                y: anchor.y + landmark.mapOffset.y
+            };
+        };
         const place = (landmark, pos) => {
             if (!landmark || !pos) return false;
             if (pos.x < 0 || pos.x >= this.cols || pos.y < 0 || pos.y >= this.rows) return false;
             const cell = data[pos.y]?.[pos.x];
-            if (!cell || cell.type !== 'empty') return false;
+            if (!cell || cell.type !== 'empty' || !isAllowedZone(landmark, cell)) return false;
 
             cell.type = 'landmark';
             cell.landmarkId = landmark.id;
             cell.landmarkData = landmark;
             this.landmarks.push({ x: pos.x, y: pos.y, landmarkId: landmark.id });
+            placedIds.add(landmark.id);
             return true;
         };
+
+        for (const landmark of landmarks) {
+            if (!hasFixedPlacement(landmark)) continue;
+            const target = getFixedPosition(landmark);
+            const pos = findNearestPlacement(landmark, target);
+            if (pos) place(landmark, pos);
+        }
 
         if (Array.isArray(this._persistedLandmarks) && this._persistedLandmarks.length > 0) {
             for (const saved of this._persistedLandmarks) {
                 const landmark = getLandmark(saved.landmarkId);
-                if (landmark) place(landmark, saved);
+                if (landmark && !placedIds.has(landmark.id) && !hasFixedPlacement(landmark)) {
+                    place(landmark, saved);
+                }
             }
         }
 
-        const placedIds = new Set(this.landmarks.map(item => item.landmarkId));
-        for (const landmark of getWorldLandmarks()) {
+        for (const landmark of landmarks) {
             if (placedIds.has(landmark.id)) continue;
 
             const validCells = [];
@@ -370,7 +431,156 @@ export default class WorldMap {
         this.cameraOffsetY = Math.max(0, Math.min(y, this.mapHeight - this.screenHeight));
     }
 
-    getAmbientEncounterRates(zone) {
+    isSlimeQuestActive() {
+        try {
+            return questManager.getQuestState(SlimeQuestId)?.status === QuestStatus.ACTIVE;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    isQuestActiveForEncounter(questIds = []) {
+        return questIds.some(questId => {
+            try {
+                return questManager.getQuestState(questId)?.status === QuestStatus.ACTIVE;
+            } catch (error) {
+                return false;
+            }
+        });
+    }
+
+    getLandmarkEncounterProfile(zone, context = {}) {
+        const x = Number.isFinite(context.x) ? context.x : this.playerPos.x;
+        const y = Number.isFinite(context.y) ? context.y : this.playerPos.y;
+        const matches = [];
+
+        for (const landmark of getWorldLandmarks()) {
+            if (!landmark?.encounterProfileId) continue;
+
+            const allowedZones = Array.isArray(landmark.encounterZones)
+                ? landmark.encounterZones
+                : landmark.zones;
+            if (Array.isArray(allowedZones) && allowedZones.length > 0 && !allowedZones.includes(zone)) {
+                continue;
+            }
+
+            const site = this.findLandmarkSite?.(landmark.id);
+            if (!site) continue;
+
+            const radius = Number(landmark.encounterRadius) || 4;
+            const distance = Math.abs(x - site.x) + Math.abs(y - site.y);
+            if (distance > radius) continue;
+
+            const focusProfile = getWorldEncounterProfile(landmark.focusEncounterProfileId);
+            const focusQuestIds = Array.isArray(landmark.focusQuestIds)
+                ? landmark.focusQuestIds
+                : (focusProfile?.questIds || []);
+            const isFocus = Boolean(landmark.focusEncounterProfileId)
+                && this.isQuestActiveForEncounter(focusQuestIds);
+
+            matches.push({
+                profileId: isFocus ? landmark.focusEncounterProfileId : landmark.encounterProfileId,
+                distance,
+                isFocus
+            });
+        }
+
+        matches.sort((a, b) => {
+            if (a.isFocus !== b.isFocus) return a.isFocus ? -1 : 1;
+            return a.distance - b.distance;
+        });
+
+        return matches[0]?.profileId || null;
+    }
+
+    getLocalEncounterProfile(zone, context = {}) {
+        const landmarkProfileId = this.getLandmarkEncounterProfile(zone, context);
+        if (landmarkProfileId) return landmarkProfileId;
+
+        if (zone !== 'low') return null;
+
+        const x = Number.isFinite(context.x) ? context.x : this.playerPos.x;
+        const y = Number.isFinite(context.y) ? context.y : this.playerPos.y;
+        const home = this.homePos || {
+            x: Math.floor(this.cols / 2),
+            y: Math.floor(this.rows / 2)
+        };
+        const isSouthGateFarmland = y >= home.y + 2 && Math.abs(x - home.x) <= this.ringIncrement;
+
+        if (!isSouthGateFarmland) return null;
+        return this.isSlimeQuestActive() ? 'south_gate_farmland_focus' : 'south_gate_farmland';
+    }
+
+    pickWeightedMonster(profileId) {
+        const entries = getWorldEncounterProfile(profileId)?.entries;
+        if (!Array.isArray(entries) || entries.length === 0) return null;
+
+        const totalWeight = entries.reduce((sum, entry) => sum + Math.max(0, Number(entry.weight) || 0), 0);
+        if (totalWeight <= 0) return null;
+
+        let roll = Math.random() * totalWeight;
+        for (const entry of entries) {
+            roll -= Math.max(0, Number(entry.weight) || 0);
+            if (roll <= 0) {
+                return MonsterManager.getMonster?.(entry.id) || null;
+            }
+        }
+
+        return MonsterManager.getMonster?.(entries[0].id) || null;
+    }
+
+    getSlimeQuestPityFlag() {
+        return 'encounter.pity.main_002.slime';
+    }
+
+    setSlimeQuestPity(count) {
+        const flag = this.getSlimeQuestPityFlag();
+        const nextCount = Math.max(0, Number(count) || 0);
+        const currentCount = Number(GameManager.getFlag(flag)) || 0;
+        if (currentCount !== nextCount) {
+            GameManager.setFlag(flag, nextCount);
+        }
+    }
+
+    selectMonsterForEncounter(zone, context = {}) {
+        const profileId = this.getLocalEncounterProfile(zone, context);
+        const slimeQuestActive = this.isSlimeQuestActive();
+
+        if (profileId) {
+            const pityFlag = this.getSlimeQuestPityFlag();
+            const pityCount = Number(GameManager.getFlag(pityFlag)) || 0;
+            const forceSlime = slimeQuestActive && profileId === 'south_gate_farmland_focus' && pityCount >= 2;
+            const raw = forceSlime
+                ? MonsterManager.getMonster?.('slime')
+                : this.pickWeightedMonster(profileId);
+
+            if (raw) {
+                if (slimeQuestActive && profileId === 'south_gate_farmland_focus') {
+                    this.setSlimeQuestPity(raw.id === 'slime' ? 0 : pityCount + 1);
+                }
+                return raw;
+            }
+        }
+
+        if (slimeQuestActive) {
+            this.setSlimeQuestPity(0);
+        }
+        return MonsterManager.createRandomMonsterForZone(zone);
+    }
+
+    getAmbientEncounterRates(zone, context = {}) {
+        const base = this.getAmbientEncounterRatesBase(zone);
+        const profileId = this.getLocalEncounterProfile(zone, context);
+        const profileRates = getWorldEncounterProfile(profileId)?.ambientRates;
+
+        if (profileRates) {
+            return profileRates;
+        }
+
+        return base;
+    }
+
+    getAmbientEncounterRatesBase(zone) {
         const rates = {
             low: { battle: 0.10, event: 0.035 },
             medium: { battle: 0.14, event: 0.045 },
@@ -380,8 +590,8 @@ export default class WorldMap {
         return rates[zone] || rates.low;
     }
 
-    createRandomMonsterEncounter(zone) {
-        const raw = MonsterManager.createRandomMonsterForZone(zone);
+    createRandomMonsterEncounter(zone, context = {}) {
+        const raw = this.selectMonsterForEncounter(zone, context);
         const template = MonsterManager.createMonsterInstance
             ? MonsterManager.createMonsterInstance(raw)
             : raw;
@@ -490,7 +700,7 @@ export default class WorldMap {
         }
     }
 
-    rollAmbientEncounter(cell) {
+    rollAmbientEncounter(cell, context = {}) {
         if (!cell || cell.type !== 'empty') return null;
         if (GameManager.getFlag('debug.noAmbientEncounters')) return null;
 
@@ -501,19 +711,19 @@ export default class WorldMap {
                 return this.createRandomMapEvent(cell.zone) ? 'event' : null;
             }
             if (forcedEncounter === 'battle' && !GameManager.getFlag('debug.noBattles')) {
-                return this.createRandomMonsterEncounter(cell.zone) ? 'battle' : null;
+                return this.createRandomMonsterEncounter(cell.zone, context) ? 'battle' : null;
             }
             return null;
         }
 
-        const rates = this.getAmbientEncounterRates(cell.zone);
+        const rates = this.getAmbientEncounterRates(cell.zone, context);
         const roll = Math.random();
 
         if (roll < rates.event) {
             return this.createRandomMapEvent(cell.zone) ? 'event' : null;
         }
         if (!GameManager.getFlag('debug.noBattles') && roll < rates.event + rates.battle) {
-            return this.createRandomMonsterEncounter(cell.zone) ? 'battle' : null;
+            return this.createRandomMonsterEncounter(cell.zone, context) ? 'battle' : null;
         }
         return null;
     }
@@ -649,7 +859,7 @@ export default class WorldMap {
             if (this.homePos && (newX !== this.homePos.x || newY !== this.homePos.y)) {
                 this.hasLeftHome = true;
             }
-        return this.rollAmbientEncounter(cell);
+        return this.rollAmbientEncounter(cell, { x: newX, y: newY });
     }
 
     getCurrentMonster() { return this.currentMonster; }

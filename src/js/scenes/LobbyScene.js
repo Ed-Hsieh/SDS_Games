@@ -377,7 +377,7 @@ export default class LobbyScene {
             source: 'lobby',
             toast: false
         });
-        const title = outcome.interaction?.title || '線索';
+        const title = outcome.interaction?.title || '紀錄';
         const message = outcome.messages?.join(' ') || '這裡暫時沒有新的變化。';
 
         this.pushTownNarrative(title, message, outcome.success ? 'discovery' : 'ambient');
@@ -708,7 +708,7 @@ export default class LobbyScene {
 
         GameManager.state.ui.lastNotebookHintAt = now;
         GameManager.markSaveDirty?.('notebook-hint');
-        return '線索簿已更新。需要確認下一步時，可從右上角的旅人手札翻閱最新紀錄。';
+        return '旅人手札已更新。需要確認下一步時，可從右上角翻閱最新紀錄。';
     }
 
     scrollTownDialogueLinesToEnd() {

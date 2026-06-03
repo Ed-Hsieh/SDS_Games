@@ -67,7 +67,7 @@ export default class QuestScene {
             summaryCompleted: this.container.querySelector('#summary-completed'),
             summaryFinished: this.container.querySelector('#summary-finished'),
             
-            // 線索簿不使用彈跳通知
+            // 旅人手札不使用彈跳通知
         };
     }
 
@@ -108,11 +108,11 @@ export default class QuestScene {
         // 更新進行中數量
         const activeCount = questManager.getActiveQuests().length + 
                            questManager.getCompletedQuests().length;
-        if (this.dom.listTitle) this.dom.listTitle.textContent = '所有線索';
-        if (this.dom.questCount) this.dom.questCount.textContent = `${quests.length} 條線索`;
+        if (this.dom.listTitle) this.dom.listTitle.textContent = '所有委託';
+        if (this.dom.questCount) this.dom.questCount.textContent = `${quests.length} 件委託`;
         if (this.dom.ledgerSummary) {
             const completed = questManager.getCompletedQuests().length;
-            this.dom.ledgerSummary.textContent = `${quests.length} 條線索 · ${activeCount} 紀錄中 · ${completed} 可回報`;
+            this.dom.ledgerSummary.textContent = `${quests.length} 件委託 · ${activeCount} 紀錄中 · ${completed} 可回報`;
         }
 
         // 清空並渲染
@@ -123,7 +123,7 @@ export default class QuestScene {
             emptyEl.className = 'quest-empty';
             emptyEl.innerHTML = `
                 <div class="empty-icon">📭</div>
-                <p>目前沒有新的故事線索</p>
+                <p>目前沒有新的委託紀錄</p>
             `;
             this.dom.questList.appendChild(emptyEl);
             return;
@@ -324,7 +324,7 @@ export default class QuestScene {
         summary.style.setProperty('--quest-progress', `${safeProgressInfo.percent}%`);
 
         summary.innerHTML = `
-            <div class="quest-note-meta" aria-label="線索來源">
+            <div class="quest-note-meta" aria-label="委託來源">
                 <span><b>來源</b>${escapeHtml(questStory.source)}</span>
                 <span><b>地點</b>${escapeHtml(questStory.location)}</span>
                 <span><b>篇章</b>${escapeHtml(questStory.arc)}</span>
@@ -346,12 +346,12 @@ export default class QuestScene {
                     <strong>${escapeHtml(nextStep.title)}</strong>
                     <p>${escapeHtml(questStory.nextLead || nextStep.description)}</p>
                 </div>
-                <div class="quest-note-progress" aria-label="線索補齊程度">
+                <div class="quest-note-progress" aria-label="任務補齊程度">
                     <strong>${escapeHtml(progressText)}</strong>
                     <span>${safeProgressInfo.percent}% 補齊</span>
                 </div>
             </section>
-            <div class="quest-note-meter" aria-label="線索總進度">
+            <div class="quest-note-meter" aria-label="任務總進度">
                 <div class="quest-note-meter-fill"></div>
             </div>
         `;
@@ -534,7 +534,7 @@ export default class QuestScene {
         if (status === QuestStatus.AVAILABLE) {
             return {
                 title: '開始記錄',
-                description: '把這段聽聞收入線索簿，之後的探索會逐步補上空白。'
+                description: '把這段聽聞收入旅人手札，之後的探索會逐步補上空白。'
             };
         }
 
@@ -542,7 +542,7 @@ export default class QuestScene {
             if (progressInfo.percent >= 100) {
                 return {
                     title: '回城回報',
-                    description: '線索已補齊，現在可以回到城鎮整理結果。'
+                    description: '紀錄已補齊，現在可以回到城鎮整理結果。'
                 };
             }
 
@@ -555,23 +555,23 @@ export default class QuestScene {
         if (status === QuestStatus.COMPLETED) {
             const reportName = story?.reportTo?.name || null;
             return {
-                title: reportName ? `回去找${reportName}` : '尋找線索來源',
+                title: reportName ? `回去找${reportName}` : '尋找委託來源',
                 description: reportName
-                    ? '線索已補齊，回到委託人身邊把事情說清楚。'
-                    : '線索已補齊，回到相關人物或地點確認後續。'
+                    ? '紀錄已補齊，回到委託人身邊把事情說清楚。'
+                    : '紀錄已補齊，回到相關人物或地點確認後續。'
             };
         }
 
         if (status === QuestStatus.FINISHED) {
             return {
                 title: '已記錄',
-                description: '這段線索已整理完成，可以查看其他聽聞。'
+                description: '這段委託已整理完成，可以查看其他聽聞。'
             };
         }
 
         return {
             title: '查看內容',
-            description: '閱讀線索內容，找出下一步。'
+            description: '閱讀委託內容，找出下一步。'
         };
     }
 
@@ -686,10 +686,10 @@ export default class QuestScene {
                 this.renderQuestList();
                 break;
             case 'hidden_quest_discovered':
-                this.showNotification('新的聽聞', `「${data.quest.name}」已寫入線索簿。`);
+                this.showNotification('新的聽聞', `「${data.quest.name}」已寫入旅人手札。`);
                 break;
             case 'quest_ready':
-                this.showNotification('線索補齊', `「${data.quest.name}」可以回去找委託人。`);
+                this.showNotification('紀錄補齊', `「${data.quest.name}」可以回去找委託人。`);
                 break;
         }
     }

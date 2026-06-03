@@ -17,6 +17,7 @@ import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, closeItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
+import { getLandmark } from '../data/WorldStories.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -40,6 +41,39 @@ const AMBUSH_MANTIS_RELATED_LANDMARKS = new Set([
     'cut_roadsign',
     AMBUSH_MANTIS_TRIGGER_LANDMARK_ID
 ]);
+const LANDMARK_BOSS_TRIGGERS = {
+    forest_guardian: {
+        chainId: 'forest_guardian',
+        bossId: 'forest_guardian',
+        landmarkId: 'old_wolf_den',
+        flag: 'world.story.forest_guardian.enteredRootHeart',
+        readyTitle: '古樹根心',
+        pendingTitle: '根心仍被霧遮住',
+        defeatedTitle: '根心暫時安靜',
+        actionLabel: '進入古樹根心',
+        readyBody: '狼牙痕、霧碑拓印與發黑樹皮終於接成一條路。焦黑根鬚向地底張開，古樹守衛就在裡面痛苦喘息。',
+        pendingBody: '根鬚在岩縫裡緩慢收縮，但痕跡還沒足以判斷核心入口。先補齊狼群、溪谷與霧碑的紀錄。',
+        defeatedBody: '古樹守衛已被擊敗。根心仍有餘溫，但不再主動排斥靠近的人。'
+    },
+    blood_moon_stag: {
+        chainId: 'blood_moon_stag',
+        bossId: 'blood_moon_stag',
+        landmarkId: 'moon_moss_slope',
+        flag: 'world.story.blood_moon_stag.completedMoonBait',
+        readyTitle: '月苔誘導',
+        pendingTitle: '月苔痕跡不足',
+        defeatedTitle: '血月已退',
+        actionLabel: '完成月苔誘導',
+        readyBody: '月苔、斷角路線與獵人告示對上了。只要把誘導標記放在坡面暗紅處，血月角鹿今晚一定會撞進這裡。',
+        pendingBody: '坡面苔蘚泛著紅光，但還缺少能推回今晚路線的證據。先確認月苔樣本與斷角營地的遷徙記錄。',
+        defeatedBody: '血月角鹿已倒下。坡面紅光慢慢熄滅，只剩被撞裂的石頭提醒你牠曾經多痛。'
+    }
+};
+const LANDMARK_BOSS_TRIGGER_BY_LANDMARK = Object.values(LANDMARK_BOSS_TRIGGERS)
+    .reduce((map, config) => {
+        map[config.landmarkId] = config;
+        return map;
+    }, {});
 
 // Preload FightManager for unified management (fallback to promise if not ready)
 let FightManager = null;
@@ -73,10 +107,17 @@ export default class AdventureScene {
         this.locationToastRecentKeys = new Map();
         this.locationToastRepeatCooldownMs = 12000;
         this.locationToastTimer = null;
+        this.smallLocationHintKey = null;
+        this.smallLocationHintRecentKeys = new Map();
+        this.smallLocationHintRepeatCooldownMs = 7000;
+        this.smallLocationHintTimer = null;
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
-        
+
         // Bindings
         this.handleKeyPress = this.handleKeyPress.bind(this);
+        this.handleMapClick = this.handleMapClick.bind(this);
+        this.handleMapPointerMove = this.handleMapPointerMove.bind(this);
+        this.handleMapPointerLeave = this.handleMapPointerLeave.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.updateUI = this.updateUI.bind(this);
     }
@@ -140,6 +181,10 @@ export default class AdventureScene {
             clearTimeout(this.locationToastTimer);
             this.locationToastTimer = null;
         }
+        if (this.smallLocationHintTimer) {
+            clearTimeout(this.smallLocationHintTimer);
+            this.smallLocationHintTimer = null;
+        }
 
         this.unbindEvents();
     }
@@ -154,6 +199,10 @@ export default class AdventureScene {
             locationToastKicker: this.container.querySelector('#location-toast-kicker'),
             locationToastTitle: this.container.querySelector('#location-toast-title'),
             locationToastDescription: this.container.querySelector('#location-toast-description'),
+            smallLocationHint: this.container.querySelector('#small-location-hint'),
+            smallLocationHintKicker: this.container.querySelector('#small-location-hint-kicker'),
+            smallLocationHintTitle: this.container.querySelector('#small-location-hint-title'),
+            smallLocationHintText: this.container.querySelector('#small-location-hint-text'),
             btnToggleClueBook: this.container.querySelector('#btn-toggle-clue-book'),
             btnCloseClueBook: this.container.querySelector('#btn-close-clue-book'),
             clueBookPanel: this.container.querySelector('#clue-book-panel'),
@@ -238,14 +287,20 @@ export default class AdventureScene {
     bindEvents() {
         document.addEventListener('keydown', this.handleKeyPress);
         window.addEventListener('resize', this.handleResize);
-        
+
+        if (this.canvas) {
+            this.canvas.addEventListener('click', this.handleMapClick);
+            this.canvas.addEventListener('mousemove', this.handleMapPointerMove);
+            this.canvas.addEventListener('mouseleave', this.handleMapPointerLeave);
+        }
+
         // Inventory button
         if (this.dom.btnOpenInventory) {
             this.dom.btnOpenInventory.addEventListener('click', () => {
                 this.openInventoryModal();
             });
         }
-        
+
         if (this.dom.btnCloseInventory) {
             this.dom.btnCloseInventory.addEventListener('click', () => {
                 this.closeInventoryModal();
@@ -359,6 +414,12 @@ export default class AdventureScene {
     unbindEvents() {
         document.removeEventListener('keydown', this.handleKeyPress);
         window.removeEventListener('resize', this.handleResize);
+        if (this.canvas) {
+            this.canvas.removeEventListener('click', this.handleMapClick);
+            this.canvas.removeEventListener('mousemove', this.handleMapPointerMove);
+            this.canvas.removeEventListener('mouseleave', this.handleMapPointerLeave);
+            this.canvas.style.cursor = 'default';
+        }
     }
 
     handleResize() {
@@ -377,12 +438,128 @@ export default class AdventureScene {
         }
     }
 
+    getMapCellFromPointer(event) {
+        if (!this.canvas || !this.worldMap) return null;
+
+        const rect = this.canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        const canvasX = (event.clientX - rect.left) * scaleX;
+        const canvasY = (event.clientY - rect.top) * scaleY;
+        const mapX = Math.floor((canvasX + this.worldMap.cameraOffsetX) / this.worldMap.gridSize);
+        const mapY = Math.floor((canvasY + this.worldMap.cameraOffsetY) / this.worldMap.gridSize);
+
+        if (mapX < 0 || mapY < 0 || mapX >= this.worldMap.cols || mapY >= this.worldMap.rows) {
+            return null;
+        }
+
+        return { x: mapX, y: mapY };
+    }
+
+    getStepTowardMapCell(target) {
+        if (!target || !this.worldMap) return null;
+
+        const dx = target.x - this.worldMap.playerPos.x;
+        const dy = target.y - this.worldMap.playerPos.y;
+        if (dx === 0 && dy === 0) return null;
+
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            return { dx: Math.sign(dx), dy: 0 };
+        }
+
+        return { dx: 0, dy: Math.sign(dy) };
+    }
+
+    isMapCellActionable(target) {
+        return Boolean(target && this.getStepTowardMapCell(target));
+    }
+
+    handleMapClick(event) {
+        if (this.isLocked || !this.worldMap) return;
+        if (this.dom.battleModal?.style.display === 'flex') return;
+
+        const target = this.getMapCellFromPointer(event);
+        const step = this.getStepTowardMapCell(target);
+        if (!step) return;
+
+        event.preventDefault();
+        this.movePlayerBy(step.dx, step.dy);
+    }
+
+    handleMapPointerMove(event) {
+        if (!this.canvas) return;
+        if (this.isLocked || !this.worldMap) {
+            this.canvas.style.cursor = 'default';
+            return;
+        }
+
+        const target = this.getMapCellFromPointer(event);
+        this.canvas.style.cursor = this.isMapCellActionable(target) ? 'pointer' : 'default';
+    }
+
+    handleMapPointerLeave() {
+        if (this.canvas) {
+            this.canvas.style.cursor = 'default';
+        }
+    }
+
+    movePlayerBy(dx, dy) {
+        if (this.isLocked || !this.worldMap || (dx === 0 && dy === 0)) return;
+
+        const result = this.worldMap.movePlayer(dx, dy);
+        this.handleMapMoveResult(result);
+    }
+
+    handleMapMoveResult(result) {
+        this.renderMap();
+        this.updateUI();
+
+        const zone = this.worldMap.getCurrentZone();
+        questManager.updateProgress(ObjectiveType.EXPLORE, zone, 1);
+        this.showWorldDiscovery(worldStoryManager.recordZoneExploration(zone, {
+            source: 'adventure_map'
+        }));
+
+        if (result) {
+            this.hideSmallLocationHint();
+        }
+
+        if (result === 'battle') {
+            this.isLocked = true;
+            this.startBattle();
+        } else if (result === 'event') {
+            this.isLocked = true;
+            this.handleMapEvent();
+        } else if (result === 'landmark') {
+            this.isLocked = true;
+            this.handleLandmarkInteraction();
+        } else if (result === 'dungeon') {
+            this.isLocked = true;
+            this.handleDungeonEntrance();
+        } else if (result === 'home') {
+            this.isLocked = true;
+            this.handleReturnHome();
+        } else if (result === 'rift') {
+            this.isLocked = true;
+            this.handleRiftInteraction();
+        }
+    }
+
     handleKeyPress(event) {
         // If modal is open, handle battle keys or ignore
-        if (this.dom.battleModal.style.display === 'flex') {
-            if (event.code === 'Space') {
+        if (this.dom.battleModal?.style.display === 'flex') {
+            const key = event.key?.toLowerCase?.();
+            if (event.code === 'Space' || key === 'a') {
                 event.preventDefault();
                 this.handleAttackClick();
+            } else if (key === 'd') {
+                event.preventDefault();
+                this.handlePotionUse();
+            } else if (key === 'f') {
+                event.preventDefault();
+                this.handleFleeClick();
             }
             return;
         }
@@ -405,36 +582,7 @@ export default class AdventureScene {
         
         if (dx !== 0 || dy !== 0) {
             event.preventDefault();
-            const result = this.worldMap.movePlayer(dx, dy);
-            this.renderMap();
-            this.updateUI();
-            
-            // 追蹤探索進度（任務系統）
-            const zone = this.worldMap.getCurrentZone();
-            questManager.updateProgress(ObjectiveType.EXPLORE, zone, 1);
-            this.showWorldDiscovery(worldStoryManager.recordZoneExploration(zone, {
-                source: 'adventure_map'
-            }));
-            
-            if (result === 'battle') {
-                this.isLocked = true;
-                this.startBattle();
-            } else if (result === 'event') {
-                this.isLocked = true;
-                this.handleMapEvent();
-            } else if (result === 'landmark') {
-                this.isLocked = true;
-                this.handleLandmarkInteraction();
-            } else if (result === 'dungeon') {
-                this.isLocked = true;
-                this.handleDungeonEntrance();
-            } else if (result === 'home') {
-                this.isLocked = true;
-                this.handleReturnHome();
-            } else if (result === 'rift') {
-                this.isLocked = true;
-                this.handleRiftInteraction();
-            }
+            this.movePlayerBy(dx, dy);
         }
     }
 
@@ -478,6 +626,7 @@ export default class AdventureScene {
         }
         this.renderClueBook();
         this.renderBossTestPanel();
+        this.updateSmallLocationHint();
     }
 
     showLocationToast(narrative, options = {}) {
@@ -518,6 +667,95 @@ export default class AdventureScene {
         }, 3200);
     }
 
+    getNearbyLandmarkHint(radius = 2) {
+        if (!this.worldMap?.playerPos || !Array.isArray(this.worldMap.landmarks)) return null;
+
+        const currentCell = this.worldMap.getCurrentCell?.();
+        if (currentCell?.type === 'landmark') return null;
+
+        const player = this.worldMap.playerPos;
+        const candidates = this.worldMap.landmarks
+            .map(site => {
+                const cell = this.worldMap.mapData?.[site.y]?.[site.x];
+                const landmark = cell?.landmarkData;
+                if (!landmark) return null;
+                const distance = Math.abs(site.x - player.x) + Math.abs(site.y - player.y);
+                const hintRadius = Number.isFinite(landmark.hintRadius)
+                    ? Math.max(1, landmark.hintRadius)
+                    : radius;
+                if (distance <= 0 || distance > hintRadius) return null;
+                return { site, landmark, distance };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.distance - b.distance || a.site.y - b.site.y || a.site.x - b.site.x);
+
+        return candidates[0] || null;
+    }
+
+    updateSmallLocationHint() {
+        if (!this.dom.smallLocationHint || this.isLocked) return;
+
+        const hint = this.getNearbyLandmarkHint();
+        if (!hint) {
+            this.hideSmallLocationHint();
+            return;
+        }
+
+        this.showSmallLocationHint(hint);
+    }
+
+    showSmallLocationHint(hint) {
+        const { landmark, distance } = hint || {};
+        if (!landmark || !this.dom.smallLocationHint) return;
+
+        const key = landmark.id;
+        const now = Date.now();
+        const lastShownAt = this.smallLocationHintRecentKeys.get(key) || 0;
+        const isSameVisible = this.smallLocationHintKey === key && this.dom.smallLocationHint.classList.contains('is-visible');
+        if (isSameVisible) return;
+        if (now - lastShownAt < this.smallLocationHintRepeatCooldownMs) return;
+
+        this.smallLocationHintKey = key;
+        this.smallLocationHintRecentKeys.set(key, now);
+        for (const [recentKey, shownAt] of this.smallLocationHintRecentKeys.entries()) {
+            if (now - shownAt > this.smallLocationHintRepeatCooldownMs * 2) {
+                this.smallLocationHintRecentKeys.delete(recentKey);
+            }
+        }
+
+        if (this.dom.smallLocationHintKicker) {
+            this.dom.smallLocationHintKicker.textContent = distance <= 1 ? '近在眼前' : '附近地點';
+        }
+        if (this.dom.smallLocationHintTitle) {
+            this.dom.smallLocationHintTitle.textContent = `${landmark.icon || '◆'} ${landmark.name || '未知地點'}`;
+        }
+        if (this.dom.smallLocationHintText) {
+            const hintText = landmark.mapHint || landmark.arrival || '再靠近即可調查。';
+            this.dom.smallLocationHintText.textContent = `${hintText} 再靠近即可調查。`;
+        }
+
+        this.dom.smallLocationHint.classList.remove('is-visible');
+        void this.dom.smallLocationHint.offsetWidth;
+        this.dom.smallLocationHint.classList.add('is-visible');
+
+        if (this.smallLocationHintTimer) clearTimeout(this.smallLocationHintTimer);
+        this.smallLocationHintTimer = setTimeout(() => {
+            this.hideSmallLocationHint({ keepCooldown: true });
+        }, 3600);
+    }
+
+    hideSmallLocationHint(options = {}) {
+        if (!this.dom?.smallLocationHint) return;
+        this.dom.smallLocationHint.classList.remove('is-visible');
+        if (!options.keepCooldown) {
+            this.smallLocationHintKey = null;
+        }
+        if (this.smallLocationHintTimer) {
+            clearTimeout(this.smallLocationHintTimer);
+            this.smallLocationHintTimer = null;
+        }
+    }
+
     toggleClueBook(forceOpen = null) {
         this.clueBookOpen = forceOpen === null ? !this.clueBookOpen : Boolean(forceOpen);
         if (this.dom.clueBookPanel) {
@@ -548,16 +786,18 @@ export default class AdventureScene {
             this.toggleClueBook(false);
         }
         if (this.dom.clueBookSummary) {
-            this.dom.clueBookSummary.textContent = '筆記會依照你發現的順序留下，不會預先列出未知線索。';
+            this.dom.clueBookSummary.textContent = '首領痕跡會依照你發現的順序留下，不會預先列出未知情報。';
         }
         if (!this.dom.clueBookContent) return;
 
         const chainHTML = notebook.chains.map(chain => {
+            const totalClues = chain.totalClues || chain.clues.length;
+            const chainProgress = `${chain.clues.length}/${totalClues}`;
             const knownClues = chain.clues.map(clue => `
                 <article class="notebook-clue">
-                    <div class="notebook-clue-source">線索 ${clue.notebookIndex}</div>
+                    <div class="notebook-clue-source">痕跡 ${clue.notebookIndex}</div>
                     <h4>${escapeHtml(clue.title)}</h4>
-                    <div class="notebook-clue-origin">${escapeHtml(clue.source || '未知來源')}</div>
+                    <div class="notebook-clue-origin">${escapeHtml(this.formatTraceSource(clue))}</div>
                     <p>${escapeHtml(clue.text)}</p>
                     <small>${escapeHtml(clue.lead || '')}</small>
                 </article>
@@ -570,6 +810,7 @@ export default class AdventureScene {
                             <span>${escapeHtml(chain.method)}</span>
                             <h3>${escapeHtml(chain.title)}</h3>
                         </div>
+                        <strong>${escapeHtml(chainProgress)}</strong>
                     </div>
                     <p class="notebook-chain-text">${escapeHtml(chain.text)}</p>
                     <div class="notebook-clue-list">${knownClues}</div>
@@ -585,6 +826,32 @@ export default class AdventureScene {
             : '';
 
         this.dom.clueBookContent.innerHTML = chainHTML + landmarkHTML;
+    }
+
+    formatTraceSource(clue) {
+        const meta = clue?.meta || {};
+        const landmarkId = meta.landmarkId || clue?.context?.landmarkId;
+        if (landmarkId) {
+            const landmark = getLandmark(landmarkId);
+            return `地點調查｜${landmark?.name || landmarkId}`;
+        }
+
+        const monsterId = meta.monsterId || clue?.context?.monsterId;
+        if (monsterId) return `戰鬥紀錄｜${monsterId}`;
+
+        const source = String(meta.source || clue?.source || '');
+        const sourceLabels = {
+            adventure_map: '地圖探索',
+            landmark: '地點調查',
+            zone_explored: '區域探索',
+            world_interaction: '特殊互動',
+            boss_test_panel: '開發測試',
+            battle: '戰鬥紀錄',
+            monster_kill: '戰鬥紀錄'
+        };
+        if (sourceLabels[source]) return sourceLabels[source];
+        if (source.startsWith('dialogue')) return '城鎮聽聞';
+        return source || '未知來源';
     }
 
     toggleBossTestPanel(forceOpen = null) {
@@ -723,13 +990,17 @@ export default class AdventureScene {
         const status = worldStoryManager.getBossFlowStatus(chainId);
         if (!status?.finalReady || !status?.battleTemplateLinked) return null;
 
-        if (chainId === AMBUSH_MANTIS_CHAIN_ID) {
-            const landmark = this.worldMap?.teleportToLandmark?.(AMBUSH_MANTIS_TRIGGER_LANDMARK_ID);
+        const manualTrigger = chainId === AMBUSH_MANTIS_CHAIN_ID
+            ? { landmarkId: AMBUSH_MANTIS_TRIGGER_LANDMARK_ID, bossId: status.bossId, manualTrigger: true }
+            : Object.values(LANDMARK_BOSS_TRIGGERS).find(config => config.chainId === chainId);
+
+        if (manualTrigger) {
+            const landmark = this.worldMap?.teleportToLandmark?.(manualTrigger.landmarkId);
             if (!landmark) return null;
             this.currentLocationKey = null;
             this.renderMap();
             this.updateWorldNarrativePanel();
-            return { ...landmark, bossId: status.bossId, manualTrigger: true };
+            return { ...landmark, bossId: manualTrigger.bossId || status.bossId, manualTrigger: true };
         }
 
         const site = this.worldMap?.teleportToBossSite?.(status.bossId);
@@ -774,7 +1045,7 @@ export default class AdventureScene {
         if (action === 'reset-all') {
             worldStoryManager.resetWorldStoryProgress();
             this.toggleClueBook(false);
-            toastMessage = '所有世界線索與 BOSS 測試狀態已重置。';
+            toastMessage = '所有首領痕跡與 BOSS 測試狀態已重置。';
         } else if (action === 'reset-chain' && chainId) {
             worldStoryManager.resetStoryChain(chainId);
             toastMessage = '此 BOSS 流程已重置。';
@@ -784,12 +1055,12 @@ export default class AdventureScene {
                 this.showWorldDiscovery({ newClues: [clue] });
                 toastMessage = `解鎖：${clue.title}`;
             } else {
-                toastMessage = '這條流程已沒有未解鎖線索。';
+                toastMessage = '這條流程已沒有未解鎖痕跡。';
             }
         } else if (action === 'unlock-all' && chainId) {
             const clues = worldStoryManager.revealAllClues(chainId, { source: 'boss_test_panel' });
             if (clues.length > 0) this.showWorldDiscovery({ newClues: clues });
-            toastMessage = clues.length > 0 ? `解鎖 ${clues.length} 條線索。` : '所有線索都已解鎖。';
+            toastMessage = clues.length > 0 ? `解鎖 ${clues.length} 條痕跡。` : '所有痕跡都已解鎖。';
         } else if (action === 'progress' && chainId && methodId) {
             worldStoryManager.recordProgress(chainId, methodId, { source: 'boss_test_panel' });
             toastMessage = '已模擬一項推進方式。';
@@ -991,8 +1262,8 @@ export default class AdventureScene {
             const lairStatusText = !status.battleTemplateLinked
                 ? '缺戰鬥模板，暫不能顯示可戰鬥巢穴'
                 : lairReady
-                    ? '已顯示在地圖'
-                    : `線索 ${status.discoveredClues.length}/${status.requiredClues}｜推進 ${status.completedProgress}/${status.requiredProgress}`;
+                    ? (status.requiresManualTrigger ? '在指定地標觸發' : '已顯示在地圖')
+                    : `痕跡 ${status.discoveredClues.length}/${status.requiredClues}｜推進 ${status.completedProgress}/${status.requiredProgress}`;
             const checks = (status.validation?.checks || []).map(check => `
                 <span class="boss-check ${check.passed ? 'is-pass' : 'is-fail'}">
                     ${check.passed ? 'OK' : '缺'} ${escapeHtml(check.label)}
@@ -1007,8 +1278,8 @@ export default class AdventureScene {
                 </button>
             `).join('');
             const clueList = status.discoveredClues.length > 0
-                ? status.discoveredClues.map(clue => `<li>線索 ${clue.notebookIndex}｜${escapeHtml(clue.title)}</li>`).join('')
-                : '<li>尚未取得任何線索</li>';
+                ? status.discoveredClues.map(clue => `<li>痕跡 ${clue.notebookIndex}｜${escapeHtml(clue.title)}</li>`).join('')
+                : '<li>尚未取得任何痕跡</li>';
 
             return `
                 <article class="boss-test-card ${status.finalReady ? 'is-ready' : ''}">
@@ -1039,8 +1310,8 @@ export default class AdventureScene {
                     <ul class="boss-clue-list">${clueList}</ul>
                     <div class="boss-progress-list">${progressButtons}</div>
                     <div class="boss-test-actions">
-                        <button type="button" data-boss-action="unlock-next" data-chain-id="${escapeHtml(status.id)}">解鎖下一線索</button>
-                        <button type="button" data-boss-action="unlock-all" data-chain-id="${escapeHtml(status.id)}">解鎖全部線索</button>
+                        <button type="button" data-boss-action="unlock-next" data-chain-id="${escapeHtml(status.id)}">解鎖下一痕跡</button>
+                        <button type="button" data-boss-action="unlock-all" data-chain-id="${escapeHtml(status.id)}">解鎖全部痕跡</button>
                         <button type="button" data-boss-action="final-ready" data-chain-id="${escapeHtml(status.id)}">強制最終觸發</button>
                         <button type="button" data-boss-action="teleport-boss-lair" data-chain-id="${escapeHtml(status.id)}" ${lairReady ? '' : 'disabled'}>定位巢穴</button>
                         <button type="button" data-boss-action="challenge-boss-lair" data-chain-id="${escapeHtml(status.id)}" ${lairReady ? '' : 'disabled'}>挑戰 BOSS</button>
@@ -1336,11 +1607,11 @@ export default class AdventureScene {
             title = '伏道已靜';
             body = '銀鐮伏獵者已被擊敗。銀絲仍掛在枝葉間，但不再像活物一樣重新丈量你的腳步。';
         } else if (!state.status?.finalReady) {
-            title = '線索尚未收束';
-            body = `目前線索 ${clueText}，推進 ${progressText}。你還無法判斷牠會在哪一段回程路出手。`;
+            title = '痕跡尚未收束';
+            body = `目前痕跡 ${clueText}，推進 ${progressText}。你還無法判斷牠會在哪一段回程路出手。`;
         } else if (!state.atTriggerLandmark) {
             title = '不是設陷位置';
-            body = '這裡能讀到銀絲的方向，但誘餌不能隨便丟。線索指向銀絲最密的伏道。';
+            body = '這裡能讀到銀絲的方向，但誘餌不能隨便丟。痕跡指向銀絲最密的伏道。';
         } else if (state.baitCount <= 0) {
             title = '缺少銀絲誘餌';
             body = '你已經知道牠會怎麼觀察路線，但還需要銀絲誘餌才能把牠從暗處逼出來。旅行商人也許願意賣這種不太吉利的小玩意。';
@@ -1398,6 +1669,87 @@ export default class AdventureScene {
         this.startBattle();
     }
 
+    getLandmarkBossState(landmarkId) {
+        const config = LANDMARK_BOSS_TRIGGER_BY_LANDMARK[landmarkId];
+        if (!config) return null;
+
+        const status = worldStoryManager.getBossFlowStatus(config.chainId);
+        const defeated = worldStoryManager.hasMonsterDefeated?.(config.bossId);
+        return {
+            config,
+            status,
+            defeated,
+            canTrigger: Boolean(status?.finalReady && status?.battleTemplateLinked && !defeated)
+        };
+    }
+
+    renderLandmarkBossPanel(landmarkId) {
+        const state = this.getLandmarkBossState(landmarkId);
+        if (!state) return '';
+
+        const { config, status } = state;
+        const clueText = `${status?.discoveredClues?.length || 0}/${status?.requiredClues || 2}`;
+        const progressText = `${status?.completedProgress || 0}/${status?.requiredProgress || 2}`;
+        let title = config.readyTitle;
+        let body = config.readyBody;
+        let action = '';
+
+        if (state.defeated) {
+            title = config.defeatedTitle;
+            body = config.defeatedBody;
+        } else if (!status?.finalReady) {
+            title = config.pendingTitle;
+            body = `${config.pendingBody} 目前痕跡 ${clueText}，推進 ${progressText}。`;
+        } else {
+            action = `
+                <button class="btn btn-primary landmark-boss-action" type="button"
+                    data-landmark-boss="${escapeHtml(config.chainId)}">
+                    ${escapeHtml(config.actionLabel)}
+                </button>
+            `;
+        }
+
+        return `
+            <div class="ambush-bait-panel landmark-boss-panel">
+                <div>
+                    <strong>${escapeHtml(title)}</strong>
+                    <p>${escapeHtml(body)}</p>
+                </div>
+                ${action}
+            </div>
+        `;
+    }
+
+    bindLandmarkBossAction(landmarkId, zoneId) {
+        const button = this.dom.eventResult?.querySelector?.('[data-landmark-boss]');
+        if (!button) return;
+        button.addEventListener('click', () => this.triggerLandmarkBoss(landmarkId, zoneId), { once: true });
+    }
+
+    triggerLandmarkBoss(landmarkId, zoneId) {
+        const state = this.getLandmarkBossState(landmarkId);
+        if (!state?.canTrigger) {
+            showGlobalToast('無法觸發首領', '這裡的痕跡還沒有收束，或是首領已經被擊敗。', 'warning');
+            return;
+        }
+
+        const { config } = state;
+        if (this.dom.eventModal) this.dom.eventModal.style.display = 'none';
+        if (!this.worldMap?.createBossEncounter?.(config.bossId, zoneId || 'medium')) {
+            showGlobalToast('首領觸發失敗', '地標有反應，但戰鬥模板沒有正確接上。', 'error');
+            this.isLocked = false;
+            return;
+        }
+
+        GameManager.setFlag(config.flag, {
+            landmarkId,
+            usedAt: Date.now()
+        });
+        GameManager.markSaveDirty?.('landmark-boss-trigger');
+        this.isLocked = true;
+        this.startBattle();
+    }
+
     handleLandmarkInteraction() {
         const landmarkRef = this.worldMap.getCurrentLandmark?.();
         if (!landmarkRef) {
@@ -1414,7 +1766,7 @@ export default class AdventureScene {
         }
         const clueHTML = (outcome.newClues || []).map(clue => `
             <div class="event-reward">
-                <strong>新線索：${escapeHtml(clue.title)}</strong>
+                <strong>新痕跡：${escapeHtml(clue.title)}</strong>
                 <p>${escapeHtml(clue.text)}</p>
                 <small>${escapeHtml(clue.lead || '')}</small>
             </div>
@@ -1426,7 +1778,8 @@ export default class AdventureScene {
             </div>
         `).join('');
         const ambushBaitHTML = this.renderAmbushMantisBaitPanel(landmarkRef.id);
-        const resultHTML = `${clueHTML}${effectHTML}${ambushBaitHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
+        const landmarkBossHTML = this.renderLandmarkBossPanel(landmarkRef.id);
+        const resultHTML = `${clueHTML}${effectHTML}${ambushBaitHTML}${landmarkBossHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
 
         this.updateWorldNarrativePanel({
             landmark: outcome.landmark,
@@ -1444,6 +1797,7 @@ export default class AdventureScene {
             resultHTML
         );
         this.bindAmbushMantisBaitAction(landmarkRef.id, landmarkRef.zone);
+        this.bindLandmarkBossAction(landmarkRef.id, landmarkRef.zone);
     }
 
     handleMapEvent() {
@@ -1986,7 +2340,7 @@ export default class AdventureScene {
         if (newClues.length === 0) return;
 
         const firstClue = newClues[0];
-        showGlobalToast('新線索', firstClue.title, 'info');
+        showGlobalToast('新痕跡', firstClue.title, 'info');
         if (this.dom.btnToggleClueBook && !this.clueBookOpen) {
             this.dom.btnToggleClueBook.classList.add('has-new');
         }

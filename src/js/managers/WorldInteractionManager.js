@@ -73,7 +73,7 @@ class WorldInteractionManager {
             return {
                 success: false,
                 interaction,
-                messages: [interaction.repeatMessage || '這裡已經沒有新的線索。']
+                messages: [interaction.repeatMessage || '這裡已經沒有新的紀錄。']
             };
         }
 
@@ -133,7 +133,7 @@ class WorldInteractionManager {
         if (interaction.message) messages.push(interaction.message);
         if (interaction.showQuestUnlockMessages !== false) {
             for (const quest of unlockedQuests) {
-                messages.push(`新的任務線索已記錄：${quest.name}`);
+                messages.push(`新的委託紀錄已寫入：${quest.name}`);
             }
         }
         for (const unlock of recipeUnlocks) {
@@ -165,7 +165,7 @@ class WorldInteractionManager {
         this.journal.unshift(entry);
 
         if (context.toast !== false && typeof document !== 'undefined') {
-            showGlobalToast('發現線索', interaction.title, 'info');
+            showGlobalToast('發現聽聞', interaction.title, 'info');
         }
 
         return {

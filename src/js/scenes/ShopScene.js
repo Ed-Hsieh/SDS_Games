@@ -486,10 +486,10 @@ export default class ShopScene {
             }
 
             const message = outcome.messages?.join(' ') || '黑市入口已經開啟。';
-            this.showFeedback(outcome.success ? '線索觸發' : '沒有新的反應', message, outcome.success ? 'success' : 'info');
+            this.showFeedback(outcome.success ? '委託觸發' : '沒有新的反應', message, outcome.success ? 'success' : 'info');
             this.renderPlayerInventory(GameManager.state?.inventory || []);
         } else {
-            this.showFeedback('沒有新的反應', '這件物品沒有觸發新的線索。', 'info');
+            this.showFeedback('沒有新的反應', '這件物品沒有觸發新的委託。', 'info');
         }
     }
 

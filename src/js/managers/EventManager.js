@@ -233,9 +233,9 @@ function applyResultToCharacter(char, result) {
 
             if (result.message) return result.message;
             if (before.status === QuestStatus.LOCKED && after.status !== QuestStatus.LOCKED && quest) {
-                return `新的任務線索已記錄：${quest.name}`;
+                return `新的委託紀錄已寫入：${quest.name}`;
             }
-            return quest ? `已記錄任務線索：${quest.name}` : null;
+            return quest ? `已記錄委託紀錄：${quest.name}` : null;
         }
         case ResultType.WORLD_INTERACTION: {
             const interactionId = result.interactionId || result.value;

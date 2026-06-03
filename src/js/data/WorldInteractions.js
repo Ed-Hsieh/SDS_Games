@@ -35,7 +35,7 @@ export const WorldInteractionDatabase = {
         unlockRecipes: [],
         autoAcceptQuests: true,
         showQuestUnlockMessages: false,
-        message: '村長請你先找書記確認線索簿的記錄方式，再前往南門外近郊確認路線。',
+        message: '村長請你先找書記確認旅人手札的記錄方式，再前往南門外近郊確認路線。',
         repeatMessage: '村長已經交代過第一段旅程。',
         imageKeys: ['npc.village_elder', 'world.notice_board']
     },
@@ -61,7 +61,7 @@ export const WorldInteractionDatabase = {
         autoAcceptQuests: true,
         showQuestUnlockMessages: false,
         message: '書記把農田邊的史萊姆異常整理成下一份調查，請你清掉 5 個靠近農田的史萊姆。',
-        repeatMessage: '史萊姆增生的紀錄已經寫進線索簿。',
+        repeatMessage: '史萊姆增生的紀錄已經寫進旅人手札。',
         imageKeys: ['npc.scholar', 'world.notice_board']
     },
     crossroads_beggar: {
@@ -152,8 +152,8 @@ export const WorldInteractionDatabase = {
         flags: ['mapFragmentDelivered'],
         unlockQuests: ['bounty_elite_001'],
         unlockRecipes: [],
-        missingMessage: '這條線索需要一張可以辨認路徑的地圖碎片。',
-        message: '你把地圖碎片交給旅行商人，他拼出一段危險路徑，特殊懸賞被記入線索簿。',
+        missingMessage: '這段委託需要一張可以辨認路徑的地圖碎片。',
+        message: '你把地圖碎片交給旅行商人，他拼出一段危險路徑，特殊懸賞被記入旅人手札。',
         repeatMessage: '這張地圖碎片已經被拼進商人的舊地圖。',
         imageKeys: ['item.map_fragment', 'world.notice_board']
     }
@@ -205,7 +205,7 @@ export const ImageAssetRequests = [
     {
         key: 'item.blueprint_scroll',
         type: 'item_icon',
-        usage: '製作圖、配方碎片、任務線索圖示。',
+        usage: '製作圖、配方碎片、任務紀錄圖示。',
         promptHint: 'fantasy blueprint scroll icon, readable silhouette, transparent background'
     },
     {

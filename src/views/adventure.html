@@ -31,8 +31,14 @@
             <p id="location-toast-description">村莊外圍仍有人走動。</p>
         </div>
 
+        <div class="small-location-hint" id="small-location-hint" aria-live="polite">
+            <div class="small-location-hint-kicker" id="small-location-hint-kicker">附近地點</div>
+            <div class="small-location-hint-title" id="small-location-hint-title">獵人棧道</div>
+            <div class="small-location-hint-text" id="small-location-hint-text">再靠近即可調查。</div>
+        </div>
+
         <button class="clue-book-tab" id="btn-toggle-clue-book" type="button" aria-expanded="false" aria-controls="clue-book-panel">
-            <span class="clue-book-tab-title">線索簿</span>
+            <span class="clue-book-tab-title">痕跡簿</span>
         </button>
 
         <button class="boss-test-tab" id="btn-toggle-boss-test" type="button" aria-expanded="false" aria-controls="boss-test-panel">
@@ -42,10 +48,10 @@
         <aside class="clue-book-panel" id="clue-book-panel" aria-hidden="true">
             <div class="clue-book-header">
                 <div>
-                    <span class="clue-book-kicker">旅行筆記</span>
-                    <h2>線索簿</h2>
+                    <span class="clue-book-kicker">首領追蹤</span>
+                    <h2>痕跡簿</h2>
                 </div>
-                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉線索簿">×</button>
+                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉痕跡簿">×</button>
             </div>
             <div class="clue-book-summary" id="clue-book-summary"></div>
             <div class="clue-book-content" id="clue-book-content"></div>

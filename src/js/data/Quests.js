@@ -52,9 +52,9 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📖',
-            description: '村長請你先找書記確認線索簿的記錄方式，再到南門外近郊確認哪些路還能走。',
+            description: '村長請你先找書記確認旅人手札的記錄方式，再到南門外近郊確認哪些路還能走。',
             objectives: [
-                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, description: '先找書記確認線索簿的記錄方式' },
+                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, description: '先找書記確認旅人手札的記錄方式' },
                 { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '再確認南門外近郊 3 處路線' }
             ],
             rewards: {
@@ -78,7 +78,7 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📚',
-            description: '書記把村民的聽聞整理成第一份線索：城外史萊姆正在靠近農田，這不是普通增生。',
+            description: '書記把村民的聽聞整理成第一份紀錄：城外史萊姆正在靠近農田，這不是普通增生。',
             objectives: [
                 { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '消滅靠近農田的史萊姆 5 個' }
             ],
@@ -92,7 +92,7 @@ export const QuestDatabase = {
             },
             unlocks: ['main_003'],
             dialogue: {
-                start: '書記把農田附近的異常寫進線索簿。',
+                start: '書記把農田附近的異常寫進旅人手札。',
                 complete: '史萊姆增生被壓下來，但這更像地脈異常的第一個症狀。'
             }
         },
@@ -193,7 +193,7 @@ export const QuestDatabase = {
             unlocks: ['main_007', 'dungeon_cave_001'],
             dialogue: {
                 start: '角鹿不是守門人，而是喝下污染溪水後失控的受害者。追上牠，第一章才算收束。',
-                complete: '血月退去後，石階鎮外暫時穩定，但所有線索都指向更高處的霧碑丘陵。'
+                complete: '血月退去後，石階鎮外暫時穩定，但所有跡象都指向更高處的霧碑丘陵。'
             }
         },
         {

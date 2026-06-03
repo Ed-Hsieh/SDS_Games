@@ -78,7 +78,7 @@ class DialogueManager {
                 { type: 'completeQuest', questId: completedQuest.id, message: reportMessage }
             ],
             route: 'quest',
-            routeLabel: '查看線索簿'
+            routeLabel: '查看旅人手札'
         };
     }
 
@@ -211,7 +211,7 @@ class DialogueManager {
 
         if (line.speaker === 'system') {
             return {
-                speaker: line.name || '線索',
+                speaker: line.name || '紀錄',
                 avatar: line.avatar || '📌',
                 text: line.text || ''
             };

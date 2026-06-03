@@ -627,7 +627,7 @@ class QuestManager {
         const questName = data.quest?.name || data.questId || '未知任務';
 
         if (eventType === 'quest_ready') {
-            showGlobalToast('線索補齊', `「${questName}」可以回報。`, 'quest', { duration: 5200 });
+            showGlobalToast('紀錄補齊', `「${questName}」可以回報。`, 'quest', { duration: 5200 });
             return;
         }
 
@@ -638,7 +638,7 @@ class QuestManager {
         }
 
         if (eventType === 'hidden_quest_discovered') {
-            showGlobalToast('新的聽聞', `「${questName}」已寫入線索簿。`, 'quest');
+            showGlobalToast('新的聽聞', `「${questName}」已寫入旅人手札。`, 'quest');
         }
     }
 

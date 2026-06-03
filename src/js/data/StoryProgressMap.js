@@ -114,7 +114,6 @@ export const StoryProgressRules = [
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_001' },
         actions: [
-            clue('silk_tripwire'),
             progress('ambush_mantis', 'repeat_route')
         ]
     },
@@ -123,7 +122,6 @@ export const StoryProgressRules = [
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_002' },
         actions: [
-            clue('silk_tripwire'),
             progress('ambush_mantis', 'repeat_route')
         ]
     },
@@ -132,7 +130,6 @@ export const StoryProgressRules = [
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_003' },
         actions: [
-            clue('snapped_bait_hook'),
             progress('ambush_mantis', 'craft_bait_hook')
         ]
     },
@@ -152,8 +149,7 @@ export const StoryProgressRules = [
         requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
             clue('hunter_board_notice'),
-            clue('moon_moss_sample'),
-            progress('blood_moon_stag', 'mark_moon_moss')
+            progress('blood_moon_stag', 'set_hunt_marker')
         ]
     },
     {
@@ -190,7 +186,6 @@ export const StoryProgressRules = [
         match: { zoneId: 'low' },
         counter: { key: 'zone.low', required: 3 },
         actions: [
-            clue('silk_tripwire'),
             progress('ambush_mantis', 'repeat_route')
         ]
     },
@@ -219,7 +214,6 @@ export const StoryProgressRules = [
         counter: { key: 'zone.medium', required: 5 },
         requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
-            clue('moon_moss_sample'),
             progress('blood_moon_stag', 'mark_moon_moss')
         ]
     },
@@ -244,7 +238,7 @@ export const StoryProgressRules = [
     },
 
     {
-        id: 'hunter-boardwalk-confirms-arrow-pouch',
+        id: 'hunter-boardwalk-confirms-silk-tripwire',
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'hunter_boardwalk' },
         actions: [
@@ -265,7 +259,10 @@ export const StoryProgressRules = [
         id: 'cut-roadsign-confirms-bait-hook',
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'cut_roadsign' },
-        requires: [{ type: 'clue', clueId: 'silk_tripwire' }],
+        requires: [
+            { type: 'clue', clueId: 'silk_tripwire' },
+            { type: 'clue', clueId: 'survivor_warning' }
+        ],
         actions: [
             clue('snapped_bait_hook'),
             progress('ambush_mantis', 'craft_bait_hook')
@@ -309,6 +306,16 @@ export const StoryProgressRules = [
         ]
     },
     {
+        id: 'broken-horn-camp-builds-stag-route',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'broken_horn_camp' },
+        requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
+        actions: [
+            clue('broken_horn_map'),
+            progress('blood_moon_stag', 'compare_migration')
+        ]
+    },
+    {
         id: 'charred-obelisk-builds-dragon-thread',
         event: E.LANDMARK_VISITED,
         match: { landmarkId: 'charred_obelisk' },
@@ -334,7 +341,6 @@ export const StoryProgressRules = [
         match: { monsterId: 'tower_alpha_wolf' },
         requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
         actions: [
-            clue('moon_moss_sample'),
             progress('blood_moon_stag', 'mark_moon_moss')
         ]
     },
@@ -364,7 +370,6 @@ export const StoryProgressRules = [
         match: { monsterId: 'poison_spider' },
         counter: { key: 'kill.poison_spider', required: 3 },
         actions: [
-            clue('silk_tripwire'),
             progress('ambush_mantis', 'repeat_route')
         ]
     },
@@ -382,9 +387,7 @@ export const StoryProgressRules = [
         event: E.MONSTER_KILL,
         match: { monsterId: 'forest_guardian' },
         actions: [
-            clue('hunter_board_notice'),
-            clue('moon_moss_sample'),
-            progress('blood_moon_stag', 'mark_moon_moss')
+            clue('hunter_board_notice')
         ]
     },
     {

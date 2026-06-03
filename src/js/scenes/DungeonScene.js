@@ -1365,7 +1365,7 @@ class DungeonSceneClass {
             ...(bossStoryOutcome.newClues || [])
         ];
         if (newStoryClues.length > 0) {
-            this.addMessage(`新線索：${newStoryClues[0].title}`, 'info');
+            this.addMessage(`新痕跡：${newStoryClues[0].title}`, 'info');
         }
         this.awardDungeonBossTreasures(dungeonData);
         this.addMessage(`🏆 通關 ${dungeonData.name}！`, 'legendary');

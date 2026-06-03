@@ -158,7 +158,7 @@ class GlobalGoalTracker {
             return {
                 icon: '📌',
                 tone: 'success',
-                title: '線索可回報',
+                title: '委託可回報',
                 description: `「${completed.name}」已補齊，回去找${reporter}確認後續。`,
                 route,
                 actionLabel: story.reportTo?.label || `回去找${reporter}`,
@@ -172,7 +172,7 @@ class GlobalGoalTracker {
             return {
                 icon: active.icon || '!',
                 tone: 'primary',
-                title: `線索：${active.name}`,
+                title: `委託：${active.name}`,
                 description: objective.description,
                 route: this.getObjectiveRoute(objective.type),
                 actionLabel: ROUTE_LABELS[this.getObjectiveRoute(objective.type)] || '前往',
