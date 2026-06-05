@@ -113,6 +113,25 @@ export function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+export function renderAtlasIconHtml(atlas, extraClass = '') {
+    if (!atlas) return '';
+    const row = Number(atlas.row) || 0;
+    const col = Number(atlas.col) || 0;
+    const className = ['item-atlas-icon', extraClass].filter(Boolean).join(' ');
+    return `<span class="${escapeHtml(className)}" style="--atlas-row:${row}; --atlas-col:${col};" aria-hidden="true"></span>`;
+}
+
+export function getItemVisualHtml(item, fallbackIcon = '◆', extraClass = '') {
+    if (item?.atlas) {
+        return renderAtlasIconHtml(item.atlas, extraClass);
+    }
+    if (item?.image) {
+        const classAttribute = extraClass ? ` class="${escapeHtml(extraClass)}"` : '';
+        return `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}"${classAttribute}>`;
+    }
+    return escapeHtml(item?.icon || fallbackIcon);
+}
+
 function formatPlainNumber(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return value;
@@ -455,6 +474,7 @@ export function buildItemDisplayModel(item, options = {}) {
         name: item?.name || options.name || '未知物品',
         icon: item?.icon || options.icon || '◆',
         image: item?.image || options.image || '',
+        atlas: item?.atlas || options.atlas || null,
         type: item?.type || options.type || '',
         rarity,
         typeText: options.typeText ?? getItemTypeText(item?.type || options.type),

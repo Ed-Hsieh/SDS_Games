@@ -14,6 +14,25 @@ import { worldStoryManager } from '../managers/WorldStoryManager.js';
 const ManualTriggerBossIds = new Set(['ambush_mantis', 'forest_guardian', 'blood_moon_stag']);
 const SlimeQuestId = 'main_002';
 
+const StaticDungeonPlacements = {
+    cave: { x: 7, y: 5 },
+    jungle: { x: -25, y: 4 },
+    ruins: { x: 14, y: -18 },
+    snow: { x: 7, y: -24 },
+    hell: { x: 27, y: 23 }
+};
+
+const StaticRiftPlacements = {
+    low: { x: 6, y: -5 },
+    medium: { x: 15, y: 10 },
+    high: { x: -19, y: -15 },
+    death: { x: 26, y: 20 }
+};
+
+function normalizePlacementZones(zones = []) {
+    return zones.flatMap(zone => zone === 'boss' ? ['death'] : [zone]);
+}
+
 // NOTE: DungeonEntranceConfig 已移至 managers/DungeonManager.js
 // 這裡重新導出以保持向後相容
 export { DungeonEntranceConfig };
@@ -167,21 +186,16 @@ export default class WorldMap {
         const dungeonTypes = Object.keys(DungeonEntranceConfig);
         for (const dungeonType of dungeonTypes) {
             const config = DungeonEntranceConfig[dungeonType];
-            // 從 config.zones 聚合可放置的候選格
-            const validCells = [];
-            const placementZones = (config.zones || []).flatMap(z => z === 'boss' ? ['death'] : [z]);
-            for (const z of placementZones) {
-                const list = zoneCandidates[z] || [];
-                for (let i = 0; i < list.length; i++) {
-                    const pos = list[i];
-                    const cell = data[pos.r][pos.c];
-                    if (cell.type === 'empty') validCells.push(pos);
-                }
-            }
+            const placementZones = normalizePlacementZones(config.zones || []);
+            const anchor = this.homePos || this.playerPos;
+            const offset = StaticDungeonPlacements[dungeonType] || { x: 0, y: 0 };
+            const targetPos = {
+                x: anchor.x + offset.x,
+                y: anchor.y + offset.y
+            };
+            const cellPos = this._findNearestEmptyCell(data, placementZones, targetPos, { searchRadius: 10 });
 
-            if (validCells.length > 0) {
-                const randomIndex = Math.floor(Math.random() * validCells.length);
-                const cellPos = validCells[randomIndex];
+            if (cellPos) {
                 const target = data[cellPos.r][cellPos.c];
                 target.type = 'dungeon';
                 target.dungeonType = dungeonType;
@@ -365,50 +379,82 @@ export default class WorldMap {
         }
     }
 
+    _findNearestEmptyCell(data, zones = [], target = {}, options = {}) {
+        const allowedZones = new Set(normalizePlacementZones(zones.length ? zones : ['low']));
+        const searchRadius = Math.max(1, Number(options.searchRadius) || 8);
+        const minHomeDistance = Math.max(0, Number(options.minHomeDistance) || 3);
+        const anchor = this.homePos || this.playerPos || { x: Math.floor(this.cols / 2), y: Math.floor(this.rows / 2) };
+        const canUse = (x, y) => {
+            if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) return false;
+            const cell = data[y]?.[x];
+            if (!cell || cell.type !== 'empty' || cell.bossSiteId) return false;
+            if (!allowedZones.has(cell.zone)) return false;
+            const dx = x - anchor.x;
+            const dy = y - anchor.y;
+            return Math.max(Math.abs(dx), Math.abs(dy)) > minHomeDistance;
+        };
+
+        const targetX = Math.max(0, Math.min(this.cols - 1, Math.round(Number(target.x) || anchor.x)));
+        const targetY = Math.max(0, Math.min(this.rows - 1, Math.round(Number(target.y) || anchor.y)));
+
+        if (canUse(targetX, targetY)) {
+            return { r: targetY, c: targetX };
+        }
+
+        for (let radius = 1; radius <= searchRadius; radius += 1) {
+            const candidates = [];
+            for (let dy = -radius; dy <= radius; dy += 1) {
+                for (let dx = -radius; dx <= radius; dx += 1) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) !== radius) continue;
+                    const x = targetX + dx;
+                    const y = targetY + dy;
+                    if (canUse(x, y)) candidates.push({ r: y, c: x });
+                }
+            }
+
+            if (candidates.length > 0) {
+                candidates.sort((a, b) => {
+                    const da = Math.hypot(a.c - targetX, a.r - targetY);
+                    const db = Math.hypot(b.c - targetX, b.r - targetY);
+                    return da - db || a.r - b.r || a.c - b.c;
+                });
+                return candidates[0];
+            }
+        }
+
+        const fallback = [];
+        for (let r = 0; r < this.rows; r += 1) {
+            for (let c = 0; c < this.cols; c += 1) {
+                if (canUse(c, r)) fallback.push({ r, c });
+            }
+        }
+        fallback.sort((a, b) => {
+            const da = Math.hypot(a.c - targetX, a.r - targetY);
+            const db = Math.hypot(b.c - targetX, b.r - targetY);
+            return da - db || a.r - b.r || a.c - b.c;
+        });
+        return fallback[0] || null;
+    }
+
     _generateRifts(data) {
         this.rifts = [];
         const zoneLayers = ['low', 'medium', 'high', 'death'];
 
-        // 如果有持久化的 rifts，優先使用它們（並做基本的有效性檢查）
-        if (Array.isArray(this._persistedRifts) && this._persistedRifts.length > 0) {
-            for (const rift of this._persistedRifts) {
-                const { x, y, zone } = rift;
-                if (x >= 0 && x < this.cols && y >= 0 && y < this.rows) {
-                    // 只在該格仍為 empty 且 zone 相符時還原裂縫
-                    if (data[y][x].type === 'empty' && data[y][x].zone === zone && !data[y][x].bossSiteId) {
-                        data[y][x].type = 'rift';
-                        data[y][x].riftData = { zone };
-                        this.rifts.push({ x, y, zone });
-                    }
-                }
-            }
-        } else {
-            for (const zone of zoneLayers) {
-                const validCells = [];
-                for (let r = 0; r < this.rows; r++) {
-                    for (let c = 0; c < this.cols; c++) {
-                        // 跳過玩家起點附近與家
-                        const dx = c - this.playerPos.x;
-                        const dy = r - this.playerPos.y;
-                        if (Math.abs(dx) <= 2 && Math.abs(dy) <= 2) continue;
-                        // 只放在空格，避免蓋到副本或事件或牆
-                        if (data[r][c].zone === zone && data[r][c].type === 'empty' && !data[r][c].bossSiteId) {
-                            validCells.push({ r, c });
-                        }
-                    }
-                }
-
-                if (validCells.length > 0) {
-                    const idx = Math.floor(Math.random() * validCells.length);
-                    const cell = validCells[idx];
-                    data[cell.r][cell.c].type = 'rift';
-                    data[cell.r][cell.c].riftData = { zone };
-                    this.rifts.push({ x: cell.c, y: cell.r, zone });
-                }
-            }
-            // 儲存新生成的裂縫到 GameManager
-            this._saveMapState();
+        for (const zone of zoneLayers) {
+            const offset = StaticRiftPlacements[zone] || { x: 0, y: 0 };
+            const anchor = this.homePos || this.playerPos;
+            const targetPos = {
+                x: anchor.x + offset.x,
+                y: anchor.y + offset.y
+            };
+            const cell = this._findNearestEmptyCell(data, [zone], targetPos, { searchRadius: 10 });
+            if (!cell) continue;
+            data[cell.r][cell.c].type = 'rift';
+            data[cell.r][cell.c].riftData = { zone };
+            this.rifts.push({ x: cell.c, y: cell.r, zone });
         }
+
+        this._saveMapState();
     }
 
     _saveMapState() {

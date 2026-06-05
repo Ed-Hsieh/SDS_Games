@@ -34,25 +34,49 @@ class DialogueManager {
     }
 
     getAvailableDialogue(npcId) {
-        const reportDialogue = this.getCompletedQuestReportDialogue(npcId);
+        return this.getAvailableDialogues(npcId)[0] || null;
+    }
+
+    getAvailableDialogues(npcId) {
+        this.prepareContextualDialogue(npcId);
         const dialogues = [
-            ...(reportDialogue ? [reportDialogue] : []),
+            ...this.getCompletedQuestReportDialogues(npcId),
             ...getTownNPCDialogues(npcId)
         ]
             .filter(dialogue => this.canUseDialogue(npcId, dialogue))
-            .sort((a, b) => (Number(b.priority) || 0) - (Number(a.priority) || 0));
+            .sort((a, b) => {
+                const priorityDiff = (Number(b.priority) || 0) - (Number(a.priority) || 0);
+                if (priorityDiff !== 0) return priorityDiff;
+                return String(a.id).localeCompare(String(b.id), 'zh-Hant');
+            });
 
-        return dialogues[0] || null;
+        const storyDialogues = dialogues.filter(dialogue => !this.isFallbackDialogue(dialogue));
+        return storyDialogues.length > 0 ? storyDialogues : dialogues;
     }
 
     getCompletedQuestReportDialogue(npcId) {
+        return this.getCompletedQuestReportDialogues(npcId)[0] || null;
+    }
+
+    getCompletedQuestReportDialogues(npcId) {
         const npc = getTownNPC(npcId);
-        if (!npc) return null;
+        if (!npc) return [];
 
-        const completedQuest = questManager.getCompletedQuests()
-            .find(quest => this.isQuestReporter(npcId, quest));
-        if (!completedQuest) return null;
+        return questManager.getCompletedQuests()
+            .filter(quest => this.isQuestReporter(npcId, quest))
+            .filter(quest => !this.hasExplicitQuestReportDialogue(npcId, quest.id))
+            .map(completedQuest => this.createQuestReportDialogue(npc, completedQuest));
+    }
 
+    hasExplicitQuestReportDialogue(npcId, questId) {
+        return getTownNPCDialogues(npcId).some(dialogue => {
+            const hasReportEffect = (dialogue.effects || [])
+                .some(effect => effect.type === 'completeQuest' && effect.questId === questId);
+            return hasReportEffect && this.canUseDialogue(npcId, dialogue);
+        });
+    }
+
+    createQuestReportDialogue(npc, completedQuest) {
         const story = getQuestStory(completedQuest, completedQuest.state);
         const reportName = story.reportTo?.name || npc.name;
         const reportMessage = `${reportName}把「${completedQuest.name}」的紀錄歸檔。`;
@@ -91,16 +115,18 @@ class DialogueManager {
 
     hasFreshDialogue(npcId) {
         this.prepareContextualDialogue(npcId);
-        const dialogue = this.getAvailableDialogue(npcId);
-        if (!dialogue) return false;
-        if (dialogue.once && !this.hasSeen(npcId, dialogue.id)) return true;
-        return this.dialogueChangesState(dialogue);
+        const dialogues = this.getAvailableDialogues(npcId);
+        return dialogues.some(dialogue => {
+            if (this.isFallbackDialogue(dialogue)) return false;
+            if (dialogue.once && !this.hasSeen(npcId, dialogue.id)) return true;
+            return this.dialogueChangesState(dialogue);
+        });
     }
 
     dialogueChangesState(dialogue) {
         return (dialogue?.effects || []).some(effect => {
             if (!effect?.type) return false;
-            return ['worldInteraction', 'questProgress', 'acceptQuest', 'completeQuest', 'setFlag'].includes(effect.type);
+            return ['worldInteraction', 'questProgress', 'unlockQuest', 'acceptQuest', 'completeQuest', 'setFlag'].includes(effect.type);
         });
     }
 
@@ -108,6 +134,79 @@ class DialogueManager {
         if (!dialogue?.id) return false;
         if (dialogue.once && this.hasSeen(npcId, dialogue.id)) return false;
         return (dialogue.conditions || []).every(condition => this.checkCondition(condition));
+    }
+
+    isFallbackDialogue(dialogue = {}) {
+        const hasCondition = Array.isArray(dialogue.conditions) && dialogue.conditions.length > 0;
+        const hasEffect = Array.isArray(dialogue.effects) && dialogue.effects.length > 0;
+        const priority = Number(dialogue.priority) || 0;
+        return priority <= 1 && !hasCondition && !hasEffect;
+    }
+
+    getDialogueTopic(dialogue = {}) {
+        const type = this.getDialogueTopicType(dialogue);
+        return {
+            id: dialogue.id,
+            type,
+            label: this.getDialogueTopicLabel(dialogue, type),
+            title: dialogue.narrativeTitle || this.getDialogueTopicLabel(dialogue, type),
+            summary: this.getDialogueTopicSummary(dialogue, type),
+            icon: this.getDialogueTopicIcon(dialogue, type),
+            priority: Number(dialogue.priority) || 0
+        };
+    }
+
+    getDialogueTopicType(dialogue = {}) {
+        const effects = dialogue.effects || [];
+        if (dialogue.id?.startsWith?.('report_') || effects.some(effect => effect.type === 'completeQuest')) return 'report';
+        if (effects.some(effect => effect.type === 'unlockQuest' || effect.type === 'acceptQuest')) return 'request';
+        if (effects.some(effect => effect.type === 'worldInteraction' || effect.type === 'questProgress' || effect.type === 'setFlag')) return 'discovery';
+        if (dialogue.once || dialogue.tone === 'discovery') return 'discovery';
+        if (dialogue.route) {
+            const hasConditions = Array.isArray(dialogue.conditions) && dialogue.conditions.length > 0;
+            return hasConditions ? 'guidance' : 'destination';
+        }
+        return 'status';
+    }
+
+    getDialogueTopicLabel(dialogue = {}, type = 'status') {
+        const title = dialogue.narrativeTitle || dialogue.topicTitle || dialogue.id || '';
+        const labelMap = {
+            report: '回報',
+            request: '詢問',
+            discovery: '聽聞',
+            guidance: '提醒',
+            destination: '前往',
+            status: '近況'
+        };
+        return title ? `${labelMap[type] || '話題'}：${title}` : (labelMap[type] || '話題');
+    }
+
+    getDialogueTopicSummary(dialogue = {}, type = 'status') {
+        if (dialogue.topicSummary) return dialogue.topicSummary;
+        const firstLine = dialogue.lines?.find(line => line?.text)?.text || '';
+        if (firstLine) return firstLine;
+        const fallbackMap = {
+            report: '把已完成的紀錄交給對方歸檔。',
+            request: '聽聽對方想請你處理的事。',
+            discovery: '確認剛出現的新聽聞。',
+            guidance: '確認目前該往哪裡推進。',
+            destination: '前往對應地點或開啟相關功能。',
+            status: '聽聽對方目前注意到的狀況。'
+        };
+        return fallbackMap[type] || '選擇這個話題。';
+    }
+
+    getDialogueTopicIcon(dialogue = {}, type = 'status') {
+        const iconMap = {
+            report: '📌',
+            request: '📜',
+            discovery: '✦',
+            guidance: '☞',
+            destination: '➜',
+            status: '…'
+        };
+        return dialogue.topicIcon || iconMap[type] || '•';
     }
 
     checkCondition(condition = {}) {
@@ -142,7 +241,11 @@ class DialogueManager {
         }
 
         this.prepareContextualDialogue(npcId);
-        const dialogue = this.getAvailableDialogue(npcId);
+        const dialogues = this.getAvailableDialogues(npcId);
+        const requestedDialogueId = context.dialogueId || context.topicId || null;
+        const dialogue = requestedDialogueId
+            ? dialogues.find(entry => entry.id === requestedDialogueId)
+            : dialogues[0];
         if (!dialogue) {
             return {
                 success: false,
@@ -168,6 +271,7 @@ class DialogueManager {
             success: true,
             npc,
             dialogue,
+            topic: this.getDialogueTopic(dialogue),
             lines,
             effectMessages,
             narrativeTitle: dialogue.narrativeTitle || null,
@@ -242,6 +346,12 @@ class DialogueManager {
             if (effect.type === 'questProgress') {
                 const changed = questManager.updateProgress(effect.objectiveType, effect.target, effect.amount || 1);
                 if (changed && effect.message) messages.push(effect.message);
+                continue;
+            }
+
+            if (effect.type === 'unlockQuest') {
+                questManager.unlockQuest(effect.questId);
+                if (effect.message) messages.push(effect.message);
                 continue;
             }
 

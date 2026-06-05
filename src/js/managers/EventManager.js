@@ -10,59 +10,151 @@ import { weightedPick } from '../utils/WeightedPick.js';
 import { questManager, QuestStatus } from './QuestManager.js';
 import { getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
+import { getWorldInteraction } from '../data/WorldInteractions.js';
 
 const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
     low: [
         'field_notice_board',
-        'weathered_route_tablet',
-        'special_bounty_notice'
+        'abandoned_blueprint_cache'
     ],
     medium: [
         'weathered_route_tablet',
         'field_notice_board',
+        'abandoned_blueprint_cache',
         'special_bounty_notice'
     ],
     high: [
         'weathered_route_tablet',
-        'special_bounty_notice',
-        'field_notice_board'
+        'special_bounty_notice'
+    ],
+    death: [
+        'weathered_route_tablet'
     ],
     boss: [
-        'weathered_route_tablet',
-        'special_bounty_notice',
-        'field_notice_board'
+        'weathered_route_tablet'
     ]
 };
 
-function pickEventByIds(eventIds = [], rng = Math.random) {
-    const pool = eventIds
-        .map(eventId => EventDatabase.find(event => event.id === eventId))
-        .filter(Boolean);
-
+function pickWeightedEvent(pool = [], rng = Math.random) {
     if (pool.length === 0) return null;
-    return pool[Math.floor(rng() * pool.length)];
+    const weightedPool = pool.map(event => {
+        const numericWeight = Number(event.weight);
+        const weight = Number.isFinite(numericWeight) ? Math.max(0, numericWeight) : 1;
+        return { event, weight };
+    }).filter(entry => entry.weight > 0);
+
+    if (weightedPool.length === 0) return pool[0] || null;
+    return weightedPick(weightedPool, rng)?.event || weightedPool[0].event;
 }
 
-export function getEventForZone(zoneType, rng = Math.random) {
+function filterExcludedEvents(pool = [], excludeIds = []) {
+    const excludeSet = new Set(excludeIds.filter(Boolean));
+    if (excludeSet.size === 0) return pool;
+    const filtered = pool.filter(event => !excludeSet.has(event.id));
+    return filtered.length > 0 ? filtered : pool;
+}
+
+function pickEventByIds(eventIds = [], rng = Math.random, zoneType = null, options = {}) {
+    let pool = eventIds
+        .map(eventId => EventDatabase.find(event => event.id === eventId))
+        .filter(event => isEventEligible(event, zoneType));
+
+    if (pool.length === 0) return null;
+    pool = filterExcludedEvents(pool, options.excludeIds || []);
+    return pickWeightedEvent(pool, rng);
+}
+
+function getResultEntries(eventObj = {}) {
+    const choices = Array.isArray(eventObj.choices) ? eventObj.choices : [];
+    return choices.flatMap(choice => {
+        const results = [];
+        if (Array.isArray(choice.results)) results.push(...choice.results);
+        if (Array.isArray(choice.successResults)) results.push(...choice.successResults);
+        if (Array.isArray(choice.failResults)) results.push(...choice.failResults);
+        if (Array.isArray(choice.randomResults)) {
+            for (const option of choice.randomResults) {
+                if (Array.isArray(option.results)) results.push(...option.results);
+            }
+        }
+        return results;
+    }).filter(Boolean);
+}
+
+function isQuestUnlockUseful(questId) {
+    if (!questId) return false;
+    try {
+        return questManager.getQuestState(questId)?.status === QuestStatus.LOCKED;
+    } catch (error) {
+        return true;
+    }
+}
+
+function isWorldInteractionUseful(interactionId) {
+    if (!interactionId) return false;
+    const interaction = getWorldInteraction(interactionId);
+    if (!interaction) return true;
+    if (interaction.oneTime && worldInteractionManager.hasResolved(interactionId)) {
+        return false;
+    }
+    return true;
+}
+
+function isEventEligible(eventObj = {}, zoneType = null) {
+    if (!eventObj) return false;
+
+    const zones = Array.isArray(eventObj.zones) ? eventObj.zones : [];
+    if (zoneType && zones.length > 0 && !zones.includes(zoneType)) {
+        return false;
+    }
+
+    const results = getResultEntries(eventObj);
+    if (results.length === 0) return true;
+
+    const gatedResults = results.filter(result => {
+        return result.type === ResultType.WORLD_INTERACTION || result.type === ResultType.UNLOCK_QUEST;
+    });
+
+    if (gatedResults.length === 0) return true;
+
+    const hasUsefulGatedResult = gatedResults.some(result => {
+        if (result.type === ResultType.WORLD_INTERACTION) {
+            return isWorldInteractionUseful(result.interactionId || result.value);
+        }
+        if (result.type === ResultType.UNLOCK_QUEST) {
+            return isQuestUnlockUseful(result.questId || result.value);
+        }
+        return true;
+    });
+
+    if (hasUsefulGatedResult) return true;
+
+    const hasNonGatedResult = results.some(result => {
+        return result.type !== ResultType.WORLD_INTERACTION && result.type !== ResultType.UNLOCK_QUEST;
+    });
+
+    return hasNonGatedResult;
+}
+
+export function getEventForZone(zoneType, rng = Math.random, options = {}) {
     if (!zoneType) zoneType = 'low';
 
     // Define preferred event type weights per zone (sums roughly to 1)
     const zoneWeights = {
         low: [
-            { type: EventType.BLESSING, weight: 0.6 },
-            { type: EventType.CURSE, weight: 0.1 },
-            { type: EventType.GAMBLE, weight: 0.05 },
-            { type: EventType.TRADE, weight: 0.1 },
-            { type: EventType.MYSTERY, weight: 0.05 },
-            { type: EventType.ENCOUNTER, weight: 0.1 }
+            { type: EventType.BLESSING, weight: 0.38 },
+            { type: EventType.CURSE, weight: 0.08 },
+            { type: EventType.GAMBLE, weight: 0.08 },
+            { type: EventType.TRADE, weight: 0.18 },
+            { type: EventType.MYSTERY, weight: 0.12 },
+            { type: EventType.ENCOUNTER, weight: 0.16 }
         ],
         medium: [
-            { type: EventType.BLESSING, weight: 0.35 },
-            { type: EventType.CURSE, weight: 0.15 },
-            { type: EventType.GAMBLE, weight: 0.1 },
-            { type: EventType.TRADE, weight: 0.15 },
-            { type: EventType.MYSTERY, weight: 0.15 },
-            { type: EventType.ENCOUNTER, weight: 0.1 }
+            { type: EventType.BLESSING, weight: 0.25 },
+            { type: EventType.CURSE, weight: 0.13 },
+            { type: EventType.GAMBLE, weight: 0.12 },
+            { type: EventType.TRADE, weight: 0.18 },
+            { type: EventType.MYSTERY, weight: 0.18 },
+            { type: EventType.ENCOUNTER, weight: 0.14 }
         ],
         high: [
             { type: EventType.BLESSING, weight: 0.25 },
@@ -71,6 +163,14 @@ export function getEventForZone(zoneType, rng = Math.random) {
             { type: EventType.TRADE, weight: 0.1 },
             { type: EventType.MYSTERY, weight: 0.15 },
             { type: EventType.ENCOUNTER, weight: 0.15 }
+        ],
+        death: [
+            { type: EventType.BLESSING, weight: 0.12 },
+            { type: EventType.CURSE, weight: 0.24 },
+            { type: EventType.GAMBLE, weight: 0.16 },
+            { type: EventType.TRADE, weight: 0.08 },
+            { type: EventType.MYSTERY, weight: 0.22 },
+            { type: EventType.ENCOUNTER, weight: 0.18 }
         ],
         boss: [
             { type: EventType.BLESSING, weight: 0.35 },
@@ -85,19 +185,24 @@ export function getEventForZone(zoneType, rng = Math.random) {
     const targetType = chosen ? chosen.type : EventType.MYSTERY;
 
     // Find events of that type
-    const pool = EventDatabase.filter(e => e.type === targetType);
+    let pool = EventDatabase.filter(e => e.type === targetType && isEventEligible(e, zoneType));
+    pool = filterExcludedEvents(pool, options.excludeIds || []);
     if (pool.length === 0) {
         // fallback: any event
-        if (EventDatabase.length === 0) return null;
-        return EventDatabase[Math.floor(rng() * EventDatabase.length)];
+        let fallbackPool = EventDatabase.filter(event => isEventEligible(event, zoneType));
+        fallbackPool = filterExcludedEvents(fallbackPool, options.excludeIds || []);
+        if (fallbackPool.length === 0) return null;
+        return pickWeightedEvent(fallbackPool, rng);
     }
 
-    return pool[Math.floor(rng() * pool.length)];
+    return pickWeightedEvent(pool, rng);
 }
 
-export function getMapQuestionEventForZone(zoneType = 'low', rng = Math.random) {
+export function getMapQuestionEventForZone(zoneType = 'low', rng = Math.random, options = {}) {
     const eventIds = MAP_QUESTION_EVENT_IDS_BY_ZONE[zoneType] || MAP_QUESTION_EVENT_IDS_BY_ZONE.low;
-    return pickEventByIds(eventIds, rng) || getEventForZone(zoneType, rng);
+    const discoveryEvent = pickEventByIds(eventIds, rng, zoneType, options);
+    if (discoveryEvent && rng() < 0.55) return discoveryEvent;
+    return getEventForZone(zoneType, rng, options) || discoveryEvent;
 }
 
 function getWeightedRandomResults(randomResults, rng = Math.random) {
@@ -116,6 +221,12 @@ function generateEventItem(itemType) {
     switch (itemType) {
         case 'forge_material': {
             return new Item(`enhance_stone_${timestamp}`, '強化石', ItemType.MATERIAL, ItemRarity.RARE, '🪨', '可用於強化或任務的材料。', 150);
+        }
+        case 'material_medium': {
+            return new Item(`event_material_${timestamp}`, '可用金屬碎片', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⛏️', '野外撿到的金屬碎片，尺寸尷尬，但鐵匠會說它很有潛力。', 45);
+        }
+        case 'material_low': {
+            return new Item(`event_scrap_${timestamp}`, '雜色材料包', ItemType.MATERIAL, ItemRarity.COMMON, '📦', '一小包可用材料，品質普通，但總比空手回家強。', 25);
         }
         case 'random':
         default: {
@@ -267,13 +378,22 @@ export class EventManagerClass {
         this.eventHistory = [];
     }
 
+    getRecentEventIds(limit = 2) {
+        return this.eventHistory
+            .slice(-limit)
+            .map(entry => entry?.event?.id)
+            .filter(Boolean);
+    }
+
     /**
      * 觸發隨機事件
      * @param {string} zone - 當前區域
      * @returns {Object|null} 事件物件
      */
     triggerRandomEvent(zone = 'low') {
-        const event = getEventForZone(zone);
+        const event = getEventForZone(zone, Math.random, {
+            excludeIds: this.getRecentEventIds(2)
+        });
         if (!event) return null;
 
         this.currentEvent = { ...event, zone };
@@ -281,7 +401,9 @@ export class EventManagerClass {
     }
 
     triggerMapQuestionEvent(zone = 'low') {
-        const event = getMapQuestionEventForZone(zone);
+        const event = getMapQuestionEventForZone(zone, Math.random, {
+            excludeIds: this.getRecentEventIds(2)
+        });
         if (!event) return null;
 
         this.currentEvent = { ...event, zone };

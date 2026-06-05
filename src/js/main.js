@@ -2,11 +2,11 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js';
-import ShopScene from './scenes/ShopScene.js';
+import LobbyScene from './scenes/LobbyScene.js?v=town-scenes-20260605b';
+import ShopScene from './scenes/ShopScene.js?v=town-scenes-20260605b';
 import AdventureScene from './scenes/AdventureScene.js';
 import CasinoScene from './scenes/CasinoScene.js';
-import ForgeScene from './scenes/ForgeScene.js';
+import ForgeScene from './scenes/ForgeScene.js?v=equipment-atlas-20260605b';
 import QuestScene from './scenes/QuestScene.js';
 import EncyclopediaScene from './scenes/EncyclopediaScene.js';
 import { DungeonScene } from './scenes/DungeonScene.js';
@@ -16,6 +16,8 @@ import GameManager from './managers/GameManager.js';
 import './utils/RhythmBarSystem.js';
 import './utils/ItemTooltip.js';
 import './components/ItemDetailModal.js';
+
+const APP_ASSET_VERSION = 'equipment-atlas-20260605b';
 
 class App {
     constructor() {
@@ -115,7 +117,7 @@ class App {
                 htmlContent = this.htmlCache[viewName];
             } else {
                 // Fetch from file
-                const response = await fetch(`src/views/${viewName}.html`);
+                const response = await fetch(`src/views/${viewName}.html?v=${APP_ASSET_VERSION}`);
                 if (!response.ok) {
                     throw new Error(`Failed to load scene: ${sceneName} (${response.status})`);
                 }
@@ -182,7 +184,15 @@ class App {
     }
 }
 
-// Start the app when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Start the app when DOM is ready. Module scripts can finish after DOMContentLoaded
+// when cache-busted imports are slow, so bootstrap immediately if the DOM is ready.
+function bootstrapApp() {
+    if (window.gameApp) return;
     window.gameApp = new App();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bootstrapApp, { once: true });
+} else {
+    bootstrapApp();
+}

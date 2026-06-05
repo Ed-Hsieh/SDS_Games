@@ -89,6 +89,50 @@ const ZONE_COLORS = {
     death: { hex: '#5b332e', fill: 'rgba(83, 45, 39, 0.54)', stroke: 'rgba(207, 98, 79, 0.1)', texture: 'rgba(228, 120, 95, 0.15)' }
 };
 
+const LANDMARK_REGION_STYLES = {
+    safe_camp: {
+        fill: 'rgba(214, 174, 91, 0.085)',
+        edge: 'rgba(232, 190, 99, 0.24)',
+        texture: 'rgba(232, 190, 99, 0.13)'
+    },
+    rot_mist: {
+        fill: 'rgba(85, 162, 121, 0.09)',
+        edge: 'rgba(120, 210, 158, 0.22)',
+        texture: 'rgba(168, 226, 190, 0.11)'
+    },
+    thick_fog: {
+        fill: 'rgba(190, 182, 142, 0.085)',
+        edge: 'rgba(231, 216, 159, 0.22)',
+        texture: 'rgba(245, 231, 178, 0.1)'
+    },
+    old_seal: {
+        fill: 'rgba(151, 128, 214, 0.085)',
+        edge: 'rgba(184, 164, 240, 0.22)',
+        texture: 'rgba(212, 194, 255, 0.1)'
+    },
+    lair_pressure: {
+        fill: 'rgba(190, 73, 73, 0.09)',
+        edge: 'rgba(244, 114, 114, 0.24)',
+        texture: 'rgba(248, 145, 145, 0.1)'
+    },
+    open_trail: {
+        fill: 'rgba(123, 155, 112, 0.075)',
+        edge: 'rgba(176, 207, 142, 0.2)',
+        texture: 'rgba(206, 232, 170, 0.09)'
+    },
+    default: {
+        fill: 'rgba(216, 181, 95, 0.075)',
+        edge: 'rgba(216, 181, 95, 0.2)',
+        texture: 'rgba(245, 221, 160, 0.09)'
+    }
+};
+
+function getLandmarkRegionStyle(landmark = {}) {
+    const effectIds = Array.isArray(landmark.effectIds) ? landmark.effectIds : [];
+    const effectId = effectIds.find(id => LANDMARK_REGION_STYLES[id]);
+    return LANDMARK_REGION_STYLES[effectId] || LANDMARK_REGION_STYLES.default;
+}
+
 export default class AdventureScene {
     constructor(container, app) {
         this.container = container;
@@ -3351,6 +3395,78 @@ AdventureScene.prototype.buildStaticLayer = function() {
                     octx.strokeRect(x + 4, y + 4, gridSize - 8, gridSize - 8);
                 }
             }
+        }
+
+        const landmarkSites = Array.isArray(map.landmarks) ? map.landmarks : [];
+        const getNearestLandmarkDistance = (site) => {
+            let nearest = Infinity;
+            for (const other of landmarkSites) {
+                if (!other || other === site || other.landmarkId === site?.landmarkId) continue;
+                const distance = Math.hypot((other.x || 0) - (site.x || 0), (other.y || 0) - (site.y || 0));
+                if (distance > 0 && distance < nearest) nearest = distance;
+            }
+            return nearest;
+        };
+
+        const drawLandmarkRegion = (site) => {
+            const landmark = getLandmark(site?.landmarkId);
+            if (!landmark) return;
+
+            const baseRadius = Number(landmark.regionRadius || landmark.encounterRadius || landmark.hintRadius || 2.4);
+            const nearestDistance = getNearestLandmarkDistance(site);
+            const neighborLimit = Number.isFinite(nearestDistance) ? nearestDistance * 0.42 : 3.2;
+            const radiusCells = Math.max(1.15, Math.min(3.4, baseRadius, neighborLimit));
+            const cx = (site.x + 0.5) * gridSize;
+            const cy = (site.y + 0.5) * gridSize;
+            const rx = radiusCells * gridSize * 0.92;
+            const ry = radiusCells * gridSize * 0.62;
+            const style = getLandmarkRegionStyle(landmark);
+            const zone = map.mapData?.[site.y]?.[site.x]?.zone;
+            const zoneStyle = ZONE_COLORS[zone] || ZONE_COLORS.low;
+
+            octx.save();
+            octx.translate(cx, cy);
+            octx.rotate((((site.x + 5) * 17 + (site.y + 3) * 11) % 14 - 7) * Math.PI / 180);
+
+            const gradient = octx.createRadialGradient(0, 0, gridSize * 0.3, 0, 0, Math.max(rx, ry));
+            gradient.addColorStop(0, style.fill);
+            gradient.addColorStop(0.58, style.fill);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            octx.fillStyle = gradient;
+            octx.beginPath();
+            octx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+            octx.fill();
+
+            octx.strokeStyle = style.edge;
+            octx.lineWidth = 1.25;
+            octx.setLineDash([gridSize * 0.12, gridSize * 0.12]);
+            octx.beginPath();
+            octx.ellipse(0, 0, rx * 0.88, ry * 0.82, 0, 0, Math.PI * 2);
+            octx.stroke();
+            octx.setLineDash([]);
+
+            octx.strokeStyle = style.texture || zoneStyle.texture || 'rgba(255,255,255,0.1)';
+            octx.lineWidth = 1.4;
+            for (let i = -1; i <= 1; i += 1) {
+                const offset = i * ry * 0.24;
+                octx.beginPath();
+                octx.moveTo(-rx * 0.58, offset);
+                octx.bezierCurveTo(
+                    -rx * 0.22,
+                    offset - ry * 0.18,
+                    rx * 0.12,
+                    offset + ry * 0.16,
+                    rx * 0.58,
+                    offset - ry * 0.04
+                );
+                octx.stroke();
+            }
+            octx.restore();
+        };
+
+        for (const site of map.landmarks || []) {
+            drawLandmarkRegion(site);
         }
 
         // Save to instance

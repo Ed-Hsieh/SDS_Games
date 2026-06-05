@@ -10,7 +10,7 @@ import {
     getRecipesByRarity,
     canCraft,
     getMissingMaterials
-} from '../data/Recipes.js';
+} from '../data/Recipes.js?v=equipment-atlas-20260605b';
 
 export {
     RecipeDatabase,

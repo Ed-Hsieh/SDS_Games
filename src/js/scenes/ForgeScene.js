@@ -6,7 +6,7 @@ import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
 import { affixManager } from '../managers/AffixManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
-import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js';
+import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js?v=equipment-atlas-20260605b';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
 import { globalGoalTracker } from '../utils/GlobalGoalTracker.js';
@@ -15,6 +15,7 @@ import {
     buildItemDisplayModel,
     buildItemStatChipsHtml,
     escapeHtml,
+    getItemVisualHtml,
     getItemRarityText
 } from '../utils/ItemDisplay.js';
 
@@ -200,7 +201,7 @@ export default class ForgeScene {
             return `
                 <div class="recipe-card rarity-frame rarity-${rarityClass} ${rarityClass} ${stateClass} ${selectedClass}"
                      data-recipe-id="${recipe.id}">
-                    <div class="recipe-icon">${escapeHtml(model.icon)}</div>
+                    <div class="recipe-icon">${this.renderItemVisual(model)}</div>
                     <div class="recipe-info">
                         <div class="recipe-card-head">
                             <div class="recipe-name">${escapeHtml(model.name)}</div>
@@ -268,11 +269,17 @@ export default class ForgeScene {
             ...result,
             name: result.name || recipe?.name,
             icon: result.icon || recipe?.icon,
+            image: result.image || recipe?.image || '',
+            atlas: result.atlas || recipe?.atlas || null,
             type: result.type || recipe?.type,
             rarity: result.rarity || recipe?.rarity || 'common',
             description: result.description || result.desc || '',
             desc: result.desc || result.description || ''
         };
+    }
+
+    renderItemVisual(item, fallbackIcon = '◆') {
+        return getItemVisualHtml(item, fallbackIcon);
     }
 
     getRecipeTooltipOptions(recipe, extraOptions = {}) {
@@ -375,7 +382,7 @@ export default class ForgeScene {
         this.dom.craftResultPreview.innerHTML = `
             <div class="preview-item forge-preview-item rarity-frame rarity-${escapeHtml(rarity)} ${escapeHtml(rarity)}">
                 <div class="forge-preview-head">
-                    <div class="forge-preview-icon">${escapeHtml(model.icon)}</div>
+                    <div class="forge-preview-icon">${this.renderItemVisual(model)}</div>
                     <div class="forge-preview-body">
                         <div class="forge-preview-heading">
                             <div class="item-name">${escapeHtml(model.name)}</div>
@@ -766,7 +773,7 @@ export default class ForgeScene {
         if (this.dom.selectedAffixEquipment) {
             this.dom.selectedAffixEquipment.innerHTML = `
                 <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
-                    <div class="item-icon">${item.icon || '⚔️'}</div>
+                    <div class="item-icon">${this.renderItemVisual(item, '⚔️')}</div>
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
                         <div class="item-rarity">${this.getRarityText(item.rarity)}</div>
@@ -1127,7 +1134,7 @@ export default class ForgeScene {
         if (this.dom.selectedEnhanceEquipment) {
             this.dom.selectedEnhanceEquipment.innerHTML = `
                 <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
-                    <div class="item-icon">${item.icon || '⚔️'}</div>
+                    <div class="item-icon">${this.renderItemVisual(item, '⚔️')}</div>
                     <div class="item-info">
                         <div class="item-name">${enhancementManager.getDisplayName(item)}</div>
                         <div class="item-rarity">${this.getRarityText(item.rarity)}</div>

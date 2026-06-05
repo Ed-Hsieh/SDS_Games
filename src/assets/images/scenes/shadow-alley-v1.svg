@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="shadow alley">
+  <defs>
+    <linearGradient id="alley" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b2a35"/>
+      <stop offset="0.55" stop-color="#111820"/>
+      <stop offset="1" stop-color="#08090b"/>
+    </linearGradient>
+    <radialGradient id="lantern" cx="0.7" cy="0.5" r="0.35">
+      <stop offset="0" stop-color="#e9bd65" stop-opacity="0.48"/>
+      <stop offset="0.36" stop-color="#a76634" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="wet" width="110" height="70" patternUnits="userSpaceOnUse">
+      <path d="M0 48 C28 38 48 58 82 44 C96 38 104 38 110 40" stroke="#c6d8d8" stroke-opacity="0.08" stroke-width="2" fill="none"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#alley)"/>
+  <path d="M0 0h420l-150 900H0Z" fill="#080b0d" opacity="0.88"/>
+  <path d="M1600 0h-475l185 900h290Z" fill="#07090b" opacity="0.9"/>
+  <path d="M430 0h210L530 900H250Z" fill="#182229"/>
+  <path d="M1038 0h212l120 900h-296Z" fill="#151d24"/>
+  <rect x="1260" y="342" width="120" height="280" rx="10" fill="#0e1215"/>
+  <rect x="1288" y="375" width="64" height="118" rx="8" fill="#e9bd65" opacity="0.26"/>
+  <rect x="260" y="430" width="168" height="280" rx="16" fill="#0d1114"/>
+  <rect x="300" y="474" width="86" height="108" rx="8" fill="#76b8d8" opacity="0.08"/>
+  <g opacity="0.9">
+    <rect x="990" y="360" width="88" height="300" rx="8" fill="#0b0f12"/>
+    <circle cx="1034" cy="502" r="8" fill="#e9bd65" opacity="0.72"/>
+    <path d="M960 358h150l-40-78h-70Z" fill="#2b2017"/>
+  </g>
+  <path d="M430 900 L690 420 H930 L1175 900Z" fill="#141415"/>
+  <path d="M430 900 L690 420 H930 L1175 900Z" fill="url(#wet)" opacity="0.95"/>
+  <g opacity="0.88">
+    <path d="M1120 512 C1190 496 1236 538 1265 610 C1198 610 1148 584 1112 548Z" fill="#0b0e10"/>
+    <path d="M1150 612 h94 l24 142 h-138Z" fill="#101318"/>
+    <circle cx="1192" cy="485" r="28" fill="#1e2730"/>
+  </g>
+  <path d="M0 0h1600v900H0Z" fill="url(#lantern)"/>
+  <path d="M0 0h1600v900H0Z" fill="#020306" opacity="0.24"/>
+</svg>

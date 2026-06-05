@@ -78,6 +78,7 @@ class QuestManager {
         });
 
         this.notify('quest_accepted', { quest, questId, storyOutcome });
+        this.syncCollectObjectives(GameManager.state);
         
         return { 
             success: true, 

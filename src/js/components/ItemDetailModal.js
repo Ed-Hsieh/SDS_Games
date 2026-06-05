@@ -6,7 +6,8 @@ import {
     escapeHtml,
     formatItemStatEntryValue,
     getItemDisplayDescription,
-    getItemTypeText
+    getItemTypeText,
+    getItemVisualHtml
 } from '../utils/ItemDisplay.js';
 import { buildItemSetInfoHtml } from '../utils/SetDisplay.js';
 
@@ -95,16 +96,7 @@ class ItemDetailModal {
 
     open(item = {}, opts = {}) {
         // basic content
-        this.iconEl.innerHTML = '';
-        if (item.image) {
-            const image = document.createElement('img');
-            image.className = 'item-detail-image';
-            image.src = item.image;
-            image.alt = item.name || opts.title || '物品圖片';
-            this.iconEl.appendChild(image);
-        } else {
-            this.iconEl.textContent = item.icon || '📦';
-        }
+        this.iconEl.innerHTML = getItemVisualHtml(item, '📦', 'item-detail-image');
         // name with rarity color class
         const rarity = (item.rarity || '').toLowerCase();
         this.nameEl.className = 'item-detail-name';

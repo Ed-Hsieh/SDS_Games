@@ -161,11 +161,51 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'forge-commission-becomes-lure-crafting',
+        id: 'forge-neelu-blueprint-feeds-thorn-craft',
         event: E.QUEST_COMPLETED,
         match: { questId: 'commission_forge_001' },
         actions: [
+            progress('thorn_witch', 'color_trade_bead')
+        ]
+    },
+    {
+        id: 'forge-mithril-route-becomes-lure-crafting',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'commission_forge_002' },
+        actions: [
             progress('elder_dragon', 'craft_dragon_lure')
+        ]
+    },
+    {
+        id: 'casino-false-odds-reveals-ash-route',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'commission_casino_001' },
+        actions: [
+            progress('ash_baron', 'recover_ledger')
+        ]
+    },
+    {
+        id: 'lamplighter-corrects-drowned-bell-route',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'commission_coast_lamplighter' },
+        actions: [
+            progress('drowned_oracle', 'solve_water_order')
+        ]
+    },
+    {
+        id: 'broken-standard-breaks-vanguard-oath',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'commission_broken_standard' },
+        actions: [
+            progress('demon_lord_asariel', 'break_vanguard_oath')
+        ]
+    },
+    {
+        id: 'last-index-stabilizes-crown-mark',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'commission_scholar_last_index' },
+        actions: [
+            progress('demon_lord_asariel', 'stabilize_crown_mark')
         ]
     },
     {
@@ -177,6 +217,69 @@ export const StoryProgressRules = [
             clue('carved_stone_shard'),
             clue('villager_herb_request'),
             progress('lich', 'collect_rune_shards')
+        ]
+    },
+    {
+        id: 'main-008-points-to-drowned-coast',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_008' },
+        actions: [
+            clue('wet_treasure_fragment'),
+            progress('drowned_oracle', 'find_first_bell')
+        ]
+    },
+    {
+        id: 'main-009-exposes-opened-tomb',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_009' },
+        actions: [
+            clue('carved_stone_shard'),
+            progress('lich', 'collect_rune_shards')
+        ]
+    },
+    {
+        id: 'main-010-reveals-ash-ledger',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_010' },
+        actions: [
+            clue('ash_ledger_page'),
+            progress('ash_baron', 'recover_ledger')
+        ]
+    },
+    {
+        id: 'main-011-points-to-northern-heat',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_011' },
+        actions: [
+            clue('dragon_heat_trace'),
+            progress('elder_dragon', 'collect_heat_traces')
+        ]
+    },
+    {
+        id: 'main-012-opens-charred-obelisk',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_012' },
+        actions: [
+            progress('elder_dragon', 'survive_black_flame')
+        ]
+    },
+    {
+        id: 'main-013-turns-dragon-nest-to-abyss',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_013' },
+        actions: [
+            clue('dragon_nest_resonance'),
+            progress('demon_lord_asariel', 'read_nest_resonance')
+        ]
+    },
+    {
+        id: 'main-014-readies-asariel-breach',
+        event: E.QUEST_COMPLETED,
+        match: { questId: 'main_014' },
+        actions: [
+            clue('cracked_crown_mark'),
+            progress('demon_lord_asariel', 'stabilize_crown_mark'),
+            finalReady('demon_lord_asariel')
         ]
     },
 
@@ -324,6 +427,87 @@ export const StoryProgressRules = [
             progress('elder_dragon', 'collect_heat_traces')
         ]
     },
+    {
+        id: 'thorn-glasshouse-builds-witch-thread',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'thorn_glasshouse_ruin' },
+        actions: [
+            clue('thorn_trade_bead'),
+            progress('thorn_witch', 'deliver_herbs')
+        ]
+    },
+    {
+        id: 'drowned-coast-builds-oracle-thread',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'drowned_bell_coast' },
+        actions: [
+            clue('drowned_bell_rubbing'),
+            progress('drowned_oracle', 'find_first_bell')
+        ]
+    },
+    {
+        id: 'sunken-altar-solves-oracle-order',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'sunken_altar_reef' },
+        actions: [
+            clue('oracle_shell'),
+            progress('drowned_oracle', 'solve_water_order')
+        ]
+    },
+    {
+        id: 'opened-tomb-builds-lich-thread',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'opened_ancient_tomb' },
+        actions: [
+            clue('carved_stone_shard'),
+            progress('lich', 'collect_rune_shards')
+        ]
+    },
+    {
+        id: 'obsidian-keep-opens-baron-contract',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'obsidian_keep_gate' },
+        actions: [
+            clue('sealed_wax_contract'),
+            progress('ash_baron', 'accept_contract')
+        ]
+    },
+    {
+        id: 'black-iron-storehouse-builds-ledger',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'black_iron_storehouse' },
+        actions: [
+            clue('ash_ledger_page'),
+            progress('ash_baron', 'recover_ledger')
+        ]
+    },
+    {
+        id: 'northern-drake-watch-builds-dragon-thread',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'northern_drake_watch' },
+        actions: [
+            clue('dragon_heat_trace'),
+            progress('elder_dragon', 'collect_heat_traces')
+        ]
+    },
+    {
+        id: 'dragon-heat-crag-builds-nest-resonance',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'dragon_heat_crag' },
+        actions: [
+            clue('dragon_heat_trace'),
+            progress('elder_dragon', 'survive_black_flame')
+        ]
+    },
+    {
+        id: 'abyssal-seal-break-builds-asariel-thread',
+        event: E.LANDMARK_VISITED,
+        match: { landmarkId: 'abyssal_seal_break' },
+        actions: [
+            clue('cracked_crown_mark'),
+            progress('demon_lord_asariel', 'stabilize_crown_mark')
+        ]
+    },
 
     {
         id: 'wolf-kills-complete-forest-track',
@@ -362,6 +546,27 @@ export const StoryProgressRules = [
         actions: [
             clue('dragon_heat_trace'),
             progress('elder_dragon', 'collect_heat_traces')
+        ]
+    },
+    {
+        id: 'demon-vanguard-feeds-asariel-oath',
+        event: E.MONSTER_KILL,
+        match: { monsterId: 'demon_soldier' },
+        counter: { key: 'kill.demon_soldier', required: 4 },
+        actions: [
+            clue('abyss_vanguard_oath'),
+            progress('demon_lord_asariel', 'break_vanguard_oath')
+        ]
+    },
+    {
+        id: 'demon-generals-ready-asariel',
+        event: E.MONSTER_KILL,
+        match: { monsterId: 'demon_general' },
+        counter: { key: 'kill.demon_general', required: 2 },
+        actions: [
+            clue('cracked_crown_mark'),
+            progress('demon_lord_asariel', 'stabilize_crown_mark'),
+            finalReady('demon_lord_asariel')
         ]
     },
     {
@@ -443,7 +648,9 @@ export const StoryProgressRules = [
         match: { dungeonId: 'hell' },
         actions: [
             progress('elder_dragon', 'survive_black_flame'),
-            progress('ash_baron', 'trade_coal_token')
+            progress('ash_baron', 'trade_coal_token'),
+            clue('abyss_vanguard_oath'),
+            progress('demon_lord_asariel', 'break_vanguard_oath')
         ]
     },
     {

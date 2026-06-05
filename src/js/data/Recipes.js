@@ -19,12 +19,21 @@
 import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
 
+const A = (row, col) => ({ row, col });
+
+const EQUIPMENT_ATLAS = Object.freeze({
+    ironSword: A(3, 2),
+    mithrilSword: A(3, 4),
+    leatherArmor: A(4, 1)
+});
+
 export const RecipeDatabase = {
     // ==================== 基礎武器 ====================
     iron_sword: {
         id: 'iron_sword',
         name: '鐵劍',
         icon: '⚔️',
+        atlas: EQUIPMENT_ATLAS.ironSword,
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.COMMON,
         materials: [
@@ -36,6 +45,7 @@ export const RecipeDatabase = {
             id: 'crafted_iron_sword',
             name: '鐵劍',
             icon: '⚔️',
+            atlas: EQUIPMENT_ATLAS.ironSword,
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.COMMON,
             stats: {
@@ -142,6 +152,7 @@ export const RecipeDatabase = {
         id: 'mithril_sword',
         name: '秘銀長劍',
         icon: '⚔️',
+        atlas: EQUIPMENT_ATLAS.mithrilSword,
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
         materials: [
@@ -154,6 +165,7 @@ export const RecipeDatabase = {
             id: 'crafted_mithril_sword',
             name: '秘銀長劍',
             icon: '⚔️',
+            atlas: EQUIPMENT_ATLAS.mithrilSword,
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.RARE,
             stats: {
@@ -294,6 +306,7 @@ export const RecipeDatabase = {
         id: 'leather_armor',
         name: '皮甲',
         icon: '🥋',
+        atlas: EQUIPMENT_ATLAS.leatherArmor,
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.COMMON,
         materials: [
@@ -305,6 +318,7 @@ export const RecipeDatabase = {
             id: 'crafted_leather_armor',
             name: '皮甲',
             icon: '🥋',
+            atlas: EQUIPMENT_ATLAS.leatherArmor,
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.COMMON,
             stats: {

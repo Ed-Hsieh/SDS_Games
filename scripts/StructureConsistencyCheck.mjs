@@ -113,9 +113,10 @@ for (const file of [
 const indexHtml = path.join(root, 'index.html');
 if (fs.existsSync(indexHtml)) {
     const cssLinks = [...read(indexHtml).matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match => match[1]);
-    if (!cssLinks.includes('src/css/ui-foundation.css')) {
+    const normalizedCssLinks = cssLinks.map(link => link.split('?')[0]);
+    if (!normalizedCssLinks.includes('src/css/ui-foundation.css')) {
         push('ui-foundation', 'index.html should load src/css/ui-foundation.css');
-    } else if (cssLinks[cssLinks.length - 1] !== 'src/css/ui-foundation.css') {
+    } else if (normalizedCssLinks[normalizedCssLinks.length - 1] !== 'src/css/ui-foundation.css') {
         push('ui-foundation', 'src/css/ui-foundation.css should be the final stylesheet so layout fixes win');
     }
 }

@@ -9,50 +9,36 @@
                     <div class="town-road town-road-main"></div>
                     <div class="town-road town-road-side"></div>
 
-                    <button class="world-hotspot npc-hotspot hotspot-elder" data-npc-id="village_elder" type="button">
-                        <span class="hotspot-icon">🏘️</span>
-                        <span class="hotspot-label">村長</span>
-                    </button>
-                    <button class="world-hotspot hotspot-board" data-interaction-id="crossroads_notice_board" type="button">
-                        <span class="hotspot-icon">📌</span>
-                        <span class="hotspot-label">公告欄</span>
-                    </button>
-                    <button class="world-hotspot npc-hotspot hotspot-herbalist" data-npc-id="herbalist" type="button">
-                        <span class="hotspot-icon">🌿</span>
-                        <span class="hotspot-label">藥師</span>
-                    </button>
-                    <button class="world-hotspot npc-hotspot hotspot-beggar" data-npc-id="street_beggar" type="button">
-                        <span class="hotspot-icon">🧥</span>
-                        <span class="hotspot-label">流浪者</span>
-                    </button>
-                    <button class="world-hotspot npc-hotspot hotspot-blacksmith-npc" data-npc-id="blacksmith" type="button">
-                        <span class="hotspot-icon">⚒️</span>
-                        <span class="hotspot-label">鍛造師</span>
-                    </button>
-                    <button class="world-route hotspot-forge" data-route="forge" type="button" aria-label="開啟鍛造">
-                        <span class="hotspot-icon">🔨</span>
-                        <span class="hotspot-label">鍛造</span>
-                    </button>
-                    <button class="world-hotspot npc-hotspot hotspot-scholar" data-npc-id="town_scholar" type="button">
-                        <span class="hotspot-icon">📚</span>
-                        <span class="hotspot-label">書記</span>
-                    </button>
-                    <button class="world-route hotspot-shop" data-route="shop" type="button">
-                        <span class="hotspot-icon">🛒</span>
-                        <span class="hotspot-label">市集</span>
-                    </button>
-                    <button class="world-route hotspot-gamble" data-route="casino" type="button">
-                        <span class="hotspot-icon">🎲</span>
-                        <span class="hotspot-label">賭場</span>
-                    </button>
-                    <button class="world-route hotspot-tower" data-route="tower" type="button">
-                        <span class="hotspot-icon">🗼</span>
-                        <span class="hotspot-label">無盡塔</span>
-                    </button>
-                    <button class="world-route hotspot-gate" data-route="adventure" type="button">
-                        <span class="hotspot-icon">⚔️</span>
-                        <span class="hotspot-label">城外道路</span>
-                    </button>
+                    <div class="town-place-map" id="town-place-map" aria-label="城鎮場所"></div>
+                    <section class="town-place-view" id="town-place-view" aria-label="場所內部" hidden>
+                        <header class="town-place-view-head">
+                            <button class="town-place-back" data-town-back type="button">← 城鎮地圖</button>
+                            <div class="town-place-view-title">
+                                <span id="town-place-icon">🏘️</span>
+                                <div>
+                                    <small id="town-place-tag">場所</small>
+                                    <strong id="town-place-name">城鎮十字路</strong>
+                                </div>
+                            </div>
+                            <p id="town-place-description"></p>
+                        </header>
+                        <div class="town-place-view-body">
+                            <section class="town-place-section town-place-resident-section" aria-label="你看見的人">
+                                <div class="town-place-section-head">
+                                    <span>你看見</span>
+                                    <small id="town-place-resident-count">0</small>
+                                </div>
+                                <div class="town-place-list" id="town-place-residents"></div>
+                            </section>
+                            <section class="town-place-section town-place-action-section" aria-label="可以靠近的地方">
+                                <div class="town-place-section-head">
+                                    <span>可以靠近</span>
+                                    <small id="town-place-action-count">0</small>
+                                </div>
+                                <div class="town-place-list" id="town-place-actions"></div>
+                            </section>
+                        </div>
+                    </section>
                 </div>
             </section>
 
@@ -123,6 +109,7 @@
                             <strong id="town-dialogue-name">村長</strong>
                         </div>
                     </header>
+                    <div class="town-dialogue-topics" id="town-dialogue-topics" hidden></div>
                     <div class="town-dialogue-lines" id="town-dialogue-lines"></div>
                     <div class="town-dialogue-effects" id="town-dialogue-effects"></div>
                     <div class="town-dialogue-actions">
@@ -133,7 +120,7 @@
         </section>
     </main>
 
-    <div class="lobby-prep-modal lobby-satchel-drawer" id="lobby-prep-modal" aria-hidden="true">
+    <div class="lobby-prep-modal lobby-satchel-drawer" id="lobby-prep-modal" aria-hidden="true" hidden>
         <div class="lobby-prep-dialog" role="dialog" aria-modal="true" aria-labelledby="lobby-prep-title">
             <header class="lobby-prep-head">
                 <div>

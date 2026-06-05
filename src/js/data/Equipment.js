@@ -3,6 +3,13 @@
 import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
 import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
 
+const A = (row, col) => ({ row, col });
+
+const EQUIPMENT_ATLAS = Object.freeze({
+    oldSword: A(3, 1),
+    oldArmor: A(4, 1)
+});
+
 /**
  * 裝備資料庫
  */
@@ -12,6 +19,7 @@ export const EquipmentDatabase = {
         id: 'old_sword',
         name: '舊劍',
         icon: '🗡️',
+        atlas: EQUIPMENT_ATLAS.oldSword,
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.COMMON,
         level: 1,
@@ -31,6 +39,7 @@ export const EquipmentDatabase = {
         id: 'old_armor',
         name: '舊護甲',
         icon: '🥋',
+        atlas: EQUIPMENT_ATLAS.oldArmor,
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.COMMON,
         level: 4,

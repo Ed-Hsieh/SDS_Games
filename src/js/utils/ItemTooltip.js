@@ -8,7 +8,8 @@ import {
     escapeHtml,
     getItemDisplayDescription,
     getItemRarityText,
-    getItemTypeText
+    getItemTypeText,
+    getItemVisualHtml
 } from './ItemDisplay.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 
@@ -29,10 +30,7 @@ function ensureTooltip() {
 }
 
 function getIconHtml(item) {
-    if (item?.image) {
-        return `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`;
-    }
-    return escapeHtml(item?.icon || '◆');
+    return getItemVisualHtml(item, '◆');
 }
 
 function getFooterRows(item, options = {}) {
