@@ -13,6 +13,7 @@ import { dialogueManager } from '../managers/DialogueManager.js';
 import { getAllPassiveCombatEffects } from '../data/PassiveCombatEffects.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
 import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
+import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
 
 export default class LobbyScene {
     constructor(container, app) {
@@ -491,7 +492,7 @@ export default class LobbyScene {
             topics
         };
 
-        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.textContent = npc.avatar || '💬';
+        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.innerHTML = this.renderTownDialogueAvatar(npc);
         if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
         if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
         if (this.dom.townDialogueLines) {
@@ -561,6 +562,7 @@ export default class LobbyScene {
             lines: visibleLines.length > 0 ? visibleLines : [{
                 speaker: npc.name || '居民',
                 avatar: npc.avatar || '💬',
+                portrait: npc.portrait || npc.image || '',
                 text: '他暫時沒有新的話要說。'
             }],
             effectMessages,
@@ -579,7 +581,7 @@ export default class LobbyScene {
             effectsLogged: false
         };
 
-        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.textContent = npc.avatar || '💬';
+        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.innerHTML = this.renderTownDialogueAvatar(npc);
         if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
         if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
         if (this.dom.townDialogueTopics) {
@@ -680,7 +682,7 @@ export default class LobbyScene {
 
         const icon = document.createElement('div');
         icon.className = 'town-dialogue-line-icon';
-        icon.textContent = line.avatar || '💬';
+        icon.innerHTML = this.renderTownDialogueAvatar(dialogue.npc, line);
 
         const copy = document.createElement('div');
         copy.className = 'town-dialogue-line-copy';
@@ -1243,8 +1245,10 @@ export default class LobbyScene {
                 ? `${readyCount} 個動向`
                 : place.tag || '場所';
 
+            const placeIcon = this.renderTownPlaceCardIcon(place);
+
             button.innerHTML = `
-                <span class="town-place-card-icon">${escapeHtml(place.icon || '⌂')}</span>
+                <span class="town-place-card-icon">${placeIcon}</span>
                 <span class="town-place-card-copy">
                     <small>${escapeHtml(place.tag || '場所')}</small>
                     <strong>${escapeHtml(place.name || '未命名場所')}</strong>
@@ -1269,7 +1273,7 @@ export default class LobbyScene {
         view.dataset.placeId = place.id || '';
         this.applyTownPlaceScene(view, place);
 
-        if (this.dom.townPlaceIcon) this.dom.townPlaceIcon.textContent = place.icon || '⌂';
+        if (this.dom.townPlaceIcon) this.dom.townPlaceIcon.innerHTML = this.renderTownPlaceCardIcon(place);
         if (this.dom.townPlaceTag) this.dom.townPlaceTag.textContent = place.tag || '場所';
         if (this.dom.townPlaceName) this.dom.townPlaceName.textContent = place.name || '未命名場所';
         if (this.dom.townPlaceDescription) this.dom.townPlaceDescription.textContent = place.description || '';
@@ -1303,12 +1307,25 @@ export default class LobbyScene {
         }
     }
 
+    renderTownPlaceCardIcon(place = {}) {
+        const image = String(place.cardImage || place.sceneImage || '').trim();
+        if (image) {
+            return `<img src="${escapeHtml(this.formatAssetSrc(image))}" alt="${escapeHtml(place.name || '')}" loading="lazy">`;
+        }
+        return escapeHtml(place.icon || '⌂');
+    }
+
     formatSceneAssetUrl(rawUrl = '') {
+        const normalized = this.formatAssetSrc(rawUrl);
+        return `url("${normalized.replace(/"/g, '\\"')}")`;
+    }
+
+    formatAssetSrc(rawUrl = '') {
         const normalized = String(rawUrl || '')
             .trim()
             .replace(/\\/g, '/')
             .replace(/^src\//, '/src/');
-        return `url("${normalized.replace(/"/g, '\\"')}")`;
+        return normalized;
     }
 
     renderTownPlaceResidents(residents = []) {
@@ -1352,6 +1369,15 @@ export default class LobbyScene {
         return escapeHtml(entry.icon || npc.avatar || fallbackIcon);
     }
 
+    renderTownDialogueAvatar(npc = {}, line = {}, fallbackIcon = '•') {
+        const image = line.portrait || line.image || npc.portrait || npc.image;
+        const label = line.speaker || npc.name || '';
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}" loading="lazy">`;
+        }
+        return escapeHtml(line.avatar || npc.avatar || fallbackIcon);
+    }
+
     renderTownPlaceActions(actions = []) {
         const list = this.dom.townPlaceActions;
         if (!list) return;
@@ -1373,8 +1399,9 @@ export default class LobbyScene {
             if (isInteraction) button.dataset.interactionId = action.id;
             button.setAttribute('aria-label', description ? `${label}，${description}` : label);
             this.applyTownPlaceEntryPosition(button, action, index, 'action');
+            const actionIcon = this.renderTownActionIcon(action);
             button.innerHTML = `
-                <span class="town-place-entry-icon">${escapeHtml(action.icon || '•')}</span>
+                <span class="town-place-entry-icon">${actionIcon}</span>
                 <span class="town-place-entry-copy">
                     <strong>${escapeHtml(label)}</strong>
                 </span>
@@ -1382,6 +1409,29 @@ export default class LobbyScene {
             `;
             list.appendChild(button);
         });
+    }
+
+    renderTownActionIcon(action = {}) {
+        const interactionImages = {
+            crossroads_notice_board: 'notice_board',
+            merchant_ancient_coin: 'hidden_stash_mound'
+        };
+        const routeImages = {
+            adventure: 'dirt_road',
+            shop: 'merchant_wagon',
+            forge: 'ore_vein',
+            quest: 'notice_board',
+            encyclopedia: 'carved_stone_tablet',
+            casino: 'random_event_spark',
+            tower: 'charred_obelisk_mini'
+        };
+        const propId = action.imageId || interactionImages[action.id] || routeImages[action.route];
+        const image = propId ? getGeneratedMapPropImage(propId) : '';
+        const label = action.shortLabel || action.label || '';
+        if (image) {
+            return `<img src="${escapeHtml(this.formatAssetSrc(image))}" alt="${escapeHtml(label)}" loading="lazy">`;
+        }
+        return escapeHtml(action.icon || '•');
     }
 
     applyTownPlaceEntryPosition(element, entry = {}, index = 0, kind = 'action') {

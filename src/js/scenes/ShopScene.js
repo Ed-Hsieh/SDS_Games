@@ -185,6 +185,9 @@ export default class ShopScene {
             const locked = this.isVendorLocked(vendor);
             const active = vendor.id === this.currentVendorId;
             const position = vendor.position || { x: 50, y: 50 };
+            const avatar = vendor.portrait && !locked
+                ? `<img src="${escapeHtml(vendor.portrait)}" alt="${escapeHtml(vendor.name)}">`
+                : escapeHtml(vendor.icon || '◆');
             return `
                 <button
                     class="market-resident ${active ? 'active' : ''} ${locked ? 'is-locked' : ''}"
@@ -193,7 +196,7 @@ export default class ShopScene {
                     style="--x:${position.x}%; --y:${position.y}%"
                     aria-label="${escapeHtml(`${vendor.name}，${vendor.role}`)}"
                 >
-                    <span class="resident-avatar">${escapeHtml(vendor.icon || '◆')}</span>
+                    <span class="resident-avatar">${avatar}</span>
                     <span class="resident-copy">
                         <strong>${escapeHtml(vendor.name)}</strong>
                         <small>${escapeHtml(locked ? '尚未接上' : vendor.role)}</small>

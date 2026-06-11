@@ -7345,13 +7345,22 @@ body {
 /* Lobby proportion pass: map gets its own space, side board gets its own space. */
 .lobby-world-town {
     display: grid !important;
-    grid-template-columns: minmax(0, 6.8fr) minmax(310px, 3fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 6.8fr) minmax(330px, 3fr);
+    grid-template-rows: minmax(0, 1fr);
     grid-template-areas:
-        "map tools"
-        "map board";
+        "map rail";
     gap: 14px;
     padding: 0;
+}
+
+.town-right-rail {
+    grid-area: rail;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 14px;
+    overflow: hidden;
 }
 
 .world-stage-town {
@@ -7366,7 +7375,6 @@ body {
 .town-hud {
     position: relative !important;
     inset: auto !important;
-    grid-area: tools;
     width: 100%;
     height: auto;
     display: grid !important;
@@ -7410,7 +7418,6 @@ body {
 .town-narrative-whisper {
     position: relative !important;
     inset: auto !important;
-    grid-area: board;
     width: 100% !important;
     max-height: none;
     height: 100%;
@@ -7492,12 +7499,16 @@ body {
 @media (max-width: 1040px) {
     .lobby-world-town {
         grid-template-columns: 1fr;
-        grid-template-rows: minmax(520px, 1fr) auto auto;
+        grid-template-rows: minmax(520px, 1fr) auto;
         grid-template-areas:
             "map"
-            "tools"
-            "board";
+            "rail";
         overflow-y: auto;
+    }
+
+    .town-right-rail {
+        grid-template-rows: auto auto;
+        overflow: visible;
     }
 
     .town-hud {
@@ -10289,6 +10300,20 @@ body {
     border-radius: inherit;
 }
 
+.town-dialogue-avatar,
+.town-dialogue-line-icon {
+    overflow: hidden;
+}
+
+.town-dialogue-avatar img,
+.town-dialogue-line-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
 .town-place-view.has-scene-image .town-place-entry-copy strong {
     font-size: 14px;
 }
@@ -10340,4 +10365,225 @@ body {
     width: 100%;
     height: 100%;
     border-radius: inherit;
+}
+
+/* Generated image integration */
+.resident-avatar,
+.town-place-card-icon,
+.town-place-entry-icon,
+.dungeon-entrance-icon,
+.codex-row-icon,
+.codex-portrait,
+.codex-drop-icon,
+.mat-icon,
+.item-icon,
+.slot-icon,
+.loot-reveal-icon,
+.buff-icon,
+.floor-monster,
+.monster-icon,
+.tower-monster-card .monster-icon,
+.battle-header .monster-icon,
+.battle-modal .monster-icon {
+    overflow: hidden;
+}
+
+.resident-avatar img,
+.town-place-card-icon img,
+.town-place-entry-icon img,
+.dungeon-entrance-icon img,
+.codex-row-icon img,
+.codex-portrait img,
+.codex-drop-icon img,
+.mat-icon img,
+.item-icon img,
+.slot-icon img,
+.loot-reveal-icon img,
+.buff-icon img,
+.floor-monster img,
+.monster-icon img,
+.tower-monster-card .monster-icon img,
+.battle-header .monster-icon img,
+.battle-modal .monster-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+
+.item-icon img,
+.slot-icon img,
+.loot-reveal-icon img,
+.mat-icon img,
+.codex-row-icon img,
+.codex-drop-icon img,
+.buff-icon img {
+    object-fit: contain;
+}
+
+.resident-avatar img,
+.town-place-card-icon img,
+.town-place-entry-icon img,
+.codex-portrait img,
+.floor-monster img,
+.monster-icon img,
+.tower-monster-card .monster-icon img,
+.battle-header .monster-icon img,
+.battle-modal .monster-icon img {
+    object-fit: cover;
+}
+
+.buff-indicator .buff-icon {
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+}
+
+.small-location-hint-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.small-location-hint-image {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(233, 189, 101, 0.34);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.small-location-hint-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dungeon-entrance-card.has-dungeon-scene {
+    position: relative;
+    overflow: hidden;
+    background: rgba(7, 12, 18, 0.96) !important;
+}
+
+.dungeon-entrance-card.has-dungeon-scene::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 8, 12, 0.42), rgba(5, 8, 12, 0.9)),
+        linear-gradient(90deg, color-mix(in srgb, var(--dungeon-accent) 16%, transparent), transparent 54%),
+        var(--dungeon-scene);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.56;
+    filter: saturate(0.92) contrast(1.08);
+}
+
+.dungeon-entrance-card.has-dungeon-scene > * {
+    position: relative;
+    z-index: 1;
+}
+
+.dungeon-entrance-icon img {
+    object-fit: cover;
+}
+
+.dungeon-story-hook.has-relic {
+    display: flow-root;
+}
+
+.dungeon-story-relic {
+    float: left;
+    width: 58px;
+    height: 58px;
+    margin: 2px 14px 8px 0;
+    overflow: hidden;
+    border: 1px solid rgba(233, 189, 101, 0.34);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.28);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+}
+
+.dungeon-story-relic img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dungeon-scene.has-dungeon-image .dungeon-background {
+    background-image:
+        linear-gradient(180deg, rgba(3, 7, 12, 0.5), rgba(3, 7, 12, 0.9)),
+        var(--dungeon-scene-image);
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.88) contrast(1.08);
+    opacity: 1 !important;
+}
+
+.dungeon-hud .hud-icon {
+    overflow: hidden;
+}
+
+.dungeon-hud .hud-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.event-icon,
+.story-event-icon {
+    overflow: hidden;
+}
+
+.event-icon img,
+.story-event-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+#town-place-icon {
+    overflow: hidden;
+}
+
+#town-place-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+#npc-avatar,
+.quest-note-avatar,
+.reward-icon {
+    overflow: hidden;
+}
+
+#npc-avatar img,
+.quest-note-avatar img,
+.reward-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.reward-icon img {
+    object-fit: contain;
 }

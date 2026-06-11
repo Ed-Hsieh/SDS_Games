@@ -3,10 +3,11 @@
  * 任務公告板場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js';
-import { escapeHtml } from '../utils/ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getQuestStory } from '../data/QuestStories.js';
+import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
 
 export default class QuestScene {
     constructor(container, app) {
@@ -285,7 +286,7 @@ export default class QuestScene {
         this.renderDetailSummary(questData, state, progressInfo, story);
 
         // 故事敘事者
-        this.dom.npcAvatar.textContent = story.speaker.avatar || questData.icon || '📜';
+        this.dom.npcAvatar.innerHTML = this.renderQuestSpeakerAvatar(questData, story);
         this.dom.npcName.textContent = story.speaker.name || '旅途記錄';
 
         this.dom.detailDialogue.textContent = story.current;
@@ -300,6 +301,16 @@ export default class QuestScene {
 
         // 操作按鈕
         this.updateActionButtons(state.status, questData.type, story);
+    }
+
+    renderQuestSpeakerAvatar(questData = {}, story = {}) {
+        const npcId = story?.speaker?.npcId || story?.speaker?.id || questData.npc || '';
+        const image = npcId ? getGeneratedPortraitImage(npcId) : '';
+        const label = story?.speaker?.name || questData.name || '';
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}">`;
+        }
+        return escapeHtml(story?.speaker?.avatar || questData.icon || '📜');
     }
 
     renderDetailSummary(questData, state, progressInfo = null, story = null) {
@@ -332,7 +343,7 @@ export default class QuestScene {
             </div>
             <section class="quest-note-current" aria-label="目前紀錄">
                 <div class="quest-note-speaker">
-                    <span class="quest-note-avatar">${escapeHtml(questStory.speaker?.avatar || questData.icon || '📜')}</span>
+                    <span class="quest-note-avatar">${this.renderQuestSpeakerAvatar(questData, questStory)}</span>
                     <span>
                         <b>${escapeHtml(questStory.speaker?.name || '旅途記錄')}</b>
                         <small>目前紀錄</small>
@@ -462,7 +473,7 @@ export default class QuestScene {
                     const el = document.createElement('div');
                     el.className = `reward-item rarity-${itemData.rarity || 'common'}`;
                     el.innerHTML = `
-                        <span class="reward-icon">${itemData.icon || '📦'}</span>
+                        <span class="reward-icon">${getItemVisualHtml(itemData, '📦')}</span>
                         <span class="reward-name">${escapeHtml(itemData.name)}</span>
                     `;
                     el.title = itemData.description || itemData.name;
@@ -477,7 +488,7 @@ export default class QuestScene {
                 const el = document.createElement('div');
                 el.className = `reward-item rarity-${material?.rarity || 'common'}`;
                 el.innerHTML = `
-                    <span class="reward-icon">${material?.icon || '◇'}</span>
+                    <span class="reward-icon">${material ? getItemVisualHtml(material, '◇') : '◇'}</span>
                     <span class="reward-name">${escapeHtml(material?.name || entry.id)} x${entry.quantity || 1}</span>
                 `;
                 el.title = material?.description || material?.name || entry.id;

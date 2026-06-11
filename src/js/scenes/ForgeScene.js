@@ -414,7 +414,7 @@ export default class ForgeScene {
             
             return `
                 <div class="material-req ${enough ? 'enough' : 'not-enough'}">
-                    <span class="mat-icon">${material?.icon || '❓'}</span>
+                    <span class="mat-icon">${material ? getItemVisualHtml(material, '❓') : '❓'}</span>
                     <span class="mat-name">${material?.name || mat.id}</span>
                     <span class="mat-count ${enough ? '' : 'lacking'}">${owned}/${mat.quantity}</span>
                 </div>
@@ -523,7 +523,7 @@ export default class ForgeScene {
             const item = stack.item;
             return `
                 <div class="material-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
-                    <span class="mat-icon">${item.icon || '📦'}</span>
+                    <span class="mat-icon">${getItemVisualHtml(item, '📦')}</span>
                     <span class="mat-name">${item.name}</span>
                     <span class="mat-count">x${stack.quantity || 1}</span>
                 </div>
@@ -684,7 +684,7 @@ export default class ForgeScene {
                 <div class="result-icon success">✅</div>
                 <div class="result-text">鍛造成功！</div>
                 <div class="result-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || ''}">
-                    <span>${item.icon}</span>
+                    <span>${getItemVisualHtml(item, item.icon || '◆')}</span>
                     <span>${item.name}</span>
                 </div>
                 ${affixInfo}
@@ -748,7 +748,7 @@ export default class ForgeScene {
             : '';
         
         card.innerHTML = `
-            <div class="card-icon">${item.icon || '⚔️'}</div>
+            <div class="card-icon">${getItemVisualHtml(item, '⚔️')}</div>
             <div class="card-info">
                 <div class="card-name">${item.name}</div>
                 <div class="card-stats">
@@ -897,7 +897,8 @@ export default class ForgeScene {
             const material = getMaterial(mat.id);
             const owned = this.getMaterialCount(mat.id);
             const enough = owned >= mat.quantity;
-            return `<span class="${enough ? '' : 'lacking'}">${material?.icon || '📦'} ${material?.name || mat.id} ${owned}/${mat.quantity}</span>`;
+            const icon = material ? getItemVisualHtml(material, '📦') : '📦';
+            return `<span class="${enough ? '' : 'lacking'}">${icon} ${material?.name || mat.id} ${owned}/${mat.quantity}</span>`;
         }).join(' ');
     }
 
@@ -1113,7 +1114,7 @@ export default class ForgeScene {
         const markCount = Object.keys(item.enhancementMarks || {}).length;
 
         card.innerHTML = `
-            <div class="card-icon">${item.icon || '⚔️'}</div>
+            <div class="card-icon">${getItemVisualHtml(item, '⚔️')}</div>
             <div class="card-info">
                 <div class="card-name">${enhancementManager.getDisplayName(item)}</div>
                 <div class="card-stats">

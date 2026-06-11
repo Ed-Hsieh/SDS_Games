@@ -7,6 +7,7 @@
 export const TownNPCDatabase = {
     village_elder: {
         id: 'village_elder',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/village_elder.png',
         name: '村長',
         avatar: '🏘️',
         role: '城鎮十字路的管理者',
@@ -16,6 +17,7 @@ export const TownNPCDatabase = {
     },
     blacksmith: {
         id: 'blacksmith',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/blacksmith.png',
         name: '鍛造師',
         avatar: '⚒️',
         role: '負責修整武器與研究圖紙',
@@ -23,6 +25,7 @@ export const TownNPCDatabase = {
     },
     herbalist: {
         id: 'herbalist',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png',
         name: '藥師',
         avatar: '🌿',
         role: '記錄草藥、毒霧與居民傷勢',
@@ -32,6 +35,7 @@ export const TownNPCDatabase = {
     },
     street_beggar: {
         id: 'street_beggar',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/street_beggar.png',
         name: '巷口流浪者',
         avatar: '🧥',
         role: '知道太多小道消息的人',
@@ -39,6 +43,7 @@ export const TownNPCDatabase = {
     },
     town_scholar: {
         id: 'town_scholar',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/town_scholar.png',
         name: '書記',
         avatar: '📚',
         role: '整理地脈、石碑與怪物紀錄',

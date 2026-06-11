@@ -23,9 +23,10 @@ import {
     unlockAllEncyclopediaEntries
 } from '../managers/EncyclopediaManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { escapeHtml } from '../utils/ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
+import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 const silhouetteByType = {
     weapon: '⚔',
@@ -372,14 +373,14 @@ export default class EncyclopediaScene {
     renderMonsterRow(entry, isSelected) {
         const known = entry.known;
         const name = known ? entry.name : '未知怪物';
-        const icon = known ? entry.icon : getSilhouette('material', '◆');
+        const icon = known ? this.renderMonsterVisual(entry) : escapeHtml(getSilhouette('material', '◆'));
         const subtitle = known
             ? `${entry.sourceLabel} / ${getReadableType(entry.rank)}`
             : `${entry.sourceLabel} / 未解鎖`;
 
         return `
             <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.entryId)}" type="button">
-                <span class="codex-row-icon">${escapeHtml(icon)}</span>
+                <span class="codex-row-icon">${icon}</span>
                 <span class="codex-row-main">
                     <strong>${escapeHtml(name)}</strong>
                     <small>${escapeHtml(subtitle)}</small>
@@ -391,12 +392,14 @@ export default class EncyclopediaScene {
 
     renderBlueprintRow(entry, isSelected) {
         const known = entry.known;
-        const icon = known ? entry.icon : getSilhouette('blueprint', '▧');
+        const icon = known
+            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧')
+            : escapeHtml(getSilhouette('blueprint', '▧'));
         const sourceCount = entry.drops.length || (entry.discovery?.interactionId ? 1 : 0);
 
         return `
             <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.id)}" type="button">
-                <span class="codex-row-icon">${escapeHtml(icon)}</span>
+                <span class="codex-row-icon">${icon}</span>
                 <span class="codex-row-main">
                     <strong>${escapeHtml(known ? entry.name : '未知圖紙')}</strong>
                     <small>${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</small>
@@ -420,13 +423,13 @@ export default class EncyclopediaScene {
 
     renderMonsterDetail(entry) {
         const known = entry.known;
-        const icon = known ? entry.icon : getSilhouette('material', '◆');
+        const icon = known ? this.renderMonsterVisual(entry) : escapeHtml(getSilhouette('material', '◆'));
         const title = known ? entry.name : '未知怪物';
         const description = known ? (entry.description || '尚無描述') : '資料尚未解鎖';
 
         return `
             <section class="codex-detail-head">
-                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${escapeHtml(icon)}</div>
+                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
                 <div>
                     <div class="codex-kicker">${escapeHtml(entry.sourceLabel)} / ${escapeHtml(getReadableType(entry.rank))}</div>
                     <h2>${escapeHtml(title)}</h2>
@@ -453,12 +456,14 @@ export default class EncyclopediaScene {
 
     renderBlueprintDetail(entry) {
         const known = entry.known;
-        const icon = known ? entry.icon : getSilhouette('blueprint', '▧');
+        const icon = known
+            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧')
+            : escapeHtml(getSilhouette('blueprint', '▧'));
         const resultStats = formatStats(entry.result?.stats || {});
 
         return `
             <section class="codex-detail-head">
-                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${escapeHtml(icon)}</div>
+                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
                 <div>
                     <div class="codex-kicker">${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</div>
                     <h2>${escapeHtml(known ? entry.name : '未知圖紙')}</h2>
@@ -511,14 +516,25 @@ export default class EncyclopediaScene {
         const known = kind === 'blueprint'
             ? isBlueprintKnownInEncyclopedia(drop.recipeId)
             : isItemKnown(drop.id);
-        const icon = known ? drop.icon : getSilhouette(drop.type, kind === 'blueprint' ? '▧' : '◆');
+        const icon = known
+            ? getItemVisualHtml(
+                {
+                    id: kind === 'blueprint' ? drop.recipeId : drop.id,
+                    name: drop.name,
+                    icon: drop.icon,
+                    type: kind === 'blueprint' ? 'blueprint' : drop.type,
+                    rarity: drop.rarity
+                },
+                kind === 'blueprint' ? '▧' : '◆'
+            )
+            : escapeHtml(getSilhouette(drop.type, kind === 'blueprint' ? '▧' : '◆'));
         const name = known ? drop.name : '未解鎖';
         const quantity = kind === 'blueprint' ? '' : `x${formatQuantity(drop.quantity)}`;
         const dropId = kind === 'blueprint' ? drop.recipeId : drop.id;
 
         return `
             <div class="codex-drop-token rarity-frame rarity-${escapeHtml(drop.rarity)} ${known ? '' : 'is-locked'}" data-codex-kind="${escapeHtml(kind)}" data-drop-id="${escapeHtml(dropId)}">
-                <div class="codex-drop-icon">${escapeHtml(icon)}</div>
+                <div class="codex-drop-icon">${icon}</div>
                 <div class="codex-drop-info">
                     <strong>${escapeHtml(name)}</strong>
                     <span>${escapeHtml(formatChance(drop.chance))} ${escapeHtml(quantity)}</span>
@@ -541,6 +557,14 @@ export default class EncyclopediaScene {
         `;
     }
 
+    renderMonsterVisual(entry) {
+        const image = entry.image || getGeneratedMonsterImage(entry.id || entry.entryId);
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(entry.name || '')}">`;
+        }
+        return escapeHtml(entry.icon || '◆');
+    }
+
     renderMaterials(entry, known) {
         return `
             <section class="codex-section">
@@ -551,7 +575,7 @@ export default class EncyclopediaScene {
                         const rarity = item?.rarity || 'common';
                         return `
                             <div class="codex-drop-token rarity-frame rarity-${escapeHtml(rarity)} ${known ? '' : 'is-locked'}" data-codex-kind="material" data-drop-id="${escapeHtml(material.id)}">
-                                <div class="codex-drop-icon">${escapeHtml(known ? (item?.icon || '◆') : getSilhouette('material'))}</div>
+                                <div class="codex-drop-icon">${known && item ? getItemVisualHtml(item, '◆') : escapeHtml(getSilhouette('material'))}</div>
                                 <div class="codex-drop-info">
                                     <strong>${escapeHtml(known ? (item?.name || material.id) : '未解鎖')}</strong>
                                     <span>x${escapeHtml(material.quantity)}</span>
@@ -751,6 +775,7 @@ export default class EncyclopediaScene {
             id: entry.entryId,
             name: known ? entry.name : '未知怪物',
             icon: known ? entry.icon : getSilhouette('material'),
+            image: known ? (entry.image || getGeneratedMonsterImage(entry.id || entry.entryId)) : '',
             type: 'monster',
             rarity: entry.rarity,
             description: known ? (entry.description || '百科中的怪物資料。') : '尚未解鎖的怪物資料。'

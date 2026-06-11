@@ -13,6 +13,8 @@ import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import { escapeHtml } from '../utils/ItemDisplay.js';
+import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -129,6 +131,13 @@ class DungeonSceneClass {
         const sceneEl = document.getElementById('dungeon-scene');
         if (sceneEl) {
             sceneEl.className = `dungeon-scene dungeon-${dungeonType}`;
+            const dungeonImage = getGeneratedDungeonImage(dungeonType);
+            sceneEl.classList.toggle('has-dungeon-image', Boolean(dungeonImage));
+            if (dungeonImage) {
+                sceneEl.style.setProperty('--dungeon-scene-image', `url('/${dungeonImage}')`);
+            } else {
+                sceneEl.style.removeProperty('--dungeon-scene-image');
+            }
         }
 
         document.querySelectorAll('[data-dungeon-effect]').forEach(effectEl => {
@@ -1813,7 +1822,12 @@ class DungeonSceneClass {
         const dungeonData = DungeonDatabase[this.dungeonType];
         
         if (this.dom.dungeonName) this.dom.dungeonName.textContent = dungeonData?.name || '未知副本';
-        if (this.dom.dungeonIcon) this.dom.dungeonIcon.textContent = dungeonData?.icon || '🏰';
+        if (this.dom.dungeonIcon) {
+            const dungeonImage = getGeneratedDungeonImage(this.dungeonType);
+            this.dom.dungeonIcon.innerHTML = dungeonImage
+                ? `<img src="${escapeHtml(dungeonImage)}" alt="${escapeHtml(dungeonData?.name || '')}">`
+                : escapeHtml(dungeonData?.icon || '🏰');
+        }
         if (this.dom.floorInfo) {
             this.dom.floorInfo.textContent = `第 ${this.currentFloor}/${this.totalFloors} 層`;
         }

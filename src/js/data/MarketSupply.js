@@ -3,7 +3,7 @@ import { MaterialDatabase } from './Materials.js';
 const A = (row, col) => ({ row, col });
 
 export const MarketSceneAssets = {
-    background: 'src/assets/images/scenes/market-stalls-v1.png',
+    background: 'src/assets/images/generated/2026-06-10/cropped/town-places/market.png',
     itemAtlas: 'src/assets/images/atlases/item-atlas-v1.png'
 };
 
@@ -112,6 +112,7 @@ export const MarketVendors = [
         name: '藥師',
         role: '補給與藥水',
         icon: '🌿',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png',
         position: { x: 21, y: 58 },
         place: '市集左棚',
         summary: '她把玩家帶回來的凝膠、毒腺與藥草變成真正能上架的補給。',
@@ -154,6 +155,7 @@ export const MarketVendors = [
         name: '旅行商人',
         role: '探索工具與情報',
         icon: '🧳',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/merchant.png',
         position: { x: 57, y: 57 },
         place: '中央貨桌',
         summary: '他販售的不是強度，而是通往事件、地點與麻煩的鑰匙。',
@@ -202,6 +204,7 @@ export const MarketVendors = [
         name: '鍛造師',
         role: '低階補洞與修補',
         icon: '⚒️',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/blacksmith.png',
         position: { x: 43, y: 68 },
         place: '臨時砧台',
         summary: '他不在市集賣強裝，只把冒險帶回來的碎料變成能繼續製作的材料。',
@@ -239,6 +242,7 @@ export const MarketVendors = [
         name: '書記',
         role: '手記與情報整理',
         icon: '📚',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/town_scholar.png',
         position: { x: 72, y: 48 },
         place: '臨時書攤',
         summary: '他把怪物、材料與路線整理成玩家能使用的手記。',
@@ -277,7 +281,7 @@ export const MarketVendors = [
         name: '黑市門縫',
         role: '風險交易',
         icon: '🕯️',
-        portrait: '',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/black_market.png',
         position: { x: 88, y: 54 },
         place: '右側暗巷',
         lockedUnless: { flag: 'secretShopUnlocked' },

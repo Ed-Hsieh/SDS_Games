@@ -42,7 +42,8 @@
                 </div>
             </section>
 
-            <div class="town-hud" aria-label="冒險者狀態">
+            <aside class="town-right-rail" aria-label="town side panel">
+                <div class="town-hud" aria-label="冒險者狀態">
                 <button class="traveler-status-card" data-prep-tab="character" type="button" aria-label="查看角色狀態">
                     <span class="traveler-status-kicker">旅人</span>
                     <strong>Lv.<span id="character-level">1</span></strong>
@@ -87,17 +88,18 @@
                         </button>
                     </div>
                 </section>
-            </div>
+                </div>
 
-            <section class="town-narrative-panel town-narrative-whisper" id="town-narrative" aria-live="polite">
-                <div class="town-narrative-head">
-                    <span class="town-narrative-kicker">場景</span>
-                    <strong id="town-narrative-title">城鎮十字路</strong>
-                </div>
-                <div class="town-story-board" id="world-story-log">
-                    <div class="town-dialogue-stream" id="town-dialogue-stream"></div>
-                </div>
-            </section>
+                <section class="town-narrative-panel town-narrative-whisper" id="town-narrative" aria-live="polite">
+                    <div class="town-narrative-head">
+                        <span class="town-narrative-kicker">場景</span>
+                        <strong id="town-narrative-title">城鎮十字路</strong>
+                    </div>
+                    <div class="town-story-board" id="world-story-log">
+                        <div class="town-dialogue-stream" id="town-dialogue-stream"></div>
+                    </div>
+                </section>
+            </aside>
 
             <div class="town-dialogue-modal" id="town-dialogue-modal" hidden>
                 <div class="town-dialogue-card" role="dialog" aria-modal="true" aria-labelledby="town-dialogue-name" tabindex="-1">

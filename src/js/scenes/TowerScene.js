@@ -18,6 +18,8 @@ import {
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 class TowerScene {
     constructor() {
@@ -39,6 +41,14 @@ class TowerScene {
         this.rhythmSystem = null; // 節奏條系統
         this.battleEngine = null;
         this.finishingBattle = false;
+    }
+
+    renderMonsterIcon(monster = {}, fallback = '?') {
+        const image = monster.image || getGeneratedMonsterImage(monster.id);
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(monster.name || '')}">`;
+        }
+        return escapeHtml(monster.icon || fallback);
     }
     
     // 設定 app 參考
@@ -335,7 +345,7 @@ class TowerScene {
                      data-floor="${floor.floor}"
                      onclick="towerScene.selectFloor(${floor.floor})">
                     <span class="floor-number">${floor.floor}</span>
-                    <span class="floor-monster">${floor.monster?.icon || '?'}</span>
+                    <span class="floor-monster">${this.renderMonsterIcon(floor.monster, '?')}</span>
                     <span class="floor-status">
                         ${isCleared ? '✓' : (isUnlocked ? '' : '🔒')}
                     </span>
@@ -380,7 +390,7 @@ class TowerScene {
             const monster = floorInfo.monster;
             
             this.monsterPreviewEl.innerHTML = `
-                <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${monster.icon}</div>
+                <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${this.renderMonsterIcon(monster, '?')}</div>
                 <div class="monster-name">${monster.name}</div>
                 <div class="monster-level">等級 ${monster.level}</div>
                 <div class="monster-stats">
@@ -445,7 +455,7 @@ class TowerScene {
 
         this.quickItemsEl.innerHTML = potions.slice(0, 4).map(stack => `
             <div class="quick-item" onclick="towerScene.useItem('${stack.instanceId}')">
-                <span class="item-icon">${stack.item.icon}</span>
+                <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
                 <span class="item-count">x${stack.quantity}</span>
             </div>
         `).join('') || '<div class="no-items">無可用道具</div>';
@@ -647,7 +657,8 @@ class TowerScene {
         const itemsHtml = potions.map(stack =>
             `<button class="item-btn" 
                      onclick="towerScene.useItem('${stack.instanceId}'); this.parentElement.parentElement.remove();">
-                ${stack.item.icon} ${stack.item.name} x${stack.quantity}
+                <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
+                <span>${escapeHtml(stack.item.name)} x${stack.quantity}</span>
             </button>`
         ).join('') || '<p>沒有可用的道具</p>';
 
@@ -735,7 +746,7 @@ class TowerScene {
         }
 
         if (this.monsterIconEl) {
-            this.monsterIconEl.textContent = data.monster.icon;
+            this.monsterIconEl.innerHTML = this.renderMonsterIcon(data.monster, '?');
         }
         
         // 新增：更新怪物等級和屬性
@@ -836,7 +847,7 @@ class TowerScene {
             if (rewards.items && rewards.items.length > 0) {
                 html += '<p>🎁 道具：</p><ul>';
                 for (const item of rewards.items) {
-                    html += `<li>${item.icon || '📦'} ${item.name} x${item.quantity}</li>`;
+                    html += `<li><span class="item-icon">${getItemVisualHtml(item, '📦')}</span> ${escapeHtml(item.name)} x${item.quantity}</li>`;
                 }
                 html += '</ul>';
             }

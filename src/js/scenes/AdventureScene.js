@@ -13,7 +13,7 @@ import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
-import { buildItemModalOptions, escapeHtml } from '../utils/ItemDisplay.js';
+import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, closeItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
@@ -30,6 +30,13 @@ import {
     showCombatPlayerHitFeedback,
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
+import {
+    getGeneratedDungeonImage,
+    getGeneratedLandmarkImage,
+    getGeneratedMapPropImage,
+    getGeneratedStoryRelicImage,
+    getGeneratedTownPlaceImage
+} from '../data/AssetManifest.js';
 
 const AMBUSH_MANTIS_CHAIN_ID = 'ambush_mantis';
 const AMBUSH_MANTIS_BOSS_ID = 'ambush_mantis';
@@ -155,6 +162,7 @@ export default class AdventureScene {
         this.smallLocationHintRecentKeys = new Map();
         this.smallLocationHintRepeatCooldownMs = 7000;
         this.smallLocationHintTimer = null;
+        this.mapImageCache = new Map();
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
 
         // Bindings
@@ -652,6 +660,51 @@ export default class AdventureScene {
         this.updateWorldNarrativePanel();
     }
 
+    normalizeCanvasAssetSrc(src = '') {
+        return String(src || '')
+            .trim()
+            .replace(/\\/g, '/')
+            .replace(/^src\//, '/src/');
+    }
+
+    getCanvasImage(src = '') {
+        const normalized = this.normalizeCanvasAssetSrc(src);
+        if (!normalized) return null;
+
+        const cached = this.mapImageCache.get(normalized);
+        if (cached) {
+            return cached.complete && cached.naturalWidth > 0 ? cached : null;
+        }
+
+        const image = new Image();
+        image.onload = () => this.renderMap();
+        image.onerror = () => this.mapImageCache.delete(normalized);
+        this.mapImageCache.set(normalized, image);
+        image.src = normalized;
+        return null;
+    }
+
+    drawCanvasImageMarker(ctx, src, cx, cy, size, options = {}) {
+        const image = this.getCanvasImage(src);
+        if (!image) return false;
+
+        const radius = size / 2;
+        ctx.save();
+        ctx.shadowColor = options.shadowColor || 'rgba(0, 0, 0, 0.35)';
+        ctx.shadowBlur = options.shadowBlur ?? 10;
+        ctx.fillStyle = options.background || 'rgba(7, 12, 18, 0.82)';
+        ctx.strokeStyle = options.stroke || 'rgba(216, 181, 95, 0.72)';
+        ctx.lineWidth = options.lineWidth || 2;
+        ctx.beginPath();
+        ctx.roundRect(cx - radius, cy - radius, size, size, Math.max(6, size * 0.18));
+        ctx.fill();
+        ctx.stroke();
+        ctx.clip();
+        ctx.drawImage(image, cx - radius, cy - radius, size, size);
+        ctx.restore();
+        return true;
+    }
+
     updateWorldNarrativePanel(override = null) {
         if (!this.worldMap) return;
 
@@ -771,7 +824,10 @@ export default class AdventureScene {
             this.dom.smallLocationHintKicker.textContent = distance <= 1 ? '近在眼前' : '附近地點';
         }
         if (this.dom.smallLocationHintTitle) {
-            this.dom.smallLocationHintTitle.textContent = `${landmark.icon || '◆'} ${landmark.name || '未知地點'}`;
+            const image = landmark.image || getGeneratedLandmarkImage(landmark.id);
+            this.dom.smallLocationHintTitle.innerHTML = image
+                ? `<span class="small-location-hint-image"><img src="${escapeHtml(image)}" alt="${escapeHtml(landmark.name || '')}"></span><span>${escapeHtml(landmark.name || '未知地點')}</span>`
+                : `${escapeHtml(landmark.icon || '◆')} ${escapeHtml(landmark.name || '未知地點')}`;
         }
         if (this.dom.smallLocationHintText) {
             const hintText = landmark.mapHint || landmark.arrival || '再靠近即可調查。';
@@ -1448,6 +1504,11 @@ export default class AdventureScene {
         };
         const drawLandmarkMarker = (cell, x, y) => {
             const { cx, cy } = center(x, y);
+            const landmarkImage = getGeneratedLandmarkImage(cell.data.landmarkId);
+            if (this.drawCanvasImageMarker(ctx, landmarkImage, cx, cy, gridSize * 0.66, {
+                shadowColor: 'rgba(216, 181, 95, 0.58)',
+                stroke: 'rgba(222, 195, 126, 0.86)'
+            })) return;
             ctx.save();
             ctx.shadowColor = 'rgba(216, 181, 95, 0.58)';
             ctx.shadowBlur = 18;
@@ -1464,6 +1525,11 @@ export default class AdventureScene {
         };
         const drawDungeonMarker = (cell, x, y) => {
             const { cx, cy } = center(x, y);
+            const dungeonImage = getGeneratedDungeonImage(cell.data.dungeonType);
+            if (this.drawCanvasImageMarker(ctx, dungeonImage, cx, cy, gridSize * 0.72, {
+                shadowColor: cell.data.dungeonData?.color || 'rgba(125, 211, 252, 0.5)',
+                stroke: 'rgba(192, 207, 204, 0.84)'
+            })) return;
             ctx.save();
             ctx.shadowColor = cell.data.dungeonData?.color || 'rgba(125, 211, 252, 0.5)';
             ctx.shadowBlur = 12;
@@ -1483,6 +1549,11 @@ export default class AdventureScene {
         const drawBossLairMarker = (cell, x, y) => {
             const { cx, cy } = center(x, y);
             const status = worldStoryManager.getBossLairStatus(cell.data.bossSiteId);
+            const lairImage = getGeneratedMapPropImage('boss_lair_silhouette');
+            if (this.drawCanvasImageMarker(ctx, lairImage, cx, cy, gridSize * 0.7, {
+                shadowColor: 'rgba(248, 113, 113, 0.72)',
+                stroke: status.finalReady ? 'rgba(248, 113, 113, 0.92)' : 'rgba(248, 113, 113, 0.45)'
+            })) return;
             ctx.save();
             ctx.shadowColor = 'rgba(248, 113, 113, 0.72)';
             ctx.shadowBlur = 18;
@@ -1502,6 +1573,11 @@ export default class AdventureScene {
         };
         const drawRiftMarker = (x, y) => {
             const { cx, cy } = center(x, y);
+            const riftImage = getGeneratedMapPropImage('abyss_crack');
+            if (this.drawCanvasImageMarker(ctx, riftImage, cx, cy, gridSize * 0.66, {
+                shadowColor: 'rgba(123, 97, 255, 0.5)',
+                stroke: 'rgba(155, 135, 255, 0.7)'
+            })) return;
             ctx.save();
             ctx.strokeStyle = 'rgba(155, 135, 255, 0.66)';
             ctx.shadowColor = 'rgba(123, 97, 255, 0.5)';
@@ -1521,6 +1597,11 @@ export default class AdventureScene {
         };
         const drawHomeMarker = (x, y) => {
             const { cx, cy } = center(x, y);
+            const homeImage = getGeneratedTownPlaceImage('crossroads');
+            if (this.drawCanvasImageMarker(ctx, homeImage, cx, cy, gridSize * 0.7, {
+                shadowColor: 'rgba(208, 169, 94, 0.62)',
+                stroke: 'rgba(216, 181, 95, 0.86)'
+            })) return;
             ctx.save();
             ctx.fillStyle = 'rgba(208, 169, 94, 0.9)';
             ctx.strokeStyle = 'rgba(61, 42, 21, 0.8)';
@@ -2034,8 +2115,27 @@ export default class AdventureScene {
         const mechanicInfo = this.getDungeonMechanicDescription(dungeonData.mechanic?.type || dungeonType);
         const story = dungeonData.story || null;
         const storyPickup = story?.pickup || null;
+        const dungeonImage = dungeonData.image || getGeneratedDungeonImage(dungeonType);
+        const dungeonVisual = dungeonImage
+            ? `<img src="${escapeHtml(dungeonImage)}" alt="${escapeHtml(dungeonData.name || '')}">`
+            : escapeHtml(dungeonData.icon || '');
+        const dungeonSceneStyle = dungeonImage
+            ? `; --dungeon-scene: url('/${escapeHtml(dungeonImage)}')`
+            : '';
+        const storyRelicIds = {
+            cave: 'bran_bloodied_diary',
+            jungle: 'weaving_clan_scroll',
+            ruins: 'julian_tablet_rubbing',
+            snow: 'frozen_anvil_inscription',
+            hell: 'burned_knight_diary'
+        };
+        const storyRelicImage = storyPickup ? getGeneratedStoryRelicImage(storyRelicIds[dungeonType]) : '';
+        const storyRelicHTML = storyRelicImage
+            ? `<div class="dungeon-story-relic"><img src="${escapeHtml(storyRelicImage)}" alt="${escapeHtml(storyPickup?.title || '')}"></div>`
+            : '';
         const storyHTML = storyPickup ? `
-                    <section class="dungeon-story-hook">
+                    <section class="dungeon-story-hook ${storyRelicImage ? 'has-relic' : ''}">
+                        ${storyRelicHTML}
                         <div class="dungeon-story-meta">
                             <span>${escapeHtml(story.chapterType || '副本故事')}</span>
                             <b>${escapeHtml(story.subtitle || '')}</b>
@@ -2049,9 +2149,9 @@ export default class AdventureScene {
 
         const modalHTML = `
             <div class="dungeon-entrance-modal" id="dungeon-entrance-modal" role="dialog" aria-modal="true">
-                <div class="dungeon-entrance-card dungeon-${escapeHtml(dungeonType)}" style="--dungeon-accent: ${escapeHtml(entranceConfig?.color || '#67d8ff')}">
+                <div class="dungeon-entrance-card dungeon-${escapeHtml(dungeonType)} ${dungeonImage ? 'has-dungeon-scene' : ''}" style="--dungeon-accent: ${escapeHtml(entranceConfig?.color || '#67d8ff')}${dungeonSceneStyle}">
                     <header class="dungeon-entrance-header">
-                        <div class="dungeon-entrance-icon">${escapeHtml(dungeonData.icon || '')}</div>
+                        <div class="dungeon-entrance-icon">${dungeonVisual}</div>
                         <div>
                             <span>副本入口</span>
                             <h2>${escapeHtml(dungeonData.name)}</h2>
@@ -2244,7 +2344,7 @@ export default class AdventureScene {
         if (!this.dom.storyEventModal) return;
         
         // 設置標題和描述
-        if (this.dom.storyEventIcon) this.dom.storyEventIcon.textContent = event.icon;
+        if (this.dom.storyEventIcon) this.dom.storyEventIcon.innerHTML = this.renderEventVisual(event);
         if (this.dom.storyEventTitle) this.dom.storyEventTitle.textContent = event.name;
         if (this.dom.storyEventType) this.dom.storyEventType.textContent = event.type.toUpperCase();
         if (this.dom.storyEventDescription) this.dom.storyEventDescription.textContent = event.description;
@@ -2363,12 +2463,64 @@ export default class AdventureScene {
     showEventModal(icon, title, description, resultHTML) {
         if (!this.dom.eventModal) return;
         
-        if (this.dom.eventIcon) this.dom.eventIcon.textContent = icon;
+        if (this.dom.eventIcon) this.dom.eventIcon.innerHTML = this.renderEventVisual(icon, title);
         if (this.dom.eventTitle) this.dom.eventTitle.textContent = title;
         if (this.dom.eventDescription) this.dom.eventDescription.textContent = description;
         if (this.dom.eventResult) this.dom.eventResult.innerHTML = resultHTML;
         
         this.dom.eventModal.style.display = 'flex';
+    }
+
+    renderEventVisual(eventOrIcon, title = '') {
+        const event = typeof eventOrIcon === 'object' && eventOrIcon ? eventOrIcon : null;
+        const icon = event?.icon || eventOrIcon || '◆';
+        const imageId = this.getEventMapPropId(event, title);
+        const image = imageId ? getGeneratedMapPropImage(imageId) : '';
+        const label = event?.name || title || '';
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}">`;
+        }
+        return escapeHtml(icon);
+    }
+
+    getEventMapPropId(event = null, title = '') {
+        const id = event?.id || '';
+        const type = event?.type || '';
+        const byId = {
+            ancient_shrine: 'sealed_altar',
+            healing_spring: 'herb_patch',
+            cursed_chest: 'hidden_stash_mound',
+            dark_spirit: 'random_event_spark',
+            mysterious_merchant: 'merchant_wagon',
+            dice_demon: 'random_event_spark',
+            wandering_blacksmith: 'ore_vein',
+            fairy_deal: 'herb_patch',
+            mysterious_statue: 'carved_stone_tablet',
+            dimensional_rift: 'abyss_crack',
+            foragers_emergency_stash: 'hidden_stash_mound',
+            leyline_splinter: 'random_event_spark',
+            ash_scout_report: 'blackflame_tile',
+            abandoned_blueprint_cache: 'hidden_stash_mound',
+            field_notice_board: 'notice_board',
+            special_bounty_notice: 'notice_board',
+            weathered_route_tablet: 'carved_stone_tablet',
+            injured_adventurer: 'campfire_ashes',
+            ancient_guardian: 'ancient_ruin_arch'
+        };
+        if (byId[id]) return byId[id];
+        const titleText = String(title || '');
+        if (titleText.includes('寶箱')) return 'hidden_stash_mound';
+        if (titleText.includes('泉')) return 'herb_patch';
+        if (titleText.includes('陷阱')) return 'silver_silk_trap';
+        const byType = {
+            blessing: 'sealed_altar',
+            curse: 'abyss_crack',
+            gamble: 'random_event_spark',
+            trade: 'merchant_wagon',
+            mystery: 'random_event_spark',
+            encounter: 'campfire_ashes'
+        };
+        return byType[type] || '';
     }
     
     closeEventModal() {
@@ -2739,9 +2891,7 @@ export default class AdventureScene {
             };
             return typeLabels[item?.type] || String(item?.type || '物品').toUpperCase();
         };
-        const getIconHtml = item => item?.image
-            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
-            : escapeHtml(item?.icon || (item?.autoUnlockedBlueprint ? '📜' : '◇'));
+        const getIconHtml = item => getItemVisualHtml(item, item?.autoUnlockedBlueprint ? '📜' : '◇');
         const attachLootTooltip = (element, item, options = {}) => {
             attachItemTooltip(element, item, {
                 quantity: getQuantity(item),
@@ -3298,9 +3448,7 @@ AdventureScene.prototype.renderInventory = function() {
         itemEl.dataset.instanceId = stack.instanceId || '';
         itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
 
-        const iconHtml = item.image
-            ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
-            : escapeHtml(item.icon || '📦');
+        const iconHtml = getItemVisualHtml(item, '📦');
 
         itemEl.innerHTML = `
             <div class="item-icon">${iconHtml}</div>
@@ -3497,9 +3645,7 @@ AdventureScene.prototype.renderEquipmentSlots = function() {
             slotEl.setAttribute('aria-label', `查看 ${item.name || '裝備'}`);
 
             if (iconEl) {
-                iconEl.innerHTML = item.image
-                    ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}">`
-                    : escapeHtml(item.icon || fallbackIcon);
+                iconEl.innerHTML = getItemVisualHtml(item, fallbackIcon);
             }
             if (nameEl) nameEl.textContent = item.name || '已裝備';
 

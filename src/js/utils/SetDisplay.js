@@ -1,5 +1,5 @@
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
-import { escapeHtml } from './ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
 
 function normalizeBonusEntries(setInfo) {
     if (!setInfo?.bonuses) return [];
@@ -82,7 +82,7 @@ function buildPieceChips(progress, compact = false) {
                 <span class="set-piece-chip ${piece.equipped ? 'is-equipped' : ''} ${piece.owned ? 'is-owned' : 'is-missing'} ${piece.current ? 'is-current' : ''}"
                     title="${escapeHtml(piece.item.name || piece.id)}"
                     aria-label="${escapeHtml(piece.item.name || piece.id)}">
-                    ${escapeHtml(piece.item.icon || '◇')}
+                    ${getItemVisualHtml(piece.item, '◇')}
                 </span>
             `).join('')}
         </div>

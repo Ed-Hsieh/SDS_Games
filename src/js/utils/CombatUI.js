@@ -1,4 +1,5 @@
-import { escapeHtml } from './ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
+import { getGeneratedCombatEffectImage, getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 function find(root, selectors) {
     if (!root) return null;
@@ -17,11 +18,47 @@ function setText(root, selectors, value) {
 function setIcon(root, selectors, item, fallback = '') {
     const el = find(root, selectors);
     if (!el) return;
-    if (item?.image) {
-        el.innerHTML = `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}" style="width: 100%; height: 100%; object-fit: contain;">`;
-    } else {
-        el.textContent = item?.icon || fallback;
+    el.innerHTML = getItemVisualHtml(item, fallback);
+}
+
+function setImageOrTextIcon(root, selectors, image, label, fallback = '') {
+    const el = find(root, selectors);
+    if (!el) return;
+    if (image) {
+        el.innerHTML = `<img src="${escapeHtml(image)}" alt="${escapeHtml(label || '')}">`;
+        return;
     }
+    el.textContent = fallback;
+}
+
+function getCombatEffectAssetId(effect = {}) {
+    const raw = String(effect.type || effect.id || '').toLowerCase();
+    const map = {
+        poison: 'poison',
+        poisoned: 'poison',
+        burn: 'burn',
+        burning: 'burn',
+        bleed: 'bleed',
+        bleeding: 'bleed',
+        freeze: 'freeze',
+        frozen: 'freeze',
+        armor_break: 'armor_break',
+        defense_down: 'armor_break',
+        attack_speed_down: 'attack_speed_down',
+        slow: 'attack_speed_down',
+        attack_up: 'attack_up',
+        atk_up: 'attack_up',
+        defense_up: 'defense_up',
+        def_up: 'defense_up',
+        lifesteal: 'lifesteal',
+        life_steal: 'lifesteal',
+        counter: 'counter',
+        double_strike: 'double_strike',
+        poison_resist: 'poison_resist',
+        cold_resist: 'cold_resist',
+        dragon_burn: 'dragon_burn'
+    };
+    return map[raw] || raw;
 }
 
 function clampPercent(value) {
@@ -206,7 +243,12 @@ function updateStatusIcon(el, effect, options = {}) {
         el.appendChild(durationEl);
     }
 
-    iconEl.textContent = effect.icon || options.icon || '◆';
+    const effectImage = getGeneratedCombatEffectImage(getCombatEffectAssetId(effect));
+    if (effectImage) {
+        iconEl.innerHTML = `<img src="${escapeHtml(effectImage)}" alt="${escapeHtml(effect.name || effect.type || '')}">`;
+    } else {
+        iconEl.textContent = effect.icon || options.icon || '◆';
+    }
     durationEl.textContent = options.durationText ?? formatDuration(effect.duration, isPassive ? '∞' : '');
     el.dataset.tooltipTitle = effect.name || effect.type || '狀態';
     el.dataset.tooltipBody = effect.description || options.description || '';
@@ -291,7 +333,13 @@ export function renderCombatMonster(root, monster, options = {}) {
     const maxHp = getMonsterMaxHp(monster);
     const hpPercent = clampPercent((currentHp / maxHp) * 100);
 
-    setText(root, '#battle-monster-icon, #monster-icon', monster.icon || options.fallbackIcon || '?');
+    setImageOrTextIcon(
+        root,
+        '#battle-monster-icon, #monster-icon',
+        monster.image || getGeneratedMonsterImage(monster.id),
+        monster.name,
+        monster.icon || options.fallbackIcon || '?'
+    );
     setText(root, '#battle-monster-name, #monster-name', monster.name || options.fallbackName || '敵人');
     setText(root, '#battle-monster-level, #monster-level', monster.level ?? options.level ?? '?');
     setText(root, '#battle-monster-hp-text, #monster-hp-text', `${currentHp}/${maxHp}`);

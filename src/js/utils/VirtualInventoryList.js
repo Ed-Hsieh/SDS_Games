@@ -1,13 +1,12 @@
 import { attachItemTooltip, detachItemTooltip } from './ItemTooltip.js';
+import { getItemVisualHtml } from './ItemDisplay.js';
 
 const DEFAULT_ITEM_HEIGHT = 84;
 const DEFAULT_EMPTY_HTML = '<div class="empty-hint">背包空空如也...</div>';
 
 function defaultRenderInventoryItem(node, stack) {
     const item = stack.item || {};
-    const iconHtml = item.image
-        ? `<img src="${item.image}" alt="${item.name || ''}" style="width: 100%; height: 100%; object-fit: contain;">`
-        : (item.icon || '📦');
+    const iconHtml = getItemVisualHtml(item, '📦');
 
     node.innerHTML = `
         <div class="item-icon">

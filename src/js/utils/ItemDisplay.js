@@ -1,4 +1,5 @@
 import { getItemDescription, normalizeItemType, readEquipmentStats, readItemStat, readNumber } from '../models/ItemSchema.js';
+import { getGeneratedItemImage } from '../data/AssetManifest.js';
 
 export const ITEM_TYPE_TEXT = {
     weapon: '武器',
@@ -122,12 +123,13 @@ export function renderAtlasIconHtml(atlas, extraClass = '') {
 }
 
 export function getItemVisualHtml(item, fallbackIcon = '◆', extraClass = '') {
+    const image = getGeneratedItemImage(item) || item?.image || '';
+    if (image) {
+        const classAttribute = extraClass ? ` class="${escapeHtml(extraClass)}"` : '';
+        return `<img src="${escapeHtml(image)}" alt="${escapeHtml(item?.name || '')}"${classAttribute}>`;
+    }
     if (item?.atlas) {
         return renderAtlasIconHtml(item.atlas, extraClass);
-    }
-    if (item?.image) {
-        const classAttribute = extraClass ? ` class="${escapeHtml(extraClass)}"` : '';
-        return `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name || '')}"${classAttribute}>`;
     }
     return escapeHtml(item?.icon || fallbackIcon);
 }
@@ -469,11 +471,12 @@ export function getItemRarityText(rarity) {
 
 export function buildItemDisplayModel(item, options = {}) {
     const rarity = item?.rarity || options.rarity || 'common';
+    const image = getGeneratedItemImage(item, options) || item?.image || options.image || '';
     return {
         id: item?.id || options.id || '',
         name: item?.name || options.name || '未知物品',
         icon: item?.icon || options.icon || '◆',
-        image: item?.image || options.image || '',
+        image,
         atlas: item?.atlas || options.atlas || null,
         type: item?.type || options.type || '',
         rarity,
