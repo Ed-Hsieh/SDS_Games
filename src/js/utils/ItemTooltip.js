@@ -119,8 +119,25 @@ function schedulePosition() {
     });
 }
 
+function resolveTooltipPayload(target) {
+    if (target?.__itemTooltipPayload?.item) return target.__itemTooltipPayload;
+
+    const inline = target?.dataset?.itemTooltipPayload;
+    if (!inline) return null;
+
+    try {
+        const payload = JSON.parse(inline);
+        if (!payload?.item) return null;
+        target.__itemTooltipPayload = payload;
+        return payload;
+    } catch (error) {
+        console.warn('[ItemTooltip] Failed to parse inline tooltip payload:', error);
+        return null;
+    }
+}
+
 function showTooltip(target, event) {
-    const payload = target?.__itemTooltipPayload;
+    const payload = resolveTooltipPayload(target);
     if (!payload?.item) return;
 
     activeTarget = target;
@@ -171,6 +188,21 @@ if (typeof document !== 'undefined') {
 if (typeof window !== 'undefined') {
     window.addEventListener('scroll', hideTooltip, true);
     window.addEventListener('blur', hideTooltip);
+}
+
+/**
+ * For innerHTML-rendered lists: returns attributes that make the element a
+ * tooltip target without needing a post-render attach call.
+ */
+export function buildItemTooltipAttrs(item, options = {}) {
+    if (!item) return '';
+    try {
+        const payload = JSON.stringify({ item, options });
+        return ` data-item-tooltip="true" data-item-tooltip-payload="${escapeHtml(payload)}"`;
+    } catch (error) {
+        console.warn('[ItemTooltip] Failed to serialize tooltip payload:', error);
+        return '';
+    }
 }
 
 export function attachItemTooltip(element, item, options = {}) {

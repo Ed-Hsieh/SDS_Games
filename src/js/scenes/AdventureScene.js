@@ -31,6 +31,7 @@ import {
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
 import {
+    getGeneratedBackgroundImage,
     getGeneratedDungeonImage,
     getGeneratedLandmarkImage,
     getGeneratedMapPropImage,
@@ -90,10 +91,10 @@ const FightManagerReady = import('../managers/FightManager.js')
 
 // Centralized zone color definitions used by both rendering layers
 const ZONE_COLORS = {
-    low: { hex: '#31583b', fill: 'rgba(32, 74, 44, 0.46)', stroke: 'rgba(109, 142, 93, 0.08)', texture: 'rgba(153, 190, 131, 0.18)' },
-    medium: { hex: '#394f4b', fill: 'rgba(42, 63, 59, 0.48)', stroke: 'rgba(118, 145, 135, 0.08)', texture: 'rgba(141, 169, 154, 0.16)' },
-    high: { hex: '#685a43', fill: 'rgba(82, 71, 52, 0.5)', stroke: 'rgba(190, 166, 116, 0.09)', texture: 'rgba(216, 181, 95, 0.16)' },
-    death: { hex: '#5b332e', fill: 'rgba(83, 45, 39, 0.54)', stroke: 'rgba(207, 98, 79, 0.1)', texture: 'rgba(228, 120, 95, 0.15)' }
+    low: { hex: '#31583b', fill: 'rgba(32, 74, 44, 0.22)', stroke: 'rgba(109, 142, 93, 0.055)', texture: 'rgba(153, 190, 131, 0.13)' },
+    medium: { hex: '#394f4b', fill: 'rgba(42, 63, 59, 0.24)', stroke: 'rgba(118, 145, 135, 0.055)', texture: 'rgba(141, 169, 154, 0.12)' },
+    high: { hex: '#685a43', fill: 'rgba(82, 71, 52, 0.26)', stroke: 'rgba(190, 166, 116, 0.06)', texture: 'rgba(216, 181, 95, 0.12)' },
+    death: { hex: '#5b332e', fill: 'rgba(83, 45, 39, 0.28)', stroke: 'rgba(207, 98, 79, 0.07)', texture: 'rgba(228, 120, 95, 0.11)' }
 };
 
 const LANDMARK_REGION_STYLES = {
@@ -677,11 +678,26 @@ export default class AdventureScene {
         }
 
         const image = new Image();
-        image.onload = () => this.renderMap();
+        image.onload = () => {
+            if (normalized.includes('/backgrounds/')) {
+                this.staticDirty = true;
+                this.buildStaticLayer?.();
+            }
+            this.renderMap();
+        };
         image.onerror = () => this.mapImageCache.delete(normalized);
         this.mapImageCache.set(normalized, image);
         image.src = normalized;
         return null;
+    }
+
+    drawCanvasStretchedImage(ctx, image, x, y, width, height, alpha = 1) {
+        if (!ctx || !image || !image.complete || image.naturalWidth <= 0) return false;
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(image, x, y, width, height);
+        ctx.restore();
+        return true;
     }
 
     drawCanvasImageMarker(ctx, src, cx, cy, size, options = {}) {
@@ -1064,15 +1080,20 @@ export default class AdventureScene {
 
     triggerTestEvent(zone, mode = 'question') {
         const targetZone = this.getTestZone(zone);
+        const eventContext = { stepCount: this.worldMap?.travelStep };
         const event = mode === 'random'
-            ? eventManager.triggerRandomEvent(targetZone)
-            : eventManager.triggerMapQuestionEvent(targetZone);
+            ? eventManager.triggerRandomEvent(targetZone, eventContext)
+            : eventManager.triggerMapQuestionEvent(targetZone, eventContext);
 
         if (!event) return null;
         if (this.worldMap) this.worldMap.currentEvent = event;
         this.isLocked = true;
         this.toggleBossTestPanel(false);
-        this.handleMapEvent();
+        if (event.choices && Array.isArray(event.choices) && event.choices.length > 0) {
+            this.showStoryEventModal(event);
+        } else {
+            this.handleMapEvent();
+        }
         return targetZone;
     }
 
@@ -1341,6 +1362,10 @@ export default class AdventureScene {
                             <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="question">中區問號</button>
                             <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="question">高區問號</button>
                             <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="question">死亡區問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="random">低區一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="random">中區一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="random">高區一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="random">死亡區一般</button>
                         </div>
                     </div>
                     <div class="boss-tester-block">
@@ -2330,7 +2355,9 @@ export default class AdventureScene {
     
     triggerStoryEvent() {
         const zone = this.worldMap.getCurrentZone();
-        const event = eventManager.triggerRandomEvent(zone);
+        const event = eventManager.triggerRandomEvent(zone, {
+            stepCount: this.worldMap?.travelStep
+        });
         
         if (!event) {
             this.worldMap.clearCurrentEvent();
@@ -2346,7 +2373,7 @@ export default class AdventureScene {
         // 設置標題和描述
         if (this.dom.storyEventIcon) this.dom.storyEventIcon.innerHTML = this.renderEventVisual(event);
         if (this.dom.storyEventTitle) this.dom.storyEventTitle.textContent = event.name;
-        if (this.dom.storyEventType) this.dom.storyEventType.textContent = event.type.toUpperCase();
+        if (this.dom.storyEventType) this.dom.storyEventType.textContent = this.getStoryEventLabel(event);
         if (this.dom.storyEventDescription) this.dom.storyEventDescription.textContent = event.description;
         
         // 生成選項按鈕
@@ -2372,9 +2399,12 @@ export default class AdventureScene {
                 if (choice.chance !== undefined) {
                     chanceText = `<span class="choice-chance">(${Math.floor(choice.chance * 100)}% 成功)</span>`;
                 }
+
+                const intentText = this.getStoryChoiceIntent(choice);
                 
                 btn.innerHTML = `
                     <span class="choice-text">${choice.text}</span>
+                    ${intentText ? `<span class="choice-intent">${intentText}</span>` : ''}
                     ${costText ? `<span class="choice-cost">${costText}</span>` : ''}
                     ${chanceText}
                 `;
@@ -2395,6 +2425,66 @@ export default class AdventureScene {
         }
         
         this.dom.storyEventModal.style.display = 'flex';
+    }
+
+    getStoryEventLabel(event = {}) {
+        const typeLabels = {
+            blessing: '補給',
+            curse: '危機',
+            gamble: '風險',
+            trade: '交易',
+            mystery: '異常',
+            encounter: '遭遇'
+        };
+
+        const roleLabels = {
+            resource: '資源',
+            risk_reward: '抉擇',
+            trade: '交換',
+            story_seed: '聽聞',
+            side_story: '支線',
+            world_lore: '世界見聞',
+            pressure: '壓力'
+        };
+
+        const type = typeLabels[event.type] || '事件';
+        const role = roleLabels[event.eventRole] || '';
+        return role ? `${type} / ${role}` : type;
+    }
+
+    getStoryChoiceIntent(choice = {}) {
+        if (choice.intent || choice.hint) return choice.intent || choice.hint;
+
+        const collectResults = (entry) => {
+            if (!entry) return [];
+            if (Array.isArray(entry)) return entry.flatMap(collectResults);
+            if (Array.isArray(entry.results)) return collectResults(entry.results);
+            if (Array.isArray(entry.successResults) || Array.isArray(entry.failResults)) {
+                return [
+                    ...collectResults(entry.successResults),
+                    ...collectResults(entry.failResults)
+                ];
+            }
+            if (Array.isArray(entry.randomResults)) return collectResults(entry.randomResults);
+            return [entry];
+        };
+
+        if (choice.cost?.gold || choice.cost?.hp) {
+            return '需要付出代價，換取可能收益。';
+        }
+        if (choice.chance !== undefined || choice.isRandom) {
+            return '結果不完全穩定，適合願意冒險時。';
+        }
+
+        const types = new Set(collectResults(choice).map(result => String(result?.type || '')));
+        if (types.has('worldInteraction')) return '記錄或推進一段世界見聞。';
+        if (types.has('item')) return '取得物品或素材。';
+        if (types.has('gold')) return '取得金幣。';
+        if (types.has('exp')) return '取得經驗與情報理解。';
+        if (types.has('heal')) return '恢復生命，延長探索。';
+        if (types.has('buff')) return '取得短暫增益。';
+        if (types.has('damage') || types.has('debuff')) return '可能承擔負面效果。';
+        return '保守選擇，不改變目前狀態。';
     }
     
     executeStoryChoice(choiceIndex) {
@@ -2646,6 +2736,10 @@ export default class AdventureScene {
             events.forEach(event => {
                 this.currentBattle?.showStatusTickFeedback?.(event);
                 this.updateMonsterDisplay();
+                if (event.type === 'hpRegen') {
+                    this.updateUI();
+                    this.updatePlayerHUD();
+                }
                 if (event.targetDefeated) {
                     this.currentBattle?.handleVictory?.();
                 }
@@ -3072,6 +3166,9 @@ class AdventureBattleViewController {
 
         const res = this._engine.playerAttack(hitType);
         if (!res) return;
+        this.scene.rhythmSystem?.setBattleAttackSpeedBonus?.(
+            this._engine.getPlayerAttackSpeedBonusPercent?.() || 0
+        );
 
         // Update equipment UI if weapon was destroyed
         if (res.destroyedWeapon) this.scene.updateEquipmentDisplay();
@@ -3125,12 +3222,16 @@ class AdventureBattleViewController {
         const textMap = {
             stun: '⚡ 暈眩',
             slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
-            poison: `☠️ 中毒 ${effect.dps || 0}/秒`
+            poison: `☠️ 中毒 ${effect.dps || 0}/秒`,
+            attackSpeed: `✨ 攻速 +${Math.round(effect.totalPercent || effect.percent || 0)}%`,
+            hpRegen: `💚 回復 +${effect.amount || 0}`
         };
         const typeMap = {
             stun: 'statusStun',
             slow: 'statusSlow',
-            poison: 'statusPoison'
+            poison: 'statusPoison',
+            attackSpeed: 'statusBuff',
+            hpRegen: 'lifesteal'
         };
         showCombatDamageNumber(this.scene.container, 0, {
             type: typeMap[effect.type] || 'status',
@@ -3144,6 +3245,11 @@ class AdventureBattleViewController {
             showCombatDamageNumber(this.scene.container, event.damage || 0, {
                 type: 'dot',
                 label: `☠️ -${event.damage || 0}`
+            });
+        } else if (event.type === 'hpRegen') {
+            showCombatDamageNumber(this.scene.container, event.amount || 0, {
+                type: 'lifesteal',
+                label: `💚 回復 +${event.amount || 0}`
             });
         }
     }
@@ -3482,8 +3588,13 @@ AdventureScene.prototype.buildStaticLayer = function() {
         off.height = height;
         const octx = off.getContext('2d');
 
-        // Draw background
-        octx.fillStyle = '#09100f';
+        // Draw the authored world-map backdrop first, then keep data-driven overlays above it.
+        const worldMapBackground = this.getCanvasImage(getGeneratedBackgroundImage('adventure-world-map'));
+        if (!this.drawCanvasStretchedImage(octx, worldMapBackground, 0, 0, width, height, 0.86)) {
+            octx.fillStyle = '#09100f';
+            octx.fillRect(0, 0, width, height);
+        }
+        octx.fillStyle = 'rgba(3, 7, 8, 0.28)';
         octx.fillRect(0, 0, width, height);
 
         // Draw tiles as a painted map surface, not a visible debug grid.

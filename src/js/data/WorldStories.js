@@ -869,7 +869,7 @@ export const WorldLandmarks = [
         effectIds: ['thick_fog', 'old_seal'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_005'],
+        questIds: ['main_005', 'main_007'],
         storyChainIds: ['forest_guardian', 'lich'],
         clueIds: [],
         encounterProfileId: 'rotroot_wolf_track',

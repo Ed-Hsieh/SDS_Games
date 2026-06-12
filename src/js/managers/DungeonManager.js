@@ -542,23 +542,26 @@ class DungeonManagerClass {
      * 檢查是否擁有對抗道具
      */
     checkCounterItem(itemId, playerData = null) {
-        // 這裡需要整合實際的物品系統
-        // 暫時返回 false，後續整合時再實現
-        if (!playerData) return false;
-        
-        // 檢查裝備中是否有該物品
-        if (playerData.equipment) {
-            if (playerData.equipment.accessory?.id === itemId) return true;
-            if (playerData.equipment.weapon?.id === itemId) return true;
-            if (playerData.equipment.armor?.id === itemId) return true;
-        }
-        
-        // 檢查背包中是否有該物品
-        if (playerData.inventory) {
-            return playerData.inventory.some(item => item.id === itemId);
-        }
-        
-        return false;
+        if (!itemId) return false;
+
+        const character = playerData || GameManager.getCharacter?.() || {};
+        const equipment = character.equipment || GameManager.getCharacter?.()?.equipment || {};
+        const inventory = Array.isArray(character.inventory)
+            ? character.inventory
+            : (GameManager.getInventory?.() || GameManager.state?.inventory || []);
+        const warehouse = Array.isArray(character.warehouse)
+            ? character.warehouse
+            : (GameManager.state?.warehouse || []);
+
+        const matches = entry => {
+            if (!entry) return false;
+            const item = entry.item || entry;
+            const quantity = Number(entry.quantity ?? 1);
+            return quantity > 0 && (entry.id === itemId || item.id === itemId);
+        };
+
+        if (Object.values(equipment).some(matches)) return true;
+        return [...inventory, ...warehouse].some(matches);
     }
     
     // ==================== 樓層管理 ====================

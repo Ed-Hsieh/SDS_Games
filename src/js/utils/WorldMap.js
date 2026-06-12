@@ -107,6 +107,7 @@ export default class WorldMap {
         this.currentEvent = null;
         this.currentLandmark = null;
         this.currentDungeon = null; // 新增：當前副本入口
+        this.travelStep = Number(GameManager.getFlag('map.travelStep')) || 0;
         this.hasLeftHome = false; // 新增：玩家是否已經離開過家（用於判斷是否觸發回家事件）
         this.currentRift = null; // 當前互動的裂縫
         this.rifts = [];
@@ -725,11 +726,18 @@ export default class WorldMap {
         return site;
     }
 
-    createRandomMapEvent(zone) {
+    getEventContext(extra = {}) {
+        return {
+            ...extra,
+            stepCount: this.travelStep
+        };
+    }
+
+    createRandomMapEvent(zone, options = {}) {
         try {
             const event = eventManager.triggerMapQuestionEvent
-                ? eventManager.triggerMapQuestionEvent(zone)
-                : eventManager.triggerRandomEvent(zone);
+                ? eventManager.triggerMapQuestionEvent(zone, this.getEventContext(options))
+                : eventManager.triggerRandomEvent(zone, this.getEventContext(options));
             this.currentEvent = event;
             return Boolean(event);
         } catch (e) {
@@ -782,6 +790,12 @@ export default class WorldMap {
         
         this.playerPos.x = newX;
         this.playerPos.y = newY;
+        this.travelStep += 1;
+        if (!GameManager.state.flags || typeof GameManager.state.flags !== 'object') {
+            GameManager.state.flags = {};
+        }
+        GameManager.state.flags['map.travelStep'] = this.travelStep;
+        GameManager.markSaveDirty?.('map-travel-step');
         this.updateCamera();
             // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
             try {
@@ -843,8 +857,8 @@ export default class WorldMap {
                 // Generate the event at encounter time via the EventManager singleton
                 try {
                     const ev = eventManager.triggerMapQuestionEvent
-                        ? eventManager.triggerMapQuestionEvent(cell.zone)
-                        : eventManager.triggerRandomEvent(cell.zone);
+                        ? eventManager.triggerMapQuestionEvent(cell.zone, this.getEventContext({ fixedCell: true }))
+                        : eventManager.triggerRandomEvent(cell.zone, this.getEventContext({ fixedCell: true }));
                     this.currentEvent = ev;
                 } catch (e) {
                     // fallback to stateless getter if triggerRandomEvent isn't available

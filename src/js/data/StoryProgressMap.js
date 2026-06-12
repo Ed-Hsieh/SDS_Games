@@ -110,6 +110,33 @@ export const StoryProgressRules = [
     },
 
     {
+        id: 'rumor-echo-rhythm-validates-bell-order',
+        event: E.WORLD_INTERACTION,
+        match: { interactionId: 'rumor_echo_rhythm' },
+        actions: [
+            progress('drowned_oracle', 'use_echo_shell')
+        ]
+    },
+    {
+        id: 'black-market-coal-token-opens-meeting',
+        event: E.WORLD_INTERACTION,
+        match: { interactionId: 'black_market_coal_token' },
+        actions: [
+            clue('smuggled_coal_token'),
+            progress('ash_baron', 'trade_coal_token')
+        ]
+    },
+    {
+        id: 'thorn-bargain-choice-reveals-rule',
+        event: E.WORLD_INTERACTION,
+        match: { interactionId: 'thorn_bargain_choice' },
+        actions: [
+            clue('green_bargain_mark'),
+            progress('thorn_witch', 'choose_bargain')
+        ]
+    },
+
+    {
         id: 'main-001-frames-first-trail',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_001' },

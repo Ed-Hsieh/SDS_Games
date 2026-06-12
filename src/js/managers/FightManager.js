@@ -78,9 +78,22 @@ function getStatusIcon(effect) {
     const icons = {
         stun: '⚡',
         slow: '❄️',
-        poison: '☠️'
+        poison: '☠️',
+        attackSpeed: '✨',
+        hpRegen: '💚'
     };
     return effect?.icon || icons[effect?.type] || '◆';
+}
+
+function getPlayerHpRegenAmount(player, effects = null) {
+    const hpRegenPercent = Number(effects?.hpRegen ?? getEquipmentEffectTotals(player).hpRegen) || 0;
+    if (hpRegenPercent <= 0) return 0;
+
+    const maxHp = getMaxHp(player);
+    const currentHp = getCurrentHp(player);
+    if (maxHp <= 0 || currentHp >= maxHp) return 0;
+
+    return Math.min(maxHp - currentHp, Math.max(1, Math.floor(maxHp * (hpRegenPercent / 100))));
 }
 
 export function normalizeMonsterCombatStats(monster) {
@@ -277,9 +290,24 @@ export function applyDamage(attacker, target, damageObj) {
         }
     }
 
+    if (attackerEffects?.stunChance > 0 && finalDamage > 0) {
+        const chance = Math.min(100, Math.max(0, Number(attackerEffects.stunChance) || 0));
+        if (Math.random() * 100 < chance) {
+            appliedEffects.push({ type: 'stun', duration: 1.2, source: 'stunChance', value: chance });
+        }
+    }
+
     // Ice: apply slow to target for 3 seconds
     if (icePercent > 0 && finalDamage > 0) {
         appliedEffects.push({ type: 'slow', percent: icePercent, duration: 3, source: 'ice' });
+    }
+
+    if (attackerEffects?.slowChance > 0 && finalDamage > 0) {
+        const chance = Math.min(100, Math.max(0, Number(attackerEffects.slowChance) || 0));
+        if (Math.random() * 100 < chance) {
+            const slowPercent = Math.max(15, Math.min(55, chance));
+            appliedEffects.push({ type: 'slow', percent: slowPercent, duration: 3, source: 'slowChance', value: chance });
+        }
     }
 
     // Poison: apply damage-over-time (DPS) for 3 seconds
@@ -323,6 +351,8 @@ export class BattleController {
         this._onStatusTick = null;
         this._autoAttackIntervalId = null;
         this._statusTickIntervalId = null;
+        this._nextPlayerRegenAt = 0;
+        this._playerAttackSpeedBonusPercent = 0;
     }
 
     _getActiveMonsterStatusEffects(now = Date.now()) {
@@ -340,6 +370,24 @@ export class BattleController {
 
     _isMonsterStunned(now = Date.now()) {
         return this._getActiveMonsterStatusEffects(now).some(effect => effect.type === 'stun');
+    }
+
+    _getPlayerHpRegenAmount() {
+        return getPlayerHpRegenAmount(this.player, getEquipmentEffectTotals(this.player));
+    }
+
+    _hasStatusTickerWork(now = Date.now()) {
+        return this._getActiveMonsterStatusEffects(now).length > 0 || this._getPlayerHpRegenAmount() > 0;
+    }
+
+    getPlayerAttackSpeedBonusPercent() {
+        return Math.max(0, Number(this._playerAttackSpeedBonusPercent) || 0);
+    }
+
+    getPlayerActionCooldownSeconds(baseSeconds = null) {
+        const base = Number(baseSeconds ?? this.player?.getAttackSpeed?.() ?? 1) || 1;
+        const multiplier = 1 + this.getPlayerAttackSpeedBonusPercent() / 100;
+        return Math.max(0.1, base / Math.max(0.1, multiplier));
     }
 
     _getMonsterAttackDelayMs() {
@@ -416,6 +464,28 @@ export class BattleController {
         return statusEvents;
     }
 
+    applyAttackerStatusEffects(effects = []) {
+        const statusEvents = [];
+        for (const effect of effects || []) {
+            if (effect?.type !== 'attackSpeed') continue;
+
+            const percent = Math.max(0, Number(effect.percent) || 0);
+            if (percent <= 0) continue;
+
+            this._playerAttackSpeedBonusPercent += percent;
+            statusEvents.push({
+                type: 'attackSpeed',
+                source: effect.source || 'equipment',
+                name: '攻速提升',
+                icon: getStatusIcon({ type: 'attackSpeed' }),
+                percent,
+                totalPercent: this.getPlayerAttackSpeedBonusPercent(),
+                applied: true
+            });
+        }
+        return statusEvents;
+    }
+
     tickStatusEffects(now = Date.now()) {
         if (this.battleEnded || !this.monster) return [];
 
@@ -447,6 +517,22 @@ export class BattleController {
             }
         }
 
+        if (this._getPlayerHpRegenAmount() > 0 && (!this._nextPlayerRegenAt || this._nextPlayerRegenAt <= now)) {
+            const beforeHP = getCurrentHp(this.player);
+            const amount = this._getPlayerHpRegenAmount();
+            if (amount > 0) {
+                setEntityHp(this.player, beforeHP + amount);
+                events.push({
+                    type: 'hpRegen',
+                    source: 'equipment',
+                    amount,
+                    beforeHP,
+                    afterHP: getCurrentHp(this.player)
+                });
+            }
+            this._nextPlayerRegenAt = now + 1000;
+        }
+
         this._getActiveMonsterStatusEffects(now);
 
         if (events.length > 0) {
@@ -473,7 +559,7 @@ export class BattleController {
                 return;
             }
             this.tickStatusEffects();
-            if (this._getActiveMonsterStatusEffects().length === 0) {
+            if (!this._hasStatusTickerWork()) {
                 this.stopStatusTicker();
             }
         }, 250);
@@ -581,6 +667,15 @@ export class BattleController {
 
                 const statusEvents = this.applyMonsterStatusEffects(pendingStatusEffects);
                 applyRes.statusEvents = statusEvents;
+                const attackerStatusEvents = this.applyAttackerStatusEffects(applyRes.attackerEffects);
+                applyRes.attackerStatusEvents = attackerStatusEvents;
+                if (attackerStatusEvents.length > 0) {
+                    try {
+                        if (typeof this._onStatusApplied === 'function') this._onStatusApplied(attackerStatusEvents);
+                    } catch (e) {
+                        console.warn('onStatusApplied listener failed:', e);
+                    }
+                }
 
                 if (getCurrentHp(this.monster) <= 0 || (this.monster && typeof this.monster.isDead === 'function' && this.monster.isDead())) {
                     this.battleEnded = true;
@@ -651,6 +746,10 @@ export class BattleController {
             this.player.setHP(Math.max(0, cur - damage));
         }
 
+        if (this._getPlayerHpRegenAmount() > 0) {
+            this.startStatusTicker();
+        }
+
         // Armor durability
         let destroyedArmor = null;
         try {
@@ -707,7 +806,7 @@ export class BattleController {
             return;
         }
         this._scheduleNextAutoAttack();
-        if (this._getActiveMonsterStatusEffects().length > 0) this.startStatusTicker();
+        if (this._hasStatusTickerWork()) this.startStatusTicker();
     }
 
     stopAutoAttack() {
@@ -731,7 +830,7 @@ export class BattleController {
             // startAutoAttack will no-op if interval already exists
             this.startAutoAttack();
         }
-        if (this._getActiveMonsterStatusEffects().length > 0) this.startStatusTicker();
+        if (this._hasStatusTickerWork()) this.startStatusTicker();
     }
 
     /**

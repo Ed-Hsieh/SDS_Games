@@ -4,6 +4,7 @@
  */
 import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getQuestStory } from '../data/QuestStories.js';
@@ -329,6 +330,7 @@ export default class QuestScene {
         const statusText = this.getStatusText(state.status);
         const questStory = story || getQuestStory(questData, state);
         const nextStep = this.getNextStepText(state.status, safeProgressInfo, questStory);
+        const thought = this.getQuestThoughtText(state.status, nextStep, questStory, safeProgressInfo, questData);
         const progressText = safeProgressInfo.required > 0
             ? `${safeProgressInfo.current}/${safeProgressInfo.required}`
             : '0/0';
@@ -351,11 +353,11 @@ export default class QuestScene {
                 </div>
                 <p>${escapeHtml(questStory.current)}</p>
             </section>
-            <section class="quest-note-next" aria-label="下一步">
+            <section class="quest-note-next" aria-label="玩家思考">
                 <div class="quest-note-next-copy">
-                    <span>下一步</span>
-                    <strong>${escapeHtml(nextStep.title)}</strong>
-                    <p>${escapeHtml(questStory.nextLead || nextStep.description)}</p>
+                    <span>我在想</span>
+                    <strong>${escapeHtml(thought.title)}</strong>
+                    <p>${escapeHtml(thought.description)}</p>
                 </div>
                 <div class="quest-note-progress" aria-label="任務補齊程度">
                     <strong>${escapeHtml(progressText)}</strong>
@@ -366,6 +368,149 @@ export default class QuestScene {
                 <div class="quest-note-meter-fill"></div>
             </div>
         `;
+    }
+
+    getPlayerThoughtText(status, nextStep, story = null, progressInfo = null) {
+        const lead = story?.nextLead || nextStep?.description || '';
+        if (status === QuestStatus.AVAILABLE) {
+            return {
+                title: '我現在是否該先把這件事記下來？',
+                description: '這還只是聽聞。先收入旅人手札，之後才知道哪些空白需要自己去補。'
+            };
+        }
+
+        if (status === QuestStatus.ACTIVE) {
+            if (progressInfo?.percent >= 100) {
+                return {
+                    title: '我現在是否可以回去整理結果？',
+                    description: '手札裡該補的部分已經差不多了，接下來該讓相關的人知道發生了什麼。'
+                };
+            }
+
+            return {
+                title: '我現在是否可以去現場看看？',
+                description: lead || '手札還有空白。與其等別人把答案送上門，不如自己去確認。'
+            };
+        }
+
+        if (status === QuestStatus.COMPLETED) {
+            const reportName = story?.reportTo?.name || '委託人';
+            return {
+                title: `我現在是否該回去找${reportName}？`,
+                description: '事情已經有結果了。直接在手札裡結案太像自言自語，還是找當事人說清楚。'
+            };
+        }
+
+        if (status === QuestStatus.FINISHED) {
+            return {
+                title: '這件事暫時告一段落了嗎？',
+                description: '紀錄已經歸檔，但它造成的變化可能還留在城鎮、人物或下一段旅程裡。'
+            };
+        }
+
+        return {
+            title: '我現在是否該重新讀一遍？',
+            description: lead || '先把這段紀錄看懂，再決定要往哪裡走。'
+        };
+    }
+
+    getQuestThoughtText(status, nextStep, story = null, progressInfo = null, questData = null) {
+        const speakerName = story?.speaker?.name || questData?.npcName || '對方';
+        const reportName = story?.reportTo?.name || speakerName || '委託人';
+        const lead = story?.nextLead || nextStep?.description || '';
+        const nextObjective = progressInfo?.nextObjective || null;
+        const objectiveText = nextObjective
+            ? (this.getStoryObjectiveText(story, nextObjective.index) || nextObjective.description || this.getObjectiveText(nextObjective))
+            : '';
+        const cleanObjective = String(objectiveText || '').replace(/[。.]$/, '');
+
+        if (status === QuestStatus.AVAILABLE) {
+            return {
+                title: '我現在是否該把這件事記下來？',
+                description: `${speakerName}把事情說到這裡，剩下的部分得靠我親自確認。`
+            };
+        }
+
+        if (status === QuestStatus.ACTIVE) {
+            if (progressInfo?.percent >= 100) {
+                return {
+                    title: `我現在是否可以回去找${reportName}？`,
+                    description: '手上的紀錄已經足夠，接下來該把現場看到的事交回給真正等消息的人。'
+                };
+            }
+
+            switch (nextObjective?.type) {
+                case ObjectiveType.KILL:
+                    return {
+                        title: '我現在是否該去處理那些怪物？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。這不是單純狩獵，而是在確認異常從哪裡開始擴散。`
+                            : lead || '現場還有怪物活動的痕跡，先把威脅壓下來比較穩。'
+                    };
+                case ObjectiveType.COLLECT:
+                    return {
+                        title: '我現在是否該先找齊需要的東西？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。材料本身也許能說明委託人沒說出口的原因。`
+                            : lead || '先把缺的東西帶回來，事情才會有下一段。'
+                    };
+                case ObjectiveType.EXPLORE:
+                    return {
+                        title: '我現在是否該去現場走一圈？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。聽來的消息只能當方向，地上的痕跡才會說實話。`
+                            : lead || '先去指定地點確認環境，別急著把傳聞當答案。'
+                    };
+                case ObjectiveType.TALK:
+                    return {
+                        title: '我現在是否該先找人問清楚？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。這件事的重點也許藏在對方選擇不明說的地方。`
+                            : lead || '回到城鎮問清楚，應該能少走一段冤枉路。'
+                    };
+                case ObjectiveType.CRAFT:
+                case ObjectiveType.ENHANCE:
+                    return {
+                        title: '我現在是否可以回工坊準備？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。裝備整理好，後面的路才不會只靠運氣。`
+                            : lead || '先把裝備路線補上，下一場戰鬥會更有把握。'
+                    };
+                case ObjectiveType.DUNGEON_FLOOR:
+                case ObjectiveType.DUNGEON_CLEAR:
+                case ObjectiveType.DUNGEON_BOSS:
+                    return {
+                        title: '我現在是否該深入副本確認？',
+                        description: cleanObjective
+                            ? `${cleanObjective}。副本裡留下的東西，通常比城裡的傳聞更接近真相。`
+                            : lead || '副本還有沒有被確認的部分，得親自走進去才知道。'
+                    };
+                default:
+                    return {
+                        title: '我現在是否該補上下一段紀錄？',
+                        description: cleanObjective || lead || '這件事還沒有完整答案，先照目前的線索往前推。'
+                    };
+            }
+        }
+
+        if (status === QuestStatus.COMPLETED) {
+            return {
+                title: `我現在是否該回去找${reportName}？`,
+                description: '事情已經有了結果，但它還沒有回到該聽見結果的人手上。'
+            };
+        }
+
+        if (status === QuestStatus.FINISHED) {
+            return {
+                title: '這段紀錄已經收進手札。',
+                description: story?.finished || '事情留下了結果，也讓城鎮多了一段能被回頭翻到的記憶。'
+            };
+        }
+
+        return {
+            title: '我現在是否該重新整理這件事？',
+            description: lead || '目前紀錄還不完整，先看下一個能被確認的方向。'
+        };
     }
 
     renderObjectives(objectives, progress = [], story = null) {
@@ -476,7 +621,7 @@ export default class QuestScene {
                         <span class="reward-icon">${getItemVisualHtml(itemData, '📦')}</span>
                         <span class="reward-name">${escapeHtml(itemData.name)}</span>
                     `;
-                    el.title = itemData.description || itemData.name;
+                    attachItemTooltip(el, itemData, { hint: '任務獎勵' });
                     this.dom.detailRewards.appendChild(el);
                 }
             });
@@ -491,7 +636,8 @@ export default class QuestScene {
                     <span class="reward-icon">${material ? getItemVisualHtml(material, '◇') : '◇'}</span>
                     <span class="reward-name">${escapeHtml(material?.name || entry.id)} x${entry.quantity || 1}</span>
                 `;
-                el.title = material?.description || material?.name || entry.id;
+                if (material) attachItemTooltip(el, material, { quantity: entry.quantity || 1, hint: '任務獎勵' });
+                else el.title = entry.id;
                 this.dom.detailRewards.appendChild(el);
             });
         }
@@ -512,6 +658,7 @@ export default class QuestScene {
         let completed = 0;
         let current = 0;
         let required = 0;
+        let nextObjective = null;
 
         list.forEach((obj, index) => {
             const prog = progress?.[index];
@@ -521,6 +668,14 @@ export default class QuestScene {
             current += currentCount;
             required += requiredCount;
             if (currentCount >= requiredCount) completed++;
+            if (!nextObjective && currentCount < requiredCount) {
+                nextObjective = {
+                    ...obj,
+                    index,
+                    current: currentCount,
+                    required: requiredCount
+                };
+            }
         });
 
         return {
@@ -528,6 +683,8 @@ export default class QuestScene {
             completed,
             current,
             required,
+            nextObjective,
+            remaining: Math.max(0, list.length - completed),
             percent: required > 0 ? Math.min(100, Math.floor((current / required) * 100)) : 0
         };
     }

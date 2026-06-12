@@ -1456,13 +1456,14 @@
 }
 
 .story-event-content {
-    max-width: 550px;
+    max-width: 640px;
     width: 90%;
-    background: linear-gradient(145deg, #1a1a2e, #16213e);
-    border: 3px solid rgba(156, 39, 176, 0.6);
-    border-radius: 20px;
+    max-height: 86vh;
+    background: #111820;
+    border: 1px solid rgba(210, 173, 92, 0.34);
+    border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 0 60px rgba(156, 39, 176, 0.4);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
     animation: storyEventIn 0.4s ease;
 }
 
@@ -1470,14 +1471,21 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 25px;
-    background: linear-gradient(135deg, rgba(156, 39, 176, 0.2), rgba(103, 58, 183, 0.1));
-    border-bottom: 2px solid rgba(156, 39, 176, 0.4);
+    padding: 22px 24px;
+    background: rgba(255, 255, 255, 0.035);
+    border-bottom: 1px solid rgba(210, 173, 92, 0.24);
 }
 
 .story-event-icon {
-    font-size: 48px;
-    animation: eventIconFloat 3s ease-in-out infinite;
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    font-size: 34px;
 }
 
 .story-event-title {
@@ -1489,16 +1497,19 @@
 
 .story-event-type {
     padding: 6px 14px;
-    background: rgba(156, 39, 176, 0.3);
-    border-radius: 20px;
-    font-size: 11px;
+    background: rgba(210, 173, 92, 0.12);
+    border: 1px solid rgba(210, 173, 92, 0.36);
+    border-radius: 999px;
+    font-size: 12px;
     font-weight: bold;
-    color: #ce93d8;
-    letter-spacing: 1px;
+    color: #e5c36a;
+    letter-spacing: 0;
 }
 
 .story-event-body {
-    padding: 25px;
+    padding: 24px;
+    overflow-y: auto;
+    max-height: calc(86vh - 118px);
 }
 
 .story-event-description {
@@ -1518,19 +1529,20 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 16px 20px;
+    gap: 6px;
+    padding: 14px 16px;
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     transition: transform 0.3s, opacity 0.3s, background-color 0.3s, border-color 0.3s, color 0.3s;
     text-align: left;
 }
 
 .story-choice-btn:hover {
-    background: rgba(156, 39, 176, 0.2);
-    border-color: rgba(156, 39, 176, 0.6);
-    transform: translateX(8px);
+    background: rgba(210, 173, 92, 0.12);
+    border-color: rgba(210, 173, 92, 0.52);
+    transform: translateX(4px);
 }
 
 .choice-text {
@@ -1541,24 +1553,28 @@
 
 .choice-cost {
     font-size: 13px;
-    color: #f44336;
-    margin-top: 6px;
+    color: #ff8b8b;
 }
 
 .choice-chance {
     font-size: 12px;
-    color: #ffc107;
-    margin-left: 10px;
+    color: #e5c36a;
+}
+
+.choice-intent {
+    font-size: 13px;
+    color: rgba(232, 238, 245, 0.66);
+    line-height: 1.45;
 }
 
 .story-event-result {
     padding: 25px;
-    border-top: 2px solid rgba(156, 39, 176, 0.3);
+    border-top: 1px solid rgba(210, 173, 92, 0.24);
     text-align: center;
 }
 
 .story-event-result h3 {
-    color: #ce93d8;
+    color: #e5c36a;
     margin: 0 0 15px 0;
 }
 

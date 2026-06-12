@@ -9,7 +9,6 @@ import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js?v=equipment-atlas-20260605b';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
-import { globalGoalTracker } from '../utils/GlobalGoalTracker.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import {
     buildItemDisplayModel,
@@ -46,7 +45,6 @@ export default class ForgeScene {
 
     cleanup() {
         this.unbindEvents();
-        globalGoalTracker.setForgeRecipe(null);
     }
 
     cacheDOM() {
@@ -327,12 +325,10 @@ export default class ForgeScene {
         
         // 顯示配方詳情
         this.showRecipeInfo(recipe);
-        globalGoalTracker.setForgeRecipe(recipe.id);
     }
 
     clearSelectedRecipe() {
         this.selectedRecipe = null;
-        globalGoalTracker.setForgeRecipe(null);
 
         if (this.dom.selectedRecipe) {
             this.dom.selectedRecipe.style.display = '';
@@ -1047,14 +1043,7 @@ export default class ForgeScene {
     }
 
     getRarityText(rarity) {
-        const rarityMap = {
-            'common': '普通',
-            'uncommon': '優秀',
-            'rare': '稀有',
-            'epic': '史詩',
-            'legendary': '傳說'
-        };
-        return rarityMap[rarity] || rarity || '普通';
+        return getItemRarityText(rarity);
     }
 
     // ==================== 裝備強化系統 ====================

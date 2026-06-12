@@ -1,4 +1,5 @@
 const GENERATED_ASSET_BASE = 'src/assets/images/generated/2026-06-10/cropped';
+const GENERATED_BACKGROUND_BASE = 'src/assets/images/generated/2026-06-11/backgrounds';
 
 const sets = {
     equipment: new Set([
@@ -79,7 +80,8 @@ const sets = {
     ]),
     portraits: new Set([
         'village_elder', 'blacksmith', 'herbalist', 'town_scholar', 'street_beggar',
-        'merchant', 'black_market', 'casino_dealer', 'tower_warden'
+        'merchant', 'apothecary_assistant', 'tinker', 'rumor_broker', 'black_market',
+        'casino_dealer', 'tower_warden'
     ]),
     monsters: new Set([
         'ambush_mantis', 'ancient_guardian', 'ancient_titan', 'ash_baron', 'blood_moon_stag',
@@ -129,6 +131,9 @@ const sets = {
         'armor_break', 'attack_speed_down', 'attack_up', 'bleed', 'block', 'boss_warning',
         'burn', 'cold_resist', 'counter', 'critical', 'defense_up', 'dodge', 'double_strike',
         'dragon_burn', 'freeze', 'hit', 'kill_freeze', 'lifesteal', 'poison', 'poison_resist'
+    ]),
+    backgrounds: new Set([
+        'town-overview', 'adventure-world-map'
     ])
 };
 
@@ -172,7 +177,9 @@ function normalizeId(id = '') {
 
 function assetPath(category, id) {
     const normalizedId = normalizeId(id);
-    return normalizedId ? `${GENERATED_ASSET_BASE}/${category}/${normalizedId}.png` : '';
+    if (!normalizedId) return '';
+    const base = category === 'backgrounds' ? GENERATED_BACKGROUND_BASE : `${GENERATED_ASSET_BASE}/${category}`;
+    return `${base}/${normalizedId}.png`;
 }
 
 function knownAssetPath(category, id) {
@@ -222,6 +229,10 @@ export function getGeneratedMapPropImage(propId) {
 
 export function getGeneratedStoryRelicImage(relicId) {
     return knownAssetPath('story-relics', relicId);
+}
+
+export function getGeneratedBackgroundImage(backgroundId) {
+    return knownAssetPath('backgrounds', backgroundId);
 }
 
 export function getGeneratedItemImage(item = {}, options = {}) {

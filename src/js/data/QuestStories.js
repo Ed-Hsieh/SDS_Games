@@ -784,6 +784,125 @@ export const QuestStoryDatabase = {
             '書記需要深淵碎片與索引封皮，完成活人名冊的最後整理。'
         ]
     },
+    hidden_broke: {
+        arc: '城中暗流',
+        source: '一無所有時的眼力',
+        location: '暗巷入口',
+        speaker: { name: '巷口流浪者', avatar: '🧥' },
+        discovery: '你在身無分文時回到城鎮。暗巷的風比平常冷，巷口流浪者卻像早就知道你會走到這裡。',
+        available: '這不是委託，也不像好事。流浪者說，口袋空了以後，人才會看見被有錢人踩過去的小路。',
+        active: '回到暗巷入口，聽巷口流浪者講完那套很不體面、卻很有用的生存法。',
+        completed: '巷口流浪者把一無所有時的生存法則塞進你的手札。那幾句話聽起來像玩笑，卻每句都能在城裡換一口氣。',
+        finished: '你仍然沒有變富，但至少知道自己不是唯一摔進坑裡的人。這在某些夜晚已經算一種資產。',
+        nextLead: '回到暗巷入口，找巷口流浪者談談。',
+        route: 'lobby',
+        reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
+        objectives: [
+            '身無分文後，暗巷入口的巷口流浪者似乎有話要說。'
+        ]
+    },
+    hidden_death_loop: {
+        arc: '隱藏短篇',
+        source: '反覆醒來的早晨',
+        location: '城鎮十字路',
+        speaker: { name: '村長', avatar: '🏘️' },
+        discovery: '你又一次從城鎮醒來。鞋底的泥、身上的傷、還有村長看你的眼神都在說：這不是第一次。',
+        available: '死亡沒有把你帶走，只把你送回來。村長不把這件事寫成神蹟，他只問你下一場戰鬥能不能活著結束。',
+        active: '在下一場戰鬥中獲勝，確認這不是單純被世界拿來反覆摔打的惡作劇。',
+        completed: '你贏下下一場戰鬥時，胸口那種被拉回城鎮的空洞感終於安靜了一點。',
+        finished: '村長把這段紀錄夾進手札最裡面。不是每件怪事都該先講給大家聽，尤其是聽起來會讓人睡不著的那種。',
+        nextLead: '贏下一場戰鬥後，回去找村長確認這段異常。',
+        route: 'adventure',
+        reportTo: { npcId: 'village_elder', name: '村長', route: 'lobby', label: '回去找村長' },
+        objectives: [
+            '死亡次數多到開始留下規律。下一場戰鬥若能獲勝，也許能確認這股異常。'
+        ]
+    },
+    hidden_gambler_ruin: {
+        arc: '城中暗流',
+        source: '輸到規律浮上來',
+        location: '賭場',
+        speaker: { name: '巷口流浪者', avatar: '🧥' },
+        discovery: '你在賭場輸到連莊家都懶得安慰。巷口流浪者說，連輸十次不是運氣差，而是有人想讓你看見底牌。',
+        available: '他要你再回賭桌贏一次。不是為了翻本，而是確認那些失敗裡有沒有被安排好的節奏。',
+        active: '回到賭場贏下一局，讓輸到發亮的規律露出真正輪廓。',
+        completed: '你終於贏回一局。那一刻不像幸運，比較像有人把門縫開了一點點。',
+        finished: '巷口流浪者把這段寫成「不要相信自己快轉運了」。他說這是對所有賭徒最善良、也最難聽的忠告。',
+        nextLead: '到賭場贏下一局，再回暗巷入口找巷口流浪者。',
+        route: 'casino',
+        reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
+        objectives: [
+            '連續輸局後，巷口流浪者要你回賭場贏下一局，確認失敗是否藏著人為痕跡。'
+        ]
+    },
+    hidden_dark_deal: {
+        arc: '丘陵暗流',
+        source: '門縫後的契約',
+        location: '暗巷入口',
+        speaker: { name: '巷口流浪者', avatar: '🧥' },
+        discovery: '黑市標籤被讀出後，暗巷裡多了一道門縫。裡面有人把契約寫得很薄，薄到像一張隨時會割手的紙。',
+        available: '神秘商人要三枚靈魂碎片。巷口流浪者提醒你：不是所有交易都會收錢，有些交易收的是你以後睡覺的品質。',
+        active: '收集 3 枚靈魂碎片，再決定要不要把門縫後的交易記進手札。',
+        completed: '契約被交到你手上時沒有雷鳴，也沒有火光。最可怕的交易通常很安靜，安靜到像你本來就答應過。',
+        finished: '巷口流浪者沒有阻止你。他只是說，城鎮裡每個人都有底線，差別只在有沒有機會親手量一次。',
+        nextLead: '收集靈魂碎片 3 個後，回暗巷入口找巷口流浪者。',
+        route: 'adventure',
+        reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
+        objectives: [
+            '黑市門縫後有人提出交易，需要 3 枚靈魂碎片作為代價。'
+        ]
+    },
+    hidden_lucky_seven: {
+        arc: '城中暗流',
+        source: '七次鈴聲',
+        location: '賭場',
+        speaker: { name: '巷口流浪者', avatar: '🧥' },
+        discovery: '你連續撞見大獎後，賭場的鈴聲開始聽起來不像慶祝，比較像有人在後台敲暗號。',
+        available: '巷口流浪者說，七是好數字，因為人們看到七就會暫時停止懷疑。這句話本身就很可疑。',
+        active: '在老虎機累積 7 次勝利，把那串過分整齊的好運拆開來看。',
+        completed: '第七次勝利響起時，鈴聲背後多了一拍。那不是祝福，是有人終於忍不住敲錯了。',
+        finished: '巷口流浪者把幸運符交給你，然後補一句：真正的好運是知道什麼時候離桌。這句他大概對很多人說過，但沒幾個聽。',
+        nextLead: '到賭場在老虎機累積 7 次勝利，再回暗巷入口。',
+        route: 'casino',
+        reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
+        objectives: [
+            '連續大獎引來暗巷注意。累積 7 次老虎機勝利，確認幸運背後是否有人為暗號。'
+        ]
+    },
+    hidden_max_enhance: {
+        arc: '鍛造短篇',
+        source: '第十道裂光',
+        location: '鍛造鋪',
+        speaker: { name: '鍛造師', avatar: '⚒️' },
+        discovery: '裝備強化到極限時，鍛造鋪的爐聲突然低了一拍。鍛造師沒有稱讚你，只把護目鏡戴得更緊。',
+        available: '他說 +10 不是終點，只是表示這件東西已經開始懂得反抗。你需要拿傳說裝備再試一次，看看它願不願意繼續活下去。',
+        active: '強化一件傳說裝備，讓鍛造師確認極限後的材料反應。',
+        completed: '強化火花不是往外炸，而是往裝備內部縮回去。鍛造師安靜了很久，最後說：這東西現在有脾氣了。',
+        finished: '超越石被放進你的手裡。鍛造師說它不是獎品，是警告：能跨過極限的東西，也常常比較難照顧。',
+        nextLead: '強化一件傳說裝備後，回去找鍛造師。',
+        route: 'forge',
+        reportTo: { npcId: 'blacksmith', name: '鍛造師', route: 'lobby', label: '回去找鍛造師' },
+        objectives: [
+            '裝備強化達到極限後，鍛造師要你用傳說裝備測試第十道裂光。'
+        ]
+    },
+    hidden_dungeon_master: {
+        arc: '地下與邊境的總結',
+        source: '五處回聲歸檔',
+        location: '城鎮十字路',
+        speaker: { name: '村長', avatar: '🏘️' },
+        discovery: '五大副本的紀錄被攤在村長桌上：洞窟的哭聲、叢林的毒霧、遺跡的齒輪、雪峰的寒光、深淵的火。',
+        available: '村長說這不是收藏清單。每個副本都是世界裂開後露出的側面，你若能全部走完，城鎮就能知道哪些地方還有路。',
+        active: '通關五大副本，把每一處災害的結論帶回城鎮。',
+        completed: '五處副本的紀錄被壓在同一本手札裡，厚到書記看了都皺眉。村長卻笑了一下，說至少這次厚度代表活路。',
+        finished: '副本征服者徽章被交給你。它不代表你踩平了世界，只代表你願意把每個裂縫都走到能被記下的位置。',
+        nextLead: '通關五大副本後，回去找村長歸檔。',
+        route: 'adventure',
+        reportTo: { npcId: 'village_elder', name: '村長', route: 'lobby', label: '回去找村長' },
+        objectives: [
+            '通關幽暗洞窟、冰封雪峰、遠古遺跡、迷霧叢林與煉獄深淵，完成副本總紀錄。'
+        ]
+    },
     dungeon_cave_001: {
         arc: '地下回聲',
         source: '洞窟調查委託',

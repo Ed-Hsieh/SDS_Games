@@ -1020,6 +1020,11 @@ class DungeonSceneClass {
                 if (event.type === 'poison') {
                     this.addMessage(`☠️ 毒素造成 ${event.damage} 點傷害`, 'player-action');
                     this.showMonsterDamageNumber(event.damage, false, 'dot');
+                } else if (event.type === 'hpRegen') {
+                    this.addMessage(`💚 裝備效果恢復 ${event.amount} 生命`, 'success');
+                    this.showMonsterDamageNumber(event.amount, false, 'lifesteal', `💚 回復 +${event.amount}`);
+                    this.updateUI();
+                    this.updateBattlePlayerDisplay();
                 }
                 this.updateMonsterDisplay();
                 if (event.targetDefeated) this.endBattle(true);
@@ -1033,13 +1038,17 @@ class DungeonSceneClass {
         const messages = {
             stun: `⚡ ${monsterName} 陷入暈眩，短時間無法行動。`,
             slow: `❄️ ${monsterName} 被冰霜拖慢，攻擊頻率降低 ${Math.round(effect.percent || 0)}%。`,
-            poison: `☠️ ${monsterName} 中毒，每秒受到 ${effect.dps || 0} 傷害。`
+            poison: `☠️ ${monsterName} 中毒，每秒受到 ${effect.dps || 0} 傷害。`,
+            attackSpeed: `✨ 你的攻擊節奏加快，目前攻速提升 ${Math.round(effect.totalPercent || effect.percent || 0)}%。`,
+            hpRegen: `💚 裝備效果正在恢復生命。`
         };
-        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison' };
+        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison', attackSpeed: 'statusBuff', hpRegen: 'lifesteal' };
         const labelMap = {
             stun: '⚡ 暈眩',
             slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
-            poison: `☠️ 中毒 ${effect.dps || 0}/秒`
+            poison: `☠️ 中毒 ${effect.dps || 0}/秒`,
+            attackSpeed: `✨ 攻速 +${Math.round(effect.totalPercent || effect.percent || 0)}%`,
+            hpRegen: '💚 回復'
         };
         this.showMonsterDamageNumber(0, false, typeMap[effect.type] || 'status', labelMap[effect.type] || '狀態');
         this.addMessage(messages[effect.type] || `${monsterName} 受到狀態影響。`, 'player-action');
@@ -1108,7 +1117,10 @@ class DungeonSceneClass {
         // For dungeon simple action, treat as a normal hit
         const res = this._engine.playerAttack('hit');
         if (!res) return;
-        startCombatActionCooldown(this.dom.btnAttack, GameManager.getCharacter()?.getAttackSpeed?.() || 1);
+        const attackCooldown = this._engine.getPlayerActionCooldownSeconds?.(GameManager.getCharacter()?.getAttackSpeed?.() || 1)
+            || GameManager.getCharacter()?.getAttackSpeed?.()
+            || 1;
+        startCombatActionCooldown(this.dom.btnAttack, attackCooldown);
 
         const applyRes = res.applyRes || {};
         if (res.destroyedWeapon) this.addMessage('⚠️ 你的武器被破壞了！', 'warning');

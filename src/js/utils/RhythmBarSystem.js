@@ -24,6 +24,7 @@ class RhythmBarSystem {
         this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
         
         // 從角色/武器獲取數據
+        this.battleAttackSpeedBonusPercent = 0;
         this.updateEquipmentStats();
         
         // 動畫控制
@@ -49,7 +50,9 @@ class RhythmBarSystem {
         
         // 取得攻擊速度（控制冷卻時間）
         // attackSpeed 是冷卻秒數
-        this.attackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        const baseAttackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        const battleMultiplier = 1 + Math.max(0, Number(this.battleAttackSpeedBonusPercent) || 0) / 100;
+        this.attackSpeed = Math.max(0.1, baseAttackSpeed / Math.max(0.1, battleMultiplier));
         
         // 取得爆擊機率（決定 Crit Zone 寬度）
         this.critChance = this.character.getCritChance?.() || 0.05;
@@ -504,6 +507,11 @@ class RhythmBarSystem {
         this.character = character;
         this.updateEquipmentStats();
         this.generateZones();
+    }
+
+    setBattleAttackSpeedBonus(percent = 0) {
+        this.battleAttackSpeedBonusPercent = Math.max(0, Number(percent) || 0);
+        this.updateEquipmentStats();
     }
     
     /**

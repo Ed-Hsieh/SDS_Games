@@ -999,6 +999,37 @@
     scrollbar-width: none;
 }
 
+.town-topic-group {
+    min-height: 0;
+    display: grid;
+    gap: 7px;
+}
+
+.town-topic-group .town-topic-list {
+    max-height: min(30vh, 270px);
+}
+
+.town-topic-group-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(233, 189, 101, 0.78);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.town-topic-group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(233, 189, 101, 0.28), transparent);
+}
+
+.town-topic-group.is-report .town-topic-group-label { color: rgba(126, 211, 158, 0.92); }
+.town-topic-group.is-main .town-topic-group-label { color: rgba(233, 189, 101, 0.95); }
+.town-topic-group.is-side .town-topic-group-label { color: rgba(140, 190, 235, 0.9); }
+
 .town-topic-list::-webkit-scrollbar {
     width: 0;
     height: 0;

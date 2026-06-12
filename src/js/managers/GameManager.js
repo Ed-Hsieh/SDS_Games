@@ -140,6 +140,22 @@ class GameManager {
         return this.saveManager.resetToNewGame();
     }
 
+    saveToLocalStorage() {
+        return this.saveManager.saveToLocalStorage();
+    }
+
+    loadFromLocalStorage() {
+        return this.saveManager.loadFromLocalStorage();
+    }
+
+    hasLocalSave() {
+        return this.saveManager.hasLocalSave();
+    }
+
+    startAutosave(intervalMs) {
+        return this.saveManager.startAutosave(intervalMs);
+    }
+
     getTownNarrativeState() {
         if (!this.state.ui || typeof this.state.ui !== 'object') {
             this.state.ui = {};

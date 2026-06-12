@@ -1,78 +1,96 @@
-<div class="shop-supply-scene">
-    <header class="shop-supply-topbar">
-        <div>
-            <span class="shop-kicker">城鎮供應線</span>
-            <h1>市集邊棚</h1>
-            <p id="shop-current-copy">把冒險帶回來的材料交給需要的人，讓城鎮的貨架、訂單與交換慢慢活起來。</p>
-        </div>
-        <div class="shop-topbar-actions">
-            <div class="shop-wallet">
-                <span>金幣</span>
-                <strong id="player-gold">0</strong>
-            </div>
-            <button class="shop-return-btn" type="button" id="btn-exit-shop">返回</button>
-        </div>
-    </header>
-
-    <main class="shop-supply-layout">
-        <section class="market-stage" id="market-stage" aria-label="市集場景">
+<div class="shop-supply-scene market-place-scene market-dialogue-scene">
+    <main class="shop-supply-layout market-place-layout market-dialogue-layout">
+        <section class="market-stage" id="market-stage" aria-label="市集邊棚場景">
             <div class="market-stage-backdrop" aria-hidden="true"></div>
-            <div class="market-stage-vendors" id="market-grid">
+
+            <header class="market-place-head">
+                <button class="shop-return-btn market-back-btn" type="button" id="btn-exit-shop">← 返回城鎮</button>
+                <div class="market-place-title">
+                    <span class="shop-kicker">補給街</span>
+                    <h1>市集邊棚</h1>
+                    <p id="shop-current-copy">左棚有藥草香，中央貨車堆著路線工具，布告角落永遠有人比公告欄更早知道麻煩。</p>
+                </div>
+            </header>
+
+            <div class="market-stage-vendors market-vendor-map" id="market-grid" aria-label="市集攤位">
                 <!-- NPC hotspots are rendered by ShopScene -->
             </div>
-            <div class="market-stage-caption" id="market-stage-caption">
-                左棚是藥草與瓶架，中央貨桌堆著路線與工具，最右側的門縫還沒有完全打開。
-            </div>
+
+            <section class="supply-desk market-trade-board market-dialogue-board" id="trade-panel" aria-label="攤位對話交易">
+                <button class="market-stall-close" type="button" id="btn-close-stall" aria-label="離開攤位">×</button>
+
+                <div class="dialogue-trade-persona">
+                    <div class="supply-vendor-card" id="vendor-card">
+                        <div class="vendor-portrait-shell" id="npc-drop-zone">
+                            <img src="" alt="市集人物" class="npc-portrait" id="npc-portrait">
+                            <span class="vendor-portrait-fallback" id="vendor-portrait-fallback">市</span>
+                        </div>
+                        <div class="vendor-card-copy">
+                            <span class="section-eyebrow" id="vendor-place">市集</span>
+                            <h2 id="vendor-name">市集人物</h2>
+                            <p id="vendor-role">供應線</p>
+                        </div>
+                    </div>
+
+                    <div class="dialogue-box supply-dialogue" id="dialogue-box">
+                        <p>歡迎來到市集。</p>
+                    </div>
+                </div>
+
+                <div class="dialogue-trade-main">
+                    <nav class="supply-tabs" aria-label="供應線分類">
+                        <button class="supply-tab active" type="button" data-panel="shelf">貨架</button>
+                        <button class="supply-tab" type="button" data-panel="orders">訂單</button>
+                        <button class="supply-tab" type="button" data-panel="exchange">交換</button>
+                    </nav>
+
+                    <div class="trade-status-panel is-info" id="trade-status" role="status" aria-live="polite">
+                        <div class="trade-status-icon" id="trade-status-icon">i</div>
+                        <div class="trade-status-copy">
+                            <div class="trade-status-title" id="trade-status-title">選擇市集人物</div>
+                            <div class="trade-status-message" id="trade-status-message">貨架、訂單與交換會依照人物和故事狀態改變。</div>
+                        </div>
+                    </div>
+
+                    <div class="supply-panel" id="supply-panel">
+                        <!-- Supply cards are rendered by ShopScene -->
+                    </div>
+                </div>
+            </section>
         </section>
 
-        <section class="supply-desk" id="trade-panel" aria-label="市集供應線">
-            <div class="supply-vendor-card" id="vendor-card">
-                <div class="vendor-portrait-shell" id="npc-drop-zone">
-                    <img src="" alt="市集人物" class="npc-portrait" id="npc-portrait">
-                    <span class="vendor-portrait-fallback" id="vendor-portrait-fallback">市</span>
-                </div>
-                <div class="vendor-card-copy">
-                    <span class="section-eyebrow" id="vendor-place">市集</span>
-                    <h2 id="vendor-name">市集人物</h2>
-                    <p id="vendor-role">供應線</p>
-                </div>
-            </div>
-
-            <div class="dialogue-box supply-dialogue" id="dialogue-box">
-                <p>歡迎來到市集。</p>
-            </div>
-
-            <nav class="supply-tabs" aria-label="供應線分類">
-                <button class="supply-tab active" type="button" data-panel="shelf">貨架</button>
-                <button class="supply-tab" type="button" data-panel="orders">委託訂單</button>
-                <button class="supply-tab" type="button" data-panel="exchange">交換</button>
-            </nav>
-
-            <div class="trade-status-panel is-info" id="trade-status" role="status" aria-live="polite">
-                <div class="trade-status-icon" id="trade-status-icon">ℹ</div>
-                <div class="trade-status-copy">
-                    <div class="trade-status-title" id="trade-status-title">選擇市集人物</div>
-                    <div class="trade-status-message" id="trade-status-message">貨架、訂單與交換會依照人物和故事狀態改變。</div>
-                </div>
-            </div>
-
-            <div class="supply-panel" id="supply-panel">
-                <!-- Supply cards are rendered by ShopScene -->
-            </div>
-
-            <div class="market-carry-panel">
+        <aside class="market-side-rail" aria-label="背包與市集動態">
+            <section class="market-side-card market-carry-panel">
                 <div class="section-header compact">
                     <div>
-                        <span class="section-eyebrow">BAG</span>
+                        <span class="section-eyebrow">背包</span>
                         <h3>帶回物資</h3>
                     </div>
-                    <span class="shop-section-hint">點擊出售</span>
+                    <div class="shop-wallet">
+                        <span>金幣</span>
+                        <strong id="player-gold">0</strong>
+                    </div>
                 </div>
                 <div class="player-inventory-list" id="player-inventory">
                     <!-- Player inventory rendered by ShopScene -->
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <section class="market-side-card market-dynamic-panel town-narrative-panel town-narrative-whisper" id="market-narrative" aria-live="polite">
+                <div class="town-narrative-head">
+                    <span class="town-narrative-kicker">場景</span>
+                    <strong id="market-narrative-title">市集邊棚</strong>
+                </div>
+                <div class="town-story-board" id="market-story-log">
+                    <div class="town-dialogue-stream market-feed" id="market-feed">
+                        <article class="town-story-entry market-feed-card is-info">
+                            <span class="world-log-title">市集邊棚</span>
+                            <p class="world-log-message">你站在帆布棚下。藥草、鐵片、路線拓片和低聲傳聞各自佔著一角，走近攤位後再開口。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </aside>
     </main>
 </div>
 

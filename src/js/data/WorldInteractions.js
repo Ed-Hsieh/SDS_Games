@@ -143,6 +143,42 @@ export const WorldInteractionDatabase = {
         repeatMessage: '黑市入口已經被打開。',
         imageKeys: ['item.ancient_coin', 'world.black_market_door']
     },
+    rumor_echo_rhythm: {
+        id: 'rumor_echo_rhythm',
+        title: '回聲殼節奏比對',
+        source: InteractionSource.VENDOR_ITEM,
+        oneTime: true,
+        flags: ['market.rumor.echo_rhythm_matched'],
+        unlockQuests: [],
+        unlockRecipes: [],
+        message: '米菈把回聲殼貼在耳邊，逐字記下節奏：「不是距離，是水聲遠近。」沉鐘三碑的觸碰順序被她剪成一張可以帶走的紙條。',
+        repeatMessage: '回聲殼的節奏已經被記成紙條，沉鐘碑的順序不會再被潮水洗掉。',
+        imageKeys: ['world.notice_board']
+    },
+    black_market_coal_token: {
+        id: 'black_market_coal_token',
+        title: '走私煤印',
+        source: InteractionSource.VENDOR_ITEM,
+        oneTime: true,
+        flags: ['market.black_market.coal_token_traded'],
+        unlockQuests: [],
+        unlockRecipes: [],
+        message: '門縫掌櫃收下金幣，推出一枚帶裂痕的煤印：「拿著它，守倉門的人會當你是買家。裂痕別讓他們看太久。」',
+        repeatMessage: '煤印已經在你手上，黑鐵倉門的守衛只認印，不認人。',
+        imageKeys: ['world.black_market_door']
+    },
+    thorn_bargain_choice: {
+        id: 'thorn_bargain_choice',
+        title: '荊棘交易規則',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: true,
+        flags: ['town.apothecary.understands_thorn_trade'],
+        unlockQuests: [],
+        unlockRecipes: [],
+        message: '蓮娜終於看懂採藥籃上的荊棘記號：那是女巫的價格標籤。等價交換可以換到情報，背棄交易則會讓荊棘主動找上門。',
+        repeatMessage: '荊棘交易的規則已經被記下，剩下的是你要不要遵守。',
+        imageKeys: ['npc.herbalist']
+    },
     cartographer_map_fragment: {
         id: 'cartographer_map_fragment',
         title: '地圖碎片',

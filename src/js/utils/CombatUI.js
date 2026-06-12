@@ -527,6 +527,7 @@ export function showCombatDamageNumber(root, damage, options = {}) {
         reflect: { text: options.label || `反傷 -${numericDamage}`, className: 'damage-reflect' },
         revive: { text: options.label || '復活', className: 'damage-revive' },
         status: { text: options.label || '狀態', className: 'damage-status' },
+        statusBuff: { text: options.label || '強化', className: 'damage-status damage-status-buff' },
         statusStun: { text: options.label || '暈眩', className: 'damage-status damage-status-stun' },
         statusSlow: { text: options.label || '緩速', className: 'damage-status damage-status-slow' },
         statusPoison: { text: options.label || '中毒', className: 'damage-status damage-status-poison' }

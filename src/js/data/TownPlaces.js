@@ -11,8 +11,7 @@ export const TownPlaceDatabase = [
             { npcId: 'village_elder', label: '村長', role: '城鎮管理者', icon: '🏘️', portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/village_elder.png', position: { x: 30, y: 58 } }
         ],
         actions: [
-            { type: 'interaction', id: 'crossroads_notice_board', label: '查看公告欄', shortLabel: '公告欄', icon: '📌', description: '傳聞、委託與城鎮異常會先釘在這裡。', position: { x: 55, y: 60 } },
-            { type: 'route', route: 'adventure', label: '前往城外道路', shortLabel: '城外道路', icon: '⚔️', description: '離開城鎮，進入冒險地圖。', position: { x: 82, y: 68 } }
+            { type: 'interaction', id: 'crossroads_notice_board', label: '查看公告欄', shortLabel: '公告欄', icon: '📌', description: '傳聞、委託與城鎮異常會先釘在這裡。', position: { x: 55, y: 60 } }
         ],
         states: [
             { flag: 'town.south_gate.guard_route_ready', title: '南門巡路恢復', text: '南門守衛重新站穩，城外近路的紀錄開始穩定更新。' },
@@ -30,7 +29,7 @@ export const TownPlaceDatabase = [
         sceneImage: 'src/assets/images/generated/2026-06-10/cropped/town-places/market.png',
         description: '你掀開帆布棚的陰影，乾燥藥草、空瓶和湯鍋的氣味混在一起。這裡很窄，卻決定了城鎮明天還能不能有人排隊。',
         residents: [
-            { npcId: 'herbalist', label: '藥師', role: '補給與藥水', icon: '🌿', portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png', position: { x: 31, y: 58 } }
+            { npcId: 'herbalist', label: '藥師蓮娜', role: '補給與藥水', icon: '🌿', portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png', position: { x: 31, y: 58 } }
         ],
         actions: [
             { type: 'route', route: 'shop', label: '打開市集', shortLabel: '市集', icon: '🛒', description: '購買藥水與基礎補給。', position: { x: 67, y: 62 } }

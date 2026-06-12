@@ -7,7 +7,6 @@
     --ui-panel-radius: 10px;
     --ui-min-control: 40px;
     --ui-hall-footer: 108px;
-    --goal-tracker-space: clamp(84px, 10dvh, 112px);
 }
 
 /* Final rarity and item preview layer. Keep this last so older scene files cannot override it. */
@@ -1027,17 +1026,6 @@ body {
         linear-gradient(180deg, #101217 0%, #151922 52%, #101217 100%);
 }
 
-#app.goal-tracker-active {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
-
-#app.goal-tracker-active > :not(.global-goal-tracker) {
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
 img,
 canvas,
 svg,
@@ -1070,217 +1058,6 @@ input {
 .game-panel {
     min-width: 0;
     min-height: 0;
-}
-
-/* Global objective tracker */
-.global-goal-tracker {
-    width: min(1180px, calc(100% - 24px));
-    margin: 8px auto 0;
-    padding: 10px 12px;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    border-radius: 8px;
-    background: rgba(15, 23, 42, 0.92);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.22);
-    color: #e5edf7;
-    z-index: 24;
-}
-
-.goal-tracker-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 8px;
-}
-
-.goal-tracker-title {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    min-width: 0;
-}
-
-.goal-tracker-kicker {
-    color: #8fb3d9;
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.goal-tracker-title strong {
-    color: #f8fafc;
-    font-size: 15px;
-    font-weight: 800;
-}
-
-.goal-collapse-btn {
-    border: 1px solid rgba(148, 163, 184, 0.32);
-    border-radius: 6px;
-    background: rgba(30, 41, 59, 0.78);
-    color: #cbd5e1;
-    padding: 5px 10px;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.goal-tracker-list {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.goal-card {
-    display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 8px;
-    min-height: 54px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
-    border-radius: 8px;
-    background: rgba(30, 41, 59, 0.72);
-    color: inherit;
-    text-align: left;
-    padding: 8px;
-    cursor: pointer;
-}
-
-.goal-card:hover {
-    border-color: rgba(125, 211, 252, 0.45);
-    background: rgba(37, 52, 73, 0.9);
-}
-
-.goal-card-icon {
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: rgba(125, 211, 252, 0.12);
-    color: #7dd3fc;
-    font-weight: 800;
-}
-
-.goal-card-copy {
-    display: grid;
-    gap: 2px;
-    min-width: 0;
-}
-
-.goal-card-copy strong,
-.goal-card-copy span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.goal-card-copy strong {
-    color: #f8fafc;
-    font-size: 13px;
-}
-
-.goal-card-copy span {
-    color: #b6c4d6;
-    font-size: 12px;
-}
-
-.goal-card-action {
-    align-self: stretch;
-    display: grid;
-    place-items: center;
-    min-width: 48px;
-    border-radius: 6px;
-    background: rgba(15, 23, 42, 0.62);
-    color: #e2e8f0;
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.goal-progress {
-    height: 4px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: rgba(148, 163, 184, 0.18);
-}
-
-.goal-progress span {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: #7dd3fc;
-}
-
-.goal-success .goal-card-icon,
-.goal-success .goal-progress span {
-    background: #34d399;
-    color: #052e1c;
-}
-
-.goal-warning .goal-card-icon,
-.goal-warning .goal-progress span {
-    background: #fbbf24;
-    color: #3b2600;
-}
-
-.goal-primary .goal-card-icon,
-.goal-primary .goal-progress span {
-    background: #60a5fa;
-    color: #0b1d35;
-}
-
-.global-goal-tracker.is-collapsed {
-    padding-block: 8px;
-}
-
-.global-goal-tracker.is-collapsed .goal-tracker-list {
-    display: none;
-}
-
-#app.goal-tracker-active > .hall-scene,
-#app.goal-tracker-active > .scene-forge,
-#app.goal-tracker-active > .scene-casino,
-#app.goal-tracker-active > .adventure-scene,
-#app.goal-tracker-active > .scene-quest,
-#app.goal-tracker-active > .quest-board-container,
-#app.goal-tracker-active > .tower-scene,
-#app.goal-tracker-active > .dungeon-scene {
-    height: calc(100dvh - var(--goal-tracker-space));
-    max-height: calc(100dvh - var(--goal-tracker-space));
-}
-
-#app.goal-tracker-active .hall-layout {
-    height: calc(100% - var(--ui-hall-footer));
-}
-
-@media (max-width: 860px) {
-    :root {
-        --goal-tracker-space: auto;
-    }
-
-    .global-goal-tracker {
-        width: calc(100% - 16px);
-        margin-top: 6px;
-        padding: 8px;
-    }
-
-    .goal-tracker-list {
-        grid-template-columns: 1fr;
-    }
-
-    .goal-card {
-        min-height: 48px;
-    }
-
-    #app.goal-tracker-active > .hall-scene,
-    #app.goal-tracker-active > .scene-forge,
-    #app.goal-tracker-active > .scene-casino,
-    #app.goal-tracker-active > .adventure-scene,
-    #app.goal-tracker-active > .scene-quest,
-    #app.goal-tracker-active > .quest-board-container,
-    #app.goal-tracker-active > .tower-scene,
-    #app.goal-tracker-active > .dungeon-scene {
-        height: auto;
-        max-height: none;
-    }
 }
 
 .card-header,
@@ -8243,6 +8020,11 @@ body {
     text-shadow: 0 0 14px rgba(56, 189, 248, 0.56), 0 2px 7px rgba(0, 0, 0, 0.8) !important;
 }
 
+.damage-number.damage-status-buff {
+    color: #bbf7d0 !important;
+    text-shadow: 0 0 14px rgba(74, 222, 128, 0.68), 0 0 26px rgba(45, 212, 191, 0.24), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
+}
+
 .damage-number.damage-status-stun {
     color: #fde047 !important;
     text-shadow: 0 0 14px rgba(250, 204, 21, 0.82), 0 0 26px rgba(59, 130, 246, 0.38), 0 2px 7px rgba(0, 0, 0, 0.86) !important;
@@ -10268,6 +10050,11 @@ body {
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.32);
 }
 
+#town-place-description,
+.town-place-view.has-scene-image .town-place-view-head #town-place-description {
+    display: none !important;
+}
+
 .town-place-view.has-scene-image .town-place-view-head p {
     width: min(520px, 100%);
     max-height: 112px;
@@ -10369,7 +10156,6 @@ body {
 
 /* Generated image integration */
 .resident-avatar,
-.town-place-card-icon,
 .town-place-entry-icon,
 .dungeon-entrance-icon,
 .codex-row-icon,
@@ -10389,7 +10175,6 @@ body {
 }
 
 .resident-avatar img,
-.town-place-card-icon img,
 .town-place-entry-icon img,
 .dungeon-entrance-icon img,
 .codex-row-icon img,
@@ -10422,7 +10207,6 @@ body {
 }
 
 .resident-avatar img,
-.town-place-card-icon img,
 .town-place-entry-icon img,
 .codex-portrait img,
 .floor-monster img,
@@ -10542,6 +10326,279 @@ body {
     border-radius: inherit;
 }
 
+/* Large generated scene backgrounds */
+.world-stage-town .world-stage-backdrop {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(4, 8, 13, 0.18), rgba(4, 8, 13, 0.52)),
+        radial-gradient(ellipse at 50% 78%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.36)),
+        url("/src/assets/images/generated/2026-06-11/backgrounds/town-overview.png") center / cover no-repeat !important;
+}
+
+.world-stage-town .world-stage-backdrop::before {
+    inset: 0 !important;
+    border: 0 !important;
+    border-radius: inherit !important;
+    background:
+        radial-gradient(ellipse at 52% 52%, rgba(255, 232, 172, 0.06), transparent 34%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.32), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.28)) !important;
+    box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.42) !important;
+}
+
+.world-stage-town .world-stage-backdrop::after {
+    background:
+        radial-gradient(ellipse at 50% 114%, rgba(0, 0, 0, 0.52), transparent 54%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%, rgba(0, 0, 0, 0.18)) !important;
+}
+
+.world-stage-town .town-sky,
+.world-stage-town .town-roofs,
+.world-stage-town .town-plaza,
+.world-stage-town .town-road {
+    display: none !important;
+}
+
+.town-place-card {
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        linear-gradient(180deg, rgba(8, 12, 16, 0.62), rgba(8, 12, 16, 0.78)),
+        rgba(8, 12, 16, 0.76) !important;
+}
+
+.town-place-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 8, 12, 0.22), rgba(5, 8, 12, 0.78)),
+        var(--town-place-card-image);
+    background-size: cover;
+    background-position: var(--town-place-card-image-position, center);
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 160ms ease, transform 220ms ease;
+}
+
+.town-place-card:hover::before,
+.town-place-card:focus-visible::before {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.town-place-card:hover,
+.town-place-card:focus-visible {
+    border-color: rgba(233, 189, 101, 0.82) !important;
+    box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(233, 189, 101, 0.18) !important;
+}
+
+.town-place-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.town-place-crossroads { --place-x: 50%; --place-y: 50%; }
+.town-place-market { --place-x: 18%; --place-y: 54%; }
+.town-place-forge { --place-x: 20%; --place-y: 78%; }
+.town-place-handbook { --place-x: 75%; --place-y: 36%; }
+.town-place-alley { --place-x: 43%; --place-y: 78%; }
+.town-place-casino { --place-x: 76%; --place-y: 70%; }
+.town-place-tower { --place-x: 58%; --place-y: 23%; }
+.town-place-gate { --place-x: 53%; --place-y: 84%; }
+
+.map-container {
+    background:
+        linear-gradient(180deg, rgba(3, 7, 10, 0.18), rgba(3, 7, 10, 0.58)),
+        url("/src/assets/images/generated/2026-06-11/backgrounds/adventure-world-map.png") center / cover no-repeat !important;
+}
+
+/* Visual-novel style town dialogue */
+.town-dialogue-card:not(.is-topic-mode) {
+    width: min(980px, calc(100vw - 36px)) !important;
+    max-height: min(82vh, 760px) !important;
+    padding: 20px !important;
+    grid-template-columns: minmax(210px, 250px) minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto auto !important;
+    grid-template-areas:
+        "person lines"
+        "person effects"
+        "person actions" !important;
+    gap: 18px !important;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person {
+    grid-area: person;
+    align-self: stretch;
+    min-height: 0;
+    padding: 14px !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    align-items: end;
+    border: 1px solid rgba(233, 189, 101, 0.18);
+    border-radius: 12px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.18)),
+        rgba(5, 8, 12, 0.42);
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-avatar {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 3 / 4;
+    align-self: stretch;
+    border-radius: 12px !important;
+    background:
+        radial-gradient(ellipse at 50% 28%, rgba(233, 189, 101, 0.14), transparent 54%),
+        rgba(0, 0, 0, 0.28) !important;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person > div:last-child {
+    min-width: 0;
+    padding-top: 12px;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person span {
+    display: block;
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person strong {
+    margin-top: 3px;
+    font-size: 28px;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-lines {
+    grid-area: lines;
+    min-height: 260px;
+    padding: 12px;
+    border: 1px solid rgba(237, 242, 244, 0.1);
+    border-radius: 12px;
+    background: rgba(4, 7, 10, 0.42);
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line {
+    grid-template-columns: 1fr !important;
+    padding: 10px 12px;
+    border-color: transparent;
+    background: transparent;
+    opacity: 0.5;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line.is-current {
+    opacity: 1;
+    border-color: rgba(233, 189, 101, 0.18);
+    background: rgba(8, 12, 16, 0.56);
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line-icon {
+    display: none;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line-copy strong {
+    font-size: 12px;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line-copy p {
+    margin-top: 6px;
+    font-size: 20px;
+    line-height: 1.72;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-effects {
+    grid-area: effects;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-actions {
+    grid-area: actions;
+}
+
+@media (max-width: 900px) {
+    .town-dialogue-card:not(.is-topic-mode) {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+        grid-template-areas:
+            "person"
+            "lines"
+            "effects"
+            "actions" !important;
+    }
+
+    .town-dialogue-card:not(.is-topic-mode) .town-dialogue-person {
+        grid-template-columns: 86px minmax(0, 1fr) !important;
+        grid-template-rows: auto !important;
+        align-items: center;
+    }
+
+    .town-dialogue-card:not(.is-topic-mode) .town-dialogue-avatar {
+        width: 86px !important;
+        height: 104px !important;
+        aspect-ratio: auto;
+    }
+}
+
+/* Keep the visual-novel dialogue shell from growing as lines are revealed. */
+.town-dialogue-card:not(.is-topic-mode) {
+    height: clamp(520px, 72vh, 720px) !important;
+    overflow: hidden !important;
+    align-items: stretch;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person,
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-lines,
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-effects {
+    min-height: 0 !important;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-person {
+    overflow: hidden;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-avatar {
+    min-height: 0;
+    height: 100% !important;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-lines {
+    height: 100%;
+    overflow-y: auto;
+    align-content: start;
+    scrollbar-width: none;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-lines::-webkit-scrollbar,
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-effects::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-effects {
+    max-height: 96px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-actions {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 900px) {
+    .town-dialogue-card:not(.is-topic-mode) {
+        height: min(760px, calc(100vh - 32px)) !important;
+    }
+
+    .town-dialogue-card:not(.is-topic-mode) .town-dialogue-avatar {
+        width: 86px !important;
+        height: 104px !important;
+        aspect-ratio: auto;
+    }
+}
+
 .event-icon,
 .story-event-icon {
     overflow: hidden;
@@ -10586,4 +10643,2001 @@ body {
 
 .reward-icon img {
     object-fit: contain;
+}
+
+/* Town navigation polish: keep exits unique, prevent place chips from colliding. */
+.town-place-card {
+    width: clamp(132px, 15.5%, 176px) !important;
+    min-height: 58px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px !important;
+    text-align: left;
+}
+
+.town-place-card-copy {
+    min-width: 0;
+}
+
+.town-place-card-copy small {
+    display: block;
+    color: rgba(233, 189, 101, 0.86);
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.town-place-card-copy strong {
+    display: block;
+    margin-top: 4px;
+    overflow: hidden;
+    color: #fff7e6;
+    font-size: 18px;
+    line-height: 1.12;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.town-place-card-signal {
+    align-self: center;
+    max-width: 62px;
+    padding: 4px 7px;
+    border: 1px solid rgba(233, 189, 101, 0.24);
+    border-radius: 999px;
+    background: rgba(233, 189, 101, 0.1);
+    color: rgba(255, 247, 230, 0.82);
+    font-size: 10.5px;
+    font-weight: 900;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.town-place-crossroads { --place-x: 50%; --place-y: 49%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-market { --place-x: 20%; --place-y: 55%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-forge { --place-x: 22%; --place-y: 80%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-handbook { --place-x: 75%; --place-y: 36%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-alley { --place-x: 39%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-casino { --place-x: 75%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-tower { --place-x: 60%; --place-y: 22%; --place-tx: -50%; --place-ty: -50%; }
+.town-place-gate { --place-x: 55%; --place-y: 87%; --place-tx: -50%; --place-ty: -50%; }
+
+.town-right-rail {
+    grid-template-rows: minmax(104px, auto) minmax(0, 1fr) !important;
+}
+
+.town-hud,
+.town-narrative-whisper {
+    min-height: 0;
+}
+
+.town-narrative-whisper {
+    overflow: hidden;
+}
+
+/* Marketplace consolidation: same dense icon-first language as the town/lobby UI. */
+.shop-supply-scene {
+    gap: 12px;
+    padding: 14px;
+}
+
+.shop-supply-topbar {
+    min-height: 82px;
+    padding: 12px 14px;
+    border-radius: 12px;
+}
+
+.shop-supply-topbar h1 {
+    margin: 2px 0 4px;
+    font-size: 28px;
+}
+
+.shop-supply-topbar p {
+    max-width: none;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.shop-wallet {
+    min-width: 104px;
+    padding: 8px 12px;
+}
+
+.shop-wallet strong {
+    font-size: 26px;
+}
+
+.shop-return-btn {
+    min-width: 92px;
+}
+
+.shop-supply-layout {
+    grid-template-columns: minmax(560px, 1.36fr) minmax(420px, 0.94fr);
+    gap: 12px;
+}
+
+.market-resident {
+    width: clamp(150px, 13vw, 176px);
+    min-height: 68px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 9px;
+    padding: 9px;
+}
+
+.resident-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 9px;
+    font-size: 23px;
+}
+
+.resident-copy strong {
+    font-size: 17px;
+}
+
+.resident-copy small {
+    font-size: 12px;
+}
+
+.market-stage-caption {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    max-width: 620px;
+    padding: 10px 12px;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.supply-desk {
+    grid-template-rows:
+        auto
+        minmax(58px, 72px)
+        auto
+        auto
+        minmax(108px, 1fr)
+        minmax(110px, 0.48fr);
+    gap: 10px;
+    padding: 12px;
+}
+
+.supply-vendor-card {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+}
+
+.vendor-portrait-shell {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+}
+
+.vendor-portrait-fallback {
+    font-size: 30px;
+}
+
+.vendor-card-copy h2 {
+    margin: 2px 0 3px;
+    font-size: 24px;
+}
+
+.vendor-card-copy p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.supply-dialogue {
+    min-height: 0;
+    max-height: 72px;
+    padding: 10px 12px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.45;
+    scrollbar-width: none;
+}
+
+.supply-dialogue::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.supply-tabs {
+    gap: 7px;
+}
+
+.supply-tab {
+    min-height: 38px;
+    font-size: 14px;
+}
+
+.trade-status-panel {
+    min-height: 0;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 12px;
+}
+
+.trade-status-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.trade-status-title {
+    font-size: 15px;
+}
+
+.trade-status-message {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.supply-panel {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.supply-card {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(76px, auto);
+    gap: 10px;
+    padding: 10px;
+}
+
+.supply-card-main {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+}
+
+.supply-card-icon,
+.supply-card .item-atlas-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+}
+
+.supply-card-copy h3 {
+    margin: 2px 0 4px;
+    font-size: 17px;
+    line-height: 1.12;
+}
+
+.supply-card-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 13px;
+    line-height: 1.38;
+}
+
+.supply-card-side {
+    min-width: 76px;
+    gap: 6px;
+}
+
+.supply-card-side strong {
+    font-size: 18px;
+}
+
+.supply-card-side button {
+    min-width: 76px;
+    min-height: 34px;
+    font-size: 13px;
+}
+
+.market-carry-panel {
+    min-height: 0;
+}
+
+.shop-supply-scene .player-inventory-list {
+    max-height: none;
+    grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)) !important;
+    grid-auto-rows: 64px;
+    gap: 7px !important;
+    padding: 8px !important;
+}
+
+.shop-supply-scene .shop-flow-card {
+    height: 64px !important;
+}
+
+.shop-supply-scene .shop-flow-card .item-icon,
+.shop-supply-scene .shop-flow-card .item-atlas-icon {
+    width: 38px !important;
+    height: 38px !important;
+}
+
+@media (max-width: 1180px) {
+    .shop-supply-layout {
+        grid-template-columns: minmax(0, 1fr);
+        overflow-y: auto;
+    }
+
+    .market-stage {
+        min-height: 420px;
+    }
+
+    .supply-desk {
+        min-height: 620px;
+    }
+}
+
+/* Market place rebuild: make the shop feel like entering the town place, not a separate console. */
+.market-place-scene {
+    width: 100%;
+    height: 100vh;
+    padding: 16px;
+    display: block !important;
+    overflow: hidden;
+    color: var(--ui-text);
+    background:
+        radial-gradient(circle at 18% 14%, rgba(233, 189, 101, 0.12), transparent 28%),
+        radial-gradient(circle at 78% 20%, rgba(120, 185, 141, 0.1), transparent 32%),
+        linear-gradient(180deg, #10161a 0%, #0b1017 58%, #070a0f 100%);
+}
+
+.market-place-layout {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 6.8fr) minmax(410px, 3.2fr);
+    gap: 14px;
+    overflow: hidden !important;
+}
+
+.market-place-scene .market-stage,
+.market-place-scene .market-trade-board {
+    border: 1px solid rgba(220, 201, 154, 0.22);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+}
+
+.market-place-scene .market-stage {
+    min-height: 0;
+    background: #10161a;
+}
+
+.market-place-scene .market-stage-backdrop {
+    background-image:
+        linear-gradient(180deg, rgba(4, 8, 12, 0.12), rgba(4, 8, 12, 0.48)),
+        linear-gradient(90deg, rgba(4, 8, 12, 0.34), transparent 28%, transparent 72%, rgba(4, 8, 12, 0.3)),
+        var(--market-bg);
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.98) contrast(1.05);
+}
+
+.market-place-scene .market-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 50% 112%, rgba(0, 0, 0, 0.5), transparent 56%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%, rgba(0, 0, 0, 0.18));
+}
+
+.market-place-head {
+    position: absolute;
+    z-index: 4;
+    top: 18px;
+    left: 18px;
+    right: 18px;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(260px, 520px) auto;
+    gap: 12px;
+    align-items: start;
+    pointer-events: none;
+}
+
+.market-place-head > * {
+    pointer-events: auto;
+}
+
+.market-back-btn,
+.market-place-title,
+.market-place-head .shop-wallet {
+    border: 1px solid rgba(220, 201, 154, 0.24);
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.07), rgba(255, 247, 230, 0.018)),
+        rgba(5, 8, 11, 0.68);
+    box-shadow: 0 18px 34px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.market-back-btn {
+    min-width: 122px;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    color: #c8f0ff;
+}
+
+.market-place-title {
+    min-width: 0;
+    padding: 13px 15px;
+    border-radius: 12px;
+}
+
+.market-place-title .shop-kicker {
+    color: var(--gold, #e9bd65);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.market-place-title h1 {
+    margin: 3px 0 6px;
+    color: #fff7e6;
+    font-size: 31px;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+.market-place-title p {
+    max-width: 100%;
+    margin: 0;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    color: rgba(237, 242, 244, 0.78);
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
+.market-place-head .shop-wallet {
+    min-width: 104px;
+    min-height: 48px;
+    padding: 8px 12px;
+    border-radius: 12px;
+    align-self: start;
+}
+
+.market-place-head .shop-wallet span {
+    font-size: 12px;
+}
+
+.market-place-head .shop-wallet strong {
+    font-size: 25px;
+}
+
+.market-place-scene .market-stage-vendors {
+    z-index: 3;
+}
+
+.market-place-scene .market-resident {
+    width: clamp(146px, 12vw, 174px);
+    min-height: 66px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 9px;
+    padding: 9px;
+    border-color: rgba(220, 201, 154, 0.28);
+    border-radius: 13px;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.08), rgba(255, 247, 230, 0.02)),
+        rgba(5, 9, 11, 0.64);
+    box-shadow:
+        0 14px 28px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.market-place-scene .market-resident:hover,
+.market-place-scene .market-resident:focus-visible,
+.market-place-scene .market-resident.active {
+    border-color: rgba(233, 189, 101, 0.82);
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.14), rgba(255, 247, 230, 0.03)),
+        rgba(8, 13, 15, 0.78);
+}
+
+.market-place-scene .market-resident.active {
+    box-shadow:
+        0 18px 34px rgba(0, 0, 0, 0.36),
+        0 0 0 1px rgba(233, 189, 101, 0.18);
+}
+
+.market-place-scene .resident-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+}
+
+.market-place-scene .resident-copy strong {
+    font-size: 17px;
+}
+
+.market-place-scene .resident-copy small {
+    font-size: 12px;
+}
+
+.market-place-scene .market-stage-caption {
+    z-index: 4;
+    left: 18px;
+    right: auto;
+    bottom: 18px;
+    width: min(620px, calc(100% - 36px));
+    max-width: none;
+    padding: 12px 14px;
+    border-color: rgba(233, 189, 101, 0.26);
+    border-left: 3px solid rgba(233, 189, 101, 0.62);
+    border-radius: 10px;
+    background: rgba(5, 8, 11, 0.68);
+    color: rgba(255, 247, 230, 0.86);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.market-place-scene .market-trade-board {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows:
+        auto
+        minmax(56px, 78px)
+        auto
+        minmax(54px, auto)
+        minmax(0, 1fr)
+        minmax(118px, 0.46fr);
+    gap: 10px;
+    padding: 12px;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.045), rgba(255, 247, 230, 0.012)),
+        rgba(8, 12, 17, 0.9);
+    overflow: hidden;
+}
+
+.market-place-scene .supply-vendor-card {
+    grid-template-columns: 66px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border-color: rgba(220, 201, 154, 0.18);
+    border-radius: 10px;
+    background: rgba(5, 8, 11, 0.42);
+}
+
+.market-place-scene .vendor-portrait-shell {
+    width: 66px;
+    height: 66px;
+    border-radius: 10px;
+}
+
+.market-place-scene .vendor-card-copy h2 {
+    margin: 2px 0 4px;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.market-place-scene .vendor-card-copy p {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.market-place-scene .supply-dialogue {
+    min-height: 0;
+    max-height: none;
+    padding: 10px 12px;
+    overflow-y: auto;
+    border: 1px solid rgba(220, 201, 154, 0.14);
+    border-radius: 10px;
+    background: rgba(5, 8, 11, 0.48) !important;
+    color: rgba(237, 242, 244, 0.84);
+    font-size: 14px;
+    line-height: 1.5;
+    scrollbar-width: none;
+}
+
+.market-place-scene .supply-dialogue::-webkit-scrollbar,
+.market-place-scene .supply-panel::-webkit-scrollbar,
+.market-place-scene .player-inventory-list::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
+.market-place-scene .supply-tabs {
+    gap: 7px;
+}
+
+.market-place-scene .supply-tab {
+    min-height: 38px;
+    border-radius: 9px;
+    font-size: 14px;
+}
+
+.market-place-scene .trade-status-panel {
+    min-height: 0;
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid rgba(132, 186, 198, 0.16);
+    border-radius: 10px;
+    background: rgba(9, 16, 21, 0.52);
+}
+
+.market-place-scene .trade-status-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+}
+
+.market-place-scene .trade-status-title {
+    font-size: 15px;
+}
+
+.market-place-scene .trade-status-message {
+    font-size: 13px;
+    line-height: 1.35;
+}
+
+.market-place-scene .supply-panel {
+    min-height: 0;
+    display: grid;
+    gap: 9px;
+    align-content: start;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+}
+
+.market-place-scene .supply-card {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(78px, auto);
+    gap: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.market-place-scene .supply-card-main {
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px;
+}
+
+.market-place-scene .supply-card-icon,
+.market-place-scene .supply-card .item-atlas-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+}
+
+.market-place-scene .supply-card-copy h3 {
+    margin: 2px 0 4px;
+    font-size: 17px;
+    line-height: 1.12;
+}
+
+.market-place-scene .supply-card-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    font-size: 13px;
+    line-height: 1.38;
+}
+
+.market-place-scene .supply-card-side {
+    min-width: 78px;
+    gap: 6px;
+}
+
+.market-place-scene .supply-card-side strong {
+    font-size: 18px;
+}
+
+.market-place-scene .supply-card-side button {
+    min-width: 78px;
+    min-height: 34px;
+    font-size: 13px;
+}
+
+.market-place-scene .market-carry-panel {
+    min-height: 0;
+    border-color: rgba(132, 186, 198, 0.16);
+    border-radius: 10px;
+    background: rgba(5, 8, 11, 0.38);
+}
+
+.market-place-scene .section-header.compact {
+    min-height: 48px !important;
+    padding: 8px 10px !important;
+}
+
+.market-place-scene .section-header.compact h3 {
+    font-size: 18px;
+}
+
+.market-place-scene .player-inventory-list {
+    max-height: none !important;
+    grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)) !important;
+    grid-auto-rows: 64px !important;
+    gap: 7px !important;
+    padding: 8px !important;
+    overflow-y: auto !important;
+}
+
+.market-place-scene .shop-flow-card {
+    height: 64px !important;
+}
+
+.market-place-scene .shop-flow-card .item-icon,
+.market-place-scene .shop-flow-card .item-atlas-icon {
+    width: 38px !important;
+    height: 38px !important;
+}
+
+@media (max-width: 1180px) {
+    .market-place-scene {
+        overflow-y: auto;
+    }
+
+    .market-place-layout {
+        min-height: 1080px;
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(460px, 0.9fr) minmax(620px, 1fr);
+        overflow: visible !important;
+    }
+
+    .market-place-head {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .market-place-head .shop-wallet {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+
+/* Market place rebuild v2: separate the place view from the transaction desk. */
+.market-place-scene {
+    padding: 18px;
+    background:
+        radial-gradient(circle at 18% 18%, rgba(220, 176, 87, 0.12), transparent 30%),
+        radial-gradient(circle at 74% 10%, rgba(91, 141, 113, 0.12), transparent 34%),
+        linear-gradient(180deg, #10171a 0%, #0a0f14 60%, #07090d 100%);
+}
+
+.market-place-layout {
+    grid-template-columns: minmax(620px, 1.55fr) minmax(440px, 0.92fr);
+    gap: 16px;
+}
+
+.market-place-scene .market-stage {
+    display: block;
+    padding: 0;
+    border-radius: 16px;
+}
+
+.market-place-scene .market-stage-backdrop {
+    background-image:
+        linear-gradient(180deg, rgba(4, 7, 10, 0.08), rgba(4, 7, 10, 0.54)),
+        linear-gradient(90deg, rgba(3, 6, 8, 0.5), transparent 28%, transparent 68%, rgba(3, 6, 8, 0.34)),
+        var(--market-bg);
+    background-position: center;
+    filter: saturate(1.04) contrast(1.06);
+}
+
+.market-place-head {
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    right: 22px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.market-back-btn {
+    flex: 0 0 auto;
+    min-width: 126px;
+}
+
+.market-place-title {
+    width: min(560px, calc(100% - 150px));
+    padding: 16px 18px;
+}
+
+.market-place-title h1 {
+    font-size: 36px;
+}
+
+.market-place-title p {
+    -webkit-line-clamp: 2;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.market-place-scene .market-stage-caption {
+    left: 22px;
+    right: auto;
+    bottom: 132px;
+    width: min(640px, calc(100% - 44px));
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba(5, 8, 11, 0.72);
+    color: rgba(255, 248, 232, 0.9);
+    font-size: 15px;
+}
+
+.market-vendor-dock {
+    position: absolute;
+    z-index: 5;
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.market-place-scene .market-vendor-dock .market-resident {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    width: 100%;
+    min-height: 88px;
+    grid-template-columns: 48px minmax(0, 1fr) 32px;
+    align-items: center;
+    padding: 10px;
+    border-radius: 12px;
+    border-color: rgba(220, 201, 154, 0.22);
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.07), rgba(255, 247, 230, 0.015)),
+        rgba(5, 9, 12, 0.72);
+}
+
+.market-place-scene .market-vendor-dock .market-resident:hover,
+.market-place-scene .market-vendor-dock .market-resident:focus-visible {
+    transform: translateY(-2px);
+}
+
+.market-place-scene .market-vendor-dock .market-resident.active {
+    border-color: rgba(233, 189, 101, 0.88);
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.18), rgba(255, 247, 230, 0.025)),
+        rgba(7, 12, 14, 0.86);
+}
+
+.market-place-scene .resident-copy {
+    gap: 2px;
+}
+
+.market-place-scene .resident-copy > span {
+    color: rgba(233, 189, 101, 0.86);
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.market-place-scene .resident-copy strong {
+    font-size: 18px;
+    line-height: 1.05;
+}
+
+.market-place-scene .resident-copy small {
+    font-size: 12px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.resident-count {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    justify-self: end;
+    border-radius: 999px;
+    border: 1px solid rgba(233, 189, 101, 0.3);
+    background: rgba(233, 189, 101, 0.12);
+    color: #f6d98d;
+    font-size: 12px;
+    font-weight: 950;
+}
+
+.market-place-scene .market-trade-board {
+    grid-template-rows:
+        auto
+        auto
+        minmax(58px, 82px)
+        auto
+        minmax(42px, auto)
+        minmax(0, 1fr)
+        minmax(98px, 0.28fr);
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+}
+
+.market-trade-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 2px 8px;
+    border-bottom: 1px solid rgba(220, 201, 154, 0.16);
+}
+
+.market-trade-top h2 {
+    margin: 2px 0 0;
+    color: #fff7e6;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+.market-trade-top .shop-wallet {
+    min-width: 104px;
+    min-height: 48px;
+    padding: 8px 12px;
+    border: 1px solid rgba(220, 201, 154, 0.22);
+    border-radius: 12px;
+    background: rgba(5, 8, 11, 0.48);
+}
+
+.market-trade-top .shop-wallet span {
+    font-size: 12px;
+}
+
+.market-trade-top .shop-wallet strong {
+    font-size: 25px;
+}
+
+.market-place-scene .supply-vendor-card {
+    grid-template-columns: 58px minmax(0, 1fr);
+    padding: 10px;
+}
+
+.market-place-scene .vendor-portrait-shell {
+    width: 58px;
+    height: 58px;
+}
+
+.market-place-scene .vendor-card-copy h2 {
+    font-size: 26px;
+}
+
+.market-place-scene .supply-dialogue {
+    padding: 11px 12px;
+    font-size: 14px;
+}
+
+.market-place-scene .trade-status-panel {
+    padding: 9px 11px;
+}
+
+.market-place-scene .supply-panel {
+    gap: 10px;
+}
+
+.market-place-scene .supply-card {
+    padding: 11px;
+    border-color: rgba(220, 201, 154, 0.14);
+}
+
+.market-place-scene .market-carry-panel {
+    min-height: 98px;
+}
+
+.market-place-scene .player-inventory-list {
+    grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)) !important;
+    grid-auto-rows: 58px !important;
+    gap: 6px !important;
+}
+
+.market-place-scene .shop-flow-card {
+    height: 58px !important;
+}
+
+.market-place-scene .shop-flow-card .item-info {
+    display: none !important;
+}
+
+@media (max-width: 1320px) {
+    .market-place-layout {
+        grid-template-columns: minmax(600px, 1fr) minmax(420px, 0.62fr);
+    }
+
+    .market-vendor-dock {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .market-place-scene .market-vendor-dock .market-resident {
+        min-height: 74px;
+    }
+
+    .market-place-scene .market-stage-caption {
+        bottom: 196px;
+        width: min(560px, calc(100% - 44px));
+    }
+}
+
+/* Market place rebuild v3: stalls live in the scene; trading opens as a roomy stall table. */
+.market-place-scene {
+    padding: 18px;
+    overflow: hidden;
+}
+
+.market-place-layout {
+    position: relative;
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+}
+
+.market-place-scene .market-stage {
+    position: absolute;
+    inset: 0;
+    min-width: 0;
+    min-height: 0;
+}
+
+.market-place-scene .market-stage-backdrop {
+    background-image:
+        linear-gradient(180deg, rgba(4, 7, 10, 0.04), rgba(4, 7, 10, 0.46)),
+        linear-gradient(90deg, rgba(3, 6, 8, 0.46), transparent 24%, transparent 72%, rgba(3, 6, 8, 0.28)),
+        var(--market-bg);
+    background-position: center;
+}
+
+.market-place-scene.is-trading .market-stage-backdrop {
+    filter: saturate(0.98) contrast(1.06) brightness(0.82);
+}
+
+.market-place-scene .market-stage::after {
+    background:
+        radial-gradient(ellipse at 50% 106%, rgba(0, 0, 0, 0.44), transparent 58%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%, rgba(0, 0, 0, 0.18));
+}
+
+.market-place-head {
+    z-index: 7;
+    width: min(760px, calc(100% - 44px));
+    right: auto;
+}
+
+.market-place-title {
+    width: min(560px, calc(100vw - 210px));
+}
+
+.market-place-scene .market-stage-caption {
+    z-index: 6;
+    bottom: 22px;
+    width: min(620px, calc(100% - 44px));
+    transition: opacity 160ms ease, transform 180ms ease;
+}
+
+.market-place-scene.is-trading .market-stage-caption {
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+
+.market-vendor-map {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+}
+
+.market-place-scene .market-vendor-map .market-resident {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    transform: translate(-50%, -50%);
+    width: clamp(118px, 11vw, 158px);
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 8px;
+    padding: 8px 9px;
+    border-radius: 12px;
+    border: 1px solid rgba(220, 201, 154, 0.28);
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.1), rgba(255, 247, 230, 0.025)),
+        rgba(4, 8, 10, 0.58);
+    color: var(--ui-text);
+    text-align: left;
+    cursor: pointer;
+    backdrop-filter: blur(7px);
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.market-place-scene .market-vendor-map .market-resident:hover,
+.market-place-scene .market-vendor-map .market-resident:focus-visible {
+    transform: translate(-50%, calc(-50% - 3px));
+    border-color: rgba(233, 189, 101, 0.88);
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.18), rgba(255, 247, 230, 0.03)),
+        rgba(7, 12, 14, 0.78);
+    outline: none;
+}
+
+.market-place-scene .market-vendor-map .market-resident.active {
+    z-index: 9;
+    border-color: rgba(125, 211, 252, 0.85);
+    box-shadow:
+        0 0 0 2px rgba(125, 211, 252, 0.16),
+        0 18px 36px rgba(0, 0, 0, 0.4);
+}
+
+.market-place-scene .market-vendor-map .resident-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+}
+
+.market-place-scene .market-vendor-map .resident-copy {
+    gap: 1px;
+}
+
+.market-place-scene .market-vendor-map .resident-copy > span {
+    color: rgba(233, 189, 101, 0.88);
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.market-place-scene .market-vendor-map .resident-copy strong {
+    font-size: 17px;
+}
+
+.market-place-scene .market-vendor-map .resident-copy small {
+    font-size: 11px;
+}
+
+.market-place-scene .market-vendor-map .resident-count {
+    display: none;
+}
+
+.market-place-scene .market-trade-board {
+    position: absolute;
+    z-index: 10;
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+    height: min(430px, 49vh);
+    min-height: 310px;
+    display: grid;
+    grid-template-columns: minmax(230px, 0.56fr) minmax(420px, 1.35fr) minmax(230px, 0.52fr);
+    grid-template-rows: auto minmax(64px, auto) minmax(0, 1fr);
+    grid-template-areas:
+        "top tabs tabs"
+        "vendor status carry"
+        "dialogue goods carry";
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid rgba(220, 201, 154, 0.28);
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.07), rgba(255, 247, 230, 0.018)),
+        rgba(8, 12, 14, 0.92);
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(18px) scale(0.99);
+    transition: opacity 170ms ease, transform 190ms ease;
+    backdrop-filter: blur(14px);
+    overflow: hidden;
+}
+
+.market-place-scene.is-trading .market-trade-board {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+}
+
+.market-place-scene:not(.is-trading) .market-trade-board {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(18px) scale(0.99) !important;
+}
+
+.market-place-scene.is-trading .market-trade-board {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.market-place-scene:not(.is-trading) .market-stage-caption {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) !important;
+}
+
+.market-place-scene.is-trading .market-stage-caption {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(10px) !important;
+}
+
+.market-trade-top {
+    grid-area: top;
+    min-width: 0;
+    padding: 0 0 8px;
+}
+
+.market-trade-top .shop-wallet {
+    margin-left: auto;
+}
+
+.market-stall-close {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(237, 242, 244, 0.18);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.045);
+    color: rgba(237, 242, 244, 0.86);
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.market-stall-close:hover,
+.market-stall-close:focus-visible {
+    border-color: rgba(125, 211, 252, 0.62);
+    background: rgba(125, 211, 252, 0.12);
+    outline: none;
+}
+
+.market-place-scene .supply-vendor-card {
+    grid-area: vendor;
+    min-height: 0;
+    grid-template-columns: 64px minmax(0, 1fr);
+    align-self: stretch;
+}
+
+.market-place-scene .supply-dialogue {
+    grid-area: dialogue;
+    max-height: none;
+    min-height: 0;
+    height: 100%;
+}
+
+.market-place-scene .supply-tabs {
+    grid-area: tabs;
+    align-self: end;
+    justify-self: end;
+    width: min(460px, 100%);
+}
+
+.market-place-scene .trade-status-panel {
+    grid-area: status;
+    min-height: 0;
+}
+
+.market-place-scene .supply-panel {
+    grid-area: goods;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    align-content: start;
+    overflow-y: auto;
+}
+
+.market-place-scene .supply-card {
+    min-height: 86px;
+    grid-template-columns: minmax(0, 1fr) minmax(84px, auto);
+}
+
+.market-place-scene .market-carry-panel {
+    grid-area: carry;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.market-place-scene .player-inventory-list {
+    min-height: 0;
+    grid-template-columns: repeat(auto-fill, minmax(54px, 1fr)) !important;
+    grid-auto-rows: 58px !important;
+}
+
+@media (max-width: 1320px) {
+    .market-place-scene .market-trade-board {
+        grid-template-columns: minmax(210px, 0.55fr) minmax(340px, 1.22fr) minmax(190px, 0.48fr);
+        height: min(410px, 51vh);
+    }
+
+    .market-place-scene .market-vendor-map .market-resident {
+        width: 126px;
+    }
+}
+
+/* Market place rebuild v4: compact RPG dialogue-trade box, not a full-width system panel. */
+.market-place-scene .market-trade-board {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 24px !important;
+    width: min(980px, calc(100vw - 96px)) !important;
+    height: min(448px, calc(100vh - 164px)) !important;
+    min-height: 376px !important;
+    display: grid !important;
+    grid-template-columns: 230px minmax(360px, 1fr) 210px !important;
+    grid-template-rows: auto 50px 70px minmax(0, 1fr) !important;
+    grid-template-areas:
+        "top top top"
+        "vendor tabs carry"
+        "dialogue status carry"
+        "dialogue goods carry" !important;
+    gap: 9px !important;
+    padding: 12px !important;
+    border-radius: 14px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.07), rgba(255, 247, 230, 0.018)),
+        rgba(8, 12, 14, 0.91) !important;
+}
+
+.market-place-scene:not(.is-trading) .market-trade-board {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translate(-50%, 14px) scale(0.985) !important;
+}
+
+.market-place-scene.is-trading .market-trade-board {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translate(-50%, 0) scale(1) !important;
+}
+
+.market-place-scene .market-trade-top {
+    grid-area: top !important;
+    min-height: 46px;
+    padding: 0 0 8px !important;
+}
+
+.market-place-scene .market-trade-top h2 {
+    font-size: 22px;
+}
+
+.market-place-scene .market-trade-top .shop-wallet {
+    min-width: 92px;
+    min-height: 42px;
+    padding: 7px 10px;
+}
+
+.market-place-scene .market-trade-top .shop-wallet strong {
+    font-size: 22px;
+}
+
+.market-place-scene .market-stall-close {
+    width: 36px;
+    height: 36px;
+}
+
+.market-place-scene .supply-vendor-card {
+    grid-area: vendor !important;
+    min-height: 0 !important;
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 8px !important;
+}
+
+.market-place-scene .vendor-portrait-shell {
+    width: 54px !important;
+    height: 54px !important;
+}
+
+.market-place-scene .vendor-card-copy h2 {
+    margin: 2px 0 3px;
+    font-size: 24px !important;
+}
+
+.market-place-scene .vendor-card-copy p {
+    white-space: normal !important;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.25;
+}
+
+.market-place-scene .supply-dialogue {
+    grid-area: dialogue !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 10px 11px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+}
+
+.market-place-scene .supply-tabs {
+    grid-area: tabs !important;
+    width: 100% !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+}
+
+.market-place-scene .supply-tab {
+    min-height: 42px !important;
+    border-radius: 10px !important;
+    font-size: 15px !important;
+}
+
+.market-place-scene .trade-status-panel {
+    grid-area: status !important;
+    min-height: 0 !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 8px 10px !important;
+}
+
+.market-place-scene .trade-status-icon {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 13px !important;
+}
+
+.market-place-scene .trade-status-title {
+    font-size: 14px !important;
+}
+
+.market-place-scene .trade-status-message {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    font-size: 12px !important;
+}
+
+.market-place-scene .supply-panel {
+    grid-area: goods !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+}
+
+.market-place-scene .supply-card {
+    min-height: 76px !important;
+    grid-template-columns: minmax(0, 1fr) 84px !important;
+    padding: 9px !important;
+}
+
+.market-place-scene .supply-card-main {
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+}
+
+.market-place-scene .supply-card-icon,
+.market-place-scene .supply-card .item-atlas-icon {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+.market-place-scene .supply-card-copy h3 {
+    font-size: 16px !important;
+}
+
+.market-place-scene .supply-card-copy p {
+    -webkit-line-clamp: 2 !important;
+}
+
+.market-place-scene .supply-card-side {
+    min-width: 80px !important;
+}
+
+.market-place-scene .supply-card-side button {
+    min-width: 76px !important;
+}
+
+.market-place-scene .market-carry-panel {
+    grid-area: carry !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+}
+
+.market-place-scene .market-carry-panel .section-header.compact {
+    min-height: 44px !important;
+    padding: 7px 9px !important;
+}
+
+.market-place-scene .market-carry-panel .section-header.compact h3 {
+    font-size: 16px !important;
+}
+
+.market-place-scene .player-inventory-list {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)) !important;
+    grid-auto-rows: 54px !important;
+    gap: 6px !important;
+    padding: 7px !important;
+}
+
+.market-place-scene .shop-flow-card {
+    height: 54px !important;
+}
+
+.market-place-scene .shop-flow-card .item-icon,
+.market-place-scene .shop-flow-card .item-atlas-icon {
+    width: 34px !important;
+    height: 34px !important;
+}
+
+.market-place-scene.is-trading .market-stage-caption {
+    opacity: 0 !important;
+    transform: translateY(8px) !important;
+}
+
+/* Market dialogue reset: scene first, stall trade through an RPG dialogue box. */
+.market-dialogue-scene {
+    padding: 16px !important;
+    overflow: hidden !important;
+    background:
+        radial-gradient(circle at 24% 18%, rgba(125, 211, 252, 0.12), transparent 28%),
+        linear-gradient(180deg, #0c1419, #080d12 58%, #06090d) !important;
+}
+
+.market-dialogue-layout {
+    position: relative !important;
+    display: grid !important;
+    grid-template-columns: minmax(700px, 1fr) clamp(460px, 36vw, 520px) !important;
+    gap: 16px !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+.market-dialogue-scene .market-stage {
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(220, 201, 154, 0.28);
+    border-radius: 18px;
+    background: #0b1216;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.06),
+        0 22px 60px rgba(0, 0, 0, 0.34);
+}
+
+.market-dialogue-scene .market-stage-backdrop {
+    background-image:
+        linear-gradient(180deg, rgba(5, 8, 10, 0.06), rgba(5, 8, 10, 0.32) 58%, rgba(5, 8, 10, 0.66)),
+        linear-gradient(90deg, rgba(4, 8, 10, 0.5), transparent 28%, transparent 72%, rgba(4, 8, 10, 0.42)),
+        var(--market-bg) !important;
+    background-size: cover !important;
+    background-position: center !important;
+    filter: saturate(1.02) contrast(1.04) brightness(0.92) !important;
+}
+
+.market-dialogue-scene.is-trading .market-stage-backdrop {
+    filter: saturate(1.02) contrast(1.05) brightness(0.82) !important;
+}
+
+.market-dialogue-scene .market-place-head {
+    position: absolute !important;
+    z-index: 8 !important;
+    left: 22px !important;
+    top: 18px !important;
+    right: auto !important;
+    width: min(620px, calc(100% - 44px)) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 12px !important;
+    border: 1px solid rgba(220, 201, 154, 0.24);
+    border-radius: 14px;
+    background: rgba(7, 11, 13, 0.76);
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+}
+
+.market-dialogue-scene .market-back-btn {
+    flex: 0 0 auto;
+    min-height: 42px;
+}
+
+.market-dialogue-scene .market-place-title {
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+.market-dialogue-scene .market-place-title h1 {
+    margin: 0 !important;
+    font-size: clamp(30px, 3vw, 46px) !important;
+    line-height: 1.05 !important;
+}
+
+.market-dialogue-scene .market-place-title p {
+    margin: 6px 0 0 !important;
+    max-width: 48ch;
+    color: rgba(237, 242, 244, 0.78);
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.market-dialogue-scene .market-vendor-map {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 5 !important;
+}
+
+.market-dialogue-scene .market-vendor-map .market-resident {
+    width: clamp(130px, 12vw, 172px) !important;
+    min-height: 66px !important;
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 9px !important;
+    border-radius: 13px !important;
+    border-color: rgba(220, 201, 154, 0.3) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.12), rgba(255, 247, 230, 0.03)),
+        rgba(5, 10, 12, 0.66) !important;
+}
+
+.market-dialogue-scene .market-vendor-map .market-resident:hover,
+.market-dialogue-scene .market-vendor-map .market-resident:focus-visible {
+    transform: translate(-50%, calc(-50% - 3px)) !important;
+    border-color: rgba(233, 189, 101, 0.86) !important;
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.2), rgba(255, 247, 230, 0.04)),
+        rgba(7, 12, 14, 0.82) !important;
+}
+
+.market-dialogue-scene .market-vendor-map .resident-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 11px !important;
+}
+
+.market-dialogue-scene .market-vendor-map .resident-copy > span {
+    color: rgba(233, 189, 101, 0.9) !important;
+}
+
+.market-dialogue-scene .market-vendor-map .resident-copy strong {
+    font-size: 18px !important;
+}
+
+.market-dialogue-scene .market-stage-caption {
+    z-index: 7 !important;
+    left: 22px !important;
+    right: auto !important;
+    bottom: 22px !important;
+    width: min(640px, calc(100% - 44px)) !important;
+    max-width: none !important;
+    transition: opacity 150ms ease, transform 170ms ease !important;
+}
+
+.market-dialogue-scene.is-trading .market-stage-caption {
+    opacity: 0 !important;
+    transform: translateY(10px) !important;
+    pointer-events: none !important;
+}
+
+.market-dialogue-scene .market-trade-board.market-dialogue-board {
+    position: absolute !important;
+    z-index: 12 !important;
+    left: 22px !important;
+    right: 22px !important;
+    bottom: 22px !important;
+    width: auto !important;
+    height: min(390px, 52vh) !important;
+    min-height: 318px !important;
+    display: grid !important;
+    grid-template-columns: minmax(250px, 0.46fr) minmax(380px, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    grid-template-areas: none !important;
+    gap: 12px !important;
+    padding: 14px !important;
+    border: 1px solid rgba(220, 201, 154, 0.3) !important;
+    border-radius: 16px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 247, 230, 0.08), rgba(255, 247, 230, 0.018)),
+        rgba(8, 12, 14, 0.92) !important;
+    box-shadow:
+        0 26px 70px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(14px) scale(0.99) !important;
+    transition: opacity 150ms ease, transform 170ms ease !important;
+    overflow: hidden !important;
+    backdrop-filter: blur(14px);
+}
+
+.market-dialogue-scene.is-trading .market-trade-board.market-dialogue-board {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.market-dialogue-scene:not(.is-trading) .market-trade-board.market-dialogue-board {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: translateY(14px) scale(0.99) !important;
+}
+
+.market-dialogue-scene .market-stall-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+}
+
+.dialogue-trade-persona,
+.dialogue-trade-main {
+    min-width: 0;
+    min-height: 0;
+}
+
+.dialogue-trade-persona {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+}
+
+.dialogue-trade-main {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 10px;
+}
+
+.market-dialogue-scene .dialogue-trade-persona .supply-vendor-card {
+    grid-area: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    gap: 11px !important;
+    padding: 10px !important;
+}
+
+.market-dialogue-scene .vendor-portrait-shell {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 13px !important;
+}
+
+.market-dialogue-scene .vendor-card-copy h2 {
+    margin: 2px 0 3px !important;
+    font-size: 25px !important;
+    line-height: 1.1 !important;
+}
+
+.market-dialogue-scene .vendor-card-copy p {
+    white-space: normal !important;
+    line-height: 1.35 !important;
+}
+
+.market-dialogue-scene .supply-dialogue {
+    grid-area: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 13px !important;
+    overflow-y: auto !important;
+}
+
+.market-dialogue-scene .supply-tabs {
+    grid-area: auto !important;
+    width: calc(100% - 48px) !important;
+    justify-self: start !important;
+    align-self: start !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+}
+
+.market-dialogue-scene .supply-tab {
+    min-height: 42px !important;
+    border-radius: 10px !important;
+}
+
+.market-dialogue-scene .trade-status-panel {
+    grid-area: auto !important;
+    min-height: 0 !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 9px 10px !important;
+}
+
+.market-dialogue-scene .trade-status-message {
+    display: block !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+.market-dialogue-scene .supply-panel {
+    grid-area: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    align-content: start !important;
+    gap: 8px !important;
+    overflow-y: auto !important;
+}
+
+.market-dialogue-scene .supply-card {
+    min-height: 78px !important;
+    grid-template-columns: minmax(0, 1fr) 88px !important;
+    padding: 9px !important;
+}
+
+.market-dialogue-scene .supply-card-main {
+    grid-template-columns: 42px minmax(0, 1fr) !important;
+    min-width: 0 !important;
+}
+
+.market-dialogue-scene .supply-card-copy h3 {
+    font-size: 16px !important;
+    line-height: 1.25 !important;
+}
+
+.market-dialogue-scene .supply-card-copy p {
+    -webkit-line-clamp: 2 !important;
+}
+
+.market-dialogue-scene .supply-card-side {
+    min-width: 84px !important;
+}
+
+.market-side-rail {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(170px, 0.38fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+.market-side-card {
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    border-radius: 16px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+        rgba(11, 17, 22, 0.86);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 44px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+}
+
+.market-dialogue-scene .market-side-rail .market-carry-panel {
+    grid-area: auto !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    overflow: hidden !important;
+}
+
+.market-dialogue-scene .market-side-rail .section-header.compact {
+    min-height: 58px !important;
+    padding: 12px 14px !important;
+    border-bottom: 1px solid rgba(237, 242, 244, 0.08);
+}
+
+.market-dialogue-scene .market-side-rail .section-header.compact h3 {
+    font-size: 20px !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-wallet {
+    min-width: 94px;
+    min-height: 42px;
+}
+
+.market-dialogue-scene .market-side-rail .player-inventory-list {
+    min-height: 0 !important;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)) !important;
+    grid-auto-rows: 60px !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    overflow-y: auto !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-flow-card {
+    height: 60px !important;
+    min-height: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-info {
+    display: none !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon,
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-atlas-icon {
+    width: 38px !important;
+    height: 38px !important;
+}
+
+.market-dynamic-panel.town-narrative-whisper {
+    min-height: 0 !important;
+    height: 100%;
+}
+
+.market-dynamic-panel .market-feed {
+    min-height: 0;
+    height: 100%;
+    padding: 0 !important;
+    overflow-y: auto;
+}
+
+.market-dynamic-panel .market-feed-card {
+    border-left: 1px solid rgba(220, 201, 154, 0.12);
+}
+
+@media (max-width: 1360px) {
+    .market-dialogue-layout {
+        grid-template-columns: minmax(620px, 1fr) minmax(484px, 0.48fr) !important;
+    }
+
+    .market-dialogue-scene .market-trade-board.market-dialogue-board {
+        height: min(366px, 52vh) !important;
+        grid-template-columns: minmax(226px, 0.44fr) minmax(330px, 1fr) !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .market-resident {
+        width: 136px !important;
+    }
+}
+
+@media (max-height: 760px) {
+    .market-side-rail {
+        grid-template-rows: minmax(160px, 0.36fr) minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .market-dialogue-scene .market-place-head {
+        top: 14px !important;
+        padding: 10px !important;
+    }
+
+    .market-dialogue-scene .market-place-title p {
+        -webkit-line-clamp: 1;
+    }
+
+    .market-dialogue-scene .market-trade-board.market-dialogue-board {
+        bottom: 16px !important;
+        height: min(332px, 50vh) !important;
+        min-height: 292px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .player-inventory-list {
+        grid-auto-rows: 54px !important;
+        gap: 7px !important;
+        padding: 10px !important;
+    }
+
+    .market-dialogue-scene .supply-card {
+        min-height: 72px !important;
+    }
 }

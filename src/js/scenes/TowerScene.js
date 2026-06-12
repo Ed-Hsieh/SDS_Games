@@ -19,6 +19,7 @@ import {
 } from '../utils/CombatUI.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 class TowerScene {
@@ -454,7 +455,7 @@ class TowerScene {
         );
 
         this.quickItemsEl.innerHTML = potions.slice(0, 4).map(stack => `
-            <div class="quick-item" onclick="towerScene.useItem('${stack.instanceId}')">
+            <div class="quick-item" onclick="towerScene.useItem('${stack.instanceId}')"${buildItemTooltipAttrs(stack.item, { quantity: stack.quantity })}>
                 <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
                 <span class="item-count">x${stack.quantity}</span>
             </div>
@@ -503,12 +504,16 @@ class TowerScene {
                 const labels = {
                     stun: '⚡ 暈眩',
                     slow: `❄️ 緩速 ${Math.round(event.percent || 0)}%`,
-                    poison: `☠️ 中毒 ${event.dps || 0}/秒`
+                    poison: `☠️ 中毒 ${event.dps || 0}/秒`,
+                    attackSpeed: `✨ 攻速 +${Math.round(event.totalPercent || event.percent || 0)}%`,
+                    hpRegen: '💚 回復'
                 };
                 const types = {
                     stun: 'statusStun',
                     slow: 'statusSlow',
-                    poison: 'statusPoison'
+                    poison: 'statusPoison',
+                    attackSpeed: 'statusBuff',
+                    hpRegen: 'lifesteal'
                 };
                 showCombatDamageNumber(this.battleStateEl, 0, {
                     type: types[event.type] || 'status',
@@ -524,6 +529,11 @@ class TowerScene {
                     showCombatDamageNumber(this.battleStateEl, event.damage || 0, {
                         type: 'dot',
                         label: `☠️ -${event.damage || 0}`
+                    });
+                } else if (event.type === 'hpRegen') {
+                    showCombatDamageNumber(this.battleStateEl, event.amount || 0, {
+                        type: 'lifesteal',
+                        label: `💚 回復 +${event.amount || 0}`
                     });
                 }
                 if (event.targetDefeated) this.finishBattleVictory();
@@ -582,6 +592,9 @@ class TowerScene {
         const hitType = action.hitType || 'hit';
         const res = this.battleEngine?.playerAttack(hitType);
         if (!res) return;
+        this.rhythmSystem?.setBattleAttackSpeedBonus?.(
+            this.battleEngine.getPlayerAttackSpeedBonusPercent?.() || 0
+        );
 
         if (res.destroyedWeapon) {
             this.showMessage(`${res.destroyedWeapon.name} 已損壞。`, 'warning');
@@ -655,8 +668,8 @@ class TowerScene {
         }
 
         const itemsHtml = potions.map(stack =>
-            `<button class="item-btn" 
-                     onclick="towerScene.useItem('${stack.instanceId}'); this.parentElement.parentElement.remove();">
+            `<button class="item-btn"
+                     onclick="towerScene.useItem('${stack.instanceId}'); this.parentElement.parentElement.remove();"${buildItemTooltipAttrs(stack.item, { quantity: stack.quantity })}>
                 <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
                 <span>${escapeHtml(stack.item.name)} x${stack.quantity}</span>
             </button>`
@@ -847,7 +860,7 @@ class TowerScene {
             if (rewards.items && rewards.items.length > 0) {
                 html += '<p>🎁 道具：</p><ul>';
                 for (const item of rewards.items) {
-                    html += `<li><span class="item-icon">${getItemVisualHtml(item, '📦')}</span> ${escapeHtml(item.name)} x${item.quantity}</li>`;
+                    html += `<li${buildItemTooltipAttrs(item, { quantity: item.quantity })}><span class="item-icon">${getItemVisualHtml(item, '📦')}</span> ${escapeHtml(item.name)} x${item.quantity}</li>`;
                 }
                 html += '</ul>';
             }

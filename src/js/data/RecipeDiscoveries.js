@@ -63,9 +63,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'merchant_ancient_coin'
     },
     hydra_fang_dagger: {
-        source: '副本、菁英或首領掉落',
-        clue: '九頭蛇毒牙匕首圖紙只會出現在高威脅戰鬥的戰利品中。',
-        interactionId: 'strong_blueprint_drop'
+        source: '叢林副本：蛛絲的遺贈',
+        clue: '擊敗叢林九頭蛇後，從艾拉拉的染血織機殘卷中解出毒牙匕首圖紙。',
+        interactionId: 'dungeon_jungle_002'
     },
 
     shadow_blade: {
@@ -95,24 +95,24 @@ export const RecipeDiscoveryDatabase = {
     },
 
     mithril_sword: {
-        source: '副本、菁英或首領掉落',
-        clue: '秘銀長劍圖紙需要從高威脅戰鬥中取得。',
-        interactionId: 'strong_blueprint_drop'
+        source: '遺跡副本：盲目的秩序',
+        clue: '通過守護者的考驗後，從朱利安的防衛紀錄中拼出秘銀長劍圖紙。',
+        interactionId: 'dungeon_ruins_002'
     },
     fire_sword: {
-        source: '副本、菁英或首領掉落',
-        clue: '烈焰之劍圖紙會在副本或強敵戰利品中出現。',
-        interactionId: 'strong_blueprint_drop'
+        source: '地獄副本：絕望的火種',
+        clue: '在終焉之戰擊倒炎獄後，先遣隊日記裡的鍛造觀測能解出烈焰之劍圖紙。',
+        interactionId: 'dungeon_hell_002'
     },
     ice_sword: {
-        source: '副本、菁英或首領掉落',
-        clue: '霜寒之劍圖紙需要挑戰副本、菁英或首領取得。',
-        interactionId: 'strong_blueprint_drop'
+        source: '雪山副本：熄滅的聖火',
+        clue: '登上冰霜王座後，凱倫的鐵砧刻字能解出破霜兵刃圖紙。',
+        interactionId: 'dungeon_snow_002'
     },
     frostbound_scepter: {
-        source: '副本、菁英或首領掉落',
-        clue: '霜縛權杖圖紙只會從強力戰鬥戰利品中取得。',
-        interactionId: 'strong_blueprint_drop'
+        source: '雪山副本：熄滅的聖火',
+        clue: '凱倫的聖火熔爐重燃後，雪峰專屬鍛造線才會交出霜縛權杖圖紙。',
+        interactionId: 'dungeon_snow_002'
     },
     nature_amulet: {
         source: '副本、菁英或首領掉落',
@@ -130,9 +130,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'strong_blueprint_drop'
     },
     earthwarden_aegis: {
-        source: '副本、菁英或首領掉落',
-        clue: '大地守衛盾圖紙藏在高階戰鬥戰利品裡。',
-        interactionId: 'strong_blueprint_drop'
+        source: '遺跡副本：盲目的秩序',
+        clue: '遠古守衛者停機後，神殿防禦網絡的核心構造能拼出大地守衛盾圖紙。',
+        interactionId: 'dungeon_ruins_002'
     },
     storm_spear: {
         source: '副本、菁英或首領掉落',
@@ -181,9 +181,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'strong_blueprint_drop'
     },
     demonwar_helm: {
-        source: '副本、菁英或首領掉落',
-        clue: '魔戰指揮盔圖紙只會從高階副本或首領戰利品中掉落。',
-        interactionId: 'strong_blueprint_drop'
+        source: '地獄副本：絕望的火種',
+        clue: '炎獄被擊倒後，熔毀鎧甲裡倖存的指揮盔構型能被重新鍛出。',
+        interactionId: 'dungeon_hell_002'
     },
     slime_crown_ring: {
         source: '副本、菁英或首領掉落',

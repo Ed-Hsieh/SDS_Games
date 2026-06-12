@@ -56,6 +56,7 @@ export default class LobbyScene {
         this.lastNarrativeAt = 0;
         this.lastNarrativeTone = null;
         this.renderedNarrativeCount = 0;
+        this.syncedTownPlaceNarrativeKeys = new Set();
     }
 
     init() {
@@ -66,6 +67,7 @@ export default class LobbyScene {
             // Subscribe to GameManager updates
             GameManager.subscribe(this.updateUI);
 
+            this.restoreTownPlaceReturn();
             this.initializeTownNarrative();
 
             // Force initial UI update with current state
@@ -454,11 +456,33 @@ export default class LobbyScene {
     navigateTownRoute(route) {
         if (!route) return;
 
+        if (route === 'shop') {
+            this.rememberTownPlaceReturn('market');
+        }
+
         if (typeof this.app?.navigateTo === 'function') {
             this.app.navigateTo(route);
         } else {
             this.app.loadScene(route);
         }
+    }
+
+    rememberTownPlaceReturn(placeId) {
+        if (!placeId || !getTownPlace(placeId)) return;
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+        GameManager.state.ui.returnTownPlaceId = placeId;
+        GameManager.markSaveDirty?.('town-place-return');
+    }
+
+    restoreTownPlaceReturn() {
+        const placeId = GameManager.state?.ui?.returnTownPlaceId;
+        if (!placeId || !getTownPlace(placeId)) return;
+
+        this.activeTownPlaceId = placeId;
+        delete GameManager.state.ui.returnTownPlaceId;
+        GameManager.markSaveDirty?.('town-place-return-consumed');
     }
 
     openTownNpc(npcId) {
@@ -506,22 +530,36 @@ export default class LobbyScene {
         if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
         if (this.dom.townDialogueTopics) {
             this.dom.townDialogueTopics.hidden = false;
+            const categoryOrder = ['report', 'main', 'side', 'function', 'chat'];
+            const groups = categoryOrder
+                .map(category => ({
+                    category,
+                    label: topics.find(topic => topic.category === category)?.categoryLabel || '',
+                    topics: topics.filter(topic => (topic.category || 'chat') === category)
+                }))
+                .filter(group => group.topics.length > 0);
+
             this.dom.townDialogueTopics.innerHTML = `
                 <div class="town-topic-intro">
                     <span>現在可以談的事</span>
                     <strong>${escapeHtml(npc.name || '居民')} 正等你先開口。</strong>
                 </div>
-                <div class="town-topic-list">
-                    ${topics.map(topic => `
-                        <button class="town-topic-option is-${escapeHtml(topic.type || 'status')}" data-dialogue-topic-id="${escapeHtml(topic.id)}" type="button">
-                            <span class="town-topic-icon">${escapeHtml(topic.icon || '•')}</span>
-                            <span class="town-topic-copy">
-                                <strong>${escapeHtml(topic.label || topic.title || '話題')}</strong>
-                                <small>${escapeHtml(topic.summary || '選擇這個話題。')}</small>
-                            </span>
-                        </button>
-                    `).join('')}
-                </div>
+                ${groups.map(group => `
+                    <div class="town-topic-group is-${escapeHtml(group.category)}">
+                        <div class="town-topic-group-label">${escapeHtml(group.label)}</div>
+                        <div class="town-topic-list">
+                            ${group.topics.map(topic => `
+                                <button class="town-topic-option is-${escapeHtml(topic.type || 'status')}" data-dialogue-topic-id="${escapeHtml(topic.id)}" type="button">
+                                    <span class="town-topic-icon">${escapeHtml(topic.icon || '•')}</span>
+                                    <span class="town-topic-copy">
+                                        <strong>${escapeHtml(topic.label || topic.title || '話題')}</strong>
+                                        <small>${escapeHtml(topic.summary || '選擇這個話題。')}</small>
+                                    </span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('')}
             `;
         }
 
@@ -719,6 +757,8 @@ export default class LobbyScene {
             const text = article.querySelector('.town-dialogue-text');
             const paragraph = article.querySelector('p');
 
+            article.classList.toggle('is-current', isCurrent);
+            article.classList.toggle('is-past', index < dialogue.currentIndex);
             article.classList.toggle('is-typing', isCurrent && dialogue.isTyping);
             if (text) {
                 text.textContent = isCurrent ? dialogue.currentText : (line?.text || '');
@@ -1100,7 +1140,7 @@ export default class LobbyScene {
         return line;
     }
 
-    pushTownNarrative(title, message, tone = 'ambient') {
+    pushTownNarrative(title, message, tone = 'ambient', options = {}) {
         if (!this.dom?.townDialogueStream) return;
 
         const allowedTones = new Set(['ambient', 'discovery', 'warning']);
@@ -1114,6 +1154,7 @@ export default class LobbyScene {
             title: title || '城鎮片刻',
             message: message || '街道暫時安靜下來。',
             tone: safeTone,
+            sourceKey: options.sourceKey || null,
             createdAt: Date.now()
         });
         this.lastNarrativeAt = Date.now();
@@ -1240,21 +1281,28 @@ export default class LobbyScene {
             button.type = 'button';
             button.className = `town-place-card ${place.mapClass || ''}${readyCount > 0 ? ' is-ready' : ''}`;
             button.dataset.townPlaceId = place.id;
+            if (place.sceneImage) {
+                button.style.setProperty('--town-place-card-image', this.formatSceneAssetUrl(place.sceneImage));
+            }
+            if (place.scenePosition) {
+                button.style.setProperty('--town-place-card-image-position', place.scenePosition);
+            }
 
             const alertText = readyCount > 0
                 ? `${readyCount} 個動向`
-                : place.tag || '場所';
-
-            const placeIcon = this.renderTownPlaceCardIcon(place);
+                : '';
 
             button.innerHTML = `
-                <span class="town-place-card-icon">${placeIcon}</span>
                 <span class="town-place-card-copy">
                     <small>${escapeHtml(place.tag || '場所')}</small>
                     <strong>${escapeHtml(place.name || '未命名場所')}</strong>
                 </span>
-                <span class="town-place-card-signal">${escapeHtml(alertText)}</span>
+                ${alertText ? `<span class="town-place-card-signal">${escapeHtml(alertText)}</span>` : ''}
             `;
+            button.addEventListener('click', event => {
+                event.stopPropagation();
+                this.enterTownPlace(place.id);
+            });
             map.appendChild(button);
         });
 
@@ -1276,8 +1324,12 @@ export default class LobbyScene {
         if (this.dom.townPlaceIcon) this.dom.townPlaceIcon.innerHTML = this.renderTownPlaceCardIcon(place);
         if (this.dom.townPlaceTag) this.dom.townPlaceTag.textContent = place.tag || '場所';
         if (this.dom.townPlaceName) this.dom.townPlaceName.textContent = place.name || '未命名場所';
-        if (this.dom.townPlaceDescription) this.dom.townPlaceDescription.textContent = place.description || '';
+        if (this.dom.townPlaceDescription) {
+            this.dom.townPlaceDescription.textContent = '';
+            this.dom.townPlaceDescription.hidden = true;
+        }
         if (this.dom.townNarrativeTitle) this.dom.townNarrativeTitle.textContent = this.getTownTitle();
+        this.syncTownPlaceNarrative(place);
 
         const residents = place.residents || [];
         const actions = place.actions || [];
@@ -1464,6 +1516,51 @@ export default class LobbyScene {
             .filter(action => action?.type === 'interaction' && action.id && !worldInteractionManager.hasResolved(action.id))
             .length;
         return residentReady + interactionReady;
+    }
+
+    syncTownPlaceNarrative(place = {}) {
+        if (!place?.id) return;
+
+        const placeName = place.name || '未命名場所';
+        const description = String(place.description || '').trim();
+        if (description) {
+            this.pushTownNarrativeOnce(
+                `place:${place.id}:arrival`,
+                `抵達：${placeName}`,
+                description,
+                'ambient'
+            );
+        }
+
+        (place.states || []).forEach((state, index) => {
+            if (!state?.flag || !GameManager.getFlag(state.flag)) return;
+            const title = state.title || `${placeName}的變化`;
+            const text = String(state.text || '').trim();
+            if (!text) return;
+            this.pushTownNarrativeOnce(
+                `place:${place.id}:state:${state.flag || index}`,
+                title,
+                text,
+                'discovery'
+            );
+        });
+    }
+
+    pushTownNarrativeOnce(key, title, message, tone = 'ambient') {
+        const safeKey = String(key || `${title}:${message}`);
+        if (this.syncedTownPlaceNarrativeKeys.has(safeKey)) return;
+
+        const narrativeState = GameManager.getTownNarrativeState();
+        const existingLines = Array.isArray(narrativeState?.lines) ? narrativeState.lines : this.narrativeLines;
+        const alreadyLogged = (existingLines || []).some(line => (
+            line?.sourceKey === safeKey
+            || (line?.title === title && line?.message === message)
+        ));
+
+        this.syncedTownPlaceNarrativeKeys.add(safeKey);
+        if (alreadyLogged) return;
+
+        this.pushTownNarrative(title, message, tone, { sourceKey: safeKey });
     }
 
     enterTownPlace(placeId) {

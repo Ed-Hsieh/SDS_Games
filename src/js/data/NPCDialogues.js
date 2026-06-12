@@ -26,7 +26,7 @@ export const TownNPCDatabase = {
     herbalist: {
         id: 'herbalist',
         portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png',
-        name: '藥師',
+        name: '藥師蓮娜',
         avatar: '🌿',
         role: '記錄草藥、毒霧與居民傷勢',
         location: '市集邊棚',
@@ -835,6 +835,29 @@ export const TownDialogueDatabase = {
     ],
 
     herbalist: [
+        {
+            id: 'herbalist_thorn_bargain',
+            priority: 90,
+            once: true,
+            tone: 'discovery',
+            conditions: [
+                { type: 'flag', flag: 'world.story.thorn_witch.progress.deliver_herbs' },
+                { type: 'notFlag', flag: 'town.apothecary.understands_thorn_trade' }
+            ],
+            narrativeTitle: '荊棘交易規則',
+            narrativeSummary: '草藥交付之後，蓮娜把採藥籃翻過來，指著籃柄上的荊棘記號。那不是破壞的痕跡，而是價格標籤。女巫不偷東西，她在記帳。',
+            lines: [
+                { speaker: 'npc', text: '你交出去的草藥有回音了。籃子回來的時候，柄上多了一圈新荊棘，纏得很整齊，像是被人簽過名。' },
+                { speaker: 'npc', text: '我研究了一晚上才看懂：每一根刺對應一種草，每一圈對應一次交付。她不是在搶，她在記帳。' },
+                { speaker: 'player', text: '所以只要照著規則交易，她就會回答問題？那如果有人賴帳呢？' },
+                { speaker: 'npc', text: '賴帳的那戶人家，籬笆現在還在長刺。守規則能換到溫室的位置，破壞規則⋯⋯她會親自來收。兩條路都通到她面前，差別是誰先動手。' }
+            ],
+            effects: [
+                { type: 'worldInteraction', interactionId: 'thorn_bargain_choice' }
+            ],
+            route: 'adventure',
+            routeLabel: '前往荊棘溫室'
+        },
         {
             id: 'herbalist_bottles_offer',
             priority: 82,

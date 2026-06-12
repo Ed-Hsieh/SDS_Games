@@ -2,13 +2,13 @@
  * EventManager.js
  * 選擇與返回事件的行為（使用 data/Events.js 作為單一資料庫）
  */
-import { EventDatabase, EventType, ResultType } from '../data/Events.js';
+import { EventDatabase, EventType, EventRole, ResultType, isEventAllowedInChapter } from '../data/Events.js';
 import GameManager from './GameManager.js';
 import { Consumable, Item } from '../models/DataModel.js';
 import { ItemType, ItemRarity } from '../models/Enums.js';
 import { weightedPick } from '../utils/WeightedPick.js';
 import { questManager, QuestStatus } from './QuestManager.js';
-import { getQuestById } from '../data/Quests.js';
+import { QuestDatabase, getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 
@@ -35,6 +35,44 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
     ]
 };
 
+const EVENT_MEMORY_FLAG_PREFIX = 'event.memory.';
+const EVENT_LAST_STEP_FLAG_PREFIX = 'event.lastStep.';
+
+function getEventMemoryKey(eventObj = {}) {
+    return String(eventObj.memoryKey || eventObj.id || '').trim();
+}
+
+function getEventRepeatPolicy(eventObj = {}) {
+    if (eventObj.repeatPolicy) return eventObj.repeatPolicy;
+    switch (eventObj.eventRole) {
+        case EventRole.STORY_SEED:
+        case EventRole.SIDE_STORY:
+            return 'one_time';
+        case EventRole.WORLD_LORE:
+            return 'chapter_once';
+        default:
+            return 'repeatable';
+    }
+}
+
+function getEventMemoryFlag(eventObj = {}, chapter = null) {
+    const key = getEventMemoryKey(eventObj);
+    if (!key) return null;
+    const suffix = chapter === null || chapter === undefined ? key : `${key}.chapter.${chapter}`;
+    return `${EVENT_MEMORY_FLAG_PREFIX}${suffix}`;
+}
+
+function getEventLastStepFlag(eventObj = {}) {
+    const key = getEventMemoryKey(eventObj);
+    return key ? `${EVENT_LAST_STEP_FLAG_PREFIX}${key}` : null;
+}
+
+function getCurrentEventStep(options = {}) {
+    const rawStep = options.stepCount ?? GameManager.getFlag('map.travelStep');
+    const step = Number(rawStep);
+    return Number.isFinite(step) ? step : null;
+}
+
 function pickWeightedEvent(pool = [], rng = Math.random) {
     if (pool.length === 0) return null;
     const weightedPool = pool.map(event => {
@@ -54,10 +92,35 @@ function filterExcludedEvents(pool = [], excludeIds = []) {
     return filtered.length > 0 ? filtered : pool;
 }
 
+function normalizeChapter(chapter) {
+    const numericChapter = Number(chapter);
+    return Number.isFinite(numericChapter) ? Math.max(1, numericChapter) : 1;
+}
+
+export function getCurrentStoryChapter() {
+    const mainQuests = Array.isArray(QuestDatabase.main) ? QuestDatabase.main : [];
+    let chapter = 1;
+
+    for (const quest of mainQuests) {
+        const questChapter = normalizeChapter(quest.chapter);
+        const state = questManager.getQuestState(quest.id);
+        if (state?.status && state.status !== QuestStatus.LOCKED) {
+            chapter = Math.max(chapter, questChapter);
+        }
+    }
+
+    return chapter;
+}
+
+function getEventChapter(options = {}) {
+    return options.chapter !== undefined ? normalizeChapter(options.chapter) : getCurrentStoryChapter();
+}
+
 function pickEventByIds(eventIds = [], rng = Math.random, zoneType = null, options = {}) {
+    const chapter = getEventChapter(options);
     let pool = eventIds
         .map(eventId => EventDatabase.find(event => event.id === eventId))
-        .filter(event => isEventEligible(event, zoneType));
+        .filter(event => isEventEligible(event, zoneType, { ...options, chapter }));
 
     if (pool.length === 0) return null;
     pool = filterExcludedEvents(pool, options.excludeIds || []);
@@ -99,8 +162,67 @@ function isWorldInteractionUseful(interactionId) {
     return true;
 }
 
-function isEventEligible(eventObj = {}, zoneType = null) {
+function isEventRetired(eventObj = {}) {
+    const retireFlags = Array.isArray(eventObj.retireWhenFlags) ? eventObj.retireWhenFlags : [];
+    if (retireFlags.some(flag => GameManager.getFlag(flag))) return true;
+
+    const retireQuestIds = Array.isArray(eventObj.retireWhenQuestIds) ? eventObj.retireWhenQuestIds : [];
+    return retireQuestIds.some(questId => {
+        try {
+            return questManager.getQuestState(questId)?.status !== QuestStatus.LOCKED;
+        } catch (error) {
+            return false;
+        }
+    });
+}
+
+function isEventMemoryBlocked(eventObj = {}, options = {}) {
+    const policy = getEventRepeatPolicy(eventObj);
+    const chapter = getEventChapter(options);
+
+    if (policy === 'one_time' || policy === 'until_resolved') {
+        const flag = getEventMemoryFlag(eventObj);
+        if (flag && GameManager.getFlag(flag)) return true;
+    }
+
+    if (policy === 'chapter_once') {
+        const flag = getEventMemoryFlag(eventObj, chapter);
+        if (flag && GameManager.getFlag(flag)) return true;
+    }
+
+    const cooldownSteps = Number(eventObj.cooldownSteps || 0);
+    const currentStep = getCurrentEventStep(options);
+    const lastStepFlag = getEventLastStepFlag(eventObj);
+    const lastStep = lastStepFlag ? Number(GameManager.getFlag(lastStepFlag)) : NaN;
+    if (
+        cooldownSteps > 0
+        && Number.isFinite(currentStep)
+        && Number.isFinite(lastStep)
+        && currentStep - lastStep < cooldownSteps
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
+function hasMatchingLandmarkTag(eventObj = {}, options = {}) {
+    const requiredTags = Array.isArray(eventObj.landmarkTags) ? eventObj.landmarkTags.filter(Boolean) : [];
+    const currentTags = Array.isArray(options.landmarkTags) ? options.landmarkTags.filter(Boolean) : [];
+    if (requiredTags.length === 0 || currentTags.length === 0) return true;
+    return requiredTags.some(tag => currentTags.includes(tag));
+}
+
+function isEventEligible(eventObj = {}, zoneType = null, options = {}) {
     if (!eventObj) return false;
+
+    if (isEventRetired(eventObj)) return false;
+
+    if (!isEventAllowedInChapter(eventObj, getEventChapter(options))) return false;
+
+    if (isEventMemoryBlocked(eventObj, options)) return false;
+
+    if (!hasMatchingLandmarkTag(eventObj, options)) return false;
 
     const zones = Array.isArray(eventObj.zones) ? eventObj.zones : [];
     if (zoneType && zones.length > 0 && !zones.includes(zoneType)) {
@@ -137,6 +259,7 @@ function isEventEligible(eventObj = {}, zoneType = null) {
 
 export function getEventForZone(zoneType, rng = Math.random, options = {}) {
     if (!zoneType) zoneType = 'low';
+    const chapter = getEventChapter(options);
 
     // Define preferred event type weights per zone (sums roughly to 1)
     const zoneWeights = {
@@ -185,11 +308,11 @@ export function getEventForZone(zoneType, rng = Math.random, options = {}) {
     const targetType = chosen ? chosen.type : EventType.MYSTERY;
 
     // Find events of that type
-    let pool = EventDatabase.filter(e => e.type === targetType && isEventEligible(e, zoneType));
+    let pool = EventDatabase.filter(e => e.type === targetType && isEventEligible(e, zoneType, { ...options, chapter }));
     pool = filterExcludedEvents(pool, options.excludeIds || []);
     if (pool.length === 0) {
         // fallback: any event
-        let fallbackPool = EventDatabase.filter(event => isEventEligible(event, zoneType));
+        let fallbackPool = EventDatabase.filter(event => isEventEligible(event, zoneType, { ...options, chapter }));
         fallbackPool = filterExcludedEvents(fallbackPool, options.excludeIds || []);
         if (fallbackPool.length === 0) return null;
         return pickWeightedEvent(fallbackPool, rng);
@@ -239,6 +362,34 @@ function generateEventItem(itemType) {
     }
 }
 
+function markEventResolved(eventObj = {}, context = {}) {
+    const policy = getEventRepeatPolicy(eventObj);
+    const chapter = getEventChapter(context);
+    const resultEntries = Array.isArray(context.results) ? context.results : [];
+    const hasMeaningfulResult = Boolean(context.choice?.markEventResolved) || resultEntries.length > 0;
+
+    if (policy !== 'repeatable' && hasMeaningfulResult) {
+        const memoryFlag = policy === 'chapter_once'
+            ? getEventMemoryFlag(eventObj, chapter)
+            : getEventMemoryFlag(eventObj);
+        if (memoryFlag) GameManager.setFlag(memoryFlag, true);
+    }
+
+    const cooldownSteps = Number(eventObj.cooldownSteps || 0);
+    const currentStep = getCurrentEventStep(context);
+    const lastStepFlag = getEventLastStepFlag(eventObj);
+    if (cooldownSteps > 0 && Number.isFinite(currentStep) && lastStepFlag) {
+        if (!GameManager.state.flags || typeof GameManager.state.flags !== 'object') {
+            GameManager.state.flags = {};
+        }
+        GameManager.state.flags[lastStepFlag] = currentStep;
+    }
+
+    if ((policy !== 'repeatable' && hasMeaningfulResult) || cooldownSteps > 0) {
+        GameManager.markSaveDirty?.('event-memory');
+    }
+}
+
 export function executeChoice(eventObj, choiceIndex) {
     if (!eventObj) return { success: false, message: 'no event' };
     const choice = eventObj.choices && eventObj.choices[choiceIndex];
@@ -270,6 +421,13 @@ export function executeChoice(eventObj, choiceIndex) {
         const msg = applyResultToCharacter(char, result);
         if (msg) resultMessages.push(msg);
     }
+
+    markEventResolved(eventObj, {
+        ...(eventObj._eventContext || {}),
+        choice,
+        results,
+        stepCount: eventObj.stepCount ?? eventObj._eventContext?.stepCount
+    });
 
     return { success: true, eventName: eventObj.name, messages: resultMessages };
 }
@@ -390,23 +548,25 @@ export class EventManagerClass {
      * @param {string} zone - 當前區域
      * @returns {Object|null} 事件物件
      */
-    triggerRandomEvent(zone = 'low') {
+    triggerRandomEvent(zone = 'low', options = {}) {
         const event = getEventForZone(zone, Math.random, {
-            excludeIds: this.getRecentEventIds(2)
+            ...options,
+            excludeIds: options.excludeIds || this.getRecentEventIds(2)
         });
         if (!event) return null;
 
-        this.currentEvent = { ...event, zone };
+        this.currentEvent = { ...event, zone, stepCount: options.stepCount, _eventContext: { ...options, zone } };
         return this.currentEvent;
     }
 
-    triggerMapQuestionEvent(zone = 'low') {
+    triggerMapQuestionEvent(zone = 'low', options = {}) {
         const event = getMapQuestionEventForZone(zone, Math.random, {
-            excludeIds: this.getRecentEventIds(2)
+            ...options,
+            excludeIds: options.excludeIds || this.getRecentEventIds(2)
         });
         if (!event) return null;
 
-        this.currentEvent = { ...event, zone };
+        this.currentEvent = { ...event, zone, stepCount: options.stepCount, _eventContext: { ...options, zone } };
         return this.currentEvent;
     }
 

@@ -8,6 +8,8 @@ import { questManager } from './QuestManager.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestStory } from '../data/QuestStories.js';
+import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
+import { getWorldInteraction } from '../data/WorldInteractions.js';
 
 class DialogueManager {
     constructor() {
@@ -133,7 +135,62 @@ class DialogueManager {
     canUseDialogue(npcId, dialogue) {
         if (!dialogue?.id) return false;
         if (dialogue.once && this.hasSeen(npcId, dialogue.id)) return false;
+        if (!this.dialogueQuestPrerequisitesSatisfied(dialogue)) return false;
         return (dialogue.conditions || []).every(condition => this.checkCondition(condition));
+    }
+
+    dialogueQuestPrerequisitesSatisfied(dialogue = {}) {
+        const questIds = new Set();
+        for (const effect of dialogue.effects || []) {
+            if ((effect.type === 'unlockQuest' || effect.type === 'acceptQuest') && effect.questId) {
+                questIds.add(effect.questId);
+            }
+        }
+
+        for (const questId of questIds) {
+            if (!this.canStartQuestFromDialogue(questId).success) return false;
+        }
+
+        return true;
+    }
+
+    canStartQuestFromDialogue(questId) {
+        const quest = getQuestById(questId);
+        if (!quest) return { success: false, reason: 'missing_quest' };
+
+        const status = questManager.getQuestState(questId)?.status || QuestStatus.LOCKED;
+        if (status !== QuestStatus.LOCKED && status !== QuestStatus.AVAILABLE) {
+            return { success: true };
+        }
+
+        const character = GameManager.getCharacter?.();
+        if (quest.requiredLevel && character?.level < quest.requiredLevel) {
+            return { success: false, reason: 'level' };
+        }
+
+        const trigger = quest.trigger || {};
+        if (trigger.afterFlag && !GameManager.getFlag(trigger.afterFlag)) {
+            return { success: false, reason: 'flag' };
+        }
+
+        if (trigger.afterQuest && !this.isQuestAtLeastStarted(trigger.afterQuest)) {
+            return { success: false, reason: 'after_quest' };
+        }
+
+        if (trigger.duringQuest && !this.isQuestAtLeastStarted(trigger.duringQuest)) {
+            return { success: false, reason: 'during_quest' };
+        }
+
+        return { success: true };
+    }
+
+    isQuestAtLeastStarted(questId) {
+        const status = questManager.getQuestState(questId)?.status || QuestStatus.LOCKED;
+        return [
+            QuestStatus.ACTIVE,
+            QuestStatus.COMPLETED,
+            QuestStatus.FINISHED
+        ].includes(status);
     }
 
     isFallbackDialogue(dialogue = {}) {
@@ -145,15 +202,62 @@ class DialogueManager {
 
     getDialogueTopic(dialogue = {}) {
         const type = this.getDialogueTopicType(dialogue);
+        const category = this.getDialogueTopicCategory(dialogue, type);
         return {
             id: dialogue.id,
             type,
+            category,
+            categoryLabel: this.getDialogueCategoryLabel(category),
             label: this.getDialogueTopicLabel(dialogue, type),
             title: dialogue.narrativeTitle || this.getDialogueTopicLabel(dialogue, type),
             summary: this.getDialogueTopicSummary(dialogue, type),
             icon: this.getDialogueTopicIcon(dialogue, type),
             priority: Number(dialogue.priority) || 0
         };
+    }
+
+    getDialogueRelatedQuestIds(dialogue = {}) {
+        const questIds = new Set();
+
+        for (const effect of dialogue.effects || []) {
+            if (effect?.questId) questIds.add(effect.questId);
+            if (effect?.type === 'worldInteraction' && effect.interactionId) {
+                const interaction = getWorldInteraction(effect.interactionId);
+                for (const questId of interaction?.unlockQuests || []) questIds.add(questId);
+            }
+        }
+
+        for (const condition of dialogue.conditions || []) {
+            if (condition?.type === 'questStatus' && condition.questId) {
+                questIds.add(condition.questId);
+            }
+        }
+
+        return [...questIds];
+    }
+
+    getDialogueTopicCategory(dialogue = {}, type = 'status') {
+        if (type === 'report') return 'report';
+
+        const quests = this.getDialogueRelatedQuestIds(dialogue)
+            .map(questId => getQuestById(questId))
+            .filter(Boolean);
+
+        if (quests.some(quest => quest.type === QuestType.MAIN)) return 'main';
+        if (quests.length > 0) return 'side';
+        if (type === 'request' || type === 'discovery') return 'side';
+        if (type === 'destination' || type === 'guidance') return 'function';
+        return 'chat';
+    }
+
+    getDialogueCategoryLabel(category = 'chat') {
+        return {
+            report: '回報',
+            main: '主線',
+            side: '支線・委託',
+            function: '功能',
+            chat: '近況'
+        }[category] || '話題';
     }
 
     getDialogueTopicType(dialogue = {}) {
@@ -350,6 +454,11 @@ class DialogueManager {
             }
 
             if (effect.type === 'unlockQuest') {
+                const gate = this.canStartQuestFromDialogue(effect.questId);
+                if (!gate.success) {
+                    if (effect.failMessage) messages.push(effect.failMessage);
+                    continue;
+                }
                 questManager.unlockQuest(effect.questId);
                 if (effect.message) messages.push(effect.message);
                 continue;

@@ -108,15 +108,15 @@ export const MarketItemCatalog = {
 
 export const MarketVendors = [
     {
-        id: 'herbalist',
-        name: '藥師',
-        role: '補給與藥水',
-        icon: '🌿',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png',
-        position: { x: 21, y: 58 },
-        place: '市集左棚',
-        summary: '她把玩家帶回來的凝膠、毒腺與藥草變成真正能上架的補給。',
-        dialogue: '你帶回來的東西不只是材料。它們會決定下一個受傷的人有沒有藥喝。',
+        id: 'apothecary_assistant',
+        name: '伊芙',
+        role: '藥棚助手',
+        icon: '🧪',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/apothecary_assistant.png',
+        position: { x: 24, y: 62 },
+        place: '左側藥棚',
+        summary: '伊芙負責把蓮娜整理好的配方、凝膠與草藥變成真正能賣給冒險者的補給。',
+        dialogue: '蓮娜負責看懂怪事，我負責把怪事熬成你喝得下去的東西。先說好，味道不保證，活著比較重要。',
         shelves: [
             { id: 'shelf_health_potion_s', itemId: 'health_potion_s', price: 25, stock: '穩定供應', note: '最基礎也最常被低估的回城理由。' },
             {
@@ -125,14 +125,14 @@ export const MarketVendors = [
                 price: 35,
                 stock: '叢林線',
                 condition: { anyFlags: ['town.apothecary.understands_thorn_trade', 'world.story.thorn_witch.progress.deliver_herbs'] },
-                lockedReason: '藥師還沒看懂荊棘交易，解毒劑只能少量保留。'
+                lockedReason: '蓮娜還沒看懂荊棘交易，伊芙不敢把解毒劑擺到明面上。'
             }
         ],
         orders: [
             {
                 id: 'order_slime_stock',
                 title: '把凝膠熬成穩定藥水',
-                story: '藥師需要史萊姆凝膠校準火候。完成後，市集的基礎藥水供應會更穩。',
+                story: '伊芙照著蓮娜的筆記熬煮史萊姆凝膠。完成後，市集的基礎藥水供應會更穩。',
                 requirements: [{ itemId: 'slime_jelly', quantity: 3 }],
                 rewards: { items: [{ itemId: 'health_potion_s', quantity: 2 }], flags: ['town.apothecary.stock_basic_potion'] },
                 repeatable: false
@@ -142,7 +142,7 @@ export const MarketVendors = [
             {
                 id: 'exchange_slime_potion',
                 title: '凝膠換小型生命藥水',
-                story: '不是每份凝膠都能熬成藥，但藥師願意把可用的部分先裝瓶。',
+                story: '不是每份凝膠都能熬成藥，但伊芙會把可用的部分先裝瓶，順便抱怨瓶子比怪物還難洗。',
                 requirements: [{ itemId: 'slime_jelly', quantity: 2 }],
                 goldCost: 5,
                 rewards: { items: [{ itemId: 'health_potion_s', quantity: 1 }] },
@@ -152,12 +152,12 @@ export const MarketVendors = [
     },
     {
         id: 'merchant',
-        name: '旅行商人',
-        role: '探索工具與情報',
+        name: '奧托',
+        role: '行腳貨商',
         icon: '🧳',
         portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/merchant.png',
-        position: { x: 57, y: 57 },
-        place: '中央貨桌',
+        position: { x: 56, y: 59 },
+        place: '中央貨車',
         summary: '他販售的不是強度，而是通往事件、地點與麻煩的鑰匙。',
         dialogue: '買劍的人很多，買「麻煩的位置」的人比較少。你看起來像後者。',
         shelves: [
@@ -168,14 +168,14 @@ export const MarketVendors = [
                 price: 90,
                 stock: '伏獵者線',
                 condition: { anyFlags: ['world.clue.silk_tripwire', 'world.clue.snapped_bait_hook', 'world.story.ambush_mantis.progress.craft_bait_hook', 'market.merchant.silver_thread_supply'] },
-                lockedReason: '還沒有人把銀絲的規律講清楚，商人不會把危險道具擺到明面上。'
+                lockedReason: '還沒有人把銀絲的規律講清楚，奧托不會把危險道具擺到明面上。'
             }
         ],
         orders: [
             {
                 id: 'order_silver_thread_supply',
                 title: '試作銀絲誘餌',
-                story: '商人要蜘蛛絲與鐵片固定鉤口。這不是買賣，是把怪物的習慣做成商品。',
+                story: '奧托要蜘蛛絲與鐵片固定鉤口。這不是買賣，是把怪物的習慣做成商品。',
                 requirements: [
                     { itemId: 'spider_silk', quantity: 1 },
                     { itemId: 'iron_shard', quantity: 1 }
@@ -191,7 +191,7 @@ export const MarketVendors = [
             {
                 id: 'exchange_hide_map',
                 title: '獸皮換路線拓片',
-                story: '商人把獸皮裁成防潮封皮，順手把舊路線拓上去。',
+                story: '奧托把獸皮裁成防潮封皮，順手把舊路線拓上去。',
                 requirements: [{ itemId: 'beast_hide', quantity: 2 }],
                 goldCost: 20,
                 rewards: { items: [{ itemId: 'map_fragment', quantity: 1 }] },
@@ -200,27 +200,27 @@ export const MarketVendors = [
         ]
     },
     {
-        id: 'blacksmith',
-        name: '鍛造師',
-        role: '低階補洞與修補',
-        icon: '⚒️',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/blacksmith.png',
-        position: { x: 43, y: 68 },
-        place: '臨時砧台',
-        summary: '他不在市集賣強裝，只把冒險帶回來的碎料變成能繼續製作的材料。',
-        dialogue: '想要好裝備就去找圖紙和怪物。想把碎東西變得有用，就放到我桌上。',
+        id: 'tinker',
+        name: '柏恩',
+        role: '修補雜貨商',
+        icon: '🧰',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/tinker.png',
+        position: { x: 36, y: 76 },
+        place: '修補木桌',
+        summary: '他把零散金屬、皮繩和補洞材料整理成能繼續使用的物資。',
+        dialogue: '缺一片鐵、少一條皮繩、包裡全是尷尬的零件，就來找我。',
         shelves: [
-            { id: 'shelf_iron_shard', itemId: 'iron_shard', price: 24, stock: '低階補洞', note: '用來補足鍛造缺口，不替代真正採集。' }
+            { id: 'shelf_iron_shard', itemId: 'iron_shard', price: 24, stock: '補洞材料', note: '用來補足鍛造缺口，不替代真正採集。' }
         ],
         orders: [
             {
                 id: 'order_gate_repair_stock',
                 title: '整理南門修補料',
-                story: '鐵礦石會先進城門與爐口，剩下的碎片才會流回鍛造台。',
+                story: '柏恩要先把鐵礦石分給城門、爐口與臨時修補箱；碎片才會回到市集。',
                 requirements: [{ itemId: 'iron_ore', quantity: 5 }],
                 rewards: {
                     items: [{ itemId: 'iron_shard', quantity: 4 }],
-                    flags: ['town.blacksmith.market_repair_stock']
+                    flags: ['market.tinker.repair_stock']
                 },
                 repeatable: false
             }
@@ -229,7 +229,7 @@ export const MarketVendors = [
             {
                 id: 'exchange_ore_shards',
                 title: '鐵礦石拆成鐵片',
-                story: '不是優雅的工法，但缺材料時很好用。',
+                story: '不是優雅的工法，但缺材料時很好用。柏恩堅稱這叫「務實」。',
                 requirements: [{ itemId: 'iron_ore', quantity: 1 }],
                 goldCost: 10,
                 rewards: { items: [{ itemId: 'iron_shard', quantity: 2 }] },
@@ -238,15 +238,15 @@ export const MarketVendors = [
         ]
     },
     {
-        id: 'scholar',
-        name: '書記',
-        role: '手記與情報整理',
-        icon: '📚',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/town_scholar.png',
-        position: { x: 72, y: 48 },
-        place: '臨時書攤',
-        summary: '他把怪物、材料與路線整理成玩家能使用的手記。',
-        dialogue: '你帶回來的不是雜物，是證據。證據只要排對順序，就會變成路。',
+        id: 'rumor_broker',
+        name: '米菈',
+        role: '傳聞剪報人',
+        icon: '🗞️',
+        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/rumor_broker.png',
+        position: { x: 72, y: 52 },
+        place: '布告角落',
+        summary: '她不寫正式紀錄，只把布告、碎紙和酒杯旁的閒話剪成能用的路線提示。',
+        dialogue: '正式紀錄總是慢半拍，我負責把事情寫得來得及。兩者都很重要，尤其是後者比較便宜。',
         shelves: [
             { id: 'shelf_sharp_focus_manual', itemId: 'sharp_focus_manual', price: 120, stock: '戰術手記', note: '可作為戰術技能收藏與替換來源。' },
             { id: 'shelf_guard_memory_manual', itemId: 'guard_memory_manual', price: 120, stock: '戰術手記', note: '穩定防守的常駐戰鬥思路。' }
@@ -255,13 +255,13 @@ export const MarketVendors = [
             {
                 id: 'order_first_route_archive',
                 title: '整理近郊材料索引',
-                story: '書記要幾種最普通的材料當作索引樣本。普通東西最能說明世界哪裡開始歪掉。',
+                story: '米菈要幾種最普通的材料當作剪報樣本。普通東西最能說明世界哪裡開始歪掉。',
                 requirements: [
                     { itemId: 'slime_jelly', quantity: 1 },
                     { itemId: 'beast_hide', quantity: 1 },
                     { itemId: 'iron_ore', quantity: 1 }
                 ],
-                rewards: { gold: 60, flags: ['town.scholar.market_material_index'] },
+                rewards: { gold: 60, flags: ['market.rumor.material_index'] },
                 repeatable: false
             }
         ],
@@ -269,20 +269,31 @@ export const MarketVendors = [
             {
                 id: 'exchange_map_hint',
                 title: '地圖碎片換路線註記',
-                story: '書記不會直接把答案塞給你，但他會把地圖上不合理的地方圈起來。',
+                story: '米菈不會直接把答案塞給你，但她會把地圖上不合理的地方圈得很難忽視。',
                 requirements: [{ itemId: 'map_fragment', quantity: 1 }],
-                rewards: { gold: 45, flags: ['town.scholar.map_hint_ready'] },
+                rewards: { gold: 45, flags: ['market.rumor.map_hint_ready'] },
+                repeatable: false
+            },
+            {
+                id: 'exchange_echo_rhythm',
+                title: '回聲殼節奏比對',
+                story: '你描述回聲殼裡那段不屬於水流的節奏。米菈聽完只說：「這不是傳聞，這是順序。」',
+                condition: { anyFlags: ['world.clue.oracle_shell'] },
+                lockedReason: '你還沒有帶著會回聲的殼。沒有節奏，米菈也只能聳肩。',
+                requirements: [],
+                goldCost: 40,
+                rewards: { interactionId: 'rumor_echo_rhythm' },
                 repeatable: false
             }
         ]
     },
     {
         id: 'black_market',
-        name: '黑市門縫',
+        name: '門縫掌櫃',
         role: '風險交易',
         icon: '🕯️',
         portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/black_market.png',
-        position: { x: 88, y: 54 },
+        position: { x: 85, y: 62 },
         place: '右側暗巷',
         lockedUnless: { flag: 'secretShopUnlocked' },
         lockedSummary: '暗巷那扇門還沒有承認你。真正的古代錢幣也許能讓它開口。',
@@ -299,6 +310,17 @@ export const MarketVendors = [
                 story: '門縫裡有人笑了一聲，像是早就知道你會把它帶來。',
                 requirements: [{ itemId: 'ancient_coin', quantity: 1 }],
                 rewards: { interactionId: 'merchant_ancient_coin' },
+                repeatable: false
+            },
+            {
+                id: 'exchange_coal_token',
+                title: '買下走私煤印',
+                story: '你提到帳冊缺頁上的貨號。門縫後沉默了一會兒，然後一枚煤印被推了出來，價格寫在沉默裡。',
+                condition: { anyFlags: ['world.clue.ash_ledger_page'] },
+                lockedReason: '沒看過灰燼帳冊的人，掌櫃不會承認煤印這種東西存在。',
+                requirements: [],
+                goldCost: 220,
+                rewards: { interactionId: 'black_market_coal_token' },
                 repeatable: false
             }
         ]

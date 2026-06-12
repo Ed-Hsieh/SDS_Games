@@ -21,6 +21,10 @@ const PANEL_LABELS = {
     exchange: '交換'
 };
 
+const MARKET_SCENE_TITLE = '市集邊棚';
+const MARKET_HEADER_COPY = '左棚有藥草香，中央貨車堆著路線工具，布告角落永遠有人比公告欄更早知道麻煩。';
+const MARKET_SCENE_COPY = '你站在帆布棚下。藥草、鐵片、路線拓片和低聲傳聞各自佔著一角，走近攤位後再開口。';
+
 function cloneItemData(item) {
     if (!item) return item;
     if (typeof structuredClone === 'function') {
@@ -41,7 +45,7 @@ export default class ShopScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
-        this.currentVendorId = 'herbalist';
+        this.currentVendorId = null;
         this.currentPanel = 'shelf';
         this.currentVendor = null;
         this.entryIndex = new Map();
@@ -50,6 +54,8 @@ export default class ShopScene {
         this.handleVendorClick = this.handleVendorClick.bind(this);
         this.handleTabClick = this.handleTabClick.bind(this);
         this.handlePanelClick = this.handlePanelClick.bind(this);
+        this.handleExit = this.handleExit.bind(this);
+        this.handleCloseStall = this.handleCloseStall.bind(this);
         this.eventsBound = false;
         this.subscribed = false;
     }
@@ -70,7 +76,7 @@ export default class ShopScene {
         this.applySceneAssets();
         this.renderVendorHotspots();
         if (GameManager?.state) this.updateUI(GameManager.state, 'all');
-        this.selectVendor(this.currentVendorId);
+        this.renderMarketPrompt();
     }
 
     cleanup() {
@@ -85,9 +91,12 @@ export default class ShopScene {
     cacheDOM() {
         this.dom = {
             stage: this.container.querySelector('#market-stage'),
+            scene: this.container.classList?.contains('market-place-scene')
+                ? this.container
+                : this.container.querySelector('.market-place-scene'),
             grid: this.container.querySelector('#market-grid'),
-            caption: this.container.querySelector('#market-stage-caption'),
             exit: this.container.querySelector('#btn-exit-shop'),
+            closeStall: this.container.querySelector('#btn-close-stall'),
             tabs: this.container.querySelectorAll('.supply-tab'),
             panel: this.container.querySelector('#supply-panel'),
             playerInventory: this.container.querySelector('#player-inventory'),
@@ -102,6 +111,8 @@ export default class ShopScene {
             tradeStatusIcon: this.container.querySelector('#trade-status-icon'),
             tradeStatusTitle: this.container.querySelector('#trade-status-title'),
             tradeStatusMessage: this.container.querySelector('#trade-status-message'),
+            marketNarrativeTitle: this.container.querySelector('#market-narrative-title'),
+            marketFeed: this.container.querySelector('#market-feed'),
             shopCurrentCopy: this.container.querySelector('#shop-current-copy')
         };
 
@@ -113,7 +124,8 @@ export default class ShopScene {
     bindEvents() {
         if (this.eventsBound) return;
         this.dom.grid?.addEventListener('click', this.handleVendorClick);
-        this.dom.exit?.addEventListener('click', () => this.app.loadScene('lobby'));
+        this.dom.exit?.addEventListener('click', this.handleExit);
+        this.dom.closeStall?.addEventListener('click', this.handleCloseStall);
         this.dom.tabs?.forEach(tab => tab.addEventListener('click', this.handleTabClick));
         this.dom.panel?.addEventListener('click', this.handlePanelClick);
         this.eventsBound = true;
@@ -121,9 +133,33 @@ export default class ShopScene {
 
     unbindEvents() {
         this.dom.grid?.removeEventListener('click', this.handleVendorClick);
+        this.dom.exit?.removeEventListener('click', this.handleExit);
+        this.dom.closeStall?.removeEventListener('click', this.handleCloseStall);
         this.dom.tabs?.forEach(tab => tab.removeEventListener('click', this.handleTabClick));
         this.dom.panel?.removeEventListener('click', this.handlePanelClick);
         this.eventsBound = false;
+    }
+
+    handleExit() {
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+        GameManager.state.ui.returnTownPlaceId = 'market';
+        GameManager.markSaveDirty?.('market-return');
+
+        if (typeof this.app?.navigateTo === 'function') {
+            this.app.navigateTo('lobby');
+        } else {
+            this.app.loadScene('lobby');
+        }
+    }
+
+    handleCloseStall() {
+        this.currentVendorId = null;
+        this.currentVendor = null;
+        this.dom.scene?.classList.remove('is-trading');
+        this.renderVendorHotspots();
+        this.renderMarketPrompt();
     }
 
     applySceneAssets() {
@@ -188,6 +224,11 @@ export default class ShopScene {
             const avatar = vendor.portrait && !locked
                 ? `<img src="${escapeHtml(vendor.portrait)}" alt="${escapeHtml(vendor.name)}">`
                 : escapeHtml(vendor.icon || '◆');
+            const availableCount = [
+                ...(vendor.shelves || []),
+                ...(vendor.orders || []),
+                ...(vendor.exchanges || [])
+            ].filter(entry => this.meetsCondition(entry.condition)).length;
             return `
                 <button
                     class="market-resident ${active ? 'active' : ''} ${locked ? 'is-locked' : ''}"
@@ -198,9 +239,11 @@ export default class ShopScene {
                 >
                     <span class="resident-avatar">${avatar}</span>
                     <span class="resident-copy">
+                        <span>${escapeHtml(vendor.place || '市集')}</span>
                         <strong>${escapeHtml(vendor.name)}</strong>
-                        <small>${escapeHtml(locked ? '尚未接上' : vendor.role)}</small>
+                        <small>${escapeHtml(locked ? '尚未開張' : vendor.role)}</small>
                     </span>
+                    <span class="resident-count">${locked ? '鎖' : availableCount}</span>
                 </button>
             `;
         }).join('');
@@ -209,6 +252,7 @@ export default class ShopScene {
     selectVendor(vendorId) {
         this.currentVendorId = vendorId;
         this.currentVendor = getMarketVendor(vendorId);
+        this.dom.scene?.classList.add('is-trading');
         this.renderVendorHotspots();
         this.renderVendorCard();
         this.renderCurrentPanel();
@@ -237,16 +281,23 @@ export default class ShopScene {
         }
         if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = vendor.place || '市集';
         if (this.dom.vendorName) this.dom.vendorName.textContent = vendor.name;
-        if (this.dom.vendorRole) this.dom.vendorRole.textContent = locked ? '尚未接上供應線' : vendor.role;
+        if (this.dom.vendorRole) this.dom.vendorRole.textContent = locked ? '尚未開張' : vendor.role;
         if (this.dom.shopCurrentCopy) this.dom.shopCurrentCopy.textContent = summary || '';
-        if (this.dom.caption) this.dom.caption.textContent = `${vendor.place || '市集'}：${summary || vendor.role}`;
         this.renderNpcDialogue(dialogue || '');
+        this.renderMarketFeed(
+            locked ? `${vendor.name}還沒開張` : `${vendor.name}的攤位`,
+            locked ? (summary || '這條供應線還沒有打開。') : (summary || vendor.role || '攤位已展開。'),
+            locked ? 'warning' : 'info'
+        );
     }
 
     renderCurrentPanel() {
         if (!this.dom.panel) return;
-        const vendor = this.currentVendor || getMarketVendor(this.currentVendorId);
-        if (!vendor) return;
+        const vendor = this.currentVendor;
+        if (!vendor) {
+            this.renderMarketPrompt();
+            return;
+        }
 
         this.entryIndex.clear();
         if (this.isVendorLocked(vendor)) {
@@ -266,6 +317,26 @@ export default class ShopScene {
             this.getPanelHint(vendor, this.currentPanel),
             'info'
         );
+    }
+
+    renderMarketPrompt() {
+        if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = '市集';
+        if (this.dom.vendorName) this.dom.vendorName.textContent = '選擇攤位';
+        if (this.dom.vendorRole) this.dom.vendorRole.textContent = '走近攤位後再查看貨架、訂單與交換。';
+        if (this.dom.portraitFallback) {
+            this.dom.portraitFallback.textContent = '市';
+            this.dom.portraitFallback.hidden = false;
+        }
+        if (this.dom.npcPortrait) {
+            this.dom.npcPortrait.removeAttribute('src');
+            this.dom.npcPortrait.hidden = true;
+        }
+        if (this.dom.shopCurrentCopy) {
+            this.dom.shopCurrentCopy.textContent = MARKET_HEADER_COPY;
+        }
+        this.renderNpcDialogue('先在市集裡選一個攤位。');
+        this.dom.panel.innerHTML = this.renderEmpty('還沒有走近攤位', '點選場景中的攤位後，這裡會展開貨架、訂單與交換內容。');
+        this.setTradeStatus(MARKET_SCENE_TITLE, MARKET_SCENE_COPY, 'info');
     }
 
     renderLockedVendor(vendor) {
@@ -763,6 +834,19 @@ export default class ShopScene {
         }
         if (this.dom.tradeStatusTitle) this.dom.tradeStatusTitle.textContent = title;
         if (this.dom.tradeStatusMessage) this.dom.tradeStatusMessage.textContent = message;
+        this.renderMarketFeed(title, message, type);
+    }
+
+    renderMarketFeed(title, message, type = 'info') {
+        if (!this.dom?.marketFeed) return;
+        const tone = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+        if (this.dom.marketNarrativeTitle) this.dom.marketNarrativeTitle.textContent = MARKET_SCENE_TITLE;
+        this.dom.marketFeed.innerHTML = `
+            <article class="town-story-entry market-feed-card is-${tone}">
+                <span class="world-log-title">${escapeHtml(title || MARKET_SCENE_TITLE)}</span>
+                <p class="world-log-message">${escapeHtml(message || MARKET_SCENE_COPY)}</p>
+            </article>
+        `;
     }
 
     showFeedback(title, message, type = 'info') {

@@ -16,6 +16,8 @@ import GameManager from './managers/GameManager.js';
 import './utils/RhythmBarSystem.js';
 import './utils/ItemTooltip.js';
 import './components/ItemDetailModal.js';
+import { showGlobalToast } from './utils/UIFeedback.js';
+import { initDevPanel } from './utils/DevPanel.js';
 
 const APP_ASSET_VERSION = 'equipment-atlas-20260605b';
 
@@ -188,7 +190,18 @@ class App {
 // when cache-busted imports are slow, so bootstrap immediately if the DOM is ready.
 function bootstrapApp() {
     if (window.gameApp) return;
+
+    // 先還原本機存檔再進場景；主檔損壞時自動回退備份。
+    const restore = GameManager.loadFromLocalStorage();
+    if (restore?.source === 'backup') {
+        showGlobalToast('存檔回復', '主存檔損壞，已自動回復上一份備份存檔。', 'warning', { duration: 8000 });
+    } else if (restore?.errors?.length && !restore.loaded) {
+        showGlobalToast('存檔讀取失敗', '本機存檔無法讀取，已以新進度開始。壞檔已保留。', 'error', { duration: 8000 });
+    }
+    GameManager.startAutosave();
+
     window.gameApp = new App();
+    initDevPanel(window.gameApp);
 }
 
 if (document.readyState === 'loading') {

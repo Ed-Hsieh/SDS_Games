@@ -2,8 +2,11 @@ import { CharacterManager } from '../models/DataModel.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { cloneData } from '../models/ItemSchema.js';
 
-export const SAVE_SCHEMA_VERSION = 1;
+export const SAVE_SCHEMA_VERSION = 3;
 export const SAVE_FILE_BASENAME = 'sds-save';
+export const LOCAL_SAVE_KEY = 'sds:save';
+export const LOCAL_BACKUP_KEY = 'sds:save:backup';
+export const LOCAL_CORRUPT_KEY = 'sds:save:corrupted';
 
 function safeClone(value, fallback = null) {
     try {
@@ -168,22 +171,97 @@ export function hydrateGameState(gameData, createInitialState) {
     };
 }
 
+/**
+ * Sequential save migrations. Key N upgrades schemaVersion N -> N+1.
+ * Each migration receives the whole save envelope and mutates/returns it.
+ */
+const SaveMigrations = {
+    // v1 -> v2: backfill envelope fields and default flags so old saves
+    // hydrate without undefined holes.
+    1(saveData) {
+        const game = saveData.game || {};
+        game.flags = { secretShopUnlocked: false, ...(game.flags || {}) };
+        game.inventory = Array.isArray(game.inventory) ? game.inventory : [];
+        game.warehouse = Array.isArray(game.warehouse) ? game.warehouse : [];
+        game.inventoryCapacity = readPositiveNumber(game.inventoryCapacity, 10);
+        saveData.game = game;
+        saveData.systems = saveData.systems && typeof saveData.systems === 'object' ? saveData.systems : {};
+        return saveData;
+    },
+
+    // v2 -> v3: remove obsolete main_016+ quest states left by the old
+    // prototype main-line before the story was consolidated into 3 chapters.
+    2(saveData) {
+        const obsoleteMainIds = new Set(Array.from({ length: 10 }, (_, index) => `main_${String(index + 16).padStart(3, '0')}`));
+        const questStates = saveData?.systems?.quests?.questStates;
+        if (questStates && typeof questStates === 'object') {
+            for (const questId of obsoleteMainIds) {
+                delete questStates[questId];
+            }
+        }
+        return saveData;
+    }
+};
+
+function runSaveMigrations(saveData) {
+    let version = Number(saveData.schemaVersion) || 1;
+    if (version > SAVE_SCHEMA_VERSION) {
+        throw new Error(`Save schema v${version} is newer than supported v${SAVE_SCHEMA_VERSION}.`);
+    }
+
+    const applied = [];
+    while (version < SAVE_SCHEMA_VERSION) {
+        const migrate = SaveMigrations[version];
+        if (typeof migrate === 'function') {
+            saveData = migrate(saveData) || saveData;
+            applied.push(version);
+        }
+        version += 1;
+        saveData.schemaVersion = version;
+    }
+
+    if (applied.length > 0) {
+        console.info(`[SaveManager] Migrated save schema: ${applied.map(v => `v${v}->v${v + 1}`).join(', ')}`);
+    }
+    return saveData;
+}
+
+function validateSaveShape(saveData) {
+    if (!saveData || typeof saveData !== 'object') throw new Error('Save data must be an object.');
+    if (!saveData.game || typeof saveData.game !== 'object') throw new Error('Save data is missing "game".');
+    if (saveData.game.character !== undefined
+        && saveData.game.character !== null
+        && typeof saveData.game.character !== 'object') {
+        throw new Error('Save data has an invalid "character".');
+    }
+    return saveData;
+}
+
 function normalizeSaveData(rawData) {
     const parsed = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
     if (!parsed || typeof parsed !== 'object') {
         throw new Error('Save data must be a JSON object.');
     }
 
-    if (parsed.schemaVersion && parsed.game) {
-        return parsed;
-    }
+    const envelope = parsed.schemaVersion && parsed.game
+        ? parsed
+        : {
+            schemaVersion: Number(parsed.schemaVersion) || 1,
+            savedAt: parsed.savedAt || null,
+            game: parsed.game || parsed.state || parsed,
+            systems: parsed.systems || {}
+        };
 
-    return {
-        schemaVersion: SAVE_SCHEMA_VERSION,
-        savedAt: parsed.savedAt || null,
-        game: parsed.game || parsed.state || parsed,
-        systems: parsed.systems || {}
-    };
+    return validateSaveShape(runSaveMigrations(envelope));
+}
+
+function getLocalStorage() {
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) return window.localStorage;
+    } catch (error) {
+        console.warn('[SaveManager] localStorage unavailable:', error);
+    }
+    return null;
 }
 
 export default class SaveManager {
@@ -192,6 +270,119 @@ export default class SaveManager {
         this.systems = new Map();
         this.dirty = false;
         this.lastChangeReason = null;
+        this.autosaveTimer = null;
+        this.lastLocalSaveAt = null;
+        this.lastRestoreInfo = null;
+        this.handleAutosaveFlush = this.handleAutosaveFlush.bind(this);
+    }
+
+    // ==================== localStorage 持久化 ====================
+
+    hasLocalSave() {
+        const storage = getLocalStorage();
+        return Boolean(storage && (storage.getItem(LOCAL_SAVE_KEY) || storage.getItem(LOCAL_BACKUP_KEY)));
+    }
+
+    /**
+     * 寫入 localStorage。寫入前把上一份完好存檔輪替成備份，
+     * 確保任何時刻都有一份「上次能讀」的存檔可回退。
+     */
+    saveToLocalStorage() {
+        const storage = getLocalStorage();
+        if (!storage) return { success: false, error: 'localStorage unavailable' };
+
+        try {
+            const json = JSON.stringify(this.createSaveData());
+            const previous = storage.getItem(LOCAL_SAVE_KEY);
+            storage.setItem(LOCAL_SAVE_KEY, json);
+            if (previous) {
+                try {
+                    storage.setItem(LOCAL_BACKUP_KEY, previous);
+                } catch (backupError) {
+                    console.warn('[SaveManager] Failed to rotate backup save:', backupError);
+                }
+            }
+            this.dirty = false;
+            this.lastLocalSaveAt = Date.now();
+            return { success: true, savedAt: this.lastLocalSaveAt };
+        } catch (error) {
+            console.error('[SaveManager] Failed to write local save:', error);
+            return { success: false, error: String(error?.message || error) };
+        }
+    }
+
+    /**
+     * 讀取 localStorage 存檔。主檔壞掉時保留壞檔供調查，並自動回退備份。
+     */
+    loadFromLocalStorage() {
+        const storage = getLocalStorage();
+        if (!storage) return { loaded: false, source: null, error: 'localStorage unavailable' };
+
+        const attempts = [
+            { key: LOCAL_SAVE_KEY, source: 'main' },
+            { key: LOCAL_BACKUP_KEY, source: 'backup' }
+        ];
+        const errors = [];
+
+        for (const attempt of attempts) {
+            const raw = storage.getItem(attempt.key);
+            if (!raw) continue;
+
+            try {
+                this.loadSaveData(raw);
+                this.lastRestoreInfo = { loaded: true, source: attempt.source, errors };
+                if (attempt.source === 'backup') {
+                    console.warn('[SaveManager] Main save was unreadable; restored from backup.');
+                }
+                return this.lastRestoreInfo;
+            } catch (error) {
+                errors.push({ source: attempt.source, error: String(error?.message || error) });
+                console.error(`[SaveManager] Failed to load ${attempt.source} save:`, error);
+                if (attempt.source === 'main') {
+                    try {
+                        storage.setItem(LOCAL_CORRUPT_KEY, raw);
+                    } catch { /* 保留壞檔失敗不影響回退 */ }
+                }
+            }
+        }
+
+        this.lastRestoreInfo = { loaded: false, source: null, errors };
+        return this.lastRestoreInfo;
+    }
+
+    clearLocalSave() {
+        const storage = getLocalStorage();
+        if (!storage) return;
+        storage.removeItem(LOCAL_SAVE_KEY);
+        storage.removeItem(LOCAL_BACKUP_KEY);
+    }
+
+    startAutosave(intervalMs = 20000) {
+        if (typeof window === 'undefined') return;
+        this.stopAutosave();
+
+        this.autosaveTimer = window.setInterval(() => {
+            if (this.dirty) this.saveToLocalStorage();
+        }, Math.max(5000, Number(intervalMs) || 20000));
+
+        window.addEventListener('beforeunload', this.handleAutosaveFlush);
+        document.addEventListener('visibilitychange', this.handleAutosaveFlush);
+    }
+
+    stopAutosave() {
+        if (this.autosaveTimer) {
+            clearInterval(this.autosaveTimer);
+            this.autosaveTimer = null;
+        }
+        if (typeof window !== 'undefined') {
+            window.removeEventListener('beforeunload', this.handleAutosaveFlush);
+            document.removeEventListener('visibilitychange', this.handleAutosaveFlush);
+        }
+    }
+
+    handleAutosaveFlush(event) {
+        if (event?.type === 'visibilitychange' && document.visibilityState !== 'hidden') return;
+        if (this.dirty) this.saveToLocalStorage();
     }
 
     registerSystem(key, system) {
@@ -247,6 +438,7 @@ export default class SaveManager {
     }
 
     resetToNewGame() {
+        this.clearLocalSave();
         this.gameManager.resetState();
 
         for (const system of this.systems.values()) {
@@ -325,7 +517,10 @@ export default class SaveManager {
                 reader.readAsText(file);
             });
 
-        return this.loadSaveData(text);
+        const saveData = this.loadSaveData(text);
+        // 匯入成功後立即落地到 localStorage，避免重新整理就遺失匯入進度。
+        this.saveToLocalStorage();
+        return saveData;
     }
 
     async readSaveFile() {

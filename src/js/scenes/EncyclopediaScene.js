@@ -23,7 +23,7 @@ import {
     unlockAllEncyclopediaEntries
 } from '../managers/EncyclopediaManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { escapeHtml, formatAffixStats, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
@@ -49,10 +49,11 @@ function formatGold(gold) {
 }
 
 function formatStats(stats = {}) {
-    return Object.entries(stats)
-        .filter(([, value]) => value !== 0 && value != null)
-        .map(([key, value]) => `${key} ${value > 0 ? '+' : ''}${value}`)
-        .join(' / ');
+    const filtered = {};
+    for (const [key, value] of Object.entries(stats)) {
+        if (value !== 0 && value != null) filtered[key] = value;
+    }
+    return formatAffixStats(filtered);
 }
 
 const RaritySortRank = {
