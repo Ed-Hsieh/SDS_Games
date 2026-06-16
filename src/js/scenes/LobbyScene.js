@@ -7,6 +7,7 @@ import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { buildEquippedSetSummaryHtml } from '../utils/SetDisplay.js';
+import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js';
@@ -57,6 +58,7 @@ export default class LobbyScene {
         this.lastNarrativeTone = null;
         this.renderedNarrativeCount = 0;
         this.syncedTownPlaceNarrativeKeys = new Set();
+        this.devMode = isDevModeEnabled();
     }
 
     init() {
@@ -142,6 +144,7 @@ export default class LobbyScene {
             
             // Modal is provided by centralized ItemDetailModal component
         };
+        if (this.dom.grantTestSets) this.dom.grantTestSets.hidden = !this.devMode;
     }
 
     bindEvents() {
@@ -170,7 +173,7 @@ export default class LobbyScene {
         this.dom.saveExport?.addEventListener('click', this.handleSaveExport);
         this.dom.saveImport?.addEventListener('click', this.handleSaveImport);
         this.dom.saveReset?.addEventListener('click', this.handleSaveReset);
-        this.dom.grantTestSets?.addEventListener('click', this.handleGrantTestSets);
+        if (this.devMode) this.dom.grantTestSets?.addEventListener('click', this.handleGrantTestSets);
         this.dom.saveFileInput?.addEventListener('change', this.handleSaveFileSelected);
         this.container.querySelectorAll('[data-prep-tab]').forEach(tabButton => {
             tabButton.addEventListener('click', this.handlePrepTabClick);

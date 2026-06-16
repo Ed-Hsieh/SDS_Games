@@ -16,8 +16,11 @@ export const TownPlaceDatabase = [
         states: [
             { flag: 'town.south_gate.guard_route_ready', title: '南門巡路恢復', text: '南門守衛重新站穩，城外近路的紀錄開始穩定更新。' },
             { flag: 'town.notice_board.missing_workers_named', title: '失蹤名單公開', text: '公告欄上多了一排工匠名字，廣場變得比平常安靜。' },
+            { flag: 'town.notice_board.worker_marks_mapped', title: '工匠刻痕貼上公告欄', text: '舊工具柄的刻痕被拓在名單旁，黑曜石地宮第一次有了能被指認的方向。' },
             { flag: 'town.refugees.northern_letters', title: '北境來信入冊', text: '焦邊家書被收進紀錄，北方不再只是地圖上的危險方向。' },
-            { flag: 'town.gate.broken_standard_raised', title: '斷旗掛上城門', text: '斷旗被重新掛起，撤退線不再被讀成潰敗。' }
+            { flag: 'town.refugees.unsent_reply_archived', title: '未寄回信歸檔', text: '那封送不出去的回信被放在焦邊家書旁，城鎮終於承認自己聽見了北方。' },
+            { flag: 'town.gate.broken_standard_raised', title: '斷旗掛上城門', text: '斷旗被重新掛起，撤退線不再被讀成潰敗。' },
+            { flag: 'town.gate.retreat_names_called', title: '撤退名單點過', text: '旗影下新增一張尋人榜，撤退線後方的名字終於不再只是戰損數字。' }
         ]
     },
     {
@@ -37,6 +40,7 @@ export const TownPlaceDatabase = [
         states: [
             { flag: 'town.apothecary.stock_basic_potion', title: '基礎藥水補上', text: '藥架重新整理，下一個受傷的人不用等空瓶晾乾。' },
             { flag: 'town.apothecary.understands_thorn_trade', title: '荊棘交易被辨認', text: '藥師終於看懂那只採藥籃：籃柄上的荊棘像女巫留下的價格標籤。' },
+            { flag: 'town.apothecary.remembers_lost_gatherer', title: '採藥人的名字掛上藥棚', text: '一塊小木牌釘在藥棚邊，上面沒有英雄稱號，只有把警告送回來的名字。' },
             { flag: 'town.refugees.soup_kitchen_warm', title: '避難者廚房升火', text: '棚下多了幾只湯碗，熱湯壓不過深淵焦味，卻足夠讓人排隊。' }
         ]
     },
@@ -78,6 +82,7 @@ export const TownPlaceDatabase = [
         states: [
             { flag: 'town.scholar.records_drowned_bell_rhythm', title: '沉鐘節奏入冊', text: '海岸鐘聲被寫進地脈紀錄，失眠者的耳語終於有了能對照的節奏。' },
             { flag: 'town.scholar.records_lich_name', title: '古代學者名字補回', text: '巫妖旁邊多了一個名字，怪物紀錄不再只有分類。' },
+            { flag: 'town.scholar.julian_margin_read', title: '朱利安邊註抄入遺跡紀錄', text: '書記在遠古遺跡頁邊補上一句：盾牌沒有慈悲，握盾的人才必須有。' },
             { flag: 'town.coast_refugee_lamp_lit', title: '海岸燈號校正', text: '守燈人塔維仍然怕黑，但那盞燈終於不再把亡魂引回岸邊。' },
             { flag: 'town.scholar.last_index_bound', title: '最後索引裝訂完成', text: '書記把活人名字重新排好，這本索引成了安靜的武器。' }
         ]
@@ -143,7 +148,8 @@ export const TownPlaceDatabase = [
         ],
         states: [
             { flag: 'town.south_gate.guard_route_ready', title: '巡查路線穩定', text: '南門守衛的靴底修好了，門外路線不再只靠猜。' },
-            { flag: 'town.gate.broken_standard_raised', title: '斷旗立起', text: '城門上多了一面修補過的旗，風裡有前線留下的灰。' }
+            { flag: 'town.gate.broken_standard_raised', title: '斷旗立起', text: '城門上多了一面修補過的旗，風裡有前線留下的灰。' },
+            { flag: 'town.gate.retreat_names_called', title: '撤退名單掛在門內', text: '芙蕾的名單被壓在城門內側，守門的人會照著它等下一批歸來者。' }
         ]
     }
 ];

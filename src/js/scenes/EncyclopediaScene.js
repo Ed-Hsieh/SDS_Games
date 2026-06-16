@@ -394,7 +394,7 @@ export default class EncyclopediaScene {
     renderBlueprintRow(entry, isSelected) {
         const known = entry.known;
         const icon = known
-            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧')
+            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧', 'codex-blueprint-image')
             : escapeHtml(getSilhouette('blueprint', '▧'));
         const sourceCount = entry.drops.length || (entry.discovery?.interactionId ? 1 : 0);
 
@@ -458,7 +458,7 @@ export default class EncyclopediaScene {
     renderBlueprintDetail(entry) {
         const known = entry.known;
         const icon = known
-            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧')
+            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧', 'codex-blueprint-image')
             : escapeHtml(getSilhouette('blueprint', '▧'));
         const resultStats = formatStats(entry.result?.stats || {});
 
@@ -517,6 +517,9 @@ export default class EncyclopediaScene {
         const known = kind === 'blueprint'
             ? isBlueprintKnownInEncyclopedia(drop.recipeId)
             : isItemKnown(drop.id);
+        const imageClass = kind === 'blueprint'
+            ? 'codex-drop-image codex-blueprint-image'
+            : 'codex-drop-image';
         const icon = known
             ? getItemVisualHtml(
                 {
@@ -526,7 +529,8 @@ export default class EncyclopediaScene {
                     type: kind === 'blueprint' ? 'blueprint' : drop.type,
                     rarity: drop.rarity
                 },
-                kind === 'blueprint' ? '▧' : '◆'
+                kind === 'blueprint' ? '▧' : '◆',
+                imageClass
             )
             : escapeHtml(getSilhouette(drop.type, kind === 'blueprint' ? '▧' : '◆'));
         const name = known ? drop.name : '未解鎖';
@@ -576,7 +580,7 @@ export default class EncyclopediaScene {
                         const rarity = item?.rarity || 'common';
                         return `
                             <div class="codex-drop-token rarity-frame rarity-${escapeHtml(rarity)} ${known ? '' : 'is-locked'}" data-codex-kind="material" data-drop-id="${escapeHtml(material.id)}">
-                                <div class="codex-drop-icon">${known && item ? getItemVisualHtml(item, '◆') : escapeHtml(getSilhouette('material'))}</div>
+                                <div class="codex-drop-icon">${known && item ? getItemVisualHtml(item, '◆', 'codex-drop-image') : escapeHtml(getSilhouette('material'))}</div>
                                 <div class="codex-drop-info">
                                     <strong>${escapeHtml(known ? (item?.name || material.id) : '未解鎖')}</strong>
                                     <span>x${escapeHtml(material.quantity)}</span>

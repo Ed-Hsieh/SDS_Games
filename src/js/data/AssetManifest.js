@@ -14,7 +14,11 @@ const sets = {
         'tower_void_blade', 'tower_void_crown', 'tower_abyss_armor', 'tower_hell_knight_lance',
         'tower_guardian_staff', 'tower_lich_staff', 'shadow_commander_sword', 'titan_gauntlet',
         'elemental_orb', 'elder_dragon_fang', 'overlord_armor', 'demon_lord_armor',
-        'boss_goblin_dagger', 'hell_knight_armor', 'abyss_blade', 'boss_void_crown'
+        'boss_goblin_dagger', 'hell_knight_armor', 'abyss_blade', 'boss_void_crown',
+        'starter_sword', 'lucky_coin', 'fate_crystal', 'assassin_dagger', 'master_hammer',
+        'loaded_dice', 'beggars_wisdom', 'phoenix_feather', 'gamblers_fallacy',
+        'demon_contract', 'lucky_charm_7', 'torch', 'bat_wing_cloak', 'frost_crown',
+        'guardian_shield', 'compass', 'jungle_heart', 'demon_slayer', 'dungeon_master_badge'
     ]),
     materials: new Set([
         'slime_jelly', 'beast_hide', 'raw_meat', 'goblin_ear', 'iron_ore', 'wolf_pelt',
@@ -35,7 +39,8 @@ const sets = {
         'world_shard', 'slime_crown', 'bone_sword', 'spider_queen_fang', 'alpha_fang', 'gargoyle_wing',
         'imp_horn', 'thunder_feather', 'lava_scale', 'molten_core', 'carnivore_seed',
         'hydra_scale', 'hydra_fang', 'spectral_staff', 'primordial_stone', 'legendary_shard',
-        'health_potion_s', 'antidote', 'assassin_blade'
+        'health_potion_s', 'antidote', 'assassin_blade', 'enhance_stone',
+        'cold_resist_potion', 'fire_resist_potion'
     ]),
     blueprints: new Set([
         'iron_sword', 'bone_blade', 'poison_dagger', 'shadow_blade', 'mithril_sword',
@@ -73,7 +78,9 @@ const sets = {
         'broken_horn_map', 'drowned_bell_rubbing', 'wet_treasure_fragment', 'oracle_shell',
         'sealed_wax_contract', 'ash_ledger_page', 'smuggled_coal_token', 'thorn_trade_bead',
         'villager_herb_request', 'green_bargain_mark', 'silk_tripwire', 'snapped_bait_hook',
-        'survivor_warning', 'dragon_nest_resonance', 'abyss_vanguard_oath', 'cracked_crown_mark'
+        'survivor_warning', 'dragon_nest_resonance', 'abyss_vanguard_oath', 'cracked_crown_mark',
+        'rare_material_box', 'legendary_weapon_box', 'enhance_scroll', 'vip_card',
+        'mystery_box', 'transcend_stone', 'ancient_key', 'dungeon_token'
     ]),
     'town-places': new Set([
         'crossroads', 'market', 'forge', 'handbook', 'alley', 'casino', 'tower', 'gate'
@@ -97,7 +104,12 @@ const sets = {
         'tower_hydra', 'tower_iron_golem', 'tower_lava_lizard', 'tower_man_eater',
         'tower_poison_queen', 'tower_primordial_titan', 'tower_shadow_stalker',
         'tower_skeleton_captain', 'tower_slime_king', 'tower_spectral_mage',
-        'tower_thunder_hawk', 'tower_void_king', 'treant', 'wild_wolf', 'wyvern'
+        'tower_thunder_hawk', 'tower_void_king', 'treant', 'wild_wolf', 'wyvern',
+        'cave_bat', 'cave_spider', 'cave_rat', 'shadow_lurker', 'rock_golem',
+        'frost_wolf', 'yeti_scout', 'frost_giant', 'ice_dragon', 'stone_guardian',
+        'animated_armor', 'phantom', 'ancient_mage', 'jungle_panther', 'poison_frog',
+        'vine_beast', 'tribal_hunter', 'ancient_treant', 'jungle_hydra', 'imp',
+        'hell_hound', 'tormented_soul', 'lava_golem', 'pit_fiend', 'demon_king'
     ]),
     'dungeon-zone-scenes': new Set([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle', 'dungeon_ruins', 'dungeon_snow',

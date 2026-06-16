@@ -2,7 +2,7 @@
 
 這份文件是主線劇情的來源設定。主線內容以玩家提供的世界觀為準，之後任務、BOSS、線索、地圖節點、道具描述都應該回到這份文件對齊。
 
-支線、副本、零散委託尚未定稿，不在本文件中自行補完。
+主線以本文件為準。支線與城鎮短篇目前另收斂在 [SIDE_STORY_STORY_BIBLE.md](D:/TestProj/SDS_Games/docs/SIDE_STORY_STORY_BIBLE.md) 與 [CHAPTER2_3_COMPLETION_AUDIT.md](D:/TestProj/SDS_Games/docs/CHAPTER2_3_COMPLETION_AUDIT.md)，避免主線文件被過多支線細節稀釋。
 
 章節份量與後續擴張規則見：[CHAPTER_STORY_GROWTH_PLAN.md](D:/TestProj/SDS_Games/docs/CHAPTER_STORY_GROWTH_PLAN.md)
 
@@ -185,6 +185,7 @@
 以下內容等待玩家提供，不要自行定稿：
 
 - 尚未提供的支線副本後續事件與任務對話。
+- 旅人手札正式分頁與地圖事件重構的 UI 細節。
 - 零散任務腳本。
 - 各城鎮 NPC 的完整背景。
 - 古龍麾下眷屬的組織細節。

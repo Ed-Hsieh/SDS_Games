@@ -10206,6 +10206,30 @@ body {
     object-fit: contain;
 }
 
+.codex-drop-icon .codex-drop-image {
+    width: 78%;
+    height: 78%;
+    margin: auto;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 6px;
+}
+
+.codex-row-icon .codex-blueprint-image,
+.codex-portrait .codex-blueprint-image {
+    width: 84%;
+    height: 84%;
+    margin: auto;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 6px;
+}
+
+.codex-portrait .codex-blueprint-image {
+    width: 88%;
+    height: 88%;
+}
+
 .resident-avatar img,
 .town-place-entry-icon img,
 .codex-portrait img,

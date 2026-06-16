@@ -15,6 +15,7 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, closeItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
+import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getLandmark } from '../data/WorldStories.js';
@@ -155,6 +156,7 @@ export default class AdventureScene {
         this.lootCloseHandler = null;
         this.clueBookOpen = false;
         this.bossTestOpen = false;
+        this.devMode = isDevModeEnabled();
         this.currentLocationKey = null;
         this.locationToastRecentKeys = new Map();
         this.locationToastRepeatCooldownMs = 12000;
@@ -314,6 +316,7 @@ export default class AdventureScene {
             itemModal: this.container.querySelector('#adv-item-detail-modal'),
             btnCloseItemModal: this.container.querySelector('#btn-close-adv-item-modal')
         };
+        this.applyDevVisibility();
         
         if (!this.dom.canvas) {
             throw new Error('Canvas element not found in Adventure Scene');
@@ -446,15 +449,15 @@ export default class AdventureScene {
             this.dom.btnCloseClueBook.addEventListener('click', () => this.toggleClueBook(false));
         }
 
-        if (this.dom.btnToggleBossTest) {
+        if (this.devMode && this.dom.btnToggleBossTest) {
             this.dom.btnToggleBossTest.addEventListener('click', () => this.toggleBossTestPanel());
         }
 
-        if (this.dom.btnCloseBossTest) {
+        if (this.devMode && this.dom.btnCloseBossTest) {
             this.dom.btnCloseBossTest.addEventListener('click', () => this.toggleBossTestPanel(false));
         }
 
-        if (this.dom.bossTestPanel) {
+        if (this.devMode && this.dom.bossTestPanel) {
             this.dom.bossTestPanel.addEventListener('click', event => this.handleBossTestPanelClick(event));
         }
         
@@ -971,6 +974,7 @@ export default class AdventureScene {
     }
 
     toggleBossTestPanel(forceOpen = null) {
+        if (!this.devMode) return;
         this.bossTestOpen = forceOpen === null ? !this.bossTestOpen : Boolean(forceOpen);
         if (this.dom.bossTestPanel) {
             this.dom.bossTestPanel.classList.toggle('is-open', this.bossTestOpen);
@@ -1291,6 +1295,7 @@ export default class AdventureScene {
     }
 
     renderBossTestPanel() {
+        if (!this.devMode) return;
         if (!this.dom.bossTestContent) return;
 
         const debugState = this.getBossTestDebugState();
@@ -1740,6 +1745,24 @@ export default class AdventureScene {
             atTriggerLandmark,
             canTrigger: Boolean(status?.finalReady && status?.battleTemplateLinked && atTriggerLandmark && baitCount > 0 && !defeated)
         };
+    }
+
+    applyDevVisibility() {
+        if (!this.dom) return;
+        const hidden = !this.devMode;
+        if (this.dom.btnToggleBossTest) {
+            this.dom.btnToggleBossTest.hidden = hidden;
+            this.dom.btnToggleBossTest.setAttribute('aria-hidden', String(hidden));
+        }
+        if (this.dom.bossTestPanel) {
+            this.dom.bossTestPanel.hidden = hidden;
+            this.dom.bossTestPanel.setAttribute('aria-hidden', String(hidden || !this.bossTestOpen));
+        }
+        if (hidden) {
+            this.bossTestOpen = false;
+            this.dom.bossTestPanel?.classList.remove('is-open');
+            this.dom.btnToggleBossTest?.classList.remove('is-open');
+        }
     }
 
     renderAmbushMantisBaitPanel(landmarkId) {

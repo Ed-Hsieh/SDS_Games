@@ -16,6 +16,7 @@ import { TownPlaceDatabase } from '../data/TownPlaces.js';
 import { resolveItemById } from './ItemResolver.js';
 import { escapeHtml, formatAffixStats } from './ItemDisplay.js';
 import { showGlobalToast } from './UIFeedback.js';
+import { isDevModeEnabled } from './DevMode.js';
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
 const DEV_SOURCE = 'boss_test_panel';
@@ -528,6 +529,7 @@ let devPanelInstance = null;
 
 export function initDevPanel(app) {
     if (typeof document === 'undefined' || devPanelInstance) return devPanelInstance;
+    if (!isDevModeEnabled()) return null;
     devPanelInstance = new DevPanel(app);
     window.devPanel = devPanelInstance;
     return devPanelInstance;

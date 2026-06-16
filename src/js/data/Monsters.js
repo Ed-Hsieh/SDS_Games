@@ -1594,7 +1594,7 @@ export const TowerMonsterData = {
         gold: 2000,
         drops: [
             { itemId: 'legendary_shard', chance: 1.0, quantity: [2, 3] },
-            { itemId: 'void_crown', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'boss_void_crown', chance: 1.0, quantity: [1, 1] },
             { itemId: 'elemental_core', chance: 0.5, quantity: [1, 1] },
             { itemId: 'titan_heart', chance: 0.3, quantity: [1, 1] }
         ],
