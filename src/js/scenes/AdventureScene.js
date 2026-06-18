@@ -737,12 +737,24 @@ export default class AdventureScene {
             this.currentLocationKey = locationKey;
             this.showLocationToast(narrative, {
                 force: Boolean(override),
-                locationKey
+                locationKey,
+                zoneId
             });
         }
         this.renderClueBook();
         this.renderBossTestPanel();
         this.updateSmallLocationHint();
+    }
+
+    getZoneRiskLine(zoneId) {
+        const lines = {
+            low: '風險很低，適合確認路線與收集基礎材料。',
+            medium: '這一帶開始有穩定遭遇，請確認生命與藥水。',
+            high: '高威脅區會出現更強敵人與首領線索，撤退前先看好回城路。',
+            death: '死亡區會壓迫補給與裝備耐久，建議準備抗性與足夠藥水。',
+            boss: '黑焰邊境接近終局事件，進入前請確認裝備、藥水與首領痕跡。'
+        };
+        return lines[zoneId] || '';
     }
 
     showLocationToast(narrative, options = {}) {
@@ -769,7 +781,11 @@ export default class AdventureScene {
             this.dom.locationToastTitle.textContent = narrative.title || '未知地點';
         }
         if (this.dom.locationToastDescription) {
-            this.dom.locationToastDescription.textContent = narrative.description || '';
+            const riskLine = this.getZoneRiskLine(options.zoneId);
+            const description = narrative.description || '';
+            this.dom.locationToastDescription.textContent = riskLine
+                ? `${description} ${riskLine}`.trim()
+                : description;
         }
 
         this.dom.locationToast.classList.remove('is-visible');
@@ -1084,7 +1100,7 @@ export default class AdventureScene {
 
     triggerTestEvent(zone, mode = 'question') {
         const targetZone = this.getTestZone(zone);
-        const eventContext = { stepCount: this.worldMap?.travelStep };
+        const eventContext = this.worldMap?.getEventContext?.() || { stepCount: this.worldMap?.travelStep };
         const event = mode === 'random'
             ? eventManager.triggerRandomEvent(targetZone, eventContext)
             : eventManager.triggerMapQuestionEvent(targetZone, eventContext);
@@ -1775,6 +1791,7 @@ export default class AdventureScene {
         let title = '銀絲伏擊';
         let body = '銀絲在路邊收束，像是在等待某個足夠貪心的人把脖子伸過去。';
         let action = '';
+        let challengeBrief = '';
 
         if (state.defeated) {
             title = '伏道已靜';
@@ -1790,6 +1807,7 @@ export default class AdventureScene {
             body = '你已經知道牠會怎麼觀察路線，但還需要銀絲誘餌才能把牠從暗處逼出來。旅行商人也許願意賣這種不太吉利的小玩意。';
         } else {
             body = `你手上有 ${state.baitCount} 個銀絲誘餌。把它掛在回程路上，銀鐮伏獵者就會以為自己才是獵人。`;
+            challengeBrief = this.renderBossChallengeBrief('銀絲誘餌會立刻引出伏擊，請先確認生命、藥水與撤退成本。');
             action = `
                 <button class="btn btn-primary ambush-bait-action" type="button" data-ambush-mantis-bait="true">
                     設置銀絲誘餌
@@ -1803,6 +1821,7 @@ export default class AdventureScene {
                     <strong>${escapeHtml(title)}</strong>
                     <p>${escapeHtml(body)}</p>
                 </div>
+                ${challengeBrief}
                 ${action}
             </div>
         `;
@@ -1866,6 +1885,7 @@ export default class AdventureScene {
         let title = config.readyTitle;
         let body = config.readyBody;
         let action = '';
+        let challengeBrief = '';
 
         if (state.defeated) {
             title = config.defeatedTitle;
@@ -1874,6 +1894,7 @@ export default class AdventureScene {
             title = config.pendingTitle;
             body = `${config.pendingBody} 目前痕跡 ${clueText}，推進 ${progressText}。`;
         } else {
+            challengeBrief = this.renderBossChallengeBrief(`${config.actionLabel}後會立刻進入首領戰。`);
             action = `
                 <button class="btn btn-primary landmark-boss-action" type="button"
                     data-landmark-boss="${escapeHtml(config.chainId)}">
@@ -1888,7 +1909,22 @@ export default class AdventureScene {
                     <strong>${escapeHtml(title)}</strong>
                     <p>${escapeHtml(body)}</p>
                 </div>
+                ${challengeBrief}
                 ${action}
+            </div>
+        `;
+    }
+
+    renderBossChallengeBrief(triggerText = '') {
+        const lines = [
+            '首領戰開始後會直接進入戰鬥，死亡會被送回城鎮並承受背包損失。',
+            '建議先確認藥水、裝備耐久與目前裝備是否適合這條首領線。',
+            triggerText
+        ].filter(Boolean);
+
+        return `
+            <div class="challenge-risk-brief">
+                ${lines.map(line => `<span>${escapeHtml(line)}</span>`).join('')}
             </div>
         `;
     }
@@ -2181,6 +2217,7 @@ export default class AdventureScene {
         const storyRelicHTML = storyRelicImage
             ? `<div class="dungeon-story-relic"><img src="${escapeHtml(storyRelicImage)}" alt="${escapeHtml(storyPickup?.title || '')}"></div>`
             : '';
+        const riskBriefHTML = this.renderDungeonRiskBrief(this.getDungeonRiskBrief(dungeonType, dungeonData, mechanicInfo, isLevelOK));
         const storyHTML = storyPickup ? `
                     <section class="dungeon-story-hook ${storyRelicImage ? 'has-relic' : ''}">
                         ${storyRelicHTML}
@@ -2216,6 +2253,8 @@ export default class AdventureScene {
                             <span><b>建議</b>Lv.${dungeonData.recommendLevel}</span>
                         </div>
                     </section>
+
+                    ${riskBriefHTML}
 
                     ${storyHTML}
 
@@ -2295,6 +2334,80 @@ export default class AdventureScene {
         };
         
         return mechanics[mechanic] || { name: '未知', description: '未知的副本機制' };
+    }
+
+    getDungeonRiskBrief(dungeonType, dungeonData = {}, mechanicInfo = {}, isLevelOK = true) {
+        const mechanicType = dungeonData.mechanic?.type || dungeonType;
+        const counterItemNames = {
+            torch: '火把',
+            warm_cloak: '保暖披風',
+            ancient_codex: '古代典籍',
+            antidote: '解毒劑',
+            fire_charm: '抗火護符'
+        };
+        const prepByMechanic = {
+            darkness: '帶上火把或提高防禦，黑暗中容易被連續消耗。',
+            cold: '準備保暖披風、藥水與冰寒抗性，寒冷累積會拖長戰線。',
+            puzzle: '先收集石碑或符文線索，亂碰機關會直接吃陷阱。',
+            maze: '準備解毒與毒素減免，迷霧會讓路線與戰鬥一起變麻煩。',
+            burn: '確認火焰減免、藥水與裝備耐久，灼熱會把失誤放大。'
+        };
+        const riskByMechanic = {
+            darkness: '視野縮小，遭遇與陷阱會更晚被看見。',
+            cold: '移動會累積寒冷，補給消耗會比普通地區更快。',
+            puzzle: '機關判讀失誤會造成額外傷害或錯過獎勵。',
+            maze: '迷霧會干擾前進方向，毒素壓力會持續堆高。',
+            burn: '熔岩與熱浪會造成持續傷害，裝備耐久也會更快下降。'
+        };
+
+        const hazards = Array.isArray(dungeonData.environment?.hazards)
+            ? dungeonData.environment.hazards.slice(0, 2).join('、')
+            : '';
+        const guaranteed = dungeonData.treasures?.guaranteed?.name || '';
+        const counterItem = dungeonData.mechanic?.counterItem;
+        const counterText = counterItem ? counterItemNames[counterItem] || counterItem : '';
+        const levelLine = `建議 Lv.${dungeonData.recommendLevel || '?'}；目前${isLevelOK ? '可以進入' : '等級不足，先升級或更換裝備'}。`;
+
+        return {
+            risks: [
+                levelLine,
+                riskByMechanic[mechanicType] || mechanicInfo.description || '副本內會有比野外更集中的危險。',
+                hazards ? `常見危害：${hazards}。` : ''
+            ].filter(Boolean),
+            rewards: [
+                dungeonData.story?.rewardFocus || '',
+                dungeonData.story?.mechanicUnlock?.title ? `通關解鎖：${dungeonData.story.mechanicUnlock.title}。` : '',
+                guaranteed ? `首通或核心獎勵方向：${guaranteed}。` : ''
+            ].filter(Boolean),
+            preparations: [
+                prepByMechanic[mechanicType] || '',
+                counterText ? `對策物品：${counterText}。` : '',
+                '進入前整理背包，保留藥水與裝備替換空間。'
+            ].filter(Boolean)
+        };
+    }
+
+    renderDungeonRiskBrief(brief = {}) {
+        const groups = [
+            { key: 'risks', title: '風險', tone: 'risk', items: brief.risks || [] },
+            { key: 'rewards', title: '獎勵方向', tone: 'reward', items: brief.rewards || [] },
+            { key: 'preparations', title: '建議準備', tone: 'prep', items: brief.preparations || [] }
+        ].filter(group => group.items.length > 0);
+
+        if (groups.length === 0) return '';
+
+        return `
+            <section class="dungeon-risk-brief">
+                ${groups.map(group => `
+                    <div class="dungeon-risk-card is-${escapeHtml(group.tone)}">
+                        <b>${escapeHtml(group.title)}</b>
+                        <ul>
+                            ${group.items.slice(0, 3).map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `).join('')}
+            </section>
+        `;
     }
     
     // ===== 返回家處理 =====
@@ -2378,9 +2491,10 @@ export default class AdventureScene {
     
     triggerStoryEvent() {
         const zone = this.worldMap.getCurrentZone();
-        const event = eventManager.triggerRandomEvent(zone, {
-            stepCount: this.worldMap?.travelStep
-        });
+        const event = eventManager.triggerRandomEvent(
+            zone,
+            this.worldMap?.getEventContext?.() || { stepCount: this.worldMap?.travelStep }
+        );
         
         if (!event) {
             this.worldMap.clearCurrentEvent();
@@ -2424,6 +2538,9 @@ export default class AdventureScene {
                 }
 
                 const intentText = this.getStoryChoiceIntent(choice);
+                const choiceMeta = this.getStoryChoiceMeta(choice);
+                costText = choiceMeta.costText;
+                chanceText = choiceMeta.chanceText;
                 
                 btn.innerHTML = `
                     <span class="choice-text">${choice.text}</span>
@@ -2450,7 +2567,47 @@ export default class AdventureScene {
         this.dom.storyEventModal.style.display = 'flex';
     }
 
+    getStoryChoiceMeta(choice = {}) {
+        let costText = '';
+        if (choice.cost?.gold) costText += `金幣 -${choice.cost.gold} `;
+        if (choice.cost?.hp) {
+            const hpCost = choice.cost.isPercent
+                ? `${Math.floor(choice.cost.hp * 100)}% 生命`
+                : `${choice.cost.hp} 生命`;
+            costText += `生命 -${hpCost} `;
+        }
+
+        const chanceText = choice.chance !== undefined
+            ? `<span class="choice-chance">(${Math.floor(choice.chance * 100)}% 成功)</span>`
+            : '';
+
+        return { costText, chanceText };
+    }
+
     getStoryEventLabel(event = {}) {
+        const cleanTypeLabels = {
+            blessing: '補給',
+            curse: '危機',
+            gamble: '抉擇',
+            trade: '交易',
+            mystery: '謎團',
+            encounter: '遭遇'
+        };
+
+        const cleanRoleLabels = {
+            resource: '資源',
+            risk_reward: '風險回報',
+            trade: '交易',
+            story_seed: '故事線索',
+            side_story: '支線',
+            world_lore: '世界見聞',
+            pressure: '壓力'
+        };
+
+        const cleanType = cleanTypeLabels[event.type] || '事件';
+        const cleanRole = cleanRoleLabels[event.eventRole] || '';
+        return cleanRole ? `${cleanType} / ${cleanRole}` : cleanType;
+
         const typeLabels = {
             blessing: '補給',
             curse: '危機',
@@ -2477,6 +2634,38 @@ export default class AdventureScene {
 
     getStoryChoiceIntent(choice = {}) {
         if (choice.intent || choice.hint) return choice.intent || choice.hint;
+
+        const collectCleanResults = (entry) => {
+            if (!entry) return [];
+            if (Array.isArray(entry)) return entry.flatMap(collectCleanResults);
+            if (Array.isArray(entry.results)) return collectCleanResults(entry.results);
+            if (Array.isArray(entry.successResults) || Array.isArray(entry.failResults)) {
+                return [
+                    ...collectCleanResults(entry.successResults),
+                    ...collectCleanResults(entry.failResults)
+                ];
+            }
+            if (Array.isArray(entry.randomResults)) return collectCleanResults(entry.randomResults);
+            return [entry];
+        };
+
+        if (choice.cost?.gold || choice.cost?.hp) {
+            return '需要付出代價，適合想換取更明確回報時選擇。';
+        }
+        if (choice.chance !== undefined || choice.isRandom) {
+            return '結果不穩定，可能帶來額外收穫或損失。';
+        }
+
+        const cleanTypes = new Set(collectCleanResults(choice).map(result => String(result?.type || '')));
+        if (cleanTypes.has('world_interaction')) return '會推動地圖、線索或世界狀態。';
+        if (cleanTypes.has('unlock_quest')) return '會打開新的委託或故事紀錄。';
+        if (cleanTypes.has('item')) return '可能取得可用物資。';
+        if (cleanTypes.has('gold')) return '可能取得金幣。';
+        if (cleanTypes.has('exp')) return '可能取得經驗。';
+        if (cleanTypes.has('heal')) return '可以恢復生命，適合整理狀態。';
+        if (cleanTypes.has('buff')) return '會帶來短時間戰鬥強化。';
+        if (cleanTypes.has('damage') || cleanTypes.has('debuff')) return '可能承受傷害或不利狀態。';
+        return '觀察這件事，讓旅途留下新的判斷。';
 
         const collectResults = (entry) => {
             if (!entry) return [];

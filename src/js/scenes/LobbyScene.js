@@ -1079,12 +1079,42 @@ export default class LobbyScene {
             this.renderTownNarrative({ force: true });
         }
 
+        this.consumeHandbookRouteIntent();
+
         this.ambientTimer = setInterval(() => {
             const recentDiscovery = this.lastNarrativeTone === 'discovery'
                 && Date.now() - this.lastNarrativeAt < 30000;
             if (recentDiscovery) return;
             this.pushTownNarrative('片刻', this.getAmbientNarrative(), 'ambient');
         }, 22000);
+    }
+
+    consumeHandbookRouteIntent() {
+        const intent = GameManager.state?.ui?.handbookRouteIntent;
+        if (!intent || typeof intent !== 'object') return;
+
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+
+        delete GameManager.state.ui.handbookRouteIntent;
+        GameManager.markSaveDirty?.('handbook-route-intent-consumed');
+
+        if (intent.route !== 'lobby') return;
+
+        const subject = intent.title ? `「${intent.title}」` : '手札裡的這段紀錄';
+        const target = intent.reportToName || '相關的人';
+        const title = intent.reportToName ? `手札：找${intent.reportToName}` : '手札：回城確認';
+        const message = intent.reportToName
+            ? `你翻到${subject}。紀錄已經整理好，接下來該去找${target}把結果說清楚。`
+            : `你翻到${subject}。這段紀錄指向城鎮裡的人或場所，先回來確認反應。`;
+
+        this.pushTownNarrativeOnce(
+            `handbook-route:${intent.kind || 'record'}:${intent.title || ''}:${intent.reportToName || intent.label || ''}`,
+            title,
+            message,
+            'discovery'
+        );
     }
 
     getTownFlags() {

@@ -945,6 +945,67 @@
     font-weight: 800;
 }
 
+.dungeon-risk-brief {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.dungeon-risk-card {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-height: 112px;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(5, 10, 15, 0.5);
+}
+
+.dungeon-risk-card b {
+    color: #f7d38b;
+    font-size: 13px;
+}
+
+.dungeon-risk-card ul {
+    display: grid;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dungeon-risk-card li {
+    color: #c9d6da;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.dungeon-risk-card li::before {
+    content: "";
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    margin-right: 7px;
+    border-radius: 999px;
+    background: currentColor;
+    transform: translateY(-1px);
+    opacity: 0.7;
+}
+
+.dungeon-risk-card.is-risk {
+    border-color: rgba(248, 113, 113, 0.3);
+}
+
+.dungeon-risk-card.is-reward {
+    border-color: rgba(125, 211, 252, 0.26);
+}
+
+.dungeon-risk-card.is-prep {
+    border-color: rgba(134, 239, 172, 0.24);
+}
+
 .dungeon-mechanic-info {
     display: grid;
     gap: 6px;
@@ -998,6 +1059,22 @@
     color: #ffb7b7;
     font-size: 13px;
     text-align: center;
+}
+
+.challenge-risk-brief {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid rgba(248, 113, 113, 0.32);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(255, 255, 255, 0.035));
+    color: #ffd4d4;
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.challenge-risk-brief span {
+    display: block;
 }
 
 /* ===== 戰鬥彈窗 - HOLOGRAPHIC COMBAT OVERLAY ===== */

@@ -1750,6 +1750,51 @@ input {
     text-align: right;
 }
 
+.quest-tabs.handbook-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px !important;
+    padding: 10px 20px !important;
+    border-bottom: 1px solid var(--ui-border);
+    background: rgba(10, 14, 22, 0.82) !important;
+}
+
+.quest-tabs.handbook-tabs .quest-tab {
+    min-width: 0;
+    min-height: 42px;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px !important;
+    border-radius: 8px !important;
+}
+
+.quest-tabs.handbook-tabs .quest-tab .tab-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.quest-tabs.handbook-tabs .quest-tab .badge {
+    min-width: 24px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ui-text);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.quest-tabs.handbook-tabs .quest-tab.active .badge {
+    background: rgba(125, 211, 252, 0.18);
+    color: var(--ui-accent);
+}
+
 .quest-main-panel {
     min-height: 0;
     grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
@@ -1779,6 +1824,61 @@ input {
 .quest-btn {
     flex: 1 1 180px;
     justify-content: center;
+}
+
+.handbook-record-item .quest-item-icon {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 20px;
+}
+
+.handbook-section-item {
+    align-items: flex-start !important;
+}
+
+.handbook-section-item .objective-icon {
+    margin-top: 3px;
+    color: var(--ui-accent);
+}
+
+.handbook-section-item .objective-text {
+    display: grid;
+    gap: 6px;
+}
+
+.handbook-section-item .objective-text strong {
+    color: var(--ui-text);
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.handbook-section-item .objective-text small {
+    display: block;
+    color: var(--ui-text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.handbook-record-footnote {
+    min-height: 44px;
+    align-items: center;
+}
+
+.handbook-record-footnote .reward-value {
+    display: grid;
+    align-items: start;
+    gap: 3px;
+}
+
+.handbook-record-footnote .reward-value small {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ui-text-muted);
 }
 
 /* Tower */

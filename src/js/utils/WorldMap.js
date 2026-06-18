@@ -726,9 +726,61 @@ export default class WorldMap {
         return site;
     }
 
+    getNearbyLandmarkContext(context = {}) {
+        const x = Number.isFinite(context.x) ? context.x : this.playerPos.x;
+        const y = Number.isFinite(context.y) ? context.y : this.playerPos.y;
+        const cell = this.mapData?.[y]?.[x] || null;
+        const currentLandmark = cell?.type === 'landmark'
+            ? (cell.landmarkData || getLandmark(cell.landmarkId))
+            : null;
+
+        const candidates = (Array.isArray(this.landmarks) ? this.landmarks : [])
+            .map(site => {
+                const landmark = this.mapData?.[site.y]?.[site.x]?.landmarkData || getLandmark(site.landmarkId);
+                if (!landmark) return null;
+                const distance = Math.abs(site.x - x) + Math.abs(site.y - y);
+                const radius = Number.isFinite(landmark.eventRadius)
+                    ? Math.max(1, landmark.eventRadius)
+                    : Math.max(2, Math.ceil(Number(landmark.regionRadius) || 2));
+                if (distance > radius) return null;
+                return { site, landmark, distance };
+            })
+            .filter(Boolean)
+            .sort((a, b) => a.distance - b.distance || a.site.y - b.site.y || a.site.x - b.site.x);
+
+        const nearbyLandmarkIds = candidates.map(entry => entry.landmark.id).filter(Boolean);
+        const primaryLandmark = currentLandmark || candidates[0]?.landmark || null;
+        const landmarkTags = [
+            ...(primaryLandmark?.effectIds || []),
+            ...(primaryLandmark?.storyChainIds || []),
+            ...(primaryLandmark?.questIds || [])
+        ].filter(Boolean);
+
+        return {
+            landmarkId: primaryLandmark?.id || null,
+            currentLandmarkId: currentLandmark?.id || null,
+            nearestLandmarkId: candidates[0]?.landmark?.id || null,
+            nearbyLandmarkIds,
+            landmarkTags
+        };
+    }
+
     getEventContext(extra = {}) {
+        const landmarkContext = this.getNearbyLandmarkContext(extra);
+        const explicitLandmarkIds = [
+            extra.landmarkId,
+            ...(Array.isArray(extra.nearbyLandmarkIds) ? extra.nearbyLandmarkIds : [])
+        ].filter(Boolean);
+        const nearbyLandmarkIds = [...new Set([
+            ...explicitLandmarkIds,
+            ...landmarkContext.nearbyLandmarkIds
+        ])];
+
         return {
             ...extra,
+            ...landmarkContext,
+            landmarkId: extra.landmarkId || landmarkContext.landmarkId,
+            nearbyLandmarkIds,
             stepCount: this.travelStep
         };
     }
@@ -762,7 +814,7 @@ export default class WorldMap {
         if (forcedEncounter) {
             GameManager.setFlag('debug.forceNextEncounter', null);
             if (forcedEncounter === 'event') {
-                return this.createRandomMapEvent(cell.zone) ? 'event' : null;
+                return this.createRandomMapEvent(cell.zone, context) ? 'event' : null;
             }
             if (forcedEncounter === 'battle' && !GameManager.getFlag('debug.noBattles')) {
                 return this.createRandomMonsterEncounter(cell.zone, context) ? 'battle' : null;
@@ -774,7 +826,7 @@ export default class WorldMap {
         const roll = Math.random();
 
         if (roll < rates.event) {
-            return this.createRandomMapEvent(cell.zone) ? 'event' : null;
+            return this.createRandomMapEvent(cell.zone, context) ? 'event' : null;
         }
         if (!GameManager.getFlag('debug.noBattles') && roll < rates.event + rates.battle) {
             return this.createRandomMonsterEncounter(cell.zone, context) ? 'battle' : null;

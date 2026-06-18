@@ -9,14 +9,61 @@ import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
+import GameManager from '../managers/GameManager.js';
+import { worldStoryManager } from '../managers/WorldStoryManager.js';
+import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldStories.js';
+import { getTownPlaces } from '../data/TownPlaces.js';
+import { RecipeDatabase, getMissingMaterials } from '../managers/RecipeManager.js';
+import { isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
+
+const HANDBOOK_TABS = {
+    commissions: {
+        title: '委託',
+        countLabel: '件委託',
+        emptyIcon: '📭',
+        emptyText: '目前沒有新的委託紀錄',
+        ledger: records => `${records.length} 件委託`
+    },
+    boss: {
+        title: '首領痕跡',
+        countLabel: '條痕跡線',
+        emptyIcon: '🧭',
+        emptyText: '還沒有足夠的首領痕跡。去現場、聽傳聞或完成委託後，筆記會自己長出下一頁。',
+        ledger: records => `${records.length} 條首領痕跡`
+    },
+    world: {
+        title: '世界見聞',
+        countLabel: '則見聞',
+        emptyIcon: '🗺️',
+        emptyText: '還沒有留下值得翻閱的地點紀錄。走進新的地標後，這裡會記下你親眼確認的事情。',
+        ledger: records => `${records.length} 則世界見聞`
+    },
+    forge: {
+        title: '鍛造備忘',
+        countLabel: '則備忘',
+        emptyIcon: '⚒️',
+        emptyText: '目前沒有需要追的鍛造備忘。取得圖紙、缺少素材或接到工坊委託時，這裡會整理成清單。',
+        ledger: records => `${records.length} 則鍛造備忘`
+    },
+    town: {
+        title: '城鎮記憶',
+        countLabel: '段記憶',
+        emptyIcon: '🏘️',
+        emptyText: '城鎮還沒有留下明顯變化。完成主線或支線後，居民與場所的改變會收在這裡。',
+        ledger: records => `${records.length} 段城鎮記憶`
+    }
+};
 
 export default class QuestScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
         this.selectedQuestId = null;
+        this.selectedRecordKey = null;
+        this.activeTab = 'commissions';
         
         this.onQuestEvent = this.onQuestEvent.bind(this);
+        this.onGameEvent = this.onGameEvent.bind(this);
         this.updateSummary = this.updateSummary.bind(this);
     }
 
@@ -26,6 +73,7 @@ export default class QuestScene {
         
         // 訂閱任務系統事件
         questManager.subscribe(this.onQuestEvent);
+        GameManager.subscribe(this.onGameEvent);
         
         // 初始渲染
         this.renderQuestList();
@@ -34,11 +82,15 @@ export default class QuestScene {
 
     cleanup() {
         questManager.unsubscribe(this.onQuestEvent);
+        GameManager.unsubscribe(this.onGameEvent);
     }
 
     cacheDOM() {
         this.dom = {
             ledgerSummary: this.container.querySelector('#ledger-summary'),
+            handbookTabs: this.container.querySelector('#handbook-tabs'),
+            handbookTabButtons: Array.from(this.container.querySelectorAll('[data-handbook-tab]')),
+            handbookCountBadges: Array.from(this.container.querySelectorAll('[data-handbook-count]')),
 
             // 列表
             listTitle: this.container.querySelector('#list-title'),
@@ -74,6 +126,12 @@ export default class QuestScene {
     }
 
     bindEvents() {
+        this.dom.handbookTabButtons?.forEach(button => {
+            button.addEventListener('click', () => {
+                this.selectHandbookTab(button.dataset.handbookTab);
+            });
+        });
+
         // 接取任務
         this.dom.btnAccept?.addEventListener('click', () => {
             if (this.selectedQuestId) {
@@ -104,37 +162,129 @@ export default class QuestScene {
         });
     }
 
-    renderQuestList() {
-        const quests = this.getStoryQuestList();
+    selectHandbookTab(tabId) {
+        if (!HANDBOOK_TABS[tabId] || tabId === this.activeTab) return;
+        this.activeTab = tabId;
+        this.selectedRecordKey = null;
+        this.selectedQuestId = null;
 
-        // 更新進行中數量
-        const activeCount = questManager.getActiveQuests().length + 
-                           questManager.getCompletedQuests().length;
-        if (this.dom.listTitle) this.dom.listTitle.textContent = '所有委託';
-        if (this.dom.questCount) this.dom.questCount.textContent = `${quests.length} 件委託`;
+        this.dom.handbookTabButtons?.forEach(button => {
+            const active = button.dataset.handbookTab === tabId;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        this.renderQuestList();
+        this.clearDetail();
+    }
+
+    renderQuestList() {
+        const records = this.getHandbookRecords(this.activeTab);
+        const tab = HANDBOOK_TABS[this.activeTab] || HANDBOOK_TABS.commissions;
+
+        this.updateHandbookCounts();
+        if (this.dom.listTitle) this.dom.listTitle.textContent = tab.title;
+        if (this.dom.questCount) this.dom.questCount.textContent = `${records.length} ${tab.countLabel}`;
         if (this.dom.ledgerSummary) {
-            const completed = questManager.getCompletedQuests().length;
-            this.dom.ledgerSummary.textContent = `${quests.length} 件委託 · ${activeCount} 紀錄中 · ${completed} 可回報`;
+            this.dom.ledgerSummary.textContent = this.getLedgerSummary(this.activeTab, records);
         }
 
-        // 清空並渲染
         this.dom.questList.innerHTML = '';
         
-        if (quests.length === 0) {
+        if (records.length === 0) {
             const emptyEl = document.createElement('div');
             emptyEl.className = 'quest-empty';
             emptyEl.innerHTML = `
-                <div class="empty-icon">📭</div>
-                <p>目前沒有新的委託紀錄</p>
+                <div class="empty-icon">${tab.emptyIcon}</div>
+                <p>${escapeHtml(tab.emptyText)}</p>
             `;
             this.dom.questList.appendChild(emptyEl);
             return;
         }
 
-        quests.forEach(quest => {
-            const questEl = this.createQuestListItem(quest);
-            this.dom.questList.appendChild(questEl);
+        records.forEach(record => {
+            const recordEl = record.kind === 'quest'
+                ? this.createQuestListItem(record.quest)
+                : this.createHandbookRecordItem(record);
+            this.dom.questList.appendChild(recordEl);
         });
+    }
+
+    refreshHandbook(options = {}) {
+        const preserveDetail = options.preserveDetail !== false;
+        const selectedKey = this.selectedRecordKey;
+        const selectedQuestId = this.selectedQuestId;
+
+        this.renderQuestList();
+        this.updateSummary();
+
+        if (!preserveDetail) return;
+
+        if (selectedQuestId) {
+            const exists = this.getStoryQuestList().some(quest => quest.id === selectedQuestId);
+            if (exists) this.renderQuestDetail(selectedQuestId);
+            else this.clearDetail();
+            return;
+        }
+
+        if (selectedKey) {
+            const record = this.getHandbookRecords(this.activeTab).find(item => item.key === selectedKey);
+            if (record) {
+                this.selectedRecordKey = selectedKey;
+                this.renderHandbookRecordDetail(record);
+                this.dom.questList?.querySelectorAll('.quest-list-item').forEach(item => {
+                    item.classList.toggle('selected', item.dataset.recordKey === selectedKey);
+                });
+            } else {
+                this.clearDetail();
+            }
+        }
+    }
+
+    getLedgerSummary(tabId, records) {
+        if (tabId === 'commissions') {
+            const activeCount = questManager.getActiveQuests().length + questManager.getCompletedQuests().length;
+            const completed = questManager.getCompletedQuests().length;
+            return `${records.length} 件委託 · ${activeCount} 追蹤中 · ${completed} 待回報`;
+        }
+
+        const tab = HANDBOOK_TABS[tabId] || HANDBOOK_TABS.commissions;
+        return tab.ledger(records);
+    }
+
+    updateHandbookCounts() {
+        const counts = {
+            commissions: this.getStoryQuestList().length,
+            boss: this.getBossTraceRecords().length,
+            world: this.getWorldNoteRecords().length,
+            forge: this.getForgeMemoRecords().length,
+            town: this.getTownMemoryRecords().length
+        };
+
+        this.dom.handbookCountBadges?.forEach(badge => {
+            const key = badge.dataset.handbookCount;
+            badge.textContent = counts[key] ?? 0;
+        });
+    }
+
+    getHandbookRecords(tabId) {
+        switch (tabId) {
+            case 'boss':
+                return this.getBossTraceRecords();
+            case 'world':
+                return this.getWorldNoteRecords();
+            case 'forge':
+                return this.getForgeMemoRecords();
+            case 'town':
+                return this.getTownMemoryRecords();
+            case 'commissions':
+            default:
+                return this.getStoryQuestList().map(quest => ({
+                    key: `quest:${quest.id}`,
+                    kind: 'quest',
+                    quest
+                }));
+        }
     }
 
     createQuestListItem(quest) {
@@ -207,6 +357,347 @@ export default class QuestScene {
         return el;
     }
 
+    createHandbookRecordItem(record) {
+        const el = document.createElement('div');
+        el.className = `quest-list-item handbook-record-item ${record.statusTone || 'available'}`;
+        el.dataset.recordKey = record.key;
+        if (record.key === this.selectedRecordKey) el.classList.add('selected');
+
+        const meta = Array.isArray(record.meta)
+            ? record.meta.filter(Boolean).slice(0, 3)
+            : [];
+        const progressHTML = record.progress
+            ? `
+                <div class="quest-progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+            `
+            : '';
+        if (record.progress) {
+            el.style.setProperty('--quest-list-progress', `${record.progress.percent || 0}%`);
+        }
+
+        el.innerHTML = `
+            <div class="quest-item-icon">${escapeHtml(record.icon || '📖')}</div>
+            <div class="quest-item-info">
+                <div class="quest-item-name">${escapeHtml(record.title)}</div>
+                <div class="quest-item-status">
+                    <span class="status-icon">${escapeHtml(record.statusIcon || '✎')}</span>
+                    <span class="status-text">${escapeHtml(record.statusText || '已記錄')}</span>
+                </div>
+                <div class="quest-item-meta">
+                    ${meta.map(text => `<span>${escapeHtml(text)}</span>`).join('')}
+                </div>
+                ${progressHTML}
+            </div>
+        `;
+
+        el.addEventListener('click', () => {
+            this.selectHandbookRecord(record.key);
+        });
+
+        return el;
+    }
+
+    getBossTraceRecords() {
+        return Object.keys(WorldStoryChains)
+            .map(chainId => worldStoryManager.getBossFlowStatus(chainId))
+            .filter(status => status && (
+                status.discoveredClues?.length > 0 ||
+                status.completedProgress > 0 ||
+                status.finalReady
+            ))
+            .sort((a, b) => {
+                const readyDiff = Number(b.finalReady) - Number(a.finalReady);
+                if (readyDiff !== 0) return readyDiff;
+                const progressDiff = (b.discoveredClues.length + b.completedProgress) - (a.discoveredClues.length + a.completedProgress);
+                if (progressDiff !== 0) return progressDiff;
+                return String(a.title).localeCompare(String(b.title), 'zh-Hant');
+            })
+            .map(status => {
+                const required = Math.max(1, (status.requiredClues || 0) + (status.requiredProgress || 0));
+                const current = Math.min(status.discoveredClues.length, status.requiredClues || status.discoveredClues.length) +
+                    Math.min(status.completedProgress || 0, status.requiredProgress || 0);
+                const nextProgress = status.progressMethods?.find(method => !method.completed);
+                const lastClue = status.discoveredClues?.[status.discoveredClues.length - 1];
+                const finalLabel = status.finalTrigger?.label || '確認首領現身方式';
+                const currentText = status.finalReady
+                    ? `痕跡已足夠清楚。現在可以嘗試「${finalLabel}」。`
+                    : lastClue?.lead || lastClue?.text || status.text || '痕跡還不完整，需要更多現場確認。';
+
+                return {
+                    key: `boss:${status.id}`,
+                    kind: 'boss',
+                    icon: '🧭',
+                    title: status.title,
+                    typeLabel: '首領痕跡',
+                    statusIcon: status.finalReady ? '⚠' : '✎',
+                    statusText: status.finalReady ? '決戰就緒' : `${status.discoveredClues.length} 段痕跡`,
+                    statusTone: status.finalReady ? 'completed' : 'active',
+                    meta: [status.archetype || status.method, status.finalTrigger?.type, status.battleTemplateLinked ? '戰鬥已接線' : '等待接線'],
+                    current: currentText,
+                    thoughtTitle: status.finalReady
+                        ? `我現在是否可以${finalLabel}？`
+                        : nextProgress
+                            ? `我現在是否該先${nextProgress.label}？`
+                            : '我現在是否該再回現場確認？',
+                    thoughtText: status.finalReady
+                        ? '這不是地圖上憑空冒出的紅點，而是前面痕跡一步步推到的結果。'
+                        : '線索還不夠把首領逼出來。先補上下一個可驗證的行動，避免只是亂撞。',
+                    progress: {
+                        current,
+                        required,
+                        percent: Math.min(100, Math.floor((current / required) * 100))
+                    },
+                    sections: [
+                        {
+                            title: '目前推論',
+                            lines: [status.text || '這條痕跡還在整理。']
+                        },
+                        {
+                            title: '已掌握痕跡',
+                            lines: status.discoveredClues.length > 0
+                                ? status.discoveredClues.map(clue => `線索 ${clue.notebookIndex}｜${clue.title}：${clue.lead || clue.text}`)
+                                : ['還沒有可靠痕跡。']
+                        },
+                        {
+                            title: '推進方式',
+                            lines: (status.progressMethods || []).map(method => `${method.completed ? '已確認' : '待確認'}｜${method.label}`)
+                        },
+                        {
+                            title: '最後缺口',
+                            lines: [status.finalReady ? finalLabel : `還需要補足痕跡或行動，才可能進入「${finalLabel}」。`]
+                        }
+                    ],
+                    route: 'adventure',
+                    routeLabel: '前往冒險區確認痕跡'
+                };
+            });
+    }
+
+    getWorldNoteRecords() {
+        const landmarkRecords = worldStoryManager.getVisitedLandmarks()
+            .sort((a, b) => (Number(a.chapter) || 0) - (Number(b.chapter) || 0) || String(a.name).localeCompare(String(b.name), 'zh-Hant'))
+            .map(landmark => {
+                const zones = (landmark.zones || [])
+                    .map(zoneId => ZoneProfiles[zoneId]?.name || zoneId)
+                    .filter(Boolean);
+                const effects = (landmark.effectIds || [])
+                    .map(effectId => TerrainEffects[effectId])
+                    .filter(Boolean);
+                const storyChains = (landmark.storyChainIds || [])
+                    .map(chainId => WorldStoryChains[chainId]?.title)
+                    .filter(Boolean);
+
+                return {
+                    key: `landmark:${landmark.id}`,
+                    kind: 'world',
+                    icon: landmark.icon || '🗺️',
+                    title: landmark.name,
+                    typeLabel: '世界見聞',
+                    statusIcon: '✓',
+                    statusText: '已造訪',
+                    statusTone: 'finished',
+                    meta: [`第 ${landmark.chapter || '?'} 章`, zones.join(' / ') || '未知區域'],
+                    current: landmark.repeat || landmark.arrival || landmark.mapHint || '你在這裡留下了一段地點紀錄。',
+                    thoughtTitle: '我現在是否該把這裡和其他線索連起來？',
+                    thoughtText: landmark.mapHint || '地點本身不是答案，但它會讓任務、痕跡和遭遇有了位置。',
+                    sections: [
+                        {
+                            title: '第一次看到',
+                            lines: [landmark.arrival || landmark.mapHint || '此處仍缺少初次到達文字。']
+                        },
+                        {
+                            title: '地形效果',
+                            lines: effects.length > 0
+                                ? effects.map(effect => `${effect.name}：${effect.summary}`)
+                                : ['尚未標記特殊地形。']
+                        },
+                        {
+                            title: '相關線索',
+                            lines: storyChains.length > 0 ? storyChains : ['暫時沒有連到首領痕跡。']
+                        }
+                    ],
+                    route: 'adventure',
+                    routeLabel: '回到冒險地圖'
+                };
+            });
+
+        const clueRecords = worldStoryManager.getDiscoveredClues()
+            .sort((a, b) => (Number(a.notebookIndex) || 0) - (Number(b.notebookIndex) || 0))
+            .map(clue => {
+                const chainTitle = WorldStoryChains[clue.chainId]?.title || '未歸檔痕跡';
+                return {
+                    key: `world-clue:${clue.id}`,
+                    kind: 'world',
+                    icon: '✦',
+                    title: clue.title,
+                    typeLabel: '現場紀錄',
+                    statusIcon: '✎',
+                    statusText: `線索 ${clue.notebookIndex}`,
+                    statusTone: 'active',
+                    meta: [clue.source || '現場', chainTitle],
+                    current: clue.text || clue.lead || '這段紀錄還需要補上內容。',
+                    thoughtTitle: '我現在是否該把這段紀錄放回脈絡裡？',
+                    thoughtText: clue.lead || '這是原始見聞，不一定直接等於答案；把它和地點、委託、首領線合起來才有方向。',
+                    sections: [
+                        {
+                            title: '原始紀錄',
+                            lines: [clue.text || '沒有留下原始文字。']
+                        },
+                        {
+                            title: '可能導向',
+                            lines: [clue.lead || '暫時沒有明確導向。']
+                        },
+                        {
+                            title: '關聯首領',
+                            lines: [chainTitle]
+                        }
+                    ],
+                    route: 'adventure',
+                    routeLabel: '回到冒險地圖'
+                };
+            });
+
+        return [...landmarkRecords, ...clueRecords];
+    }
+
+    getForgeMemoRecords() {
+        const craftQuestRecords = this.getStoryQuestList()
+            .filter(quest => (quest.objectives || []).some(obj => [ObjectiveType.CRAFT, ObjectiveType.ENHANCE].includes(obj.type)))
+            .map(quest => {
+                const state = quest.state || questManager.getQuestState(quest.id);
+                const progressInfo = this.getObjectiveProgressInfo(quest.objectives, state.progress);
+                const story = getQuestStory(quest, state);
+                const routeInfo = this.getQuestRouteInfo(state.status, story) || {
+                    route: 'forge',
+                    label: '前往鑄造'
+                };
+                return {
+                    key: `forge-quest:${quest.id}`,
+                    kind: 'forge',
+                    icon: quest.icon || '⚒️',
+                    title: quest.name,
+                    typeLabel: '工坊委託',
+                    statusIcon: state.status === QuestStatus.COMPLETED ? '📌' : '✎',
+                    statusText: this.getStatusText(state.status),
+                    statusTone: state.status === QuestStatus.COMPLETED ? 'completed' : 'active',
+                    meta: [story.source, story.location, this.getTypeText(quest.type)],
+                    current: story.current,
+                    thoughtTitle: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).title,
+                    thoughtText: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).description,
+                    progress: {
+                        current: progressInfo.current,
+                        required: Math.max(1, progressInfo.required),
+                        percent: progressInfo.percent
+                    },
+                    sections: [
+                        {
+                            title: '工坊目標',
+                            lines: (quest.objectives || []).map((obj, index) => this.getStoryObjectiveText(story, index) || obj.description || this.getObjectiveText(obj))
+                        }
+                    ],
+                    route: routeInfo.route,
+                    routeLabel: routeInfo.label,
+                    routeDescription: routeInfo.description,
+                    reportToName: routeInfo.reportToName,
+                    npcId: routeInfo.npcId
+                };
+            });
+
+        const inventory = GameManager.getInventory?.() || [];
+        const warehouse = GameManager.state?.warehouse || [];
+        const recipeRecords = Object.values(RecipeDatabase)
+            .filter(recipe => isRecipeBlueprintKnown(recipe.id))
+            .map(recipe => {
+                const missing = getMissingMaterials(recipe.id, inventory, warehouse);
+                const costReady = GameManager.getGold() >= Number(recipe.cost || 0);
+                const craftReady = missing.length === 0 && costReady;
+                const materialLines = (recipe.materials || []).map(mat => {
+                    const material = getMaterial(mat.id);
+                    const miss = missing.find(entry => entry.id === mat.id);
+                    const owned = miss ? miss.owned : mat.quantity;
+                    return `${material?.name || mat.id} ${owned}/${mat.quantity}`;
+                });
+                const missingText = missing.length > 0
+                    ? missing.map(entry => `${getMaterial(entry.id)?.name || entry.id} ${entry.owned}/${entry.required}`).join('、')
+                    : costReady ? '材料與金幣都已備妥。' : `還缺製作費 ${recipe.cost}G。`;
+
+                return {
+                    key: `recipe:${recipe.id}`,
+                    kind: 'forge',
+                    icon: recipe.icon || '⚒️',
+                    title: recipe.name,
+                    typeLabel: '製作圖',
+                    statusIcon: craftReady ? '✓' : '⛏',
+                    statusText: craftReady ? '可以製作' : '缺少準備',
+                    statusTone: craftReady ? 'completed' : 'available',
+                    meta: [recipe.type, recipe.rarity, `${recipe.cost || 0}G / ${recipe.successRate || 100}%`],
+                    current: craftReady ? '這張圖紙已經可以嘗試製作。' : `目前需要補上：${missingText}`,
+                    thoughtTitle: craftReady ? `我現在是否要製作「${recipe.name}」？` : '我現在是否該先補材料？',
+                    thoughtText: craftReady
+                        ? '材料、金幣與圖紙都在手上，剩下就是要不要承擔成功率。'
+                        : '配方不是收藏品，缺料清楚列出來才方便回到冒險區找來源。',
+                    progress: {
+                        current: (recipe.materials || []).length - missing.length + (costReady ? 1 : 0),
+                        required: Math.max(1, (recipe.materials || []).length + 1),
+                        percent: Math.min(100, Math.floor((((recipe.materials || []).length - missing.length + (costReady ? 1 : 0)) / Math.max(1, (recipe.materials || []).length + 1)) * 100))
+                    },
+                    sections: [
+                        {
+                            title: '所需素材',
+                            lines: materialLines.length > 0 ? materialLines : ['此配方沒有素材需求。']
+                        },
+                        {
+                            title: '製作資訊',
+                            lines: [`費用 ${recipe.cost || 0}G`, `成功率 ${recipe.successRate || 100}%`]
+                        }
+                    ],
+                    route: 'forge',
+                    routeLabel: '前往鑄造'
+                };
+            })
+            .sort((a, b) => {
+                const readyDiff = Number(b.statusTone === 'completed') - Number(a.statusTone === 'completed');
+                if (readyDiff !== 0) return readyDiff;
+                return String(a.title).localeCompare(String(b.title), 'zh-Hant');
+            });
+
+        return [...craftQuestRecords, ...recipeRecords];
+    }
+
+    getTownMemoryRecords() {
+        return getTownPlaces()
+            .flatMap(place => (place.states || [])
+                .filter(state => GameManager.getFlag(state.flag))
+                .map(state => ({
+                    key: `town:${place.id}:${state.flag}`,
+                    kind: 'town',
+                    icon: place.icon || '🏘️',
+                    title: state.title,
+                    typeLabel: '城鎮記憶',
+                    statusIcon: '✓',
+                    statusText: place.name,
+                    statusTone: 'finished',
+                    meta: [place.tag, place.name],
+                    current: state.text,
+                    thoughtTitle: '我現在是否該回去看看城鎮變成什麼樣？',
+                    thoughtText: '這不是任務清單，而是事情做完以後留在城鎮裡的痕跡。',
+                    sections: [
+                        {
+                            title: '發生地點',
+                            lines: [place.description || place.name]
+                        },
+                        {
+                            title: '留下的變化',
+                            lines: [state.text]
+                        }
+                    ],
+                    route: 'lobby',
+                    routeLabel: '回到城鎮'
+                })));
+    }
+
     getStoryQuestList() {
         const visibleQuests = questManager.getVisibleQuests();
         const quests = Object.values(visibleQuests).flat();
@@ -246,6 +737,7 @@ export default class QuestScene {
 
     selectQuest(questId) {
         this.selectedQuestId = questId;
+        this.selectedRecordKey = `quest:${questId}`;
         
         // 更新列表選中狀態
         this.dom.questList.querySelectorAll('.quest-list-item').forEach(item => {
@@ -253,6 +745,227 @@ export default class QuestScene {
         });
 
         this.renderQuestDetail(questId);
+    }
+
+    selectHandbookRecord(recordKey) {
+        const record = this.getHandbookRecords(this.activeTab).find(item => item.key === recordKey);
+        if (!record) {
+            this.clearDetail();
+            return;
+        }
+
+        if (record.kind === 'quest') {
+            this.selectQuest(record.quest.id);
+            return;
+        }
+
+        this.selectedQuestId = null;
+        this.selectedRecordKey = recordKey;
+        this.dom.questList.querySelectorAll('.quest-list-item').forEach(item => {
+            item.classList.toggle('selected', item.dataset.recordKey === recordKey);
+        });
+        this.renderHandbookRecordDetail(record);
+    }
+
+    renderHandbookRecordDetail(record) {
+        this.dom.detailPlaceholder.classList.add('hidden');
+        this.dom.detailContent.classList.remove('hidden');
+        this.dom.detailContent.dataset.status = record.statusTone || 'active';
+        if (record.progress) {
+            this.dom.detailContent.style.setProperty('--quest-progress', `${record.progress.percent || 0}%`);
+        }
+
+        this.dom.detailIcon.textContent = record.icon || '📖';
+        this.dom.detailName.textContent = record.title;
+        this.dom.detailType.textContent = record.typeLabel || '旅人手札';
+        this.dom.detailType.className = `quest-type-badge type-${record.kind}`;
+
+        const dialogueBox = this.dom.detailDialogue?.closest('.quest-dialogue-box');
+        if (dialogueBox) dialogueBox.hidden = true;
+
+        this.renderHandbookSummary(record);
+        this.renderHandbookSections(record);
+        this.renderHandbookRecordRewards(record);
+        this.updateHandbookActions(record);
+    }
+
+    renderHandbookSummary(record) {
+        if (!this.dom.detailContent) return;
+
+        let summary = this.dom.detailContent.querySelector('.quest-detail-summary');
+        if (!summary) {
+            summary = document.createElement('div');
+            summary.className = 'quest-detail-summary';
+            const header = this.dom.detailContent.querySelector('.detail-header');
+            if (header) header.insertAdjacentElement('afterend', summary);
+            else this.dom.detailContent.prepend(summary);
+        }
+
+        const meta = Array.isArray(record.meta) ? record.meta.filter(Boolean) : [];
+        const progress = record.progress || null;
+        const progressText = progress
+            ? `${progress.current}/${progress.required}`
+            : '已記錄';
+        summary.style.setProperty('--quest-progress', `${progress?.percent || 100}%`);
+
+        summary.innerHTML = `
+            <div class="quest-note-meta" aria-label="手札分類">
+                <span><b>分類</b>${escapeHtml(record.typeLabel || '手札')}</span>
+                <span><b>狀態</b>${escapeHtml(record.statusText || '已記錄')}</span>
+                ${meta.slice(0, 2).map((text, index) => `<span><b>${index === 0 ? '來源' : '關聯'}</b>${escapeHtml(text)}</span>`).join('')}
+            </div>
+            <section class="quest-note-current" aria-label="目前紀錄">
+                <div class="quest-note-speaker">
+                    <span class="quest-note-avatar">${escapeHtml(record.icon || '📖')}</span>
+                    <span>
+                        <b>${escapeHtml(record.typeLabel || '旅人手札')}</b>
+                        <small>目前紀錄</small>
+                    </span>
+                </div>
+                <p>${escapeHtml(record.current || '這段紀錄還需要補充。')}</p>
+            </section>
+            <section class="quest-note-next" aria-label="玩家思考">
+                <div class="quest-note-next-copy">
+                    <span>我在想</span>
+                    <strong>${escapeHtml(record.thoughtTitle || '我現在是否該翻到下一頁？')}</strong>
+                    <p>${escapeHtml(record.thoughtText || '手札把線索收在一起，剩下要靠我決定下一步。')}</p>
+                </div>
+                <div class="quest-note-progress" aria-label="紀錄補齊程度">
+                    <strong>${escapeHtml(progressText)}</strong>
+                    <span>${progress ? `${progress.percent || 0}% 補齊` : '收錄'}</span>
+                </div>
+            </section>
+            <div class="quest-note-meter" aria-label="紀錄總進度">
+                <div class="quest-note-meter-fill"></div>
+            </div>
+        `;
+    }
+
+    renderHandbookSections(record) {
+        this.dom.detailObjectives.innerHTML = '';
+        const sections = Array.isArray(record.sections) ? record.sections : [];
+        if (sections.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'objective-item handbook-section-item';
+            li.innerHTML = `
+                <span class="objective-icon">📖</span>
+                <span class="objective-text">這段紀錄暫時沒有更多細節。</span>
+            `;
+            this.dom.detailObjectives.appendChild(li);
+            return;
+        }
+
+        sections.forEach(section => {
+            const lines = Array.isArray(section.lines) && section.lines.length > 0
+                ? section.lines
+                : ['尚未留下內容。'];
+            const li = document.createElement('li');
+            li.className = 'objective-item handbook-section-item';
+            li.innerHTML = `
+                <span class="objective-icon">▣</span>
+                <span class="objective-text">
+                    <strong>${escapeHtml(section.title || '紀錄')}</strong>
+                    ${lines.map(line => `<small>${escapeHtml(line)}</small>`).join('')}
+                </span>
+            `;
+            this.dom.detailObjectives.appendChild(li);
+        });
+    }
+
+    renderHandbookRecordRewards(record) {
+        this.dom.detailRewards.innerHTML = '';
+        const action = this.getHandbookRecordAction(record);
+        const el = document.createElement('div');
+        el.className = 'reward-item reward-empty handbook-record-footnote';
+        el.innerHTML = `
+            <span class="reward-icon">${escapeHtml(action.icon)}</span>
+            <span class="reward-value">
+                <strong>${escapeHtml(action.title)}</strong>
+                <small>${escapeHtml(action.description)}</small>
+            </span>
+        `;
+        this.dom.detailRewards.appendChild(el);
+    }
+
+    getHandbookRecordAction(record = {}) {
+        if (record.route) {
+            return {
+                icon: record.statusIcon || '➜',
+                title: record.routeLabel || `前往${this.getRouteText(record.route)}`,
+                description: record.routeDescription || this.getRecordRouteDescription(record)
+            };
+        }
+
+        return {
+            icon: record.statusIcon || '✎',
+            title: record.statusText || '已記錄',
+            description: this.getRecordRouteDescription(record)
+        };
+    }
+
+    getRecordRouteDescription(record = {}) {
+        if (record.reportToName) {
+            return `手札只整理你知道的事，真正的回報要交給${record.reportToName}。`;
+        }
+
+        switch (record.kind) {
+            case 'boss':
+                return '手札只整理痕跡，真正觸發仍要回到對應地點與條件。';
+            case 'world':
+                return '這是親眼確認過的見聞，之後遇到相關委託或首領線時會派上用場。';
+            case 'forge':
+                return '材料、圖紙與成功率都收在這裡，準備好再回工坊處理。';
+            case 'town':
+                return '城鎮變化已經留下來，回去看看人物與場所是否有新的反應。';
+            default:
+                return '這段紀錄已收入手札，之後可回來重新整理脈絡。';
+        }
+    }
+
+    updateHandbookActions(record) {
+        this.dom.btnAccept.classList.add('hidden');
+        this.dom.btnAbandon.classList.add('hidden');
+        this.dom.detailActions.querySelectorAll('.quest-travel-btn').forEach(btn => btn.remove());
+
+        if (record.route) {
+            const travelBtn = document.createElement('button');
+            travelBtn.className = 'quest-btn quest-travel-btn';
+            travelBtn.innerHTML = `
+                <span class="btn-icon">➜</span>
+                ${escapeHtml(record.routeLabel || `前往${this.getRouteText(record.route)}`)}
+            `;
+            travelBtn.addEventListener('click', () => {
+                this.rememberHandbookRouteIntent({
+                    route: record.route,
+                    label: record.routeLabel,
+                    description: record.routeDescription,
+                    reportToName: record.reportToName,
+                    npcId: record.npcId
+                }, record);
+                this.app.loadScene(record.route);
+            });
+            this.dom.detailActions.appendChild(travelBtn);
+        }
+    }
+
+    rememberHandbookRouteIntent(routeInfo = {}, source = {}) {
+        if (!routeInfo.route) return;
+
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+
+        GameManager.state.ui.handbookRouteIntent = {
+            route: routeInfo.route,
+            label: routeInfo.label || source.routeLabel || `前往${this.getRouteText(routeInfo.route)}`,
+            title: source.title || source.name || '旅人手札',
+            kind: source.kind || 'quest',
+            reportToName: routeInfo.reportToName || source.reportToName || '',
+            npcId: routeInfo.npcId || source.npcId || '',
+            description: routeInfo.description || source.routeDescription || '',
+            createdAt: Date.now()
+        };
+        GameManager.markSaveDirty?.('handbook-route-intent');
     }
 
     renderQuestDetail(questId) {
@@ -301,7 +1014,7 @@ export default class QuestScene {
         this.renderRewards(questData.rewards);
 
         // 操作按鈕
-        this.updateActionButtons(state.status, questData.type, story);
+        this.updateActionButtons(state.status, questData.type, story, questData);
     }
 
     renderQuestSpeakerAvatar(questData = {}, story = {}) {
@@ -743,7 +1456,7 @@ export default class QuestScene {
         };
     }
 
-    updateActionButtons(status, questType, story = null) {
+    updateActionButtons(status, questType, story = null, questData = null) {
         // 隱藏所有按鈕
         this.dom.btnAccept.classList.add('hidden');
         this.dom.btnAbandon.classList.add('hidden');
@@ -767,7 +1480,14 @@ export default class QuestScene {
                 <span class="btn-icon">➜</span>
                 ${escapeHtml(routeInfo.label)}
             `;
-            travelBtn.addEventListener('click', () => this.app.loadScene(routeInfo.route));
+            travelBtn.addEventListener('click', () => {
+                this.rememberHandbookRouteIntent(routeInfo, {
+                    kind: 'quest',
+                    title: questData?.name || story?.title || '委託紀錄',
+                    name: questData?.name || ''
+                });
+                this.app.loadScene(routeInfo.route);
+            });
             this.dom.detailActions.appendChild(travelBtn);
         }
     }
@@ -778,21 +1498,26 @@ export default class QuestScene {
             if (!report.name && story?.route) {
                 return {
                     route: story.route,
-                    label: `回到${this.getRouteText(story.route)}確認`
+                    label: `回到${this.getRouteText(story.route)}確認`,
+                    description: '紀錄已補齊，但還需要回到事情發生的地方確認後續。'
                 };
             }
 
             const name = report.name || '委託人';
             return {
                 route: report.route || 'lobby',
-                label: report.label || `回去找${name}`
+                label: report.label || `回去找${name}`,
+                description: `紀錄已補齊，下一步是親自把結果交回給${name}。`,
+                reportToName: name,
+                npcId: report.npcId || ''
             };
         }
 
         if (story?.route) {
             return {
                 route: story.route,
-                label: `前往${this.getRouteText(story.route)}`
+                label: `前往${this.getRouteText(story.route)}`,
+                description: story.nextLead || '手札提供方向，剩下要到現場確認。'
             };
         }
 
@@ -818,8 +1543,10 @@ export default class QuestScene {
 
     clearDetail() {
         this.selectedQuestId = null;
+        this.selectedRecordKey = null;
         this.dom.detailPlaceholder.classList.remove('hidden');
         this.dom.detailContent.classList.add('hidden');
+        this.dom.questList?.querySelectorAll('.quest-list-item').forEach(item => item.classList.remove('selected'));
     }
 
     updateSummary() {
@@ -843,23 +1570,26 @@ export default class QuestScene {
             case 'quest_abandoned':
             case 'quest_completed':
             case 'quest_unlocked':
-                this.renderQuestList();
-                this.updateSummary();
+                this.refreshHandbook();
                 break;
             case 'progress_updated':
-                if (data.questId === this.selectedQuestId) {
-                    this.renderQuestDetail(this.selectedQuestId);
-                }
-                // 更新列表項進度條
-                this.renderQuestList();
+                this.refreshHandbook();
                 break;
             case 'hidden_quest_discovered':
                 this.showNotification('新的聽聞', `「${data.quest.name}」已寫入旅人手札。`);
+                this.refreshHandbook();
                 break;
             case 'quest_ready':
                 this.showNotification('紀錄補齊', `「${data.quest.name}」可以回去找委託人。`);
+                this.refreshHandbook();
                 break;
         }
+    }
+
+    onGameEvent(_state, eventType) {
+        const refreshEvents = new Set(['all', 'flags', 'inventory', 'warehouse', 'gold', 'equipment']);
+        if (!refreshEvents.has(eventType)) return;
+        this.refreshHandbook();
     }
 
     showNotification(title, message) {

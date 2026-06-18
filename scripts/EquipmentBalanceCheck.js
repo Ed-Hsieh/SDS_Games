@@ -6,19 +6,41 @@
 async function main() {
     const [
         equipmentModule,
-        balanceModule
+        balanceModule,
+        monsterModule,
+        recipeModule,
+        questModule,
+        blueprintModule
     ] = await Promise.all([
         import('../src/js/data/Equipment.js'),
-        import('../src/js/data/EquipmentBalance.js')
+        import('../src/js/data/EquipmentBalance.js'),
+        import('../src/js/data/Monsters.js'),
+        import('../src/js/data/Recipes.js'),
+        import('../src/js/data/Quests.js'),
+        import('../src/js/data/BlueprintDrops.js')
     ]);
 
     const { EquipmentDatabase, SetDatabase } = equipmentModule;
     const { getEquipmentBalanceGrade, getLevelBand, RARITY_BALANCE, normalizeEquipmentKind } = balanceModule;
+    const { MonsterDatabase, TowerMonsterData } = monsterModule;
+    const { RecipeDatabase } = recipeModule;
+    const { QuestDatabase } = questModule;
+    const { BlueprintDropDatabase } = blueprintModule;
 
     const items = Object.values(EquipmentDatabase);
+    const sourceAudit = buildEquipmentSourceAudit({
+        EquipmentDatabase,
+        MonsterDatabase,
+        TowerMonsterData,
+        RecipeDatabase,
+        QuestDatabase,
+        BlueprintDropDatabase,
+        getLevelBand
+    });
     const rows = items.map(item => {
         const grade = getEquipmentBalanceGrade(item);
         const stats = item.stats || {};
+        const sourceInfo = sourceAudit.sources.get(item.id) || [];
         return {
             id: item.id,
             name: item.name,
@@ -32,7 +54,8 @@ async function main() {
             target: grade.targetScore,
             ratio: grade.ratio,
             grade: grade.grade,
-            severity: grade.severity
+            severity: grade.severity,
+            sources: sourceInfo.length
         };
     });
 
@@ -84,6 +107,8 @@ async function main() {
         }
     }
 
+    for (const issue of sourceAudit.issues) issues.push(issue);
+
     const bySeverity = issues.reduce((acc, issue) => {
         acc[issue.severity] = (acc[issue.severity] || 0) + 1;
         return acc;
@@ -101,6 +126,14 @@ async function main() {
     console.log('');
     printTable('Lowest ratios', weakest);
 
+    console.log('');
+    console.log('Source coverage');
+    console.log(`Equipment with known source: ${sourceAudit.coverage.withSource}/${items.length}`);
+    console.log(`Monster drop links: ${sourceAudit.coverage.monsterDropLinks}`);
+    console.log(`Crafted result links: ${sourceAudit.coverage.recipeResultLinks}`);
+    console.log(`Quest reward links: ${sourceAudit.coverage.questRewardLinks}`);
+    console.log(`Blueprint source links: ${sourceAudit.coverage.blueprintSourceLinks}`);
+
     if (issues.length > 0) {
         console.log('');
         console.log('Issues');
@@ -110,12 +143,190 @@ async function main() {
     }
 }
 
+function buildEquipmentSourceAudit(context) {
+    const {
+        EquipmentDatabase,
+        MonsterDatabase,
+        TowerMonsterData,
+        RecipeDatabase,
+        QuestDatabase,
+        BlueprintDropDatabase,
+        getLevelBand
+    } = context;
+
+    const allMonsters = {
+        ...MonsterDatabase,
+        ...TowerMonsterData
+    };
+    const sources = new Map();
+    const issues = [];
+    const monsterDropLinks = [];
+    const recipeResultLinks = [];
+    const questRewardLinks = [];
+    const blueprintSourceLinks = [];
+    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+    const addSource = (itemId, source) => {
+        if (!itemId || !EquipmentDatabase[itemId]) return;
+        if (!sources.has(itemId)) sources.set(itemId, []);
+        sources.get(itemId).push(source);
+    };
+
+    const addIssue = (severity, id, message) => {
+        issues.push({ severity, id, message });
+    };
+
+    const allQuestList = Object.values(QuestDatabase || {}).flatMap(group => Array.isArray(group) ? group : []);
+
+    for (const [monsterId, monster] of Object.entries(allMonsters)) {
+        for (const drop of monster.equipmentDrops || []) {
+            if (!EquipmentDatabase[drop.equipmentId]) {
+                addIssue('high', monsterId, `怪物裝備掉落指向不存在裝備：${drop.equipmentId}`);
+                continue;
+            }
+            const source = {
+                kind: 'monster',
+                id: monsterId,
+                name: monster.name,
+                level: Number(monster.level) || 1,
+                chance: drop.chance ?? null
+            };
+            addSource(drop.equipmentId, source);
+            monsterDropLinks.push({ equipmentId: drop.equipmentId, ...source });
+        }
+
+        for (const drop of monster.drops || []) {
+            if (!EquipmentDatabase[drop.itemId]) continue;
+            const source = {
+                kind: 'monster-item-drop',
+                id: monsterId,
+                name: monster.name,
+                level: Number(monster.level) || 1,
+                chance: drop.chance ?? null
+            };
+            addSource(drop.itemId, source);
+            monsterDropLinks.push({ equipmentId: drop.itemId, ...source });
+        }
+    }
+
+    for (const [recipeId, recipe] of Object.entries(RecipeDatabase || {})) {
+        const resultId = recipe.result?.id;
+        if (!resultId) continue;
+        if (EquipmentDatabase[resultId]) {
+            const source = { kind: 'recipe', id: recipeId, name: recipe.name, rarity: recipe.rarity };
+            addSource(resultId, source);
+            recipeResultLinks.push({ equipmentId: resultId, ...source });
+        }
+
+        if (isEquipmentType(recipe.type) && !recipe.result?.level && !recipe.result?.requiredLevel) {
+            addIssue('design', recipeId, `${recipe.name} 的製作結果缺少 level/requiredLevel，平衡工具會落到等級 1`);
+        }
+    }
+
+    for (const quest of allQuestList) {
+        for (const itemId of quest.rewards?.items || []) {
+            if (!EquipmentDatabase[itemId]) continue;
+            const source = { kind: 'quest', id: quest.id, name: quest.name, chapter: quest.chapter || null };
+            addSource(itemId, source);
+            questRewardLinks.push({ equipmentId: itemId, ...source });
+        }
+    }
+
+    for (const [sourceKey, drops] of Object.entries(BlueprintDropDatabase || {})) {
+        const monsterKey = sourceKey.includes(':') ? sourceKey.split(':').pop() : sourceKey;
+        const monster = allMonsters[monsterKey];
+        for (const drop of drops || []) {
+            const recipe = RecipeDatabase[drop.recipeId];
+            const resultId = recipe?.result?.id;
+            if (!resultId || !EquipmentDatabase[resultId]) continue;
+            const source = {
+                kind: 'blueprint-source',
+                id: sourceKey,
+                name: monster?.name || sourceKey,
+                level: Number(monster?.level) || null,
+                chance: drop.chance ?? null
+            };
+            addSource(resultId, source);
+            blueprintSourceLinks.push({ equipmentId: resultId, recipeId: drop.recipeId, ...source });
+        }
+    }
+
+    for (const item of Object.values(EquipmentDatabase)) {
+        const level = Number(item.level || item.requiredLevel) || 1;
+        const band = getLevelBand(level);
+        const rarityIndex = rarityOrder.indexOf(item.rarity);
+        const expected = band.expectedRarities || [];
+        const expectedIndexes = expected.map(rarity => rarityOrder.indexOf(rarity)).filter(index => index >= 0);
+
+        if (expectedIndexes.length > 0 && rarityIndex >= 0) {
+            const minExpected = Math.min(...expectedIndexes);
+            const maxExpected = Math.max(...expectedIndexes);
+            if (rarityIndex > maxExpected + 1) {
+                addIssue('design', item.id, `${item.name} 在 ${band.label} 等級帶稀有度偏高：${item.rarity}`);
+            } else if (rarityIndex < minExpected - 1) {
+                addIssue('design', item.id, `${item.name} 在 ${band.label} 等級帶稀有度偏低：${item.rarity}`);
+            }
+        }
+
+        for (const sourceId of item.dropFrom || []) {
+            const monster = allMonsters[sourceId];
+            if (!monster) {
+                addIssue('medium', item.id, `${item.name} 的 dropFrom 指向不存在怪物：${sourceId}`);
+                continue;
+            }
+
+            const backLinked = (monster.equipmentDrops || []).some(drop => drop.equipmentId === item.id)
+                || (monster.drops || []).some(drop => drop.itemId === item.id);
+            if (!backLinked) {
+                addIssue('design', item.id, `${item.name} 宣告由 ${monster.name} 掉落，但怪物掉落表未反向列出`);
+            }
+
+            addSource(item.id, {
+                kind: 'dropFrom',
+                id: sourceId,
+                name: monster.name,
+                level: Number(monster.level) || 1
+            });
+        }
+
+        const itemSources = sources.get(item.id) || [];
+        if (itemSources.length === 0) {
+            addIssue('design', item.id, `${item.name} 目前沒有可追蹤來源，需確認是否為起始、商店或測試裝備`);
+        }
+
+        for (const source of itemSources.filter(source => Number.isFinite(source.level))) {
+            const gap = level - source.level;
+            if (gap >= 6) {
+                addIssue('design', item.id, `${item.name} 等級 ${level} 可能太早從 Lv.${source.level} 的 ${source.name} 取得`);
+            } else if (gap <= -8) {
+                addIssue('design', item.id, `${item.name} 等級 ${level} 對 Lv.${source.level} 的 ${source.name} 來說可能太晚或太弱`);
+            }
+        }
+    }
+
+    return {
+        sources,
+        issues,
+        coverage: {
+            withSource: Object.values(EquipmentDatabase).filter(item => (sources.get(item.id) || []).length > 0).length,
+            monsterDropLinks: monsterDropLinks.length,
+            recipeResultLinks: recipeResultLinks.length,
+            questRewardLinks: questRewardLinks.length,
+            blueprintSourceLinks: blueprintSourceLinks.length
+        }
+    };
+}
+
+function isEquipmentType(type) {
+    return ['weapon', 'armor', 'equipment', 'accessory'].includes(String(type || '').toLowerCase());
+}
+
 function printTable(title, rows) {
     console.log(title);
-    console.log('id | lv | rarity | type | score/target | ratio | grade');
-    console.log('--- | ---: | --- | --- | ---: | ---: | ---');
+    console.log('id | lv | rarity | type | score/target | ratio | grade | sources');
+    console.log('--- | ---: | --- | --- | ---: | ---: | --- | ---:');
     for (const row of rows) {
-        console.log(`${row.id} | ${row.level} | ${row.rarity} | ${row.type} | ${row.score}/${row.target} | ${row.ratio} | ${row.grade}`);
+        console.log(`${row.id} | ${row.level} | ${row.rarity} | ${row.type} | ${row.score}/${row.target} | ${row.ratio} | ${row.grade} | ${row.sources}`);
     }
 }
 

@@ -15,22 +15,42 @@ import { getWorldInteraction } from '../data/WorldInteractions.js';
 const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
     low: [
         'field_notice_board',
+        'south_gate_patrol_marks',
+        'hunter_tripwire_cache',
+        'muddy_supply_cart',
+        'foragers_emergency_stash',
         'abandoned_blueprint_cache'
     ],
     medium: [
         'weathered_route_tablet',
-        'field_notice_board',
+        'drowned_lantern_line',
+        'thorn_toll_roots',
+        'muddy_supply_cart',
+        'injured_adventurer',
         'abandoned_blueprint_cache',
         'special_bounty_notice'
     ],
     high: [
         'weathered_route_tablet',
+        'ancient_guardian',
+        'leyline_splinter',
+        'obsidian_deserter_map',
+        'thorn_toll_roots',
+        'drowned_lantern_line',
         'special_bounty_notice'
     ],
     death: [
+        'ash_scout_report',
+        'dragon_heat_haze',
+        'refugee_cart_repair',
+        'dimensional_rift',
+        'last_campfire_before_north',
         'weathered_route_tablet'
     ],
     boss: [
+        'dragon_heat_haze',
+        'dimensional_rift',
+        'last_campfire_before_north',
         'weathered_route_tablet'
     ]
 };
@@ -73,11 +93,42 @@ function getCurrentEventStep(options = {}) {
     return Number.isFinite(step) ? step : null;
 }
 
-function pickWeightedEvent(pool = [], rng = Math.random) {
+function uniqueStrings(values = []) {
+    return [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
+}
+
+function getContextLandmarkIds(options = {}) {
+    return uniqueStrings([
+        options.landmarkId,
+        options.currentLandmarkId,
+        options.nearestLandmarkId,
+        ...(Array.isArray(options.nearbyLandmarkIds) ? options.nearbyLandmarkIds : [])
+    ]);
+}
+
+function hasAnyMatch(required = [], current = []) {
+    if (required.length === 0) return true;
+    if (current.length === 0) return false;
+    return required.some(value => current.includes(value));
+}
+
+function getLocationWeightMultiplier(eventObj = {}, options = {}) {
+    const requiredIds = Array.isArray(eventObj.landmarkIds) ? uniqueStrings(eventObj.landmarkIds) : [];
+    if (requiredIds.length === 0) return 1;
+
+    const contextIds = getContextLandmarkIds(options);
+    if (!hasAnyMatch(requiredIds, contextIds)) return 1;
+
+    const boost = Number(eventObj.locationWeightBoost);
+    return Number.isFinite(boost) && boost > 0 ? boost : 1.4;
+}
+
+function pickWeightedEvent(pool = [], rng = Math.random, options = {}) {
     if (pool.length === 0) return null;
     const weightedPool = pool.map(event => {
         const numericWeight = Number(event.weight);
-        const weight = Number.isFinite(numericWeight) ? Math.max(0, numericWeight) : 1;
+        const baseWeight = Number.isFinite(numericWeight) ? Math.max(0, numericWeight) : 1;
+        const weight = baseWeight * getLocationWeightMultiplier(event, options);
         return { event, weight };
     }).filter(entry => entry.weight > 0);
 
@@ -124,7 +175,7 @@ function pickEventByIds(eventIds = [], rng = Math.random, zoneType = null, optio
 
     if (pool.length === 0) return null;
     pool = filterExcludedEvents(pool, options.excludeIds || []);
-    return pickWeightedEvent(pool, rng);
+    return pickWeightedEvent(pool, rng, options);
 }
 
 function getResultEntries(eventObj = {}) {
@@ -209,8 +260,14 @@ function isEventMemoryBlocked(eventObj = {}, options = {}) {
 function hasMatchingLandmarkTag(eventObj = {}, options = {}) {
     const requiredTags = Array.isArray(eventObj.landmarkTags) ? eventObj.landmarkTags.filter(Boolean) : [];
     const currentTags = Array.isArray(options.landmarkTags) ? options.landmarkTags.filter(Boolean) : [];
-    if (requiredTags.length === 0 || currentTags.length === 0) return true;
-    return requiredTags.some(tag => currentTags.includes(tag));
+    if (requiredTags.length === 0) return true;
+    return hasAnyMatch(uniqueStrings(requiredTags), uniqueStrings(currentTags));
+}
+
+function hasMatchingLandmarkId(eventObj = {}, options = {}) {
+    const requiredIds = Array.isArray(eventObj.landmarkIds) ? uniqueStrings(eventObj.landmarkIds) : [];
+    if (requiredIds.length === 0) return true;
+    return hasAnyMatch(requiredIds, getContextLandmarkIds(options));
 }
 
 function isEventEligible(eventObj = {}, zoneType = null, options = {}) {
@@ -223,6 +280,8 @@ function isEventEligible(eventObj = {}, zoneType = null, options = {}) {
     if (isEventMemoryBlocked(eventObj, options)) return false;
 
     if (!hasMatchingLandmarkTag(eventObj, options)) return false;
+
+    if (!hasMatchingLandmarkId(eventObj, options)) return false;
 
     const zones = Array.isArray(eventObj.zones) ? eventObj.zones : [];
     if (zoneType && zones.length > 0 && !zones.includes(zoneType)) {
@@ -315,10 +374,10 @@ export function getEventForZone(zoneType, rng = Math.random, options = {}) {
         let fallbackPool = EventDatabase.filter(event => isEventEligible(event, zoneType, { ...options, chapter }));
         fallbackPool = filterExcludedEvents(fallbackPool, options.excludeIds || []);
         if (fallbackPool.length === 0) return null;
-        return pickWeightedEvent(fallbackPool, rng);
+        return pickWeightedEvent(fallbackPool, rng, options);
     }
 
-    return pickWeightedEvent(pool, rng);
+    return pickWeightedEvent(pool, rng, options);
 }
 
 export function getMapQuestionEventForZone(zoneType = 'low', rng = Math.random, options = {}) {
@@ -362,11 +421,56 @@ function generateEventItem(itemType) {
     }
 }
 
+function generateCleanEventItem(itemType) {
+    const timestamp = Date.now();
+    switch (itemType) {
+        case 'forge_material':
+            return new Item(`enhance_stone_${timestamp}`, '精煉鐵片', ItemType.MATERIAL, ItemRarity.RARE, '🔩', '能用來強化裝備的乾淨鐵片。', 150);
+        case 'material_medium':
+            return new Item(`event_material_${timestamp}`, '可用零件', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⚙️', '從事件中取得的可用零件，鍛造師應該能處理。', 45);
+        case 'material_low':
+            return new Item(`event_scrap_${timestamp}`, '破舊材料', ItemType.MATERIAL, ItemRarity.COMMON, '🧱', '雖然破舊，但整理後仍能拿來製作基礎裝備。', 25);
+        case 'random':
+        default: {
+            const items = [
+                new Consumable(`event_potion_${timestamp}`, '濃縮生命藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '從奇遇中取得的高效藥水。', 100, { hp: 120 }),
+                new Item(`event_crystal_${timestamp}`, '地脈晶片', ItemType.MATERIAL, ItemRarity.EPIC, '💠', '仍殘留地脈回聲的晶片，可作為高階素材。', 200)
+            ];
+            return items[Math.floor(Math.random() * items.length)];
+        }
+    }
+}
+
+function generateReadableEventItem(itemType) {
+    const timestamp = Date.now();
+    switch (itemType) {
+        case 'forge_material':
+            return new Item(`enhance_stone_${timestamp}`, '打磨用青鋼片', ItemType.MATERIAL, ItemRarity.RARE, '🧩', '流動匠人常用的補強材料，邊緣仍留著細小火星痕。', 150);
+        case 'material_medium':
+            return new Item(`event_material_${timestamp}`, '旅途雜材', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧰', '從路邊事件中整理出的可用材料，品質普通但很實際。', 45);
+        case 'material_low':
+            return new Item(`event_scrap_${timestamp}`, '可用碎料', ItemType.MATERIAL, ItemRarity.COMMON, '🔩', '看起來零散，仍能拿去補鍛造材料的缺口。', 25);
+        case 'random':
+        default: {
+            const items = [
+                new Consumable(`event_potion_${timestamp}`, '旅人急救藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '瓶身有些刮痕，但藥液仍然清澈。', 100, { hp: 120 }),
+                new Item(`event_crystal_${timestamp}`, '地脈結晶屑', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從不穩定地脈中剝落的小結晶，可作為高階鍛造輔材。', 200)
+            ];
+            return items[Math.floor(Math.random() * items.length)];
+        }
+    }
+}
+
 function markEventResolved(eventObj = {}, context = {}) {
     const policy = getEventRepeatPolicy(eventObj);
     const chapter = getEventChapter(context);
     const resultEntries = Array.isArray(context.results) ? context.results : [];
-    const hasMeaningfulResult = Boolean(context.choice?.markEventResolved) || resultEntries.length > 0;
+    const explicitlyUnresolved = context.choice?.markEventResolved === false;
+    const hasMeaningfulResult = !explicitlyUnresolved && (
+        Boolean(context.choice?.markEventResolved)
+        || policy !== 'repeatable'
+        || resultEntries.length > 0
+    );
 
     if (policy !== 'repeatable' && hasMeaningfulResult) {
         const memoryFlag = policy === 'chapter_once'
@@ -390,6 +494,31 @@ function markEventResolved(eventObj = {}, context = {}) {
     }
 }
 
+function checkAndPayCostClean(char, cost) {
+    if (cost.gold) {
+        if (GameManager.getGold() < cost.gold) {
+            return { success: false, message: `金幣不足，需要 ${cost.gold}G。` };
+        }
+        GameManager.removeGold(cost.gold);
+    }
+
+    if (cost.hp) {
+        const hpCost = cost.isPercent ? Math.floor(char.maxHp * cost.hp) : cost.hp;
+        if (char.hp <= hpCost) {
+            return { success: false, message: '生命太低，不能承擔這個代價。' };
+        }
+        char.hp -= hpCost;
+        return { success: true, message: `支付 ${hpCost} 生命。` };
+    }
+
+    if (cost.atk) {
+        char.baseAtk = Math.max(1, char.baseAtk - cost.atk);
+        return { success: true, message: `攻擊力降低 ${cost.atk}。` };
+    }
+
+    return { success: true };
+}
+
 export function executeChoice(eventObj, choiceIndex) {
     if (!eventObj) return { success: false, message: 'no event' };
     const choice = eventObj.choices && eventObj.choices[choiceIndex];
@@ -400,7 +529,7 @@ export function executeChoice(eventObj, choiceIndex) {
 
     // cost handling
     if (choice.cost) {
-        const costCheck = checkAndPayCost(char, choice.cost);
+        const costCheck = checkAndPayCostClean(char, choice.cost);
         if (!costCheck.success) return costCheck;
         if (costCheck.message) resultMessages.push(costCheck.message);
     }
@@ -487,7 +616,7 @@ function applyResultToCharacter(char, result) {
             if (char.checkLevelUp) char.checkLevelUp();
             return result.message || `獲得 ${result.value} 經驗值`;
         case ResultType.ITEM: {
-            const item = generateEventItem(result.itemType);
+            const item = generateReadableEventItem(result.itemType);
             if (item) GameManager.addToInventory(item);
             return result.message || (item ? `獲得 ${item.name}！` : result.message);
         }

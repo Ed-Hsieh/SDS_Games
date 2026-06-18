@@ -1032,6 +1032,781 @@ const EVENT_STORY_RULES = {
     ancient_guardian: { eventRole: EventRole.RISK_REWARD, chapterRange: [2, 3] }
 };
 
+const EVENT_LOCATION_RULES = {
+    ancient_shrine: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'sunken_altar_reef', 'abyssal_seal_break'],
+        locationWeightBoost: 1.3
+    },
+    healing_spring: {
+        landmarkIds: ['south_gate_farmland', 'rotroot_ravine', 'moon_moss_slope', 'drowned_bell_coast'],
+        locationWeightBoost: 1.4
+    },
+    cursed_chest: {
+        landmarkIds: ['opened_ancient_tomb', 'black_iron_storehouse', 'abyssal_seal_break'],
+        locationWeightBoost: 1.5
+    },
+    dark_spirit: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'abyssal_seal_break'],
+        locationWeightBoost: 1.5
+    },
+    mysterious_merchant: {
+        landmarkIds: ['south_gate_farmland', 'hunter_boardwalk', 'drowned_bell_coast', 'obsidian_keep_gate'],
+        locationWeightBoost: 1.25
+    },
+    dice_demon: {
+        landmarkIds: ['hunter_boardwalk', 'mist_tablet_hill', 'black_iron_storehouse'],
+        locationWeightBoost: 1.3
+    },
+    wandering_blacksmith: {
+        landmarkIds: ['south_gate_farmland', 'broken_horn_camp', 'obsidian_keep_gate', 'northern_drake_watch'],
+        locationWeightBoost: 1.35
+    },
+    fairy_deal: {
+        landmarkIds: ['hunter_boardwalk', 'rotroot_ravine', 'moon_moss_slope', 'thorn_glasshouse_ruin'],
+        locationWeightBoost: 1.35
+    },
+    mysterious_statue: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'sunken_altar_reef', 'charred_obelisk'],
+        locationWeightBoost: 1.35
+    },
+    dimensional_rift: {
+        landmarkIds: ['dragon_heat_crag', 'abyssal_seal_break', 'charred_obelisk'],
+        locationWeightBoost: 1.6
+    },
+    foragers_emergency_stash: {
+        landmarkIds: ['south_gate_farmland', 'hunter_boardwalk', 'broken_horn_camp', 'rotroot_ravine'],
+        locationWeightBoost: 1.35
+    },
+    leyline_splinter: {
+        landmarkIds: ['rotroot_ravine', 'mist_tablet_hill', 'drowned_bell_coast', 'abyssal_seal_break'],
+        locationWeightBoost: 1.45
+    },
+    ash_scout_report: {
+        landmarkIds: ['obsidian_keep_gate', 'black_iron_storehouse', 'abyssal_seal_break'],
+        locationWeightBoost: 1.5
+    },
+    abandoned_blueprint_cache: {
+        landmarkIds: ['south_gate_farmland', 'hunter_boardwalk', 'rotroot_ravine', 'mist_tablet_hill'],
+        locationWeightBoost: 1.5
+    },
+    field_notice_board: {
+        landmarkIds: ['south_gate_farmland'],
+        locationWeightBoost: 1.8
+    },
+    special_bounty_notice: {
+        landmarkIds: ['broken_horn_camp', 'moon_moss_slope', 'obsidian_keep_gate'],
+        locationWeightBoost: 1.8
+    },
+    weathered_route_tablet: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'sunken_altar_reef'],
+        locationWeightBoost: 1.8
+    },
+    south_gate_patrol_marks: {
+        landmarkIds: ['south_gate_farmland', 'cut_roadsign'],
+        locationWeightBoost: 2
+    },
+    hunter_tripwire_cache: {
+        landmarkIds: ['hunter_boardwalk', 'old_campfire_site', 'cut_roadsign', 'silver_snare_pass'],
+        locationWeightBoost: 2
+    },
+    muddy_supply_cart: {
+        landmarkIds: ['south_gate_farmland', 'broken_horn_camp', 'rotroot_ravine'],
+        locationWeightBoost: 1.4
+    },
+    thorn_toll_roots: {
+        landmarkIds: ['thorn_glasshouse_ruin', 'rotroot_ravine'],
+        locationWeightBoost: 1.8
+    },
+    drowned_lantern_line: {
+        landmarkIds: ['drowned_bell_coast', 'sunken_altar_reef'],
+        locationWeightBoost: 1.8
+    },
+    obsidian_deserter_map: {
+        landmarkIds: ['obsidian_keep_gate', 'black_iron_storehouse'],
+        locationWeightBoost: 1.8
+    },
+    refugee_cart_repair: {
+        landmarkIds: ['obsidian_keep_gate', 'black_iron_storehouse', 'abyssal_seal_break'],
+        locationWeightBoost: 1.5
+    },
+    dragon_heat_haze: {
+        landmarkIds: ['northern_drake_watch', 'dragon_heat_crag', 'charred_obelisk', 'abyssal_seal_break'],
+        locationWeightBoost: 1.8
+    },
+    last_campfire_before_north: {
+        landmarkIds: ['northern_drake_watch', 'dragon_heat_crag', 'charred_obelisk'],
+        locationWeightBoost: 1.5
+    },
+    injured_adventurer: {
+        landmarkIds: ['hunter_boardwalk', 'broken_horn_camp', 'obsidian_keep_gate', 'northern_drake_watch'],
+        locationWeightBoost: 1.4
+    },
+    ancient_guardian: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'sunken_altar_reef'],
+        locationWeightBoost: 1.5
+    }
+};
+
+const EVENT_CONTENT_OVERRIDES = {
+    ancient_shrine: {
+        name: '路邊小神龕',
+        icon: '🕯️',
+        description: '一座被樹根托住的小神龕立在路邊，供燭早就熄了，灰裡卻還有一點溫度。',
+        choices: [
+            { text: '整理供燭', intent: '花點時間讓火光重新穩住，也讓自己喘口氣。' },
+            { text: '投入金幣祈願', intent: '用一點代價換取路上的直覺與庇護。' },
+            { text: '安靜離開', intent: '不打擾這座沉默的小神龕。' }
+        ]
+    },
+    healing_spring: {
+        name: '冷泉石盆',
+        icon: '💧',
+        description: '裂石中滲出一口冷泉，水面映著天空，偶爾浮起幾粒像灰燼的光點。',
+        choices: [
+            { text: '清洗傷口', intent: '泉水冰得刺骨，但或許能讓傷勢穩定。' },
+            { text: '浸潤武器', intent: '把武器放進泉中，讓冷光短暫附著。' }
+        ]
+    },
+    cursed_chest: {
+        name: '黑鎖木箱',
+        icon: '🧰',
+        description: '一只木箱半埋在泥裡，鎖孔周圍有焦黑指痕。它看起來像獎勵，也像陷阱。',
+        choices: [
+            { text: '直接撬開', intent: '快一點，也粗暴一點。' },
+            { text: '先解除黑鎖', intent: '多花點時間，試著避開箱上的詛咒。' },
+            { text: '放著別碰', intent: '不是每個箱子都值得打開。' }
+        ]
+    },
+    dark_spirit: {
+        name: '低語黑影',
+        icon: '🌑',
+        description: '霧裡站著一道瘦長黑影，牠沒有臉，卻能準確叫出你的名字。',
+        choices: [
+            { text: '接受黑影的贈禮', intent: '力量會來得很快，代價也可能跟著來。' },
+            { text: '逼問黑影來歷', intent: '把恐懼壓住，從牠的話裡挖出情報。' },
+            { text: '拔腿離開', intent: '有些聲音不回答就會變小。' }
+        ]
+    },
+    mysterious_merchant: {
+        name: '披斗篷的行商',
+        icon: '🧳',
+        description: '行商推著小車從路旁冒出來，笑容熱情得很可疑。他說今天只賣「剛好派得上用場」的東西。',
+        choices: [
+            { text: '買一只封蠟小袋', intent: '袋子不透明，行商也不肯保證裡面不是石頭。' },
+            { text: '挑一件補給', intent: '看起來至少不是完全沒用。' },
+            { text: '謝絕推銷', intent: '錢包暫時比好奇心重要。' }
+        ]
+    },
+    dice_demon: {
+        name: '骰子惡魔',
+        icon: '🎲',
+        description: '一隻小惡魔坐在石頭上晃腿，手裡的骰子像會自己呼吸。牠邀你賭一把。',
+        choices: [
+            { text: '小賭一局', intent: '輸了不至於崩盤，贏了也足夠開心。' },
+            { text: '押大一點', intent: '風險更高，回報也更亮眼。' },
+            { text: '拒絕牠', intent: '惡魔的娛樂通常不是人的好事。' }
+        ]
+    },
+    wandering_blacksmith: {
+        name: '流浪補鐵匠',
+        icon: '🔨',
+        description: '一名背著小砧的鐵匠在路邊升起爐火。他說可以修，但先聲明「好看不在服務範圍內」。',
+        choices: [
+            { text: '打磨武器', intent: '讓武器短時間內更順手。' },
+            { text: '修補護具', intent: '補上幾片不太對稱但很實用的鐵片。' },
+            { text: '購買邊角料', intent: '把他挑剩的材料帶回去，也許鍛造師能救。' },
+            { text: '只是借火休息', intent: '爐火至少比夜風友善。' }
+        ]
+    },
+    fairy_deal: {
+        name: '碎光妖精',
+        icon: '✨',
+        description: '一團碎光繞著你飛，聲音細得像銀針。牠願意幫忙，但牠的「幫忙」聽起來很即興。',
+        choices: [
+            { text: '請牠祝福武器', intent: '讓攻擊短暫變得輕快。' },
+            { text: '請牠護住身體', intent: '換一層薄薄的防護光膜。' },
+            { text: '請牠處理傷口', intent: '希望牠分得清治療和發光。' },
+            { text: '揮手道別', intent: '禮貌離開，避免被當成玩具。' }
+        ]
+    },
+    mysterious_statue: {
+        name: '無名石像',
+        icon: '🗿',
+        description: '石像立在霧裡，臉被歲月磨平，只剩掌心刻著三道看不懂的線。',
+        choices: [
+            { text: '觸碰掌心刻線', intent: '讓石像決定給你什麼。' },
+            { text: '解讀底座文字', intent: '嘗試從舊文字中找出規律。' },
+            { text: '繞路離開', intent: '石像還是留給比較勇敢的人。' }
+        ]
+    },
+    dimensional_rift: {
+        name: '裂隙回聲',
+        icon: '🌀',
+        description: '空氣像布一樣裂開，裂口另一邊傳來熟悉又陌生的腳步聲。',
+        choices: [
+            { text: '伸手取物', intent: '趁裂隙還沒閉合，抓住裡面的東西。' },
+            { text: '投入金幣測試', intent: '看看裂隙會吐回什麼。' },
+            { text: '立刻退開', intent: '你的手暫時還想留在原本的世界。' }
+        ]
+    },
+    foragers_emergency_stash: {
+        name: '採集者急藏包',
+        icon: '🎒',
+        description: '樹根下藏著一只防水布包，旁邊壓著採集者的記號：急用可取，活著再還。',
+        choices: [
+            { text: '取走乾糧', intent: '先把命顧好，欠條以後再說。' },
+            { text: '取走材料', intent: '挑出能鍛造或換補給的東西。' },
+            { text: '只記下路標', intent: '不拿東西，但把採集者的路線記進腦中。' }
+        ]
+    },
+    leyline_splinter: {
+        name: '地脈碎光',
+        icon: '💠',
+        description: '地面裂縫裡浮出細小光片，像被扯斷的線還在努力記得原本連向哪裡。',
+        choices: [
+            { text: '收集碎光', intent: '能量不穩，但也許能成為素材。' },
+            { text: '觀察流向', intent: '從光的方向判斷地脈正在往哪裡塌陷。' },
+            { text: '離遠一點', intent: '別把手伸進正在壞掉的世界裡。' }
+        ]
+    },
+    ash_scout_report: {
+        name: '焦灰斥候報告',
+        icon: '📜',
+        description: '半張燒焦的斥候報告卡在石縫裡，字跡被灰吞掉一半，剩下的一半全是壞消息。',
+        choices: [
+            { text: '整理可讀內容', intent: '把危險區域與行軍規律記下。' },
+            { text: '翻找焦灰', intent: '報告旁也許還有可用物資。' },
+            { text: '收起殘頁', intent: '先帶走，回城後再找人讀。' }
+        ]
+    },
+    abandoned_blueprint_cache: {
+        name: '棄置圖紙匣',
+        icon: '📐',
+        description: '草叢裡露出一角防水木匣，鎖扣被泥封住，上面有鍛造師常用的記號。',
+        choices: [
+            { text: '撬開木匣', intent: '取得裡面的圖紙線索，並把它記進旅人手札。' },
+            { text: '暫時不碰', intent: '把位置記住，先處理眼前的路。' }
+        ]
+    },
+    field_notice_board: {
+        name: '臨時公告牌',
+        icon: '📌',
+        description: '南門外插著一塊臨時公告牌，紙張被風扯得歪斜，墨水還沒完全乾。',
+        choices: [
+            { text: '讀完公告', intent: '把城鎮最新的委託與異常記錄下來。' },
+            { text: '先不理會', intent: '現在的你只想確認路還能不能走。' }
+        ]
+    },
+    special_bounty_notice: {
+        name: '破角懸賞紙',
+        icon: '📜',
+        description: '一張懸賞紙被釘在木樁上，邊角有血乾後留下的硬褐色。內容沒有座標，只寫著破角與月光。',
+        choices: [
+            { text: '收下懸賞紙', intent: '把這則傳聞收進手札，之後找人比對。' },
+            { text: '留在原處', intent: '現在還不是追這條線的時候。' }
+        ]
+    },
+    weathered_route_tablet: {
+        name: '風化路碑',
+        icon: '🪨',
+        description: '石碑被雨水磨得發白，只有幾個符號還很清楚：霧、骨、封印。',
+        choices: [
+            { text: '拓下碑文', intent: '收集文字碎片，等線索足夠時再解讀。' },
+            { text: '只記下方位', intent: '先把路線記起來，不急著碰那些符號。' }
+        ]
+    },
+    south_gate_patrol_marks: {
+        name: '南門巡路痕',
+        icon: '🚩',
+        description: '地上有巡守留下的粉筆箭頭，幾處被泥踩亂，看起來有人匆忙改過路線。',
+        choices: [
+            { text: '扶正路標', intent: '整理可通行的路線，讓回城方向更清楚。' },
+            { text: '拆下鬆動木片', intent: '取走還能用的材料，但可能被尖釘劃傷。' },
+            { text: '記進旅途紀錄', intent: '不動現場，只把路線記下。' }
+        ]
+    },
+    hunter_tripwire_cache: {
+        name: '銀絲絆線',
+        icon: '🪤',
+        description: '兩棵樹之間有細到幾乎看不見的銀絲。旁邊的獵具匣被打開過，像有人故意留下邀請。',
+        choices: [
+            { text: '拆下絆線', intent: '安全取得材料，也確認這不是普通獵人的手法。' },
+            { text: '翻找獵具匣', intent: '可能有更好的零件，也可能觸發殘留機關。' },
+            { text: '原樣離開', intent: '別讓獵物變成自己。' }
+        ]
+    },
+    muddy_supply_cart: {
+        name: '陷泥補給車',
+        icon: '🛞',
+        description: '一輛補給車卡在泥地裡，車主正在和輪子講道理，聽起來雙方都不太服氣。',
+        choices: [
+            { text: '幫忙推車', intent: '花點體力換取報酬與路線經驗。' },
+            { text: '買下壞掉零件', intent: '把看似沒用的零件帶回去鍛造。' },
+            { text: '指路脫困', intent: '用觀察到的地形幫車主找出路。' }
+        ]
+    },
+    thorn_toll_roots: {
+        name: '荊棘過路根',
+        icon: '🌿',
+        description: '一排荊棘根攔在路上，刺上掛著小小露珠，像在等人付過路費。',
+        choices: [
+            { text: '支付過路費', intent: '用金幣換取安全通行，也看懂女巫的交易規則。' },
+            { text: '砍開荊棘', intent: '強行取材，但荊棘會記仇。' },
+            { text: '觀察刺結排列', intent: '不急著通過，先理解這些刺想表達什麼。' }
+        ]
+    },
+    drowned_lantern_line: {
+        name: '溺水燈線',
+        icon: '🏮',
+        description: '一串燈沿著濕地延伸，火光被水氣壓得很低，遠處隱約傳來沉鐘聲。',
+        choices: [
+            { text: '調整燈線節奏', intent: '把燈火與鐘聲對上，辨認海岸的方向。' },
+            { text: '收集燈油', intent: '拿走可用材料，但濕冷會滲進護具。' },
+            { text: '熄掉一盞燈', intent: '讓周圍安靜下來，換一點喘息。' }
+        ]
+    },
+    obsidian_deserter_map: {
+        name: '黑曜逃兵地圖',
+        icon: '🗺️',
+        description: '一名灰頭土臉的人躲在石後，反覆聲稱自己只是「提前離職」。他手裡攥著要塞地圖。',
+        choices: [
+            { text: '聽他說完', intent: '從混亂證詞中整理男爵要塞的資訊。' },
+            { text: '買下地圖', intent: '用金幣換取伏擊點與地宮線索。' },
+            { text: '指他回城', intent: '讓他離開荒野，也許城鎮會多一個證人。' }
+        ]
+    },
+    refugee_cart_repair: {
+        name: '避難者壞車',
+        icon: '🧰',
+        description: '一群避難者推著壞車停在路邊，孩子抱著木鳥，老人把剩下的湯分成太多份。',
+        choices: [
+            { text: '出錢修車', intent: '幫他們繼續往城鎮走，也換來一點補給。' },
+            { text: '收下壞鐵件', intent: '取得材料，但這份材料拿起來很沉。' },
+            { text: '標出撤退路線', intent: '不花金幣，用路線知識幫他們避開危險。' }
+        ]
+    },
+    dragon_heat_haze: {
+        name: '龍焰熱霾',
+        icon: '🔥',
+        description: '前方空氣被熱浪扭曲，岩石表面浮出焦黑鱗紋，像某種巨大生物剛剛呼吸過。',
+        choices: [
+            { text: '硬闖熱霾', intent: '承受灼傷，換取對龍焰週期的理解。' },
+            { text: '臨時隔熱', intent: '花費金幣做一層簡陋防護。' },
+            { text: '觀察熱浪節奏', intent: '先讀懂它，再決定怎麼走。' }
+        ]
+    },
+    last_campfire_before_north: {
+        name: '北境前的最後營火',
+        icon: '🔥',
+        description: '一堆很小的營火在風裡撐著，旁邊刻著幾行字：害怕可以，停下不行。',
+        choices: [
+            { text: '靠火休息', intent: '讓身體回溫，記得自己還活著。' },
+            { text: '讀完留言', intent: '從前人的恐懼裡得到一點勇氣。' },
+            { text: '留下自己的記號', intent: '也許下一個人會看到，也許那個人就是你。' }
+        ]
+    },
+    injured_adventurer: {
+        name: '受傷冒險者',
+        icon: '🩹',
+        description: '一名冒險者靠在石邊，傷口用布條亂綁。他努力裝得很從容，但臉色完全不同意。',
+        choices: [
+            { text: '幫他包紮', intent: '救人一命，也許會換來感謝。' },
+            { text: '翻找散落物', intent: '他昏得很沉，這選項不太光彩。' },
+            { text: '指出回城路', intent: '至少讓他知道該往哪裡走。' }
+        ]
+    },
+    ancient_guardian: {
+        name: '古代守衛試煉',
+        icon: '🛡️',
+        description: '一具古代守衛從石座上抬頭，眼中的光掃過你，像在判定你是不是該被清除。',
+        choices: [
+            { text: '接受攻擊試煉', intent: '用武器證明你不是污染源。' },
+            { text: '接受防禦試煉', intent: '站穩腳步，承受守衛的壓力。' },
+            { text: '低頭致意', intent: '用最不像威脅的方式通過。' }
+        ]
+    }
+};
+
+const CLEAN_EVENT_CONTENT_OVERRIDES = {
+    ancient_shrine: {
+        name: '半塌的路邊神龕',
+        icon: '⛩️',
+        description: '荒草裡露出一座傾斜神龕，供盤空著，石縫卻還有微光。也許有人在很久以前，把求生的願望塞進了這裡。',
+        choices: [
+            { text: '整理供盤', intent: '花一點時間修整神龕，換取短暫庇護。' },
+            { text: '留下金幣祈願', intent: '用金幣換取經驗與幸運，風險很低。' },
+            { text: '安靜離開', intent: '不打擾這處舊信仰。' }
+        ]
+    },
+    healing_spring: {
+        name: '微光泉眼',
+        icon: '💧',
+        description: '水從石縫裡滲出，帶著淡淡藥草味。附近沒有腳印，只有幾片被仔細洗淨的布條掛在枝上。',
+        choices: [
+            { text: '清洗傷口', intent: '恢復生命，適合長途探索前整理狀態。' },
+            { text: '裝瓶帶走一點泉水', intent: '讓身體短時間變得更有力。' }
+        ]
+    },
+    cursed_chest: {
+        name: '鎖鏈舊箱',
+        icon: '🧰',
+        description: '箱蓋被黑色鎖鏈纏住，鏈節上刻著不屬於王國的文字。它不像寶箱，更像某人故意留下的試探。',
+        choices: [
+            { text: '直接撬開', intent: '可能取得金幣，但會招來詛咒。' },
+            { text: '花錢解除鎖鏈', intent: '成本較高，回報也比較穩定。' },
+            { text: '不要碰它', intent: '不是每個亮點都值得打開。' }
+        ]
+    },
+    dark_spirit: {
+        name: '低語黑影',
+        icon: '🕯️',
+        description: '你聽見有人在背後叫你的名字。回頭時，只有一團貼著地面的影子，像在等待你先承認自己害怕。',
+        choices: [
+            { text: '用疼痛換取力量', intent: '犧牲生命，換取攻擊強化。' },
+            { text: '用金幣買下沉默', intent: '支付金幣，取得經驗。' },
+            { text: '斬開影子', intent: '可能受傷，但能立刻結束糾纏。' }
+        ]
+    },
+    mysterious_merchant: {
+        name: '披斗篷的行商',
+        icon: '🎒',
+        description: '行商把包袱攤在路旁，所有瓶罐都沒有標籤。他說這不是賭博，只是「讓命運節省包裝成本」。',
+        choices: [
+            { text: '買小包裹', intent: '低成本嘗試，可能賺到金幣。' },
+            { text: '買沉重包裹', intent: '花更多金幣，可能取得稀有材料。' },
+            { text: '婉拒交易', intent: '保留資源，繼續上路。' }
+        ]
+    },
+    dice_demon: {
+        name: '笑面骰客',
+        icon: '🎲',
+        description: '一名旅人坐在斷石上擲骰，骰子每次落下都多一個面。他說輸了只會痛一下，贏了會痛快一點。',
+        choices: [
+            { text: '押一枚小注', intent: '小額賭局，可能得金幣或受傷。' },
+            { text: '押一枚重注', intent: '風險更高，回報也更高。' },
+            { text: '收起錢袋', intent: '今天不把人生交給骰子。' }
+        ]
+    },
+    wandering_blacksmith: {
+        name: '流動磨刃匠',
+        icon: '🛠️',
+        description: '一名背著磨石的匠人蹲在路邊，火星落在濕泥裡很快熄滅。他說只收現金，不收「打完首領再給」。',
+        choices: [
+            { text: '請他磨利武器', intent: '花金幣取得攻擊強化。' },
+            { text: '請他補強護具', intent: '花金幣取得防禦強化。' },
+            { text: '買一包邊角料', intent: '取得中階材料，適合鍛造缺口。' },
+            { text: '道謝離開', intent: '不消耗資源。' }
+        ]
+    },
+    fairy_deal: {
+        name: '林間微光交易',
+        icon: '✨',
+        description: '一圈光點在樹根間轉動，像有人把夜色剪成碎片。它們願意交換祝福，但只接受很實際的金幣。',
+        choices: [
+            { text: '交換攻擊祝福', intent: '短時間提高攻擊。' },
+            { text: '交換防禦祝福', intent: '短時間提高防禦。' },
+            { text: '交換療癒祝福', intent: '恢復生命並獲得一點幸運。' },
+            { text: '不伸手', intent: '避免被微光牽著走。' }
+        ]
+    },
+    mysterious_statue: {
+        name: '無名石像',
+        icon: '🗿',
+        description: '石像沒有臉，胸口卻有掌印般的凹痕。你靠近時，周圍的聲音像被什麼東西收走了。',
+        choices: [
+            { text: '按上掌印', intent: '隨機事件，可能獲益也可能受傷。' },
+            { text: '投下金幣', intent: '以小額金幣換取經驗。' },
+            { text: '記下形狀', intent: '保留這個不舒服的印象。' }
+        ]
+    },
+    dimensional_rift: {
+        name: '裂開的空氣',
+        icon: '🌀',
+        description: '半空出現一道薄薄裂痕，邊緣像被燒焦的紙。裂縫另一邊傳來很遠的鐘聲，也可能只是你的耳鳴。',
+        choices: [
+            { text: '伸手探入裂縫', intent: '高風險隨機事件，可能取得強力回報。' },
+            { text: '丟入金幣測試', intent: '用少量金幣換取較低風險的結果。' },
+            { text: '退後觀察', intent: '不碰深淵的便宜。' }
+        ]
+    },
+    foragers_emergency_stash: {
+        name: '採集者急藏包',
+        icon: '🎒',
+        description: '灌木下壓著一只防水布包，外側繫著採集者常用的紅線。它看起來像求救，也像陷阱。',
+        choices: [
+            { text: '只取急救物', intent: '恢復生命，留下大部分補給。' },
+            { text: '翻找材料', intent: '取得材料，但可能留下壞名聲。' },
+            { text: '重新藏好', intent: '不拿東西，獲得少量經驗。' }
+        ]
+    },
+    leyline_splinter: {
+        name: '地脈碎光',
+        icon: '🔷',
+        description: '泥土裡滲出細碎藍光，像大地正在漏血。你靠近時，手背上的汗毛全都立了起來。',
+        choices: [
+            { text: '收集碎光', intent: '可能取得素材，也可能承受地脈反噬。' },
+            { text: '標記位置', intent: '取得經驗，替之後調查留下記錄。' },
+            { text: '快速離開', intent: '避免被不穩定魔力捲入。' }
+        ]
+    },
+    ash_scout_report: {
+        name: '焦邊偵察紙',
+        icon: '📄',
+        description: '一張被火燎過的紙卡在石縫裡，上面有軍用記號與潦草箭頭。最後一行只有兩個字：別信。',
+        choices: [
+            { text: '讀完路線', intent: '取得世界情報與推進方向。' },
+            { text: '撕下可用部分', intent: '可能取得材料。' },
+            { text: '燒掉殘紙', intent: '避免被追蹤。' }
+        ]
+    },
+    abandoned_blueprint_cache: {
+        name: '廢棄圖紙匣',
+        icon: '📦',
+        description: '木匣卡在倒樹底下，裡面不是完整圖紙，而是幾張被雨水泡皺的鍛造註記。',
+        choices: [
+            { text: '仔細翻找', intent: '可能取得材料或鍛造線索。' },
+            { text: '只記下標記', intent: '保留資訊，不冒著弄壞紙張的風險。' }
+        ]
+    },
+    field_notice_board: {
+        name: '野外告示牌',
+        icon: '📌',
+        description: '一塊臨時木牌插在路邊，紙條被雨打得捲曲。字跡很急，像是貼告示的人不敢在這裡久留。',
+        choices: [
+            { text: '讀完告示', intent: '取得附近傳聞，可能打開支線或首領痕跡。' },
+            { text: '取下破紙角', intent: '留下物證，之後能回城比對。' }
+        ]
+    },
+    special_bounty_notice: {
+        name: '加急懸賞單',
+        icon: '📜',
+        description: '這張懸賞單蓋了三個不同單位的章，金額被反覆塗改。真正有價值的不是賞金，而是它提到的地名。',
+        choices: [
+            { text: '記下懸賞內容', intent: '取得委託與首領相關線索。' },
+            { text: '觀察塗改處', intent: '可能看出被隱藏的目的。' }
+        ]
+    },
+    weathered_route_tablet: {
+        name: '風化路碑',
+        icon: '🪧',
+        description: '路碑上刻著舊時代的方向詞，一半被藤根吃進土裡。你得把殘字和附近地形對起來。',
+        choices: [
+            { text: '拓下碑文', intent: '取得世界見聞或首領謎題線索。' },
+            { text: '按地形重排方向', intent: '可能推進地圖謎題。' }
+        ]
+    },
+    south_gate_patrol_marks: {
+        name: '南門巡守刻痕',
+        icon: '🪧',
+        description: '木樁上有巡守隊留下的短刻痕，深淺不一。看起來像記錄哪條路還能通，哪條路只是看起來能走。',
+        choices: [
+            { text: '比對刻痕方向', intent: '推進南門初期路線，讓探索更清楚。' },
+            { text: '收起斷裂木片', intent: '取得材料，但不一定有用。' },
+            { text: '照原樣放回', intent: '不破壞巡守留下的標記。' }
+        ]
+    },
+    hunter_tripwire_cache: {
+        name: '獵人絆線包',
+        icon: '🪤',
+        description: '幾捆細線藏在樹根間，旁邊有被切開的誘餌鉤。這不是普通獵具，更像有人在研究如何反制伏擊。',
+        choices: [
+            { text: '拆出可用絆線', intent: '可能取得材料，並理解伏獵者的路線。' },
+            { text: '試著重組誘餌鉤', intent: '可能推進銀鐮伏獵者的觸發條件。' },
+            { text: '保持現場', intent: '不改變陷阱狀態。' }
+        ]
+    },
+    muddy_supply_cart: {
+        name: '陷泥補給車',
+        icon: '🛒',
+        description: '一輛補給車斜陷在泥裡，車輪旁全是急促腳印。貨物還在，車主卻像突然被什麼聲音叫走。',
+        choices: [
+            { text: '扶正車輪', intent: '花時間換取恢復或友善回報。' },
+            { text: '取走散落材料', intent: '取得材料，但可能承擔一點代價。' },
+            { text: '留下路標', intent: '取得經驗，讓後來者避開泥坑。' }
+        ]
+    },
+    thorn_toll_roots: {
+        name: '荊棘收費根',
+        icon: '🌿',
+        description: '根鬚橫過小路，尖刺上掛著銅幣、藥草與一小片染血布料。女巫的規矩顯然比王國稅官還細。',
+        choices: [
+            { text: '照規矩交換', intent: '用資源換取女巫線索或捷徑。' },
+            { text: '砍斷根鬚', intent: '可能遭到反噬，但能破壞規則。' },
+            { text: '觀察交換物順序', intent: '推進荊棘女巫的謎題。' }
+        ]
+    },
+    drowned_lantern_line: {
+        name: '浮沉燈繩',
+        icon: '🏮',
+        description: '幾盞濕透的燈沿著潮線忽明忽暗，燈繩不是被綁住，而像被海水從另一端慢慢拉緊。',
+        choices: [
+            { text: '跟著燈繩走', intent: '靠近沉鐘線索，但可能遇到危險。' },
+            { text: '撈起一盞燈', intent: '取得素材或水聲提示。' },
+            { text: '聽它們的節奏', intent: '推進沉鐘神諭的謎題。' }
+        ]
+    },
+    obsidian_deserter_map: {
+        name: '逃兵黑曜地圖',
+        icon: '🗺️',
+        description: '地圖被折得很小，藏在石頭底下。上面標著補給線、黑鐵倉門，還有一句：男爵不會救任何人。',
+        choices: [
+            { text: '記下運貨路線', intent: '推進灰燼男爵情報。' },
+            { text: '收下地圖碎片', intent: '取得世界見聞或材料。' },
+            { text: '把地圖壓回原處', intent: '不留下你來過的痕跡。' }
+        ]
+    },
+    refugee_cart_repair: {
+        name: '難民破車',
+        icon: '🧰',
+        description: '破車旁坐著幾名沉默的人，行李少得不合理。車轅斷了，他們的耐心也快斷了。',
+        choices: [
+            { text: '幫忙修車', intent: '花時間換取支線或城鎮狀態變化。' },
+            { text: '分一些材料', intent: '消耗物資，換取故事回饋。' },
+            { text: '指一條安全路', intent: '取得經驗，讓他們離開危險區。' }
+        ]
+    },
+    dragon_heat_haze: {
+        name: '龍熱蜃影',
+        icon: '🔥',
+        description: '遠方空氣像玻璃一樣彎曲，熱浪裡短暫浮現爪痕與巨大陰影。它不在這裡，但它留下的溫度在追人。',
+        choices: [
+            { text: '收集熱痕', intent: '推進古龍追蹤，也可能損耗狀態。' },
+            { text: '用布包住熱石', intent: '可能取得材料。' },
+            { text: '繞開熱浪', intent: '避免被終局壓力拖住。' }
+        ]
+    },
+    last_campfire_before_north: {
+        name: '北行前的最後營火',
+        icon: '🔥',
+        description: '營火早就熄了，灰燼卻還溫熱。木牌上刻著很多名字，最後一行空著，像留給下一個人。',
+        choices: [
+            { text: '重新點火休整', intent: '恢復狀態，準備進入高壓區。' },
+            { text: '讀完刻名', intent: '取得世界見聞。' },
+            { text: '添上一段警語', intent: '留下紀錄，獲得少量經驗。' }
+        ]
+    },
+    injured_adventurer: {
+        name: '受傷冒險者',
+        icon: '🩹',
+        description: '一名冒險者靠著石頭喘氣，手裡抓著半張地圖。他一看見你，先確認你有沒有帶藥，再確認你是不是人。',
+        choices: [
+            { text: '替他包紮', intent: '可能恢復生命或換取情報。' },
+            { text: '詢問前方情況', intent: '取得路線與危險提示。' },
+            { text: '扶他回安全處', intent: '花時間換取經驗或城鎮回饋。' }
+        ]
+    },
+    ancient_guardian: {
+        name: '古代守衛殘像',
+        icon: '🛡️',
+        description: '一道半透明守衛投影擋在路中央，反覆執行已經失效的巡邏指令。它看不見你，只看見「污染源」。',
+        choices: [
+            { text: '正面通過', intent: '高風險，可能換取強化。' },
+            { text: '模仿古代手勢', intent: '嘗試解謎，可能降低風險。' },
+            { text: '繞路離開', intent: '保留狀態，不碰遺跡防衛。' }
+        ]
+    }
+};
+
+function describeCleanResult(result = {}) {
+    switch (result.type) {
+        case ResultType.GOLD:
+            return result.value > 0 ? `獲得 ${result.value}G。` : '金幣沒有變化。';
+        case ResultType.HEAL:
+            return result.isPercent
+                ? `恢復 ${Math.round((Number(result.value) || 0) * 100)}% 生命。`
+                : `恢復 ${result.value} 生命。`;
+        case ResultType.DAMAGE:
+            return `受到 ${result.value} 點傷害。`;
+        case ResultType.BUFF:
+            return '短時間獲得戰鬥強化。';
+        case ResultType.DEBUFF:
+            return '短時間承受不利狀態。';
+        case ResultType.STAT:
+            return '能力值產生變化。';
+        case ResultType.EXP:
+            return `獲得 ${result.value} 經驗。`;
+        case ResultType.ITEM:
+            return '獲得一件可用物資。';
+        case ResultType.UNLOCK_QUEST:
+            return '新的委託或線索已被記錄。';
+        case ResultType.WORLD_INTERACTION:
+            return '世界狀態產生了新的變化。';
+        default:
+            return result.message || null;
+    }
+}
+
+const BUFF_LABELS = {
+    atk: '攻擊',
+    def: '防禦',
+    luck: '直覺'
+};
+
+function describeResult(result = {}) {
+    switch (result.type) {
+        case ResultType.GOLD:
+            return result.value > 0 ? `獲得 ${result.value}G。` : '沒有找到可用金幣。';
+        case ResultType.HEAL:
+            return result.isPercent
+                ? `恢復 ${Math.round((Number(result.value) || 0) * 100)}% 生命。`
+                : `恢復 ${result.value} 生命。`;
+        case ResultType.DAMAGE:
+            return `受到 ${result.value} 點傷害。`;
+        case ResultType.BUFF:
+            return `${BUFF_LABELS[result.buffType] || '能力'}暫時提升。`;
+        case ResultType.DEBUFF:
+            return `${BUFF_LABELS[result.buffType] || '能力'}暫時下降。`;
+        case ResultType.STAT:
+            return '能力值發生變化。';
+        case ResultType.EXP:
+            return `獲得 ${result.value} 經驗。`;
+        case ResultType.ITEM:
+            return '取得一份可用物資。';
+        case ResultType.UNLOCK_QUEST:
+            return '新的委託已被記錄。';
+        case ResultType.WORLD_INTERACTION:
+            return '新的發現已記入旅人手札。';
+        default:
+            return result.message || null;
+    }
+}
+
+function cleanResultMessages(results = []) {
+    for (const result of results) {
+        const message = describeCleanResult(result);
+        if (message) result.message = message;
+    }
+}
+
+function applyCleanEventText(event) {
+    const override = CLEAN_EVENT_CONTENT_OVERRIDES[event.id] || EVENT_CONTENT_OVERRIDES[event.id];
+    if (override) {
+        for (const key of ['name', 'icon', 'description']) {
+            if (override[key]) event[key] = override[key];
+        }
+
+        if (Array.isArray(override.choices) && Array.isArray(event.choices)) {
+            event.choices = event.choices.map((choice, index) => ({
+                ...choice,
+                ...(override.choices[index] || {})
+            }));
+        }
+    }
+
+    if (Array.isArray(event.choices)) {
+        for (const choice of event.choices) {
+            cleanResultMessages(choice.results);
+            cleanResultMessages(choice.successResults);
+            cleanResultMessages(choice.failResults);
+            if (Array.isArray(choice.randomResults)) {
+                for (const option of choice.randomResults) {
+                    cleanResultMessages(option.results);
+                }
+            }
+        }
+    }
+}
+
 function getDefaultRepeatPolicy(eventRole) {
     switch (eventRole) {
         case EventRole.STORY_SEED:
@@ -1061,7 +1836,7 @@ for (const event of EventDatabase) {
     Object.assign(event, {
         eventRole: EventRole.RESOURCE,
         chapterRange: [1, 3]
-    }, EVENT_STORY_RULES[event.id] || {});
+    }, EVENT_STORY_RULES[event.id] || {}, EVENT_LOCATION_RULES[event.id] || {});
 
     if (!event.repeatPolicy) {
         event.repeatPolicy = getDefaultRepeatPolicy(event.eventRole);
@@ -1074,6 +1849,8 @@ for (const event of EventDatabase) {
     if (!event.memoryKey) {
         event.memoryKey = event.id;
     }
+
+    applyCleanEventText(event);
 }
 
 export function getEventChapterRange(event = {}) {
@@ -1094,6 +1871,28 @@ export function isEventAllowedInChapter(event = {}, chapter = 1) {
 }
 
 // 根據區域獲取適合的事件
+function uniqueStrings(values = []) {
+    return [...new Set(values.map(value => String(value || '').trim()).filter(Boolean))];
+}
+
+function getContextLandmarkIds(options = {}) {
+    return uniqueStrings([
+        options.landmarkId,
+        options.currentLandmarkId,
+        options.nearestLandmarkId,
+        ...(Array.isArray(options.nearbyLandmarkIds) ? options.nearbyLandmarkIds : [])
+    ]);
+}
+
+function isEventAllowedInLocation(event = {}, options = {}) {
+    const requiredIds = Array.isArray(event.landmarkIds) ? uniqueStrings(event.landmarkIds) : [];
+    if (requiredIds.length === 0) return true;
+
+    const contextIds = getContextLandmarkIds(options);
+    if (contextIds.length === 0) return false;
+    return requiredIds.some(id => contextIds.includes(id));
+}
+
 export function getEventsForZone(zone, options = {}) {
     // 不同區域有不同的事件權重
     const zoneWeights = {
@@ -1108,7 +1907,10 @@ export function getEventsForZone(zone, options = {}) {
         const weights = zoneWeights[zone] || zoneWeights['low'];
         const zones = Array.isArray(event.zones) ? event.zones : [];
         const chapterAllowed = options.chapter === undefined || isEventAllowedInChapter(event, options.chapter);
-        return weights[event.type] !== undefined && chapterAllowed && (zones.length === 0 || zones.includes(zone));
+        return weights[event.type] !== undefined
+            && chapterAllowed
+            && isEventAllowedInLocation(event, options)
+            && (zones.length === 0 || zones.includes(zone));
     });
 }
 

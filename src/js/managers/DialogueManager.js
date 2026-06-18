@@ -432,6 +432,44 @@ class DialogueManager {
         };
     }
 
+    buildQuestCompletionFeedback(effect = {}, result = {}) {
+        const quest = getQuestById(effect.questId);
+        const story = quest ? getQuestStory(quest, { status: QuestStatus.FINISHED }) : null;
+        const rewardText = questManager.getRewardToastText?.(result.rewards, result.blueprintUnlocks);
+        const newClues = Array.isArray(result.storyOutcome?.newClues) ? result.storyOutcome.newClues : [];
+        const progressUpdates = Array.isArray(result.storyOutcome?.progressUpdates) ? result.storyOutcome.progressUpdates : [];
+        const finalReady = Array.isArray(result.storyOutcome?.finalReady) ? result.storyOutcome.finalReady : [];
+        const messages = [];
+
+        messages.push(effect.message || (quest ? `「${quest.name}」已由委託人歸檔。` : '這段紀錄已經歸檔。'));
+
+        if (rewardText) {
+            messages.push(`收穫整理：${rewardText.replace(/^獲得\s*/, '')}`);
+        }
+
+        if (newClues.length > 0) {
+            const clueNames = newClues
+                .map(clue => clue.title || clue.name || clue.text)
+                .filter(Boolean)
+                .slice(0, 2)
+                .join('、');
+            if (clueNames) messages.push(`旅人手札新增線索：${clueNames}`);
+        }
+
+        if (progressUpdates.length > 0 || finalReady.length > 0) {
+            messages.push(finalReady.length > 0
+                ? '首領痕跡已經收束，可以確認最終觸發方式。'
+                : '首領痕跡有了新的推進，之後可在旅人手札裡比對。');
+        }
+
+        const nextLead = story?.finished || story?.nextLead;
+        if (nextLead) {
+            messages.push(`接下來：${nextLead}`);
+        }
+
+        return [...new Set(messages.filter(Boolean))];
+    }
+
     applyEffects(effects = [], context = {}) {
         const messages = [];
 
@@ -473,9 +511,7 @@ class DialogueManager {
             if (effect.type === 'completeQuest') {
                 const result = questManager.completeQuest(effect.questId);
                 if (result.success) {
-                    if (effect.message) messages.push(effect.message);
-                    const rewardText = questManager.getRewardToastText?.(result.rewards, result.blueprintUnlocks);
-                    if (rewardText) messages.push(rewardText);
+                    messages.push(...this.buildQuestCompletionFeedback(effect, result));
                 } else if (effect.failMessage) {
                     messages.push(effect.failMessage);
                 }
