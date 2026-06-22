@@ -11,7 +11,7 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js';
-import { getAllPassiveCombatEffects } from '../data/PassiveCombatEffects.js';
+import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
 import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
@@ -1733,6 +1733,8 @@ export default class LobbyScene {
     renderPassiveCombatEffects(character) {
         if (!this.dom?.passiveEffectSlots || !this.dom?.passiveEffectLibrary || !character) return;
 
+        GameManager.syncPassiveCombatEffectUnlocks?.('lobby-render');
+
         const slotCount = Math.max(1, Number(character.passiveEffectSlots) || 1);
         this.selectedPassiveSlot = Math.max(0, Math.min(slotCount - 1, this.selectedPassiveSlot || 0));
 
@@ -1774,6 +1776,10 @@ export default class LobbyScene {
         this.dom.passiveEffectLibrary.innerHTML = effects.map(effect => {
             const unlocked = unlockedIds.has(effect.id);
             const equipped = equippedIds.includes(effect.id);
+            const source = getPassiveCombatEffectUnlockSource(effect.id);
+            const detailText = unlocked
+                ? this.formatPassiveBonusText(effect)
+                : (source.sourceText || '透過主線、支線、副本或特殊道具解鎖');
             const disabledClass = unlocked ? '' : ' is-locked';
             const equippedClass = equipped ? ' is-equipped' : '';
             return `
@@ -1784,7 +1790,7 @@ export default class LobbyScene {
                     <span class="passive-effect-icon">${escapeHtml(effect.icon || '◆')}</span>
                     <span class="passive-effect-choice-copy">
                         <strong>${escapeHtml(effect.name)}</strong>
-                        <small>${escapeHtml(this.formatPassiveBonusText(effect))}</small>
+                        <small>${escapeHtml(detailText)}</small>
                     </span>
                     <span class="passive-effect-state">${equipped ? '已裝備' : (unlocked ? '可替換' : '未解鎖')}</span>
                 </button>

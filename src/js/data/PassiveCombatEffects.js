@@ -99,7 +99,68 @@ export const PassiveCombatEffectDatabase = {
     }
 };
 
-export const DefaultUnlockedPassiveCombatEffectIds = Object.keys(PassiveCombatEffectDatabase);
+export const PassiveCombatEffectUnlockSources = {
+    sharp_focus: {
+        defaultUnlocked: true,
+        itemIds: ['sharp_focus_manual'],
+        sourceText: '初始戰術；也可透過銳利專注手記補登'
+    },
+    heavy_grip: {
+        questIds: ['main_003'],
+        sourceText: '完成鍛造師的第一次裝備整備後解鎖'
+    },
+    guard_memory: {
+        itemIds: ['guard_memory_manual'],
+        questIds: ['main_001'],
+        sourceText: '完成村長的近郊確認，或取得守勢記憶手記'
+    },
+    quick_rhythm: {
+        itemIds: ['quick_rhythm_manual'],
+        sourceText: '黑市奇物或特殊獎池中的迅捷節奏手記'
+    },
+    fatal_reading: {
+        itemIds: ['fatal_reading_manual'],
+        sourceText: '黑市奇物或特殊獎池中的致命判讀手記'
+    },
+    venom_resolve: {
+        questIds: ['dungeon_jungle_002'],
+        flags: ['dungeon.jungle.cleared', 'town.apothecary.understands_thorn_trade'],
+        sourceText: '迷霧叢林通關，或藥師辨認荊棘交易後解鎖'
+    },
+    frost_pacing: {
+        questIds: ['dungeon_snow_002'],
+        flags: ['dungeon.snow.cleared'],
+        sourceText: '冰封雪峰通關後解鎖'
+    },
+    ember_tempering: {
+        questIds: ['dungeon_hell_002'],
+        flags: ['dungeon.hell.cleared'],
+        sourceText: '煉獄深淵通關後解鎖'
+    },
+    swamp_pathfinding: {
+        questIds: ['main_008'],
+        flags: ['town.apothecary.understands_thorn_trade'],
+        sourceText: '荊棘女巫線或藥師交易規則調查後解鎖'
+    },
+    ruin_literacy: {
+        questIds: ['dungeon_ruins_002'],
+        flags: ['dungeon.ruins.cleared', 'town.scholar.julian_margin_read'],
+        sourceText: '遠古遺跡通關，或書記完成朱利安邊註後解鎖'
+    },
+    field_medic: {
+        flags: ['town.apothecary.stock_basic_potion'],
+        sourceText: '藥師補上基礎藥水供應後解鎖'
+    },
+    boss_composure: {
+        questIds: ['main_012'],
+        flags: ['town.scholar.last_index_bound'],
+        sourceText: '第三章進入龍巢之路，或書記完成最後索引後解鎖'
+    }
+};
+
+export const DefaultUnlockedPassiveCombatEffectIds = Object.entries(PassiveCombatEffectUnlockSources)
+    .filter(([, source]) => source.defaultUnlocked)
+    .map(([effectId]) => effectId);
 
 export const DefaultEquippedPassiveCombatEffectIds = [
     'sharp_focus'
@@ -107,6 +168,10 @@ export const DefaultEquippedPassiveCombatEffectIds = [
 
 export function getPassiveCombatEffect(effectId) {
     return PassiveCombatEffectDatabase[effectId] || null;
+}
+
+export function getPassiveCombatEffectUnlockSource(effectId) {
+    return PassiveCombatEffectUnlockSources[effectId] || {};
 }
 
 export function getPassiveCombatEffects(effectIds = []) {

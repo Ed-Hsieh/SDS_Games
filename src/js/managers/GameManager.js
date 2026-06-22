@@ -8,6 +8,11 @@ import { ItemType, ItemRarity } from '../models/Enums.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem } from '../models/ItemSchema.js';
+import {
+    DefaultUnlockedPassiveCombatEffectIds,
+    getAllPassiveCombatEffects,
+    getPassiveCombatEffectUnlockSource
+} from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
 
 class GameManager {
@@ -50,6 +55,7 @@ class GameManager {
     resetState() {
         this.state = this.createInitialState();
         this.initInitialItems();
+        this.syncPassiveCombatEffectUnlocks('reset');
         this.notify('all');
         return this.state;
     }
@@ -117,7 +123,10 @@ class GameManager {
     }
 
     loadSaveData(saveData) {
-        return this.saveManager.loadSaveData(saveData);
+        const result = this.saveManager.loadSaveData(saveData);
+        const syncResult = this.syncPassiveCombatEffectUnlocks('load-save');
+        if (syncResult.changed) this.notify('all');
+        return result;
     }
 
     downloadSaveFile(filename) {
@@ -206,6 +215,88 @@ class GameManager {
         return [ItemRarity.RARE, ItemRarity.EPIC, ItemRarity.LEGENDARY].includes(item.rarity);
     }
 
+    getPassiveEffectSourceItemIds() {
+        const itemIds = new Set();
+        const collect = stack => {
+            const item = stack?.item || stack;
+            if (item?.id) itemIds.add(item.id);
+            if (item?.passiveEffectId && item?.id) itemIds.add(item.id);
+        };
+
+        (this.state.inventory || []).forEach(collect);
+        (this.state.warehouse || []).forEach(collect);
+        Object.values(this.state.character?.equipment || {}).forEach(collect);
+        return itemIds;
+    }
+
+    resolvePassiveCombatEffectUnlockIds() {
+        const ownedItemIds = this.getPassiveEffectSourceItemIds();
+        const unlocked = new Set(DefaultUnlockedPassiveCombatEffectIds);
+
+        for (const effect of getAllPassiveCombatEffects()) {
+            const source = getPassiveCombatEffectUnlockSource(effect.id);
+            const itemMatched = (source.itemIds || []).some(itemId => ownedItemIds.has(itemId));
+            const questMatched = (source.questIds || []).some(questId => this.getFlag(`quest.${questId}.finished`));
+            const flagMatched = (source.flags || []).some(flag => this.getFlag(flag));
+
+            if (source.defaultUnlocked || itemMatched || questMatched || flagMatched) {
+                unlocked.add(effect.id);
+            }
+        }
+
+        return unlocked;
+    }
+
+    syncPassiveCombatEffectUnlocks(reason = 'state') {
+        const character = this.state.character;
+        if (!character) return { changed: false, unlockedIds: [] };
+
+        const allEffectIds = getAllPassiveCombatEffects().map(effect => effect.id);
+        const sourceUnlockedIds = this.resolvePassiveCombatEffectUnlockIds();
+        const previousUnlockedIds = Array.isArray(character.unlockedPassiveEffectIds)
+            ? character.unlockedPassiveEffectIds.filter(effectId => allEffectIds.includes(effectId))
+            : [];
+        const hadBetaFullUnlock = allEffectIds.length > 0
+            && allEffectIds.every(effectId => previousUnlockedIds.includes(effectId))
+            && !this.getFlag('passiveEffects.sourceLocked');
+        const nextUnlockedSet = hadBetaFullUnlock
+            ? new Set(sourceUnlockedIds)
+            : new Set([...previousUnlockedIds, ...sourceUnlockedIds]);
+
+        DefaultUnlockedPassiveCombatEffectIds.forEach(effectId => nextUnlockedSet.add(effectId));
+
+        const nextUnlockedIds = allEffectIds.filter(effectId => nextUnlockedSet.has(effectId));
+        const slotCount = Math.max(1, Number(character.passiveEffectSlots) || 1);
+        const previousEquippedIds = Array.isArray(character.equippedPassiveEffectIds)
+            ? character.equippedPassiveEffectIds
+            : [];
+        const fallbackEffectId = DefaultUnlockedPassiveCombatEffectIds.find(effectId => nextUnlockedSet.has(effectId)) || nextUnlockedIds[0] || null;
+        const nextEquippedIds = Array.from({ length: slotCount }, (_, index) => {
+            const effectId = previousEquippedIds[index];
+            if (nextUnlockedSet.has(effectId)) return effectId;
+            return index === 0 ? fallbackEffectId : null;
+        });
+
+        const unlockedChanged = nextUnlockedIds.join('|') !== previousUnlockedIds.join('|');
+        const equippedChanged = nextEquippedIds.join('|') !== previousEquippedIds.slice(0, slotCount).join('|');
+
+        character.unlockedPassiveEffectIds = nextUnlockedIds;
+        character.equippedPassiveEffectIds = nextEquippedIds;
+        character.passiveEffectSlots = slotCount;
+        this.state.flags['passiveEffects.sourceLocked'] = true;
+
+        const changed = unlockedChanged || equippedChanged || hadBetaFullUnlock;
+        if (changed) {
+            this.markSaveDirty?.(`passive-effects-${reason}`);
+        }
+
+        return {
+            changed,
+            unlockedIds: nextUnlockedIds,
+            prunedBetaUnlocks: hadBetaFullUnlock
+        };
+    }
+
     subscribe(callback) {
         this.listeners.push(callback);
     }
@@ -284,6 +375,7 @@ class GameManager {
             const existingStack = findMatchingStack(this.state.inventory, item);
             if (existingStack) {
                 existingStack.quantity += safeQuantity;
+                this.syncPassiveCombatEffectUnlocks('inventory-stack');
                 this.notify('inventory');
                 return true;
             }
@@ -301,6 +393,7 @@ class GameManager {
             instanceId: item.instanceId
         });
 
+        this.syncPassiveCombatEffectUnlocks('inventory');
         this.notify('inventory');
         return true;
     }
@@ -314,6 +407,7 @@ class GameManager {
             const existingStack = findMatchingStack(this.state.warehouse, item);
             if (existingStack) {
                 existingStack.quantity += safeQuantity;
+                this.syncPassiveCombatEffectUnlocks('warehouse-stack');
                 this.notify('warehouse');
                 return true;
             }
@@ -326,6 +420,7 @@ class GameManager {
             instanceId: item.instanceId
         });
 
+        this.syncPassiveCombatEffectUnlocks('warehouse');
         this.notify('warehouse');
         return true;
     }
@@ -394,6 +489,7 @@ class GameManager {
 
     setFlag(flag, value) {
         this.state.flags[flag] = value;
+        this.syncPassiveCombatEffectUnlocks(`flag-${flag}`);
         this.notify('flags');
     }
 

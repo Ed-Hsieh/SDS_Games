@@ -433,6 +433,7 @@ export default class SaveManager {
         }
 
         this.dirty = false;
+        this.gameManager.syncPassiveCombatEffectUnlocks?.('load-save');
         this.gameManager.notify('all');
         return saveData;
     }

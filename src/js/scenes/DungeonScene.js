@@ -1369,6 +1369,7 @@ class DungeonSceneClass {
         const dungeonData = DungeonDatabase[this.dungeonType];
         questManager.updateProgress(ObjectiveType.DUNGEON_BOSS, `${this.dungeonType}_boss`, 1);
         questManager.updateProgress(ObjectiveType.DUNGEON_CLEAR, this.dungeonType, 1);
+        GameManager.setFlag?.(`dungeon.${this.dungeonType}.cleared`, true);
         const bossId = `${this.dungeonType}_boss`;
         const clearStoryOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_COMPLETED, {
             dungeonId: this.dungeonType,

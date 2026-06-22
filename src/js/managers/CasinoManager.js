@@ -109,7 +109,9 @@ export default class CasinoManager {
             return { success: false, message: validation.message };
         }
 
-        GameManager.removeGold(bet);
+        if (!this.spendChips(bet)) {
+            return { success: false, message: '籌碼不足，請先到帳房兌換。' };
+        }
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
@@ -135,7 +137,7 @@ export default class CasinoManager {
 
         const winnings = Math.floor(bet * multiplier);
         if (winnings > 0) {
-            GameManager.addGold(winnings);
+            this.addChips(winnings, 'payout');
             this.stats.totalWin += winnings;
             this.luckyStreak++;
         } else {
@@ -153,8 +155,8 @@ export default class CasinoManager {
         let bonusMessage = '';
         if (this.luckyStreak >= 3) {
             const streakBonus = Math.floor(bet * 0.2 * this.luckyStreak);
-            GameManager.addGold(streakBonus);
-            bonusMessage = `🔥 ${this.luckyStreak} 連勝！額外獲得 ${streakBonus}G！`;
+            this.addChips(streakBonus, 'payout');
+            bonusMessage = `🔥 ${this.luckyStreak} 連勝！額外獲得 ${streakBonus} 枚籌碼！`;
         }
 
         return {
@@ -183,8 +185,8 @@ export default class CasinoManager {
     }
 
     getSlotsMessage(reels, winnings, isJackpot) {
-        if (isJackpot) return `🎰 JACKPOT！！！ 獲得 ${winnings}G！`;
-        if (winnings > 0) return `🎰 恭喜獲勝！獲得 ${winnings}G`;
+        if (isJackpot) return `🎰 JACKPOT！！！ 獲得 ${winnings} 枚籌碼！`;
+        if (winnings > 0) return `🎰 恭喜獲勝！獲得 ${winnings} 枚籌碼`;
         return '🎰 很遺憾，再試一次！';
     }
 
@@ -196,7 +198,9 @@ export default class CasinoManager {
             return { success: false, message: validation.message };
         }
 
-        GameManager.removeGold(bet);
+        if (!this.spendChips(bet)) {
+            return { success: false, message: '籌碼不足，請先到帳房兌換。' };
+        }
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
@@ -243,7 +247,7 @@ export default class CasinoManager {
 
         const winnings = isWin ? Math.floor(bet * multiplier) : 0;
         if (winnings > 0) {
-            GameManager.addGold(winnings);
+            this.addChips(winnings, 'payout');
             this.stats.totalWin += winnings;
         }
 
@@ -267,7 +271,7 @@ export default class CasinoManager {
             pressure: this.getPressureState(),
             netGain: winnings - bet,
             message: isWin 
-                ? `🎡 ${result.num} (${this.getColorEmoji(result.color)})！恭喜贏得 ${winnings}G！`
+                ? `🎡 ${result.num} (${this.getColorEmoji(result.color)})！恭喜贏得 ${winnings} 枚籌碼！`
                 : `🎡 ${result.num} (${this.getColorEmoji(result.color)})。很遺憾...`
         };
     }
@@ -284,7 +288,9 @@ export default class CasinoManager {
             return { success: false, message: validation.message };
         }
 
-        GameManager.removeGold(bet);
+        if (!this.spendChips(bet)) {
+            return { success: false, message: '籌碼不足，請先到帳房兌換。' };
+        }
         this.stats.totalBet += bet;
         this.stats.gamesPlayed++;
 
@@ -324,7 +330,7 @@ export default class CasinoManager {
 
         const winnings = isWin ? Math.floor(bet * multiplier) : 0;
         if (winnings > 0) {
-            GameManager.addGold(winnings);
+            this.addChips(winnings, 'payout');
             this.stats.totalWin += winnings;
         }
 
@@ -357,11 +363,11 @@ export default class CasinoManager {
         const diceStr = dice.map(d => this.getDiceEmoji(d)).join(' ');
         if (isTriple) {
             return isWin 
-                ? `🎲 ${diceStr} = 三豹！！大獎 ${winnings}G！`
+                ? `🎲 ${diceStr} = 三豹！！大獎 ${winnings} 枚籌碼！`
                 : `🎲 ${diceStr} = 三豹！但你沒下注...`;
         }
         return isWin
-            ? `🎲 ${diceStr} = ${total}，恭喜贏得 ${winnings}G！`
+            ? `🎲 ${diceStr} = ${total}，恭喜贏得 ${winnings} 枚籌碼！`
             : `🎲 ${diceStr} = ${total}，很遺憾...`;
     }
 
@@ -391,7 +397,7 @@ export default class CasinoManager {
         const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
         if (safeAmount <= 0) return 0;
         this.chips = this.getChips() + safeAmount;
-        if (reason === 'win') this.stats.chipsWon += safeAmount;
+        if (reason === 'win' || reason === 'payout') this.stats.chipsWon += safeAmount;
         GameManager.markSaveDirty?.(`casino-${reason}`);
         return safeAmount;
     }
@@ -842,13 +848,13 @@ export default class CasinoManager {
             return { valid: false, message: '請輸入有效的金額' };
         }
         if (bet < min) {
-            return { valid: false, message: `最小下注金額為 ${min}G` };
+            return { valid: false, message: `最小下注籌碼為 ${min}` };
         }
         if (bet > max) {
-            return { valid: false, message: `最大下注金額為 ${max}G` };
+            return { valid: false, message: `最大下注籌碼為 ${max}` };
         }
-        if (GameManager.getGold() < bet) {
-            return { valid: false, message: '金幣不足！' };
+        if (this.getChips() < bet) {
+            return { valid: false, message: '籌碼不足，請先到帳房兌換。' };
         }
         return { valid: true };
     }

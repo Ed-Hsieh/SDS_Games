@@ -1398,7 +1398,7 @@ export const QuestDatabase = {
             },
             description: '深淵裂口打開後，賭場不再只是賭場。瑪洛把籌碼換成補給券，請你在賭桌上把人心穩住，順便把黑錢逼出來。',
             objectives: [
-                { type: ObjectiveType.GAMBLE_PROFIT, target: 'any', count: 1000, description: '在賭場累計盈利 1000G，作為避難補給基金' }
+                { type: ObjectiveType.GAMBLE_PROFIT, target: 'any', count: 1000, description: '在賭場累計盈利 1000 枚籌碼，作為避難補給基金' }
             ],
             rewards: {
                 gold: 500,

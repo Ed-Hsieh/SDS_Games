@@ -353,7 +353,7 @@ export default class CasinoScene {
         } else if (chapter >= 2) {
             this.dom.ledgerText.textContent = '勝率表的曲線不太自然。瑪洛說，如果數字看起來太乖，通常代表有人抓著它的脖子。';
         } else if (net < -300) {
-            this.dom.ledgerText.textContent = '你輸掉不少金幣，桌邊有人遞來一杯劣酒，像是在恭喜你正式成為這裡的一部分。';
+            this.dom.ledgerText.textContent = '你輸掉不少籌碼，桌邊有人遞來一杯劣酒，像是在恭喜你正式成為這裡的一部分。';
         } else {
             this.dom.ledgerText.textContent = '賭場的燈還很亮，帳冊上目前沒有太多值得害怕的曲線。';
         }

@@ -137,6 +137,8 @@ class QuestManager {
             startTime: null
         };
 
+        GameManager.setFlag?.(`quest.${questId}.finished`, true);
+
         // 解鎖後續任務
         if (quest.unlocks && quest.unlocks.length > 0) {
             quest.unlocks.forEach(nextQuestId => {
@@ -691,6 +693,11 @@ class QuestManager {
 
     deserialize(data) {
         this.questStates = data?.questStates || {};
+        for (const [questId, state] of Object.entries(this.questStates)) {
+            if (state?.status === QuestStatus.FINISHED) {
+                GameManager.state.flags[`quest.${questId}.finished`] = true;
+            }
+        }
         this.stats = {
             deathCount: 0,
             gambleLossStreak: 0,
