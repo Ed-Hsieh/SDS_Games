@@ -896,6 +896,182 @@ export const EventDatabase = [
         ]
     },
     {
+        id: 'mist_tablet_cipher',
+        name: '霧碑錯位文',
+        icon: '🪨',
+        type: EventType.MYSTERY,
+        zones: ['high'],
+        weight: 0.72,
+        description: '霧碑上的文字在你靠近時慢慢錯位，幾段句子像被拆成碎骨後重新排好。你看不懂全部，但能辨認出「守衛」、「法杖」與「不要照原路回去」。',
+        choices: [
+            {
+                text: '按霧的流向重排文字',
+                intent: '安全解讀地脈與古墓線索，取得較多經驗。',
+                results: [
+                    { type: ResultType.EXP, value: 75 },
+                    { type: ResultType.BUFF, buffType: 'luck', value: 5, duration: 12 }
+                ]
+            },
+            {
+                text: '刮下發亮的苔痕',
+                intent: '拿走可用素材，但可能被封印反噬。',
+                results: [
+                    { type: ResultType.ITEM, itemType: 'material_medium' },
+                    { type: ResultType.DAMAGE, value: 12 }
+                ]
+            },
+            {
+                text: '只畫下看得懂的三個字',
+                intent: '保守記錄，不碰封印。',
+                results: [
+                    { type: ResultType.EXP, value: 35 }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'coast_salvage_tide',
+        name: '退潮殘貨',
+        icon: '🌊',
+        type: EventType.ENCOUNTER,
+        zones: ['medium', 'high'],
+        weight: 0.74,
+        description: '潮水短暫退開，沙面露出一排被海藻纏住的木箱。箱上有王國貨印，也有被海水泡爛的祭壇符號。遠處的沉鐘聲每響一下，海水就往回爬一點。',
+        choices: [
+            {
+                text: '趁退潮搬走貨箱',
+                intent: '取得材料，但會承受潮水與寒意的代價。',
+                results: [
+                    { type: ResultType.ITEM, itemType: 'material_medium' },
+                    { type: ResultType.DEBUFF, buffType: 'def', value: -2, duration: 12 }
+                ]
+            },
+            {
+                text: '等鐘聲對齊再下手',
+                intent: '不急著拿貨，先讀懂沉鐘節奏。',
+                results: [
+                    { type: ResultType.EXP, value: 70 },
+                    { type: ResultType.BUFF, buffType: 'luck', value: 4, duration: 12 }
+                ]
+            },
+            {
+                text: '只取漂來的錢袋',
+                intent: '低風險拿一點金幣。',
+                results: [
+                    { type: ResultType.GOLD, value: 55 }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'black_iron_checkpoint',
+        name: '黑鐵臨檢哨',
+        icon: '⛓️',
+        type: EventType.ENCOUNTER,
+        zones: ['high', 'death'],
+        weight: 0.72,
+        description: '黑曜石要塞外多了一處臨時哨卡，木牌上寫著「自願捐糧處」。牌子旁站著兩名疲憊士兵，看起來比你更不相信自願兩個字。',
+        choices: [
+            {
+                text: '繞過哨卡',
+                intent: '有機會避開衝突，失敗會受傷。',
+                chance: 0.58,
+                successResults: [
+                    { type: ResultType.EXP, value: 65 },
+                    { type: ResultType.BUFF, buffType: 'luck', value: 4, duration: 10 }
+                ],
+                failResults: [
+                    { type: ResultType.DAMAGE, value: 18 },
+                    { type: ResultType.DEBUFF, buffType: 'def', value: -2, duration: 10 }
+                ]
+            },
+            {
+                text: '塞錢買通士兵 (70G)',
+                intent: '穩定通過，順便打聽要塞內部狀況。',
+                cost: { gold: 70 },
+                results: [
+                    { type: ResultType.EXP, value: 75 },
+                    { type: ResultType.BUFF, buffType: 'atk', value: 5, duration: 12 }
+                ]
+            },
+            {
+                text: '拆走廢棄鐵牌',
+                intent: '取得材料，但讓自己暴露在哨兵視線裡。',
+                results: [
+                    { type: ResultType.ITEM, itemType: 'material_medium' },
+                    { type: ResultType.DAMAGE, value: 10 }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'northbound_whiteout_cache',
+        name: '雪線補給旗',
+        icon: '🚩',
+        type: EventType.BLESSING,
+        zones: ['high', 'death'],
+        weight: 0.76,
+        description: '雪地裡插著一支被燒黑半邊的補給旗，旗桿下埋著油布包。包內只有最基本的乾糧、火石與一張字條：往北走的人，不要相信安靜。',
+        choices: [
+            {
+                text: '補充乾糧與火石',
+                intent: '穩定恢復，適合進入北境前整理狀態。',
+                results: [
+                    { type: ResultType.HEAL, value: 0.28, isPercent: true }
+                ]
+            },
+            {
+                text: '把旗布纏上護具',
+                intent: '提高防禦，準備承受龍焰與風雪。',
+                results: [
+                    { type: ResultType.BUFF, buffType: 'def', value: 7, duration: 16 },
+                    { type: ResultType.EXP, value: 35 }
+                ]
+            },
+            {
+                text: '留下自己的補給記號',
+                intent: '不拿太多，只整理路線。',
+                results: [
+                    { type: ResultType.BUFF, buffType: 'luck', value: 6, duration: 14 }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'abyssal_name_echo',
+        name: '深淵名諱回聲',
+        icon: '🕳️',
+        type: EventType.MYSTERY,
+        zones: ['death'],
+        weight: 0.68,
+        description: '封印裂口下方傳來一串名字，聲音像從很遠的井底浮上來。你聽不清每一個字，卻確定其中有一個名字正在等你回答。',
+        choices: [
+            {
+                text: '聽到最後一個音節',
+                intent: '取得終局知識，但會承受深淵壓力。',
+                results: [
+                    { type: ResultType.EXP, value: 95 },
+                    { type: ResultType.DEBUFF, buffType: 'luck', value: -5, duration: 14 }
+                ]
+            },
+            {
+                text: '刻下反制記號',
+                intent: '受一點傷，換取防禦強化。',
+                results: [
+                    { type: ResultType.DAMAGE, value: 16 },
+                    { type: ResultType.BUFF, buffType: 'def', value: 8, duration: 18 }
+                ]
+            },
+            {
+                text: '立刻離開裂口邊緣',
+                intent: '不貪聽回聲，保留狀態。',
+                results: [
+                    { type: ResultType.EXP, value: 35 }
+                ]
+            }
+        ]
+    },
+    {
         id: 'last_campfire_before_north',
         name: '北行前的最後營火',
         icon: '🔥',
@@ -1027,6 +1203,11 @@ const EVENT_STORY_RULES = {
     obsidian_deserter_map: { eventRole: EventRole.WORLD_LORE, chapterRange: [2, 2] },
     refugee_cart_repair: { eventRole: EventRole.SIDE_STORY, chapterRange: [3, 3] },
     dragon_heat_haze: { eventRole: EventRole.PRESSURE, chapterRange: [3, 3] },
+    mist_tablet_cipher: { eventRole: EventRole.WORLD_LORE, chapterRange: [2, 3] },
+    coast_salvage_tide: { eventRole: EventRole.RISK_REWARD, chapterRange: [2, 2] },
+    black_iron_checkpoint: { eventRole: EventRole.PRESSURE, chapterRange: [2, 3] },
+    northbound_whiteout_cache: { eventRole: EventRole.RESOURCE, chapterRange: [3, 3] },
+    abyssal_name_echo: { eventRole: EventRole.PRESSURE, chapterRange: [3, 3] },
     last_campfire_before_north: { eventRole: EventRole.RESOURCE, chapterRange: [3, 3] },
     injured_adventurer: { eventRole: EventRole.RESOURCE, chapterRange: [1, 3] },
     ancient_guardian: { eventRole: EventRole.RISK_REWARD, chapterRange: [2, 3] }
@@ -1133,12 +1314,32 @@ const EVENT_LOCATION_RULES = {
         landmarkIds: ['northern_drake_watch', 'dragon_heat_crag', 'charred_obelisk', 'abyssal_seal_break'],
         locationWeightBoost: 1.8
     },
+    mist_tablet_cipher: {
+        landmarkIds: ['mist_tablet_hill', 'opened_ancient_tomb', 'charred_obelisk'],
+        locationWeightBoost: 1.75
+    },
+    coast_salvage_tide: {
+        landmarkIds: ['drowned_bell_coast', 'sunken_altar_reef'],
+        locationWeightBoost: 1.7
+    },
+    black_iron_checkpoint: {
+        landmarkIds: ['obsidian_keep_gate', 'black_iron_storehouse'],
+        locationWeightBoost: 1.75
+    },
+    northbound_whiteout_cache: {
+        landmarkIds: ['northern_drake_watch', 'dragon_heat_crag'],
+        locationWeightBoost: 1.6
+    },
+    abyssal_name_echo: {
+        landmarkIds: ['abyssal_seal_break', 'charred_obelisk'],
+        locationWeightBoost: 1.75
+    },
     last_campfire_before_north: {
         landmarkIds: ['northern_drake_watch', 'dragon_heat_crag', 'charred_obelisk'],
         locationWeightBoost: 1.5
     },
     injured_adventurer: {
-        landmarkIds: ['hunter_boardwalk', 'broken_horn_camp', 'obsidian_keep_gate', 'northern_drake_watch'],
+        landmarkIds: ['hunter_boardwalk', 'old_wolf_den', 'broken_horn_camp', 'obsidian_keep_gate', 'northern_drake_watch'],
         locationWeightBoost: 1.4
     },
     ancient_guardian: {
@@ -1822,11 +2023,12 @@ function getDefaultRepeatPolicy(eventRole) {
 function getDefaultCooldownSteps(eventRole) {
     switch (eventRole) {
         case EventRole.RESOURCE:
-            return 7;
+            return 9;
         case EventRole.RISK_REWARD:
         case EventRole.TRADE:
+            return 12;
         case EventRole.PRESSURE:
-            return 10;
+            return 16;
         default:
             return 0;
     }
@@ -1896,11 +2098,44 @@ function isEventAllowedInLocation(event = {}, options = {}) {
 export function getEventsForZone(zone, options = {}) {
     // 不同區域有不同的事件權重
     const zoneWeights = {
-        'low': { [EventType.BLESSING]: 35, [EventType.TRADE]: 25, [EventType.ENCOUNTER]: 20, [EventType.GAMBLE]: 10, [EventType.MYSTERY]: 10 },
-        'medium': { [EventType.TRADE]: 30, [EventType.GAMBLE]: 25, [EventType.MYSTERY]: 25, [EventType.ENCOUNTER]: 20 },
-        'high': { [EventType.CURSE]: 25, [EventType.GAMBLE]: 25, [EventType.MYSTERY]: 30, [EventType.ENCOUNTER]: 20 },
-        'death': { [EventType.CURSE]: 25, [EventType.GAMBLE]: 18, [EventType.MYSTERY]: 28, [EventType.ENCOUNTER]: 20, [EventType.BLESSING]: 9 },
-        'boss': { [EventType.CURSE]: 30, [EventType.MYSTERY]: 40, [EventType.BLESSING]: 30 }
+        low: {
+            [EventType.BLESSING]: 38,
+            [EventType.CURSE]: 8,
+            [EventType.GAMBLE]: 8,
+            [EventType.TRADE]: 18,
+            [EventType.MYSTERY]: 12,
+            [EventType.ENCOUNTER]: 16
+        },
+        medium: {
+            [EventType.BLESSING]: 25,
+            [EventType.CURSE]: 13,
+            [EventType.GAMBLE]: 12,
+            [EventType.TRADE]: 18,
+            [EventType.MYSTERY]: 18,
+            [EventType.ENCOUNTER]: 14
+        },
+        high: {
+            [EventType.BLESSING]: 25,
+            [EventType.CURSE]: 20,
+            [EventType.GAMBLE]: 15,
+            [EventType.TRADE]: 10,
+            [EventType.MYSTERY]: 15,
+            [EventType.ENCOUNTER]: 15
+        },
+        death: {
+            [EventType.BLESSING]: 12,
+            [EventType.CURSE]: 24,
+            [EventType.GAMBLE]: 16,
+            [EventType.TRADE]: 8,
+            [EventType.MYSTERY]: 22,
+            [EventType.ENCOUNTER]: 18
+        },
+        boss: {
+            [EventType.BLESSING]: 35,
+            [EventType.CURSE]: 25,
+            [EventType.MYSTERY]: 20,
+            [EventType.ENCOUNTER]: 20
+        }
     };
     
     return EventDatabase.filter(event => {

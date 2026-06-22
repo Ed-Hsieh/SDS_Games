@@ -48,6 +48,8 @@ export default class ShopScene {
         this.currentVendorId = null;
         this.currentPanel = 'shelf';
         this.currentVendor = null;
+        this.marketNarrativeLog = [];
+        this.lastMarketNarrativeKey = '';
         this.entryIndex = new Map();
         this.currentShopItems = [];
         this.updateUI = this.updateUI.bind(this);
@@ -282,9 +284,9 @@ export default class ShopScene {
         if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = vendor.place || '市集';
         if (this.dom.vendorName) this.dom.vendorName.textContent = vendor.name;
         if (this.dom.vendorRole) this.dom.vendorRole.textContent = locked ? '尚未開張' : vendor.role;
-        if (this.dom.shopCurrentCopy) this.dom.shopCurrentCopy.textContent = summary || '';
+        if (this.dom.shopCurrentCopy) this.dom.shopCurrentCopy.textContent = '';
         this.renderNpcDialogue(dialogue || '');
-        this.renderMarketFeed(
+        this.pushMarketNarrative(
             locked ? `${vendor.name}還沒開張` : `${vendor.name}的攤位`,
             locked ? (summary || '這條供應線還沒有打開。') : (summary || vendor.role || '攤位已展開。'),
             locked ? 'warning' : 'info'
@@ -332,11 +334,12 @@ export default class ShopScene {
             this.dom.npcPortrait.hidden = true;
         }
         if (this.dom.shopCurrentCopy) {
-            this.dom.shopCurrentCopy.textContent = MARKET_HEADER_COPY;
+            this.dom.shopCurrentCopy.textContent = '';
         }
         this.renderNpcDialogue('先在市集裡選一個攤位。');
         this.dom.panel.innerHTML = this.renderEmpty('還沒有走近攤位', '點選場景中的攤位後，這裡會展開貨架、訂單與交換內容。');
         this.setTradeStatus(MARKET_SCENE_TITLE, MARKET_SCENE_COPY, 'info');
+        this.pushMarketNarrative(MARKET_SCENE_TITLE, MARKET_SCENE_COPY, 'info', { initial: true });
     }
 
     renderLockedVendor(vendor) {
@@ -834,23 +837,43 @@ export default class ShopScene {
         }
         if (this.dom.tradeStatusTitle) this.dom.tradeStatusTitle.textContent = title;
         if (this.dom.tradeStatusMessage) this.dom.tradeStatusMessage.textContent = message;
-        this.renderMarketFeed(title, message, type);
     }
 
-    renderMarketFeed(title, message, type = 'info') {
+    pushMarketNarrative(title, message, type = 'info', options = {}) {
         if (!this.dom?.marketFeed) return;
+        const key = `${title || ''}:${message || ''}:${type || ''}`;
+        if (!options.initial && key === this.lastMarketNarrativeKey) return;
+        if (options.initial && this.marketNarrativeLog.length > 0) return;
+
+        this.lastMarketNarrativeKey = key;
         const tone = ['success', 'error', 'warning', 'info'].includes(type) ? type : 'info';
+        const entry = {
+            title: title || MARKET_SCENE_TITLE,
+            message: message || MARKET_SCENE_COPY,
+            tone
+        };
+        this.marketNarrativeLog.unshift(entry);
+        this.marketNarrativeLog = this.marketNarrativeLog.slice(0, 8);
+        this.renderMarketFeed();
+    }
+
+    renderMarketFeed() {
+        if (!this.dom?.marketFeed) return;
         if (this.dom.marketNarrativeTitle) this.dom.marketNarrativeTitle.textContent = MARKET_SCENE_TITLE;
-        this.dom.marketFeed.innerHTML = `
-            <article class="town-story-entry market-feed-card is-${tone}">
-                <span class="world-log-title">${escapeHtml(title || MARKET_SCENE_TITLE)}</span>
-                <p class="world-log-message">${escapeHtml(message || MARKET_SCENE_COPY)}</p>
+        const entries = this.marketNarrativeLog.length
+            ? this.marketNarrativeLog
+            : [{ title: MARKET_SCENE_TITLE, message: MARKET_SCENE_COPY, tone: 'info' }];
+        this.dom.marketFeed.innerHTML = entries.map((entry, index) => `
+            <article class="town-story-entry market-feed-card is-${entry.tone}${index === 0 ? ' is-new' : ''}">
+                <span class="world-log-title">${escapeHtml(entry.title)}</span>
+                <p class="world-log-message">${escapeHtml(entry.message)}</p>
             </article>
-        `;
+        `).join('');
     }
 
     showFeedback(title, message, type = 'info') {
         this.setTradeStatus(title, message, type);
+        this.pushMarketNarrative(title, message, type);
         showGlobalToast(title, message, type);
         this.renderNpcDialogue(message, type);
     }

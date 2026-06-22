@@ -1552,11 +1552,11 @@ class DungeonSceneClass {
     
     renderIntegratedMap(ctx, canvas, gridSize, cameraX, cameraY) {
         const themeColors = {
-            cave: { base: '#0f1513', unknown: '#070a09', floor: '#182820', explored: 'rgba(24, 40, 32, 0.45)', wall: '#101614', wallEdge: 'rgba(163, 139, 93, 0.18)', grid: 'rgba(119, 143, 111, 0.16)', accent: '#d0a85e', detail: 'rgba(194, 175, 128, 0.46)' },
-            snow: { base: '#101923', unknown: '#071018', floor: '#1d3442', explored: 'rgba(29, 52, 66, 0.46)', wall: '#12212a', wallEdge: 'rgba(174, 219, 236, 0.2)', grid: 'rgba(176, 214, 232, 0.15)', accent: '#8bd3f7', detail: 'rgba(208, 236, 248, 0.44)' },
-            ruins: { base: '#15150f', unknown: '#0b0b08', floor: '#272718', explored: 'rgba(39, 39, 24, 0.46)', wall: '#17170e', wallEdge: 'rgba(221, 190, 104, 0.22)', grid: 'rgba(211, 185, 115, 0.14)', accent: '#dfbd68', detail: 'rgba(211, 185, 115, 0.4)' },
-            jungle: { base: '#0d1a12', unknown: '#061009', floor: '#14331f', explored: 'rgba(20, 51, 31, 0.48)', wall: '#0d1f14', wallEdge: 'rgba(127, 202, 111, 0.18)', grid: 'rgba(142, 193, 126, 0.14)', accent: '#75d37b', detail: 'rgba(170, 214, 128, 0.4)' },
-            hell: { base: '#1a0f0f', unknown: '#0d0707', floor: '#351a18', explored: 'rgba(53, 26, 24, 0.46)', wall: '#1e0d0d', wallEdge: 'rgba(255, 120, 71, 0.18)', grid: 'rgba(245, 131, 77, 0.14)', accent: '#ff784d', detail: 'rgba(245, 131, 77, 0.42)' }
+            cave: { base: 'rgba(7, 10, 9, 0.62)', unknown: 'rgba(4, 6, 6, 0.86)', floor: 'rgba(24, 40, 32, 0.76)', explored: 'rgba(24, 40, 32, 0.36)', wall: 'rgba(16, 22, 20, 0.88)', wallEdge: 'rgba(163, 139, 93, 0.18)', grid: 'rgba(119, 143, 111, 0.16)', accent: '#d0a85e', detail: 'rgba(194, 175, 128, 0.46)' },
+            snow: { base: 'rgba(7, 16, 24, 0.58)', unknown: 'rgba(4, 10, 15, 0.84)', floor: 'rgba(29, 52, 66, 0.74)', explored: 'rgba(29, 52, 66, 0.36)', wall: 'rgba(18, 33, 42, 0.86)', wallEdge: 'rgba(174, 219, 236, 0.2)', grid: 'rgba(176, 214, 232, 0.15)', accent: '#8bd3f7', detail: 'rgba(208, 236, 248, 0.44)' },
+            ruins: { base: 'rgba(11, 11, 8, 0.6)', unknown: 'rgba(5, 5, 4, 0.86)', floor: 'rgba(39, 39, 24, 0.74)', explored: 'rgba(39, 39, 24, 0.34)', wall: 'rgba(23, 23, 14, 0.88)', wallEdge: 'rgba(221, 190, 104, 0.22)', grid: 'rgba(211, 185, 115, 0.14)', accent: '#dfbd68', detail: 'rgba(211, 185, 115, 0.4)' },
+            jungle: { base: 'rgba(6, 16, 9, 0.58)', unknown: 'rgba(3, 8, 5, 0.84)', floor: 'rgba(20, 51, 31, 0.74)', explored: 'rgba(20, 51, 31, 0.36)', wall: 'rgba(13, 31, 20, 0.86)', wallEdge: 'rgba(127, 202, 111, 0.18)', grid: 'rgba(142, 193, 126, 0.14)', accent: '#75d37b', detail: 'rgba(170, 214, 128, 0.4)' },
+            hell: { base: 'rgba(13, 7, 7, 0.62)', unknown: 'rgba(7, 3, 3, 0.86)', floor: 'rgba(53, 26, 24, 0.76)', explored: 'rgba(53, 26, 24, 0.36)', wall: 'rgba(30, 13, 13, 0.88)', wallEdge: 'rgba(255, 120, 71, 0.18)', grid: 'rgba(245, 131, 77, 0.14)', accent: '#ff784d', detail: 'rgba(245, 131, 77, 0.42)' }
         };
         const theme = themeColors[this.dungeonType] || themeColors.cave;
         const visibleCells = this.dungeonMap.getVisibleCells();
@@ -1835,10 +1835,7 @@ class DungeonSceneClass {
         
         if (this.dom.dungeonName) this.dom.dungeonName.textContent = dungeonData?.name || '未知副本';
         if (this.dom.dungeonIcon) {
-            const dungeonImage = getGeneratedDungeonImage(this.dungeonType);
-            this.dom.dungeonIcon.innerHTML = dungeonImage
-                ? `<img src="${escapeHtml(dungeonImage)}" alt="${escapeHtml(dungeonData?.name || '')}">`
-                : escapeHtml(dungeonData?.icon || '🏰');
+            this.dom.dungeonIcon.textContent = dungeonData?.icon || '🏰';
         }
         if (this.dom.floorInfo) {
             this.dom.floorInfo.textContent = `第 ${this.currentFloor}/${this.totalFloors} 層`;

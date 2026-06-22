@@ -80,7 +80,9 @@ const sets = {
         'villager_herb_request', 'green_bargain_mark', 'silk_tripwire', 'snapped_bait_hook',
         'survivor_warning', 'dragon_nest_resonance', 'abyss_vanguard_oath', 'cracked_crown_mark',
         'rare_material_box', 'legendary_weapon_box', 'enhance_scroll', 'vip_card',
-        'mystery_box', 'transcend_stone', 'ancient_key', 'dungeon_token'
+        'mystery_box', 'transcend_stone', 'ancient_key', 'dungeon_token',
+        'casino_chip_bundle', 'black_market_ticket', 'casino_prize_case', 'blood_chip',
+        'relief_voucher', 'recipe_fragment', 'forbidden_blueprint_fragment'
     ]),
     'town-places': new Set([
         'crossroads', 'market', 'forge', 'handbook', 'alley', 'casino', 'tower', 'gate'
@@ -145,7 +147,7 @@ const sets = {
         'dragon_burn', 'freeze', 'hit', 'kill_freeze', 'lifesteal', 'poison', 'poison_resist'
     ]),
     backgrounds: new Set([
-        'town-overview', 'adventure-world-map'
+        'town-overview', 'adventure-world-map', 'casino-hall', 'casino-game-table', 'casino-prize-wall'
     ])
 };
 
@@ -180,6 +182,15 @@ const ASSET_ALIASES = {
         armor_down: 'armor_break',
         attack_down: 'attack_speed_down',
         speed_down: 'attack_speed_down'
+    },
+    clues: {
+        casino_chip_bundle: 'dungeon_token',
+        black_market_ticket: 'vip_card',
+        casino_prize_case: 'mystery_box',
+        blood_chip: 'thorn_trade_bead',
+        relief_voucher: 'hunter_board_notice',
+        recipe_fragment: 'wet_treasure_fragment',
+        forbidden_blueprint_fragment: 'enhance_scroll'
     }
 };
 
@@ -248,6 +259,8 @@ export function getGeneratedBackgroundImage(backgroundId) {
 }
 
 export function getGeneratedItemImage(item = {}, options = {}) {
+    item = item || {};
+    options = options || {};
     const rawId = normalizeId(options.id || item.id || item.recipeId);
     if (!rawId) return '';
 
@@ -276,6 +289,11 @@ export function getGeneratedItemImage(item = {}, options = {}) {
     if (sets.craftedItems.has(id)) return assetPath('crafted-items', id);
     if (sets.clues.has(id)) return assetPath('clues', id);
     if (sets.blueprints.has(id)) return assetPath('blueprints', id);
+
+    for (const category of ['equipment', 'materials', 'shopItems', 'craftedItems', 'clues', 'blueprints']) {
+        const aliasedPath = knownAssetPath(category, id);
+        if (aliasedPath) return aliasedPath;
+    }
 
     return '';
 }

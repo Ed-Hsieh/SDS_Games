@@ -1719,6 +1719,19 @@ export default class AdventureScene {
             .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
     }
 
+    getPotionSupplyCount() {
+        return (GameManager.state?.inventory || [])
+            .filter(stack => {
+                const item = stack?.item;
+                if (!item) return false;
+                return item.type === ItemType.POTION
+                    || item.type === 'potion'
+                    || Boolean(item.effects?.hp)
+                    || Boolean(item.hp);
+            })
+            .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
+    }
+
     consumeInventoryItem(itemId, quantity = 1) {
         const inventory = GameManager.state?.inventory || [];
         let remaining = Math.max(1, Number(quantity) || 1);
@@ -1916,10 +1929,15 @@ export default class AdventureScene {
     }
 
     renderBossChallengeBrief(triggerText = '') {
+        const character = GameManager.getCharacter?.();
+        const currentHp = Number(character?.hp ?? character?.currentHP ?? 0);
+        const maxHp = Number(character?.maxHp ?? character?.maxHP ?? 0);
+        const hpText = maxHp > 0 ? `生命 ${Math.max(0, currentHp)}/${maxHp}` : '確認生命狀態';
+        const potionCount = this.getPotionSupplyCount();
         const lines = [
-            '首領戰開始後會直接進入戰鬥，死亡會被送回城鎮並承受背包損失。',
-            '建議先確認藥水、裝備耐久與目前裝備是否適合這條首領線。',
-            triggerText
+            triggerText || '確認後會直接進入首領戰。',
+            `風險：死亡會被送回城鎮，背包物品可能損失。`,
+            `準備：${hpText}，藥水 ${potionCount} 瓶，先確認裝備耐久。`
         ].filter(Boolean);
 
         return `
@@ -2200,9 +2218,7 @@ export default class AdventureScene {
         const story = dungeonData.story || null;
         const storyPickup = story?.pickup || null;
         const dungeonImage = dungeonData.image || getGeneratedDungeonImage(dungeonType);
-        const dungeonVisual = dungeonImage
-            ? `<img src="${escapeHtml(dungeonImage)}" alt="${escapeHtml(dungeonData.name || '')}">`
-            : escapeHtml(dungeonData.icon || '');
+        const dungeonVisual = `<span class="dungeon-entrance-mark" aria-hidden="true">${escapeHtml(entranceConfig?.icon || dungeonData.icon || '◆')}</span>`;
         const dungeonSceneStyle = dungeonImage
             ? `; --dungeon-scene: url('/${escapeHtml(dungeonImage)}')`
             : '';
@@ -2396,13 +2412,16 @@ export default class AdventureScene {
 
         if (groups.length === 0) return '';
 
+        const compact = typeof window !== 'undefined' && window.innerHeight <= 680;
+        const itemLimit = compact ? 2 : 3;
+
         return `
             <section class="dungeon-risk-brief">
                 ${groups.map(group => `
                     <div class="dungeon-risk-card is-${escapeHtml(group.tone)}">
                         <b>${escapeHtml(group.title)}</b>
                         <ul>
-                            ${group.items.slice(0, 3).map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+                            ${group.items.slice(0, itemLimit).map(item => `<li>${escapeHtml(item)}</li>`).join('')}
                         </ul>
                     </div>
                 `).join('')}
@@ -2607,29 +2626,6 @@ export default class AdventureScene {
         const cleanType = cleanTypeLabels[event.type] || '事件';
         const cleanRole = cleanRoleLabels[event.eventRole] || '';
         return cleanRole ? `${cleanType} / ${cleanRole}` : cleanType;
-
-        const typeLabels = {
-            blessing: '補給',
-            curse: '危機',
-            gamble: '風險',
-            trade: '交易',
-            mystery: '異常',
-            encounter: '遭遇'
-        };
-
-        const roleLabels = {
-            resource: '資源',
-            risk_reward: '抉擇',
-            trade: '交換',
-            story_seed: '聽聞',
-            side_story: '支線',
-            world_lore: '世界見聞',
-            pressure: '壓力'
-        };
-
-        const type = typeLabels[event.type] || '事件';
-        const role = roleLabels[event.eventRole] || '';
-        return role ? `${type} / ${role}` : type;
     }
 
     getStoryChoiceIntent(choice = {}) {
@@ -2666,37 +2662,6 @@ export default class AdventureScene {
         if (cleanTypes.has('buff')) return '會帶來短時間戰鬥強化。';
         if (cleanTypes.has('damage') || cleanTypes.has('debuff')) return '可能承受傷害或不利狀態。';
         return '觀察這件事，讓旅途留下新的判斷。';
-
-        const collectResults = (entry) => {
-            if (!entry) return [];
-            if (Array.isArray(entry)) return entry.flatMap(collectResults);
-            if (Array.isArray(entry.results)) return collectResults(entry.results);
-            if (Array.isArray(entry.successResults) || Array.isArray(entry.failResults)) {
-                return [
-                    ...collectResults(entry.successResults),
-                    ...collectResults(entry.failResults)
-                ];
-            }
-            if (Array.isArray(entry.randomResults)) return collectResults(entry.randomResults);
-            return [entry];
-        };
-
-        if (choice.cost?.gold || choice.cost?.hp) {
-            return '需要付出代價，換取可能收益。';
-        }
-        if (choice.chance !== undefined || choice.isRandom) {
-            return '結果不完全穩定，適合願意冒險時。';
-        }
-
-        const types = new Set(collectResults(choice).map(result => String(result?.type || '')));
-        if (types.has('worldInteraction')) return '記錄或推進一段世界見聞。';
-        if (types.has('item')) return '取得物品或素材。';
-        if (types.has('gold')) return '取得金幣。';
-        if (types.has('exp')) return '取得經驗與情報理解。';
-        if (types.has('heal')) return '恢復生命，延長探索。';
-        if (types.has('buff')) return '取得短暫增益。';
-        if (types.has('damage') || types.has('debuff')) return '可能承擔負面效果。';
-        return '保守選擇，不改變目前狀態。';
     }
     
     executeStoryChoice(choiceIndex) {

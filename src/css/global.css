@@ -48,6 +48,19 @@ body {
     overflow: hidden;
 }
 
+.scene-load-error {
+    width: min(520px, calc(100vw - 48px));
+    margin: auto;
+    padding: 24px 28px;
+    border: 1px solid rgba(255, 98, 98, 0.42);
+    border-radius: 8px;
+    background: rgba(42, 18, 18, 0.86);
+    color: #ffd7d7;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+}
+
 /* ===== Utility Classes ===== */
 .hidden { display: none !important; }
 .flex { display: flex; }

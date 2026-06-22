@@ -1219,6 +1219,47 @@ input {
     gap: var(--ui-gap);
 }
 
+.scene-forge .forge-main {
+    height: 100%;
+    overflow: hidden;
+}
+
+.scene-forge .tab-content {
+    min-height: 0;
+}
+
+.scene-forge .tab-content.active {
+    height: 100%;
+    min-height: 0;
+    align-items: stretch;
+    overflow: hidden;
+}
+
+.scene-forge .recipe-panel {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden !important;
+}
+
+.scene-forge .recipe-panel h3 {
+    margin: 0 !important;
+}
+
+.scene-forge .recipe-filter {
+    margin: 0 !important;
+    align-content: flex-start;
+}
+
+.scene-forge .recipe-list {
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto !important;
+    padding-right: 2px;
+}
+
 .forge-craft-guidance {
     display: grid;
     gap: 6px;
@@ -2443,6 +2484,31 @@ input {
     font-weight: 800;
 }
 
+.quest-note-cues {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: -2px 0 12px;
+}
+
+.quest-note-cues span {
+    max-width: 100%;
+    min-width: 0;
+    border: 1px solid rgba(246, 196, 83, 0.2);
+    border-radius: 999px;
+    background:
+        linear-gradient(180deg, rgba(246, 196, 83, 0.1), rgba(246, 196, 83, 0.045)),
+        rgba(7, 12, 18, 0.62);
+    padding: 5px 9px;
+    color: rgba(248, 250, 252, 0.88);
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .quest-note-current,
 .quest-note-next {
     min-width: 0;
@@ -2655,6 +2721,221 @@ input {
 
 .reward-empty {
     color: var(--ui-text-muted);
+}
+
+@media (max-height: 680px) and (min-width: 900px) {
+    .quest-story-ledger {
+        min-height: 50px;
+        padding: 8px 16px;
+        gap: 12px;
+    }
+
+    .quest-story-ledger h2 {
+        margin-top: 1px;
+        font-size: 19px;
+    }
+
+    .ledger-kicker {
+        font-size: 10px;
+    }
+
+    .ledger-summary {
+        max-width: 44%;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .quest-tabs.handbook-tabs {
+        gap: 6px !important;
+        padding: 6px 16px !important;
+    }
+
+    .quest-tabs.handbook-tabs .quest-tab {
+        min-height: 34px;
+        gap: 7px;
+        padding: 6px 9px !important;
+        font-size: 13px;
+    }
+
+    .quest-tabs.handbook-tabs .quest-tab .badge {
+        min-width: 21px;
+        height: 19px;
+        padding: 0 6px;
+        font-size: 11px;
+    }
+
+    .quest-main-panel {
+        grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+    }
+
+    .quest-list-header {
+        padding: 10px 14px !important;
+    }
+
+    .quest-list {
+        padding: 8px !important;
+    }
+
+    .quest-list-item {
+        gap: 9px !important;
+        margin-bottom: 7px !important;
+        padding: 10px 12px !important;
+    }
+
+    .handbook-record-item .quest-item-icon,
+    .quest-list-item .quest-item-icon {
+        flex-basis: 34px;
+        width: 34px;
+        height: 34px;
+        font-size: 17px;
+    }
+
+    .quest-item-name {
+        font-size: 14px !important;
+        line-height: 1.25;
+    }
+
+    .quest-item-status,
+    .quest-item-meta {
+        gap: 5px !important;
+        font-size: 11px !important;
+        line-height: 1.25;
+    }
+
+    .quest-item-meta span:nth-child(n+3) {
+        display: none;
+    }
+
+    .quest-detail-panel {
+        padding: 14px !important;
+    }
+
+    .detail-header {
+        gap: 10px !important;
+        margin-bottom: 10px !important;
+        padding-bottom: 10px !important;
+    }
+
+    .quest-icon {
+        width: 46px !important;
+        height: 46px !important;
+        font-size: 29px !important;
+    }
+
+    #detail-name {
+        margin-bottom: 3px !important;
+        font-size: 20px !important;
+        line-height: 1.18;
+    }
+
+    .quest-detail-summary {
+        margin-bottom: 10px;
+    }
+
+    .quest-note-meta {
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .quest-note-meta span {
+        font-size: 12px;
+    }
+
+    .quest-note-cues {
+        gap: 5px;
+        margin-bottom: 8px;
+    }
+
+    .quest-note-cues span {
+        padding: 4px 7px;
+        font-size: 11px;
+    }
+
+    .quest-note-current {
+        margin-bottom: 8px;
+        padding: 10px;
+    }
+
+    .quest-note-speaker {
+        gap: 8px;
+        margin-bottom: 7px;
+    }
+
+    .quest-note-avatar {
+        width: 30px;
+        height: 30px;
+        font-size: 18px;
+    }
+
+    .quest-note-current p {
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .quest-note-next {
+        grid-template-columns: minmax(0, 1fr) 88px;
+        gap: 9px;
+        padding: 9px;
+    }
+
+    .quest-note-next-copy {
+        gap: 3px;
+    }
+
+    .quest-note-next-copy strong {
+        font-size: 15px;
+    }
+
+    .quest-note-next-copy p {
+        font-size: 12px;
+        line-height: 1.42;
+    }
+
+    .quest-note-progress strong {
+        font-size: 18px;
+    }
+
+    .quest-note-progress span {
+        font-size: 10px;
+    }
+
+    .quest-note-meter {
+        margin-top: 7px;
+    }
+
+    .quest-objectives,
+    .quest-rewards {
+        margin-bottom: 10px !important;
+    }
+
+    .quest-objectives h3,
+    .quest-rewards h3 {
+        margin-bottom: 7px !important;
+        font-size: 14px !important;
+    }
+
+    .objective-item,
+    .reward-item {
+        padding: 9px !important;
+    }
+
+    .handbook-section-item .objective-text {
+        gap: 4px;
+    }
+
+    .handbook-section-item .objective-text strong {
+        font-size: 14px;
+    }
+
+    .handbook-section-item .objective-text small {
+        font-size: 12px;
+        line-height: 1.42;
+    }
+
+    .quest-actions {
+        margin-top: 8px;
+        padding-top: 8px;
+    }
 }
 
 @media (max-width: 900px) {
@@ -3469,9 +3750,16 @@ body {
     justify-content: stretch !important;
     align-items: stretch !important;
     padding: 0 !important;
+    position: relative !important;
     background:
         radial-gradient(circle at 24% 22%, rgba(125, 211, 252, 0.08), transparent 30%),
         linear-gradient(180deg, rgba(12, 18, 21, 0.72), rgba(8, 12, 15, 0.88)) !important;
+}
+
+.dungeon-scene.has-dungeon-image .dungeon-map-area {
+    background:
+        radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.035), transparent 34%),
+        linear-gradient(180deg, rgba(4, 8, 12, 0.46), rgba(4, 8, 12, 0.74)) !important;
 }
 
 #dungeon-canvas {
@@ -3481,7 +3769,7 @@ body {
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    background: #0d1416 !important;
+    background: transparent !important;
 }
 
 .dungeon-hud {
@@ -10405,6 +10693,19 @@ body {
     object-fit: cover;
 }
 
+.dungeon-entrance-mark {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: var(--ui-text);
+    font-size: 32px;
+    line-height: 1;
+    background:
+        radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.12), transparent 34%),
+        rgba(8, 13, 18, 0.72);
+}
+
 .dungeon-story-hook.has-relic {
     display: flow-root;
 }
@@ -10430,11 +10731,12 @@ body {
 
 .dungeon-scene.has-dungeon-image .dungeon-background {
     background-image:
-        linear-gradient(180deg, rgba(3, 7, 12, 0.5), rgba(3, 7, 12, 0.9)),
+        radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.03), transparent 38%),
+        linear-gradient(180deg, rgba(3, 7, 12, 0.32), rgba(3, 7, 12, 0.84)),
         var(--dungeon-scene-image);
     background-size: cover;
     background-position: center;
-    filter: saturate(0.88) contrast(1.08);
+    filter: saturate(0.92) contrast(1.08);
     opacity: 1 !important;
 }
 
@@ -10824,6 +11126,873 @@ body {
 .town-place-handbook { --place-x: 75%; --place-y: 36%; --place-tx: -50%; --place-ty: -50%; }
 .town-place-alley { --place-x: 39%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
 .town-place-casino { --place-x: 75%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
+
+/* Casino rework: chips, prize pools, and cashier flow. */
+.casino-rework {
+    --casino-gold: #d9b85f;
+    --casino-ink: #111414;
+    --casino-panel: rgba(18, 23, 29, 0.92);
+    --casino-panel-soft: rgba(28, 34, 42, 0.84);
+    --casino-line: rgba(217, 184, 95, 0.28);
+    --casino-blue: rgba(125, 211, 252, 0.28);
+    position: relative;
+    isolation: isolate;
+    background:
+        linear-gradient(180deg, rgba(8, 10, 12, 0.62), rgba(8, 10, 12, 0.88)),
+        radial-gradient(circle at 50% 38%, rgba(217, 184, 95, 0.13), transparent 34%),
+        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-hall.png") center / cover no-repeat,
+        radial-gradient(circle at 16% 12%, rgba(217, 184, 95, 0.18), transparent 28%),
+        linear-gradient(135deg, #16110d 0%, #111820 48%, #0a0d12 100%) !important;
+    color: #eef2f7;
+}
+
+.casino-rework::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 50% 112%, rgba(0, 0, 0, 0.54), transparent 54%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.36), transparent 24%, transparent 72%, rgba(0, 0, 0, 0.42));
+}
+
+.casino-rework .casino-header {
+    min-height: 94px;
+    display: grid;
+    grid-template-columns: minmax(260px, 1fr) minmax(360px, auto) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--casino-line);
+    background: rgba(7, 9, 12, 0.72);
+    backdrop-filter: blur(14px) saturate(118%);
+}
+
+.casino-title-block {
+    min-width: 0;
+}
+
+.casino-title-block .casino-kicker,
+.casino-panel-label {
+    display: inline-flex;
+    width: max-content;
+    color: var(--casino-gold);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.casino-rework .casino-title {
+    margin: 2px 0 3px;
+    color: #f8fafc;
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1;
+    text-shadow: none;
+}
+
+.casino-title-block p,
+.casino-panel-copy p,
+.casino-prize-heading p,
+.casino-ledger p {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.74);
+    line-height: 1.55;
+}
+
+.casino-wallet {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(86px, 1fr));
+    gap: 8px;
+}
+
+.casino-wallet-card {
+    min-height: 58px;
+    display: grid;
+    align-content: center;
+    gap: 2px;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.66);
+    padding: 8px 12px;
+}
+
+.casino-wallet-card span {
+    color: rgba(203, 213, 225, 0.72);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.casino-wallet-card strong {
+    color: #ffd86b;
+    font-size: 22px;
+    line-height: 1;
+}
+
+.casino-rework .header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.casino-rework :is(.bonus-btn, .back-btn, .action-btn, .game-tab, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn, .chip-exchange-btn, .casino-pool-card) {
+    cursor: pointer;
+}
+
+.casino-rework :is(.bonus-btn, .back-btn) {
+    min-height: 42px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.74);
+    color: #e5edf6;
+    padding: 0 14px;
+    font-weight: 900;
+}
+
+.casino-rework .bonus-btn {
+    border-color: rgba(217, 184, 95, 0.42);
+    color: #f7d77c;
+}
+
+.casino-rework .casino-main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 280px !important;
+    grid-template-rows: auto minmax(0, 1fr) !important;
+    grid-template-areas:
+        "tabs tabs"
+        "game stats" !important;
+    gap: 10px;
+    height: calc(100dvh - 94px);
+    min-height: 0;
+    padding: 12px;
+    overflow: hidden;
+}
+
+.casino-rework .game-tabs {
+    grid-area: tabs;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    overflow: visible;
+}
+
+.casino-rework .game-tab {
+    min-height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.64);
+    color: rgba(226, 232, 240, 0.78);
+    font-size: 14px;
+    font-weight: 900;
+    padding: 0 10px;
+}
+
+.casino-rework .game-tab:hover,
+.casino-rework .game-tab.active {
+    border-color: rgba(217, 184, 95, 0.58);
+    background: rgba(66, 54, 28, 0.72);
+    color: #ffe08a;
+}
+
+.casino-rework .game-area {
+    grid-area: game;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+    align-items: stretch;
+    padding: 0;
+}
+
+.casino-rework .game-panel {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    display: none;
+    align-items: stretch;
+    justify-items: stretch;
+    gap: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background:
+        linear-gradient(180deg, rgba(18, 23, 29, 0.94), rgba(14, 18, 24, 0.9)),
+        var(--casino-panel);
+    backdrop-filter: blur(12px) saturate(112%);
+    padding: 14px;
+}
+
+.casino-rework .game-panel.active {
+    display: grid;
+}
+
+.casino-rework .casino-table-panel.active {
+    grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "copy copy"
+        "main side"
+        "controls controls";
+    align-items: center;
+}
+
+.casino-rework .casino-table-panel.active::before,
+.casino-rework .casino-prize-panel.active::before,
+.casino-rework .casino-cashier-panel.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 26% 24%, rgba(217, 184, 95, 0.1), transparent 28%),
+        linear-gradient(135deg, rgba(69, 48, 24, 0.12), transparent 46%);
+}
+
+.casino-rework .casino-table-panel.active::before {
+    background:
+        linear-gradient(180deg, rgba(12, 15, 20, 0.72), rgba(12, 15, 20, 0.9)),
+        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-game-table.png") center / cover no-repeat;
+    opacity: 0.72;
+}
+
+.casino-rework .casino-prize-panel.active::before {
+    background:
+        linear-gradient(180deg, rgba(12, 15, 20, 0.66), rgba(12, 15, 20, 0.9)),
+        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-prize-wall.png") center / cover no-repeat;
+    opacity: 0.74;
+}
+
+.casino-panel-copy {
+    grid-area: copy;
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding-bottom: 8px;
+}
+
+.casino-panel-copy h2 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: clamp(19px, 2.2vw, 26px);
+    line-height: 1.18;
+    letter-spacing: 0;
+}
+
+.casino-rework .dice-area,
+.casino-rework .slots-machine,
+.casino-rework .roulette-wheel {
+    grid-area: main;
+    justify-self: center;
+}
+
+.casino-rework .dice-betting,
+.casino-rework .bet-controls,
+.casino-rework .roulette-betting {
+    grid-area: controls;
+}
+
+.casino-rework .paytable {
+    grid-area: side;
+    align-self: stretch;
+    display: grid;
+    align-content: center;
+    gap: 6px;
+    border: 1px solid rgba(217, 184, 95, 0.18);
+    border-radius: 9px;
+    background: rgba(4, 7, 10, 0.46);
+    padding: 12px;
+}
+
+.casino-rework .slots-display {
+    border: 1px solid rgba(217, 184, 95, 0.42);
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.72);
+    padding: 12px;
+}
+
+.casino-rework .slot-reel,
+.casino-rework .dice {
+    width: clamp(58px, 7vw, 78px);
+    height: clamp(66px, 8vw, 86px);
+    border: 1px solid rgba(217, 184, 95, 0.25);
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.74);
+    font-size: clamp(34px, 4vw, 44px);
+}
+
+.casino-rework .dice-display {
+    gap: 10px;
+}
+
+.casino-rework .dice-total,
+.casino-rework .result-display {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.52);
+    color: #f8fafc;
+    padding: 8px 14px;
+    font-weight: 900;
+}
+
+.casino-rework :is(.bet-controls, .dice-betting, .roulette-betting) {
+    display: grid;
+    gap: 8px;
+    align-items: center;
+}
+
+.casino-rework .bet-controls {
+    grid-template-columns: auto minmax(88px, 120px) auto;
+    justify-content: center;
+}
+
+.casino-rework .bet-controls label {
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.casino-rework input[type="number"] {
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 7px;
+    background: rgba(2, 6, 23, 0.72);
+    color: #f8fafc;
+    padding: 0 10px;
+    font-weight: 900;
+}
+
+.casino-rework :is(.action-btn, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn) {
+    min-height: 38px;
+    border: 1px solid rgba(125, 211, 252, 0.24);
+    border-radius: 7px;
+    background: rgba(14, 116, 144, 0.18);
+    color: #c7ecff;
+    padding: 0 12px;
+    font-weight: 900;
+}
+
+.casino-rework :is(.action-btn, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn):hover,
+.casino-rework :is(.dice-bet-btn, .bet-type-btn, .option-btn).active {
+    border-color: rgba(125, 211, 252, 0.58);
+    background: rgba(14, 116, 144, 0.34);
+}
+
+.casino-rework .action-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.46;
+}
+
+.casino-rework .spin-btn,
+.casino-rework .casino-draw-btn {
+    border-color: rgba(217, 184, 95, 0.52);
+    background: rgba(88, 65, 25, 0.58);
+    color: #ffe08a;
+}
+
+.casino-rework .bet-buttons,
+.casino-rework .bet-option-group,
+.casino-rework .bet-type-selector,
+.casino-rework .bet-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 7px;
+}
+
+.casino-rework .casino-prize-panel.active {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+        "copy"
+        "prize";
+}
+
+.casino-prize-layout {
+    grid-area: prize;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(210px, 0.44fr) minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+}
+
+.casino-pool-list {
+    min-height: 0;
+    display: grid;
+    align-content: flex-start;
+    gap: 8px;
+    overflow: auto;
+    padding-right: 2px;
+}
+
+.casino-pool-card {
+    position: relative;
+    min-height: 86px;
+    display: grid;
+    gap: 3px;
+    text-align: left;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.62);
+    color: #e2e8f0;
+    padding: 10px 12px;
+}
+
+.casino-pool-card.active {
+    border-color: rgba(217, 184, 95, 0.62);
+    background: rgba(66, 54, 28, 0.55);
+}
+
+.casino-pool-card.locked {
+    opacity: 0.64;
+}
+
+.casino-pool-card span {
+    color: #d9b85f;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-pool-card strong {
+    color: #f8fafc;
+    font-size: 18px;
+}
+
+.casino-pool-card em {
+    color: rgba(226, 232, 240, 0.68);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.casino-pool-lock {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.72);
+    padding: 3px 7px;
+}
+
+.casino-prize-detail {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.casino-prize-preview {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    gap: 8px;
+    overflow: hidden;
+}
+
+.casino-prize-heading {
+    display: grid;
+    gap: 3px;
+}
+
+.casino-prize-heading span {
+    color: #d9b85f;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-prize-heading h3 {
+    margin: 0;
+    color: #f8fafc;
+    font-size: 24px;
+}
+
+.casino-prize-atmosphere {
+    border-left: 3px solid rgba(217, 184, 95, 0.56);
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(226, 232, 240, 0.78);
+    padding: 8px 10px;
+    line-height: 1.5;
+}
+
+.casino-prize-grid {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+    gap: 8px;
+    overflow: auto;
+    padding: 2px;
+}
+
+.casino-prize-token {
+    position: relative;
+    min-height: 120px;
+    display: grid;
+    grid-template-rows: 44px auto auto;
+    align-content: center;
+    gap: 5px;
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.72);
+    padding: 10px;
+    text-align: center;
+}
+
+.casino-prize-token.locked {
+    filter: grayscale(0.8);
+    opacity: 0.5;
+}
+
+.casino-prize-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    justify-self: center;
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.5);
+    font-size: 28px;
+}
+
+.casino-prize-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.casino-prize-name {
+    min-width: 0;
+    color: #f8fafc;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.casino-prize-meta,
+.casino-prize-limit,
+.casino-prize-token small {
+    color: rgba(203, 213, 225, 0.68);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.casino-rework .casino-cashier-panel.active {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas:
+        "copy"
+        "exchange"
+        "ledger";
+    align-items: stretch;
+}
+
+.casino-cashier-grid {
+    grid-area: exchange;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.chip-exchange-btn {
+    min-height: 84px;
+    display: grid;
+    gap: 4px;
+    text-align: left;
+    border: 1px solid rgba(217, 184, 95, 0.28);
+    border-radius: 9px;
+    background: rgba(66, 54, 28, 0.4);
+    color: #e2e8f0;
+    padding: 12px;
+}
+
+.chip-exchange-btn span {
+    color: rgba(226, 232, 240, 0.68);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.chip-exchange-btn strong {
+    color: #ffe08a;
+    font-size: 18px;
+}
+
+.casino-ledger {
+    grid-area: ledger;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 9px;
+    background: rgba(2, 6, 23, 0.42);
+    padding: 14px;
+}
+
+.casino-ledger h3,
+.casino-result-card h3,
+.casino-dark-panel h3,
+.casino-side-panel .stats-panel h3 {
+    margin: 0 0 8px;
+    color: #f8fafc;
+    font-size: 17px;
+}
+
+.casino-side-panel {
+    grid-area: stats;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(112px, 0.34fr) minmax(122px, auto) minmax(0, 1fr);
+    grid-template-areas:
+        "result"
+        "dark"
+        "stats";
+    gap: 10px;
+    overflow: hidden;
+}
+
+.casino-result-card,
+.casino-dark-panel,
+.casino-side-panel .stats-panel {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background: var(--casino-panel);
+    padding: 12px;
+    min-height: 0;
+}
+
+.casino-result-card {
+    grid-area: result;
+}
+
+.casino-dark-panel {
+    grid-area: dark;
+    display: grid;
+    gap: 8px;
+    overflow: hidden;
+}
+
+.casino-rework .result-message {
+    position: static;
+    min-height: 72px;
+    display: block;
+    border: 0;
+    background: rgba(2, 6, 23, 0.38);
+    color: rgba(226, 232, 240, 0.84);
+    padding: 10px;
+    border-radius: 8px;
+    opacity: 1;
+    transform: none;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.55;
+}
+
+.casino-rework .result-message.win {
+    color: #d9f99d;
+}
+
+.casino-rework .result-message.lose {
+    color: #fecaca;
+}
+
+.casino-attention-meter {
+    height: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.62);
+}
+
+.casino-attention-meter span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, rgba(125, 211, 252, 0.85), rgba(217, 184, 95, 0.9));
+    transition: width 180ms ease;
+}
+
+.casino-attention-meter span[data-tone="warning"] {
+    background: linear-gradient(90deg, rgba(217, 184, 95, 0.95), rgba(248, 113, 113, 0.8));
+}
+
+.casino-attention-meter span[data-tone="danger"] {
+    background: linear-gradient(90deg, rgba(248, 113, 113, 0.95), rgba(153, 27, 27, 0.95));
+}
+
+.casino-dark-status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+}
+
+.casino-dark-status strong {
+    color: #f8fafc;
+    font-size: 18px;
+    line-height: 1.1;
+}
+
+.casino-dark-status strong[data-tone="notice"] {
+    color: #9ee7ff;
+}
+
+.casino-dark-status strong[data-tone="warning"] {
+    color: #ffe08a;
+}
+
+.casino-dark-status strong[data-tone="danger"] {
+    color: #fecaca;
+}
+
+.casino-dark-status span {
+    color: rgba(203, 213, 225, 0.7);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.casino-dark-panel p {
+    min-height: 44px;
+    max-height: 76px;
+    margin: 0;
+    overflow: hidden;
+    border-left: 3px solid rgba(125, 211, 252, 0.42);
+    border-radius: 7px;
+    background: rgba(2, 6, 23, 0.38);
+    color: rgba(226, 232, 240, 0.82);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-weight: 780;
+    line-height: 1.45;
+}
+
+.casino-dark-panel p[data-tone="warning"] {
+    border-left-color: rgba(217, 184, 95, 0.72);
+}
+
+.casino-dark-panel p[data-tone="danger"] {
+    border-left-color: rgba(248, 113, 113, 0.72);
+}
+
+.casino-side-panel .stats-panel {
+    max-width: none !important;
+    width: auto;
+    align-self: stretch;
+    display: grid;
+    align-content: flex-start;
+    gap: 6px;
+}
+
+.casino-side-panel .stat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    padding: 6px 0;
+    color: rgba(226, 232, 240, 0.72);
+    font-weight: 800;
+}
+
+.casino-side-panel .stat-row > span {
+    color: rgba(226, 232, 240, 0.72);
+}
+
+.casino-side-panel .stat-row strong {
+    color: #f8fafc;
+    font-weight: 900;
+    text-align: right;
+}
+
+.casino-side-panel .stat-row strong span {
+    color: inherit;
+    font-weight: inherit;
+}
+
+.casino-prize-flash {
+    position: fixed;
+    left: 50%;
+    top: 20%;
+    z-index: 1000;
+    transform: translateX(-50%);
+    border: 1px solid rgba(217, 184, 95, 0.72);
+    border-radius: 10px;
+    background: rgba(8, 10, 14, 0.92);
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.48);
+    color: #ffe08a;
+    padding: 14px 26px;
+    font-size: 24px;
+    font-weight: 900;
+    animation: casinoPrizeFlash 1.6s ease forwards;
+}
+
+@keyframes casinoPrizeFlash {
+    0% { opacity: 0; transform: translate(-50%, 10px) scale(0.96); }
+    18% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -10px) scale(0.98); }
+}
+
+@media (max-height: 660px) {
+    .casino-rework .casino-header {
+        min-height: 82px;
+        padding: 10px 16px;
+    }
+
+    .casino-rework .casino-title {
+        font-size: 32px;
+    }
+
+    .casino-title-block p {
+        display: none;
+    }
+
+    .casino-rework .casino-main {
+        height: calc(100dvh - 82px);
+        padding: 10px;
+    }
+
+    .casino-rework .game-tab {
+        min-height: 38px;
+    }
+
+    .casino-rework .game-panel {
+        padding: 10px;
+    }
+
+    .casino-panel-copy p {
+        display: none;
+    }
+
+    .casino-prize-token {
+        min-height: 104px;
+    }
+
+    .casino-side-panel {
+        grid-template-rows: minmax(96px, 0.25fr) minmax(108px, auto) minmax(0, 1fr);
+    }
+
+    .casino-result-card,
+    .casino-dark-panel,
+    .casino-side-panel .stats-panel {
+        padding: 10px;
+    }
+
+    .casino-result-card h3,
+    .casino-dark-panel h3,
+    .casino-side-panel .stats-panel h3 {
+        margin-bottom: 6px;
+        font-size: 15px;
+    }
+
+    .casino-dark-panel p {
+        max-height: 62px;
+        font-size: 12px;
+    }
+}
 .town-place-tower { --place-x: 60%; --place-y: 22%; --place-tx: -50%; --place-ty: -50%; }
 .town-place-gate { --place-x: 55%; --place-y: 87%; --place-tx: -50%; --place-ty: -50%; }
 
@@ -12764,4 +13933,217 @@ body {
     .market-dialogue-scene .supply-card {
         min-height: 72px !important;
     }
+}
+
+/* Market polish pass: align the market side rail with the lobby narrative rail. */
+.market-dialogue-layout {
+    grid-template-columns: minmax(0, 6.8fr) minmax(330px, 3fr) !important;
+    gap: 14px !important;
+}
+
+.market-dialogue-scene .market-place-title p[hidden],
+.market-dialogue-scene #shop-current-copy[hidden] {
+    display: none !important;
+}
+
+.market-dialogue-scene .market-side-rail {
+    grid-template-rows: minmax(148px, 190px) minmax(0, 1fr) !important;
+    gap: 14px !important;
+    overflow: hidden !important;
+}
+
+.market-dialogue-scene .market-dynamic-panel.town-narrative-whisper {
+    padding: 15px !important;
+    border-color: rgba(220, 201, 154, 0.24) !important;
+    background:
+        linear-gradient(180deg, rgba(45, 32, 20, 0.84), rgba(11, 15, 17, 0.78)),
+        rgba(7, 10, 12, 0.78) !important;
+}
+
+.market-dialogue-scene .market-dynamic-panel .town-story-board {
+    min-height: 0 !important;
+    height: 100% !important;
+    padding-top: 12px !important;
+    overflow: hidden !important;
+    border-left: 0 !important;
+}
+
+.market-dialogue-scene .market-dynamic-panel .market-feed {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    height: 100% !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    scrollbar-width: none;
+}
+
+.market-dialogue-scene .market-dynamic-panel .market-feed::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+}
+
+.market-dialogue-scene .market-dynamic-panel .market-feed-card {
+    flex: 0 0 auto;
+    padding: 12px 13px !important;
+    border: 1px solid rgba(220, 201, 154, 0.12) !important;
+    border-radius: 10px !important;
+    border-left-width: 1px !important;
+    background: rgba(4, 7, 9, 0.34) !important;
+}
+
+.market-dialogue-scene .market-side-rail .market-carry-panel {
+    min-height: 0 !important;
+    border-color: rgba(220, 201, 154, 0.18) !important;
+    border-radius: 14px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+        rgba(11, 17, 22, 0.86) !important;
+}
+
+.market-dialogue-scene .market-side-rail .player-inventory-list {
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)) !important;
+    grid-auto-rows: 56px !important;
+    align-content: start !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-flow-card {
+    height: 56px !important;
+    border-radius: 10px !important;
+}
+
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon,
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-atlas-icon {
+    width: 36px !important;
+    height: 36px !important;
+}
+
+.market-dialogue-scene .market-trade-board.market-dialogue-board {
+    height: clamp(360px, 56vh, 500px) !important;
+    min-height: 320px !important;
+    grid-template-columns: minmax(240px, 0.42fr) minmax(0, 1fr) !important;
+}
+
+.market-dialogue-scene .dialogue-trade-main {
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+}
+
+.market-dialogue-scene .trade-status-message {
+    white-space: normal !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.market-dialogue-scene .supply-card-copy p {
+    display: -webkit-box !important;
+    overflow: hidden !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical;
+}
+
+@media (max-width: 1360px) {
+    .market-dialogue-layout {
+        grid-template-columns: minmax(0, 6.4fr) minmax(310px, 3fr) !important;
+    }
+
+    .market-dialogue-scene .market-side-rail {
+        grid-template-rows: minmax(136px, 176px) minmax(0, 1fr) !important;
+    }
+
+    .market-dialogue-scene .market-trade-board.market-dialogue-board {
+        height: clamp(338px, 55vh, 460px) !important;
+        grid-template-columns: minmax(220px, 0.4fr) minmax(0, 1fr) !important;
+    }
+}
+
+/* Market desktop layout hardening: prevent lobby rail grid-area rules from creating implicit columns. */
+.market-dialogue-scene .market-dialogue-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.44fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    grid-template-areas: "stage side" !important;
+    gap: 16px !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+}
+
+.market-dialogue-scene .market-stage {
+    grid-area: stage !important;
+    position: relative !important;
+    inset: auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+}
+
+.market-dialogue-scene .market-side-rail {
+    grid-area: side !important;
+    align-self: stretch !important;
+    justify-self: stretch !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+}
+
+.market-dialogue-scene .market-place-head {
+    width: min(760px, calc(100% - 44px)) !important;
+    max-width: none !important;
+}
+
+.market-dialogue-scene .market-trade-board.market-dialogue-board {
+    left: 22px !important;
+    right: 22px !important;
+    bottom: 22px !important;
+    top: auto !important;
+    width: auto !important;
+    height: clamp(342px, 54vh, 450px) !important;
+    max-height: calc(100% - 44px) !important;
+}
+
+.market-dialogue-scene.market-place-scene.is-trading .market-trade-board.market-dialogue-board {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.market-dialogue-scene.market-place-scene:not(.is-trading) .market-trade-board.market-dialogue-board {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: translateY(14px) scale(0.99) !important;
+}
+
+@media (max-width: 1360px) {
+    .market-dialogue-scene .market-dialogue-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 0.46fr) !important;
+        gap: 14px !important;
+    }
+
+    .market-dialogue-scene .market-trade-board.market-dialogue-board {
+        height: clamp(318px, 52vh, 410px) !important;
+        grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr) !important;
+    }
+}
+
+/* Final market state lock: the trade panel is the only overlay that should follow is-trading. */
+.market-dialogue-scene.market-place-scene.is-trading #market-stage > #trade-panel.market-trade-board.market-dialogue-board {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    visibility: visible !important;
+    transform: translateY(0) scale(1) !important;
+}
+
+.market-dialogue-scene.market-place-scene:not(.is-trading) #market-stage > #trade-panel.market-trade-board.market-dialogue-board {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+    transform: translateY(14px) scale(0.99) !important;
 }

@@ -11,6 +11,7 @@ import { getQuestStory } from '../data/QuestStories.js';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
 import GameManager from '../managers/GameManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
+import { getWorldEventJournalRecords } from '../managers/EventManager.js';
 import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldStories.js';
 import { getTownPlaces } from '../data/TownPlaces.js';
 import { RecipeDatabase, getMissingMaterials } from '../managers/RecipeManager.js';
@@ -435,6 +436,11 @@ export default class QuestScene {
                     statusText: status.finalReady ? '決戰就緒' : `${status.discoveredClues.length} 段痕跡`,
                     statusTone: status.finalReady ? 'completed' : 'active',
                     meta: [status.archetype || status.method, status.finalTrigger?.type, status.battleTemplateLinked ? '戰鬥已接線' : '等待接線'],
+                    cues: [
+                        status.finalReady ? '痕跡已收束' : `痕跡 ${status.discoveredClues.length}/${status.requiredClues || '?'}`,
+                        `推進 ${status.completedProgress || 0}/${status.requiredProgress || '?'}`,
+                        nextProgress ? `下一步：${nextProgress.label}` : `觸發：${finalLabel}`
+                    ],
                     current: currentText,
                     thoughtTitle: status.finalReady
                         ? `我現在是否可以${finalLabel}？`
@@ -499,6 +505,11 @@ export default class QuestScene {
                     statusText: '已造訪',
                     statusTone: 'finished',
                     meta: [`第 ${landmark.chapter || '?'} 章`, zones.join(' / ') || '未知區域'],
+                    cues: [
+                        zones.join(' / ') || '未知區域',
+                        effects[0]?.name ? `地形：${effects[0].name}` : '普通地形',
+                        storyChains.length > 0 ? `關聯：${storyChains[0]}` : '暫無首領線'
+                    ],
                     current: landmark.repeat || landmark.arrival || landmark.mapHint || '你在這裡留下了一段地點紀錄。',
                     thoughtTitle: '我現在是否該把這裡和其他線索連起來？',
                     thoughtText: landmark.mapHint || '地點本身不是答案，但它會讓任務、痕跡和遭遇有了位置。',
@@ -537,6 +548,11 @@ export default class QuestScene {
                     statusText: `線索 ${clue.notebookIndex}`,
                     statusTone: 'active',
                     meta: [clue.source || '現場', chainTitle],
+                    cues: [
+                        `線索 ${clue.notebookIndex}`,
+                        clue.source || '現場',
+                        chainTitle
+                    ],
                     current: clue.text || clue.lead || '這段紀錄還需要補上內容。',
                     thoughtTitle: '我現在是否該把這段紀錄放回脈絡裡？',
                     thoughtText: clue.lead || '這是原始見聞，不一定直接等於答案；把它和地點、委託、首領線合起來才有方向。',
@@ -559,7 +575,49 @@ export default class QuestScene {
                 };
             });
 
-        return [...landmarkRecords, ...clueRecords];
+        const eventRecords = getWorldEventJournalRecords()
+            .map((entry, index) => ({
+                key: `world-event:${entry.key || `${entry.eventId}:${index}`}`,
+                kind: 'world',
+                icon: entry.icon || '✦',
+                title: entry.title || '旅途事件',
+                typeLabel: '旅途事件',
+                statusIcon: '✎',
+                statusText: entry.count > 1 ? `${entry.roleLabel || '已記錄'} x${entry.count}` : entry.roleLabel || '已記錄',
+                statusTone: entry.role === 'pressure' ? 'active' : 'available',
+                meta: [entry.zoneLabel || '未知地帶', entry.roleLabel || '旅途事件'],
+                cues: [
+                    entry.zoneLabel || '未知地帶',
+                    `選擇：${entry.choiceText || '未記錄'}`,
+                    entry.resultSummary || '沒有明顯變化'
+                ],
+                current: entry.description || '你在旅途中遇到一段值得回頭看的小事。',
+                thoughtTitle: '我現在是否該把這次遭遇當成參考？',
+                thoughtText: entry.reflection || '事件不是任務清單，但會慢慢教你哪些選擇值得冒險。',
+                sections: [
+                    {
+                        title: '當時選擇',
+                        lines: [
+                            entry.choiceText || '沒有記下選擇。',
+                            entry.intent || '沒有留下選擇意圖。'
+                        ]
+                    },
+                    {
+                        title: '結果',
+                        lines: (entry.resultMessages || []).length > 0
+                            ? entry.resultMessages
+                            : [entry.resultSummary || '沒有明顯變化。']
+                    },
+                    {
+                        title: '手札判讀',
+                        lines: [entry.reflection || '之後遇到類似事件時，可以拿這次結果當比較。']
+                    }
+                ],
+                route: 'adventure',
+                routeLabel: '回到冒險地圖'
+            }));
+
+        return [...eventRecords, ...clueRecords, ...landmarkRecords];
     }
 
     getForgeMemoRecords() {
@@ -583,6 +641,13 @@ export default class QuestScene {
                     statusText: this.getStatusText(state.status),
                     statusTone: state.status === QuestStatus.COMPLETED ? 'completed' : 'active',
                     meta: [story.source, story.location, this.getTypeText(quest.type)],
+                    cues: [
+                        story.location || '工坊',
+                        this.getStatusText(state.status),
+                        progressInfo.nextObjective
+                            ? this.getStoryObjectiveText(story, progressInfo.nextObjective.index) || progressInfo.nextObjective.description || '下一段準備'
+                            : '可整理結果'
+                    ],
                     current: story.current,
                     thoughtTitle: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).title,
                     thoughtText: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).description,
@@ -633,6 +698,11 @@ export default class QuestScene {
                     statusText: craftReady ? '可以製作' : '缺少準備',
                     statusTone: craftReady ? 'completed' : 'available',
                     meta: [recipe.type, recipe.rarity, `${recipe.cost || 0}G / ${recipe.successRate || 100}%`],
+                    cues: [
+                        craftReady ? '材料齊備' : `缺口：${missingText}`,
+                        `成功率 ${recipe.successRate || 100}%`,
+                        `${recipe.cost || 0}G`
+                    ],
                     current: craftReady ? '這張圖紙已經可以嘗試製作。' : `目前需要補上：${missingText}`,
                     thoughtTitle: craftReady ? `我現在是否要製作「${recipe.name}」？` : '我現在是否該先補材料？',
                     thoughtText: craftReady
@@ -680,6 +750,11 @@ export default class QuestScene {
                     statusText: place.name,
                     statusTone: 'finished',
                     meta: [place.tag, place.name],
+                    cues: [
+                        place.name,
+                        place.tag || '城鎮',
+                        '已留下變化'
+                    ],
                     current: state.text,
                     thoughtTitle: '我現在是否該回去看看城鎮變成什麼樣？',
                     thoughtText: '這不是任務清單，而是事情做完以後留在城鎮裡的痕跡。',
@@ -802,6 +877,7 @@ export default class QuestScene {
         }
 
         const meta = Array.isArray(record.meta) ? record.meta.filter(Boolean) : [];
+        const cues = Array.isArray(record.cues) ? record.cues.filter(Boolean).slice(0, 3) : [];
         const progress = record.progress || null;
         const progressText = progress
             ? `${progress.current}/${progress.required}`
@@ -814,6 +890,11 @@ export default class QuestScene {
                 <span><b>狀態</b>${escapeHtml(record.statusText || '已記錄')}</span>
                 ${meta.slice(0, 2).map((text, index) => `<span><b>${index === 0 ? '來源' : '關聯'}</b>${escapeHtml(text)}</span>`).join('')}
             </div>
+            ${cues.length > 0 ? `
+                <div class="quest-note-cues" aria-label="手札摘要">
+                    ${cues.map(text => `<span>${escapeHtml(text)}</span>`).join('')}
+                </div>
+            ` : ''}
             <section class="quest-note-current" aria-label="目前紀錄">
                 <div class="quest-note-speaker">
                     <span class="quest-note-avatar">${escapeHtml(record.icon || '📖')}</span>

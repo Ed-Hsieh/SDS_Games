@@ -55,11 +55,14 @@ async function main() {
             ratio: grade.ratio,
             grade: grade.grade,
             severity: grade.severity,
+            setId: item.setId || null,
+            setName: item.setId ? SetDatabase[item.setId]?.name || item.setId : '',
             sources: sourceInfo.length
         };
     });
 
     const issues = [];
+    const notes = [...(sourceAudit.notes || [])];
     const seenIds = new Set();
 
     for (const item of items) {
@@ -88,11 +91,19 @@ async function main() {
 
     for (const row of rows) {
         if (row.severity !== 'normal') {
-            issues.push({
-                severity: row.severity,
+            const isSetDeviation = Boolean(row.setId);
+            const entry = {
+                severity: isSetDeviation ? 'set-piece' : row.severity,
                 id: row.id,
-                message: `${row.name} ${row.grade}，分數 ${row.score}/${row.target}，倍率 ${row.ratio}`
-            });
+                message: isSetDeviation
+                    ? `${row.name} 單件 ${row.grade}，但屬於「${row.setName}」套裝；需用套裝啟用後表現判斷，分數 ${row.score}/${row.target}，倍率 ${row.ratio}`
+                    : `${row.name} ${row.grade}，分數 ${row.score}/${row.target}，倍率 ${row.ratio}`
+            };
+            if (isSetDeviation) {
+                notes.push(entry);
+            } else {
+                issues.push(entry);
+            }
         }
     }
 
@@ -121,6 +132,7 @@ async function main() {
     console.log('Equipment balance audit');
     console.log(`Items: ${items.length}`);
     console.log(`Issues: ${issues.length} (${Object.entries(bySeverity).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'})`);
+    console.log(`Notes: ${notes.length} (${notes.length > 0 ? 'set-piece deviations intentionally reviewed separately' : 'none'})`);
     console.log('');
     printTable('Highest ratios', strongest);
     console.log('');
@@ -139,6 +151,14 @@ async function main() {
         console.log('Issues');
         for (const issue of issues) {
             console.log(`- [${issue.severity}] ${issue.id}: ${issue.message}`);
+        }
+    }
+
+    if (notes.length > 0) {
+        console.log('');
+        console.log('Notes');
+        for (const note of notes) {
+            console.log(`- [${note.severity}] ${note.id}: ${note.message}`);
         }
     }
 }
@@ -160,6 +180,7 @@ function buildEquipmentSourceAudit(context) {
     };
     const sources = new Map();
     const issues = [];
+    const notes = [];
     const monsterDropLinks = [];
     const recipeResultLinks = [];
     const questRewardLinks = [];
@@ -174,6 +195,10 @@ function buildEquipmentSourceAudit(context) {
 
     const addIssue = (severity, id, message) => {
         issues.push({ severity, id, message });
+    };
+
+    const addNote = (severity, id, message) => {
+        notes.push({ severity, id, message });
     };
 
     const allQuestList = Object.values(QuestDatabase || {}).flatMap(group => Array.isArray(group) ? group : []);
@@ -212,10 +237,19 @@ function buildEquipmentSourceAudit(context) {
     for (const [recipeId, recipe] of Object.entries(RecipeDatabase || {})) {
         const resultId = recipe.result?.id;
         if (!resultId) continue;
+        if (isEquipmentType(recipe.type)) {
+            recipeResultLinks.push({
+                equipmentId: resultId,
+                kind: 'recipe',
+                id: recipeId,
+                name: recipe.name,
+                rarity: recipe.rarity,
+                level: recipe.result?.level || recipe.result?.requiredLevel || recipe.level || null
+            });
+        }
         if (EquipmentDatabase[resultId]) {
             const source = { kind: 'recipe', id: recipeId, name: recipe.name, rarity: recipe.rarity };
             addSource(resultId, source);
-            recipeResultLinks.push({ equipmentId: resultId, ...source });
         }
 
         if (isEquipmentType(recipe.type) && !recipe.result?.level && !recipe.result?.requiredLevel) {
@@ -238,7 +272,7 @@ function buildEquipmentSourceAudit(context) {
         for (const drop of drops || []) {
             const recipe = RecipeDatabase[drop.recipeId];
             const resultId = recipe?.result?.id;
-            if (!resultId || !EquipmentDatabase[resultId]) continue;
+            if (!resultId || !isEquipmentType(recipe?.type)) continue;
             const source = {
                 kind: 'blueprint-source',
                 id: sourceKey,
@@ -246,7 +280,7 @@ function buildEquipmentSourceAudit(context) {
                 level: Number(monster?.level) || null,
                 chance: drop.chance ?? null
             };
-            addSource(resultId, source);
+            if (EquipmentDatabase[resultId]) addSource(resultId, source);
             blueprintSourceLinks.push({ equipmentId: resultId, recipeId: drop.recipeId, ...source });
         }
     }
@@ -262,7 +296,12 @@ function buildEquipmentSourceAudit(context) {
             const minExpected = Math.min(...expectedIndexes);
             const maxExpected = Math.max(...expectedIndexes);
             if (rarityIndex > maxExpected + 1) {
-                addIssue('design', item.id, `${item.name} 在 ${band.label} 等級帶稀有度偏高：${item.rarity}`);
+                const message = `${item.name} 在 ${band.label} 等級帶稀有度偏高：${item.rarity}`;
+                if (hasBalanceIntent(item, 'early_chase_unique')) {
+                    addNote('early-chase', item.id, `${message}；已標記為早期低機率追逐掉落。`);
+                } else {
+                    addIssue('design', item.id, message);
+                }
             } else if (rarityIndex < minExpected - 1) {
                 addIssue('design', item.id, `${item.name} 在 ${band.label} 等級帶稀有度偏低：${item.rarity}`);
             }
@@ -306,6 +345,7 @@ function buildEquipmentSourceAudit(context) {
 
     return {
         sources,
+        notes,
         issues,
         coverage: {
             withSource: Object.values(EquipmentDatabase).filter(item => (sources.get(item.id) || []).length > 0).length,
@@ -317,16 +357,21 @@ function buildEquipmentSourceAudit(context) {
     };
 }
 
+function hasBalanceIntent(item, intent) {
+    const intents = Array.isArray(item?.balanceIntent) ? item.balanceIntent : [item?.balanceIntent];
+    return intents.includes(intent);
+}
+
 function isEquipmentType(type) {
     return ['weapon', 'armor', 'equipment', 'accessory'].includes(String(type || '').toLowerCase());
 }
 
 function printTable(title, rows) {
     console.log(title);
-    console.log('id | lv | rarity | type | score/target | ratio | grade | sources');
-    console.log('--- | ---: | --- | --- | ---: | ---: | --- | ---:');
+    console.log('id | lv | rarity | type | score/target | ratio | grade | set | sources');
+    console.log('--- | ---: | --- | --- | ---: | ---: | --- | --- | ---:');
     for (const row of rows) {
-        console.log(`${row.id} | ${row.level} | ${row.rarity} | ${row.type} | ${row.score}/${row.target} | ${row.ratio} | ${row.grade} | ${row.sources}`);
+        console.log(`${row.id} | ${row.level} | ${row.rarity} | ${row.type} | ${row.score}/${row.target} | ${row.ratio} | ${row.grade} | ${row.setName || '-'} | ${row.sources}`);
     }
 }
 

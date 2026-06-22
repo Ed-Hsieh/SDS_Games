@@ -57,6 +57,17 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
 
 const EVENT_MEMORY_FLAG_PREFIX = 'event.memory.';
 const EVENT_LAST_STEP_FLAG_PREFIX = 'event.lastStep.';
+const WORLD_EVENT_JOURNAL_LIMIT = 24;
+
+const EVENT_ROLE_LABELS = {
+    [EventRole.RESOURCE]: '補給發現',
+    [EventRole.RISK_REWARD]: '風險抉擇',
+    [EventRole.TRADE]: '旅途交易',
+    [EventRole.STORY_SEED]: '故事種子',
+    [EventRole.SIDE_STORY]: '支線聽聞',
+    [EventRole.WORLD_LORE]: '世界見聞',
+    [EventRole.PRESSURE]: '章節壓力'
+};
 
 function getEventMemoryKey(eventObj = {}) {
     return String(eventObj.memoryKey || eventObj.id || '').trim();
@@ -85,6 +96,130 @@ function getEventMemoryFlag(eventObj = {}, chapter = null) {
 function getEventLastStepFlag(eventObj = {}) {
     const key = getEventMemoryKey(eventObj);
     return key ? `${EVENT_LAST_STEP_FLAG_PREFIX}${key}` : null;
+}
+
+function getWorldEventJournalState() {
+    if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+        GameManager.state.ui = {};
+    }
+
+    if (!Array.isArray(GameManager.state.ui.worldEventJournal)) {
+        GameManager.state.ui.worldEventJournal = [];
+    }
+
+    return GameManager.state.ui.worldEventJournal;
+}
+
+export function getWorldEventJournalRecords() {
+    return getWorldEventJournalState().slice();
+}
+
+function getEventRoleLabel(eventRole) {
+    return EVENT_ROLE_LABELS[eventRole] || '旅途事件';
+}
+
+function getEventZoneLabel(zoneId) {
+    const labels = {
+        low: '低威脅區',
+        medium: '中威脅區',
+        high: '高威脅區',
+        death: '死亡區',
+        boss: '首領邊境'
+    };
+    return labels[zoneId] || zoneId || '未知地帶';
+}
+
+function summarizeEventResults(results = [], messages = []) {
+    const typed = results.map(result => {
+        switch (result?.type) {
+            case ResultType.GOLD:
+                return Number(result.value) > 0 ? `金幣 +${result.value}` : '';
+            case ResultType.HEAL:
+                return result.isPercent ? `恢復 ${Math.round(Number(result.value || 0) * 100)}%` : `恢復 ${result.value || 0}`;
+            case ResultType.DAMAGE:
+                return `受傷 ${result.value || 0}`;
+            case ResultType.ITEM:
+                return '取得物資';
+            case ResultType.BUFF:
+                return '短暫強化';
+            case ResultType.DEBUFF:
+                return '承受負面狀態';
+            case ResultType.EXP:
+                return `經驗 +${result.value || 0}`;
+            case ResultType.UNLOCK_QUEST:
+                return '新增委託';
+            case ResultType.WORLD_INTERACTION:
+                return '新增聽聞';
+            default:
+                return '';
+        }
+    }).filter(Boolean);
+
+    return [...new Set(typed)].slice(0, 4).join('、') || messages.filter(Boolean).slice(0, 2).join('、') || '沒有明顯變化';
+}
+
+function getEventReflection(eventObj = {}, choice = {}, results = []) {
+    if ((results || []).some(result => result?.type === ResultType.WORLD_INTERACTION || result?.type === ResultType.UNLOCK_QUEST)) {
+        return '這不是單純的事件結果，它把新的委託、聽聞或世界變化推進了一格。';
+    }
+
+    switch (eventObj.eventRole) {
+        case EventRole.RESOURCE:
+            return '這類事件會補充續航，適合在深入地圖前判斷自己是否還能繼續走。';
+        case EventRole.RISK_REWARD:
+            return '收益與代價都很明顯，之後遇到類似情況時可以拿這次選擇當參考。';
+        case EventRole.TRADE:
+            return '旅途交易讓金幣不只是存款，也能換成情報、補給或臨時戰力。';
+        case EventRole.WORLD_LORE:
+            return '這段紀錄讓地脈、地點與章節災害多了一塊可以對照的碎片。';
+        case EventRole.PRESSURE:
+            return '附近的世界壓力正在升高，繼續深入前最好先確認裝備與藥水。';
+        default:
+            return choice.intent || '這段經歷已被整理成旅途筆記，之後可以回來對照。';
+    }
+}
+
+function recordWorldEventJournal(eventObj = {}, choice = {}, results = [], messages = [], context = {}) {
+    if (!eventObj?.id) return;
+
+    const journal = getWorldEventJournalState();
+    const zone = context.zone || eventObj.zone || eventObj._eventContext?.zone || '';
+    const entry = {
+        key: `${eventObj.id}:${Date.now()}`,
+        eventId: eventObj.id,
+        title: eventObj.name || '旅途事件',
+        icon: eventObj.icon || '✦',
+        role: eventObj.eventRole || EventRole.RESOURCE,
+        roleLabel: getEventRoleLabel(eventObj.eventRole),
+        zone,
+        zoneLabel: getEventZoneLabel(zone),
+        choiceText: choice.text || '沒有記下選擇',
+        intent: choice.intent || '',
+        description: eventObj.description || '',
+        resultSummary: summarizeEventResults(results, messages),
+        resultMessages: messages.filter(Boolean).slice(0, 4),
+        reflection: getEventReflection(eventObj, choice, results),
+        timestamp: Date.now()
+    };
+
+    const last = journal[0];
+    if (last?.eventId === entry.eventId && last?.choiceText === entry.choiceText) {
+        journal[0] = {
+            ...last,
+            ...entry,
+            key: last.key,
+            count: Number(last.count || 1) + 1
+        };
+    } else {
+        journal.unshift(entry);
+    }
+
+    if (journal.length > WORLD_EVENT_JOURNAL_LIMIT) {
+        journal.splice(WORLD_EVENT_JOURNAL_LIMIT);
+    }
+
+    GameManager.markSaveDirty?.('world-event-journal');
+    GameManager.notify?.('world-event-journal');
 }
 
 function getCurrentEventStep(options = {}) {
@@ -165,6 +300,65 @@ export function getCurrentStoryChapter() {
 
 function getEventChapter(options = {}) {
     return options.chapter !== undefined ? normalizeChapter(options.chapter) : getCurrentStoryChapter();
+}
+
+function adjustEventTypeWeights(candidates = [], zoneType = 'low', chapter = 1) {
+    const activeChapter = normalizeChapter(chapter);
+    const pressureTypes = new Set([
+        EventType.CURSE,
+        EventType.GAMBLE,
+        EventType.MYSTERY,
+        EventType.ENCOUNTER
+    ]);
+    const chapterMultipliers = activeChapter >= 3
+        ? {
+            [EventType.BLESSING]: 0.72,
+            [EventType.CURSE]: 1.18,
+            [EventType.GAMBLE]: 1.08,
+            [EventType.TRADE]: 0.88,
+            [EventType.MYSTERY]: 1.25,
+            [EventType.ENCOUNTER]: 1.18
+        }
+        : activeChapter >= 2
+            ? {
+                [EventType.BLESSING]: 0.88,
+                [EventType.CURSE]: 1.05,
+                [EventType.GAMBLE]: 1.12,
+                [EventType.TRADE]: 1.05,
+                [EventType.MYSTERY]: 1.18,
+                [EventType.ENCOUNTER]: 1
+            }
+            : {
+                [EventType.BLESSING]: 1.04,
+                [EventType.CURSE]: 0.74,
+                [EventType.GAMBLE]: 0.82,
+                [EventType.TRADE]: 1.12,
+                [EventType.MYSTERY]: 0.9,
+                [EventType.ENCOUNTER]: 0.95
+            };
+    const zonePressure = zoneType === 'death' || zoneType === 'boss'
+        ? 1.16
+        : zoneType === 'high'
+            ? 1.08
+            : zoneType === 'low'
+                ? 0.94
+                : 1;
+
+    return candidates.map(entry => {
+        const baseWeight = Number(entry.weight);
+        const multiplier = chapterMultipliers[entry.type] ?? 1;
+        const pressureMultiplier = pressureTypes.has(entry.type) ? zonePressure : 1;
+        const weight = Math.max(0.01, (Number.isFinite(baseWeight) ? baseWeight : 1) * multiplier * pressureMultiplier);
+        return { ...entry, weight };
+    });
+}
+
+function getMapQuestionDiscoveryChance(zoneType = 'low', chapter = 1) {
+    const activeChapter = normalizeChapter(chapter);
+    let chance = activeChapter >= 3 ? 0.3 : activeChapter >= 2 ? 0.38 : 0.48;
+    if (zoneType === 'low' && activeChapter === 1) chance += 0.04;
+    if (zoneType === 'death' || zoneType === 'boss') chance -= 0.06;
+    return Math.max(0.24, Math.min(0.52, chance));
 }
 
 function pickEventByIds(eventIds = [], rng = Math.random, zoneType = null, options = {}) {
@@ -362,7 +556,7 @@ export function getEventForZone(zoneType, rng = Math.random, options = {}) {
         ]
     };
 
-    const candidates = zoneWeights[zoneType] || zoneWeights.low;
+    const candidates = adjustEventTypeWeights(zoneWeights[zoneType] || zoneWeights.low, zoneType, chapter);
     const chosen = weightedPick(candidates, rng);
     const targetType = chosen ? chosen.type : EventType.MYSTERY;
 
@@ -381,10 +575,11 @@ export function getEventForZone(zoneType, rng = Math.random, options = {}) {
 }
 
 export function getMapQuestionEventForZone(zoneType = 'low', rng = Math.random, options = {}) {
+    const chapter = getEventChapter(options);
     const eventIds = MAP_QUESTION_EVENT_IDS_BY_ZONE[zoneType] || MAP_QUESTION_EVENT_IDS_BY_ZONE.low;
-    const discoveryEvent = pickEventByIds(eventIds, rng, zoneType, options);
-    if (discoveryEvent && rng() < 0.55) return discoveryEvent;
-    return getEventForZone(zoneType, rng, options) || discoveryEvent;
+    const discoveryEvent = pickEventByIds(eventIds, rng, zoneType, { ...options, chapter });
+    if (discoveryEvent && rng() < getMapQuestionDiscoveryChance(zoneType, chapter)) return discoveryEvent;
+    return getEventForZone(zoneType, rng, { ...options, chapter }) || discoveryEvent;
 }
 
 function getWeightedRandomResults(randomResults, rng = Math.random) {
@@ -556,6 +751,11 @@ export function executeChoice(eventObj, choiceIndex) {
         choice,
         results,
         stepCount: eventObj.stepCount ?? eventObj._eventContext?.stepCount
+    });
+
+    recordWorldEventJournal(eventObj, choice, results, resultMessages, {
+        ...(eventObj._eventContext || {}),
+        zone: eventObj.zone
     });
 
     return { success: true, eventName: eventObj.name, messages: resultMessages };

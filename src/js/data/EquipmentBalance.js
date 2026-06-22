@@ -261,6 +261,65 @@ export function getRecommendedEquipmentStats(itemLike = {}) {
     };
 }
 
+function getSpecialEffectPowerScore(effects = []) {
+    if (!Array.isArray(effects) || effects.length === 0) return 0;
+
+    return effects.reduce((score, effect) => {
+        const type = effect?.type;
+        const value = Number(effect?.value || 0);
+        const percent = normalizePercentInt(value);
+
+        switch (type) {
+            case AffixStat.HP:
+                return score + value * 0.10;
+            case AffixStat.CRIT_DAMAGE:
+                return score + percent * 0.40;
+            case AffixStat.LIFE_STEAL:
+                return score + percent * 1.00;
+            case AffixStat.DAMAGE_REDUCTION:
+                return score + percent * 1.20;
+            case AffixStat.DODGE_CHANCE:
+                return score + percent * 1.00;
+            case AffixStat.ARMOR_PENETRATION:
+                return score + percent * 0.80;
+            case AffixStat.DOUBLE_STRIKE:
+                return score + percent * 1.00;
+            case AffixStat.EXECUTE:
+                return score + percent * 0.70;
+            case AffixStat.DAMAGE_REFLECT:
+                return score + percent * 0.80;
+            case AffixStat.REVIVE:
+                return score + percent * 1.20;
+            case AffixStat.ALL_STATS:
+                return score + percent * 1.40;
+            case AffixStat.HP_REGEN:
+                return score + value * 2.00;
+            case AffixStat.SLOW_CHANCE:
+            case AffixStat.STUN_CHANCE:
+                return score + percent * 0.90;
+            case AffixStat.BOSS_BONUS:
+                return score + percent * 0.80;
+            case AffixStat.FIRE:
+            case AffixStat.VOID:
+            case AffixStat.VOID_DAMAGE:
+                return score + percent * 0.70;
+            case AffixStat.ICE:
+            case AffixStat.THUNDER:
+                return score + percent * 0.60;
+            case AffixStat.LIGHT:
+                return score + percent * 0.55;
+            case AffixStat.POISON:
+                return score + value * 1.10;
+            case AffixStat.GOLD_BONUS:
+            case AffixStat.EXP_BONUS:
+            case AffixStat.DROP_BONUS:
+                return score + percent * 0.25;
+            default:
+                return score + 3;
+        }
+    }, 0);
+}
+
 export function getEquipmentPowerBudget(itemLike = {}) {
     const kind = normalizeEquipmentKind(itemLike.type);
     const typeBalance = EQUIPMENT_TYPE_BALANCE[kind] || EQUIPMENT_TYPE_BALANCE[ItemType.ARMOR];
@@ -277,7 +336,7 @@ export function getEquipmentPowerBudget(itemLike = {}) {
         + hp * weights.hp
         + critChance * weights.critChance
         + Math.max(0, critDamage - 1.5) * weights.critDamage
-        + (Array.isArray(itemLike.specialEffects) ? itemLike.specialEffects.length * 3 : 0);
+        + getSpecialEffectPowerScore(itemLike.specialEffects);
 
     return {
         level: Math.max(1, Number(itemLike.level || itemLike.requiredLevel) || 1),

@@ -633,14 +633,30 @@ class QuestManager {
         }
 
         if (eventType === 'quest_completed') {
-            const rewardText = this.getRewardToastText(data.rewards, data.blueprintUnlocks);
-            showGlobalToast('回報完成', rewardText || `「${questName}」已收錄。`, 'success');
+            showGlobalToast('回報完成', this.getQuestCompletionToastText(questName, data), 'success');
             return;
         }
 
         if (eventType === 'hidden_quest_discovered') {
             showGlobalToast('新的聽聞', `「${questName}」已寫入旅人手札。`, 'quest');
         }
+    }
+
+    getQuestCompletionToastText(questName, data = {}) {
+        const parts = [];
+        const rewardText = this.getRewardToastText(data.rewards, data.blueprintUnlocks).replace(/^獲得\s*/, '');
+        const newClues = Array.isArray(data.storyOutcome?.newClues) ? data.storyOutcome.newClues : [];
+        const progressUpdates = Array.isArray(data.storyOutcome?.progressUpdates) ? data.storyOutcome.progressUpdates : [];
+        const finalReady = Array.isArray(data.storyOutcome?.finalReady) ? data.storyOutcome.finalReady : [];
+
+        if (rewardText) parts.push(`收穫：${rewardText}`);
+        if (newClues.length > 0) parts.push(`手札新增 ${newClues.length} 段線索`);
+        if (finalReady.length > 0) parts.push('首領痕跡已收束');
+        else if (progressUpdates.length > 0) parts.push('首領痕跡有新推進');
+
+        return parts.length > 0
+            ? `「${questName}」已回報，${parts.join('；')}。`
+            : `「${questName}」已回報，這段紀錄收進旅人手札。`;
     }
 
     getRewardToastText(rewards = {}, blueprintUnlocks = []) {

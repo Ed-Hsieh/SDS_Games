@@ -156,7 +156,8 @@ class App {
 
         } catch (error) {
             console.error('Error loading scene:', error);
-            this.appContainer.innerHTML = `<div style="color:red; padding:20px;">Error loading scene: ${error.message}</div>`;
+            this.appContainer.innerHTML = '<div class="scene-load-error">場景載入失敗，請重新整理或回到大廳。</div>';
+            showGlobalToast('場景載入失敗', '目前畫面無法正確開啟，請重新整理或返回大廳。', 'error');
         }
     }
 

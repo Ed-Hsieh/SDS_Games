@@ -42,7 +42,7 @@ export const EquipmentDatabase = {
         atlas: EQUIPMENT_ATLAS.oldArmor,
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.COMMON,
-        level: 4,
+        level: 1,
         stats: {
             attack: 0,
             defense: 6,
@@ -75,6 +75,7 @@ export const EquipmentDatabase = {
         ],
         setId: null,
         description: '由史萊姆凝膠包裹的劍，攻擊時能吸取少量生命。',
+        balanceIntent: 'early_chase_unique',
         dropFrom: ['slime']
     },
 
@@ -153,10 +154,10 @@ export const EquipmentDatabase = {
         rarity: ItemRarity.UNCOMMON,
         level: 5,
         stats: {
-            attack: 5,
-            defense: 5,
+            attack: 6,
+            defense: 7,
             critChance: 0.08,
-            critDamage: 1.4
+            critDamage: 1.45
         },
         specialEffects: [
             { type: AffixStat.POISON, value: 5 }
@@ -483,7 +484,7 @@ export const EquipmentDatabase = {
         ],
         setId: 'elemental_master',
         description: '燃燒著永恆火焰的劍。',
-        dropFrom: ['fire_elemental', 'tower_flame_imp']
+        dropFrom: ['fire_elemental']
     },
 
     frost_blade: {
@@ -687,15 +688,15 @@ export const EquipmentDatabase = {
         rarity: ItemRarity.LEGENDARY,
         level: 28,
         stats: {
-            attack: 14,
-            defense: 50,
+            attack: 16,
+            defense: 68,
             critChance: 0.13,
             critDamage: 1.6
         },
         specialEffects: [
-            { type: AffixStat.DAMAGE_REDUCTION, value: 15 },
-            { type: AffixStat.DAMAGE_REFLECT, value: 10 },
-            { type: AffixStat.HP, value: 40 }
+            { type: AffixStat.DAMAGE_REDUCTION, value: 18 },
+            { type: AffixStat.DAMAGE_REFLECT, value: 12 },
+            { type: AffixStat.HP, value: 160 }
         ],
         setId: null,
         description: '暗影霸主的鎧甲，散發著邪惡氣息。',
@@ -1024,10 +1025,10 @@ export const EquipmentDatabase = {
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
         stats: {
-            attack: 45,
+            attack: 56,
             defense: 0,
-            critChance: 0.18,
-            critDamage: 2.2,
+            critChance: 0.20,
+            critDamage: 2.3,
             weaponSpeed: 1.0,
             attackSpeed: 1.1
         },
@@ -1036,7 +1037,7 @@ export const EquipmentDatabase = {
         setId: null,
         canEnhance: true,
         level: 24,
-        specialEffects: [ { type: AffixStat.FIRE, value: 15 } ],
+        specialEffects: [ { type: AffixStat.FIRE, value: 22 } ],
         dropSource: 'elder_dragon'
     },
     
@@ -1048,18 +1049,18 @@ export const EquipmentDatabase = {
         type: EquipmentType.ARMOR,
         rarity: ItemRarity.EPIC,
         stats: {
-            attack: 10,
-            defense: 45,
+            attack: 12,
+            defense: 60,
             critChance: 0.08,
             critDamage: 1.5,
-            hp: 120
+            hp: 160
         },
         price: 3000,
         description: '暗影霸主的戰甲，堅不可摧。',
         setId: null,
         canEnhance: true,
         level: 26,
-        specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 0.08 } ],
+        specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 10 } ],
         dropSource: 'shadow_overlord'
     },
     
@@ -1071,15 +1072,15 @@ export const EquipmentDatabase = {
         rarity: ItemRarity.LEGENDARY,
         // 移至統一的 stats 物件供工具使用
         stats: {
-            attack: 14,
-            defense: 54,
+            attack: 16,
+            defense: 72,
             critChance: 0.09,
             critDamage: 1.5,
-            hp: 180
+            hp: 240
         },
         // 保留額外特效於 specialEffects，數值用百分比或小數皆可（工具會自動處理）
         specialEffects: [
-            { type: AffixStat.DAMAGE_REDUCTION, value: 0.12 }
+            { type: AffixStat.DAMAGE_REDUCTION, value: 16 }
         ],
         // 仍保留原本的其他欄位（如果系統其他部分依賴）
         darkResist: 0.25,
