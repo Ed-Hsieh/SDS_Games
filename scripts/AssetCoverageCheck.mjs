@@ -40,8 +40,7 @@ function toFsPath(assetPath) {
     return path.resolve(rootDir, String(assetPath || '').replace(/^\/+/, ''));
 }
 
-function readPngDimensions(assetPath) {
-    const filePath = toFsPath(assetPath);
+function readPngDimensions(filePath) {
     const buffer = fs.readFileSync(filePath);
     const pngSignature = '89504e470d0a1a0a';
     if (buffer.length < 24 || buffer.subarray(0, 8).toString('hex') !== pngSignature) {
@@ -53,8 +52,66 @@ function readPngDimensions(assetPath) {
     };
 }
 
+function readWebpDimensions(filePath) {
+    const buffer = fs.readFileSync(filePath);
+    if (
+        buffer.length < 30
+        || buffer.subarray(0, 4).toString('ascii') !== 'RIFF'
+        || buffer.subarray(8, 12).toString('ascii') !== 'WEBP'
+    ) {
+        return null;
+    }
+
+    const chunk = buffer.subarray(12, 16).toString('ascii');
+    if (chunk === 'VP8X' && buffer.length >= 30) {
+        return {
+            width: 1 + buffer.readUIntLE(24, 3),
+            height: 1 + buffer.readUIntLE(27, 3)
+        };
+    }
+
+    if (chunk === 'VP8L' && buffer.length >= 25) {
+        const b0 = buffer[21];
+        const b1 = buffer[22];
+        const b2 = buffer[23];
+        const b3 = buffer[24];
+        return {
+            width: 1 + (b0 | ((b1 & 0x3f) << 8)),
+            height: 1 + (((b1 & 0xc0) >> 6) | (b2 << 2) | ((b3 & 0x0f) << 10))
+        };
+    }
+
+    if (chunk === 'VP8 ' && buffer.length >= 30) {
+        const dataStart = 20;
+        if (
+            buffer[dataStart + 3] === 0x9d
+            && buffer[dataStart + 4] === 0x01
+            && buffer[dataStart + 5] === 0x2a
+        ) {
+            return {
+                width: buffer.readUInt16LE(dataStart + 6) & 0x3fff,
+                height: buffer.readUInt16LE(dataStart + 8) & 0x3fff
+            };
+        }
+    }
+
+    return null;
+}
+
+function readImageDimensions(assetPath) {
+    const filePath = toFsPath(assetPath);
+    const extension = path.extname(filePath).toLowerCase();
+    if (extension === '.png') {
+        return readPngDimensions(filePath);
+    }
+    if (extension === '.webp') {
+        return readWebpDimensions(filePath);
+    }
+    return null;
+}
+
 function checkDimensions(scope, id, assetPath, options = {}) {
-    const dimensions = readPngDimensions(assetPath);
+    const dimensions = readImageDimensions(assetPath);
     if (!dimensions) return;
 
     const { width, height } = dimensions;

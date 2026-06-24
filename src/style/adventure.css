@@ -219,7 +219,7 @@
     margin: 2px 0;
 }
 
-/* ===== 首領痕跡簿 ===== */
+/* ===== 旅人手札 ===== */
 .clue-book-tab {
     position: absolute;
     left: 18px;
@@ -292,7 +292,7 @@
     z-index: 14;
     width: min(390px, calc(100vw - 36px));
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
     border: 1px solid rgba(216, 181, 95, 0.34);
     border-radius: 8px;
     background:
@@ -346,6 +346,59 @@
     border-bottom: 1px solid rgba(216, 181, 95, 0.12);
 }
 
+.clue-book-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 10px 18px;
+    border-bottom: 1px solid rgba(216, 181, 95, 0.12);
+}
+
+.clue-book-filter {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 9px;
+    border: 1px solid rgba(216, 181, 95, 0.16);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.035);
+    color: #c7d2d1;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.clue-book-filter:nth-child(5) {
+    grid-column: 1 / -1;
+}
+
+.clue-book-filter:hover:not(:disabled),
+.clue-book-filter.is-active {
+    border-color: rgba(216, 181, 95, 0.62);
+    background: rgba(216, 181, 95, 0.14);
+    color: #f8fafc;
+}
+
+.clue-book-filter:disabled {
+    cursor: default;
+    opacity: 0.42;
+}
+
+.clue-book-filter b {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(216, 181, 95, 0.12);
+    color: #f3d990;
+    font-size: 11px;
+}
+
 .clue-book-content {
     min-height: 0;
     overflow-y: auto;
@@ -356,6 +409,87 @@
 .clue-book-content::-webkit-scrollbar {
     width: 0;
     height: 0;
+}
+
+.handbook-quick-list {
+    display: grid;
+    gap: 10px;
+}
+
+.handbook-quick-card {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(216, 181, 95, 0.18);
+    border-radius: 7px;
+    background:
+        linear-gradient(135deg, rgba(216, 181, 95, 0.07), rgba(255, 255, 255, 0.025)),
+        rgba(8, 10, 10, 0.5);
+}
+
+.handbook-quick-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.handbook-quick-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 18px;
+}
+
+.handbook-quick-kicker {
+    display: block;
+    color: #d8b55f;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.handbook-quick-card h3 {
+    margin: 2px 0 0;
+    color: #f8fafc;
+    font-size: 15px;
+    line-height: 1.25;
+}
+
+.handbook-quick-meta {
+    width: fit-content;
+    max-width: 100%;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.08);
+    color: #b7d8e7;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.handbook-quick-card p,
+.handbook-quick-card small,
+.handbook-quick-empty {
+    margin: 0;
+    color: #c7d2d1;
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.handbook-quick-card small {
+    display: block;
+    color: #91a39b;
+}
+
+.handbook-quick-empty {
+    padding: 14px;
+    border: 1px dashed rgba(216, 181, 95, 0.24);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .notebook-chain {

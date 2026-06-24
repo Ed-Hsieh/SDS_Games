@@ -1,46 +1,38 @@
 import { MaterialDatabase } from './Materials.js';
+import { attachCharacterProfile } from './CharacterProfiles.js';
 
-const A = (row, col) => ({ row, col });
 
 export const MarketSceneAssets = {
-    background: 'src/assets/images/generated/2026-06-10/cropped/town-places/market.png',
-    itemAtlas: 'src/assets/images/atlases/item-atlas-v1.png'
+    background: 'src/assets/images/art-v2/town-places/market.webp',
 };
 
 export const MarketItemCatalog = {
     health_potion_s: {
         ...MaterialDatabase.health_potion_s,
-        atlas: A(0, 0),
         marketUse: '基礎補給'
     },
     antidote: {
         ...MaterialDatabase.antidote,
-        atlas: A(1, 8),
         marketUse: '毒霧與叢林探索'
     },
     slime_jelly: {
         ...MaterialDatabase.slime_jelly,
-        atlas: A(1, 4),
         marketUse: '藥水原料'
     },
     beast_hide: {
         ...MaterialDatabase.beast_hide,
-        atlas: A(8, 0),
         marketUse: '修補與委託材料'
     },
     iron_ore: {
         ...MaterialDatabase.iron_ore,
-        atlas: A(2, 1),
         marketUse: '鍛造原料'
     },
     iron_shard: {
         ...MaterialDatabase.iron_shard,
-        atlas: A(2, 7),
         marketUse: '低階鍛造補洞'
     },
     spider_silk: {
         ...MaterialDatabase.spider_silk,
-        atlas: A(8, 7),
         marketUse: '誘餌與防毒織物'
     },
     silver_thread_bait: {
@@ -53,7 +45,6 @@ export const MarketItemCatalog = {
         sellPrice: 20,
         stackable: true,
         maxStack: 9,
-        atlas: A(7, 0),
         desc: '纏著細銀絲的小鉤，只有在銀絲最密的伏道設下，才可能把潛伏者引出來。',
         marketUse: '銀鐮伏獵者觸發道具'
     },
@@ -64,7 +55,6 @@ export const MarketItemCatalog = {
         type: 'quest',
         rarity: 'uncommon',
         price: 150,
-        atlas: A(6, 2),
         desc: '一張破舊的地圖碎片，能拼出危險路徑的一角。',
         marketUse: '懸賞與路線情報'
     },
@@ -76,7 +66,6 @@ export const MarketItemCatalog = {
         rarity: 'legendary',
         price: 1000,
         isSecretKey: true,
-        atlas: A(7, 4),
         desc: '一枚古老的錢幣，暗巷裡的人會比你更清楚它的價格。',
         marketUse: '黑市入口'
     },
@@ -88,7 +77,6 @@ export const MarketItemCatalog = {
         rarity: 'uncommon',
         passiveEffectId: 'sharp_focus',
         price: 120,
-        atlas: A(6, 4),
         desc: '記錄提高爆擊判讀的戰鬥心得。',
         marketUse: '戰術技能'
     },
@@ -100,9 +88,30 @@ export const MarketItemCatalog = {
         rarity: 'uncommon',
         passiveEffectId: 'guard_memory',
         price: 120,
-        atlas: A(6, 5),
         desc: '記錄穩定防守姿態的戰鬥心得。',
         marketUse: '戰術技能'
+    },
+    quick_rhythm_manual: {
+        id: 'quick_rhythm_manual',
+        name: '迅捷節奏手記',
+        icon: '⚡',
+        type: 'book',
+        rarity: 'rare',
+        passiveEffectId: 'quick_rhythm',
+        price: 250,
+        desc: '記錄提高攻擊頻率的戰鬥心得。',
+        marketUse: '第二章以後的攻擊節奏戰術'
+    },
+    fatal_reading_manual: {
+        id: 'fatal_reading_manual',
+        name: '致命判讀手記',
+        icon: '💥',
+        type: 'book',
+        rarity: 'rare',
+        passiveEffectId: 'fatal_reading',
+        price: 180,
+        desc: '記錄提高爆擊傷害的戰鬥心得。',
+        marketUse: '黑市勝率線索後的爆擊戰術'
     }
 };
 
@@ -112,7 +121,7 @@ export const MarketVendors = [
         name: '伊芙',
         role: '藥棚助手',
         icon: '🧪',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/apothecary_assistant.png',
+        portrait: 'src/assets/images/art-v2/portraits/apothecary_assistant.webp',
         position: { x: 24, y: 62 },
         place: '左側藥棚',
         summary: '伊芙負責把蓮娜整理好的配方、凝膠與草藥變成真正能賣給冒險者的補給。',
@@ -147,6 +156,17 @@ export const MarketVendors = [
                 goldCost: 5,
                 rewards: { items: [{ itemId: 'health_potion_s', quantity: 1 }] },
                 repeatable: true
+            },
+            {
+                id: 'exchange_poison_gland_antidote',
+                title: '毒腺調成解毒劑',
+                story: '伊芙把毒腺切得非常小心。她說毒物最怕的不是勇氣，是比例。',
+                condition: { anyFlags: ['town.apothecary.understands_thorn_trade', 'dungeon.jungle.cleared'] },
+                lockedReason: '藥棚還沒掌握毒霧與荊棘交易的規律，不能把毒腺直接拿來調配。',
+                requirements: [{ itemId: 'poison_gland', quantity: 1 }],
+                goldCost: 12,
+                rewards: { items: [{ itemId: 'antidote', quantity: 2 }] },
+                repeatable: true
             }
         ]
     },
@@ -155,7 +175,7 @@ export const MarketVendors = [
         name: '奧托',
         role: '行腳貨商',
         icon: '🧳',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/merchant.png',
+        portrait: 'src/assets/images/art-v2/portraits/merchant.webp',
         position: { x: 56, y: 59 },
         place: '中央貨車',
         summary: '他販售的不是強度，而是通往事件、地點與麻煩的鑰匙。',
@@ -204,7 +224,7 @@ export const MarketVendors = [
         name: '柏恩',
         role: '修補雜貨商',
         icon: '🧰',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/tinker.png',
+        portrait: 'src/assets/images/art-v2/portraits/tinker.webp',
         position: { x: 36, y: 76 },
         place: '修補木桌',
         summary: '他把零散金屬、皮繩和補洞材料整理成能繼續使用的物資。',
@@ -242,14 +262,30 @@ export const MarketVendors = [
         name: '米菈',
         role: '傳聞剪報人',
         icon: '🗞️',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/rumor_broker.png',
+        portrait: 'src/assets/images/art-v2/portraits/rumor_broker.webp',
         position: { x: 72, y: 52 },
         place: '布告角落',
         summary: '她不寫正式紀錄，只把布告、碎紙和酒杯旁的閒話剪成能用的路線提示。',
         dialogue: '正式紀錄總是慢半拍，我負責把事情寫得來得及。兩者都很重要，尤其是後者比較便宜。',
         shelves: [
             { id: 'shelf_sharp_focus_manual', itemId: 'sharp_focus_manual', price: 120, stock: '戰術手記', note: '可作為戰術技能收藏與替換來源。' },
-            { id: 'shelf_guard_memory_manual', itemId: 'guard_memory_manual', price: 120, stock: '戰術手記', note: '穩定防守的常駐戰鬥思路。' }
+            { id: 'shelf_guard_memory_manual', itemId: 'guard_memory_manual', price: 120, stock: '戰術手記', note: '穩定防守的常駐戰鬥思路。' },
+            {
+                id: 'shelf_quick_rhythm_manual',
+                itemId: 'quick_rhythm_manual',
+                price: 250,
+                stock: '第二章手記',
+                condition: { anyFlags: ['town.casino.false_odds_exposed', 'market.rumor.material_index', 'secretShopUnlocked'] },
+                lockedReason: '米菈還沒有足夠的戰鬥剪報，不敢把進階攻擊節奏手記拿出來。'
+            },
+            {
+                id: 'shelf_fatal_reading_manual',
+                itemId: 'fatal_reading_manual',
+                price: 180,
+                stock: '黑市判讀',
+                condition: { anyFlags: ['town.casino.false_odds_exposed', 'market.black_market.coal_token_traded'] },
+                lockedReason: '勝率與黑市帳冊還沒有接上，這份判讀手記暫時只是一張危險的空白紙。'
+            }
         ],
         orders: [
             {
@@ -292,7 +328,7 @@ export const MarketVendors = [
         name: '門縫掌櫃',
         role: '風險交易',
         icon: '🕯️',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/black_market.png',
+        portrait: 'src/assets/images/art-v2/portraits/black_market.webp',
         position: { x: 85, y: 62 },
         place: '右側暗巷',
         lockedUnless: { flag: 'secretShopUnlocked' },
@@ -328,7 +364,12 @@ export const MarketVendors = [
 ];
 
 export function getMarketVendor(vendorId) {
-    return MarketVendors.find(vendor => vendor.id === vendorId) || MarketVendors[0];
+    const vendor = MarketVendors.find(entry => entry.id === vendorId) || MarketVendors[0];
+    return vendor ? attachCharacterProfile(vendor) : null;
+}
+
+export function getAllMarketVendors() {
+    return MarketVendors.map(vendor => attachCharacterProfile(vendor));
 }
 
 export function getMarketItem(itemId) {

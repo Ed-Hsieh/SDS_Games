@@ -1,0 +1,29 @@
+{
+  "source": "incoming/raw/art-v2/story-relics-sheet-01.png",
+  "category": "story-relics",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "ancient_loom_shuttle",
+    "arcane_core_gear",
+    "black_bark_guardian_core",
+    "black_flame_ash_vial",
+    "bran_bloodied_diary",
+    "burned_knight_diary",
+    "deep_sea_orb",
+    "demon_seal_fragment",
+    "dragon_nest_mana_crystal",
+    "frostbreaker_blueprint",
+    "frozen_anvil_inscription",
+    "julian_tablet_rubbing",
+    "last_human_edge",
+    "lich_staff_remnant",
+    "living_black_rock",
+    "weaving_clan_scroll"
+  ]
+}

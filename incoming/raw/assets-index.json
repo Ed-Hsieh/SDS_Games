@@ -1,0 +1,248 @@
+{
+    "version":  1,
+    "generatedAt":  "2026-06-24 10:40:07",
+    "rawRoot":  "incoming/raw",
+    "count":  30,
+    "assets":  [
+                   {
+                       "path":  "incoming/raw/art-v2/blueprints-sheet-01.png",
+                       "fileName":  "blueprints-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2737885,
+                       "updatedAt":  "2026-06-24 08:35:43"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/blueprints-sheet-02.png",
+                       "fileName":  "blueprints-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2162814,
+                       "updatedAt":  "2026-06-24 08:35:58"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/bosses-v2-sheet-01-main-story.png",
+                       "fileName":  "bosses-v2-sheet-01-main-story.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2892039,
+                       "updatedAt":  "2026-06-23 17:50:02"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/characters-v2-sheet-02-side-market.png",
+                       "fileName":  "characters-v2-sheet-02-side-market.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2479014,
+                       "updatedAt":  "2026-06-23 17:49:39"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/characters-v2-sheet-03-lore-shadow.png",
+                       "fileName":  "characters-v2-sheet-03-lore-shadow.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2466612,
+                       "updatedAt":  "2026-06-23 17:49:48"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/clues-sheet-01.png",
+                       "fileName":  "clues-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2418160,
+                       "updatedAt":  "2026-06-24 08:36:53"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/clues-sheet-02.png",
+                       "fileName":  "clues-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1936076,
+                       "updatedAt":  "2026-06-24 08:37:25"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/combat-effects-sheet-01.png",
+                       "fileName":  "combat-effects-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2388589,
+                       "updatedAt":  "2026-06-24 08:46:26"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/crafted-items-sheet-01.png",
+                       "fileName":  "crafted-items-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2314326,
+                       "updatedAt":  "2026-06-24 08:36:26"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/crafted-items-sheet-02.png",
+                       "fileName":  "crafted-items-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1909426,
+                       "updatedAt":  "2026-06-24 08:36:34"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/dungeon-zone-scenes-sheet-01.png",
+                       "fileName":  "dungeon-zone-scenes-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1839515,
+                       "updatedAt":  "2026-06-24 08:45:12"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/equipment-sheet-01.png",
+                       "fileName":  "equipment-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2288505,
+                       "updatedAt":  "2026-06-24 08:34:00"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/equipment-sheet-02.png",
+                       "fileName":  "equipment-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2414022,
+                       "updatedAt":  "2026-06-24 08:34:17"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/equipment-sheet-03.png",
+                       "fileName":  "equipment-sheet-03.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2069782,
+                       "updatedAt":  "2026-06-24 08:34:38"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/map-props-sheet-01.png",
+                       "fileName":  "map-props-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2489501,
+                       "updatedAt":  "2026-06-24 08:45:59"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/map-props-sheet-02.png",
+                       "fileName":  "map-props-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1769839,
+                       "updatedAt":  "2026-06-24 08:46:06"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/materials-sheet-01.png",
+                       "fileName":  "materials-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2123948,
+                       "updatedAt":  "2026-06-24 08:34:50"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/materials-sheet-02.png",
+                       "fileName":  "materials-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2256196,
+                       "updatedAt":  "2026-06-24 08:35:12"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/materials-sheet-03.png",
+                       "fileName":  "materials-sheet-03.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2239074,
+                       "updatedAt":  "2026-06-24 08:35:18"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/materials-sheet-04.png",
+                       "fileName":  "materials-sheet-04.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2192051,
+                       "updatedAt":  "2026-06-24 08:35:35"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/monsters-sheet-01.png",
+                       "fileName":  "monsters-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2552467,
+                       "updatedAt":  "2026-06-24 08:37:40"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/monsters-sheet-02.png",
+                       "fileName":  "monsters-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2526131,
+                       "updatedAt":  "2026-06-24 08:37:51"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/monsters-sheet-03.png",
+                       "fileName":  "monsters-sheet-03.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2565539,
+                       "updatedAt":  "2026-06-24 08:38:05"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/monsters-sheet-04.png",
+                       "fileName":  "monsters-sheet-04.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1914824,
+                       "updatedAt":  "2026-06-24 08:38:15"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/portraits-sheet-02.png",
+                       "fileName":  "portraits-sheet-02.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1786426,
+                       "updatedAt":  "2026-06-23 17:48:37"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/portraits-sheet-03.png",
+                       "fileName":  "portraits-sheet-03.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2602679,
+                       "updatedAt":  "2026-06-24 10:02:11"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/shop-items-sheet-01.png",
+                       "fileName":  "shop-items-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2249743,
+                       "updatedAt":  "2026-06-24 08:36:09"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/story-relics-sheet-01.png",
+                       "fileName":  "story-relics-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1879243,
+                       "updatedAt":  "2026-06-24 08:46:19"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/town-places-sheet-01.png",
+                       "fileName":  "town-places-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  1525904,
+                       "updatedAt":  "2026-06-24 08:44:37"
+                   },
+                   {
+                       "path":  "incoming/raw/art-v2/world-landmarks-sheet-01.png",
+                       "fileName":  "world-landmarks-sheet-01.png",
+                       "width":  1254,
+                       "height":  1254,
+                       "bytes":  2494635,
+                       "updatedAt":  "2026-06-24 08:45:33"
+                   }
+               ]
+}

@@ -105,13 +105,13 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'dungeon_hell_002'
     },
     ice_sword: {
-        source: '雪山副本：熄滅的聖火',
+        source: '雪山副本：寒地校準法',
         clue: '登上冰霜王座後，凱倫的鐵砧刻字能解出破霜兵刃圖紙。',
         interactionId: 'dungeon_snow_002'
     },
     frostbound_scepter: {
-        source: '雪山副本：熄滅的聖火',
-        clue: '凱倫的聖火熔爐重燃後，雪峰專屬鍛造線才會交出霜縛權杖圖紙。',
+        source: '雪山副本：寒地校準法',
+        clue: '凱倫留下的寒地校準法被帶回鍛造鋪後，雪峰專屬鍛造線才會交出霜縛權杖圖紙。',
         interactionId: 'dungeon_snow_002'
     },
     nature_amulet: {

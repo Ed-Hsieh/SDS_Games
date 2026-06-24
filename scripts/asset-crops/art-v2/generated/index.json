@@ -1,0 +1,241 @@
+{
+  "version": 1,
+  "batches": [
+    {
+      "category": "portraits",
+      "slug": "portraits-sheet-02",
+      "count": 3,
+      "source": "incoming/raw/art-v2/portraits-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/portraits-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/portraits-sheet-02.prompt.txt"
+    },
+    {
+      "category": "portraits",
+      "slug": "portraits-sheet-03",
+      "count": 7,
+      "source": "incoming/raw/art-v2/portraits-sheet-03.png",
+      "config": "scripts/asset-crops/art-v2/generated/portraits-sheet-03.grid.json"
+    },
+    {
+      "category": "portraits",
+      "slug": "characters-v2-sheet-02-side-market",
+      "count": 9,
+      "source": "incoming/raw/art-v2/characters-v2-sheet-02-side-market.png",
+      "config": "scripts/asset-crops/art-v2/generated/characters-v2-sheet-02-side-market.grid.json"
+    },
+    {
+      "category": "portraits",
+      "slug": "characters-v2-sheet-03-lore-shadow",
+      "count": 9,
+      "source": "incoming/raw/art-v2/characters-v2-sheet-03-lore-shadow.png",
+      "config": "scripts/asset-crops/art-v2/generated/characters-v2-sheet-03-lore-shadow.grid.json"
+    },
+    {
+      "category": "monsters",
+      "slug": "bosses-v2-sheet-01-main-story",
+      "count": 9,
+      "source": "incoming/raw/art-v2/bosses-v2-sheet-01-main-story.png",
+      "config": "scripts/asset-crops/art-v2/generated/bosses-v2-sheet-01-main-story.grid.json"
+    },
+    {
+      "category": "equipment",
+      "slug": "equipment-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/equipment-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/equipment-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/equipment-sheet-01.prompt.txt"
+    },
+    {
+      "category": "equipment",
+      "slug": "equipment-sheet-02",
+      "count": 25,
+      "source": "incoming/raw/art-v2/equipment-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/equipment-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/equipment-sheet-02.prompt.txt"
+    },
+    {
+      "category": "equipment",
+      "slug": "equipment-sheet-03",
+      "count": 19,
+      "source": "incoming/raw/art-v2/equipment-sheet-03.png",
+      "config": "scripts/asset-crops/art-v2/generated/equipment-sheet-03.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/equipment-sheet-03.prompt.txt"
+    },
+    {
+      "category": "materials",
+      "slug": "materials-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/materials-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/materials-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/materials-sheet-01.prompt.txt"
+    },
+    {
+      "category": "materials",
+      "slug": "materials-sheet-02",
+      "count": 25,
+      "source": "incoming/raw/art-v2/materials-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/materials-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/materials-sheet-02.prompt.txt"
+    },
+    {
+      "category": "materials",
+      "slug": "materials-sheet-03",
+      "count": 25,
+      "source": "incoming/raw/art-v2/materials-sheet-03.png",
+      "config": "scripts/asset-crops/art-v2/generated/materials-sheet-03.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/materials-sheet-03.prompt.txt"
+    },
+    {
+      "category": "materials",
+      "slug": "materials-sheet-04",
+      "count": 22,
+      "source": "incoming/raw/art-v2/materials-sheet-04.png",
+      "config": "scripts/asset-crops/art-v2/generated/materials-sheet-04.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/materials-sheet-04.prompt.txt"
+    },
+    {
+      "category": "blueprints",
+      "slug": "blueprints-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/blueprints-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/blueprints-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/blueprints-sheet-01.prompt.txt"
+    },
+    {
+      "category": "blueprints",
+      "slug": "blueprints-sheet-02",
+      "count": 13,
+      "source": "incoming/raw/art-v2/blueprints-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/blueprints-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/blueprints-sheet-02.prompt.txt"
+    },
+    {
+      "category": "shop-items",
+      "slug": "shop-items-sheet-01",
+      "count": 24,
+      "source": "incoming/raw/art-v2/shop-items-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/shop-items-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/shop-items-sheet-01.prompt.txt"
+    },
+    {
+      "category": "crafted-items",
+      "slug": "crafted-items-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/crafted-items-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/crafted-items-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/crafted-items-sheet-01.prompt.txt"
+    },
+    {
+      "category": "crafted-items",
+      "slug": "crafted-items-sheet-02",
+      "count": 13,
+      "source": "incoming/raw/art-v2/crafted-items-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/crafted-items-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/crafted-items-sheet-02.prompt.txt"
+    },
+    {
+      "category": "clues",
+      "slug": "clues-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/clues-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/clues-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/clues-sheet-01.prompt.txt"
+    },
+    {
+      "category": "clues",
+      "slug": "clues-sheet-02",
+      "count": 14,
+      "source": "incoming/raw/art-v2/clues-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/clues-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/clues-sheet-02.prompt.txt"
+    },
+    {
+      "category": "monsters",
+      "slug": "monsters-sheet-01",
+      "count": 18,
+      "source": "incoming/raw/art-v2/monsters-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/monsters-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/monsters-sheet-01.prompt.txt"
+    },
+    {
+      "category": "monsters",
+      "slug": "monsters-sheet-02",
+      "count": 24,
+      "source": "incoming/raw/art-v2/monsters-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/monsters-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/monsters-sheet-02.prompt.txt"
+    },
+    {
+      "category": "monsters",
+      "slug": "monsters-sheet-03",
+      "count": 24,
+      "source": "incoming/raw/art-v2/monsters-sheet-03.png",
+      "config": "scripts/asset-crops/art-v2/generated/monsters-sheet-03.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/monsters-sheet-03.prompt.txt"
+    },
+    {
+      "category": "monsters",
+      "slug": "monsters-sheet-04",
+      "count": 13,
+      "source": "incoming/raw/art-v2/monsters-sheet-04.png",
+      "config": "scripts/asset-crops/art-v2/generated/monsters-sheet-04.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/monsters-sheet-04.prompt.txt"
+    },
+    {
+      "category": "town-places",
+      "slug": "town-places-sheet-01",
+      "count": 8,
+      "source": "incoming/raw/art-v2/town-places-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/town-places-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/town-places-sheet-01.prompt.txt"
+    },
+    {
+      "category": "dungeon-zone-scenes",
+      "slug": "dungeon-zone-scenes-sheet-01",
+      "count": 9,
+      "source": "incoming/raw/art-v2/dungeon-zone-scenes-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/dungeon-zone-scenes-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/dungeon-zone-scenes-sheet-01.prompt.txt"
+    },
+    {
+      "category": "world-landmarks",
+      "slug": "world-landmarks-sheet-01",
+      "count": 20,
+      "source": "incoming/raw/art-v2/world-landmarks-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/world-landmarks-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/world-landmarks-sheet-01.prompt.txt"
+    },
+    {
+      "category": "map-props",
+      "slug": "map-props-sheet-01",
+      "count": 25,
+      "source": "incoming/raw/art-v2/map-props-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/map-props-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/map-props-sheet-01.prompt.txt"
+    },
+    {
+      "category": "map-props",
+      "slug": "map-props-sheet-02",
+      "count": 7,
+      "source": "incoming/raw/art-v2/map-props-sheet-02.png",
+      "config": "scripts/asset-crops/art-v2/generated/map-props-sheet-02.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/map-props-sheet-02.prompt.txt"
+    },
+    {
+      "category": "story-relics",
+      "slug": "story-relics-sheet-01",
+      "count": 16,
+      "source": "incoming/raw/art-v2/story-relics-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/story-relics-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/story-relics-sheet-01.prompt.txt"
+    },
+    {
+      "category": "combat-effects",
+      "slug": "combat-effects-sheet-01",
+      "count": 20,
+      "source": "incoming/raw/art-v2/combat-effects-sheet-01.png",
+      "config": "scripts/asset-crops/art-v2/generated/combat-effects-sheet-01.grid.json",
+      "prompt": "scripts/asset-crops/art-v2/generated/combat-effects-sheet-01.prompt.txt"
+    }
+  ]
+}

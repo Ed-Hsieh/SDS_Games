@@ -4,8 +4,8 @@
  */
 import GameManager, { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
-import { eventManager } from '../managers/EventManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { eventManager, getWorldEventJournalRecords } from '../managers/EventManager.js';
+import { questManager, ObjectiveType, QuestStatus } from '../managers/QuestManager.js';
 import { resolveDropSources, generateDropsFromSources } from '../managers/DropManager.js';
 import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { createRecipeBlueprintDisplayItems, rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
@@ -19,6 +19,8 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getLandmark } from '../data/WorldStories.js';
+import { getQuestStory } from '../data/QuestStories.js';
+import { getTownPlaces } from '../data/TownPlaces.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -155,6 +157,7 @@ export default class AdventureScene {
         this.animationFrameId = null;
         this.lootCloseHandler = null;
         this.clueBookOpen = false;
+        this.handbookTab = 'commissions';
         this.bossTestOpen = false;
         this.devMode = isDevModeEnabled();
         this.currentLocationKey = null;
@@ -263,6 +266,9 @@ export default class AdventureScene {
             clueBookPanel: this.container.querySelector('#clue-book-panel'),
             clueBookSummary: this.container.querySelector('#clue-book-summary'),
             clueBookContent: this.container.querySelector('#clue-book-content'),
+            clueBookTabs: this.container.querySelector('#clue-book-tabs'),
+            clueBookTabButtons: Array.from(this.container.querySelectorAll('[data-adventure-handbook-tab]')),
+            clueBookTabCounts: Array.from(this.container.querySelectorAll('[data-adventure-handbook-count]')),
             btnToggleBossTest: this.container.querySelector('#btn-toggle-boss-test'),
             btnCloseBossTest: this.container.querySelector('#btn-close-boss-test'),
             bossTestPanel: this.container.querySelector('#boss-test-panel'),
@@ -447,6 +453,14 @@ export default class AdventureScene {
 
         if (this.dom.btnCloseClueBook) {
             this.dom.btnCloseClueBook.addEventListener('click', () => this.toggleClueBook(false));
+        }
+
+        if (this.dom.clueBookTabButtons?.length) {
+            this.dom.clueBookTabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    this.selectAdventureHandbookTab(button.dataset.adventureHandbookTab);
+                });
+            });
         }
 
         if (this.devMode && this.dom.btnToggleBossTest) {
@@ -909,58 +923,210 @@ export default class AdventureScene {
         if (!this.dom.clueBookContent && !this.dom.btnToggleClueBook) return;
 
         const notebook = worldStoryManager.getNotebookData();
-        const clueCount = notebook.clues.length;
-        const hasClues = clueCount > 0;
+        const records = this.getAdventureHandbookRecords(notebook);
+        const counts = this.getAdventureHandbookCountMap(records);
+        const hasContent = Object.values(counts).some(count => count > 0);
+        const activeTabHasContent = (records[this.handbookTab] || []).length > 0;
+        if (!activeTabHasContent) {
+            this.handbookTab = Object.keys(records).find(tabId => records[tabId].length > 0) || this.handbookTab;
+        }
 
         if (this.dom.btnToggleClueBook) {
-            this.dom.btnToggleClueBook.classList.toggle('is-available', hasClues);
-            this.dom.btnToggleClueBook.disabled = !hasClues;
-            this.dom.btnToggleClueBook.setAttribute('aria-hidden', String(!hasClues));
+            this.dom.btnToggleClueBook.classList.toggle('is-available', hasContent);
+            this.dom.btnToggleClueBook.disabled = !hasContent;
+            this.dom.btnToggleClueBook.setAttribute('aria-hidden', String(!hasContent));
         }
-        if (!hasClues && this.clueBookOpen) {
+        if (!hasContent && this.clueBookOpen) {
             this.toggleClueBook(false);
         }
         if (this.dom.clueBookSummary) {
-            this.dom.clueBookSummary.textContent = '首領痕跡會依照你發現的順序留下，不會預先列出未知情報。';
+            this.dom.clueBookSummary.textContent = '手札只整理你已經知道的事；完整內容可回城到書記小屋翻閱。';
+        }
+        if (this.dom.clueBookTabButtons?.length) {
+            this.dom.clueBookTabButtons.forEach(button => {
+                const tabId = button.dataset.adventureHandbookTab;
+                const isActive = tabId === this.handbookTab;
+                button.classList.toggle('is-active', isActive);
+                button.setAttribute('aria-selected', String(isActive));
+                button.disabled = !counts[tabId];
+            });
+        }
+        if (this.dom.clueBookTabCounts?.length) {
+            this.dom.clueBookTabCounts.forEach(node => {
+                const tabId = node.dataset.adventureHandbookCount;
+                node.textContent = String(counts[tabId] || 0);
+            });
         }
         if (!this.dom.clueBookContent) return;
 
-        const chainHTML = notebook.chains.map(chain => {
-            const totalClues = chain.totalClues || chain.clues.length;
-            const chainProgress = `${chain.clues.length}/${totalClues}`;
-            const knownClues = chain.clues.map(clue => `
-                <article class="notebook-clue">
-                    <div class="notebook-clue-source">痕跡 ${clue.notebookIndex}</div>
-                    <h4>${escapeHtml(clue.title)}</h4>
-                    <div class="notebook-clue-origin">${escapeHtml(this.formatTraceSource(clue))}</div>
-                    <p>${escapeHtml(clue.text)}</p>
-                    <small>${escapeHtml(clue.lead || '')}</small>
-                </article>
-            `).join('');
+        const tabRecords = records[this.handbookTab] || [];
+        this.dom.clueBookContent.innerHTML = tabRecords.length > 0
+            ? `<div class="handbook-quick-list">${tabRecords.map(record => this.renderAdventureHandbookRecord(record)).join('')}</div>`
+            : this.renderAdventureHandbookEmpty(this.handbookTab);
+    }
 
-            return `
-                <section class="notebook-chain">
-                    <div class="notebook-chain-header">
-                        <div>
-                            <span>${escapeHtml(chain.method)}</span>
-                            <h3>${escapeHtml(chain.title)}</h3>
-                        </div>
-                        <strong>${escapeHtml(chainProgress)}</strong>
+    selectAdventureHandbookTab(tabId) {
+        if (!tabId || this.handbookTab === tabId) return;
+        this.handbookTab = tabId;
+        this.renderClueBook();
+    }
+
+    getAdventureHandbookRecords(notebook = worldStoryManager.getNotebookData()) {
+        const visibleQuestGroups = questManager.getVisibleQuests?.() || {};
+        const quests = Object.values(visibleQuestGroups)
+            .flat()
+            .filter(quest => quest?.state?.status && quest.state.status !== QuestStatus.LOCKED);
+        const statusRank = {
+            [QuestStatus.COMPLETED]: 0,
+            [QuestStatus.ACTIVE]: 1,
+            [QuestStatus.AVAILABLE]: 2,
+            [QuestStatus.FINISHED]: 3
+        };
+        const activeQuests = quests
+            .filter(quest => quest.state.status !== QuestStatus.FINISHED)
+            .sort((a, b) => (statusRank[a.state.status] ?? 9) - (statusRank[b.state.status] ?? 9));
+
+        const commissions = activeQuests.slice(0, 8).map(quest => {
+            const story = getQuestStory(quest, quest.state);
+            const objectiveText = this.getAdventureQuestObjectiveText(quest);
+            return {
+                key: `quest:${quest.id}`,
+                icon: quest.icon || story.speaker?.avatar || '📖',
+                kicker: this.formatAdventureQuestStatus(quest.state.status),
+                title: story.source || quest.name,
+                meta: story.arc || quest.name,
+                text: story.current || story.active || story.available || objectiveText || quest.description,
+                note: objectiveText
+            };
+        });
+
+        const boss = (notebook.chains || []).map(chain => {
+            const latestClue = [...(chain.clues || [])].sort((a, b) => (b.notebookIndex || 0) - (a.notebookIndex || 0))[0];
+            const totalClues = chain.totalClues || chain.clues.length || 1;
+            return {
+                key: `boss:${chain.id || chain.title}`,
+                icon: '☠',
+                kicker: `痕跡 ${chain.clues.length}/${totalClues}`,
+                title: chain.title,
+                meta: chain.method,
+                text: latestClue ? latestClue.text : chain.text,
+                note: latestClue ? `${this.formatTraceSource(latestClue)}｜${latestClue.lead || '繼續追蹤相關地點。'}` : chain.text
+            };
+        });
+
+        const journalRecords = getWorldEventJournalRecords()
+            .slice(0, 8)
+            .map(record => ({
+                key: `event:${record.key}`,
+                icon: record.icon || '✦',
+                kicker: record.roleLabel || '旅途事件',
+                title: record.title || '旅途事件',
+                meta: record.zoneLabel || '世界見聞',
+                text: record.resultSummary || record.description,
+                note: record.reflection || record.intent
+            }));
+        const landmarkRecords = (notebook.landmarks || [])
+            .slice(0, 8)
+            .map(landmark => ({
+                key: `landmark:${landmark.id || landmark.name}`,
+                icon: '⌖',
+                kicker: '踏查地點',
+                title: landmark.name,
+                meta: '已到達',
+                text: landmark.description || '這個地點已被記進手札。',
+                note: '之後的線索會以實際發現順序補進來。'
+            }));
+
+        const forge = activeQuests
+            .filter(quest => (quest.objectives || []).some(objective => [ObjectiveType.CRAFT, ObjectiveType.ENHANCE].includes(objective.type)))
+            .slice(0, 6)
+            .map(quest => {
+                const story = getQuestStory(quest, quest.state);
+                return {
+                    key: `forge:${quest.id}`,
+                    icon: quest.icon || '⚒',
+                    kicker: this.formatAdventureQuestStatus(quest.state.status),
+                    title: story.source || quest.name,
+                    meta: '鍛造備忘',
+                    text: story.current || story.active || quest.description,
+                    note: this.getAdventureQuestObjectiveText(quest)
+                };
+            });
+
+        const town = getTownPlaces()
+            .flatMap(place => (place.states || [])
+                .filter(state => GameManager.getFlag(state.flag))
+                .map(state => ({
+                    key: `town:${place.id}:${state.flag}`,
+                    icon: place.icon || '⌂',
+                    kicker: place.name,
+                    title: state.title,
+                    meta: place.tag || '城鎮記憶',
+                    text: state.text,
+                    note: place.description
+                })))
+            .slice(0, 8);
+
+        return {
+            commissions,
+            boss,
+            world: [...journalRecords, ...landmarkRecords].slice(0, 10),
+            forge,
+            town
+        };
+    }
+
+    getAdventureHandbookCountMap(records = {}) {
+        return {
+            commissions: records.commissions?.length || 0,
+            boss: records.boss?.length || 0,
+            world: records.world?.length || 0,
+            forge: records.forge?.length || 0,
+            town: records.town?.length || 0
+        };
+    }
+
+    formatAdventureQuestStatus(status) {
+        const labels = {
+            [QuestStatus.AVAILABLE]: '已聽聞',
+            [QuestStatus.ACTIVE]: '紀錄中',
+            [QuestStatus.COMPLETED]: '可回報',
+            [QuestStatus.FINISHED]: '已記錄'
+        };
+        return labels[status] || '待辨認';
+    }
+
+    getAdventureQuestObjectiveText(quest) {
+        const objective = (quest.objectives || []).find(item => item?.description) || quest.objectives?.[0];
+        return objective?.description || quest.description || '';
+    }
+
+    renderAdventureHandbookRecord(record) {
+        return `
+            <article class="handbook-quick-card">
+                <div class="handbook-quick-card-head">
+                    <span class="handbook-quick-icon">${escapeHtml(record.icon || '📖')}</span>
+                    <div>
+                        <span class="handbook-quick-kicker">${escapeHtml(record.kicker || '旅人手札')}</span>
+                        <h3>${escapeHtml(record.title || '未命名紀錄')}</h3>
                     </div>
-                    <p class="notebook-chain-text">${escapeHtml(chain.text)}</p>
-                    <div class="notebook-clue-list">${knownClues}</div>
-                </section>
-            `;
-        }).join('');
+                </div>
+                ${record.meta ? `<div class="handbook-quick-meta">${escapeHtml(record.meta)}</div>` : ''}
+                <p>${escapeHtml(record.text || '這段紀錄還需要補上更多現場證據。')}</p>
+                ${record.note ? `<small>${escapeHtml(record.note)}</small>` : ''}
+            </article>
+        `;
+    }
 
-        const landmarkHTML = notebook.landmarks.length > 0
-            ? `<section class="notebook-landmarks">
-                <h3>踏查地點</h3>
-                ${notebook.landmarks.map(landmark => `<span>${escapeHtml(landmark.name)}</span>`).join('')}
-            </section>`
-            : '';
-
-        this.dom.clueBookContent.innerHTML = chainHTML + landmarkHTML;
+    renderAdventureHandbookEmpty(tabId) {
+        const emptyCopy = {
+            commissions: '目前沒有正在推進的委託。回城與居民交談，或在地圖上發現新的狀況後，這裡會留下摘要。',
+            boss: '你還沒有取得任何首領痕跡。足跡、異常物件與戰鬥紀錄會依照發現順序補上。',
+            world: '尚未記下值得回看的旅途事件。真正改變路線、物資或情報的遭遇會被收在這裡。',
+            forge: '目前沒有需要追蹤的鍛造備忘。取得圖紙或接到鍛造相關委託後再回來看。',
+            town: '城鎮還沒有留下新的變化。完成主線或支線後，居民與場所的改變會被記錄。'
+        };
+        return `<div class="handbook-quick-empty">${escapeHtml(emptyCopy[tabId] || '目前沒有紀錄。')}</div>`;
     }
 
     formatTraceSource(clue) {
@@ -3539,7 +3705,7 @@ class AdventureBattleViewController {
         // 玩家受擊反饋
         this.showPlayerHitFeedback(damage);
 
-        // 回合結束處理
+        // 戰鬥節奏結算處理
         this.endTurn();
 
         if (this.player.hp <= 0) {
@@ -3547,7 +3713,7 @@ class AdventureBattleViewController {
         }
     }
     
-    // 新增：回合結束處理
+    // 新增：戰鬥節奏結算處理
     endTurn() {
         this.turnCount++;
         

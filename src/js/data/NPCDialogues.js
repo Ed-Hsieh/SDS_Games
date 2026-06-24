@@ -4,10 +4,13 @@
  * Dialogue logic lives in DialogueManager; this file stays declarative.
  */
 
+import { attachCharacterProfile } from './CharacterProfiles.js';
+import { applyDialogueScriptRevision } from './StoryScriptRevisions.js';
+
 export const TownNPCDatabase = {
     village_elder: {
         id: 'village_elder',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/village_elder.png',
+        portrait: 'src/assets/images/art-v2/portraits/village_elder.webp',
         name: '村長',
         avatar: '🏘️',
         role: '城鎮十字路的管理者',
@@ -17,7 +20,7 @@ export const TownNPCDatabase = {
     },
     blacksmith: {
         id: 'blacksmith',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/blacksmith.png',
+        portrait: 'src/assets/images/art-v2/portraits/blacksmith.webp',
         name: '鍛造師',
         avatar: '⚒️',
         role: '負責修整武器與研究圖紙',
@@ -25,7 +28,7 @@ export const TownNPCDatabase = {
     },
     herbalist: {
         id: 'herbalist',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/herbalist.png',
+        portrait: 'src/assets/images/art-v2/portraits/herbalist.webp',
         name: '藥師蓮娜',
         avatar: '🌿',
         role: '記錄草藥、毒霧與居民傷勢',
@@ -35,7 +38,7 @@ export const TownNPCDatabase = {
     },
     street_beggar: {
         id: 'street_beggar',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/street_beggar.png',
+        portrait: 'src/assets/images/art-v2/portraits/street_beggar.webp',
         name: '巷口流浪者',
         avatar: '🧥',
         role: '知道太多小道消息的人',
@@ -43,7 +46,7 @@ export const TownNPCDatabase = {
     },
     town_scholar: {
         id: 'town_scholar',
-        portrait: 'src/assets/images/generated/2026-06-10/cropped/portraits/town_scholar.png',
+        portrait: 'src/assets/images/art-v2/portraits/town_scholar.webp',
         name: '書記',
         avatar: '📚',
         role: '整理地脈、石碑與怪物紀錄',
@@ -1315,6 +1318,64 @@ export const TownDialogueDatabase = {
             ]
         },
         {
+            id: 'beggar_dark_table_offer',
+            priority: 114,
+            once: true,
+            tone: 'discovery',
+            conditions: [
+                { type: 'questStatus', questId: 'hidden_dark_deal', status: 'available' }
+            ],
+            narrativeTitle: '血籌碼落桌',
+            narrativeSummary: '你把暗桌留下的血印帶回暗巷。巷口流浪者認出那是惡魔莊家的契約收據；若想拿回主導權，就得回去贏下一局。',
+            lines: [
+                { speaker: 'npc', text: '袖口給我看。嗯，這不是普通傷口，這是賭場很沒禮貌的簽收章。' },
+                { speaker: 'npc', text: '暗桌的惡魔莊家喜歡先收一點血，再假裝你們只是公平遊戲。你要是放著不管，哪天睡醒會發現自己連影子都被算進利息。' },
+                { speaker: 'npc', text: '回去贏牠一局。牠輸了就得吐出契約正文，惡魔最討厭規則，但最怕自己寫過的規則。' }
+            ],
+            effects: [
+                { type: 'acceptQuest', questId: 'hidden_dark_deal', message: '巷口流浪者認出暗桌血印，要你回去贏下一局逼出契約。' }
+            ],
+            route: 'casino',
+            routeLabel: '前往賭場'
+        },
+        {
+            id: 'beggar_dark_table_active',
+            priority: 74,
+            conditions: [
+                { type: 'questStatus', questId: 'hidden_dark_deal', status: 'active' }
+            ],
+            narrativeTitle: '暗桌還在等',
+            narrativeSummary: '巷口流浪者提醒你，這件事不靠收集材料解決；要把契約拿回來，只能回到暗桌贏下一局。',
+            lines: [
+                { speaker: 'npc', text: '別把血印洗掉。那東西很噁心，但也很有用，像一張會痛的入場券。' },
+                { speaker: 'npc', text: '去暗桌贏一局。贏了以後，莊家會裝作很大方，其實只是契約被你抓住了尾巴。' }
+            ],
+            route: 'casino',
+            routeLabel: '前往賭場'
+        },
+        {
+            id: 'beggar_dark_table_report',
+            priority: 116,
+            once: true,
+            tone: 'discovery',
+            conditions: [
+                { type: 'questStatus', questId: 'hidden_dark_deal', status: 'completed' }
+            ],
+            narrativeTitle: '契約正文',
+            narrativeSummary: '你從暗桌贏回契約正文。巷口流浪者把它收進油紙袋，城鎮第一次有了能反過來威脅賭場暗門的證據。',
+            lines: [
+                { speaker: 'npc', text: '你真的拿回來了。很好，莊家現在大概正在練習怎麼笑得不那麼尷尬。' },
+                { speaker: 'npc', text: '這張契約先放我這。不是我不相信你，是我不相信它。紙如果會自己冒煙，就不該跟乾糧放同一個口袋。' },
+                { speaker: 'npc', text: '以後賭場暗門再開，至少我們知道門把在哪邊，也知道裡面那位怕什麼。' }
+            ],
+            effects: [
+                { type: 'completeQuest', questId: 'hidden_dark_deal', message: '暗桌契約被收進暗巷紀錄，惡魔莊家的規則露出破口。' },
+                { type: 'setFlag', flag: 'town.casino.dark_contract_sealed', value: true }
+            ],
+            route: 'quest',
+            routeLabel: '查看旅人手札'
+        },
+        {
             id: 'beggar_default',
             priority: 1,
             lines: [
@@ -1782,13 +1843,15 @@ export const TownDialogueDatabase = {
 };
 
 export function getTownNPC(npcId) {
-    return TownNPCDatabase[npcId] || null;
+    const npc = TownNPCDatabase[npcId] || null;
+    return npc ? attachCharacterProfile(npc) : null;
 }
 
 export function getTownNPCDialogues(npcId) {
-    return TownDialogueDatabase[npcId] || [];
+    return (TownDialogueDatabase[npcId] || [])
+        .map(dialogue => applyDialogueScriptRevision(npcId, dialogue));
 }
 
 export function getAllTownNPCs() {
-    return Object.values(TownNPCDatabase);
+    return Object.values(TownNPCDatabase).map(npc => attachCharacterProfile(npc));
 }

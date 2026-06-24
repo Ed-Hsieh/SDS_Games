@@ -32,6 +32,7 @@
             <button class="game-tab active" data-game="dice">骨骰賭桌</button>
             <button class="game-tab" data-game="slots">老虎機</button>
             <button class="game-tab" data-game="roulette">輪盤</button>
+            <button class="game-tab" data-game="dark">暗桌</button>
             <button class="game-tab" data-game="prize">奇物獎池</button>
             <button class="game-tab" data-game="cashier">帳房</button>
         </nav>
@@ -135,6 +136,34 @@
                         <input type="number" id="roulette-bet" min="10" max="500" value="10">
                         <button id="btn-roulette-spin" class="action-btn">轉盤</button>
                     </div>
+                </div>
+            </div>
+
+            <div id="game-dark" class="game-panel casino-dark-table-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">暗桌</span>
+                    <h2>莊家沒有報名字，只把骨骰推到燭光照不到的地方。</h2>
+                    <p>暗桌需要較高籌碼，勝利可能帶出黑市物品與稀有碎頁；失敗會讓你付出生命與更多注視。</p>
+                </div>
+
+                <div class="casino-dark-table-layout">
+                    <section class="casino-dark-contract">
+                        <span>桌規</span>
+                        <strong>高風險局</strong>
+                        <p>最低 80 籌碼。勝率受幸運影響，但賭場會記住每一次靠近暗桌的人。</p>
+                        <div class="dark-table-risk-list">
+                            <span>勝利：高額籌碼 / 奇物 / 黑市線索</span>
+                            <span>失敗：生命損失 / 注視提高</span>
+                            <span>不會致死，但可能讓下一場冒險變得危險</span>
+                        </div>
+                    </section>
+
+                    <section class="casino-dark-wager">
+                        <label for="dark-table-bet">下注籌碼</label>
+                        <input type="number" id="dark-table-bet" min="80" max="800" value="80">
+                        <button id="btn-dark-table" class="action-btn dark-table-btn">接受低語</button>
+                        <p id="dark-table-state">莊家還沒讓你靠近暗桌。</p>
+                    </section>
                 </div>
             </div>
 

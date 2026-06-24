@@ -737,7 +737,7 @@ export default class QuestScene {
     }
 
     getTownMemoryRecords() {
-        return getTownPlaces()
+        const townRecords = getTownPlaces()
             .flatMap(place => (place.states || [])
                 .filter(state => GameManager.getFlag(state.flag))
                 .map(state => ({
@@ -771,6 +771,53 @@ export default class QuestScene {
                     route: 'lobby',
                     routeLabel: '回到城鎮'
                 })));
+        const finale = GameManager.getFlag('world.ending.outcome');
+        if (!finale?.id) return townRecords;
+
+        const factorLines = Array.isArray(finale.factors) && finale.factors.length > 0
+            ? finale.factors
+            : ['沒有留下足夠可辨認的城鎮支撐。'];
+        const sceneLines = Array.isArray(finale.sceneLines) && finale.sceneLines.length > 0
+            ? finale.sceneLines
+            : [finale.summary].filter(Boolean);
+
+        return [
+            {
+                key: `town:ending:${finale.id}`,
+                kind: 'town',
+                icon: '🌅',
+                title: finale.title || '終局之後',
+                typeLabel: '終局記憶',
+                statusIcon: '✓',
+                statusText: finale.townEcho || '終戰已留下痕跡',
+                statusTone: 'finished',
+                meta: ['終局', `支撐 ${Number(finale.score || 0)} 項`],
+                cues: [
+                    finale.townEcho || finale.summary || '終局已被記錄',
+                    `城鎮支撐：${factorLines.length} 項`
+                ],
+                current: finale.summary || finale.townEcho || '終局已被記錄。',
+                thoughtTitle: finale.thoughtTitle || '我現在是否該回頭看看城鎮留下了什麼？',
+                thoughtText: finale.reflection || '終戰後的記憶會留在城鎮裡，而不是只留在戰鬥結算裡。',
+                sections: [
+                    {
+                        title: '終局片段',
+                        lines: sceneLines
+                    },
+                    {
+                        title: '城鎮支撐',
+                        lines: factorLines
+                    },
+                    {
+                        title: '回望',
+                        lines: [finale.reflection || '你回頭看見的，是戰鬥以外真正被保住的東西。']
+                    }
+                ],
+                route: 'lobby',
+                routeLabel: '回到城鎮'
+            },
+            ...townRecords
+        ];
     }
 
     getStoryQuestList() {

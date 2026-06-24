@@ -1,0 +1,8 @@
+Create a strict 5 by 5 grid source sheet for SDS_Games category "materials".
+The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
+Place subjects in this exact left-to-right, top-to-bottom order:
+hydra_scale, ice_essence, imp_horn, iron_ore, iron_shard, lava_scale, legendary_shard, lich_phylactery, life_seed, magic_crystal, mithril_ore, molten_core, orc_fang, overlord_crown, poison_gland, primal_essence, primordial_stone, pure_crystal, rare_metal, rat_tail, raw_meat, rune_stone, shadow_arrow, shadow_cloak_fragment, shadow_core
+Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
+No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
+Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
+Background: dark neutral flat background inside each cell, subtle grid separation allowed.

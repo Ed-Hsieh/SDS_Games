@@ -139,7 +139,7 @@ export default class TowerManager {
     }
     
     /**
-     * 執行戰鬥回合
+     * 執行塔層戰鬥節奏
      */
     executeBattleRound(playerAction) {
         if (this.state !== TowerState.IN_BATTLE || !this.currentMonster) {
@@ -170,7 +170,7 @@ export default class TowerManager {
             return this.handleDefeat();
         }
         
-        // 回合結束處理
+        // 戰鬥節奏結算處理
         character.tickBuffs();
         
         this.notify('battle_round', { roundLog, monster, character });

@@ -307,7 +307,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.RARE,
         price: 120,
         description: '被黑暗交易污染的靈魂殘片。',
-        craftUse: []
+        craftUse: ['demonwar_helm']
     },
 
     cursed_shard: {

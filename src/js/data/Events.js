@@ -450,7 +450,8 @@ export const EventDatabase = [
                 text: '留下記號後離開',
                 intent: '不拿資源，換取路線經驗。',
                 results: [
-                    { type: ResultType.EXP, value: 20, message: '你記下採集者的路標，對附近路線更熟悉了。' }
+                    { type: ResultType.EXP, value: 28, message: '你記下採集者的路標，對附近路線更熟悉了。' },
+                    { type: ResultType.BUFF, buffType: 'luck', value: 2, duration: 8, message: '你在袋口重新綁上草結。下一段路，像是有人替你留了暗號。' }
                 ]
             }
         ]
@@ -702,7 +703,8 @@ export const EventDatabase = [
                 cost: { hp: 0.08, isPercent: true },
                 results: [
                     { type: ResultType.GOLD, value: 55, message: '車主塞給你一點路費，並承認你的肩膀比他的輪子可靠。' },
-                    { type: ResultType.EXP, value: 25, message: '你理解了泥地、車輪與髒話之間的力學關係。' }
+                    { type: ResultType.EXP, value: 25, message: '你理解了泥地、車輪與髒話之間的力學關係。' },
+                    { type: ResultType.ITEM, itemType: 'material_low', message: '車底滾出一小包備用零件，車主揮手說那本來就是要掉的。' }
                 ]
             },
             {
@@ -717,7 +719,8 @@ export const EventDatabase = [
                 text: '指路後離開',
                 intent: '保守取得少量運氣。',
                 results: [
-                    { type: ResultType.BUFF, buffType: 'luck', value: 3, duration: 10, message: '車主照著你的指示脫困，你也覺得今天可能沒那麼糟。' }
+                    { type: ResultType.BUFF, buffType: 'luck', value: 3, duration: 10, message: '車主照著你的指示脫困，你也覺得今天可能沒那麼糟。' },
+                    { type: ResultType.EXP, value: 18, message: '你把這條補給路線記進腦中，之後看地圖時少了一點陌生感。' }
                 ]
             }
         ]
@@ -813,7 +816,7 @@ export const EventDatabase = [
                 cost: { gold: 80 },
                 results: [
                     { type: ResultType.BUFF, buffType: 'atk', value: 6, duration: 16, message: '地圖上的伏擊點讓你接下來出手更果斷。' },
-                    { type: ResultType.EXP, value: 35, message: '你看出男爵地宮不是避難工程，而是準備好的墳墓。' }
+                    { type: ResultType.EXP, value: 50, message: '你看出男爵地宮不是避難工程，而是準備好的墳墓。' }
                 ]
             },
             {
@@ -840,7 +843,8 @@ export const EventDatabase = [
                 cost: { gold: 70 },
                 results: [
                     { type: ResultType.HEAL, value: 0.25, isPercent: true, message: '避難者分給你一碗熱湯，味道很淡，但手心因此暖了起來。' },
-                    { type: ResultType.EXP, value: 60, message: '你學會了在世界快裂開時，車輪其實也是一種防線。' }
+                    { type: ResultType.EXP, value: 60, message: '你學會了在世界快裂開時，車輪其實也是一種防線。' },
+                    { type: ResultType.BUFF, buffType: 'def', value: 3, duration: 10, message: '臨走前，有人把斷裂木板綁在你的護具外側。醜，但能擋一下。' }
                 ]
             },
             {
@@ -1174,6 +1178,107 @@ export const EventDatabase = [
                 ]
             }
         ]
+    },
+    {
+        id: 'boss_shadow_column',
+        name: '黑影方尖碑',
+        icon: '🗿',
+        type: EventType.MYSTERY,
+        zones: ['boss'],
+        weight: 1,
+        eventRole: EventRole.WORLD_LORE,
+        chapterRange: [3, 3],
+        description: '一座焦黑方尖碑立在風裡，表面刻著被火刮過的龍語。你看不懂全部內容，但反覆出現的符號都指向同一件事：龍巢不是巢，是被搬空的大陸心臟。',
+        choices: [
+            {
+                text: '拓下符號',
+                intent: '取得經驗，並更理解終局地脈因果。',
+                results: [
+                    { type: ResultType.EXP, value: 80, message: '你把符號拓進手札。書記如果看見，大概會先尖叫再分類。' }
+                ]
+            },
+            {
+                text: '沿裂紋注入魔力',
+                intent: '承受壓力，換取短暫攻擊提升。',
+                cost: { hp: 0.12, isPercent: true },
+                results: [
+                    { type: ResultType.BUFF, buffType: 'atk', value: 10, duration: 18, message: '裂紋亮起黑紅色光，武器邊緣短暫變得灼熱。' }
+                ]
+            },
+            {
+                text: '不要久留',
+                intent: '避免消耗，保留狀態。',
+                results: []
+            }
+        ]
+    },
+    {
+        id: 'boss_abyssal_march',
+        name: '深淵行軍聲',
+        icon: '⚠️',
+        type: EventType.CURSE,
+        zones: ['boss'],
+        weight: 1.05,
+        eventRole: EventRole.PRESSURE,
+        chapterRange: [3, 3],
+        description: '遠處傳來整齊到不近人情的踏步聲。那不是軍隊正在靠近，而像是某種東西正在提醒世界：封印已經沒有耐心了。',
+        choices: [
+            {
+                text: '壓低呼吸等待聲音遠去',
+                intent: '穩定生命，但失去一點推進節奏。',
+                results: [
+                    { type: ResultType.HEAL, value: 0.2, isPercent: true, message: '你等到踏步聲遠去，才發現自己剛才連眨眼都忘了。' }
+                ]
+            },
+            {
+                text: '迎著聲音校準武器',
+                intent: '用壓力換取防禦與經驗。',
+                cost: { hp: 0.1, isPercent: true },
+                results: [
+                    { type: ResultType.BUFF, buffType: 'def', value: 10, duration: 18, message: '恐懼沒有消失，但它被你壓進了握柄裡。' },
+                    { type: ResultType.EXP, value: 60, message: '你記住了深淵軍勢的節奏。這不是好聽的旋律，但很有用。' }
+                ]
+            },
+            {
+                text: '立刻轉向',
+                intent: '保守離開，不觸發額外效果。',
+                results: []
+            }
+        ]
+    },
+    {
+        id: 'boss_dragon_nest_spoil',
+        name: '龍巢散落物',
+        icon: '💎',
+        type: EventType.ENCOUNTER,
+        zones: ['boss'],
+        weight: 0.9,
+        eventRole: EventRole.RISK_REWARD,
+        chapterRange: [3, 3],
+        description: '裂石間卡著一塊從龍巢掉落的魔力殘片，像寶石，也像一隻正在裝死的眼睛。拿走它可能有用，也可能讓某些存在更快注意到你。',
+        choices: [
+            {
+                text: '小心取下殘片',
+                intent: '取得金幣與經驗，承擔少量傷害。',
+                cost: { hp: 0.08, isPercent: true },
+                results: [
+                    { type: ResultType.GOLD, value: 120, message: '殘片很燙，你把它包進布裡時聽見像鱗片摩擦的聲音。' },
+                    { type: ResultType.EXP, value: 70, message: '你辨認出這不是天然礦物，而是被龍巢壓縮過的地脈碎屑。' }
+                ]
+            },
+            {
+                text: '用它磨亮武器',
+                intent: '不拿走殘片，換取攻擊提升。',
+                results: [
+                    { type: ResultType.BUFF, buffType: 'atk', value: 12, duration: 16, message: '武器劃過殘片表面，亮起一條像龍息餘燼的紅線。' }
+                ]
+            },
+            {
+                text: '把它留在原地',
+                intent: '避開風險。',
+                results: []
+            }
+        ]
     }
 ];
 
@@ -1209,6 +1314,9 @@ const EVENT_STORY_RULES = {
     northbound_whiteout_cache: { eventRole: EventRole.RESOURCE, chapterRange: [3, 3] },
     abyssal_name_echo: { eventRole: EventRole.PRESSURE, chapterRange: [3, 3] },
     last_campfire_before_north: { eventRole: EventRole.RESOURCE, chapterRange: [3, 3] },
+    boss_shadow_column: { eventRole: EventRole.WORLD_LORE, chapterRange: [3, 3] },
+    boss_abyssal_march: { eventRole: EventRole.PRESSURE, chapterRange: [3, 3] },
+    boss_dragon_nest_spoil: { eventRole: EventRole.RISK_REWARD, chapterRange: [3, 3] },
     injured_adventurer: { eventRole: EventRole.RESOURCE, chapterRange: [1, 3] },
     ancient_guardian: { eventRole: EventRole.RISK_REWARD, chapterRange: [2, 3] }
 };
@@ -1337,6 +1445,18 @@ const EVENT_LOCATION_RULES = {
     last_campfire_before_north: {
         landmarkIds: ['northern_drake_watch', 'dragon_heat_crag', 'charred_obelisk'],
         locationWeightBoost: 1.5
+    },
+    boss_shadow_column: {
+        landmarkIds: ['charred_obelisk', 'abyssal_seal_break', 'dragon_heat_crag'],
+        locationWeightBoost: 1.6
+    },
+    boss_abyssal_march: {
+        landmarkIds: ['abyssal_seal_break', 'charred_obelisk'],
+        locationWeightBoost: 1.7
+    },
+    boss_dragon_nest_spoil: {
+        landmarkIds: ['dragon_heat_crag', 'charred_obelisk'],
+        locationWeightBoost: 1.6
     },
     injured_adventurer: {
         landmarkIds: ['hunter_boardwalk', 'old_wolf_den', 'broken_horn_camp', 'obsidian_keep_gate', 'northern_drake_watch'],

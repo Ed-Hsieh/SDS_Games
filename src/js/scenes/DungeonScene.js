@@ -111,8 +111,21 @@ class DungeonSceneClass {
         if (dungeonData.story?.mechanicUnlock) {
             this.addMessage(`通關目標：${dungeonData.story.mechanicUnlock.title}`, 'reward');
         }
+        this.emitDungeonChallengeBrief(dungeonData);
         questManager.updateProgress(ObjectiveType.DUNGEON_FLOOR, this.dungeonType, 1);
         
+    }
+
+    emitDungeonChallengeBrief(dungeonData) {
+        const challenge = dungeonData?.challenge;
+        if (!challenge) return;
+
+        if (challenge.playstyle) this.addMessage(`玩法：${challenge.playstyle}`, 'info');
+        if (challenge.riskBrief) this.addMessage(`風險：${challenge.riskBrief}`, 'warning');
+        if (challenge.rewardBrief) this.addMessage(`獎勵方向：${challenge.rewardBrief}`, 'reward');
+        if (Array.isArray(challenge.preparation) && challenge.preparation.length > 0) {
+            this.addMessage(`準備：${challenge.preparation.slice(0, 2).join('／')}`, 'info');
+        }
     }
     
     initDungeonMap() {
@@ -784,6 +797,7 @@ class DungeonSceneClass {
     async resolveDungeonFloorEvent(event) {
         if (!event) return;
 
+        const dungeonData = DungeonDatabase[this.dungeonType];
         const char = GameManager.getCharacter();
         const eventName = event.name || '未知事件';
         const healPlayer = percent => {
@@ -825,7 +839,8 @@ class DungeonSceneClass {
                 const gold = rollGold(event.goldRange);
                 GameManager.addGold(gold);
                 this.addMessage(`🏺 ${eventName}：獲得 ${gold} 金幣`, 'reward');
-                if (event.itemChance) this.addMessage(`✨ 你找到可疑遺物，後續可接上副本掉落。`, 'info');
+                this.tryGrantDungeonTreasureItem(event.itemChance ?? 0.2, `${eventName}中找到`, dungeonData);
+                this.applyDungeonTreasureDiscoveryBonus(eventName);
                 break;
             }
             case 'rest':
@@ -835,12 +850,22 @@ class DungeonSceneClass {
                 healPlayer(event.healPercent || 0.15);
                 if (event.coldReset) {
                     this.mechanicState.cold = 0;
+                    this.mechanicState.supplyStress = Math.max(0, this.mechanicState.supplyStress - 2);
                     this.addMessage('🔥 寒意被驅散。', 'success');
                 }
                 if (event.removePoisaon || event.removePoison) {
                     this.mechanicState.poisonSteps = 0;
                     this.mechanicState.poisonDamage = 0;
                     this.addMessage('☠️ 毒性被草藥壓下。', 'success');
+                }
+                if (event.type === 'herb' && this.dungeonType === 'jungle') {
+                    this.mechanicState.lostCount = Math.max(0, this.mechanicState.lostCount - 1);
+                    this.addMessage('草藥味掩住濕霧，回程方向變得清楚一些。', 'info');
+                }
+                if (event.type === 'soul_well') {
+                    this.mechanicState.burn = Math.max(0, this.mechanicState.burn - 25);
+                    this.mechanicState.curseSteps = Math.max(0, this.mechanicState.curseSteps - 4);
+                    this.addMessage('靈魂之井暫時壓下灼熱與詛咒。', 'success');
                 }
                 break;
             case 'blizzard':
@@ -884,7 +909,7 @@ class DungeonSceneClass {
                 const accepted = await confirmAction({
                     title: eventName,
                     message: '你要簽下副本中的危險契約嗎？',
-                    details: ['立即失去 15% 生命', '獲得 250 金幣，之後可接上特殊獎勵'],
+                    details: ['立即失去 15% 生命', '獲得 250 金幣', '有機會得到煉獄寶物；失敗時會留下短暫詛咒'],
                     confirmText: '簽訂',
                     cancelText: '拒絕',
                     type: 'warning'
@@ -894,6 +919,12 @@ class DungeonSceneClass {
                     char.hp = Math.max(1, (char.hp || 1) - damage);
                     GameManager.addGold(250);
                     this.addMessage(`🩸 契約成立：失去 ${damage} 生命，獲得 250 金幣`, 'reward');
+                    if (!this.tryGrantDungeonTreasureItem(event.itemChance ?? 0.45, '契約回贈', dungeonData)) {
+                        this.mechanicState.curseSteps = Math.max(this.mechanicState.curseSteps, 4);
+                        this.mechanicState.curseAttack = Math.min(this.mechanicState.curseAttack, -4);
+                        this.mechanicState.curseDefense = Math.min(this.mechanicState.curseDefense, -4);
+                        this.addMessage('契約沒有吐出寶物，只在皮膚上留下發燙的字。', 'warning');
+                    }
                 } else {
                     this.addMessage('你拒絕了契約，低語聲逐漸退去。', 'info');
                 }
@@ -906,6 +937,88 @@ class DungeonSceneClass {
         GameManager.markSaveDirty?.('dungeon-event');
         this.updateUI();
         this.checkPlayerDeath();
+    }
+
+    pickDungeonTreasureItem(dungeonData = DungeonDatabase[this.dungeonType]) {
+        const randomPool = Array.isArray(dungeonData?.treasures?.random)
+            ? dungeonData.treasures.random
+            : [];
+        if (randomPool.length === 0) return null;
+
+        const item = randomPool[Math.floor(Math.random() * randomPool.length)];
+        return item ? { ...item } : null;
+    }
+
+    getDungeonTreasureQuantity(item) {
+        const type = String(item?.type || '').toLowerCase();
+        if (type === 'material') return Math.random() < 0.35 ? 2 : 1;
+        return 1;
+    }
+
+    grantDungeonItem(item, quantity = 1, label = '獲得副本物資') {
+        if (!item) return false;
+
+        const safeQuantity = Math.max(1, Number(quantity) || 1);
+        const quantityText = safeQuantity > 1 ? ` x${safeQuantity}` : '';
+        const addedToInventory = GameManager.addToInventory?.(item, safeQuantity);
+
+        if (addedToInventory) {
+            this.addMessage(`${label}：${item.name}${quantityText}`, 'reward');
+            return true;
+        }
+
+        const addedToWarehouse = GameManager.addToWarehouse?.(item, safeQuantity);
+        if (addedToWarehouse) {
+            this.addMessage(`背包已滿，${item.name}${quantityText} 已送入倉庫。`, 'warning');
+            return true;
+        }
+
+        this.addMessage(`${item.name || '副本物資'} 無法放入背包或倉庫。`, 'danger');
+        return false;
+    }
+
+    tryGrantDungeonTreasureItem(chance = 0, label = '找到副本物資', dungeonData = DungeonDatabase[this.dungeonType]) {
+        const safeChance = Math.max(0, Math.min(1, Number(chance) || 0));
+        if (safeChance <= 0 || Math.random() >= safeChance) return false;
+
+        const item = this.pickDungeonTreasureItem(dungeonData);
+        if (!item) return false;
+
+        return this.grantDungeonItem(item, this.getDungeonTreasureQuantity(item), label);
+    }
+
+    applyDungeonTreasureDiscoveryBonus(sourceName = '寶箱') {
+        switch (this.dungeonType) {
+            case 'snow': {
+                const before = this.mechanicState.cold;
+                this.mechanicState.cold = Math.max(0, before - 15);
+                if (before !== this.mechanicState.cold) this.addMessage(`${sourceName}裡的乾燥絨布讓寒意退去一些。`, 'success');
+                break;
+            }
+            case 'ruins': {
+                const required = this.getPuzzleFragmentRequired();
+                if (!this.mechanicState.tabletDecoded && this.mechanicState.puzzleFragments < required) {
+                    this.mechanicState.puzzleFragments += 1;
+                    this.addMessage(`你在${sourceName}內找到一片拓文：線索 ${this.mechanicState.puzzleFragments}/${required}。`, 'reward');
+                }
+                break;
+            }
+            case 'jungle': {
+                const required = this.getMarkerRequired();
+                if (this.mechanicState.markers < required) {
+                    this.mechanicState.markers += 1;
+                    this.addMessage(`${sourceName}留下的繩結可以當路標：${this.mechanicState.markers}/${required}。`, 'info');
+                }
+                break;
+            }
+            case 'hell':
+                const before = this.mechanicState.burn;
+                this.mechanicState.burn = Math.max(0, this.mechanicState.burn - 12);
+                if (before !== this.mechanicState.burn) this.addMessage(`${sourceName}的封蠟壓住灼熱，煉獄壓力短暫下降。`, 'success');
+                break;
+            default:
+                break;
+        }
     }
     
     // ==================== 戰鬥系統 ====================
@@ -1391,6 +1504,9 @@ class DungeonSceneClass {
         }
         this.awardDungeonBossTreasures(dungeonData);
         this.addMessage(`🏆 通關 ${dungeonData.name}！`, 'legendary');
+        if (dungeonData.challenge?.completion) {
+            this.addMessage(dungeonData.challenge.completion, 'reward');
+        }
         
         setTimeout(() => {
             showGlobalToast('副本通關', `恭喜通關 ${dungeonData.name}！`, 'success');
@@ -1412,13 +1528,7 @@ class DungeonSceneClass {
         }
 
         rewards.forEach(item => {
-            const added = GameManager.addToInventory?.(item, 1);
-            if (!added) {
-                GameManager.addToWarehouse?.(item, 1);
-                this.addMessage(`背包已滿，${item.name} 已送入倉庫。`, 'warning');
-            } else {
-                this.addMessage(`獲得副本寶物：${item.name}`, 'reward');
-            }
+            this.grantDungeonItem(item, 1, '獲得副本寶物');
         });
 
         GameManager.markSaveDirty?.('dungeon-boss-reward');
@@ -1458,15 +1568,21 @@ class DungeonSceneClass {
     // ==================== 互動事件 ====================
     
     showTreasure() {
+        const dungeonData = DungeonDatabase[this.dungeonType];
         const goldMin = 20 + this.currentFloor * 10;
         const goldMax = 50 + this.currentFloor * 20;
         const gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin));
         
         this.addMessage(`🏺 寶箱！+${gold} 金幣`, 'success');
         GameManager.addGold(gold);
+        const itemChance = Math.min(0.55, 0.22 + this.currentFloor * 0.04);
+        this.tryGrantDungeonTreasureItem(itemChance, '寶箱中找到', dungeonData);
+        this.applyDungeonTreasureDiscoveryBonus('寶箱');
         GameManager.markSaveDirty?.('dungeon-treasure');
+        GameManager.notify?.('all');
         
         this.dungeonMap.clearTreasure();
+        this.updateUI();
         this.renderMap();
     }
     
@@ -1487,13 +1603,16 @@ class DungeonSceneClass {
     async showStairsPrompt() {
         const nextFloor = this.currentFloor + 1;
         const isBossFloor = nextFloor === this.totalFloors;
+        const dungeonData = DungeonDatabase[this.dungeonType];
+        const challenge = dungeonData?.challenge || {};
+        const nextFloorMessage = isBossFloor
+            ? (challenge.bossWarning || '前方是 Boss 房間，準備好了嗎？')
+            : `是否前往第 ${nextFloor} 層？${challenge.playstyle ? ` ${challenge.playstyle}` : ''}`;
         
         // 使用 floor-complete-overlay
         if (this.dom.floorCompleteOverlay) {
             if (this.dom.floorCompleteText) {
-                this.dom.floorCompleteText.textContent = isBossFloor 
-                    ? '前方是 Boss 房間，準備好了嗎？' 
-                    : `是否前往第 ${nextFloor} 層？`;
+                this.dom.floorCompleteText.textContent = nextFloorMessage;
             }
             this.dom.floorCompleteOverlay.classList.remove('hidden');
             return;
@@ -1502,8 +1621,8 @@ class DungeonSceneClass {
         const confirmed = await confirmAction({
             title: isBossFloor ? '前往 Boss 房間？' : `前往第 ${nextFloor} 層？`,
             message: isBossFloor
-                ? '前方是 Boss 房間，進入後會面對更高強度戰鬥。'
-                : '進入下一層會刷新地圖與事件。',
+                ? (challenge.bossWarning || '前方是 Boss 房間，進入後會面對更高強度戰鬥。')
+                : `${challenge.riskBrief || '進入下一層會刷新地圖與事件。'} ${challenge.rewardBrief ? `獎勵方向：${challenge.rewardBrief}` : ''}`.trim(),
             confirmText: isBossFloor ? '挑戰 Boss' : '前往下一層',
             type: isBossFloor ? 'danger' : 'warning'
         });
@@ -1539,6 +1658,9 @@ class DungeonSceneClass {
             const dungeonData = DungeonDatabase[this.dungeonType];
             this.addMessage('⚠️ Boss 層！', 'warning');
             this.addMessage(`👑 ${dungeonData.monsters.boss.name} 在等待...`, 'boss');
+            if (dungeonData.challenge?.bossWarning) {
+                this.addMessage(dungeonData.challenge.bossWarning, 'warning');
+            }
         } else {
             this.addMessage(`📍 第 ${this.currentFloor} 層`, 'info');
         }

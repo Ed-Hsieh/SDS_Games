@@ -11,6 +11,7 @@ import { questManager, QuestStatus } from './QuestManager.js';
 import { QuestDatabase, getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
+import { getWorldEventReflectionByRole } from '../data/CharacterProfiles.js';
 
 const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
     low: [
@@ -67,6 +68,30 @@ const EVENT_ROLE_LABELS = {
     [EventRole.SIDE_STORY]: '支線聽聞',
     [EventRole.WORLD_LORE]: '世界見聞',
     [EventRole.PRESSURE]: '章節壓力'
+};
+
+const EVENT_REWARD_ROLE_MULTIPLIERS = {
+    [EventRole.RESOURCE]: 0.95,
+    [EventRole.RISK_REWARD]: 1.12,
+    [EventRole.TRADE]: 1,
+    [EventRole.STORY_SEED]: 0.78,
+    [EventRole.SIDE_STORY]: 0.86,
+    [EventRole.WORLD_LORE]: 0.82,
+    [EventRole.PRESSURE]: 1.18
+};
+
+const EVENT_REWARD_CHAPTER_MULTIPLIERS = {
+    1: 0.86,
+    2: 1,
+    3: 1.15
+};
+
+const EVENT_REWARD_ZONE_MULTIPLIERS = {
+    low: 0.86,
+    medium: 1,
+    high: 1.1,
+    death: 1.22,
+    boss: 1.22
 };
 
 function getEventMemoryKey(eventObj = {}) {
@@ -163,6 +188,9 @@ function getEventReflection(eventObj = {}, choice = {}, results = []) {
         return '這不是單純的事件結果，它把新的委託、聽聞或世界變化推進了一格。';
     }
 
+    const voicedReflection = getWorldEventReflectionByRole(eventObj.eventRole, `${eventObj.id}:${choice.text || ''}`);
+    if (voicedReflection) return voicedReflection;
+
     switch (eventObj.eventRole) {
         case EventRole.RESOURCE:
             return '這類事件會補充續航，適合在深入地圖前判斷自己是否還能繼續走。';
@@ -258,16 +286,42 @@ function getLocationWeightMultiplier(eventObj = {}, options = {}) {
     return Number.isFinite(boost) && boost > 0 ? boost : 1.4;
 }
 
+function getRecentRoleWeightMultiplier(eventObj = {}, options = {}) {
+    const recentRoles = Array.isArray(options.recentRoles) ? options.recentRoles.filter(Boolean) : [];
+    const role = eventObj.eventRole;
+    if (!role || recentRoles.length === 0) return 1;
+
+    const lastRole = recentRoles[recentRoles.length - 1];
+    if (role === lastRole) return 0.24;
+
+    const recentCount = recentRoles.filter(entry => entry === role).length;
+    if (recentCount >= 2) return 0.36;
+    if (recentCount === 1) return 0.62;
+    return 1;
+}
+
+function getRoleDiversePool(pool = [], options = {}) {
+    const recentRoles = Array.isArray(options.recentRoles) ? options.recentRoles.filter(Boolean) : [];
+    const lastRole = recentRoles[recentRoles.length - 1];
+    if (!lastRole || pool.length <= 1) return pool;
+
+    const alternatives = pool.filter(event => event?.eventRole && event.eventRole !== lastRole);
+    return alternatives.length > 0 ? alternatives : pool;
+}
+
 function pickWeightedEvent(pool = [], rng = Math.random, options = {}) {
-    if (pool.length === 0) return null;
-    const weightedPool = pool.map(event => {
+    const candidatePool = getRoleDiversePool(pool, options);
+    if (candidatePool.length === 0) return null;
+    const weightedPool = candidatePool.map(event => {
         const numericWeight = Number(event.weight);
         const baseWeight = Number.isFinite(numericWeight) ? Math.max(0, numericWeight) : 1;
-        const weight = baseWeight * getLocationWeightMultiplier(event, options);
+        const weight = baseWeight
+            * getLocationWeightMultiplier(event, options)
+            * getRecentRoleWeightMultiplier(event, options);
         return { event, weight };
     }).filter(entry => entry.weight > 0);
 
-    if (weightedPool.length === 0) return pool[0] || null;
+    if (weightedPool.length === 0) return candidatePool[0] || null;
     return weightedPick(weightedPool, rng)?.event || weightedPool[0].event;
 }
 
@@ -281,6 +335,55 @@ function filterExcludedEvents(pool = [], excludeIds = []) {
 function normalizeChapter(chapter) {
     const numericChapter = Number(chapter);
     return Number.isFinite(numericChapter) ? Math.max(1, numericChapter) : 1;
+}
+
+function getEventRewardContext(eventObj = {}, options = {}) {
+    const chapter = getEventChapter(options);
+    const zone = options.zone || eventObj.zone || eventObj._eventContext?.zone || 'low';
+    const role = eventObj.eventRole || EventRole.RESOURCE;
+    return { chapter, zone, role };
+}
+
+function getEventRewardMultiplier(eventObj = {}, result = {}, options = {}) {
+    const { chapter, zone, role } = getEventRewardContext(eventObj, options);
+    const roleMultiplier = EVENT_REWARD_ROLE_MULTIPLIERS[role] ?? 1;
+    const chapterMultiplier = chapter >= 3
+        ? EVENT_REWARD_CHAPTER_MULTIPLIERS[3]
+        : EVENT_REWARD_CHAPTER_MULTIPLIERS[chapter] ?? 1;
+    const zoneMultiplier = EVENT_REWARD_ZONE_MULTIPLIERS[zone] ?? 1;
+    const typeMultiplier = result.type === ResultType.DAMAGE
+        ? (chapter <= 1 ? 0.86 : chapter >= 3 ? 1.08 : 1)
+        : 1;
+
+    return Math.max(0.6, Math.min(1.45, roleMultiplier * chapterMultiplier * zoneMultiplier * typeMultiplier));
+}
+
+function tuneNumericEventValue(value, eventObj = {}, result = {}, options = {}) {
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) return value;
+    const multiplier = getEventRewardMultiplier(eventObj, result, options);
+    return Math.max(1, Math.round(numericValue * multiplier));
+}
+
+function getEventRewardTier(eventObj = {}, options = {}) {
+    const { chapter, zone, role } = getEventRewardContext(eventObj, options);
+    if (role === EventRole.PRESSURE || zone === 'death' || zone === 'boss' || chapter >= 3) return 'high';
+    if (role === EventRole.STORY_SEED || zone === 'low' || chapter <= 1) return 'low';
+    return 'medium';
+}
+
+function tuneEventResults(results = [], eventObj = {}, options = {}) {
+    return results.map(result => {
+        if (!result || typeof result !== 'object') return result;
+        const tuned = { ...result };
+        if (tuned.type === ResultType.GOLD || tuned.type === ResultType.EXP || tuned.type === ResultType.DAMAGE) {
+            tuned.value = tuneNumericEventValue(tuned.value, eventObj, tuned, options);
+        }
+        if (tuned.type === ResultType.ITEM && !tuned.rewardTier) {
+            tuned.rewardTier = getEventRewardTier(eventObj, options);
+        }
+        return tuned;
+    });
 }
 
 export function getCurrentStoryChapter() {
@@ -636,18 +739,34 @@ function generateCleanEventItem(itemType) {
     }
 }
 
-function generateReadableEventItem(itemType) {
+function generateReadableEventItem(itemType, options = {}) {
     const timestamp = Date.now();
+    const tier = options.rewardTier || 'medium';
     switch (itemType) {
         case 'forge_material':
+            if (tier === 'high') {
+                return new Item(`event_refined_steel_${timestamp}`, '精煉地脈鋼片', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從高壓地脈旁整理出的鍛造輔材，邊緣有細小藍光。', 260);
+            }
+            if (tier === 'low') {
+                return new Item(`event_rough_steel_${timestamp}`, '粗磨鐵片', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧩', '品質不算漂亮，但鍛造師看見會先收起來再嫌棄。', 90);
+            }
             return new Item(`enhance_stone_${timestamp}`, '打磨用青鋼片', ItemType.MATERIAL, ItemRarity.RARE, '🧩', '流動匠人常用的補強材料，邊緣仍留著細小火星痕。', 150);
         case 'material_medium':
+            if (tier === 'high') {
+                return new Item(`event_mithril_scrap_${timestamp}`, '壓紋秘銀碎材', ItemType.MATERIAL, ItemRarity.RARE, '⛏️', '裂面上有被壓過的銀色紋路，適合高階圖紙的材料缺口。', 160);
+            }
+            if (tier === 'low') {
+                return new Item(`event_repair_parts_${timestamp}`, '補修零件包', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧰', '螺釘、扣片與一點不該問來源的金屬邊角。', 55);
+            }
             return new Item(`event_material_${timestamp}`, '旅途雜材', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧰', '從路邊事件中整理出的可用材料，品質普通但很實際。', 45);
         case 'material_low':
             return new Item(`event_scrap_${timestamp}`, '可用碎料', ItemType.MATERIAL, ItemRarity.COMMON, '🔩', '看起來零散，仍能拿去補鍛造材料的缺口。', 25);
         case 'random':
         default: {
-            const items = [
+            const items = tier === 'high' ? [
+                new Consumable(`event_elixir_${timestamp}`, '旅人強效藥水', ItemType.POTION, ItemRarity.EPIC, '🧪', '瓶塞封著蠟印，喝下去前最好先相信自己的胃。', 220, { hp: 220 }),
+                new Item(`event_crystal_${timestamp}`, '地脈結晶屑', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從不穩定地脈中剝落的小結晶，可作為高階鍛造輔材。', 200)
+            ] : [
                 new Consumable(`event_potion_${timestamp}`, '旅人急救藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '瓶身有些刮痕，但藥液仍然清澈。', 100, { hp: 120 }),
                 new Item(`event_crystal_${timestamp}`, '地脈結晶屑', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從不穩定地脈中剝落的小結晶，可作為高階鍛造輔材。', 200)
             ];
@@ -740,21 +859,27 @@ export function executeChoice(eventObj, choiceIndex) {
         results = choice.results || [];
     }
 
+    const eventContext = {
+        ...(eventObj._eventContext || {}),
+        zone: eventObj.zone || eventObj._eventContext?.zone,
+        stepCount: eventObj.stepCount ?? eventObj._eventContext?.stepCount
+    };
+    const tunedResults = tuneEventResults(results, eventObj, eventContext);
+
     // apply results
-    for (const result of results) {
+    for (const result of tunedResults) {
         const msg = applyResultToCharacter(char, result);
         if (msg) resultMessages.push(msg);
     }
 
     markEventResolved(eventObj, {
-        ...(eventObj._eventContext || {}),
+        ...eventContext,
         choice,
-        results,
-        stepCount: eventObj.stepCount ?? eventObj._eventContext?.stepCount
+        results: tunedResults
     });
 
-    recordWorldEventJournal(eventObj, choice, results, resultMessages, {
-        ...(eventObj._eventContext || {}),
+    recordWorldEventJournal(eventObj, choice, tunedResults, resultMessages, {
+        ...eventContext,
         zone: eventObj.zone
     });
 
@@ -816,7 +941,9 @@ function applyResultToCharacter(char, result) {
             if (char.checkLevelUp) char.checkLevelUp();
             return result.message || `獲得 ${result.value} 經驗值`;
         case ResultType.ITEM: {
-            const item = generateReadableEventItem(result.itemType);
+            const item = generateReadableEventItem(result.itemType, {
+                rewardTier: result.rewardTier
+            });
             if (item) GameManager.addToInventory(item);
             return result.message || (item ? `獲得 ${item.name}！` : result.message);
         }
@@ -863,13 +990,41 @@ export class EventManagerClass {
     constructor() {
         this.currentEvent = null;
         this.eventHistory = [];
+        this.offeredEventIds = [];
+        this.offeredEventRoles = [];
     }
 
     getRecentEventIds(limit = 2) {
-        return this.eventHistory
+        const executedIds = this.eventHistory
             .slice(-limit)
             .map(entry => entry?.event?.id)
             .filter(Boolean);
+        const offeredIds = this.offeredEventIds.slice(-limit).filter(Boolean);
+        return [...new Set([...offeredIds, ...executedIds])].slice(-limit);
+    }
+
+    getRecentEventRoles(limit = 3) {
+        const executedRoles = this.eventHistory
+            .slice(-limit)
+            .map(entry => entry?.event?.eventRole)
+            .filter(Boolean);
+        const offeredRoles = this.offeredEventRoles.slice(-limit).filter(Boolean);
+        return [...offeredRoles, ...executedRoles].slice(-limit);
+    }
+
+    rememberOfferedEvent(event) {
+        if (!event?.id) return;
+        this.offeredEventIds.push(event.id);
+        if (this.offeredEventIds.length > 12) {
+            this.offeredEventIds.splice(0, this.offeredEventIds.length - 12);
+        }
+
+        if (event.eventRole) {
+            this.offeredEventRoles.push(event.eventRole);
+            if (this.offeredEventRoles.length > 12) {
+                this.offeredEventRoles.splice(0, this.offeredEventRoles.length - 12);
+            }
+        }
     }
 
     /**
@@ -880,22 +1035,26 @@ export class EventManagerClass {
     triggerRandomEvent(zone = 'low', options = {}) {
         const event = getEventForZone(zone, Math.random, {
             ...options,
-            excludeIds: options.excludeIds || this.getRecentEventIds(2)
+            excludeIds: options.excludeIds || this.getRecentEventIds(2),
+            recentRoles: options.recentRoles || this.getRecentEventRoles(3)
         });
         if (!event) return null;
 
         this.currentEvent = { ...event, zone, stepCount: options.stepCount, _eventContext: { ...options, zone } };
+        this.rememberOfferedEvent(this.currentEvent);
         return this.currentEvent;
     }
 
     triggerMapQuestionEvent(zone = 'low', options = {}) {
         const event = getMapQuestionEventForZone(zone, Math.random, {
             ...options,
-            excludeIds: options.excludeIds || this.getRecentEventIds(2)
+            excludeIds: options.excludeIds || this.getRecentEventIds(4),
+            recentRoles: options.recentRoles || this.getRecentEventRoles(4)
         });
         if (!event) return null;
 
         this.currentEvent = { ...event, zone, stepCount: options.stepCount, _eventContext: { ...options, zone } };
+        this.rememberOfferedEvent(this.currentEvent);
         return this.currentEvent;
     }
 

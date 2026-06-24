@@ -1,0 +1,38 @@
+{
+  "source": "incoming/raw/art-v2/monsters-sheet-03.png",
+  "category": "monsters",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "shadow_mage",
+    "shadow_overlord",
+    "shadow_soldier",
+    "skeleton",
+    "skeleton_warrior",
+    "slime",
+    "stone_golem",
+    "stone_golem_mini",
+    "stone_guardian",
+    "",
+    "thunder_elemental",
+    "tormented_soul",
+    "tower_abyss_general",
+    "tower_alpha_wolf",
+    "tower_dark_dragon",
+    "tower_flame_imp",
+    "tower_frost_giant",
+    "tower_gargoyle",
+    "tower_goblin_chief",
+    "tower_hell_knight",
+    "tower_hydra",
+    "tower_iron_golem",
+    "tower_lava_lizard",
+    "tower_man_eater",
+    "tower_poison_queen"
+  ]
+}

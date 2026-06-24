@@ -11,6 +11,7 @@ import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem } fr
 import {
     DefaultUnlockedPassiveCombatEffectIds,
     getAllPassiveCombatEffects,
+    getPassiveCombatEffect,
     getPassiveCombatEffectUnlockSource
 } from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
@@ -266,6 +267,8 @@ class GameManager {
         DefaultUnlockedPassiveCombatEffectIds.forEach(effectId => nextUnlockedSet.add(effectId));
 
         const nextUnlockedIds = allEffectIds.filter(effectId => nextUnlockedSet.has(effectId));
+        const previousUnlockedSet = new Set(previousUnlockedIds);
+        const newlyUnlockedIds = nextUnlockedIds.filter(effectId => !previousUnlockedSet.has(effectId));
         const slotCount = Math.max(1, Number(character.passiveEffectSlots) || 1);
         const previousEquippedIds = Array.isArray(character.equippedPassiveEffectIds)
             ? character.equippedPassiveEffectIds
@@ -289,12 +292,29 @@ class GameManager {
         if (changed) {
             this.markSaveDirty?.(`passive-effects-${reason}`);
         }
+        if (newlyUnlockedIds.length > 0 && !['reset', 'load-save', 'lobby-render', 'state'].includes(reason)) {
+            const recent = Array.isArray(this._recentPassiveCombatUnlocks)
+                ? this._recentPassiveCombatUnlocks
+                : [];
+            this._recentPassiveCombatUnlocks = Array.from(new Set([...recent, ...newlyUnlockedIds]));
+        }
 
         return {
             changed,
             unlockedIds: nextUnlockedIds,
+            newlyUnlockedIds,
             prunedBetaUnlocks: hadBetaFullUnlock
         };
+    }
+
+    consumePassiveCombatUnlocks() {
+        const ids = Array.isArray(this._recentPassiveCombatUnlocks)
+            ? this._recentPassiveCombatUnlocks
+            : [];
+        this._recentPassiveCombatUnlocks = [];
+        return ids
+            .map(effectId => getPassiveCombatEffect(effectId))
+            .filter(Boolean);
     }
 
     subscribe(callback) {

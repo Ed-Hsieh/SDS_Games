@@ -1,0 +1,37 @@
+{
+  "source": "incoming/raw/art-v2/shop-items-sheet-01.png",
+  "category": "shop-items",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "ancient_coin",
+    "ancient_tome",
+    "berserker_potion",
+    "defense_potion",
+    "dragon_blade",
+    "elixir",
+    "emergency_potion",
+    "fatal_reading_manual",
+    "first_aid_potion",
+    "guard_memory_manual",
+    "health_potion",
+    "immortal_elixir",
+    "lucky_charm",
+    "lucky_potion",
+    "map_fragment",
+    "mithril_blade",
+    "phoenix_armor",
+    "quick_rhythm_manual",
+    "sharp_focus_manual",
+    "silver_ring",
+    "silver_thread_bait",
+    "steel_armor",
+    "strength_potion",
+    "time_amulet"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "source": "incoming/raw/art-v2/monsters-sheet-04.png",
+  "category": "monsters",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "tower_primordial_titan",
+    "tower_shadow_stalker",
+    "tower_skeleton_captain",
+    "tower_slime_king",
+    "tower_spectral_mage",
+    "tower_thunder_hawk",
+    "tower_void_king",
+    "treant",
+    "tribal_hunter",
+    "vine_beast",
+    "wild_wolf",
+    "wyvern",
+    "yeti_scout"
+  ]
+}

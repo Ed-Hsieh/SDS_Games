@@ -1,0 +1,38 @@
+{
+  "source": "incoming/raw/art-v2/blueprints-sheet-01.png",
+  "category": "blueprints",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "assassin_shadow_veil",
+    "blood_moon_pendant",
+    "bone_blade",
+    "bone_soul_staff",
+    "demonwar_helm",
+    "dragon_amulet",
+    "dragon_overlord_crown",
+    "dragon_scale_armor",
+    "dragon_slayer",
+    "earthwarden_aegis",
+    "fire_sword",
+    "frostbound_scepter",
+    "gargoyle_bulwark",
+    "goblin_trickster_charm",
+    "greater_health_potion",
+    "guardian_armor",
+    "health_potion_basic",
+    "hydra_fang_dagger",
+    "ice_sword",
+    "iron_sword",
+    "leather_armor",
+    "mithril_sword",
+    "nature_amulet",
+    "poison_dagger",
+    "primal_focus"
+  ]
+}

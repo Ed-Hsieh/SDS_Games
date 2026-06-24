@@ -859,9 +859,7 @@ export default class LobbyScene {
             }
             const effectEntries = finished ? this.getTownDialogueEffectEntries(dialogue) : [];
             this.dom.townDialogueEffects.innerHTML = finished
-                ? effectEntries.map(entry => (
-                    `<div class="town-dialogue-effect${entry.type === 'hint' ? ' is-hint' : ''}">${escapeHtml(entry.message)}</div>`
-                )).join('')
+                ? effectEntries.map(entry => this.renderTownDialogueEffectEntry(entry)).join('')
                 : '';
         }
 
@@ -891,16 +889,58 @@ export default class LobbyScene {
 
     getTownDialogueEffectEntries(dialogue) {
         const entries = (dialogue.effectMessages || []).map(message => ({
-            type: 'effect',
+            ...this.classifyTownDialogueEffect(message),
             message
         }));
         if (dialogue.notebookHint) {
             entries.push({
                 type: 'hint',
+                icon: '✎',
+                label: '手札',
                 message: dialogue.notebookHint
             });
         }
         return entries;
+    }
+
+    classifyTownDialogueEffect(message = '') {
+        const text = String(message || '');
+        if (/^收穫整理[:：]/.test(text)) {
+            return { type: 'reward', icon: '◇', label: '收穫' };
+        }
+        if (/旅人手札新增|手札新增|線索/.test(text)) {
+            return { type: 'notebook', icon: '✦', label: '手札' };
+        }
+        if (/首領痕跡|最終觸發/.test(text)) {
+            return { type: 'boss', icon: '⌖', label: '首領' };
+        }
+        if (/^接下來[:：]/.test(text)) {
+            return { type: 'next', icon: '➜', label: '接下來' };
+        }
+        if (/歸檔|紀錄|回報/.test(text)) {
+            return { type: 'archive', icon: '✓', label: '歸檔' };
+        }
+        return { type: 'effect', icon: '•', label: '更新' };
+    }
+
+    renderTownDialogueEffectEntry(entry = {}) {
+        const type = entry.type || 'effect';
+        const message = String(entry.message || '');
+        const label = entry.label || (type === 'hint' ? '手札' : '更新');
+        const icon = entry.icon || (type === 'hint' ? '✎' : '•');
+        const cleanedMessage = message
+            .replace(/^收穫整理[:：]\s*/, '')
+            .replace(/^接下來[:：]\s*/, '');
+
+        return `
+            <article class="town-dialogue-effect is-${escapeHtml(type)}">
+                <span class="town-dialogue-effect-icon">${escapeHtml(icon)}</span>
+                <span class="town-dialogue-effect-copy">
+                    <b>${escapeHtml(label)}</b>
+                    <small>${escapeHtml(cleanedMessage)}</small>
+                </span>
+            </article>
+        `;
     }
 
     resolveTownDialogueNotebookHint(dialogue) {

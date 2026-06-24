@@ -1,0 +1,8 @@
+Create a strict 5 by 5 grid source sheet for SDS_Games category "equipment".
+The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
+Place subjects in this exact left-to-right, top-to-bottom order:
+shadow_commander_blade, shadow_commander_sword, shadow_overlord_armor, slime_sword, spider_silk_gloves, starter_sword, thunder_axe, titan_gauntlet, titan_hammer, torch, tower_abyss_armor, tower_guardian_staff, tower_hell_knight_lance, tower_lich_staff, tower_void_blade, tower_void_crown, wolf_fang_blade, wolf_pelt_armor, wyvern_lance
+Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
+No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
+Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
+Background: dark neutral flat background inside each cell, subtle grid separation allowed.

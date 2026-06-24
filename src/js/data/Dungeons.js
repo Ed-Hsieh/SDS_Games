@@ -45,7 +45,7 @@ export const DungeonEntranceConfig = {
         icon: '❄️', 
         color: '#87ceeb',
         zones: ['medium', 'high'],
-        description: '聖火熔爐被封凍後，暴風雪吞噬山脊的極寒雪峰。'
+        description: '山脊熱泉被寒潮封住後，暴風雪吞噬整座雪峰。'
     },
     ruins: { 
         name: '遠古遺跡', 
@@ -81,6 +81,14 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.cave,
         difficulty: DungeonDifficulty.EASY,
         recommendLevel: 3,
+        challenge: {
+            playstyle: '低光源探索：視野短、事件密度高，重點是用火把與補給換取穩定推進。',
+            riskBrief: '黑暗會縮短可判斷距離，陷阱與突襲比同等級野外更常見。',
+            rewardBrief: '早期防具線、礦工遺物與基礎鍛造素材。',
+            preparation: ['帶火把可以擴大視野', '生命藥水能抵掉落石與伏擊失誤'],
+            bossWarning: '岩石巨人守著出口，防禦很高，沒有足夠攻擊力會被拖進消耗戰。',
+            completion: '布蘭的日誌被帶回地面，城鎮第一次知道地脈斷裂不是傳聞。'
+        },
         floors: 3,
         bossFloor: 4,
         
@@ -103,7 +111,7 @@ export const DungeonDatabase = {
             hazards: ['落石', '蝙蝠群'],
             events: [
                 { type: 'trap', name: '落石陷阱', damage: 15, chance: 0.15 },
-                { type: 'treasure', name: '礦石堆', goldRange: [20, 50], chance: 0.2 },
+                { type: 'treasure', name: '礦石堆', goldRange: [20, 50], itemChance: 0.35, chance: 0.2 },
                 { type: 'rest', name: '安全角落', healPercent: 0.2, chance: 0.1 }
             ]
         },
@@ -123,7 +131,7 @@ export const DungeonDatabase = {
                 hp: 200, attack: 25, defense: 20, exp: 150, gold: [100, 200],
                 skills: [
                     { name: '地震', damage: 30, description: '對全體造成傷害' },
-                    { name: '石化凝視', effect: 'stun', duration: 1, description: '使目標無法行動1回合' }
+                    { name: '石化凝視', effect: 'stun', duration: 1, description: '使目標短暫僵住 1 秒' }
                 ],
                 dialogue: {
                     encounter: '入侵者...必須...消滅...',
@@ -166,10 +174,18 @@ export const DungeonDatabase = {
         id: DungeonType.SNOW,
         name: '冰封雪峰',
         icon: '❄️',
-        description: '沉鐘神諭引發的氣候異變封死聖火熔爐，冰霜巨龍在魔力逆流中驚醒。',
+        description: '沉鐘神諭引發的氣候異變封住山脊熱泉，冰霜巨龍在魔力逆流中驚醒。',
         story: DungeonStoryDatabase.snow,
         difficulty: DungeonDifficulty.NORMAL,
         recommendLevel: 6,
+        challenge: {
+            playstyle: '補給壓力探索：移動本身就是消耗，重點是判斷何時深入、何時回撤。',
+            riskBrief: '寒冷會累積並消耗補給；拖太久會把藥水以外的背包壓力放大。',
+            rewardBrief: '冰寒鍛造校準、寒地材料與對抗冰系怪物的裝備路線。',
+            preparation: ['保暖披風能降低寒冷壓力', '準備足夠補給再嘗試連續深入'],
+            bossWarning: '冰霜巨龍會用寒意逼你失誤，拖長戰鬥會讓補給線先崩。',
+            completion: '雪峰上的校準法被帶回鍛造鋪，鐵匠能更穩定地處理寒地材料。'
+        },
         floors: 4,
         bossFloor: 5,
         
@@ -195,7 +211,7 @@ export const DungeonDatabase = {
                 { type: 'trap', name: '冰裂縫', damage: 20, chance: 0.12 },
                 { type: 'blizzard', name: '暴風雪', coldIncrease: 30, chance: 0.15 },
                 { type: 'campfire', name: '篝火遺跡', coldReset: true, healPercent: 0.15, chance: 0.08 },
-                { type: 'treasure', name: '冰凍寶箱', goldRange: [30, 80], chance: 0.15 }
+                { type: 'treasure', name: '冰凍寶箱', goldRange: [30, 80], itemChance: 0.3, chance: 0.15 }
             ]
         },
         
@@ -259,6 +275,14 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.ruins,
         difficulty: DungeonDifficulty.HARD,
         recommendLevel: 10,
+        challenge: {
+            playstyle: '辨識型探索：先收集石碑線索，再決定要不要啟動機關。',
+            riskBrief: '沒有線索就硬闖會觸發陷阱；遺跡怪物不會理解你只是路過。',
+            rewardBrief: '秘銀破防線、遺跡圖紙與機關素材。',
+            preparation: ['古代典籍能降低判讀成本', '破防或高暴擊裝備能縮短守衛戰'],
+            bossWarning: '遠古守衛者會依階段切換防衛協定，錯誤節奏會被機關連續壓制。',
+            completion: '朱利安的絕筆補上遺跡失控的原因，書記能把地脈監測網接回主線索引。'
+        },
         floors: 5,
         bossFloor: 6,
         
@@ -284,7 +308,7 @@ export const DungeonDatabase = {
                 { type: 'trap', name: '毒箭機關', damage: 15, poison: { damage: 5, duration: 3 }, chance: 0.12 },
                 { type: 'puzzle_bonus', name: '隱藏機關', rewardMultiplier: 2, chance: 0.1 },
                 { type: 'lore', name: '壁畫記載', expBonus: 50, chance: 0.15 },
-                { type: 'treasure', name: '祭壇寶箱', goldRange: [50, 120], chance: 0.12 }
+                { type: 'treasure', name: '祭壇寶箱', goldRange: [50, 120], itemChance: 0.35, chance: 0.12 }
             ]
         },
         
@@ -353,6 +377,14 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.jungle,
         difficulty: DungeonDifficulty.EXPERT,
         recommendLevel: 15,
+        challenge: {
+            playstyle: '路標與毒霧探索：不是跑得快就好，而是每次前進都要留下可回頭的記號。',
+            riskBrief: '迷霧會讓路徑扭曲；毒素會把錯誤慢慢變成生命壓力。',
+            rewardBrief: '毒素減免戰術、蛛絲防具線與叢林稀有材料。',
+            preparation: ['毒素減免戰術能顯著降低壓力', '叢林指南針能降低迷失成本'],
+            bossWarning: '九頭蛇會把毒霧變成戰鬥節奏，沒有抗毒準備會被持續傷害逼退。',
+            completion: '古老織機重新發出聲音，毒素對策不再只是臨時喝藥硬撐。'
+        },
         floors: 6,
         bossFloor: 7,
         
@@ -360,13 +392,13 @@ export const DungeonDatabase = {
         mechanic: {
             type: 'maze',
             name: '迷霧迷宮',
-            description: '每走 10 步有 30% 機率迷路，回到該層起點。收集 3 個路標可免疫迷路。',
+            description: '每走一段距離有機率迷路，回到該層起點。收集 3 個路標可免疫迷路。',
             icon: '🌫️',
             effect: {
                 lostChance: 0.3,       // 迷路機率
                 lostCheckInterval: 10, // 每幾步檢查一次
                 markerRequired: 3,     // 需要的路標數量
-                confusionDuration: 2   // 迷路後的混亂回合
+                confusionDuration: 2   // 迷路後的混亂秒數
             },
             counterItem: 'jungle_compass'  // 叢林指南針可降低迷路機率
         },
@@ -392,7 +424,7 @@ export const DungeonDatabase = {
                 { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, attack: 32, defense: 8, exp: 48, gold: [25, 55] }
             ],
             elite: [
-                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, attack: 35, defense: 25, exp: 150, gold: [100, 200], special: '自然治癒：每回合恢復 10% HP' }
+                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, attack: 35, defense: 25, exp: 150, gold: [100, 200], special: '自然治癒：每 3 秒恢復 10% HP' }
             ],
             boss: {
                 id: 'jungle_hydra', name: '叢林九頭蛇', icon: '🐍',
@@ -452,6 +484,14 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.hell,
         difficulty: DungeonDifficulty.NIGHTMARE,
         recommendLevel: 20,
+        challenge: {
+            playstyle: '終局耐壓探索：每一步都會消耗裝備與生命，重點是用最短路線完成目標。',
+            riskBrief: '煉獄熱浪會磨耗耐久並壓低回復效率，拖延會把好裝備燒成代價。',
+            rewardBrief: '終局決戰材料、黑焰裝備線與高階火抗資源。',
+            preparation: ['烈焰護符或抗火藥水能保住探索節奏', '進入前確認武器與防具耐久'],
+            bossWarning: '炎獄不是魔王眷屬，它只想把戰場燒穿。請把這場當成終局前的壓力測試。',
+            completion: '深淵的火種被壓回裂縫，通往黑焰邊境的最後準備終於有了形狀。'
+        },
         floors: 7,
         bossFloor: 8,
         
@@ -478,8 +518,8 @@ export const DungeonDatabase = {
                 { type: 'trap', name: '惡魔突襲', monsterType: 'elite', chance: 0.12 },
                 { type: 'curse', name: '詛咒領域', effect: 'curse', debuff: { attack: -10, defense: -10 }, duration: 10, chance: 0.1 },
                 { type: 'soul_well', name: '靈魂之井', healPercent: 0.5, chance: 0.05 },
-                { type: 'treasure', name: '惡魔寶庫', goldRange: [200, 500], chance: 0.08 },
-                { type: 'contract', name: '惡魔契約', choice: true, chance: 0.1 }  // 可選擇簽訂或拒絕
+                { type: 'treasure', name: '惡魔寶庫', goldRange: [200, 500], itemChance: 0.45, chance: 0.08 },
+                { type: 'contract', name: '惡魔契約', choice: true, itemChance: 0.55, chance: 0.1 }  // 可選擇簽訂或拒絕
             ]
         },
         
@@ -491,7 +531,7 @@ export const DungeonDatabase = {
                 { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, attack: 30, defense: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
             ],
             elite: [
-                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, attack: 55, defense: 25, exp: 250, gold: [200, 400], special: '地獄火：每回合對全體造成 15 點傷害' }
+                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, attack: 55, defense: 25, exp: 250, gold: [200, 400], special: '地獄火：每 3 秒對全體造成 15 點傷害' }
             ],
             boss: {
                 id: 'demon_king', name: '惡魔領主・炎獄', icon: '👹',
@@ -528,7 +568,7 @@ export const DungeonDatabase = {
                     burnImmune: true, 
                     fireAbsorb: 0.3,     // 吸收 30% 火系傷害轉為 HP
                     demonSlayer: 1.5,    // 對惡魔類傷害 +50%
-                    intimidate: 0.1      // 10% 機率使敵人恐懼跳過回合
+                    intimidate: 0.1      // 10% 機率使敵人恐懼並短暫停手
                 },
                 price: 5000
             },

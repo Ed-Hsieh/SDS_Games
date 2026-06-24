@@ -128,6 +128,32 @@ async function main() {
     const sortedRows = [...rows].sort((a, b) => b.ratio - a.ratio);
     const strongest = sortedRows.slice(0, 8);
     const weakest = sortedRows.slice(-8).reverse();
+    const report = {
+        summary: {
+            items: items.length,
+            issues: issues.length,
+            notes: notes.length,
+            bySeverity
+        },
+        coverage: {
+            equipmentWithKnownSource: sourceAudit.coverage.withSource,
+            totalEquipment: items.length,
+            monsterDropLinks: sourceAudit.coverage.monsterDropLinks,
+            craftedResultLinks: sourceAudit.coverage.recipeResultLinks,
+            questRewardLinks: sourceAudit.coverage.questRewardLinks,
+            blueprintSourceLinks: sourceAudit.coverage.blueprintSourceLinks
+        },
+        strongest,
+        weakest,
+        issues,
+        notes,
+        rows
+    };
+
+    if (process.argv.includes('--json')) {
+        console.log(JSON.stringify(report, null, 2));
+        return;
+    }
 
     console.log('Equipment balance audit');
     console.log(`Items: ${items.length}`);

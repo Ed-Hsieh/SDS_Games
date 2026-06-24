@@ -267,9 +267,7 @@ export default class ForgeScene {
             ...result,
             name: result.name || recipe?.name,
             icon: result.icon || recipe?.icon,
-            image: result.image || recipe?.image || '',
-            atlas: result.atlas || recipe?.atlas || null,
-            type: result.type || recipe?.type,
+            image: result.image || recipe?.image || '',            type: result.type || recipe?.type,
             rarity: result.rarity || recipe?.rarity || 'common',
             description: result.description || result.desc || '',
             desc: result.desc || result.description || ''

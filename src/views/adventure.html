@@ -38,7 +38,7 @@
         </div>
 
         <button class="clue-book-tab" id="btn-toggle-clue-book" type="button" aria-expanded="false" aria-controls="clue-book-panel">
-            <span class="clue-book-tab-title">痕跡簿</span>
+            <span class="clue-book-tab-title">旅人手札</span>
         </button>
 
         <button class="boss-test-tab" id="btn-toggle-boss-test" type="button" aria-expanded="false" aria-controls="boss-test-panel" hidden>
@@ -48,12 +48,34 @@
         <aside class="clue-book-panel" id="clue-book-panel" aria-hidden="true">
             <div class="clue-book-header">
                 <div>
-                    <span class="clue-book-kicker">首領追蹤</span>
-                    <h2>痕跡簿</h2>
+                    <span class="clue-book-kicker">旅行紀錄</span>
+                    <h2>旅人手札</h2>
                 </div>
-                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉痕跡簿">×</button>
+                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉旅人手札">×</button>
             </div>
             <div class="clue-book-summary" id="clue-book-summary"></div>
+            <div class="clue-book-tabs" id="clue-book-tabs" role="tablist" aria-label="旅人手札快速分類">
+                <button class="clue-book-filter is-active" type="button" data-adventure-handbook-tab="commissions" aria-selected="true">
+                    <span>委託</span>
+                    <b data-adventure-handbook-count="commissions">0</b>
+                </button>
+                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="boss" aria-selected="false">
+                    <span>首領痕跡</span>
+                    <b data-adventure-handbook-count="boss">0</b>
+                </button>
+                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="world" aria-selected="false">
+                    <span>世界見聞</span>
+                    <b data-adventure-handbook-count="world">0</b>
+                </button>
+                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="forge" aria-selected="false">
+                    <span>鍛造備忘</span>
+                    <b data-adventure-handbook-count="forge">0</b>
+                </button>
+                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="town" aria-selected="false">
+                    <span>城鎮記憶</span>
+                    <b data-adventure-handbook-count="town">0</b>
+                </button>
+            </div>
             <div class="clue-book-content" id="clue-book-content"></div>
         </aside>
 

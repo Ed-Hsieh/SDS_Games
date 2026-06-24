@@ -10,6 +10,7 @@ import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
+import { getCharacterReportClosing } from '../data/CharacterProfiles.js';
 
 class DialogueManager {
     constructor() {
@@ -83,6 +84,8 @@ class DialogueManager {
         const reportName = story.reportTo?.name || npc.name;
         const reportMessage = `${reportName}把「${completedQuest.name}」的紀錄歸檔。`;
         const nextLead = story.finished || story.nextLead || '城鎮裡的下一段動向正在浮上來。';
+        const closingLine = getCharacterReportClosing(npc.id, completedQuest.id)
+            || '這份紀錄我會收下。接下來如果有新動向，城鎮裡會先有人露出那種「我有麻煩要交給你」的表情。';
 
         return {
             id: `report_${completedQuest.id}`,
@@ -97,7 +100,7 @@ class DialogueManager {
                 },
                 {
                     speaker: 'npc',
-                    text: '這份紀錄我會收下。接下來如果有新動向，城鎮裡會先有人露出那種「我有麻煩要交給你」的表情。'
+                    text: closingLine
                 }
             ],
             effects: [
@@ -462,6 +465,10 @@ class DialogueManager {
                 : '首領痕跡有了新的推進，之後可在旅人手札裡比對。');
         }
 
+        if (result.finaleOutcome?.title) {
+            messages.push(`終局收束：${result.finaleOutcome.title}。${result.finaleOutcome.summary || ''}`.trim());
+        }
+
         const nextLead = story?.finished || story?.nextLead;
         if (nextLead) {
             messages.push(`接下來：${nextLead}`);
@@ -523,6 +530,12 @@ class DialogueManager {
                 GameManager.markSaveDirty?.('dialogue-flag');
                 if (effect.message) messages.push(effect.message);
             }
+        }
+
+        const unlockedEffects = GameManager.consumePassiveCombatUnlocks?.() || [];
+        if (unlockedEffects.length > 0) {
+            const names = unlockedEffects.map(effect => effect.name).join('、');
+            messages.push(`戰術技能解鎖：${names}。可回大廳旅人卡片更換。`);
         }
 
         return messages;

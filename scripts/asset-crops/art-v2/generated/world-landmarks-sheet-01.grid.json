@@ -1,0 +1,33 @@
+{
+  "source": "incoming/raw/art-v2/world-landmarks-sheet-01.png",
+  "category": "world-landmarks",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "abyssal_seal_break",
+    "black_iron_storehouse",
+    "broken_horn_camp",
+    "charred_obelisk",
+    "cut_roadsign",
+    "dragon_heat_crag",
+    "drowned_bell_coast",
+    "hunter_boardwalk",
+    "mist_tablet_hill",
+    "moon_moss_slope",
+    "northern_drake_watch",
+    "obsidian_keep_gate",
+    "old_campfire_site",
+    "old_wolf_den",
+    "opened_ancient_tomb",
+    "rotroot_ravine",
+    "silver_snare_pass",
+    "south_gate_farmland",
+    "sunken_altar_reef",
+    "thorn_glasshouse_ruin"
+  ]
+}

@@ -1,5 +1,6 @@
 import { EventDatabase, EventRole, getEventChapterRange, getEventsForZone } from '../src/js/data/Events.js';
 import { WorldLandmarks, ZoneProfiles } from '../src/js/data/WorldStories.js';
+import { getEventForZone } from '../src/js/managers/EventManager.js';
 
 const problems = [];
 const warnings = [];
@@ -19,6 +20,12 @@ const limitedRepeatRoles = new Set([
     EventRole.SIDE_STORY,
     EventRole.WORLD_LORE
 ]);
+const recentRoleScenarios = [
+    { label: 'after-resource', roles: [EventRole.RESOURCE] },
+    { label: 'after-two-resources', roles: [EventRole.RESOURCE, EventRole.RESOURCE] },
+    { label: 'after-trade-risk', roles: [EventRole.TRADE, EventRole.RISK_REWARD] },
+    { label: 'after-story-lore', roles: [EventRole.STORY_SEED, EventRole.WORLD_LORE] }
+];
 
 function push(list, section, message) {
     list.push({ section, message });
@@ -93,11 +100,21 @@ function getLandmarkContext(landmark) {
     };
 }
 
+function createFixedRng(seed = 0) {
+    const values = [0.17, 0.43, 0.69, 0.91, 0.28].map(value => {
+        const shifted = (value + seed * 0.07) % 0.98;
+        return shifted <= 0 ? 0.01 : shifted;
+    });
+    let index = 0;
+    return () => values[index++ % values.length];
+}
+
 for (const event of EventDatabase) {
     validateEventShape(event);
 }
 
 const chapterZoneCoverage = [];
+const roleRotationProbe = [];
 for (const chapter of [1, 2, 3]) {
     for (const zone of zoneIds) {
         const landmarks = WorldLandmarks.filter(landmark => {
@@ -130,6 +147,43 @@ for (const chapter of [1, 2, 3]) {
         if (landmarks.length > 0 && eventIds.size < 3) {
             push(warnings, 'pool-depth', `chapter ${chapter} zone ${zone} only has ${eventIds.size} eligible event(s) near known landmarks`);
         }
+
+        if (landmarks.length > 0 && eventIds.size > 0) {
+            const landmark = landmarks.find(entry => {
+                return getEventsForZone(zone, { chapter, ...getLandmarkContext(entry) }).length > 0;
+            });
+            if (!landmark) {
+                push(problems, 'role-rotation', `chapter ${chapter} zone ${zone} has coverage events but no probeable landmark`);
+                continue;
+            }
+            const context = getLandmarkContext(landmark);
+            const selections = recentRoleScenarios.map((scenario, scenarioIndex) => {
+                const event = getEventForZone(zone, createFixedRng(chapter + scenarioIndex), {
+                    chapter,
+                    ...context,
+                    recentRoles: scenario.roles
+                });
+
+                if (!event) {
+                    push(problems, 'role-rotation', `chapter ${chapter} zone ${zone} returned no event with recent role scenario ${scenario.label}`);
+                }
+
+                const lastRole = scenario.roles[scenario.roles.length - 1];
+                return {
+                    scenario: scenario.label,
+                    selected: event?.id || null,
+                    role: event?.eventRole || null,
+                    repeatsLastRole: Boolean(event?.eventRole && event.eventRole === lastRole)
+                };
+            });
+
+            roleRotationProbe.push({
+                chapter,
+                zone,
+                landmark: landmark.id,
+                selections
+            });
+        }
     }
 }
 
@@ -144,7 +198,15 @@ if (problems.length > 0) {
 const report = {
     events: EventDatabase.length,
     warnings,
-    chapterZoneCoverage
+    chapterZoneCoverage,
+    roleRotationProbe: {
+        samples: roleRotationProbe.length,
+        selections: roleRotationProbe.reduce((total, entry) => total + entry.selections.length, 0),
+        repeatedLastRoleSelections: roleRotationProbe.reduce((total, entry) => {
+            return total + entry.selections.filter(selection => selection.repeatsLastRole).length;
+        }, 0),
+        samplesByChapterZone: roleRotationProbe
+    }
 };
 
 console.log(JSON.stringify(report, null, 2));

@@ -17,7 +17,8 @@ export const CasinoGame = {
     SLOTS: 'slots',
     ROULETTE: 'roulette',
     DICE: 'dice',
-    BLACKJACK: 'blackjack'
+    BLACKJACK: 'blackjack',
+    DARK_TABLE: 'dark_table'
 };
 
 // 老虎機符號
@@ -80,7 +81,10 @@ export default class CasinoManager {
             lossStreak: 0,
             winStreak: 0,
             deepEvents: 0,
-            darkRoomInvites: 0
+            darkRoomInvites: 0,
+            darkTableWins: 0,
+            darkTableLosses: 0,
+            darkTableBloodPaid: 0
         };
         this.chips = 0;
         this.poolState = {};
@@ -375,6 +379,192 @@ export default class CasinoManager {
         return ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][num - 1] || num;
     }
 
+    // ==================== 暗桌 ====================
+
+    isDarkTableUnlocked() {
+        const pressure = this.getPressureState();
+        return pressure.attention >= 60
+            || (this.stats.darkRoomInvites || 0) > 0
+            || GameManager.getFlag?.('town.casino.demon_dealer_invited')
+            || this.hasStoredItem('blood_chip');
+    }
+
+    hasStoredItem(itemId) {
+        const readId = stack => stack?.item?.id || stack?.id;
+        const inventory = GameManager.state?.inventory || [];
+        const warehouse = GameManager.state?.warehouse || [];
+        return [...inventory, ...warehouse].some(stack => readId(stack) === itemId);
+    }
+
+    getDarkTableRiskSnapshot(bet = 80) {
+        const safeBet = Math.max(80, Math.min(800, Math.floor(Number(bet) || 80)));
+        const character = GameManager.getCharacter?.();
+        const maxHp = Math.max(1, Math.floor(Number(character?.maxHp ?? character?.maxHP ?? 120) || 120));
+        const rawHp = Math.floor(Number(character?.hp ?? character?.currentHP ?? maxHp) || maxHp);
+        const hp = Math.max(0, Math.min(maxHp, rawHp));
+        const damage = Math.min(Math.max(8, Math.floor(maxHp * 0.16)), Math.max(0, hp - 1));
+        const luckLift = Math.max(0, this.getLuckBonus() - 1);
+        const winChance = Math.min(0.58, 0.38 + luckLift * 0.45);
+
+        return {
+            bet: safeBet,
+            hp,
+            maxHp,
+            damage,
+            projectedHp: Math.max(1, hp - damage),
+            canPayBloodPrice: hp > 1,
+            winChance,
+            winChancePercent: Math.round(winChance * 100),
+            attentionOnWin: 12,
+            attentionOnLoss: 8,
+            lowHp: hp > 1 && hp - damage <= Math.ceil(maxHp * 0.25)
+        };
+    }
+
+    pickDarkTableReward() {
+        const chapter = this.getStoryChapter();
+        const roll = Math.random();
+
+        if (chapter >= 3 && roll < 0.12) {
+            return {
+                itemId: 'forbidden_blueprint_fragment',
+                quantity: 1,
+                title: '禁鑄碎頁',
+                attentionDelta: 10
+            };
+        }
+
+        if (roll < 0.28) {
+            return {
+                itemId: 'black_market_ticket',
+                quantity: 1,
+                title: '黑市入場券',
+                attentionDelta: 5
+            };
+        }
+
+        if (roll < 0.46) {
+            return {
+                itemId: 'casino_prize_case',
+                quantity: 1,
+                title: '封蠟獎箱',
+                attentionDelta: 3
+            };
+        }
+
+        return null;
+    }
+
+    playDarkTable(bet) {
+        if (!this.isDarkTableUnlocked()) {
+            return {
+                success: false,
+                message: '櫃台後的暗門還沒為你打開。先在賭場留下足夠多的痕跡。'
+            };
+        }
+
+        const validation = this.validateBet(bet, 80, 800);
+        if (!validation.valid) {
+            return { success: false, message: validation.message };
+        }
+
+        const risk = this.getDarkTableRiskSnapshot(bet);
+        if (!risk.canPayBloodPrice) {
+            return { success: false, message: '你的生命值太低，暗桌不收沒有血價的人。先離開這裡。' };
+        }
+
+        if (!this.spendChips(bet)) {
+            return { success: false, message: '籌碼不夠。暗桌不接受口頭承諾。' };
+        }
+
+        this.stats.totalBet += bet;
+        this.stats.gamesPlayed += 1;
+
+        const isWin = Math.random() < risk.winChance;
+        let winnings = 0;
+        let damage = 0;
+        let hpBefore = risk.hp;
+        let hpAfter = risk.hp;
+        const maxHp = risk.maxHp;
+
+        if (isWin) {
+            this.stats.darkTableWins = (this.stats.darkTableWins || 0) + 1;
+            const multiplier = 2.6 + Math.random() * 0.8;
+            winnings = Math.floor(bet * multiplier);
+            this.addChips(winnings, 'payout');
+            this.stats.totalWin += winnings;
+            this.stats.houseAttention = Math.min(100, (this.stats.houseAttention || 0) + 12);
+        } else {
+            this.stats.darkTableLosses = (this.stats.darkTableLosses || 0) + 1;
+            this.stats.houseAttention = Math.min(100, (this.stats.houseAttention || 0) + 6);
+            const character = GameManager.getCharacter?.();
+            const currentHp = Number(character?.hp ?? character?.currentHP ?? maxHp) || maxHp;
+            hpBefore = Math.max(0, Math.min(maxHp, Math.floor(currentHp)));
+            damage = Math.min(risk.damage, Math.max(0, hpBefore - 1));
+            this.stats.darkTableBloodPaid = (this.stats.darkTableBloodPaid || 0) + damage;
+            hpAfter = Math.max(1, hpBefore - damage);
+            if (character && damage > 0) {
+                character.hp = hpAfter;
+                character.currentHP = character.hp;
+                GameManager.notify?.('all');
+            }
+        }
+
+        const outcome = this.recordGameOutcome({
+            bet,
+            winnings,
+            isJackpot: isWin && winnings >= bet * 3,
+            game: CasinoGame.DARK_TABLE
+        });
+
+        let deepEvent = outcome.deepEvent;
+        let bonusReward = null;
+        if (isWin) {
+            bonusReward = this.pickDarkTableReward();
+            if (bonusReward) {
+                deepEvent = this.createDeepEvent('dark_table_prize', {
+                    game: CasinoGame.DARK_TABLE,
+                    title: bonusReward.title,
+                    message: `惡魔莊家把${bonusReward.title}推到你面前，指甲敲在桌面上，像在替你記帳。`,
+                    itemId: bonusReward.itemId,
+                    quantity: bonusReward.quantity,
+                    tone: 'danger',
+                    attentionDelta: bonusReward.attentionDelta
+                });
+            }
+        } else {
+            deepEvent = this.createDeepEvent('dark_table_blood_price', {
+                game: CasinoGame.DARK_TABLE,
+                title: '血籌碼落桌',
+                message: `骨製骰子停住，桌邊的燭火忽然變暗。你失去 ${damage} 生命，但莊家仍微笑著等你下一手。`,
+                tone: 'danger',
+                attentionDelta: 2
+            });
+        }
+
+        GameManager.markSaveDirty?.('casino-dark-table');
+
+        return {
+            success: true,
+            game: CasinoGame.DARK_TABLE,
+            bet,
+            isWin,
+            winnings,
+            damage,
+            hpBefore,
+            hpAfter,
+            maxHp,
+            chipReward: outcome.chipReward,
+            bonusReward,
+            deepEvent,
+            pressure: this.getPressureState(),
+            netGain: winnings - bet,
+            message: isWin
+                ? `暗桌贏局。你收回 ${winnings} 籌碼，桌下有人倒抽一口氣。`
+                : `暗桌敗局。你失去 ${damage} 生命，籌碼被拖進桌縫裡。`
+        };
+    }
+
     // ==================== 通用 ====================
 
     getStoryChapter() {
@@ -520,6 +710,11 @@ export default class CasinoManager {
             attention,
             lossStreak: this.stats.lossStreak || 0,
             winStreak: this.stats.winStreak || 0,
+            darkTable: {
+                wins: this.stats.darkTableWins || 0,
+                losses: this.stats.darkTableLosses || 0,
+                bloodPaid: this.stats.darkTableBloodPaid || 0
+            },
             lastEvent: this.lastDeepEvent,
             eventLog: this.eventLog.slice()
         };
@@ -646,9 +841,66 @@ export default class CasinoManager {
                 draws: state.draws || 0,
                 pity: state.pity || 0,
                 claimed: { ...(state.claimed || {}) },
+                oddsSummary: this.getPoolOddsSummary(pool),
                 rewards: this.getVisibleRewards(pool.id)
             };
         });
+    }
+
+    getPoolOddsSummary(pool) {
+        if (!pool) return null;
+        const state = this.getPoolState(pool.id);
+        const unlocked = this.isPoolUnlocked(pool);
+        const chapter = this.getStoryChapter();
+        const rewards = unlocked
+            ? this.getEligibleRewards(pool)
+            : (pool.rewards || []).filter(reward => {
+                if (reward.limit && (state.claimed?.[reward.id] || 0) >= reward.limit) return false;
+                return true;
+            });
+        const totalWeight = rewards.reduce((sum, reward) => sum + Math.max(0, Number(reward.weight) || 0), 0);
+        const tiers = Object.entries(CasinoRewardTierOrder)
+            .map(([rarity, tier]) => {
+                const weight = rewards
+                    .filter(reward => reward.rarity === rarity)
+                    .reduce((sum, reward) => sum + Math.max(0, Number(reward.weight) || 0), 0);
+                return {
+                    rarity,
+                    tier,
+                    text: CasinoRewardRarityText[rarity] || rarity,
+                    weight,
+                    percent: totalWeight > 0 ? Math.round((weight / totalWeight) * 100) : 0
+                };
+            })
+            .filter(entry => entry.weight > 0)
+            .sort((a, b) => a.tier - b.tier);
+
+        const bestTier = tiers.reduce((best, tier) => tier.tier > (best?.tier || 0) ? tier : best, null);
+        const pityAfter = Number(pool.pityAfter) || 0;
+        const pity = Number(state.pity) || 0;
+        const pityRemaining = pityAfter > 0 ? Math.max(0, pityAfter - pity) : null;
+        const limitedRemaining = rewards.filter(reward => reward.limit).reduce((sum, reward) => {
+            const claimed = Number(state.claimed?.[reward.id]) || 0;
+            return sum + Math.max(0, Number(reward.limit) - claimed);
+        }, 0);
+
+        return {
+            unlocked,
+            minChapter: pool.minChapter || 1,
+            chapter,
+            unlockFlag: pool.unlockFlag || '',
+            lockedByChapter: chapter < (pool.minChapter || 1),
+            lockedByFlag: Boolean(pool.unlockFlag && !GameManager.getFlag?.(pool.unlockFlag)),
+            totalWeight,
+            tiers,
+            bestRarity: bestTier?.rarity || null,
+            bestRarityText: bestTier?.text || '',
+            pity,
+            pityAfter,
+            pityRemaining,
+            pityMinRarityText: CasinoRewardRarityText[pool.pityMinRarity] || pool.pityMinRarity || '',
+            limitedRemaining
+        };
     }
 
     getVisibleRewards(poolId) {
@@ -907,7 +1159,10 @@ export default class CasinoManager {
             lossStreak: 0,
             winStreak: 0,
             deepEvents: 0,
-            darkRoomInvites: 0
+            darkRoomInvites: 0,
+            darkTableWins: 0,
+            darkTableLosses: 0,
+            darkTableBloodPaid: 0
         };
         this.chips = 0;
         this.poolState = {};
@@ -947,6 +1202,9 @@ export default class CasinoManager {
             winStreak: 0,
             deepEvents: 0,
             darkRoomInvites: 0,
+            darkTableWins: 0,
+            darkTableLosses: 0,
+            darkTableBloodPaid: 0,
             ...(data.stats || {})
         };
         this.chips = Math.max(0, Math.floor(Number(data.chips) || 0));

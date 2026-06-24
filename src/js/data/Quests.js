@@ -429,7 +429,7 @@ export const QuestDatabase = {
             requiredLevel: 30,
             dialogue: {
                 start: '這不是神魔合作，是兩個災難搶同一座魔力倉庫。你剛好是倉庫門口唯一還站著的人。',
-                complete: '阿薩謝爾被擊倒後，龍巢魔力開始回流地脈。艾瑟利亞沒有恢復和平，但至少還有明天。'
+                complete: '阿薩謝爾被擊倒後，龍巢魔力開始回流地脈。艾瑟利亞沒有恢復和平，而城鎮能留下什麼樣的明天，會由你一路保住的人、道路與紀錄決定。'
             }
         },
     ],
@@ -1432,7 +1432,7 @@ export const QuestDatabase = {
                 gold: 0,
                 items: ['mystery_box']
             },
-            unlocks: ['hidden_dark_deal'],
+            unlocks: [],
             dialogue: {
                 start: '暗巷收藏家伊文請你帶回詛咒碎片，確認灰燼男爵的走私標籤。',
                 complete: '伊文收下碎片後，黑市門後傳來箱鎖打開的聲音。他說這不是報酬，是下一個麻煩的押金。'
@@ -1511,24 +1511,24 @@ export const QuestDatabase = {
         },
         {
             id: 'hidden_dark_deal',
-            name: '黑暗交易',
+            name: '暗桌契約',
             type: QuestType.HIDDEN,
             icon: '😈',
-            description: '神秘商人似乎還有更多秘密...',
+            description: '你在賭場暗桌付出血價後，惡魔莊家的契約開始浮出字跡。',
             trigger: {
-                type: 'quest_complete',
-                condition: 'equal',
-                value: 'commission_merchant_001'
+                type: 'dark_table_loss',
+                condition: 'gte',
+                value: 1
             },
             objectives: [
-                { type: ObjectiveType.COLLECT, target: 'soul_fragment', count: 3, description: '收集靈魂碎片 3 個' }
+                { type: ObjectiveType.GAMBLE_WIN, target: 'dark_table', count: 1, description: '回到暗桌贏下一局，逼莊家交出契約正文' }
             ],
             rewards: {
                 items: ['demon_contract']
             },
             dialogue: {
-                start: '你已經踏入了深淵...願意走得更深嗎？',
-                complete: '契約已成。歡迎來到黑暗的一側。'
+                start: '暗桌已經記住你的血。巷口流浪者要你回去贏下一局，把契約正文逼出來。',
+                complete: '契約被你拿回來了。它不像戰利品，比較像一封很不禮貌的邀請函。'
             }
         },
         {

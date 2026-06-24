@@ -13,6 +13,68 @@ import { worldStoryManager } from './WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 
+const FinaleOutcome = {
+    NAMED_TOMORROW: 'named_tomorrow',
+    WOUNDED_DAWN: 'wounded_dawn',
+    THIN_TOMORROW: 'thin_tomorrow'
+};
+
+const FinaleOutcomeConfigs = {
+    [FinaleOutcome.NAMED_TOMORROW]: {
+        id: FinaleOutcome.NAMED_TOMORROW,
+        flag: 'town.ending.named_tomorrow',
+        title: '有名字的明天',
+        summary: '終戰後，城鎮不是只記得你擊敗魔王，也記得每一條被你保住的路、每一碗熱湯與每一個被點回來的名字。',
+        reflection: '你看著城門下的名冊、湯鍋旁的隊伍與書記桌上的索引，忽然明白：所謂勝利不是世界恢復原狀，而是有人能把明天叫得出名字。',
+        sceneLines: [
+            '黑焰邊境的火光退下去時，城鎮沒有立刻歡呼。人們先點名，先確認誰回來，誰還在路上。',
+            '村長把舊名冊攤在城門石階上，書記用發抖的手補上最後一行。鐵匠沒有說話，只把修好的門閂敲回去。',
+            '直到湯鍋重新冒煙，第一個孩子問明天能不能去廣場玩，所有人才像忽然聽懂勝利是什麼。'
+        ],
+        townEcho: '城鎮開始用人的名字稱呼明天。',
+        thoughtTitle: '我現在是否該回城看看那些被保住的人？'
+    },
+    [FinaleOutcome.WOUNDED_DAWN]: {
+        id: FinaleOutcome.WOUNDED_DAWN,
+        flag: 'town.ending.wounded_dawn',
+        title: '帶傷的黎明',
+        summary: '阿薩謝爾倒下後，城鎮撐住了。不是所有事情都被接回來，但你留下的準備足以讓人們從破口旁重新站起。',
+        reflection: '黎明穿過城門裂縫時，你看見人們先清點傷口，再清點還剩下的名字。這個世界沒有被治好，但它拒絕立刻死去。',
+        sceneLines: [
+            '魔王倒下後，風還是很冷。城牆裂縫裡卡著灰，廣場上有人哭，有人睡著，有人站著不敢坐下。',
+            '村長把撤退路線重新畫了一遍，書記把缺頁壓平。沒有誰說一切會好，只說今天先把火點起來。',
+            '你聽見遠處有人喊你的名字，聲音沙啞，但確實穿過了黎明。'
+        ],
+        townEcho: '城鎮帶著傷口醒來，但火還沒有滅。',
+        thoughtTitle: '我現在是否該確認城鎮還剩下哪些需要接回來的事？'
+    },
+    [FinaleOutcome.THIN_TOMORROW]: {
+        id: FinaleOutcome.THIN_TOMORROW,
+        flag: 'town.ending.thin_tomorrow',
+        title: '單薄的明天',
+        summary: '魔王被擊倒，終焉暫時退後。可城鎮準備得太少，勝利像薄紙一樣被人小心捧著，任何風都讓人緊張。',
+        reflection: '你贏了最巨大的戰鬥，卻看見城鎮還在為名字、糧食與退路慌張。明天仍然存在，只是輕得讓人不敢鬆手。',
+        sceneLines: [
+            '終焉被你推回深處，但城鎮像被巨手攥過。人們知道魔王死了，卻不知道下一餐、下一班守衛、下一封信在哪裡。',
+            '村長沒有責備任何人。他只是把手掌按在空白名冊上，像按住一張快被風吹走的紙。',
+            '勝利存在，只是太薄。你第一次明白，打倒怪物不等於把世界接好。'
+        ],
+        townEcho: '城鎮活了下來，卻還不敢大聲說自己安全。',
+        thoughtTitle: '我現在是否該回頭看看還有哪些明天太單薄？'
+    }
+};
+
+const FinaleSupportFactors = [
+    { flag: 'town.scholar.last_index_bound', label: '書記保住活人索引', role: 'memory' },
+    { flag: 'town.gate.retreat_names_called', label: '撤退名單被完整點過', role: 'retreat' },
+    { flag: 'town.refugees.soup_kitchen_warm', label: '避難者廚房升火', role: 'supply' },
+    { flag: 'town.blacksmith.mithril_route_ready', label: '秘銀鍛造路線整理完成', role: 'gear' },
+    { flag: 'town.refugees.unsent_reply_archived', label: '北境回信被歸檔', role: 'north' },
+    { flag: 'town.casino.relief_fund_counted', label: '賭場籌碼換成補給', role: 'relief' },
+    { flag: 'town.coast_refugee_lamp_lit', label: '海岸燈號被校正', role: 'route' },
+    { flag: 'town.gate.broken_standard_raised', label: '斷旗重新掛上城門', role: 'retreat' }
+];
+
 class QuestManager {
     constructor() {
         // 任務狀態存儲
@@ -24,6 +86,9 @@ class QuestManager {
             deathCount: 0,
             gambleLossStreak: 0,
             jackpotCount: 0,
+            casinoPrizeDraws: 0,
+            darkTableLossCount: 0,
+            darkTableWinCount: 0,
             maxEnhanceLevel: 0,
             totalGambleProfit: 0
         };
@@ -157,16 +222,71 @@ class QuestManager {
             blueprintUnlocks,
             source: 'quest_manager'
         });
+        const finaleOutcome = questId === 'main_015' ? this.recordFinaleOutcome() : null;
 
-        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome });
+        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome, finaleOutcome });
 
         return {
             success: true,
             message: quest.dialogue?.complete || `完成任務：${quest.name}`,
             rewards,
             blueprintUnlocks,
-            storyOutcome
+            storyOutcome,
+            finaleOutcome
         };
+    }
+
+    evaluateFinaleOutcome() {
+        const matchedFactors = FinaleSupportFactors
+            .filter(factor => Boolean(GameManager.getFlag(factor.flag)))
+            .map(factor => ({ ...factor }));
+        const roles = new Set(matchedFactors.map(factor => factor.role));
+        const hasMemory = roles.has('memory');
+        const hasRetreat = roles.has('retreat');
+        const hasSupply = roles.has('supply') || roles.has('relief');
+        const hasGear = roles.has('gear');
+        const hasHumanThread = roles.has('north') || roles.has('route');
+
+        let outcomeId = FinaleOutcome.THIN_TOMORROW;
+        if (matchedFactors.length >= 5 && hasMemory && hasRetreat && hasSupply) {
+            outcomeId = FinaleOutcome.NAMED_TOMORROW;
+        } else if (matchedFactors.length >= 3 || (hasRetreat && hasSupply) || (hasMemory && hasGear && hasHumanThread)) {
+            outcomeId = FinaleOutcome.WOUNDED_DAWN;
+        }
+
+        return {
+            ...FinaleOutcomeConfigs[outcomeId],
+            score: matchedFactors.length,
+            factors: matchedFactors,
+            roles: [...roles]
+        };
+    }
+
+    recordFinaleOutcome() {
+        const existing = GameManager.getFlag('world.ending.outcome');
+        if (existing?.id && FinaleOutcomeConfigs[existing.id]) {
+            return existing;
+        }
+
+        const outcome = this.evaluateFinaleOutcome();
+        Object.values(FinaleOutcomeConfigs).forEach(config => {
+            GameManager.setFlag(config.flag, config.id === outcome.id);
+        });
+        GameManager.setFlag('world.ending.outcome', {
+            id: outcome.id,
+            title: outcome.title,
+            summary: outcome.summary,
+            reflection: outcome.reflection,
+            sceneLines: outcome.sceneLines || [],
+            townEcho: outcome.townEcho || '',
+            thoughtTitle: outcome.thoughtTitle || '',
+            score: outcome.score,
+            factors: outcome.factors.map(factor => factor.label),
+            recordedAt: Date.now()
+        });
+        GameManager.setFlag('world.ending.final_battle_reported', true);
+        GameManager.markSaveDirty?.('finale-outcome');
+        return outcome;
     }
 
     /**
@@ -429,6 +549,18 @@ class QuestManager {
             case 'jackpot':
                 this.stats.jackpotCount++;
                 this.checkHiddenQuestTriggers('jackpot_count', this.stats.jackpotCount);
+                break;
+            case 'casino_prize_draw':
+                this.stats.casinoPrizeDraws++;
+                this.checkHiddenQuestTriggers('casino_prize_draw', this.stats.casinoPrizeDraws);
+                break;
+            case 'dark_table_loss':
+                this.stats.darkTableLossCount++;
+                this.checkHiddenQuestTriggers('dark_table_loss', this.stats.darkTableLossCount);
+                break;
+            case 'dark_table_win':
+                this.stats.darkTableWinCount++;
+                this.checkHiddenQuestTriggers('dark_table_win', this.stats.darkTableWinCount);
                 break;
             case 'enhance_level':
                 if (value > this.stats.maxEnhanceLevel) {
@@ -702,6 +834,9 @@ class QuestManager {
             deathCount: 0,
             gambleLossStreak: 0,
             jackpotCount: 0,
+            casinoPrizeDraws: 0,
+            darkTableLossCount: 0,
+            darkTableWinCount: 0,
             maxEnhanceLevel: 0,
             totalGambleProfit: 0,
             ...(data?.stats || {})

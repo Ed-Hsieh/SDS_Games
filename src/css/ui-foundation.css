@@ -9918,7 +9918,7 @@ body {
 }
 
 .market-stage {
-    --market-bg: url("../assets/images/scenes/market-stalls-v1.png");
+    --market-bg: url("../assets/images/art-v2/town-places/market.webp");
     position: relative;
     min-width: 0;
     min-height: 0;
@@ -10167,17 +10167,13 @@ body {
     align-items: center;
 }
 
-.supply-card-icon,
-.item-atlas-icon {
+.supply-card-icon {
     width: 48px;
     height: 48px;
-    display: inline-block;
+    display: block;
     border-radius: 9px;
-    background-image: url("../assets/images/atlases/item-atlas-v1.png");
-    background-size: 1000% 1000%;
-    background-position:
-        calc(var(--atlas-col, 0) * 11.111111%)
-        calc(var(--atlas-row, 0) * 11.111111%);
+    object-fit: contain;
+    background-color: rgba(255, 255, 255, 0.08);
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
 }
 
@@ -10304,12 +10300,6 @@ body {
     background-color: rgba(255, 255, 255, 0.08);
 }
 
-.contract-token .item-atlas-icon {
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-}
-
 .supply-empty-state {
     min-height: 220px;
     display: grid;
@@ -10369,11 +10359,6 @@ body {
 .shop-supply-scene .shop-flow-card .item-icon {
     width: 42px !important;
     height: 42px !important;
-}
-
-.shop-supply-scene .shop-flow-card .item-atlas-icon {
-    width: 42px;
-    height: 42px;
 }
 
 .compact-empty {
@@ -10525,20 +10510,6 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: inherit;
-}
-
-.scene-forge .recipe-icon .item-atlas-icon,
-.scene-forge .forge-preview-icon .item-atlas-icon,
-.scene-forge .selected-item .item-icon .item-atlas-icon,
-.lobby-inventory-cell .item-icon .item-atlas-icon,
-.shop-scene-shell .shop-flow-card .item-icon .item-atlas-icon,
-.equipment-slot-icon .item-atlas-icon,
-.item-tooltip-icon .item-atlas-icon,
-.component-item-detail-modal .item-detail-icon .item-atlas-icon {
-    display: block;
-    width: 100%;
-    height: 100%;
     border-radius: inherit;
 }
 
@@ -10759,7 +10730,7 @@ body {
     background:
         linear-gradient(180deg, rgba(4, 8, 13, 0.18), rgba(4, 8, 13, 0.52)),
         radial-gradient(ellipse at 50% 78%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.36)),
-        url("/src/assets/images/generated/2026-06-11/backgrounds/town-overview.png") center / cover no-repeat !important;
+        url("/src/assets/images/art-v2/backgrounds/town-overview.webp") center / cover no-repeat !important;
 }
 
 .world-stage-town .world-stage-backdrop::before {
@@ -10840,7 +10811,7 @@ body {
 .map-container {
     background:
         linear-gradient(180deg, rgba(3, 7, 10, 0.18), rgba(3, 7, 10, 0.58)),
-        url("/src/assets/images/generated/2026-06-11/backgrounds/adventure-world-map.png") center / cover no-repeat !important;
+        url("/src/assets/images/art-v2/backgrounds/adventure-world-map.webp") center / cover no-repeat !important;
 }
 
 /* Visual-novel style town dialogue */
@@ -11140,7 +11111,7 @@ body {
     background:
         linear-gradient(180deg, rgba(8, 10, 12, 0.62), rgba(8, 10, 12, 0.88)),
         radial-gradient(circle at 50% 38%, rgba(217, 184, 95, 0.13), transparent 34%),
-        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-hall.png") center / cover no-repeat,
+        url("/src/assets/images/art-v2/backgrounds/casino-hall.webp") center / cover no-repeat,
         radial-gradient(circle at 16% 12%, rgba(217, 184, 95, 0.18), transparent 28%),
         linear-gradient(135deg, #16110d 0%, #111820 48%, #0a0d12 100%) !important;
     color: #eef2f7;
@@ -11234,7 +11205,7 @@ body {
     gap: 8px;
 }
 
-.casino-rework :is(.bonus-btn, .back-btn, .action-btn, .game-tab, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn, .chip-exchange-btn, .casino-pool-card) {
+.casino-rework :is(.bonus-btn, .back-btn, .action-btn, .game-tab, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn, .chip-exchange-btn, .casino-pool-card, .dark-table-btn) {
     cursor: pointer;
 }
 
@@ -11270,7 +11241,7 @@ body {
 .casino-rework .game-tabs {
     grid-area: tabs;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: 8px;
     margin: 0;
     overflow: visible;
@@ -11338,7 +11309,8 @@ body {
 
 .casino-rework .casino-table-panel.active::before,
 .casino-rework .casino-prize-panel.active::before,
-.casino-rework .casino-cashier-panel.active::before {
+.casino-rework .casino-cashier-panel.active::before,
+.casino-rework .casino-dark-table-panel.active::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -11352,15 +11324,23 @@ body {
 .casino-rework .casino-table-panel.active::before {
     background:
         linear-gradient(180deg, rgba(12, 15, 20, 0.72), rgba(12, 15, 20, 0.9)),
-        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-game-table.png") center / cover no-repeat;
+        url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp") center / cover no-repeat;
     opacity: 0.72;
 }
 
 .casino-rework .casino-prize-panel.active::before {
     background:
         linear-gradient(180deg, rgba(12, 15, 20, 0.66), rgba(12, 15, 20, 0.9)),
-        url("/src/assets/images/generated/2026-06-11/backgrounds/casino-prize-wall.png") center / cover no-repeat;
+        url("/src/assets/images/art-v2/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
     opacity: 0.74;
+}
+
+.casino-rework .casino-dark-table-panel.active::before {
+    background:
+        linear-gradient(180deg, rgba(12, 8, 12, 0.62), rgba(12, 10, 14, 0.92)),
+        radial-gradient(circle at 72% 36%, rgba(163, 63, 44, 0.2), transparent 34%),
+        url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp") center / cover no-repeat;
+    opacity: 0.82;
 }
 
 .casino-panel-copy {
@@ -11589,7 +11569,7 @@ body {
 .casino-prize-preview {
     min-height: 0;
     display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr);
     gap: 8px;
     overflow: hidden;
 }
@@ -11609,6 +11589,56 @@ body {
     margin: 0;
     color: #f8fafc;
     font-size: 24px;
+}
+
+.casino-prize-summary {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 8px;
+    align-items: center;
+    border: 1px solid rgba(217, 184, 95, 0.18);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.58);
+    padding: 8px 10px;
+}
+
+.casino-prize-summary span,
+.casino-prize-summary strong,
+.casino-prize-summary em {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-prize-summary span {
+    color: rgba(226, 232, 240, 0.76);
+}
+
+.casino-prize-summary strong {
+    color: #facc15;
+}
+
+.casino-prize-summary em {
+    color: rgba(125, 211, 252, 0.82);
+    font-style: normal;
+}
+
+.casino-prize-summary.is-locked {
+    border-color: rgba(148, 163, 184, 0.14);
+    background: rgba(2, 6, 23, 0.48);
+}
+
+.casino-prize-summary.is-locked span,
+.casino-prize-summary.is-locked em {
+    color: rgba(203, 213, 225, 0.58);
+}
+
+.casino-prize-summary.is-locked strong {
+    color: rgba(250, 204, 21, 0.72);
 }
 
 .casino-prize-atmosphere {
@@ -11679,6 +11709,124 @@ body {
     color: rgba(203, 213, 225, 0.68);
     font-size: 12px;
     font-weight: 800;
+}
+
+.casino-rework .casino-dark-table-panel.active {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+        "copy"
+        "dark-table";
+    align-items: stretch;
+}
+
+.casino-dark-table-layout {
+    grid-area: dark-table;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+.casino-dark-contract,
+.casino-dark-wager {
+    min-width: 0;
+    border: 1px solid rgba(217, 184, 95, 0.22);
+    border-radius: 10px;
+    background: rgba(2, 6, 23, 0.58);
+    box-shadow: inset 0 0 0 1px rgba(127, 29, 29, 0.18);
+    padding: 14px;
+}
+
+.casino-dark-contract {
+    display: grid;
+    align-content: center;
+    gap: 10px;
+}
+
+.casino-dark-contract > span,
+.casino-dark-wager label {
+    color: #f0c56b;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-dark-contract strong {
+    color: #f8fafc;
+    font-size: clamp(24px, 3vw, 34px);
+    line-height: 1;
+}
+
+.casino-dark-contract p,
+.casino-dark-wager p {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.78);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.55;
+}
+
+.casino-dark-wager p {
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.72);
+    padding: 10px 12px;
+}
+
+.casino-dark-wager p[data-tone="ready"] {
+    border-color: rgba(94, 234, 212, 0.28);
+    background: rgba(13, 148, 136, 0.12);
+    color: #ccfbf1;
+}
+
+.casino-dark-wager p[data-tone="warning"] {
+    border-color: rgba(250, 204, 21, 0.32);
+    background: rgba(113, 63, 18, 0.2);
+    color: #fef3c7;
+}
+
+.casino-dark-wager p[data-tone="danger"] {
+    border-color: rgba(248, 113, 113, 0.42);
+    background: rgba(127, 29, 29, 0.24);
+    color: #fecaca;
+}
+
+.casino-dark-wager p[data-tone="locked"] {
+    color: rgba(203, 213, 225, 0.76);
+}
+
+.dark-table-risk-list {
+    display: grid;
+    gap: 7px;
+}
+
+.dark-table-risk-list span {
+    border: 1px solid rgba(148, 163, 184, 0.13);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.62);
+    color: rgba(226, 232, 240, 0.82);
+    padding: 9px 10px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.casino-dark-wager {
+    display: grid;
+    align-content: center;
+    gap: 10px;
+}
+
+.casino-rework .dark-table-btn {
+    border-color: rgba(248, 113, 113, 0.38);
+    background: linear-gradient(180deg, rgba(127, 29, 29, 0.58), rgba(69, 10, 10, 0.52));
+    color: #fecaca;
+}
+
+.casino-rework .dark-table-btn:hover {
+    border-color: rgba(252, 165, 165, 0.66);
+    background: linear-gradient(180deg, rgba(153, 27, 27, 0.66), rgba(69, 10, 10, 0.62));
 }
 
 .casino-rework .casino-cashier-panel.active {
@@ -11773,7 +11921,7 @@ body {
     grid-area: dark;
     display: grid;
     gap: 8px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .casino-rework .result-message {
@@ -11857,9 +12005,9 @@ body {
 
 .casino-dark-panel p {
     min-height: 36px;
-    max-height: 58px;
+    max-height: none;
     margin: 0;
-    overflow: hidden;
+    overflow: visible;
     border-left: 3px solid rgba(125, 211, 252, 0.42);
     border-radius: 7px;
     background: rgba(2, 6, 23, 0.38);
@@ -11972,6 +12120,29 @@ body {
         min-height: 104px;
     }
 
+    .casino-dark-table-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(190px, 0.38fr);
+        gap: 8px;
+    }
+
+    .casino-dark-contract,
+    .casino-dark-wager {
+        padding: 10px;
+    }
+
+    .casino-dark-contract {
+        gap: 7px;
+    }
+
+    .dark-table-risk-list {
+        gap: 5px;
+    }
+
+    .dark-table-risk-list span {
+        padding: 7px 8px;
+        font-size: 12px;
+    }
+
     .casino-side-panel {
         grid-template-rows: minmax(68px, 84px) minmax(88px, 112px) minmax(0, 1fr);
     }
@@ -11990,7 +12161,7 @@ body {
     }
 
     .casino-dark-panel p {
-        max-height: 48px;
+        max-height: none;
         font-size: 12px;
         line-height: 1.35;
         padding: 6px 8px;
@@ -12208,8 +12379,7 @@ body {
     gap: 10px;
 }
 
-.supply-card-icon,
-.supply-card .item-atlas-icon {
+.supply-card-icon {
     width: 42px;
     height: 42px;
     border-radius: 8px;
@@ -12261,8 +12431,7 @@ body {
     height: 64px !important;
 }
 
-.shop-supply-scene .shop-flow-card .item-icon,
-.shop-supply-scene .shop-flow-card .item-atlas-icon {
+.shop-supply-scene .shop-flow-card .item-icon {
     width: 38px !important;
     height: 38px !important;
 }
@@ -12618,8 +12787,7 @@ body {
     gap: 10px;
 }
 
-.market-place-scene .supply-card-icon,
-.market-place-scene .supply-card .item-atlas-icon {
+.market-place-scene .supply-card-icon {
     width: 42px;
     height: 42px;
     border-radius: 8px;
@@ -12684,8 +12852,7 @@ body {
     height: 64px !important;
 }
 
-.market-place-scene .shop-flow-card .item-icon,
-.market-place-scene .shop-flow-card .item-atlas-icon {
+.market-place-scene .shop-flow-card .item-icon {
     width: 38px !important;
     height: 38px !important;
 }
@@ -13439,8 +13606,7 @@ body {
     grid-template-columns: 40px minmax(0, 1fr) !important;
 }
 
-.market-place-scene .supply-card-icon,
-.market-place-scene .supply-card .item-atlas-icon {
+.market-place-scene .supply-card-icon {
     width: 40px !important;
     height: 40px !important;
 }
@@ -13488,8 +13654,7 @@ body {
     height: 54px !important;
 }
 
-.market-place-scene .shop-flow-card .item-icon,
-.market-place-scene .shop-flow-card .item-atlas-icon {
+.market-place-scene .shop-flow-card .item-icon {
     width: 34px !important;
     height: 34px !important;
 }
@@ -13883,8 +14048,7 @@ body {
     display: none !important;
 }
 
-.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon,
-.market-dialogue-scene .market-side-rail .shop-flow-card .item-atlas-icon {
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon {
     width: 38px !important;
     height: 38px !important;
 }
@@ -14030,8 +14194,7 @@ body {
     border-radius: 10px !important;
 }
 
-.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon,
-.market-dialogue-scene .market-side-rail .shop-flow-card .item-atlas-icon {
+.market-dialogue-scene .market-side-rail .shop-flow-card .item-icon {
     width: 36px !important;
     height: 36px !important;
 }
@@ -14058,6 +14221,41 @@ body {
     overflow: hidden !important;
     -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical;
+}
+
+.market-dialogue-scene .market-prep-intro {
+    min-height: auto !important;
+    margin-bottom: 10px;
+    text-align: left;
+}
+
+.market-dialogue-scene .market-prep-grid {
+    display: grid;
+    gap: 8px;
+}
+
+.market-dialogue-scene .market-prep-card {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    min-height: 96px;
+    border-color: rgba(125, 211, 252, 0.18);
+}
+
+.market-dialogue-scene .market-prep-card.is-warning {
+    border-color: rgba(217, 184, 95, 0.34);
+    background:
+        linear-gradient(135deg, rgba(217, 184, 95, 0.08), rgba(15, 23, 42, 0.82)),
+        rgba(15, 23, 42, 0.72);
+}
+
+.market-dialogue-scene .market-prep-card.is-ready {
+    border-color: rgba(120, 185, 141, 0.28);
+    background:
+        linear-gradient(135deg, rgba(120, 185, 141, 0.08), rgba(15, 23, 42, 0.82)),
+        rgba(15, 23, 42, 0.72);
+}
+
+.market-dialogue-scene .market-prep-card .supply-card-side {
+    align-content: center;
 }
 
 @media (max-width: 1360px) {
@@ -14163,4 +14361,344 @@ body {
     pointer-events: none !important;
     visibility: hidden !important;
     transform: translateY(14px) scale(0.99) !important;
+}
+
+/* 1280x631 desktop hardening: user's primary validation viewport. */
+@media (min-width: 1041px) and (max-width: 1360px) and (max-height: 680px) {
+    .hall-scene-town,
+    .market-dialogue-scene {
+        overflow: hidden !important;
+    }
+
+    .lobby-shell-town {
+        padding: 10px !important;
+    }
+
+    .lobby-world-town {
+        grid-template-columns: minmax(0, 6.7fr) minmax(300px, 2.9fr) !important;
+        gap: 10px !important;
+    }
+
+    .town-right-rail {
+        grid-template-rows: minmax(82px, auto) minmax(0, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .town-hud {
+        grid-template-columns: minmax(0, 1fr) 66px minmax(104px, 118px) !important;
+        gap: 8px !important;
+    }
+
+    .traveler-status-card {
+        min-height: 78px !important;
+        padding: 8px 10px !important;
+        gap: 4px 8px !important;
+    }
+
+    .traveler-status-card strong {
+        font-size: 20px !important;
+    }
+
+    .traveler-status-gold b {
+        font-size: 16px !important;
+    }
+
+    .traveler-status-meters {
+        gap: 4px !important;
+    }
+
+    .traveler-meter {
+        gap: 2px !important;
+    }
+
+    .traveler-meter-label {
+        font-size: 10px !important;
+    }
+
+    .traveler-mini-bar {
+        height: 6px !important;
+    }
+
+    .satchel-button,
+    .traveler-handbook-card {
+        min-height: 78px !important;
+        border-radius: 11px !important;
+    }
+
+    .satchel-button {
+        width: 66px !important;
+        padding: 7px 6px !important;
+        font-size: 12px !important;
+    }
+
+    .satchel-button-icon {
+        font-size: 23px !important;
+    }
+
+    .traveler-handbook-card {
+        padding: 7px !important;
+        gap: 5px !important;
+    }
+
+    .traveler-handbook-head {
+        gap: 6px !important;
+    }
+
+    .traveler-handbook-icon {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 17px !important;
+    }
+
+    .traveler-handbook-actions {
+        gap: 5px !important;
+    }
+
+    .traveler-handbook-action {
+        min-height: 30px !important;
+        padding: 5px !important;
+    }
+
+    .town-narrative-whisper {
+        padding: 12px !important;
+        gap: 8px !important;
+    }
+
+    .town-narrative-whisper .town-narrative-head {
+        padding-bottom: 8px !important;
+    }
+
+    .town-narrative-whisper .town-narrative-head strong {
+        font-size: 19px !important;
+    }
+
+    .town-narrative-whisper .town-story-board {
+        padding-top: 8px !important;
+    }
+
+    .town-narrative-whisper .town-story-entry {
+        padding: 9px 10px !important;
+    }
+
+    .town-narrative-whisper .world-log-message {
+        font-size: 13px !important;
+        line-height: 1.48 !important;
+    }
+
+    .town-place-map {
+        inset: 4% 4% 6% !important;
+    }
+
+    .town-place-card {
+        width: clamp(100px, 13%, 132px) !important;
+        min-height: 62px !important;
+        padding: 8px 9px !important;
+    }
+
+    .town-place-card-copy strong {
+        font-size: 15px !important;
+    }
+
+    .town-place-card-copy small,
+    .town-place-card-signal {
+        font-size: 10px !important;
+    }
+
+    .town-place-view {
+        inset: 4% !important;
+    }
+
+    .town-place-view-head {
+        left: 12px !important;
+        top: 12px !important;
+        width: min(390px, calc(100% - 24px)) !important;
+    }
+
+    .town-place-back {
+        min-height: 30px !important;
+        padding: 5px 9px !important;
+    }
+
+    .town-place-view-title {
+        padding: 7px 9px !important;
+    }
+
+    .town-place-view-title > span {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 19px !important;
+    }
+
+    .town-place-view-title strong {
+        font-size: 20px !important;
+    }
+
+    .town-place-entry {
+        min-width: 116px !important;
+        max-width: 190px !important;
+        min-height: 50px !important;
+        padding: 7px 8px !important;
+        gap: 7px !important;
+    }
+
+    .town-place-entry-icon {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 18px !important;
+    }
+
+    .town-place-entry-copy strong {
+        font-size: 14px !important;
+    }
+
+    .market-dialogue-scene {
+        padding: 10px !important;
+    }
+
+    .market-dialogue-scene .market-dialogue-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(304px, 0.43fr) !important;
+        gap: 10px !important;
+    }
+
+    .market-dialogue-scene .market-place-head {
+        left: 14px !important;
+        top: 14px !important;
+        width: min(560px, calc(100% - 28px)) !important;
+        padding: 9px !important;
+        gap: 10px !important;
+    }
+
+    .market-dialogue-scene .market-place-title h1 {
+        font-size: 32px !important;
+    }
+
+    .market-dialogue-scene .market-back-btn {
+        min-height: 36px !important;
+        padding: 7px 11px !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .market-resident {
+        width: 124px !important;
+        min-height: 58px !important;
+        grid-template-columns: 36px minmax(0, 1fr) !important;
+        padding: 7px !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .resident-avatar {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .resident-copy strong {
+        font-size: 15px !important;
+    }
+
+    .market-dialogue-scene .market-trade-board.market-dialogue-board {
+        left: 14px !important;
+        right: 14px !important;
+        bottom: 14px !important;
+        height: min(306px, calc(100% - 28px)) !important;
+        min-height: 0 !important;
+        grid-template-columns: minmax(190px, 0.38fr) minmax(0, 1fr) !important;
+        gap: 9px !important;
+        padding: 10px !important;
+    }
+
+    .market-dialogue-scene .dialogue-trade-persona,
+    .market-dialogue-scene .dialogue-trade-main {
+        gap: 7px !important;
+    }
+
+    .market-dialogue-scene .dialogue-trade-persona .supply-vendor-card {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+        padding: 8px !important;
+    }
+
+    .market-dialogue-scene .vendor-portrait-shell {
+        width: 48px !important;
+        height: 48px !important;
+    }
+
+    .market-dialogue-scene .vendor-card-copy h2 {
+        font-size: 20px !important;
+    }
+
+    .market-dialogue-scene .supply-dialogue {
+        padding: 10px !important;
+        font-size: 13px !important;
+        line-height: 1.45 !important;
+    }
+
+    .market-dialogue-scene .supply-tabs {
+        gap: 6px !important;
+    }
+
+    .market-dialogue-scene .supply-tab {
+        min-height: 34px !important;
+    }
+
+    .market-dialogue-scene .trade-status-panel {
+        padding: 7px 9px !important;
+    }
+
+    .market-dialogue-scene .supply-card {
+        min-height: 64px !important;
+        grid-template-columns: minmax(0, 1fr) 76px !important;
+    }
+
+    .market-dialogue-scene .supply-card-main {
+        grid-template-columns: 36px minmax(0, 1fr) !important;
+    }
+
+    .market-dialogue-scene .supply-card-copy h3 {
+        font-size: 14px !important;
+    }
+
+    .market-dialogue-scene .supply-card-side {
+        min-width: 74px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail {
+        grid-template-rows: minmax(118px, 152px) minmax(0, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .section-header.compact {
+        min-height: 48px !important;
+        padding: 9px 11px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .section-header.compact h3 {
+        font-size: 17px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .shop-wallet {
+        min-width: 78px !important;
+        min-height: 34px !important;
+        padding: 6px 8px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .player-inventory-list {
+        grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)) !important;
+        grid-auto-rows: 48px !important;
+        gap: 6px !important;
+        padding: 8px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .shop-flow-card {
+        height: 48px !important;
+    }
+
+    .market-dialogue-scene .market-side-rail .shop-flow-card .item-icon {
+        width: 31px !important;
+        height: 31px !important;
+    }
+
+    .market-dialogue-scene .market-dynamic-panel.town-narrative-whisper {
+        padding: 12px !important;
+    }
+
+    .market-dialogue-scene .market-dynamic-panel .market-feed-card {
+        padding: 9px 10px !important;
+    }
 }

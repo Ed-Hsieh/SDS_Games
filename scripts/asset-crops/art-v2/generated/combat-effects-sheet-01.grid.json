@@ -1,0 +1,33 @@
+{
+  "source": "incoming/raw/art-v2/combat-effects-sheet-01.png",
+  "category": "combat-effects",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "armor_break",
+    "attack_speed_down",
+    "attack_up",
+    "bleed",
+    "block",
+    "boss_warning",
+    "burn",
+    "cold_resist",
+    "counter",
+    "critical",
+    "defense_up",
+    "dodge",
+    "double_strike",
+    "dragon_burn",
+    "freeze",
+    "hit",
+    "kill_freeze",
+    "lifesteal",
+    "poison",
+    "poison_resist"
+  ]
+}

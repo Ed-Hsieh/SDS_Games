@@ -1,5 +1,6 @@
-const GENERATED_ASSET_BASE = 'src/assets/images/generated/2026-06-10/cropped';
-const GENERATED_BACKGROUND_BASE = 'src/assets/images/generated/2026-06-11/backgrounds';
+const GENERATED_ASSET_BASE = 'src/assets/images/art-v2';
+const GENERATED_BACKGROUND_BASE = 'src/assets/images/art-v2/backgrounds';
+const GENERATED_ASSET_EXTENSION = 'webp';
 
 const sets = {
     equipment: new Set([
@@ -90,7 +91,11 @@ const sets = {
     portraits: new Set([
         'village_elder', 'blacksmith', 'herbalist', 'town_scholar', 'street_beggar',
         'merchant', 'apothecary_assistant', 'tinker', 'rumor_broker', 'black_market',
-        'casino_dealer', 'tower_warden'
+        'casino_dealer', 'tower_warden', 'accountant_marlo', 'casino_owner',
+        'collector_ivan', 'demon_croupier', 'gate_captain', 'grand_magister_julian',
+        'herb_gatherer_leah', 'lamplighter_tavi', 'last_weaver_elara',
+        'old_miner_bran', 'secret_vendor', 'standard_bearer_frey', 'supply_captain',
+        'tower_keeper', 'winter_smith_karen'
     ]),
     monsters: new Set([
         'ambush_mantis', 'ancient_guardian', 'ancient_titan', 'ash_baron', 'blood_moon_stag',
@@ -202,7 +207,7 @@ function assetPath(category, id) {
     const normalizedId = normalizeId(id);
     if (!normalizedId) return '';
     const base = category === 'backgrounds' ? GENERATED_BACKGROUND_BASE : `${GENERATED_ASSET_BASE}/${category}`;
-    return `${base}/${normalizedId}.png`;
+    return `${base}/${normalizedId}.${GENERATED_ASSET_EXTENSION}`;
 }
 
 function knownAssetPath(category, id) {

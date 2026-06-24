@@ -3,6 +3,8 @@
  * Story-facing overlay for existing quest data. Objectives remain in Quests.js.
  */
 
+import { getQuestStoryRevision } from './StoryScriptRevisions.js';
+
 export const QuestStoryDatabase = {
     main_001: {
         arc: '裂痕前夜',
@@ -250,8 +252,8 @@ export const QuestStoryDatabase = {
         discovery: '龍巢殘骸成了世界上最大的魔力源，阿薩謝爾的目光終於越過人類，落在那團光上。',
         available: '這場戰鬥不是神話裡的正邪對決，而是兩個災難搶同一個世界核心。你剛好必須把兩邊都拒絕。',
         active: '擊敗魔族將軍，直面魔王阿薩謝爾。',
-        completed: '阿薩謝爾倒下後，龍巢魔力開始回流地脈。',
-        finished: '艾瑟利亞沒有立刻恢復和平，但明天還存在。對凡人來說，這已經是很離譜的勝利。',
+        completed: '阿薩謝爾倒下後，龍巢魔力開始回流地脈。城鎮裡每一條被保住的線，開始決定這場勝利能承受多少重量。',
+        finished: '艾瑟利亞沒有立刻恢復和平，但明天還存在。至於那個明天是有名字、帶傷，或薄得讓人不敢鬆手，旅人手札會替你記下。',
         nextLead: '擊敗魔族將軍，挑戰魔王阿薩謝爾。',
         route: 'adventure',
         reportTo: { npcId: 'village_elder', name: '村長', route: 'lobby', label: '回去找村長' }
@@ -682,10 +684,10 @@ export const QuestStoryDatabase = {
         },
         discovery: '巷口流浪者說，瑪洛把賭場最後一夜的籌碼改成補給券。她需要一個能贏錢，又不會被保鑣立刻扔出去的人。',
         available: '這次坐上賭桌是為了把黑錢逼出來，換成避難者明天的乾糧。運氣仍然會嘲笑你，但至少嘲笑得有用途。',
-        active: '在賭場累計盈利 1000G，替避難補給湊出足夠資金。',
+        active: '在賭場累計盈利 1000 枚籌碼，替避難補給湊出足夠資金。',
         completed: '補給基金湊齊了。瑪洛在帳冊最後寫下：如果明天還有賭桌，希望大家只是為了好玩。',
         finished: '賭場的燈比平常暗，卻第一次不像在引誘人。巷口流浪者說，這可能是城裡最荒唐、也最像勝利的一晚。',
-        nextLead: '在賭場累計盈利 1000G，回暗巷入口找巷口流浪者。',
+        nextLead: '在賭場累計盈利 1000 枚籌碼，回暗巷入口找巷口流浪者。',
         route: 'casino',
         reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
         objectives: [
@@ -836,20 +838,20 @@ export const QuestStoryDatabase = {
         ]
     },
     hidden_dark_deal: {
-        arc: '丘陵暗流',
-        source: '門縫後的契約',
-        location: '暗巷入口',
+        arc: '賭場暗流',
+        source: '血籌碼落桌',
+        location: '賭場暗桌',
         speaker: { name: '巷口流浪者', avatar: '🧥' },
-        discovery: '黑市標籤被讀出後，暗巷裡多了一道門縫。裡面有人把契約寫得很薄，薄到像一張隨時會割手的紙。',
-        available: '神秘商人要三枚靈魂碎片。巷口流浪者提醒你：不是所有交易都會收錢，有些交易收的是你以後睡覺的品質。',
-        active: '收集 3 枚靈魂碎片，再決定要不要把門縫後的交易記進手札。',
-        completed: '契約被交到你手上時沒有雷鳴，也沒有火光。最可怕的交易通常很安靜，安靜到像你本來就答應過。',
-        finished: '巷口流浪者沒有阻止你。他只是說，城鎮裡每個人都有底線，差別只在有沒有機會親手量一次。',
-        nextLead: '收集靈魂碎片 3 個後，回暗巷入口找巷口流浪者。',
-        route: 'adventure',
+        discovery: '暗桌輸局後，骨骰停在桌面中央。籌碼被收走，血也被收走，惡魔莊家的笑容像一張還沒簽名的契約。',
+        available: '巷口流浪者看見你袖口的血印，說那不是傷口，是賭場留下的收據。他要你回去贏一局，逼莊家把真正的契約吐出來。',
+        active: '回到賭場暗桌贏下一局。不要讓莊家繼續把你的血當成押金。',
+        completed: '你在暗桌贏回一局。莊家的指甲敲了三下，契約正文從桌縫裡滑出來，像一封很不情願的道歉信。',
+        finished: '巷口流浪者把契約收進油紙袋。他說這張紙有用，因為有些門只認貪婪的簽名，不認正經人的敲門聲。',
+        nextLead: '到賭場暗桌贏下一局，再回暗巷入口找巷口流浪者。',
+        route: 'casino',
         reportTo: { npcId: 'street_beggar', name: '巷口流浪者', route: 'lobby', label: '回到暗巷入口' },
         objectives: [
-            '黑市門縫後有人提出交易，需要 3 枚靈魂碎片作為代價。'
+            '暗桌輸局留下血印。巷口流浪者要你回去贏下一局，把契約正文逼出來。'
         ]
     },
     hidden_lucky_seven: {
@@ -932,7 +934,11 @@ export const QuestStoryDatabase = {
 };
 
 export function getQuestStory(questData, state = null) {
-    const story = QuestStoryDatabase[questData?.id] || {};
+    const baseStory = QuestStoryDatabase[questData?.id] || {};
+    const story = {
+        ...baseStory,
+        ...(getQuestStoryRevision(questData?.id) || {})
+    };
     const status = state?.status || 'available';
     const statusText = story[status] || story.available || questData?.dialogue?.start || questData?.description || '';
 
