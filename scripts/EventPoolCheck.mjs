@@ -209,4 +209,8 @@ const report = {
     }
 };
 
+if (report.roleRotationProbe.repeatedLastRoleSelections > 2) {
+    push(warnings, 'role-rotation', `recent role avoidance is weak: ${report.roleRotationProbe.repeatedLastRoleSelections}/${report.roleRotationProbe.selections} probe selections repeated the latest role`);
+}
+
 console.log(JSON.stringify(report, null, 2));

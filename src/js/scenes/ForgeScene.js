@@ -192,13 +192,20 @@ export default class ForgeScene {
             const stateClass = known
                 ? (craftable ? 'craftable' : 'locked')
                 : 'blueprint-locked';
+            const stateLabel = known
+                ? (craftable ? '可製作' : '素材不足')
+                : '需要圖紙';
             const badge = known
                 ? (craftable ? '<span class="craftable-badge">可製作</span>' : '<span class="locked-badge">素材不足</span>')
                 : '<span class="blueprint-badge">需要圖紙</span>';
             
             return `
                 <div class="recipe-card rarity-frame rarity-${rarityClass} ${rarityClass} ${stateClass} ${selectedClass}"
-                     data-recipe-id="${recipe.id}">
+                     data-recipe-id="${recipe.id}"
+                     role="button"
+                     tabindex="0"
+                     aria-pressed="${this.selectedRecipe?.id === recipe.id ? 'true' : 'false'}"
+                     aria-label="${escapeHtml(`${model.name}，${stateLabel}，${model.typeText}，${model.rarityText}，${recipe.cost} 金幣，成功率 ${recipe.successRate}%`)}">
                     <div class="recipe-icon">${this.renderItemVisual(model)}</div>
                     <div class="recipe-info">
                         <div class="recipe-card-head">
@@ -227,6 +234,11 @@ export default class ForgeScene {
             card.addEventListener('click', () => {
                 const recipeId = card.dataset.recipeId;
                 this.selectRecipe(recipeId);
+            });
+            card.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                this.selectRecipe(card.dataset.recipeId);
             });
         });
     }
@@ -319,6 +331,7 @@ export default class ForgeScene {
         // 更新選中狀態
         this.dom.recipeList.querySelectorAll('.recipe-card').forEach(card => {
             card.classList.toggle('selected', card.dataset.recipeId === recipeId);
+            card.setAttribute('aria-pressed', card.dataset.recipeId === recipeId ? 'true' : 'false');
         });
         
         // 顯示配方詳情

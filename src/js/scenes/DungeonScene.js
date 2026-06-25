@@ -308,11 +308,27 @@ class DungeonSceneClass {
     // ==================== 鍵盤控制 ====================
     
     handleKeyPress(e) {
-        if (this.isInCombat) return;
+        if (e.target?.closest?.('input, textarea, select, [contenteditable="true"], [role="textbox"]')) return;
+
+        const key = e.key.toLowerCase();
+
+        if (this.isInCombat) {
+            if (key === 'a' || e.code === 'Space') {
+                e.preventDefault();
+                this.playerAttack();
+            } else if (key === 'd') {
+                e.preventDefault();
+                this.playerUseItem();
+            } else if (key === 'f') {
+                e.preventDefault();
+                this.playerFlee();
+            }
+            return;
+        }
         
         let dx = 0, dy = 0;
         
-        switch (e.key.toLowerCase()) {
+        switch (key) {
             case 'w': case 'arrowup': dy = -1; break;
             case 's': case 'arrowdown': dy = 1; break;
             case 'a': case 'arrowleft': dx = -1; break;

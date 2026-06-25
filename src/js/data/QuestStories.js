@@ -4,6 +4,7 @@
  */
 
 import { getQuestStoryRevision } from './StoryScriptRevisions.js';
+import { getSideStoryNarrativeMeta } from './SideStoryNarrativeTaxonomy.js';
 
 export const QuestStoryDatabase = {
     main_001: {
@@ -958,7 +959,8 @@ export function getQuestStory(questData, state = null) {
         reportTo: story.reportTo || getFallbackReportTo(questData),
         objectives: Array.isArray(story.objectives) ? story.objectives : null,
         triggerGate: story.triggerGate || questData?.trigger || null,
-        characterProfile: story.characterProfile || null
+        characterProfile: story.characterProfile || null,
+        narrativeMeta: getSideStoryNarrativeMeta(questData?.id)
     };
 }
 

@@ -289,7 +289,8 @@ export default class QuestScene {
     }
 
     createQuestListItem(quest) {
-        const el = document.createElement('div');
+        const el = document.createElement('button');
+        el.type = 'button';
         el.className = 'quest-list-item';
         el.dataset.questId = quest.id;
 
@@ -321,6 +322,7 @@ export default class QuestScene {
         }
         el.classList.add(statusClass);
         if (quest.id === this.selectedQuestId) el.classList.add('selected');
+        el.setAttribute('aria-pressed', quest.id === this.selectedQuestId ? 'true' : 'false');
 
         // 進度條（僅進行中顯示）
         let progressHTML = '';
@@ -359,10 +361,12 @@ export default class QuestScene {
     }
 
     createHandbookRecordItem(record) {
-        const el = document.createElement('div');
+        const el = document.createElement('button');
+        el.type = 'button';
         el.className = `quest-list-item handbook-record-item ${record.statusTone || 'available'}`;
         el.dataset.recordKey = record.key;
         if (record.key === this.selectedRecordKey) el.classList.add('selected');
+        el.setAttribute('aria-pressed', record.key === this.selectedRecordKey ? 'true' : 'false');
 
         const meta = Array.isArray(record.meta)
             ? record.meta.filter(Boolean).slice(0, 3)

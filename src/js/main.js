@@ -6,8 +6,8 @@ import LobbyScene from './scenes/LobbyScene.js?v=town-scenes-20260605b';
 import ShopScene from './scenes/ShopScene.js?v=town-scenes-20260605b';
 import AdventureScene from './scenes/AdventureScene.js';
 import CasinoScene from './scenes/CasinoScene.js';
-import ForgeScene from './scenes/ForgeScene.js?v=equipment-atlas-20260605b';
-import QuestScene from './scenes/QuestScene.js';
+import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
+import QuestScene from './scenes/QuestScene.js?v=beta-convergence-20260625d';
 import EncyclopediaScene from './scenes/EncyclopediaScene.js';
 import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
@@ -19,7 +19,7 @@ import './components/ItemDetailModal.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 
-const APP_ASSET_VERSION = 'equipment-atlas-20260605b';
+const APP_ASSET_VERSION = 'beta-convergence-20260625d';
 
 class App {
     constructor() {

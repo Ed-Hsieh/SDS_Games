@@ -18,6 +18,8 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
         'field_notice_board',
         'south_gate_patrol_marks',
         'hunter_tripwire_cache',
+        'silver_thread_pattern',
+        'snare_salvage_pouch',
         'muddy_supply_cart',
         'foragers_emergency_stash',
         'abandoned_blueprint_cache'
@@ -27,6 +29,8 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
         'drowned_lantern_line',
         'thorn_toll_roots',
         'muddy_supply_cart',
+        'silver_thread_pattern',
+        'snare_salvage_pouch',
         'injured_adventurer',
         'abandoned_blueprint_cache',
         'special_bounty_notice'
@@ -305,8 +309,20 @@ function getRoleDiversePool(pool = [], options = {}) {
     const lastRole = recentRoles[recentRoles.length - 1];
     if (!lastRole || pool.length <= 1) return pool;
 
+    const recentRoleSet = new Set(recentRoles);
+    const freshAlternatives = pool.filter(event => event?.eventRole && !recentRoleSet.has(event.eventRole));
+    if (freshAlternatives.length > 0) return freshAlternatives;
+
     const alternatives = pool.filter(event => event?.eventRole && event.eventRole !== lastRole);
     return alternatives.length > 0 ? alternatives : pool;
+}
+
+function shouldExpandForRoleDiversity(pool = [], options = {}) {
+    const recentRoles = Array.isArray(options.recentRoles) ? options.recentRoles.filter(Boolean) : [];
+    if (pool.length === 0 || recentRoles.length === 0) return false;
+
+    const recentRoleSet = new Set(recentRoles);
+    return !pool.some(event => event?.eventRole && !recentRoleSet.has(event.eventRole));
 }
 
 function pickWeightedEvent(pool = [], rng = Math.random, options = {}) {
@@ -672,6 +688,15 @@ export function getEventForZone(zoneType, rng = Math.random, options = {}) {
         fallbackPool = filterExcludedEvents(fallbackPool, options.excludeIds || []);
         if (fallbackPool.length === 0) return null;
         return pickWeightedEvent(fallbackPool, rng, options);
+    }
+
+    if (shouldExpandForRoleDiversity(pool, options)) {
+        let diverseFallbackPool = EventDatabase.filter(event => isEventEligible(event, zoneType, { ...options, chapter }));
+        diverseFallbackPool = filterExcludedEvents(diverseFallbackPool, options.excludeIds || []);
+        const diverseCandidates = getRoleDiversePool(diverseFallbackPool, options);
+        if (diverseCandidates.length > 0 && diverseCandidates !== diverseFallbackPool) {
+            return pickWeightedEvent(diverseCandidates, rng, options);
+        }
     }
 
     return pickWeightedEvent(pool, rng, options);

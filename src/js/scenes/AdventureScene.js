@@ -546,6 +546,110 @@ export default class AdventureScene {
         return Boolean(target && this.getStepTowardMapCell(target));
     }
 
+    isTypingTarget(target) {
+        if (!target || typeof target.closest !== 'function') return false;
+        return Boolean(target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'));
+    }
+
+    isElementVisible(element) {
+        if (!element || element.hidden) return false;
+        const style = window.getComputedStyle(element);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+
+    closeKeyboardOverlay() {
+        if (window.ItemDetailModal?.isOpen?.() && typeof window.ItemDetailModal.close === 'function') {
+            window.ItemDetailModal.close();
+            return true;
+        }
+
+        if (this.dom.itemModal?.classList.contains('active')) {
+            this.closeItemDetailModal?.();
+            return true;
+        }
+
+        if (this.isElementVisible(this.dom.inventoryModal)) {
+            this.closeInventoryModal?.();
+            return true;
+        }
+
+        if (this.clueBookOpen) {
+            this.toggleClueBook(false);
+            return true;
+        }
+
+        if (this.dom.bossTestPanel?.classList.contains('is-open')) {
+            this.toggleBossTestPanel?.(false);
+            return true;
+        }
+
+        return false;
+    }
+
+    handleKeyboardInvestigate() {
+        if (!this.worldMap || this.isLocked) return false;
+
+        const cell = this.worldMap.getCurrentCell?.();
+        if (!cell) return false;
+
+        const zone = cell.zone || this.worldMap.getCurrentZone?.();
+
+        if (cell.type === 'landmark') {
+            this.worldMap.currentLandmark = {
+                id: cell.landmarkId,
+                data: cell.landmarkData,
+                zone
+            };
+            this.hideSmallLocationHint();
+            this.isLocked = true;
+            this.handleLandmarkInteraction();
+            return true;
+        }
+
+        if (cell.type === 'dungeon') {
+            this.worldMap.currentDungeon = {
+                type: cell.dungeonType,
+                data: cell.dungeonData
+            };
+            this.hideSmallLocationHint();
+            this.isLocked = true;
+            this.handleDungeonEntrance();
+            return true;
+        }
+
+        if (cell.type === 'rift') {
+            this.worldMap.currentRift = cell.riftData || { zone };
+            if (zone && this.worldMap.unlockedZones) {
+                this.worldMap.unlockedZones.add(zone);
+                this.worldMap._saveMapState?.();
+            }
+            this.hideSmallLocationHint();
+            this.isLocked = true;
+            this.handleRiftInteraction();
+            return true;
+        }
+
+        if (cell.type === 'home') {
+            if (!this.worldMap.hasLeftHome) {
+                showGlobalToast('城鎮在身後', '先踏出城門，回程時再按 F 返回大廳。', 'info', { duration: 1800 });
+                return false;
+            }
+            this.isLocked = true;
+            this.handleReturnHome();
+            return true;
+        }
+
+        const nearby = this.getNearbyLandmarkHint?.(1);
+        if (nearby) {
+            this.showSmallLocationHint(nearby);
+            showGlobalToast('靠近地點', '再往地點走一步後按 F 調查。', 'info', { duration: 1800 });
+            return false;
+        }
+
+        showGlobalToast('沒有可調查的事物', '附近沒有能立刻調查的地點。', 'info', { duration: 1600 });
+        return false;
+    }
+
     handleMapClick(event) {
         if (this.isLocked || !this.worldMap) return;
         if (this.dom.battleModal?.style.display === 'flex') return;
@@ -618,9 +722,12 @@ export default class AdventureScene {
     }
 
     handleKeyPress(event) {
+        if (this.isTypingTarget(event.target)) return;
+
+        const key = event.key?.toLowerCase?.();
+
         // If modal is open, handle battle keys or ignore
         if (this.dom.battleModal?.style.display === 'flex') {
-            const key = event.key?.toLowerCase?.();
             if (event.code === 'Space' || key === 'a') {
                 event.preventDefault();
                 this.handleAttackClick();
@@ -635,18 +742,49 @@ export default class AdventureScene {
         }
         
         // 如果被鎖定（事件/副本入口彈窗開啟時），不允許移動
+        if (key === 'escape') {
+            if (this.closeKeyboardOverlay()) {
+                event.preventDefault();
+            }
+            return;
+        }
+
+        if (key === 'j') {
+            if (this.dom.btnToggleClueBook && !this.dom.btnToggleClueBook.disabled) {
+                event.preventDefault();
+                this.toggleClueBook();
+            }
+            return;
+        }
+
+        if (key === 'i' || key === 'b') {
+            event.preventDefault();
+            if (this.isElementVisible(this.dom.inventoryModal)) {
+                this.closeInventoryModal?.();
+            } else {
+                this.openInventoryModal?.();
+            }
+            return;
+        }
+
         if (this.isLocked) {
+            return;
+        }
+
+        if (key === 'f') {
+            event.preventDefault();
+            this.handleKeyboardInvestigate();
             return;
         }
 
         let dx = 0;
         let dy = 0;
         
-        switch(event.key) {
-            case 'ArrowUp': case 'w': case 'W': dy = -1; break;
-            case 'ArrowDown': case 's': case 'S': dy = 1; break;
-            case 'ArrowLeft': case 'a': case 'A': dx = -1; break;
-            case 'ArrowRight': case 'd': case 'D': dx = 1; break;
+        switch (key) {
+            case 'arrowup': case 'w': dy = -1; break;
+            case 'arrowdown': case 's': dy = 1; break;
+            case 'arrowleft': case 'a': dx = -1; break;
+            case 'arrowright': case 'd': dx = 1; break;
             default: return;
         }
         
@@ -880,7 +1018,8 @@ export default class AdventureScene {
         }
         if (this.dom.smallLocationHintText) {
             const hintText = landmark.mapHint || landmark.arrival || '再靠近即可調查。';
-            this.dom.smallLocationHintText.textContent = `${hintText} 再靠近即可調查。`;
+            const actionHint = distance <= 1 ? '按 F 調查。' : '靠近後按 F 調查。';
+            this.dom.smallLocationHintText.textContent = `${hintText} ${actionHint}`;
         }
 
         this.dom.smallLocationHint.classList.remove('is-visible');

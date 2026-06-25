@@ -1349,6 +1349,14 @@ input {
     gap: 10px !important;
 }
 
+.scene-forge .recipe-card > .recipe-icon {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    flex: 0 0 44px !important;
+    border-radius: 8px;
+}
+
 .scene-forge .recipe-card > .recipe-info {
     width: auto !important;
     min-width: 0;

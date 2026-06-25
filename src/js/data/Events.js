@@ -689,6 +689,73 @@ export const EventDatabase = [
         ]
     },
     {
+        id: 'silver_thread_pattern',
+        name: '回程銀絲痕',
+        icon: '🧭',
+        type: EventType.MYSTERY,
+        zones: ['low', 'medium'],
+        weight: 0.8,
+        description: '樹皮上有幾道很淺的銀白割痕，方向全都指向你剛剛走來的路。這些線不像在阻止人前進，更像在等人回頭。',
+        choices: [
+            {
+                text: '順著割痕比對路線',
+                intent: '取得銀絲伏擊的觀察經驗，偏向線索理解。',
+                results: [
+                    { type: ResultType.EXP, value: 35, message: '你確認銀絲總是繞向回程路，伏獵者不是追人，而是在等人自投羅網。' },
+                    { type: ResultType.BUFF, buffType: 'luck', value: 4, duration: 10, message: '你暫時更容易辨認看似普通的路邊異常。' }
+                ]
+            },
+            {
+                text: '用炭灰標出安全線',
+                intent: '不拿材料，換取短暫防護與穩定感。',
+                results: [
+                    { type: ResultType.BUFF, buffType: 'def', value: 3, duration: 12, message: '你用炭灰標出幾段安全落腳處，至少下一段路不會完全靠猜。' }
+                ]
+            },
+            {
+                text: '不改動現場',
+                intent: '保留痕跡，避免驚動設陷者。',
+                results: [
+                    { type: ResultType.EXP, value: 12, message: '你把銀絲方向記進腦中，沒有碰它。這種克制很難得。' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'snare_salvage_pouch',
+        name: '獵人殘補袋',
+        icon: '🎒',
+        type: EventType.MYSTERY,
+        zones: ['low', 'medium'],
+        weight: 0.85,
+        description: '一只破補袋掛在木樁後方，裡面有乾硬肉條、斷線軸與一張皺紙。紙上寫著：「不要貪，拿完快走。」',
+        choices: [
+            {
+                text: '只拿乾糧與藥布',
+                intent: '保守取得恢復，適合繼續探索。',
+                results: [
+                    { type: ResultType.HEAL, value: 0.18, isPercent: true, message: '乾糧難吃得很誠實，藥布倒是乾淨，至少能撐下一段路。' },
+                    { type: ResultType.EXP, value: 15, message: '補袋的位置刻意避開銀絲，留下它的人很熟悉這段伏道。' }
+                ]
+            },
+            {
+                text: '翻出線軸與零件',
+                intent: '取得材料，但可能牽動殘留機關。',
+                results: [
+                    { type: ResultType.ITEM, itemType: 'material_low', message: '你收下一些還能用的線軸、鉚釘與小鉤。' },
+                    { type: ResultType.DAMAGE, value: 8, message: '補袋底部彈出一枚細鉤，提醒你獵人寫警告不是為了好看。' }
+                ]
+            },
+            {
+                text: '把補袋重新掛好',
+                intent: '不拿走資源，換取少量經驗。',
+                results: [
+                    { type: ResultType.EXP, value: 18, message: '你把補袋放回原位，也記住這段路有人曾經活著回頭。' }
+                ]
+            }
+        ]
+    },
+    {
         id: 'muddy_supply_cart',
         name: '陷進泥裡的補給車',
         icon: '🛞',
@@ -1302,6 +1369,8 @@ const EVENT_STORY_RULES = {
     weathered_route_tablet: { eventRole: EventRole.WORLD_LORE, chapterRange: [1, 2] },
     south_gate_patrol_marks: { eventRole: EventRole.STORY_SEED, chapterRange: [1, 1] },
     hunter_tripwire_cache: { eventRole: EventRole.RISK_REWARD, chapterRange: [1, 2] },
+    silver_thread_pattern: { eventRole: EventRole.WORLD_LORE, chapterRange: [1, 2] },
+    snare_salvage_pouch: { eventRole: EventRole.RESOURCE, chapterRange: [1, 2] },
     muddy_supply_cart: { eventRole: EventRole.RESOURCE, chapterRange: [1, 2] },
     thorn_toll_roots: { eventRole: EventRole.SIDE_STORY, chapterRange: [2, 2] },
     drowned_lantern_line: { eventRole: EventRole.WORLD_LORE, chapterRange: [2, 2] },
@@ -1397,6 +1466,14 @@ const EVENT_LOCATION_RULES = {
     hunter_tripwire_cache: {
         landmarkIds: ['hunter_boardwalk', 'old_campfire_site', 'cut_roadsign', 'silver_snare_pass'],
         locationWeightBoost: 2
+    },
+    silver_thread_pattern: {
+        landmarkIds: ['hunter_boardwalk', 'old_campfire_site', 'cut_roadsign', 'silver_snare_pass'],
+        locationWeightBoost: 1.9
+    },
+    snare_salvage_pouch: {
+        landmarkIds: ['hunter_boardwalk', 'old_campfire_site', 'silver_snare_pass'],
+        locationWeightBoost: 1.8
     },
     muddy_supply_cart: {
         landmarkIds: ['south_gate_farmland', 'broken_horn_camp', 'rotroot_ravine'],
