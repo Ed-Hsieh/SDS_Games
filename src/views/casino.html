@@ -1,126 +1,244 @@
-    <div id="scene-container" class="scene-casino">
-        <!-- 頂部資訊列 -->
-        <header class="casino-header">
-            <div class="player-info">
-                <span class="gold-display">💰 <span id="casino-gold">0</span>G</span>
-                <span class="luck-display">🍀 幸運: <span id="casino-luck">0</span></span>
-            </div>
-            <h1 class="casino-title">🎰 幸運賭場 🎰</h1>
-            <div class="header-actions">
-                <button id="btn-daily-bonus" class="bonus-btn">🎁 每日簽到</button>
-                <button id="btn-back-lobby" class="back-btn">🚪 離開</button>
-            </div>
-        </header>
+<div id="scene-container" class="scene-casino casino-rework">
+    <header class="casino-header">
+        <div class="casino-title-block">
+            <span class="casino-kicker">灰金燈下</span>
+            <h1 class="casino-title">賭場</h1>
+            <p>骨骰、籌碼、帳冊與奇物櫃都在同一張桌上流動。</p>
+        </div>
 
-        <!-- 主要內容 -->
-        <main class="casino-main">
-            <!-- 遊戲選擇標籤 -->
-            <nav class="game-tabs">
-                <button class="game-tab active" data-game="slots">🎰 老虎機</button>
-                <button class="game-tab" data-game="roulette">🎡 輪盤</button>
-                <button class="game-tab" data-game="dice">🎲 骰子</button>
-            </nav>
+        <div class="casino-wallet">
+            <div class="casino-wallet-card">
+                <span>金幣</span>
+                <strong id="casino-gold">0</strong>
+            </div>
+            <div class="casino-wallet-card">
+                <span>籌碼</span>
+                <strong id="casino-chips">0</strong>
+            </div>
+            <div class="casino-wallet-card">
+                <span>幸運</span>
+                <strong id="casino-luck">0</strong>
+            </div>
+        </div>
 
-            <!-- 遊戲區域 -->
-            <div class="game-area">
-                <!-- 老虎機 -->
-                <div id="game-slots" class="game-panel active">
-                    <div class="slots-machine">
-                        <div class="slots-display">
-                            <div class="slot-reel" id="reel-1">🎰</div>
-                            <div class="slot-reel" id="reel-2">🎰</div>
-                            <div class="slot-reel" id="reel-3">🎰</div>
-                        </div>
-                        <div class="slots-lever"></div>
+        <div class="header-actions">
+            <button id="btn-daily-bonus" class="bonus-btn">每日分紅</button>
+            <button id="btn-back-lobby" class="back-btn">離開</button>
+        </div>
+    </header>
+
+    <main class="casino-main">
+        <nav class="game-tabs">
+            <button class="game-tab active" data-game="dice">骨骰賭桌</button>
+            <button class="game-tab" data-game="slots">老虎機</button>
+            <button class="game-tab" data-game="roulette">輪盤</button>
+            <button class="game-tab" data-game="dark">暗桌</button>
+            <button class="game-tab" data-game="prize">奇物獎池</button>
+            <button class="game-tab" data-game="cashier">帳房</button>
+        </nav>
+
+        <section class="game-area">
+            <div id="game-dice" class="game-panel casino-table-panel active">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">骨骰賭局</span>
+                    <h2>骨骰落桌，聽起來像某種不太乾淨的邀請。</h2>
+                    <p>骰子勝利會額外累積籌碼；連續失手時，賭場也會丟給你一點「安慰」。</p>
+                </div>
+
+                <div class="dice-area">
+                    <div class="dice-display">
+                        <div class="dice" id="dice-1">⚀</div>
+                        <div class="dice" id="dice-2">⚁</div>
+                        <div class="dice" id="dice-3">⚂</div>
                     </div>
-                    
+                    <div class="dice-total">總和 <span id="dice-total">-</span></div>
+                </div>
+
+                <div class="dice-betting">
+                    <div class="bet-option-group">
+                        <button class="dice-bet-btn active" data-type="big">大 11-18</button>
+                        <button class="dice-bet-btn" data-type="small">小 3-10</button>
+                        <button class="dice-bet-btn" data-type="triple">三豹 x30</button>
+                    </div>
+
                     <div class="bet-controls">
-                        <label>下注金額:</label>
-                        <div class="bet-buttons">
-                            <button class="bet-btn" data-amount="10">10G</button>
-                            <button class="bet-btn" data-amount="50">50G</button>
-                            <button class="bet-btn" data-amount="100">100G</button>
-                            <button class="bet-btn" data-amount="500">500G</button>
-                        </div>
-                        <input type="number" id="slots-bet" min="10" max="1000" value="10">
-                    </div>
-                    
-                    <button id="btn-spin" class="action-btn spin-btn">🎰 拉霸！</button>
-                    
-                    <div class="paytable">
-                        <h4>賠率表</h4>
-                        <div class="payout-row">7️⃣7️⃣7️⃣ = x100</div>
-                        <div class="payout-row">💎💎💎 = x50</div>
-                        <div class="payout-row">⭐⭐⭐ = x20</div>
-                        <div class="payout-row">🍇🍇🍇 = x12</div>
-                        <div class="payout-row">兩個相同 = x0.5</div>
-                    </div>
-                </div>
-
-                <!-- 輪盤 -->
-                <div id="game-roulette" class="game-panel">
-                    <div class="roulette-wheel">
-                        <div class="wheel-container">
-                            <div class="wheel" id="roulette-wheel"></div>
-                            <div class="wheel-pointer">▼</div>
-                        </div>
-                        <div class="result-display" id="roulette-result">-</div>
-                    </div>
-                    
-                    <div class="roulette-betting">
-                        <div class="bet-type-selector">
-                            <button class="bet-type-btn active" data-type="color">顏色</button>
-                            <button class="bet-type-btn" data-type="oddeven">奇偶</button>
-                            <button class="bet-type-btn" data-type="half">前後半</button>
-                        </div>
-                        
-                        <div class="bet-options" id="roulette-options">
-                            <!-- 動態生成 -->
-                        </div>
-                        
-                        <div class="bet-controls">
-                            <input type="number" id="roulette-bet" min="10" max="500" value="10">
-                            <button id="btn-roulette-spin" class="action-btn">🎡 轉盤！</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 骰子 -->
-                <div id="game-dice" class="game-panel">
-                    <div class="dice-area">
-                        <div class="dice-display">
-                            <div class="dice" id="dice-1">⚀</div>
-                            <div class="dice" id="dice-2">⚁</div>
-                            <div class="dice" id="dice-3">⚂</div>
-                        </div>
-                        <div class="dice-total">總和: <span id="dice-total">-</span></div>
-                    </div>
-                    
-                    <div class="dice-betting">
-                        <div class="bet-option-group">
-                            <button class="dice-bet-btn active" data-type="big">大 (11-18)</button>
-                            <button class="dice-bet-btn" data-type="small">小 (3-10)</button>
-                            <button class="dice-bet-btn" data-type="triple">三豹 (x30)</button>
-                        </div>
-                        
-                        <div class="bet-controls">
-                            <input type="number" id="dice-bet" min="10" max="500" value="10">
-                            <button id="btn-dice-roll" class="action-btn">🎲 擲骰！</button>
-                        </div>
+                        <label for="dice-bet">下注金額</label>
+                        <input type="number" id="dice-bet" min="10" max="500" value="10">
+                        <button id="btn-dice-roll" class="action-btn">擲骰</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 結果訊息 -->
-            <div class="result-message" id="result-message"></div>
+            <div id="game-slots" class="game-panel casino-table-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">老虎機</span>
+                    <h2>鈴聲很亮，亮得像有人在後台敲暗號。</h2>
+                    <p>連勝會提高額外籌碼，頭獎也會明顯提高莊家注意度。</p>
+                </div>
 
-            <!-- 統計面板 -->
-            <div class="stats-panel">
-                <h4>📊 今日統計</h4>
-                <div class="stat-row">總下注: <span id="stat-total-bet">0</span>G</div>
-                <div class="stat-row">總獲勝: <span id="stat-total-win">0</span>G</div>
-                <div class="stat-row">淨盈虧: <span id="stat-net">0</span>G</div>
-                <div class="stat-row">遊戲次數: <span id="stat-games">0</span></div>
+                <div class="slots-machine">
+                    <div class="slots-display">
+                        <div class="slot-reel" id="reel-1">🎰</div>
+                        <div class="slot-reel" id="reel-2">🎰</div>
+                        <div class="slot-reel" id="reel-3">🎰</div>
+                    </div>
+                    <div class="slots-lever"></div>
+                </div>
+
+                <div class="bet-controls">
+                    <label for="slots-bet">下注金額</label>
+                    <div class="bet-buttons">
+                        <button class="bet-btn" data-amount="10">10 籌碼</button>
+                        <button class="bet-btn" data-amount="50">50 籌碼</button>
+                        <button class="bet-btn" data-amount="100">100 籌碼</button>
+                        <button class="bet-btn" data-amount="500">500 籌碼</button>
+                    </div>
+                    <input type="number" id="slots-bet" min="10" max="1000" value="10">
+                </div>
+
+                <button id="btn-spin" class="action-btn spin-btn">拉霸</button>
+
+                <div class="paytable">
+                    <h4>派彩節奏</h4>
+                    <div class="payout-row">7 7 7 = x100</div>
+                    <div class="payout-row">鑽石三連 = x50</div>
+                    <div class="payout-row">星星三連 = x20</div>
+                    <div class="payout-row">兩個相同 = x0.5</div>
+                </div>
             </div>
-        </main>
-    </div>
+
+            <div id="game-roulette" class="game-panel casino-table-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">輪盤</span>
+                    <h2>輪盤轉起來時，房間裡每個人都假裝自己不緊張。</h2>
+                    <p>輪盤改以籌碼下注，適合快速累積賭場統計，也最容易引來旁人的注目。</p>
+                </div>
+
+                <div class="roulette-wheel">
+                    <div class="wheel-container">
+                        <div class="wheel" id="roulette-wheel"></div>
+                        <div class="wheel-pointer">▼</div>
+                    </div>
+                    <div class="result-display" id="roulette-result">-</div>
+                </div>
+
+                <div class="roulette-betting">
+                    <div class="bet-type-selector">
+                        <button class="bet-type-btn active" data-type="color">顏色</button>
+                        <button class="bet-type-btn" data-type="oddeven">奇偶</button>
+                        <button class="bet-type-btn" data-type="half">前後半</button>
+                    </div>
+
+                    <div class="bet-options" id="roulette-options"></div>
+
+                    <div class="bet-controls">
+                        <label for="roulette-bet">下注金額</label>
+                        <input type="number" id="roulette-bet" min="10" max="500" value="10">
+                        <button id="btn-roulette-spin" class="action-btn">轉盤</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-dark" class="game-panel casino-dark-table-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">暗桌</span>
+                    <h2>莊家沒有報名字，只把骨骰推到燭光照不到的地方。</h2>
+                    <p>暗桌需要較高籌碼，勝利可能帶出黑市物品與稀有碎頁；失敗會讓你付出生命與更多注視。</p>
+                </div>
+
+                <div class="casino-dark-table-layout">
+                    <section class="casino-dark-contract">
+                        <span>桌規</span>
+                        <strong>高風險局</strong>
+                        <p>最低 80 籌碼。勝率受幸運影響，但賭場會記住每一次靠近暗桌的人。</p>
+                        <div class="dark-table-risk-list">
+                            <span>勝利：高額籌碼 / 奇物 / 黑市線索</span>
+                            <span>失敗：生命損失 / 注視提高</span>
+                            <span>不會致死，但可能讓下一場冒險變得危險</span>
+                        </div>
+                    </section>
+
+                    <section class="casino-dark-wager">
+                        <label for="dark-table-bet">下注籌碼</label>
+                        <input type="number" id="dark-table-bet" min="80" max="800" value="80">
+                        <button id="btn-dark-table" class="action-btn dark-table-btn">接受低語</button>
+                        <p id="dark-table-state">莊家還沒讓你靠近暗桌。</p>
+                    </section>
+                </div>
+            </div>
+
+            <div id="game-prize" class="game-panel casino-prize-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">奇物獎池</span>
+                    <h2>籌碼在這裡不再只是賭資，而是打開暗格的鑰匙。</h2>
+                    <p>高階獎池會隨章節與賭場支線開放，傳說獎品有限量與門檻。</p>
+                </div>
+
+                <div class="casino-prize-layout">
+                    <div id="casino-pool-list" class="casino-pool-list"></div>
+                    <div class="casino-prize-detail">
+                        <div id="casino-prize-preview" class="casino-prize-preview"></div>
+                        <button id="btn-draw-prize" class="action-btn casino-draw-btn">抽取奇物</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="game-cashier" class="game-panel casino-cashier-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">帳房</span>
+                    <h2>瑪洛相信數字不會說謊，只是偶爾會被人拿刀逼著閉嘴。</h2>
+                    <p>用金幣兌換籌碼，再把籌碼投入獎池、情報與特殊交易。第三章會有更高兌換效率。</p>
+                </div>
+
+                <div class="casino-cashier-grid">
+                    <button class="chip-exchange-btn" data-gold="50">
+                        <span>小額試手</span>
+                        <strong>50G → 50 籌碼</strong>
+                    </button>
+                    <button class="chip-exchange-btn" data-gold="150">
+                        <span>穩定補給</span>
+                        <strong>150G → 150 籌碼</strong>
+                    </button>
+                    <button class="chip-exchange-btn" data-gold="500">
+                        <span>奇物追逐</span>
+                        <strong>500G → 500 籌碼</strong>
+                    </button>
+                </div>
+
+                <div class="casino-ledger">
+                    <h3>帳冊記錄</h3>
+                    <p id="casino-ledger-text">賭場的燈還很亮，帳冊上目前沒有太多值得害怕的曲線。</p>
+                </div>
+            </div>
+        </section>
+
+        <aside class="casino-side-panel">
+            <section class="casino-result-card">
+                <h3>場內動態</h3>
+                <div class="result-message" id="result-message">骨骰聲、笑聲與低聲咒罵一起滾過桌面。</div>
+            </section>
+
+            <section class="casino-dark-panel">
+                <h3>賭場暗流</h3>
+                <div class="casino-attention-meter" aria-label="莊家注意度">
+                    <span id="casino-attention-fill"></span>
+                </div>
+                <div class="casino-dark-status">
+                    <strong id="casino-pressure-title">散客</strong>
+                    <span id="casino-player-role">普通客人</span>
+                </div>
+                <p id="casino-dark-event">燈火還很漂亮，賭場暫時只把你當成普通客人。</p>
+            </section>
+
+            <section class="stats-panel">
+                <h3>賭場記錄</h3>
+                <div class="stat-row"><span>總下注</span><strong><span id="stat-total-bet">0</span> 枚</strong></div>
+                <div class="stat-row"><span>總獲勝</span><strong><span id="stat-total-win">0</span> 枚</strong></div>
+                <div class="stat-row"><span>淨盈虧</span><strong><span id="stat-net">0</span> 枚</strong></div>
+                <div class="stat-row"><span>遊戲次數</span><strong id="stat-games">0</strong></div>
+                <div class="stat-row"><span>抽獎次數</span><strong id="stat-prize-draws">0</strong></div>
+                <div class="stat-row"><span>莊家注意</span><strong><span id="stat-house-attention">0</span>%</strong></div>
+            </section>
+        </aside>
+    </main>
+</div>

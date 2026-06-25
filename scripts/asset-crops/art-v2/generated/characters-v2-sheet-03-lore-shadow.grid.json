@@ -1,0 +1,22 @@
+{
+  "source": "incoming/raw/art-v2/characters-v2-sheet-03-lore-shadow.png",
+  "category": "portraits",
+  "columns": 3,
+  "rows": 3,
+  "outputSize": {
+    "width": 768,
+    "height": 768
+  },
+  "format": "webp",
+  "ids": [
+    "last_weaver_elara",
+    "grand_magister_julian",
+    "winter_smith_karen",
+    "demon_croupier",
+    "casino_owner",
+    "supply_captain",
+    "secret_vendor",
+    "tower_keeper",
+    "player_adventurer_placeholder"
+  ]
+}

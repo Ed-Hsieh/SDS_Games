@@ -3,11 +3,20 @@
  * 副本系統 - 處理副本邏輯、狀態管理、特殊機制
  */
 
-import { DungeonDatabase, DungeonType, DungeonState, DungeonSpawnConfig, DungeonEntranceConfig } from '../data/Dungeons.js';
-import { generateDungeonMonster, generateDungeonBoss, generateFloorEvent } from '../data/Dungeons.js';
+import {
+    DungeonDatabase,
+    DungeonType,
+    DungeonState,
+    DungeonSpawnConfig,
+    DungeonEntranceConfig,
+    generateDungeonMonster,
+    generateDungeonBoss,
+    generateFloorEvent
+} from '../data/Dungeons.js';
+import GameManager from './GameManager.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig };
+export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig, generateFloorEvent };
 
 class DungeonManagerClass {
     constructor() {
@@ -39,6 +48,8 @@ class DungeonManagerClass {
         
         // 副本冷卻時間
         this.cooldowns = {};
+
+        GameManager.registerSaveSystem('dungeon', this);
         
         this.init();
     }
@@ -50,20 +61,31 @@ class DungeonManagerClass {
     // ==================== 存檔/讀檔 ====================
     
     loadProgress() {
-        const saved = localStorage.getItem('dungeon_progress');
-        if (saved) {
-            const data = JSON.parse(saved);
-            this.completionRecords = data.completionRecords || {};
-            this.cooldowns = data.cooldowns || {};
-        }
+        return this.serialize();
     }
     
     saveProgress() {
-        const data = {
-            completionRecords: this.completionRecords,
-            cooldowns: this.cooldowns
+        GameManager.markSaveDirty('dungeon');
+    }
+
+    serialize() {
+        return {
+            completionRecords: { ...this.completionRecords },
+            cooldowns: { ...this.cooldowns }
         };
-        localStorage.setItem('dungeon_progress', JSON.stringify(data));
+    }
+
+    deserialize(data = {}) {
+        this.completionRecords = data.completionRecords || {};
+        this.cooldowns = data.cooldowns || {};
+    }
+
+    resetProgress() {
+        this.currentDungeon = null;
+        this.currentFloor = 1;
+        this.steps = 0;
+        this.completionRecords = {};
+        this.cooldowns = {};
     }
     
     // ==================== 副本入口管理 ====================
@@ -520,23 +542,26 @@ class DungeonManagerClass {
      * 檢查是否擁有對抗道具
      */
     checkCounterItem(itemId, playerData = null) {
-        // 這裡需要整合實際的物品系統
-        // 暫時返回 false，後續整合時再實現
-        if (!playerData) return false;
-        
-        // 檢查裝備中是否有該物品
-        if (playerData.equipment) {
-            if (playerData.equipment.accessory?.id === itemId) return true;
-            if (playerData.equipment.weapon?.id === itemId) return true;
-            if (playerData.equipment.armor?.id === itemId) return true;
-        }
-        
-        // 檢查背包中是否有該物品
-        if (playerData.inventory) {
-            return playerData.inventory.some(item => item.id === itemId);
-        }
-        
-        return false;
+        if (!itemId) return false;
+
+        const character = playerData || GameManager.getCharacter?.() || {};
+        const equipment = character.equipment || GameManager.getCharacter?.()?.equipment || {};
+        const inventory = Array.isArray(character.inventory)
+            ? character.inventory
+            : (GameManager.getInventory?.() || GameManager.state?.inventory || []);
+        const warehouse = Array.isArray(character.warehouse)
+            ? character.warehouse
+            : (GameManager.state?.warehouse || []);
+
+        const matches = entry => {
+            if (!entry) return false;
+            const item = entry.item || entry;
+            const quantity = Number(entry.quantity ?? 1);
+            return quantity > 0 && (entry.id === itemId || item.id === itemId);
+        };
+
+        if (Object.values(equipment).some(matches)) return true;
+        return [...inventory, ...warehouse].some(matches);
     }
     
     // ==================== 樓層管理 ====================

@@ -14,7 +14,7 @@ class RhythmBarSystem {
         this.needleElement = container.querySelector(`${prefix}#rhythm-needle, ${prefix}.rhythm-needle`);
         this.critZoneElement = container.querySelector(`${prefix}#crit-zone, ${prefix}.crit-zone`);
         this.hitZoneElement = container.querySelector(`${prefix}#hit-zone, ${prefix}.hit-zone`);
-        this.attackBtn = container.querySelector(`${prefix}#btn-attack, ${prefix}.btn-attack`);
+        this.attackBtn = container.querySelector(`${prefix}#action-weapon, ${prefix}.weapon-card, ${prefix}#btn-attack, ${prefix}.btn-attack`);
         
         // 節奏條總寬度（百分比）
         this.barWidth = 100;
@@ -24,6 +24,7 @@ class RhythmBarSystem {
         this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
         
         // 從角色/武器獲取數據
+        this.battleAttackSpeedBonusPercent = 0;
         this.updateEquipmentStats();
         
         // 動畫控制
@@ -49,7 +50,9 @@ class RhythmBarSystem {
         
         // 取得攻擊速度（控制冷卻時間）
         // attackSpeed 是冷卻秒數
-        this.attackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        const baseAttackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        const battleMultiplier = 1 + Math.max(0, Number(this.battleAttackSpeedBonusPercent) || 0) / 100;
+        this.attackSpeed = Math.max(0.1, baseAttackSpeed / Math.max(0.1, battleMultiplier));
         
         // 取得爆擊機率（決定 Crit Zone 寬度）
         this.critChance = this.character.getCritChance?.() || 0.05;
@@ -66,6 +69,9 @@ class RhythmBarSystem {
         // 冷卻系統
         this.isOnCooldown = false;
         this.cooldownTimer = null;
+        this.cooldownFrame = null;
+        this.cooldownStartedAt = 0;
+        this.cooldownDurationMs = 0;
     }
 
     /**
@@ -162,7 +168,6 @@ class RhythmBarSystem {
         }
         
         // Debug log
-        console.log(`[RhythmBar] Zones generated - Crit: ${critWidth.toFixed(1)}% at ${critStart.toFixed(1)}%, Hit: ${hitWidth}% at ${hitStart.toFixed(1)}%`);
     }
 
     /**
@@ -179,7 +184,6 @@ class RhythmBarSystem {
         this.lastTime = performance.now();
         this.animate();
         
-        console.log(`[RhythmBar] Started - Speed: ${this.weaponSpeed}, Cooldown: ${this.attackSpeed}s`);
     }
 
     /**
@@ -191,6 +195,7 @@ class RhythmBarSystem {
             cancelAnimationFrame(this.animationId);
             this.animationId = null;
         }
+        this.cancelCooldown();
     }
 
     /**
@@ -276,7 +281,6 @@ class RhythmBarSystem {
         // 啟動冷卻
         this.startCooldown();
         
-        console.log(`[RhythmBar] Judge: ${hitType} at ${pos.toFixed(1)}%, Damage: ${damage}`);
         
         return { type: hitType, damage: damage };
     }
@@ -317,9 +321,9 @@ class RhythmBarSystem {
      */
     showJudgmentText(hitType, damage) {
         const textConfig = {
-            'crit': { text: 'CRITICAL!', color: '#4caf50', size: '28px' },
-            'hit': { text: 'HIT', color: '#ffd700', size: '22px' },
-            'miss': { text: 'MISS', color: '#ff4444', size: '20px' }
+            'crit': { text: '暴擊', color: '#4caf50', size: '28px' },
+            'hit': { text: '命中', color: '#ffd700', size: '22px' },
+            'miss': { text: '失誤', color: '#ff4444', size: '20px' }
         };
         
         const config = textConfig[hitType];
@@ -357,18 +361,86 @@ class RhythmBarSystem {
         if (this.isOnCooldown) return;
         
         this.isOnCooldown = true;
-        
-        // 添加冷卻樣式（使用 CSS 的旋轉動畫）
+
+        // 節奏條只暫停判定；冷卻視覺改由下方行動卡的小圓圈呈現。
         if (this.barElement) {
             this.barElement.classList.add('cooldown');
         }
         
         // 冷卻時間結束後恢復
         const cooldownDuration = this.attackSpeed * 1000; // 轉換為毫秒
+        this.cooldownStartedAt = performance.now();
+        this.cooldownDurationMs = cooldownDuration;
+        this.updateActionCooldown(cooldownDuration / 1000, cooldownDuration / 1000);
+        this.tickActionCooldown();
         
         this.cooldownTimer = setTimeout(() => {
             this.endCooldown();
         }, cooldownDuration);
+    }
+
+    ensureActionCooldownRing() {
+        if (!this.attackBtn) return null;
+        let ring = this.attackBtn.querySelector('.action-cooldown-ring');
+        if (!ring) {
+            ring = document.createElement('span');
+            ring.className = 'action-cooldown-ring';
+            ring.innerHTML = '<span class="action-cooldown-value">0</span>';
+            this.attackBtn.appendChild(ring);
+        }
+        return ring;
+    }
+
+    updateActionCooldown(remainingSeconds, totalSeconds) {
+        if (!this.attackBtn) return;
+        const ring = this.ensureActionCooldownRing();
+        const value = ring?.querySelector('.action-cooldown-value');
+        const ratio = totalSeconds > 0 ? Math.max(0, Math.min(1, remainingSeconds / totalSeconds)) : 0;
+        const elapsedRatio = 1 - ratio;
+        this.attackBtn.classList.add('is-cooling');
+        this.attackBtn.setAttribute('aria-disabled', 'true');
+        this.attackBtn.style.setProperty('--cooldown-progress', `${elapsedRatio * 100}%`);
+        if (value) {
+            value.textContent = remainingSeconds >= 1
+                ? String(Math.ceil(remainingSeconds))
+                : remainingSeconds.toFixed(1);
+        }
+    }
+
+    tickActionCooldown() {
+        if (!this.isOnCooldown) return;
+        const elapsedMs = performance.now() - this.cooldownStartedAt;
+        const remainingMs = Math.max(0, this.cooldownDurationMs - elapsedMs);
+        const totalSeconds = this.cooldownDurationMs / 1000;
+        this.updateActionCooldown(remainingMs / 1000, totalSeconds);
+        if (remainingMs > 0) {
+            this.cooldownFrame = requestAnimationFrame(() => this.tickActionCooldown());
+        }
+    }
+
+    clearActionCooldown() {
+        if (this.cooldownFrame) {
+            cancelAnimationFrame(this.cooldownFrame);
+            this.cooldownFrame = null;
+        }
+        if (!this.attackBtn) return;
+        this.attackBtn.classList.remove('is-cooling');
+        this.attackBtn.removeAttribute('aria-disabled');
+        this.attackBtn.style.removeProperty('--cooldown-progress');
+        const value = this.attackBtn.querySelector('.action-cooldown-value');
+        if (value) value.textContent = '0';
+    }
+
+    cancelCooldown() {
+        this.isOnCooldown = false;
+        if (this.cooldownTimer) {
+            clearTimeout(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
+        if (this.barElement) {
+            this.barElement.classList.remove('cooldown');
+        }
+        this.clearActionCooldown();
     }
 
     /**
@@ -381,6 +453,7 @@ class RhythmBarSystem {
         if (this.barElement) {
             this.barElement.classList.remove('cooldown');
         }
+        this.clearActionCooldown();
         
         // 重新隨機化區域位置
         this.generateZones();
@@ -391,7 +464,6 @@ class RhythmBarSystem {
             this.cooldownTimer = null;
         }
         
-        console.log('[RhythmBar] Cooldown ended, zones regenerated');
     }
     
     /**
@@ -415,7 +487,7 @@ class RhythmBarSystem {
         this.needlePosition = 0;
         this.needleDirection = 1;
         this.isPaused = false;
-        this.isOnCooldown = false;
+        this.cancelCooldown();
         
         if (this.barElement) {
             this.barElement.classList.remove('cooldown');
@@ -436,15 +508,17 @@ class RhythmBarSystem {
         this.updateEquipmentStats();
         this.generateZones();
     }
+
+    setBattleAttackSpeedBonus(percent = 0) {
+        this.battleAttackSpeedBonusPercent = Math.max(0, Number(percent) || 0);
+        this.updateEquipmentStats();
+    }
     
     /**
      * 銷毀節奏條系統
      */
     destroy() {
         this.stop();
-        if (this.cooldownTimer) {
-            clearTimeout(this.cooldownTimer);
-        }
         if (this.hitMarker) {
             this.hitMarker.remove();
         }
@@ -457,4 +531,8 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // 全域變數（供非模組化使用）
-window.RhythmBarSystem = RhythmBarSystem;
+if (typeof window !== 'undefined') {
+    window.RhythmBarSystem = RhythmBarSystem;
+}
+
+export default RhythmBarSystem;

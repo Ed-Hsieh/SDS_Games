@@ -1,169 +1,407 @@
 /**
- * Tool_FixedScore.js
- * 修正版裝備評分工具
- * 修正：
- * 1. 解決特效名稱大小寫/底線不匹配導致的「保底分錯誤」。
- * 2. 確保面板類特效 (如暴傷) 正確套用等級縮放 (Level Scaling)。
+ * EquipmentBalanceCheck.js
+ * Audits equipment data against the shared tuning table.
  */
 
-const CONFIG = {
-    // A. 標準模型
-    baseAtkPerLevel: 4.0, 
-    baseDefPerLevel: 2.0,
+async function main() {
+    const [
+        equipmentModule,
+        balanceModule,
+        monsterModule,
+        recipeModule,
+        questModule,
+        blueprintModule
+    ] = await Promise.all([
+        import('../src/js/data/Equipment.js'),
+        import('../src/js/data/EquipmentBalance.js'),
+        import('../src/js/data/Monsters.js'),
+        import('../src/js/data/Recipes.js'),
+        import('../src/js/data/Quests.js'),
+        import('../src/js/data/BlueprintDrops.js')
+    ]);
 
-    // B. 稀有度標準
-    rarityStandard: {
-        common: 1.0, uncommon: 1.3, rare: 1.6, 
-        epic: 2.2, legendary: 3.0, mythic: 4.5
-    },
+    const { EquipmentDatabase, SetDatabase } = equipmentModule;
+    const { getEquipmentBalanceGrade, getLevelBand, RARITY_BALANCE, normalizeEquipmentKind } = balanceModule;
+    const { MonsterDatabase, TowerMonsterData } = monsterModule;
+    const { RecipeDatabase } = recipeModule;
+    const { QuestDatabase } = questModule;
+    const { BlueprintDropDatabase } = blueprintModule;
 
-    // C. 權重表
-    weights: {
-        attack: 1.0,
-        defense: 2.5,
-        hp: 0.2,
-        
-        // 百分比屬性
-        critChance: 1.5,
-        critDamage: 0.8,
-        attackSpeed: 2.5,
-
-        // 特效
-        fire: 3.0,
-        life_steal: 5.0,
-        armor_pierce: 2.0,
-        thunder: 1.5,
-        ice: 1.2,
-        poison: 1.5,
-        light: 3.0,
-        
-        defaultEffect: 20 // 未知特效保底
-    },
-
-    // D. 名稱映射表 (修正你的問題核心)
-    // 把各種寫法對應到 weights 裡的 key
-    keyMap: {
-        'crit_damage': 'critDamage',
-        'critdamage': 'critDamage',
-        'crit_chance': 'critChance',
-        'critchance': 'critChance',
-        'attack_speed': 'attackSpeed',
-        'attackspeed': 'attackSpeed',
-        'lifesteal': 'life_steal',
-        'armor_penetration': 'armor_pierce'
-    }
-};
-
-function evaluateItem(item) {
-    const stats = item.stats || {};
-    const effects = item.specialEffects || [];
-    let score = 0;
-
-    // --- 計算等級係數 ---
-    // Lv3 的 1% 屬性，價值只有 Lv30 的 1/10
-    const levelScale = Math.max(0.1, (item.level * CONFIG.baseAtkPerLevel) / 100);
-
-    // 1. 基礎數值
-    score += (stats.attack || 0) * CONFIG.weights.attack;
-    score += (stats.defense || 0) * CONFIG.weights.defense;
-    score += (stats.hp || 0) * CONFIG.weights.hp;
-
-    // 2. 統計所有百分比加成 (含 stats 和 specialEffects)
-    // 我們建立一個暫存物件來累加所有屬性
-    let bonusStats = {
-        critChance: 0,
-        critDamage: 0,
-        attackSpeed: 0,
-        // 其他特效直接算
-        otherScore: 0
-    };
-
-    // A. 處理 stats 裡的百分比
-    if (stats.critChance) bonusStats.critChance += toPercent(stats.critChance);
-    if (stats.critDamage) bonusStats.critDamage += toBonusPercent(stats.critDamage);
-    if (stats.attackSpeed) bonusStats.attackSpeed += toBonusPercent(stats.attackSpeed);
-
-    // B. 處理 specialEffects
-    effects.forEach(eff => {
-        let val = toPercent(eff.value || 0);
-        let rawType = String(eff.type).toLowerCase();
-        
-        // 嘗試映射名稱 (例如 crit_damage -> critDamage)
-        let type = CONFIG.keyMap[rawType] || rawType;
-
-        if (type === 'critDamage') bonusStats.critDamage += val;
-        else if (type === 'critChance') bonusStats.critChance += val;
-        else if (type === 'attackSpeed') bonusStats.attackSpeed += val;
-        else {
-            // 非面板類特效 (如 fire, life_steal)
-            if (CONFIG.weights[type]) {
-                // 已知特效：乘權重 * 等級係數
-                bonusStats.otherScore += val * CONFIG.weights[type] * levelScale;
-            } else {
-                // 未知特效：給保底分 (不乘係數，因為通常是機制類)
-                // 這裡你要自己判斷是否要乘 levelScale，通常機制類(如復活)價值固定
-                bonusStats.otherScore += CONFIG.weights.defaultEffect;
-                // console.log(`未知特效: ${rawType}, 給予保底分`);
-            }
-        }
+    const items = Object.values(EquipmentDatabase);
+    const sourceAudit = buildEquipmentSourceAudit({
+        EquipmentDatabase,
+        MonsterDatabase,
+        TowerMonsterData,
+        RecipeDatabase,
+        QuestDatabase,
+        BlueprintDropDatabase,
+        getLevelBand
+    });
+    const rows = items.map(item => {
+        const grade = getEquipmentBalanceGrade(item);
+        const stats = item.stats || {};
+        const sourceInfo = sourceAudit.sources.get(item.id) || [];
+        return {
+            id: item.id,
+            name: item.name,
+            type: normalizeEquipmentKind(item.type),
+            level: Number(item.level || item.requiredLevel) || 1,
+            band: getLevelBand(item.level || item.requiredLevel).label,
+            rarity: item.rarity,
+            atk: Number(item.attack ?? item.atk ?? stats.attack ?? stats.atk ?? 0) || 0,
+            def: Number(item.defense ?? item.def ?? stats.defense ?? stats.def ?? 0) || 0,
+            score: grade.score,
+            target: grade.targetScore,
+            ratio: grade.ratio,
+            grade: grade.grade,
+            severity: grade.severity,
+            setId: item.setId || null,
+            setName: item.setId ? SetDatabase[item.setId]?.name || item.setId : '',
+            sources: sourceInfo.length
+        };
     });
 
-    // 3. 結算分數
-    score += bonusStats.critChance * CONFIG.weights.critChance * levelScale;
-    score += bonusStats.critDamage * CONFIG.weights.critDamage * levelScale;
-    score += bonusStats.attackSpeed * CONFIG.weights.attackSpeed * levelScale;
-    score += bonusStats.otherScore;
+    const issues = [];
+    const notes = [...(sourceAudit.notes || [])];
+    const seenIds = new Set();
 
-    // 4. 及格線計算
-    const rarity = (item.ItemRarity || item.rarity || 'common').toLowerCase();
-    const rarityMult = CONFIG.rarityStandard[rarity] || 1.0;
-    
-    let baseStandard = Math.max(5, item.level * CONFIG.baseAtkPerLevel);
-    if (item.type !== 'weapon' && item.type !== 'WEAPON') {
-        baseStandard = Math.max(5, item.level * CONFIG.baseDefPerLevel * CONFIG.weights.defense);
+    for (const item of items) {
+        if (!item.id) {
+            issues.push({ severity: 'high', id: '(missing-id)', message: `${item.name || '(unnamed)'} 缺少 id` });
+            continue;
+        }
+
+        if (seenIds.has(item.id)) {
+            issues.push({ severity: 'high', id: item.id, message: `裝備 id 重複：${item.id}` });
+        }
+        seenIds.add(item.id);
+
+        if (!RARITY_BALANCE[item.rarity]) {
+            issues.push({ severity: 'high', id: item.id, message: `未知稀有度：${item.rarity}` });
+        }
+
+        if (!item.level && !item.requiredLevel) {
+            issues.push({ severity: 'medium', id: item.id, message: '缺少 level/requiredLevel，會落到等級 1' });
+        }
+
+        if (!item.stats && (item.attack === undefined && item.defense === undefined && item.atk === undefined && item.def === undefined)) {
+            issues.push({ severity: 'high', id: item.id, message: '缺少 stats 或基礎攻防欄位' });
+        }
     }
 
-    const targetScore = Math.floor(baseStandard * rarityMult);
-    const ratio = (targetScore > 0) ? (score / targetScore) : 0;
+    for (const row of rows) {
+        if (row.severity !== 'normal') {
+            const isSetDeviation = Boolean(row.setId);
+            const entry = {
+                severity: isSetDeviation ? 'set-piece' : row.severity,
+                id: row.id,
+                message: isSetDeviation
+                    ? `${row.name} 單件 ${row.grade}，但屬於「${row.setName}」套裝；需用套裝啟用後表現判斷，分數 ${row.score}/${row.target}，倍率 ${row.ratio}`
+                    : `${row.name} ${row.grade}，分數 ${row.score}/${row.target}，倍率 ${row.ratio}`
+            };
+            if (isSetDeviation) {
+                notes.push(entry);
+            } else {
+                issues.push(entry);
+            }
+        }
+    }
 
-    // 5. 評級
-    let rank = "D";
-    if (ratio >= 2.0) rank = "SSS (超模)";
-    else if (ratio >= 1.5) rank = "S (優秀)";
-    else if (ratio >= 1.1) rank = "A (強力)";
-    else if (ratio >= 0.85) rank = "B (及格)";
-    else if (ratio >= 0.6) rank = "C (偏弱)";
-    else rank = "D (垃圾)";
+    for (const setInfo of Object.values(SetDatabase)) {
+        const missingPieces = (setInfo.pieces || []).filter(pieceId => !EquipmentDatabase[pieceId]);
+        if (missingPieces.length > 0) {
+            issues.push({
+                severity: 'medium',
+                id: setInfo.id,
+                message: `${setInfo.name} 套裝缺少資料庫裝備：${missingPieces.join(', ')}`
+            });
+        }
+    }
 
-    return { 
-        score: parseFloat(score.toFixed(1)), 
-        target: targetScore, 
-        ratio: ratio.toFixed(2), 
-        rank 
+    for (const issue of sourceAudit.issues) issues.push(issue);
+
+    const bySeverity = issues.reduce((acc, issue) => {
+        acc[issue.severity] = (acc[issue.severity] || 0) + 1;
+        return acc;
+    }, {});
+
+    const sortedRows = [...rows].sort((a, b) => b.ratio - a.ratio);
+    const strongest = sortedRows.slice(0, 8);
+    const weakest = sortedRows.slice(-8).reverse();
+    const report = {
+        summary: {
+            items: items.length,
+            issues: issues.length,
+            notes: notes.length,
+            bySeverity
+        },
+        coverage: {
+            equipmentWithKnownSource: sourceAudit.coverage.withSource,
+            totalEquipment: items.length,
+            monsterDropLinks: sourceAudit.coverage.monsterDropLinks,
+            craftedResultLinks: sourceAudit.coverage.recipeResultLinks,
+            questRewardLinks: sourceAudit.coverage.questRewardLinks,
+            blueprintSourceLinks: sourceAudit.coverage.blueprintSourceLinks
+        },
+        strongest,
+        weakest,
+        issues,
+        notes,
+        rows
+    };
+
+    if (process.argv.includes('--json')) {
+        console.log(JSON.stringify(report, null, 2));
+        return;
+    }
+
+    console.log('Equipment balance audit');
+    console.log(`Items: ${items.length}`);
+    console.log(`Issues: ${issues.length} (${Object.entries(bySeverity).map(([k, v]) => `${k}:${v}`).join(', ') || 'none'})`);
+    console.log(`Notes: ${notes.length} (${notes.length > 0 ? 'set-piece deviations intentionally reviewed separately' : 'none'})`);
+    console.log('');
+    printTable('Highest ratios', strongest);
+    console.log('');
+    printTable('Lowest ratios', weakest);
+
+    console.log('');
+    console.log('Source coverage');
+    console.log(`Equipment with known source: ${sourceAudit.coverage.withSource}/${items.length}`);
+    console.log(`Monster drop links: ${sourceAudit.coverage.monsterDropLinks}`);
+    console.log(`Crafted result links: ${sourceAudit.coverage.recipeResultLinks}`);
+    console.log(`Quest reward links: ${sourceAudit.coverage.questRewardLinks}`);
+    console.log(`Blueprint source links: ${sourceAudit.coverage.blueprintSourceLinks}`);
+
+    if (issues.length > 0) {
+        console.log('');
+        console.log('Issues');
+        for (const issue of issues) {
+            console.log(`- [${issue.severity}] ${issue.id}: ${issue.message}`);
+        }
+    }
+
+    if (notes.length > 0) {
+        console.log('');
+        console.log('Notes');
+        for (const note of notes) {
+            console.log(`- [${note.severity}] ${note.id}: ${note.message}`);
+        }
+    }
+}
+
+function buildEquipmentSourceAudit(context) {
+    const {
+        EquipmentDatabase,
+        MonsterDatabase,
+        TowerMonsterData,
+        RecipeDatabase,
+        QuestDatabase,
+        BlueprintDropDatabase,
+        getLevelBand
+    } = context;
+
+    const allMonsters = {
+        ...MonsterDatabase,
+        ...TowerMonsterData
+    };
+    const sources = new Map();
+    const issues = [];
+    const notes = [];
+    const monsterDropLinks = [];
+    const recipeResultLinks = [];
+    const questRewardLinks = [];
+    const blueprintSourceLinks = [];
+    const rarityOrder = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+    const addSource = (itemId, source) => {
+        if (!itemId || !EquipmentDatabase[itemId]) return;
+        if (!sources.has(itemId)) sources.set(itemId, []);
+        sources.get(itemId).push(source);
+    };
+
+    const addIssue = (severity, id, message) => {
+        issues.push({ severity, id, message });
+    };
+
+    const addNote = (severity, id, message) => {
+        notes.push({ severity, id, message });
+    };
+
+    const allQuestList = Object.values(QuestDatabase || {}).flatMap(group => Array.isArray(group) ? group : []);
+
+    for (const [monsterId, monster] of Object.entries(allMonsters)) {
+        for (const drop of monster.equipmentDrops || []) {
+            if (!EquipmentDatabase[drop.equipmentId]) {
+                addIssue('high', monsterId, `怪物裝備掉落指向不存在裝備：${drop.equipmentId}`);
+                continue;
+            }
+            const source = {
+                kind: 'monster',
+                id: monsterId,
+                name: monster.name,
+                level: Number(monster.level) || 1,
+                chance: drop.chance ?? null
+            };
+            addSource(drop.equipmentId, source);
+            monsterDropLinks.push({ equipmentId: drop.equipmentId, ...source });
+        }
+
+        for (const drop of monster.drops || []) {
+            if (!EquipmentDatabase[drop.itemId]) continue;
+            const source = {
+                kind: 'monster-item-drop',
+                id: monsterId,
+                name: monster.name,
+                level: Number(monster.level) || 1,
+                chance: drop.chance ?? null
+            };
+            addSource(drop.itemId, source);
+            monsterDropLinks.push({ equipmentId: drop.itemId, ...source });
+        }
+    }
+
+    for (const [recipeId, recipe] of Object.entries(RecipeDatabase || {})) {
+        const resultId = recipe.result?.id;
+        if (!resultId) continue;
+        if (isEquipmentType(recipe.type)) {
+            recipeResultLinks.push({
+                equipmentId: resultId,
+                kind: 'recipe',
+                id: recipeId,
+                name: recipe.name,
+                rarity: recipe.rarity,
+                level: recipe.result?.level || recipe.result?.requiredLevel || recipe.level || null
+            });
+        }
+        if (EquipmentDatabase[resultId]) {
+            const source = { kind: 'recipe', id: recipeId, name: recipe.name, rarity: recipe.rarity };
+            addSource(resultId, source);
+        }
+
+        if (isEquipmentType(recipe.type) && !recipe.result?.level && !recipe.result?.requiredLevel) {
+            addIssue('design', recipeId, `${recipe.name} 的製作結果缺少 level/requiredLevel，平衡工具會落到等級 1`);
+        }
+    }
+
+    for (const quest of allQuestList) {
+        for (const itemId of quest.rewards?.items || []) {
+            if (!EquipmentDatabase[itemId]) continue;
+            const source = { kind: 'quest', id: quest.id, name: quest.name, chapter: quest.chapter || null };
+            addSource(itemId, source);
+            questRewardLinks.push({ equipmentId: itemId, ...source });
+        }
+    }
+
+    for (const [sourceKey, drops] of Object.entries(BlueprintDropDatabase || {})) {
+        const monsterKey = sourceKey.includes(':') ? sourceKey.split(':').pop() : sourceKey;
+        const monster = allMonsters[monsterKey];
+        for (const drop of drops || []) {
+            const recipe = RecipeDatabase[drop.recipeId];
+            const resultId = recipe?.result?.id;
+            if (!resultId || !isEquipmentType(recipe?.type)) continue;
+            const source = {
+                kind: 'blueprint-source',
+                id: sourceKey,
+                name: monster?.name || sourceKey,
+                level: Number(monster?.level) || null,
+                chance: drop.chance ?? null
+            };
+            if (EquipmentDatabase[resultId]) addSource(resultId, source);
+            blueprintSourceLinks.push({ equipmentId: resultId, recipeId: drop.recipeId, ...source });
+        }
+    }
+
+    for (const item of Object.values(EquipmentDatabase)) {
+        const level = Number(item.level || item.requiredLevel) || 1;
+        const band = getLevelBand(level);
+        const rarityIndex = rarityOrder.indexOf(item.rarity);
+        const expected = band.expectedRarities || [];
+        const expectedIndexes = expected.map(rarity => rarityOrder.indexOf(rarity)).filter(index => index >= 0);
+
+        if (expectedIndexes.length > 0 && rarityIndex >= 0) {
+            const minExpected = Math.min(...expectedIndexes);
+            const maxExpected = Math.max(...expectedIndexes);
+            if (rarityIndex > maxExpected + 1) {
+                const message = `${item.name} 在 ${band.label} 等級帶稀有度偏高：${item.rarity}`;
+                if (hasBalanceIntent(item, 'early_chase_unique')) {
+                    addNote('early-chase', item.id, `${message}；已標記為早期低機率追逐掉落。`);
+                } else {
+                    addIssue('design', item.id, message);
+                }
+            } else if (rarityIndex < minExpected - 1) {
+                addIssue('design', item.id, `${item.name} 在 ${band.label} 等級帶稀有度偏低：${item.rarity}`);
+            }
+        }
+
+        for (const sourceId of item.dropFrom || []) {
+            const monster = allMonsters[sourceId];
+            if (!monster) {
+                addIssue('medium', item.id, `${item.name} 的 dropFrom 指向不存在怪物：${sourceId}`);
+                continue;
+            }
+
+            const backLinked = (monster.equipmentDrops || []).some(drop => drop.equipmentId === item.id)
+                || (monster.drops || []).some(drop => drop.itemId === item.id);
+            if (!backLinked) {
+                addIssue('design', item.id, `${item.name} 宣告由 ${monster.name} 掉落，但怪物掉落表未反向列出`);
+            }
+
+            addSource(item.id, {
+                kind: 'dropFrom',
+                id: sourceId,
+                name: monster.name,
+                level: Number(monster.level) || 1
+            });
+        }
+
+        const itemSources = sources.get(item.id) || [];
+        if (itemSources.length === 0) {
+            addIssue('design', item.id, `${item.name} 目前沒有可追蹤來源，需確認是否為起始、商店或測試裝備`);
+        }
+
+        for (const source of itemSources.filter(source => Number.isFinite(source.level))) {
+            const gap = level - source.level;
+            if (gap >= 6) {
+                addIssue('design', item.id, `${item.name} 等級 ${level} 可能太早從 Lv.${source.level} 的 ${source.name} 取得`);
+            } else if (gap <= -8) {
+                addIssue('design', item.id, `${item.name} 等級 ${level} 對 Lv.${source.level} 的 ${source.name} 來說可能太晚或太弱`);
+            }
+        }
+    }
+
+    return {
+        sources,
+        notes,
+        issues,
+        coverage: {
+            withSource: Object.values(EquipmentDatabase).filter(item => (sources.get(item.id) || []).length > 0).length,
+            monsterDropLinks: monsterDropLinks.length,
+            recipeResultLinks: recipeResultLinks.length,
+            questRewardLinks: questRewardLinks.length,
+            blueprintSourceLinks: blueprintSourceLinks.length
+        }
     };
 }
 
-// 輔助函數：統一轉成整數百分比 (0.1 -> 10, 10 -> 10)
-function toPercent(val) {
-    if (val > 0 && val <= 1) return val * 100;
-    return val;
+function hasBalanceIntent(item, intent) {
+    const intents = Array.isArray(item?.balanceIntent) ? item.balanceIntent : [item?.balanceIntent];
+    return intents.includes(intent);
 }
 
-// 輔助函數：處理倍率 (1.5 -> 50, 0.5 -> 50, 50 -> 50)
-function toBonusPercent(val) {
-    if (val <= 0) return 0;
-    if (val <= 5) return (val - 1) * 100; // 1.2 -> 20
-    return val; // 20 -> 20
+function isEquipmentType(type) {
+    return ['weapon', 'armor', 'equipment', 'accessory'].includes(String(type || '').toLowerCase());
 }
 
-// ================= 測試區 =================
-const goblin_dagger = {
-    name: '哥布林短刀', level: 3, rarity: 'uncommon', type: 'weapon',
-    stats: { attack: 6, critChance: 0.118, critDamage: 1.264, attackSpeed: 1.13 },
-    specialEffects: [{ type: 'CRIT_DAMAGE', value: 10 }] 
-};
+function printTable(title, rows) {
+    console.log(title);
+    console.log('id | lv | rarity | type | score/target | ratio | grade | set | sources');
+    console.log('--- | ---: | --- | --- | ---: | ---: | --- | --- | ---:');
+    for (const row of rows) {
+        console.log(`${row.id} | ${row.level} | ${row.rarity} | ${row.type} | ${row.score}/${row.target} | ${row.ratio} | ${row.grade} | ${row.setName || '-'} | ${row.sources}`);
+    }
+}
 
-const res = evaluateItem(goblin_dagger);
-console.log(`測試結果: ${goblin_dagger.name}`);
-console.log(`分數: ${res.score} / 及格分: ${res.target}`);
-console.log(`倍率: ${res.ratio} -> 評級: ${res.rank}`);
+main().catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+});

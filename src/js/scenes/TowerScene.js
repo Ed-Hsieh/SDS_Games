@@ -4,15 +4,52 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { towerManager, TowerState, getBossEquipment } from '../managers/TowerManager.js';
-import { getTowerMonster } from '../managers/MonsterManager.js';
+import * as FightManager from '../managers/FightManager.js';
+import { towerManager, TowerState } from '../managers/TowerManager.js';
+import {
+    renderCombatMonster,
+    renderCombatPlayer,
+    renderCombatBuffIndicators,
+    clearCombatActionCooldown,
+    isCombatActionCooling,
+    startCombatActionCooldown,
+    showCombatDamageNumber,
+    showCombatPlayerHitFeedback,
+    showCombatKillFreeze
+} from '../utils/CombatUI.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
+import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 class TowerScene {
     constructor() {
         this.initialized = false;
         this.selectedFloor = 1;
+        this.eventsBound = false;
+        this.systemsSubscribed = false;
+        this.handleTowerEvent = this.handleTowerEvent.bind(this);
+        this.handleGameEvent = this.handleGameEvent.bind(this);
+        this.handleBackLobbyClick = this.exitTower.bind(this);
+        this.handleStartBattleClick = this.startBattle.bind(this);
+        this.handleAttackButtonClick = this.handleAttackClick.bind(this);
+        this.handleItemButtonClick = this.showItemMenu.bind(this);
+        this.handleFleeButtonClick = this.fleeBattle.bind(this);
+        this.handleNextFloorClick = this.goNextFloor.bind(this);
+        this.handleRetryClick = this.retryBattle.bind(this);
+        this.handleExitClick = this.exitTower.bind(this);
         this.app = null; // 由 main.js 設定
         this.rhythmSystem = null; // 節奏條系統
+        this.battleEngine = null;
+        this.finishingBattle = false;
+    }
+
+    renderMonsterIcon(monster = {}, fallback = '?') {
+        const image = monster.image || getGeneratedMonsterImage(monster.id);
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(monster.name || '')}">`;
+        }
+        return escapeHtml(monster.icon || fallback);
     }
     
     // 設定 app 參考
@@ -28,7 +65,6 @@ class TowerScene {
         if (!this.initialized) {
             this.subscribeToSystems();
             this.initialized = true;
-            console.log('TowerScene initialized');
         }
 
         this.renderFloorsList();
@@ -38,6 +74,9 @@ class TowerScene {
         if (status.state === TowerState.IN_BATTLE) {
             this.showBattleState();
             this.updateBattleUI();
+            this.createBattleEngine(status.currentMonster);
+            this.initRhythmSystem();
+            this.startRhythmBar();
         } else {
             this.showIdleState();
             this.selectFloor(status.currentFloor || 1);
@@ -48,6 +87,7 @@ class TowerScene {
         // 頂部資訊
         this.highestFloorEl = document.getElementById('highest-floor');
         this.currentFloorEl = document.getElementById('current-floor');
+        this.btnBackLobby = document.getElementById('btn-back-lobby');
 
         // 塔層列表
         this.floorsListEl = document.getElementById('floors-list');
@@ -61,22 +101,20 @@ class TowerScene {
         // 戰鬥狀態
         this.battleStateEl = document.getElementById('battle-state');
         this.battleFloorEl = document.getElementById('battle-floor');
-        this.playerHpFillEl = document.getElementById('player-hp-fill');
-        this.playerHpTextEl = document.getElementById('player-hp-text');
-        this.playerMpFillEl = document.getElementById('player-mp-fill');
-        this.playerMpTextEl = document.getElementById('player-mp-text');
-        this.monsterNameEl = document.getElementById('monster-name');
-        this.monsterIconEl = document.getElementById('monster-icon');
-        this.monsterLevelEl = document.getElementById('monster-level');
-        this.monsterAtkEl = document.getElementById('monster-atk');
-        this.monsterDefEl = document.getElementById('monster-def');
-        this.monsterHpFillEl = document.getElementById('monster-hp-fill');
-        this.monsterHpTextEl = document.getElementById('monster-hp-text');
-        this.battlePlayerLevelEl = document.getElementById('battle-player-level');
+        this.playerHpFillEl = document.getElementById('hud-hp-bar') || document.getElementById('player-hp-fill');
+        this.playerHpTextEl = document.getElementById('hud-hp-text') || document.getElementById('player-hp-text');
+        this.buffIndicatorsEl = document.getElementById('buff-indicators') || document.getElementById('tower-buff-indicators');
+        this.monsterNameEl = document.getElementById('battle-monster-name') || document.getElementById('monster-name');
+        this.monsterIconEl = document.getElementById('battle-monster-icon') || document.getElementById('monster-icon');
+        this.monsterLevelEl = document.getElementById('battle-monster-level') || document.getElementById('monster-level');
+        this.monsterAtkEl = document.getElementById('battle-monster-atk') || document.getElementById('monster-atk');
+        this.monsterDefEl = document.getElementById('battle-monster-def') || document.getElementById('monster-def');
+        this.monsterHpFillEl = document.getElementById('battle-monster-hp-bar') || document.getElementById('monster-hp-fill');
+        this.monsterHpTextEl = document.getElementById('battle-monster-hp-text') || document.getElementById('monster-hp-text');
+        this.battlePlayerLevelEl = document.getElementById('hud-player-level') || document.getElementById('battle-player-level');
 
         // 戰鬥按鈕
         this.btnAttack = document.getElementById('btn-attack');
-        this.btnSkill = document.getElementById('btn-skill');
         this.btnItem = document.getElementById('btn-item');
         this.btnFlee = document.getElementById('btn-flee');
 
@@ -92,7 +130,6 @@ class TowerScene {
         // 玩家狀態面板
         this.playerLevelEl = document.getElementById('player-level');
         this.playerStatHpEl = document.getElementById('player-stat-hp');
-        this.playerStatMpEl = document.getElementById('player-stat-mp');
         this.playerStatAtkEl = document.getElementById('player-stat-atk');
         this.playerStatDefEl = document.getElementById('player-stat-def');
         this.playerStatGoldEl = document.getElementById('player-stat-gold');
@@ -107,23 +144,47 @@ class TowerScene {
     }
 
     bindEvents() {
+        if (this.eventsBound) return;
         // 返回大廳按鈕
-        const btnBackLobby = document.getElementById('btn-back-lobby');
-        btnBackLobby?.addEventListener('click', () => this.exitTower());
+        this.btnBackLobby?.addEventListener('click', this.handleBackLobbyClick);
         
         // 開始戰鬥
-        this.btnStartBattle?.addEventListener('click', () => this.startBattle());
+        this.btnStartBattle?.addEventListener('click', this.handleStartBattleClick);
 
         // 戰鬥操作 - 使用節奏條系統
-        this.btnAttack?.addEventListener('click', () => this.handleAttackClick());
-        // Skill UI removed: skill button no longer opens a skill menu
-        this.btnItem?.addEventListener('click', () => this.showItemMenu());
-        this.btnFlee?.addEventListener('click', () => this.fleeBattle());
+        this.btnAttack?.addEventListener('click', this.handleAttackButtonClick);
+        this.btnItem?.addEventListener('click', this.handleItemButtonClick);
+        this.btnFlee?.addEventListener('click', this.handleFleeButtonClick);
 
         // 結果操作
-        this.btnNextFloor?.addEventListener('click', () => this.goNextFloor());
-        this.btnRetry?.addEventListener('click', () => this.retryBattle());
-        this.btnExit?.addEventListener('click', () => this.exitTower());
+        this.btnNextFloor?.addEventListener('click', this.handleNextFloorClick);
+        this.btnRetry?.addEventListener('click', this.handleRetryClick);
+        this.btnExit?.addEventListener('click', this.handleExitClick);
+        this.eventsBound = true;
+    }
+
+    unbindEvents() {
+        this.btnBackLobby?.removeEventListener('click', this.handleBackLobbyClick);
+        this.btnStartBattle?.removeEventListener('click', this.handleStartBattleClick);
+        this.btnAttack?.removeEventListener('click', this.handleAttackButtonClick);
+        this.btnItem?.removeEventListener('click', this.handleItemButtonClick);
+        this.btnFlee?.removeEventListener('click', this.handleFleeButtonClick);
+        this.btnNextFloor?.removeEventListener('click', this.handleNextFloorClick);
+        this.btnRetry?.removeEventListener('click', this.handleRetryClick);
+        this.btnExit?.removeEventListener('click', this.handleExitClick);
+        this.eventsBound = false;
+    }
+
+    cleanup() {
+        this.unbindEvents();
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        if (this.systemsSubscribed) {
+            towerManager.unsubscribe(this.handleTowerEvent);
+            GameManager.unsubscribe(this.handleGameEvent);
+            this.systemsSubscribed = false;
+        }
+        this.initialized = false;
     }
     
     /**
@@ -195,7 +256,6 @@ class TowerScene {
         // 創建節奏條系統實例
         this.rhythmSystem = new window.RhythmBarSystem(char, containerWrapper);
         
-        console.log('[TowerScene] Rhythm system initialized');
     }
     
     /**
@@ -217,17 +277,19 @@ class TowerScene {
     }
 
     subscribeToSystems() {
+        if (this.systemsSubscribed) return;
         // 訂閱無盡塔系統事件
-        towerManager.subscribe((eventType, data) => {
-            this.handleTowerEvent(eventType, data);
-        });
+        towerManager.subscribe(this.handleTowerEvent);
 
         // 訂閱遊戲狀態變化
-        GameManager.subscribe((state, eventType) => {
-            if (eventType === 'all' || eventType === 'gold') {
-                this.updatePlayerStats();
-            }
-        });
+        GameManager.subscribe(this.handleGameEvent);
+        this.systemsSubscribed = true;
+    }
+
+    handleGameEvent(state, eventType) {
+        if (eventType === 'all' || eventType === 'gold') {
+            this.updatePlayerStats();
+        }
     }
 
     handleTowerEvent(eventType, data) {
@@ -284,7 +346,7 @@ class TowerScene {
                      data-floor="${floor.floor}"
                      onclick="towerScene.selectFloor(${floor.floor})">
                     <span class="floor-number">${floor.floor}</span>
-                    <span class="floor-monster">${floor.monster?.icon || '?'}</span>
+                    <span class="floor-monster">${this.renderMonsterIcon(floor.monster, '?')}</span>
                     <span class="floor-status">
                         ${isCleared ? '✓' : (isUnlocked ? '' : '🔒')}
                     </span>
@@ -327,16 +389,15 @@ class TowerScene {
 
         if (this.monsterPreviewEl) {
             const monster = floorInfo.monster;
-            console.log(monster);
             
             this.monsterPreviewEl.innerHTML = `
-                <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${monster.icon}</div>
+                <div class="monster-icon ${floorInfo.isBoss ? 'boss' : ''}">${this.renderMonsterIcon(monster, '?')}</div>
                 <div class="monster-name">${monster.name}</div>
-                <div class="monster-level">Lv.${monster.level}</div>
+                <div class="monster-level">等級 ${monster.level}</div>
                 <div class="monster-stats">
-                    <span>❤️ ${monster.hp}</span>
-                    <span>⚔️ ${monster.attack}</span>
-                    <span>🛡️ ${monster.defense}</span>
+                    <span>生命 ${monster.hp}</span>
+                    <span>攻擊 ${monster.attack}</span>
+                    <span>防禦 ${monster.defense}</span>
                 </div>
                 ${floorInfo.isBoss ? '<div class="boss-badge">⭐ BOSS</div>' : ''}
             `;
@@ -344,8 +405,8 @@ class TowerScene {
 
         if (this.floorRewardsEl) {
             const rewards = [];
-            rewards.push(`💰 ${floorInfo.monster.gold} G`);
-            rewards.push(`✨ ${floorInfo.monster.exp} EXP`);
+            rewards.push(`💰 ${floorInfo.monster.gold} 金幣`);
+            rewards.push(`✨ ${floorInfo.monster.exp} 經驗`);
 
             if (floorInfo.bossEquipment) {
                 rewards.push(`🎁 ${floorInfo.bossEquipment.name}`);
@@ -353,7 +414,7 @@ class TowerScene {
 
             this.floorRewardsEl.innerHTML = `
                 <h3>通關獎勵</h3>
-                <div class="rewards-list">${rewards.join('<br>')}</div>
+                <div class="rewards-list">${rewards.map(reward => `<span class="reward-chip">${reward}</span>`).join('')}</div>
             `;
         }
 
@@ -373,7 +434,6 @@ class TowerScene {
 
         if (this.playerLevelEl) this.playerLevelEl.textContent = char.level;
         if (this.playerStatHpEl) this.playerStatHpEl.textContent = `${char.hp}/${char.maxHp}`;
-        if (this.playerStatMpEl) this.playerStatMpEl.textContent = `${char.mp}/${char.maxMp}`;
         if (this.playerStatAtkEl) this.playerStatAtkEl.textContent = char.getTotalAtk();
         if (this.playerStatDefEl) this.playerStatDefEl.textContent = char.getTotalDef();
         if (this.playerStatGoldEl) this.playerStatGoldEl.textContent = GameManager.getGold();
@@ -395,14 +455,105 @@ class TowerScene {
         );
 
         this.quickItemsEl.innerHTML = potions.slice(0, 4).map(stack => `
-            <div class="quick-item" onclick="towerScene.useItem('${stack.instanceId}')">
-                <span class="item-icon">${stack.item.icon}</span>
+            <div class="quick-item" onclick="towerScene.useItem('${stack.instanceId}')"${buildItemTooltipAttrs(stack.item, { quantity: stack.quantity })}>
+                <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
                 <span class="item-count">x${stack.quantity}</span>
             </div>
         `).join('') || '<div class="no-items">無可用道具</div>';
     }
 
     // ===== 戰鬥控制 =====
+
+    createBattleEngine(monster) {
+        if (!monster) return;
+
+        this.destroyBattleEngine();
+        this.finishingBattle = false;
+        this.battleEngine = new FightManager.BattleController(GameManager.getCharacter(), monster);
+        this.battleEngine._onAutoAttack = (res) => {
+            if (!res || this.finishingBattle) return;
+            if (res.destroyedArmor) this.updatePlayerStats();
+            if (res.stunned) {
+                showCombatDamageNumber(this.battleStateEl, 0, { type: 'statusStun', label: '⚡ 暈眩' });
+            } else if (res.damage > 0) {
+                showCombatPlayerHitFeedback(this.battleStateEl, GameManager.getCharacter(), res.damage || 0);
+            }
+            if (res.reflectedDamage > 0) {
+                showCombatDamageNumber(this.battleStateEl, res.reflectedDamage, {
+                    type: 'reflect',
+                    label: `🛡 反傷 -${res.reflectedDamage}`
+                });
+            }
+            if (res.revived) {
+                showCombatDamageNumber(this.battleStateEl, 0, {
+                    type: 'revive',
+                    label: '✨ 復甦'
+                });
+            }
+            this.updateBattleUI();
+
+            if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+                this.finishBattleVictory();
+            } else if (res.playerHp <= 0 && !res.revived) {
+                this.finishBattleDefeat();
+            }
+        };
+        this.battleEngine._onStatusApplied = (events = []) => {
+            if (this.finishingBattle) return;
+            events.forEach(event => {
+                const labels = {
+                    stun: '⚡ 暈眩',
+                    slow: `❄️ 緩速 ${Math.round(event.percent || 0)}%`,
+                    poison: `☠️ 中毒 ${event.dps || 0}/秒`,
+                    attackSpeed: `✨ 攻速 +${Math.round(event.totalPercent || event.percent || 0)}%`,
+                    hpRegen: '💚 回復'
+                };
+                const types = {
+                    stun: 'statusStun',
+                    slow: 'statusSlow',
+                    poison: 'statusPoison',
+                    attackSpeed: 'statusBuff',
+                    hpRegen: 'lifesteal'
+                };
+                showCombatDamageNumber(this.battleStateEl, 0, {
+                    type: types[event.type] || 'status',
+                    label: labels[event.type] || '狀態'
+                });
+            });
+            this.updateBattleUI();
+        };
+        this.battleEngine._onStatusTick = (events = []) => {
+            if (this.finishingBattle) return;
+            events.forEach(event => {
+                if (event.type === 'poison') {
+                    showCombatDamageNumber(this.battleStateEl, event.damage || 0, {
+                        type: 'dot',
+                        label: `☠️ -${event.damage || 0}`
+                    });
+                } else if (event.type === 'hpRegen') {
+                    showCombatDamageNumber(this.battleStateEl, event.amount || 0, {
+                        type: 'lifesteal',
+                        label: `💚 回復 +${event.amount || 0}`
+                    });
+                }
+                if (event.targetDefeated) this.finishBattleVictory();
+            });
+            this.updateBattleUI();
+        };
+
+        this.battleEngine.beginBattle();
+        this.battleEngine.startAutoAttack();
+    }
+
+    destroyBattleEngine() {
+        if (!this.battleEngine) return;
+        try {
+            this.battleEngine.endBattle?.();
+        } catch (error) {
+            console.warn('[TowerScene] Failed to stop battle engine:', error);
+        }
+        this.battleEngine = null;
+    }
 
     startBattle() {
         const status = towerManager.getStatus();
@@ -425,13 +576,78 @@ class TowerScene {
     }
 
     executeAction(action) {
-        const result = towerManager.executeBattleRound(action);
-        if (!result.success && result.message) {
-            this.showMessage(result.message);
+        const status = towerManager.getStatus();
+        const monster = status.currentMonster;
+        if (status.state !== TowerState.IN_BATTLE || !monster) {
+            this.showMessage('目前不在戰鬥中。');
+            return;
+        }
+
+        if (!this.battleEngine) {
+            this.createBattleEngine(monster);
+        }
+
+        if (action.type !== 'attack') return;
+
+        const hitType = action.hitType || 'hit';
+        const res = this.battleEngine?.playerAttack(hitType);
+        if (!res) return;
+        this.rhythmSystem?.setBattleAttackSpeedBonus?.(
+            this.battleEngine.getPlayerAttackSpeedBonusPercent?.() || 0
+        );
+
+        if (res.destroyedWeapon) {
+            this.showMessage(`${res.destroyedWeapon.name} 已損壞。`, 'warning');
+        }
+
+        const applyRes = res.applyRes || {};
+        const damage = applyRes.finalDamage ?? 0;
+        const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
+        const primaryDamage = Math.max(0, damage - doubleStrikeDamage);
+        showCombatDamageNumber(this.battleStateEl, primaryDamage || damage, {
+            type: hitType === 'miss' ? 'dodge' : damage <= 0 ? 'block' : res.computeRes?.isCrit ? 'critical' : 'normal',
+            isCrit: Boolean(res.computeRes?.isCrit),
+            isMiss: hitType === 'miss'
+        });
+        if (doubleStrikeDamage > 0) {
+            showCombatDamageNumber(this.battleStateEl, doubleStrikeDamage, {
+                type: 'doubleStrike',
+                label: `⚡ 連擊 -${doubleStrikeDamage}`
+            });
+        }
+        if (applyRes.lifestealRecovered > 0) {
+            showCombatDamageNumber(this.battleStateEl, applyRes.lifestealRecovered, {
+                type: 'lifesteal',
+                label: `❤ 吸血 +${applyRes.lifestealRecovered}`
+            });
+        }
+        this.updateBattleUI();
+
+        if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+            this.finishBattleVictory();
         }
     }
 
-    // Skill usage via TowerScene removed; towerManager still processes skill actions if invoked programmatically
+    finishBattleVictory() {
+        if (this.finishingBattle || towerManager.getStatus().state !== TowerState.IN_BATTLE) return;
+        this.finishingBattle = true;
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        showCombatKillFreeze(this.battleStateEl);
+        setTimeout(() => {
+            towerManager.handleVictory();
+            this.finishingBattle = false;
+        }, 360);
+    }
+
+    finishBattleDefeat() {
+        if (this.finishingBattle || towerManager.getStatus().state !== TowerState.IN_BATTLE) return;
+        this.finishingBattle = true;
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        towerManager.handleDefeat();
+        this.finishingBattle = false;
+    }
 
     useItem(instanceId) {
         const result = GameManager.useConsumable(instanceId);
@@ -444,13 +660,18 @@ class TowerScene {
     // Skill menu UI removed for Tower scene
 
     showItemMenu() {
+        if (isCombatActionCooling(this.btnItem)) return;
         const inventory = GameManager.getInventory();
         const potions = inventory.filter(stack => stack.item.type === 'potion');
+        if (potions.length > 0) {
+            startCombatActionCooldown(this.btnItem, 1);
+        }
 
         const itemsHtml = potions.map(stack =>
-            `<button class="item-btn" 
-                     onclick="towerScene.useItem('${stack.instanceId}'); this.parentElement.parentElement.remove();">
-                ${stack.item.icon} ${stack.item.name} x${stack.quantity}
+            `<button class="item-btn"
+                     onclick="towerScene.useItem('${stack.instanceId}'); this.parentElement.parentElement.remove();"${buildItemTooltipAttrs(stack.item, { quantity: stack.quantity })}>
+                <span class="item-icon">${getItemVisualHtml(stack.item, '🧪')}</span>
+                <span>${escapeHtml(stack.item.name)} x${stack.quantity}</span>
             </button>`
         ).join('') || '<p>沒有可用的道具</p>';
 
@@ -466,16 +687,29 @@ class TowerScene {
         document.body.appendChild(menu);
     }
 
-    fleeBattle() {
-        if (confirm('確定要逃跑嗎？進度將會重置。')) {
-            this.stopRhythmBar();
-            towerManager.abandonChallenge();
-            this.showIdleState();
-            this.renderFloorsList();
-        }
+    async fleeBattle() {
+        if (isCombatActionCooling(this.btnFlee)) return;
+        const confirmed = await confirmAction({
+            title: '確認逃跑',
+            message: '逃跑會重置目前的無盡塔挑戰進度。',
+            details: ['已通過但尚未結算到下一次挑戰的進度會中斷。', '角色狀態會保留，之後可以重新挑戰。'],
+            confirmText: '逃跑',
+            type: 'danger'
+        });
+
+        if (!confirmed) return;
+
+        startCombatActionCooldown(this.btnFlee, 1);
+        this.stopRhythmBar();
+        this.destroyBattleEngine();
+        towerManager.abandonChallenge();
+        this.showIdleState();
+        this.renderFloorsList();
+        showGlobalToast('已離開戰鬥', '無盡塔挑戰進度已重置。', 'warning');
     }
 
     goNextFloor() {
+        this.destroyBattleEngine();
         const result = towerManager.nextFloor();
         if (result.success) {
             this.showIdleState();
@@ -487,6 +721,7 @@ class TowerScene {
     }
 
     retryBattle() {
+        this.destroyBattleEngine();
         const status = towerManager.getStatus();
         towerManager.startChallenge(status.currentFloor);
         this.showIdleState();
@@ -494,6 +729,7 @@ class TowerScene {
 
     exitTower() {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         towerManager.abandonChallenge();
         if (this.app) {
             this.app.loadScene('lobby');
@@ -512,6 +748,7 @@ class TowerScene {
     onBattleStart(data) {
         this.showBattleState();
         this.updateBattleUI();
+        this.createBattleEngine(data.monster);
         
         if (this.battleFloorEl) {
             this.battleFloorEl.textContent = data.floor;
@@ -522,7 +759,7 @@ class TowerScene {
         }
 
         if (this.monsterIconEl) {
-            this.monsterIconEl.textContent = data.monster.icon;
+            this.monsterIconEl.innerHTML = this.renderMonsterIcon(data.monster, '?');
         }
         
         // 新增：更新怪物等級和屬性
@@ -531,11 +768,11 @@ class TowerScene {
         }
         
         if (this.monsterAtkEl) {
-            this.monsterAtkEl.textContent = data.monster.atk;
+            this.monsterAtkEl.textContent = data.monster.atk ?? data.monster.attack ?? 0;
         }
         
         if (this.monsterDefEl) {
-            this.monsterDefEl.textContent = data.monster.def;
+            this.monsterDefEl.textContent = data.monster.def ?? data.monster.defense ?? 0;
         }
         
         // 更新戰鬥中的玩家等級
@@ -555,11 +792,13 @@ class TowerScene {
 
     onBattleVictory(data) {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         this.showResultState(true, data);
     }
 
     onBattleDefeat(data) {
         this.stopRhythmBar();
+        this.destroyBattleEngine();
         this.showResultState(false, data);
     }
 
@@ -583,18 +822,22 @@ class TowerScene {
     // ===== UI 狀態切換 =====
 
     showIdleState() {
+        this.destroyBattleEngine();
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.remove('hidden');
         this.battleStateEl?.classList.add('hidden');
         this.resultStateEl?.classList.add('hidden');
     }
 
     showBattleState() {
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.add('hidden');
         this.battleStateEl?.classList.remove('hidden');
         this.resultStateEl?.classList.add('hidden');
     }
 
     showResultState(isVictory, data) {
+        this.clearActionCooldowns();
         this.idleStateEl?.classList.add('hidden');
         this.battleStateEl?.classList.add('hidden');
         this.resultStateEl?.classList.remove('hidden');
@@ -611,13 +854,13 @@ class TowerScene {
         if (this.resultRewardsEl && data.rewards) {
             const rewards = data.rewards;
             let html = '<h3>獲得獎勵</h3><div class="rewards-detail">';
-            html += `<p>💰 ${rewards.gold} G</p>`;
-            html += `<p>✨ ${rewards.exp} EXP</p>`;
+            html += `<p>💰 ${rewards.gold} 金幣</p>`;
+            html += `<p>✨ ${rewards.exp} 經驗</p>`;
 
             if (rewards.items && rewards.items.length > 0) {
                 html += '<p>🎁 道具：</p><ul>';
                 for (const item of rewards.items) {
-                    html += `<li>${item.icon || '📦'} ${item.name} x${item.quantity}</li>`;
+                    html += `<li${buildItemTooltipAttrs(item, { quantity: item.quantity })}><span class="item-icon">${getItemVisualHtml(item, '📦')}</span> ${escapeHtml(item.name)} x${item.quantity}</li>`;
                 }
                 html += '</ul>';
             }
@@ -653,34 +896,48 @@ class TowerScene {
         const status = towerManager.getStatus();
         const monster = status.currentMonster;
 
-        // 更新玩家血量
-        if (this.playerHpFillEl && this.playerHpTextEl) {
-            const hpPercent = (char.hp / char.maxHp) * 100;
-            this.playerHpFillEl.style.width = `${hpPercent}%`;
-            this.playerHpTextEl.textContent = `${char.hp}/${char.maxHp}`;
-        }
-
-        // 更新玩家魔力
-        if (this.playerMpFillEl && this.playerMpTextEl) {
-            const mpPercent = (char.mp / char.maxMp) * 100;
-            this.playerMpFillEl.style.width = `${mpPercent}%`;
-            this.playerMpTextEl.textContent = `${char.mp}/${char.maxMp}`;
-        }
-
-        // 更新怪物血量
-        if (monster && this.monsterHpFillEl && this.monsterHpTextEl) {
-            const hpPercent = (monster.currentHp / monster.hp) * 100;
-            this.monsterHpFillEl.style.width = `${hpPercent}%`;
-            this.monsterHpTextEl.textContent = `${monster.currentHp}/${monster.hp}`;
+        renderCombatPlayer(this.battleStateEl, char, {
+            inventory: GameManager.getInventory(),
+            fallbackName: '冒險者'
+        });
+        if (monster) {
+            renderCombatMonster(this.battleStateEl, monster, { level: monster.level || status.currentFloor });
         }
 
         // 更新右側面板
         this.updatePlayerStats();
     }
 
-    showMessage(message) {
-        // 簡易提示
-        alert(message);
+    clearActionCooldowns() {
+        [this.btnAttack, this.btnItem, this.btnFlee]
+            .filter(Boolean)
+            .forEach(card => clearCombatActionCooldown(card));
+    }
+
+    renderBuffIndicators(char) {
+        renderCombatBuffIndicators(this.buffIndicatorsEl, char);
+    }
+
+    showMessage(message, type = 'info') {
+        const text = String(message || '');
+        let resolvedType = type;
+
+        if (resolvedType === 'info') {
+            if (text.includes('恭喜') || text.includes('恢復')) {
+                resolvedType = 'success';
+            } else if (text.includes('尚未') || text.includes('失敗') || text.includes('無法')) {
+                resolvedType = 'warning';
+            }
+        }
+
+        const titleMap = {
+            success: '無盡塔進度',
+            warning: '無盡塔提示',
+            error: '無盡塔錯誤',
+            info: '無盡塔'
+        };
+
+        showGlobalToast(titleMap[resolvedType] || '無盡塔', text, resolvedType);
     }
 
     refresh() {

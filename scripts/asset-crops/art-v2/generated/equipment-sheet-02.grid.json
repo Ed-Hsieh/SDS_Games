@@ -1,0 +1,38 @@
+{
+  "source": "incoming/raw/art-v2/equipment-sheet-02.png",
+  "category": "equipment",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "fate_crystal",
+    "flame_sword",
+    "forest_guardian_crown",
+    "forest_guardian_staff",
+    "frost_blade",
+    "frost_crown",
+    "gamblers_fallacy",
+    "ghost_cloak",
+    "goblin_dagger",
+    "guardian_shield",
+    "hell_knight_armor",
+    "jungle_heart",
+    "lich_staff",
+    "loaded_dice",
+    "lucky_charm_7",
+    "lucky_coin",
+    "master_hammer",
+    "old_armor",
+    "old_sword",
+    "overlord_armor",
+    "phoenix_feather",
+    "rune_badge",
+    "shadow_armor_drop",
+    "shadow_badge",
+    "shadow_blade_drop"
+  ]
+}

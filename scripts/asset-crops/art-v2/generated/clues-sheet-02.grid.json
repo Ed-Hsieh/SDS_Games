@@ -1,0 +1,27 @@
+{
+  "source": "incoming/raw/art-v2/clues-sheet-02.png",
+  "category": "clues",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "rare_material_box",
+    "recipe_fragment",
+    "relief_voucher",
+    "sealed_wax_contract",
+    "silk_tripwire",
+    "smuggled_coal_token",
+    "snapped_bait_hook",
+    "survivor_warning",
+    "thorn_trade_bead",
+    "transcend_stone",
+    "villager_herb_request",
+    "vip_card",
+    "wet_treasure_fragment",
+    "wolf_fang_marks"
+  ]
+}

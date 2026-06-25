@@ -1,27 +1,33 @@
 <!-- 任務公告板視覺背景 -->
 <div class="quest-board-container">
-    <!-- 頂部標籤欄 -->
-    <div class="quest-tabs">
-        <button class="quest-tab active" data-type="main">
-            <span class="tab-icon">📜</span>
-            <span class="tab-label">主線</span>
-        </button>
-        <button class="quest-tab" data-type="bounty">
-            <span class="tab-icon">🎯</span>
-            <span class="tab-label">懸賞</span>
-        </button>
-        <button class="quest-tab" data-type="commission">
-            <span class="tab-icon">📋</span>
+    <div class="quest-story-ledger">
+        <div>
+            <span class="ledger-kicker">Story Ledger</span>
+            <h2>旅人手札</h2>
+        </div>
+        <div class="ledger-summary" id="ledger-summary">0 件委託</div>
+    </div>
+
+    <div class="quest-tabs handbook-tabs" id="handbook-tabs" role="tablist" aria-label="旅人手札分類">
+        <button class="quest-tab active" type="button" role="tab" aria-selected="true" data-handbook-tab="commissions">
             <span class="tab-label">委託</span>
+            <span class="badge" data-handbook-count="commissions">0</span>
         </button>
-        <button class="quest-tab" data-type="hidden">
-            <span class="tab-icon">🔮</span>
-            <span class="tab-label">神秘</span>
+        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="boss">
+            <span class="tab-label">首領痕跡</span>
+            <span class="badge" data-handbook-count="boss">0</span>
         </button>
-        <button class="quest-tab" data-type="active">
-            <span class="tab-icon">⚔️</span>
-            <span class="tab-label">進行中</span>
-            <span class="badge" id="active-count">0</span>
+        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="world">
+            <span class="tab-label">世界見聞</span>
+            <span class="badge" data-handbook-count="world">0</span>
+        </button>
+        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="forge">
+            <span class="tab-label">鍛造備忘</span>
+            <span class="badge" data-handbook-count="forge">0</span>
+        </button>
+        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="town">
+            <span class="tab-label">城鎮記憶</span>
+            <span class="badge" data-handbook-count="town">0</span>
         </button>
     </div>
 
@@ -30,8 +36,8 @@
         <!-- 左側：任務列表 -->
         <div class="quest-list-panel">
             <div class="quest-list-header">
-                <h3 id="list-title">主線任務</h3>
-                <span class="quest-count" id="quest-count">0 個任務</span>
+                <h3 id="list-title">所有委託</h3>
+                <span class="quest-count" id="quest-count">0 筆紀錄</span>
             </div>
             <div class="quest-list" id="quest-list">
                 <!-- 任務項目動態生成 -->
@@ -46,7 +52,7 @@
         <div class="quest-detail-panel" id="quest-detail">
             <div class="detail-placeholder" id="detail-placeholder">
                 <div class="placeholder-icon">📖</div>
-                <p>選擇一個任務查看詳情</p>
+                <p>選擇一段紀錄查看來龍去脈與下一步</p>
             </div>
 
             <div class="detail-content hidden" id="detail-content">
@@ -63,22 +69,22 @@
                 <div class="quest-dialogue-box" id="detail-dialogue">
                     <div class="npc-avatar" id="npc-avatar">👨</div>
                     <div class="dialogue-bubble">
-                        <span class="npc-name" id="npc-name">???</span>
+                        <span class="npc-name" id="npc-name">委託人</span>
                         <p id="detail-dialogue-text">任務描述...</p>
                     </div>
                 </div>
 
-                <!-- 任務目標 -->
+                <!-- 任務紀錄 -->
                 <div class="quest-objectives">
-                    <h4>📋 任務目標</h4>
+                    <h4>📋 紀錄內容</h4>
                     <ul class="objectives-list" id="detail-objectives">
                         <!-- 動態生成 -->
                     </ul>
                 </div>
 
-                <!-- 任務獎勵 -->
+                <!-- 回報收穫 -->
                 <div class="quest-rewards">
-                    <h4>🎁 任務獎勵</h4>
+                    <h4>🎁 結果與去向</h4>
                     <div class="rewards-grid" id="detail-rewards">
                         <!-- 動態生成 -->
                     </div>
@@ -88,15 +94,11 @@
                 <div class="quest-actions" id="detail-actions">
                     <button class="quest-btn accept-btn" id="btn-accept">
                         <span class="btn-icon">✅</span>
-                        接受任務
+                        收入手札
                     </button>
                     <button class="quest-btn abandon-btn hidden" id="btn-abandon">
                         <span class="btn-icon">❌</span>
-                        放棄任務
-                    </button>
-                    <button class="quest-btn complete-btn hidden" id="btn-complete">
-                        <span class="btn-icon">🏆</span>
-                        領取獎勵
+                        停止追蹤
                     </button>
                 </div>
             </div>
@@ -110,15 +112,15 @@
             返回大廳
         </button>
         <div class="quest-summary">
-            <span class="summary-item" title="進行中">
-                <span class="summary-icon">⚔️</span>
+            <span class="summary-item" title="紀錄中">
+                <span class="summary-icon">✎</span>
                 <span id="summary-active">0</span>
             </span>
-            <span class="summary-item" title="可領取">
-                <span class="summary-icon">🏆</span>
+            <span class="summary-item" title="待回報">
+                <span class="summary-icon">📌</span>
                 <span id="summary-completed">0</span>
             </span>
-            <span class="summary-item" title="已完成">
+            <span class="summary-item" title="已記錄">
                 <span class="summary-icon">✓</span>
                 <span id="summary-finished">0</span>
             </span>
@@ -126,13 +128,4 @@
     </div>
 </div>
 
-<!-- 任務完成通知彈窗 -->
-<div class="quest-notification hidden" id="quest-notification">
-    <div class="notification-content">
-        <div class="notification-icon">🎉</div>
-        <div class="notification-text">
-            <h3 id="notification-title">任務完成！</h3>
-            <p id="notification-message">已解鎖新任務</p>
-        </div>
-    </div>
-</div>
+<!-- 任務通知改由旅人手札本身更新，不使用彈跳 toast。 -->

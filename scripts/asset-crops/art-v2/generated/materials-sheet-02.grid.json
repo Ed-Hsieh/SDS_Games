@@ -1,0 +1,38 @@
+{
+  "source": "incoming/raw/art-v2/materials-sheet-02.png",
+  "category": "materials",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "dragon_scale_armor",
+    "dragon_tooth",
+    "drake_scale",
+    "earth_essence",
+    "ectoplasm",
+    "elder_dragon_scale",
+    "elemental_core",
+    "ember_stone",
+    "enhance_stone",
+    "fire_essence",
+    "fire_resist_potion",
+    "forest_essence",
+    "forge_core",
+    "frost_core",
+    "frost_crystal",
+    "gargoyle_wing",
+    "general_armor",
+    "geo_crystal",
+    "goblin_coin",
+    "goblin_ear",
+    "golem_core",
+    "guardian_branch",
+    "health_potion_s",
+    "high_ore",
+    "hydra_fang"
+  ]
+}

@@ -1,0 +1,8 @@
+Create a strict 5 by 5 grid source sheet for SDS_Games category "equipment".
+The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
+Place subjects in this exact left-to-right, top-to-bottom order:
+fate_crystal, flame_sword, forest_guardian_crown, forest_guardian_staff, frost_blade, frost_crown, gamblers_fallacy, ghost_cloak, goblin_dagger, guardian_shield, hell_knight_armor, jungle_heart, lich_staff, loaded_dice, lucky_charm_7, lucky_coin, master_hammer, old_armor, old_sword, overlord_armor, phoenix_feather, rune_badge, shadow_armor_drop, shadow_badge, shadow_blade_drop
+Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
+No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
+Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
+Background: dark neutral flat background inside each cell, subtle grid separation allowed.

@@ -1,108 +1,97 @@
-<!-- 頂部戰術地圖網格 (15vh) -->
-<div class="market-tactical-grid" id="market-grid">
-    <!-- 8個地圖格子 -->
-    <div class="grid-tile" data-shop="blacksmith">
-        <div class="tile-floor">
-            <div class="shop-icon">⚔️</div>
-            <div class="shop-label">鍛造</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile" data-shop="alchemist">
-        <div class="tile-floor">
-            <div class="shop-icon">🧪</div>
-            <div class="shop-label">煉金</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile" data-shop="merchant">
-        <div class="tile-floor">
-            <div class="shop-icon">💰</div>
-            <div class="shop-label">商人</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile" data-shop="scholar">
-        <div class="tile-floor">
-            <div class="shop-icon">📜</div>
-            <div class="shop-label">學者</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile locked" data-shop="mystery1">
-        <div class="tile-floor">
-            <div class="shop-icon">❓</div>
-            <div class="shop-label">???</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile locked" data-shop="mystery2">
-        <div class="tile-floor">
-            <div class="shop-icon">❓</div>
-            <div class="shop-label">???</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile locked" data-shop="mystery3">
-        <div class="tile-floor">
-            <div class="shop-icon">❓</div>
-            <div class="shop-label">???</div>
-        </div>
-    </div>
-    
-    <div class="grid-tile" data-shop="exit" id="btn-exit-shop">
-        <div class="tile-floor">
-            <div class="shop-icon">🚪</div>
-            <div class="shop-label">離開</div>
-        </div>
-    </div>
-    
-    <!-- 玩家標記 (動態定位) -->
-    <div class="player-token" id="player-token">
-        <div class="token-avatar">🧙</div>
-    </div>
+<div class="shop-supply-scene market-place-scene market-dialogue-scene">
+    <main class="shop-supply-layout market-place-layout market-dialogue-layout">
+        <section class="market-stage" id="market-stage" aria-label="市集邊棚場景">
+            <div class="market-stage-backdrop" aria-hidden="true"></div>
+
+            <header class="market-place-head">
+                <button class="shop-return-btn market-back-btn" type="button" id="btn-exit-shop">← 返回城鎮</button>
+                <div class="market-place-title">
+                    <span class="shop-kicker">補給街</span>
+                    <h1>市集邊棚</h1>
+                    <p id="shop-current-copy" hidden></p>
+                </div>
+            </header>
+
+            <div class="market-stage-vendors market-vendor-map" id="market-grid" aria-label="市集攤位">
+                <!-- NPC hotspots are rendered by ShopScene -->
+            </div>
+
+            <section class="supply-desk market-trade-board market-dialogue-board" id="trade-panel" aria-label="攤位對話交易">
+                <button class="market-stall-close" type="button" id="btn-close-stall" aria-label="離開攤位">×</button>
+
+                <div class="dialogue-trade-persona">
+                    <div class="supply-vendor-card" id="vendor-card">
+                        <div class="vendor-portrait-shell" id="npc-drop-zone">
+                            <img src="" alt="市集人物" class="npc-portrait" id="npc-portrait">
+                            <span class="vendor-portrait-fallback" id="vendor-portrait-fallback">市</span>
+                        </div>
+                        <div class="vendor-card-copy">
+                            <span class="section-eyebrow" id="vendor-place">市集</span>
+                            <h2 id="vendor-name">市集人物</h2>
+                            <p id="vendor-role">供應線</p>
+                        </div>
+                    </div>
+
+                    <div class="dialogue-box supply-dialogue" id="dialogue-box">
+                        <p>歡迎來到市集。</p>
+                    </div>
+                </div>
+
+                <div class="dialogue-trade-main">
+                    <nav class="supply-tabs" aria-label="供應線分類">
+                        <button class="supply-tab active" type="button" data-panel="shelf">貨架</button>
+                        <button class="supply-tab" type="button" data-panel="orders">訂單</button>
+                        <button class="supply-tab" type="button" data-panel="exchange">交換</button>
+                    </nav>
+
+                    <div class="trade-status-panel is-info" id="trade-status" role="status" aria-live="polite">
+                        <div class="trade-status-icon" id="trade-status-icon">i</div>
+                        <div class="trade-status-copy">
+                            <div class="trade-status-title" id="trade-status-title">選擇市集人物</div>
+                            <div class="trade-status-message" id="trade-status-message">貨架、訂單與交換會依照人物和故事狀態改變。</div>
+                        </div>
+                    </div>
+
+                    <div class="supply-panel" id="supply-panel">
+                        <!-- Supply cards are rendered by ShopScene -->
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <aside class="market-side-rail town-right-rail" aria-label="背包與市集動態">
+            <section class="market-side-card market-carry-panel">
+                <div class="section-header compact">
+                    <div>
+                        <span class="section-eyebrow">背包</span>
+                        <h3>帶回物資</h3>
+                    </div>
+                    <div class="shop-wallet">
+                        <span>金幣</span>
+                        <strong id="player-gold">0</strong>
+                    </div>
+                </div>
+                <div class="player-inventory-list" id="player-inventory">
+                    <!-- Player inventory rendered by ShopScene -->
+                </div>
+            </section>
+
+            <section class="market-side-card market-dynamic-panel town-narrative-panel town-narrative-whisper" id="market-narrative" aria-live="polite">
+                <div class="town-narrative-head">
+                    <span class="town-narrative-kicker">場景</span>
+                    <strong id="market-narrative-title">市集邊棚</strong>
+                </div>
+                <div class="town-story-board" id="market-story-log">
+                    <div class="town-dialogue-stream market-feed" id="market-feed">
+                        <article class="town-story-entry market-feed-card is-info">
+                            <span class="world-log-title">市集邊棚</span>
+                            <p class="world-log-message">你站在帆布棚下。藥草、鐵片、路線拓片和低聲傳聞各自佔著一角，走近攤位後再開口。</p>
+                        </article>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
 </div>
 
-<!-- 主要內容區 (85vh) -->
-<div class="market-content">
-    <!-- 左側：NPC互動面板 (40%) -->
-    <div class="npc-panel" id="npc-panel">
-        <div class="npc-portrait-container" id="npc-drop-zone">
-            <img src="" alt="NPC Portrait" class="npc-portrait" id="npc-portrait">
-            <div class="drop-hint" id="drop-hint">拖曳特殊物品至此...</div>
-        </div>
-        
-        <div class="npc-dialogue">
-            <div class="dialogue-box" id="dialogue-box">
-                <p>歡迎來到市集。</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- 右側：交易面板 (60%) -->
-    <div class="trade-panel" id="trade-panel">
-        <!-- 上半部：商店貨物 (購買) -->
-        <div class="trade-section vendor-section">
-            <div class="section-header">
-                <h3>商店貨物</h3>
-            </div>
-            <div class="shop-inventory" id="shop-inventory">
-                <!-- 商店物品動態生成 -->
-            </div>
-        </div>
-
-        <!-- 下半部：玩家背包 (出售) -->
-        <div class="trade-section player-section">
-            <div class="section-header">
-                <h3>你的背包</h3>
-                <span class="gold-display" id="player-gold">💰 0</span>
-            </div>
-            <div class="player-inventory-list" id="player-inventory">
-                <!-- 玩家物品動態生成 (可拖曳) -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- 物品詳情模態視窗 -->
 <!-- Item modal centralized via ItemDetailModal component -->

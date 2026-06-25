@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SDS Asset Cropper</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #071018;
+      --panel: #101923;
+      --panel-2: #0b131b;
+      --line: rgba(137, 186, 205, 0.22);
+      --gold: #e7bd63;
+      --accent: #6ed4ff;
+      --text: #edf6ff;
+      --muted: rgba(237, 246, 255, 0.62);
+      --danger: #ff6b6b;
+      --good: #73e6a2;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 24% 12%, rgba(110, 212, 255, 0.12), transparent 28%),
+        linear-gradient(180deg, #0b1520, var(--bg));
+      color: var(--text);
+      font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(520px, 1fr) 390px;
+      gap: 14px;
+      min-height: 100vh;
+      padding: 14px;
+    }
+
+    .stage,
+    .side {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.014)),
+        rgba(8, 13, 19, 0.88);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      min-height: 0;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      color: #fff8e6;
+      font-size: 24px;
+      line-height: 1.1;
+    }
+
+    .sub {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      min-height: 36px;
+      padding: 7px 11px;
+      border: 1px solid rgba(110, 212, 255, 0.28);
+      border-radius: 9px;
+      background: rgba(20, 46, 60, 0.56);
+      color: #dff7ff;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .btn:hover,
+    .btn:focus-visible {
+      border-color: rgba(231, 189, 99, 0.7);
+      outline: none;
+    }
+
+    .btn.primary {
+      border-color: rgba(231, 189, 99, 0.42);
+      background: rgba(88, 59, 20, 0.58);
+      color: #fff0ba;
+    }
+
+    .image-wrap {
+      position: relative;
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      overflow: auto;
+      background:
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%),
+        linear-gradient(45deg, rgba(255,255,255,0.04) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.04) 75%),
+        #060a0e;
+      background-position: 0 0, 16px 16px;
+      background-size: 32px 32px;
+    }
+
+    .canvas-box {
+      position: relative;
+      display: inline-block;
+      max-width: 100%;
+      max-height: 100%;
+      user-select: none;
+    }
+
+    #sourceCanvas {
+      display: block;
+      max-width: none;
+      border-radius: 10px;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+    }
+
+    .crop-box {
+      position: absolute;
+      display: none;
+      border: 2px solid var(--gold);
+      box-shadow:
+        0 0 0 9999px rgba(0, 0, 0, 0.46),
+        0 0 18px rgba(231, 189, 99, 0.38);
+      cursor: move;
+    }
+
+    .crop-box::before,
+    .crop-box::after {
+      content: "";
+      position: absolute;
+      inset: 33.333% 0 auto;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.36);
+      box-shadow: 0 calc(var(--crop-h, 120px) / 3) 0 rgba(255, 255, 255, 0.36);
+      pointer-events: none;
+    }
+
+    .crop-box::after {
+      inset: 0 auto 0 33.333%;
+      width: 1px;
+      height: auto;
+      box-shadow: calc(var(--crop-w, 120px) / 3) 0 0 rgba(255, 255, 255, 0.36);
+    }
+
+    .handle {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #081018;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.45);
+    }
+
+    .handle.nw { left: -8px; top: -8px; cursor: nwse-resize; }
+    .handle.ne { right: -8px; top: -8px; cursor: nesw-resize; }
+    .handle.sw { left: -8px; bottom: -8px; cursor: nesw-resize; }
+    .handle.se { right: -8px; bottom: -8px; cursor: nwse-resize; }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px 16px;
+      border-top: 1px solid var(--line);
+      background: rgba(7, 11, 16, 0.72);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .status strong {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .side {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .side-body {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      gap: 12px;
+      min-height: 0;
+      padding: 14px;
+      overflow: auto;
+    }
+
+    .panel {
+      border: 1px solid rgba(137, 186, 205, 0.16);
+      border-radius: 12px;
+      background: rgba(8, 13, 19, 0.62);
+      padding: 12px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      color: var(--gold);
+      font-size: 15px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    label.full {
+      grid-column: 1 / -1;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(137, 186, 205, 0.22);
+      border-radius: 8px;
+      background: #060b10;
+      color: var(--text);
+      padding: 7px 9px;
+    }
+
+    textarea {
+      min-height: 170px;
+      resize: vertical;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.45;
+      white-space: pre;
+    }
+
+    .numbers {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .preview-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    #previewCanvas {
+      width: 112px;
+      height: 112px;
+      border: 1px solid rgba(231, 189, 99, 0.34);
+      border-radius: 10px;
+      background: #060a0e;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .notice {
+      min-height: 20px;
+      color: var(--good);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .notice.error {
+      color: var(--danger);
+    }
+
+    @media (max-width: 1000px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="stage">
+      <header>
+        <div>
+          <h1>素材裁切器</h1>
+          <span class="sub">拖曳裁切框，輸出原圖像素參數。不自動猜位置。</span>
+        </div>
+        <div class="toolbar">
+          <label class="btn">
+            載入原圖
+            <input id="fileInput" type="file" accept="image/*" hidden />
+          </label>
+          <button class="btn" id="fitFullBtn" type="button">整張原圖</button>
+          <button class="btn" id="fitSquareBtn" type="button">置中正方形</button>
+          <button class="btn" id="copyBtn" type="button">複製 JSON</button>
+          <button class="btn primary" id="downloadBtn" type="button">下載裁切 WebP</button>
+        </div>
+      </header>
+
+      <div class="image-wrap" id="imageWrap">
+        <div class="canvas-box" id="canvasBox">
+          <canvas id="sourceCanvas" width="960" height="540"></canvas>
+          <div class="crop-box" id="cropBox">
+            <span class="handle nw" data-handle="nw"></span>
+            <span class="handle ne" data-handle="ne"></span>
+            <span class="handle sw" data-handle="sw"></span>
+            <span class="handle se" data-handle="se"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="status">
+        <span>原圖 <strong id="imageSize">未載入</strong></span>
+        <span>顯示倍率 <strong id="scaleText">1x</strong></span>
+        <span>裁切 <strong id="cropText">-</strong></span>
+        <span>輸出 <strong id="outputText">512x512</strong></span>
+      </div>
+    </section>
+
+    <aside class="side">
+      <header>
+        <div>
+          <h1>參數</h1>
+          <span class="sub">把輸出的 entry 貼進目前使用的 Art V2 manifest。</span>
+        </div>
+      </header>
+      <div class="side-body">
+        <section class="panel">
+          <h2>輸出位置</h2>
+          <div class="form-grid">
+            <label class="full">
+              原圖清單
+              <select id="rawSourceSelect">
+                <option value="">手動輸入或載入檔案</option>
+              </select>
+            </label>
+            <label>
+              類別
+              <select id="categoryInput">
+                <option value="equipment">equipment</option>
+                <option value="materials">materials</option>
+                <option value="blueprints">blueprints</option>
+                <option value="shop-items">shop-items</option>
+                <option value="crafted-items">crafted-items</option>
+                <option value="clues">clues</option>
+                <option value="town-places">town-places</option>
+                <option value="portraits">portraits</option>
+                <option value="monsters">monsters</option>
+                <option value="dungeon-zone-scenes">dungeon-zone-scenes</option>
+                <option value="world-landmarks">world-landmarks</option>
+                <option value="map-props">map-props</option>
+                <option value="story-relics">story-relics</option>
+                <option value="combat-effects">combat-effects</option>
+                <option value="backgrounds">backgrounds</option>
+              </select>
+            </label>
+            <label>
+              id / 檔名
+              <input id="idInput" value="new_asset_id" spellcheck="false" />
+            </label>
+            <label class="full">
+              原圖路徑（相對專案根目錄）
+              <input id="sourcePathInput" value="incoming/raw/source.png" spellcheck="false" />
+            </label>
+            <label>
+              group / 批次備註
+              <input id="groupInput" value="" placeholder="例如 equipment-sheet-01 第一列" spellcheck="false" />
+            </label>
+            <label>
+              note / 裁切備註
+              <input id="noteInput" value="" placeholder="例如 需要重裁或已確認" spellcheck="false" />
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>裁切框</h2>
+          <div class="form-grid numbers">
+            <label>x <input id="xInput" type="number" min="0" step="1" /></label>
+            <label>y <input id="yInput" type="number" min="0" step="1" /></label>
+            <label>w <input id="wInput" type="number" min="1" step="1" /></label>
+            <label>h <input id="hInput" type="number" min="1" step="1" /></label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>預覽與輸出尺寸</h2>
+          <div class="preview-row">
+            <canvas id="previewCanvas" width="512" height="512"></canvas>
+            <div class="form-grid">
+              <label>寬 <input id="outWInput" type="number" min="1" step="1" value="512" /></label>
+              <label>高 <input id="outHInput" type="number" min="1" step="1" value="512" /></label>
+              <p class="hint full">一般 icon 建議 256x256；人物與場所可 512x512；背景預設使用目前裁切尺寸，避免超出原圖。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Manifest entry</h2>
+          <textarea id="jsonOutput" spellcheck="false"></textarea>
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn" id="copyManifestBtn" type="button">複製 entry</button>
+            <button class="btn" id="copyPathBtn" type="button">複製輸出路徑</button>
+          </div>
+          <p class="notice" id="notice"></p>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const categoryFolders = {
+      "equipment": "src/assets/images/art-v2/equipment",
+      "materials": "src/assets/images/art-v2/materials",
+      "blueprints": "src/assets/images/art-v2/blueprints",
+      "shop-items": "src/assets/images/art-v2/shop-items",
+      "crafted-items": "src/assets/images/art-v2/crafted-items",
+      "clues": "src/assets/images/art-v2/clues",
+      "town-places": "src/assets/images/art-v2/town-places",
+      "portraits": "src/assets/images/art-v2/portraits",
+      "monsters": "src/assets/images/art-v2/monsters",
+      "dungeon-zone-scenes": "src/assets/images/art-v2/dungeon-zone-scenes",
+      "world-landmarks": "src/assets/images/art-v2/world-landmarks",
+      "map-props": "src/assets/images/art-v2/map-props",
+      "story-relics": "src/assets/images/art-v2/story-relics",
+      "combat-effects": "src/assets/images/art-v2/combat-effects",
+      "backgrounds": "src/assets/images/art-v2/backgrounds"
+    };
+
+    const state = {
+      img: null,
+      fileName: '',
+      displayScale: 1,
+      crop: { x: 0, y: 0, width: 256, height: 256 },
+      drag: null
+    };
+
+    const sourceCanvas = document.getElementById('sourceCanvas');
+    const sourceCtx = sourceCanvas.getContext('2d');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    const cropBox = document.getElementById('cropBox');
+    const inputs = {
+      category: document.getElementById('categoryInput'),
+      id: document.getElementById('idInput'),
+      source: document.getElementById('sourcePathInput'),
+      group: document.getElementById('groupInput'),
+      note: document.getElementById('noteInput'),
+      rawSource: document.getElementById('rawSourceSelect'),
+      x: document.getElementById('xInput'),
+      y: document.getElementById('yInput'),
+      w: document.getElementById('wInput'),
+      h: document.getElementById('hInput'),
+      outW: document.getElementById('outWInput'),
+      outH: document.getElementById('outHInput')
+    };
+
+    const imageSize = document.getElementById('imageSize');
+    const scaleText = document.getElementById('scaleText');
+    const cropText = document.getElementById('cropText');
+    const outputText = document.getElementById('outputText');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const notice = document.getElementById('notice');
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function roundCrop(crop) {
+      return {
+        x: Math.round(crop.x),
+        y: Math.round(crop.y),
+        width: Math.round(crop.width),
+        height: Math.round(crop.height)
+      };
+    }
+
+    function getOutputPath() {
+      const folder = categoryFolders[inputs.category.value] || categoryFolders.equipment;
+      const id = inputs.id.value.trim() || 'new_asset_id';
+      return `${folder}/${id}.webp`;
+    }
+
+    function getEntry() {
+      const crop = roundCrop(state.crop);
+      const group = inputs.group.value.trim();
+      const note = inputs.note.value.trim();
+      const entry = {};
+      if (group) entry.group = group;
+      entry.id = inputs.id.value.trim() || 'new_asset_id';
+      entry.category = inputs.category.value;
+      entry.source = inputs.source.value.trim() || state.fileName || 'incoming/raw/source.png';
+      entry.crop = crop;
+      entry.resize = {
+        width: Number(inputs.outW.value) || 512,
+        height: Number(inputs.outH.value) || 512
+      };
+      if (note) entry.note = note;
+      return entry;
+    }
+
+    function setNotice(text, isError = false) {
+      notice.textContent = text;
+      notice.classList.toggle('error', isError);
+    }
+
+    function drawChecker(ctx, width, height) {
+      ctx.clearRect(0, 0, width, height);
+      const size = 16;
+      for (let y = 0; y < height; y += size) {
+        for (let x = 0; x < width; x += size) {
+          ctx.fillStyle = ((x / size + y / size) % 2 === 0) ? '#0d151d' : '#111d27';
+          ctx.fillRect(x, y, size, size);
+        }
+      }
+    }
+
+    function redrawSource() {
+      if (!state.img) {
+        sourceCanvas.width = 960;
+        sourceCanvas.height = 540;
+        drawChecker(sourceCtx, sourceCanvas.width, sourceCanvas.height);
+        sourceCtx.fillStyle = 'rgba(237,246,255,0.62)';
+        sourceCtx.font = '700 20px Segoe UI';
+        sourceCtx.textAlign = 'center';
+        sourceCtx.fillText('載入原圖後開始裁切', sourceCanvas.width / 2, sourceCanvas.height / 2);
+        cropBox.style.display = 'none';
+        return;
+      }
+
+      const maxW = Math.max(320, window.innerWidth - 460);
+      const maxH = Math.max(320, window.innerHeight - 154);
+      state.displayScale = Math.min(1, maxW / state.img.width, maxH / state.img.height);
+      sourceCanvas.width = Math.max(1, Math.round(state.img.width * state.displayScale));
+      sourceCanvas.height = Math.max(1, Math.round(state.img.height * state.displayScale));
+      sourceCtx.clearRect(0, 0, sourceCanvas.width, sourceCanvas.height);
+      sourceCtx.imageSmoothingEnabled = true;
+      sourceCtx.drawImage(state.img, 0, 0, sourceCanvas.width, sourceCanvas.height);
+      updateCropBox();
+    }
+
+    function updateCropFromInputs() {
+      if (!state.img) return;
+      const next = {
+        x: Number(inputs.x.value) || 0,
+        y: Number(inputs.y.value) || 0,
+        width: Number(inputs.w.value) || 1,
+        height: Number(inputs.h.value) || 1
+      };
+      next.width = clamp(next.width, 1, state.img.width);
+      next.height = clamp(next.height, 1, state.img.height);
+      next.x = clamp(next.x, 0, state.img.width - next.width);
+      next.y = clamp(next.y, 0, state.img.height - next.height);
+      state.crop = next;
+      updateCropBox();
+    }
+
+    function updateCropBox() {
+      if (!state.img) return;
+      const scale = state.displayScale;
+      cropBox.style.display = 'block';
+      cropBox.style.left = `${state.crop.x * scale}px`;
+      cropBox.style.top = `${state.crop.y * scale}px`;
+      cropBox.style.width = `${state.crop.width * scale}px`;
+      cropBox.style.height = `${state.crop.height * scale}px`;
+      cropBox.style.setProperty('--crop-w', `${state.crop.width * scale}px`);
+      cropBox.style.setProperty('--crop-h', `${state.crop.height * scale}px`);
+      syncInputs();
+      renderPreview();
+      renderJson();
+    }
+
+    function syncInputs() {
+      const crop = roundCrop(state.crop);
+      inputs.x.value = crop.x;
+      inputs.y.value = crop.y;
+      inputs.w.value = crop.width;
+      inputs.h.value = crop.height;
+      imageSize.textContent = state.img ? `${state.img.width}x${state.img.height}` : '未載入';
+      scaleText.textContent = `${state.displayScale.toFixed(3)}x`;
+      cropText.textContent = `${crop.x},${crop.y} ${crop.width}x${crop.height}`;
+      outputText.textContent = `${inputs.outW.value}x${inputs.outH.value}`;
+    }
+
+    function renderPreview() {
+      const outW = Number(inputs.outW.value) || 512;
+      const outH = Number(inputs.outH.value) || 512;
+      previewCanvas.width = outW;
+      previewCanvas.height = outH;
+      drawChecker(previewCtx, outW, outH);
+      if (!state.img) return;
+      const crop = state.crop;
+      previewCtx.imageSmoothingEnabled = true;
+      previewCtx.imageSmoothingQuality = 'high';
+      previewCtx.drawImage(state.img, crop.x, crop.y, crop.width, crop.height, 0, 0, outW, outH);
+    }
+
+    function renderJson() {
+      const entry = getEntry();
+      jsonOutput.value = JSON.stringify(entry, null, 2);
+    }
+
+    function fitSquare() {
+      if (!state.img) return;
+      const size = Math.min(state.img.width, state.img.height);
+      state.crop = {
+        x: Math.round((state.img.width - size) / 2),
+        y: Math.round((state.img.height - size) / 2),
+        width: size,
+        height: size
+      };
+      updateCropBox();
+    }
+
+    function fitFull() {
+      if (!state.img) return;
+      state.crop = {
+        x: 0,
+        y: 0,
+        width: state.img.width,
+        height: state.img.height
+      };
+      updateCropBox();
+    }
+
+    function loadFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          state.img = img;
+          state.fileName = file.name;
+          inputs.source.value = inputs.source.value === 'incoming/raw/source.png'
+            ? `incoming/raw/${file.name}`
+            : inputs.source.value;
+          fitSquare();
+          redrawSource();
+          setNotice(`已載入 ${file.name}`);
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadProjectImage(path) {
+      if (!path) return;
+      const img = new Image();
+      img.onload = () => {
+        state.img = img;
+        state.fileName = path.split('/').pop() || path;
+        inputs.source.value = path;
+        if (inputs.category.value === 'backgrounds' || path.includes('/backgrounds/')) {
+          fitFull();
+        } else {
+          fitSquare();
+        }
+        redrawSource();
+        setNotice(`已載入 ${path}`);
+      };
+      img.onerror = () => setNotice(`無法載入 ${path}，請確認伺服器已啟動且路徑存在。`, true);
+      img.src = new URL(`../../${path}`, window.location.href).href;
+    }
+
+    async function loadRawSourceIndex() {
+      try {
+        const response = await fetch(new URL('../../incoming/raw/assets-index.json', window.location.href));
+        if (!response.ok) return;
+        const data = await response.json();
+        const assets = Array.isArray(data.assets) ? data.assets : [];
+        for (const asset of assets) {
+          if (!asset.path) continue;
+          const option = document.createElement('option');
+          option.value = asset.path;
+          option.textContent = `${asset.path} (${asset.width || '?'}x${asset.height || '?'})`;
+          inputs.rawSource.appendChild(option);
+        }
+      } catch (error) {
+        // Opening this file without the local server is still valid; raw source loading is optional.
+      }
+    }
+
+    function pointerToImage(event) {
+      const rect = sourceCanvas.getBoundingClientRect();
+      return {
+        x: (event.clientX - rect.left) / state.displayScale,
+        y: (event.clientY - rect.top) / state.displayScale
+      };
+    }
+
+    function startDrag(event) {
+      if (!state.img) return;
+      const point = pointerToImage(event);
+      const handle = event.target.dataset.handle || 'move';
+      state.drag = {
+        handle,
+        start: point,
+        crop: { ...state.crop }
+      };
+      event.preventDefault();
+    }
+
+    function moveDrag(event) {
+      if (!state.drag || !state.img) return;
+      const point = pointerToImage(event);
+      const dx = point.x - state.drag.start.x;
+      const dy = point.y - state.drag.start.y;
+      const original = state.drag.crop;
+      let next = { ...original };
+
+      if (state.drag.handle === 'move') {
+        next.x = clamp(original.x + dx, 0, state.img.width - original.width);
+        next.y = clamp(original.y + dy, 0, state.img.height - original.height);
+      } else {
+        const minSize = 8;
+        const left = original.x;
+        const right = original.x + original.width;
+        const top = original.y;
+        const bottom = original.y + original.height;
+        let newLeft = left;
+        let newRight = right;
+        let newTop = top;
+        let newBottom = bottom;
+
+        if (state.drag.handle.includes('w')) newLeft = clamp(left + dx, 0, right - minSize);
+        if (state.drag.handle.includes('e')) newRight = clamp(right + dx, left + minSize, state.img.width);
+        if (state.drag.handle.includes('n')) newTop = clamp(top + dy, 0, bottom - minSize);
+        if (state.drag.handle.includes('s')) newBottom = clamp(bottom + dy, top + minSize, state.img.height);
+
+        next = {
+          x: newLeft,
+          y: newTop,
+          width: newRight - newLeft,
+          height: newBottom - newTop
+        };
+      }
+
+      state.crop = next;
+      updateCropBox();
+    }
+
+    function endDrag() {
+      state.drag = null;
+    }
+
+    async function copyText(text, message) {
+      try {
+        await navigator.clipboard.writeText(text);
+        setNotice(message);
+      } catch (error) {
+        setNotice('無法寫入剪貼簿，請手動複製。', true);
+      }
+    }
+
+    document.getElementById('fileInput').addEventListener('change', event => loadFile(event.target.files[0]));
+    document.getElementById('fitFullBtn').addEventListener('click', fitFull);
+    document.getElementById('fitSquareBtn').addEventListener('click', fitSquare);
+    document.getElementById('copyBtn').addEventListener('click', () => copyText(jsonOutput.value, '已複製 JSON entry'));
+    document.getElementById('copyManifestBtn').addEventListener('click', () => copyText(jsonOutput.value, '已複製 manifest entry'));
+    document.getElementById('copyPathBtn').addEventListener('click', () => copyText(getOutputPath(), '已複製輸出路徑'));
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      renderPreview();
+      const link = document.createElement('a');
+      link.download = `${inputs.id.value.trim() || 'cropped'}.webp`;
+      link.href = previewCanvas.toDataURL('image/webp', 0.9);
+      link.click();
+    });
+
+    cropBox.addEventListener('pointerdown', startDrag);
+    window.addEventListener('pointermove', moveDrag);
+    window.addEventListener('pointerup', endDrag);
+
+    for (const key of ['x', 'y', 'w', 'h']) {
+      inputs[key].addEventListener('input', updateCropFromInputs);
+    }
+    inputs.rawSource.addEventListener('change', () => {
+      if (!inputs.rawSource.value) return;
+      loadProjectImage(inputs.rawSource.value);
+    });
+    for (const key of ['category', 'id', 'source', 'group', 'note', 'outW', 'outH']) {
+      inputs[key].addEventListener('input', () => {
+        renderPreview();
+        renderJson();
+        outputText.textContent = `${inputs.outW.value}x${inputs.outH.value}`;
+      });
+    }
+    inputs.category.addEventListener('change', () => {
+      const category = inputs.category.value;
+      if (category === 'backgrounds') {
+        const crop = roundCrop(state.crop);
+        inputs.outW.value = crop.width || 1280;
+        inputs.outH.value = crop.height || 720;
+      } else if (category === 'portraits') {
+        inputs.outW.value = 768;
+        inputs.outH.value = 768;
+      } else if (category === 'town-places') {
+        inputs.outW.value = 512;
+        inputs.outH.value = 512;
+      } else {
+        inputs.outW.value = 512;
+        inputs.outH.value = 512;
+      }
+      renderPreview();
+      renderJson();
+      outputText.textContent = `${inputs.outW.value}x${inputs.outH.value}`;
+    });
+
+    window.addEventListener('resize', redrawSource);
+    redrawSource();
+    renderJson();
+    loadRawSourceIndex();
+  </script>
+</body>
+</html>

@@ -1,416 +1,445 @@
 /**
  * EnhancementManager.js
- * 裝備強化系統 - 強化、寶石鑲嵌、套裝效果
+ * 裝備強化系統 - 金幣強化、穩定度、里程碑印記、套裝效果
  */
 import GameManager from './GameManager.js';
-import { ItemRarity } from '../models/DataModel.js';
+import { AffixStat, ItemRarity } from '../models/Enums.js';
+import { SetDatabase } from '../data/Equipment.js';
+import { PrefixDatabase, SuffixDatabase } from '../data/Prefixes.js';
+import {
+    calculateActiveSetBonuses,
+    createEmptyAffixBonuses,
+    normalizeEquipmentKind
+} from '../data/EquipmentBalance.js';
+import { readItemStat, readNumber } from '../models/ItemSchema.js';
 
-// 強化等級上限
-const MAX_ENHANCEMENT_LEVEL = 10;
+export const MAX_ENHANCEMENT_LEVEL = 10;
 
-// 強化成功率表 (等級 -> 成功率)
+const BASE_STAT_GROWTH = 0.04;
+
 const ENHANCEMENT_SUCCESS_RATES = {
-    0: 1.00,  // +0 -> +1: 100%
-    1: 0.90,  // +1 -> +2: 90%
-    2: 0.80,  // +2 -> +3: 80%
-    3: 0.70,  // +3 -> +4: 70%
-    4: 0.60,  // +4 -> +5: 60%
-    5: 0.50,  // +5 -> +6: 50%
-    6: 0.40,  // +6 -> +7: 40%
-    7: 0.30,  // +7 -> +8: 30%
-    8: 0.20,  // +8 -> +9: 20%
-    9: 0.10   // +9 -> +10: 10%
+    0: 1.00,
+    1: 0.95,
+    2: 0.90,
+    3: 0.75,
+    4: 0.65,
+    5: 0.55,
+    6: 0.40,
+    7: 0.30,
+    8: 0.20,
+    9: 0.12
 };
 
-// 強化費用表
 const ENHANCEMENT_COSTS = {
     0: 50,
-    1: 80,
-    2: 120,
-    3: 180,
-    4: 250,
-    5: 350,
-    6: 500,
-    7: 700,
-    8: 1000,
-    9: 1500
+    1: 90,
+    2: 140,
+    3: 220,
+    4: 340,
+    5: 520,
+    6: 760,
+    7: 1100,
+    8: 1600,
+    9: 2400
 };
 
-// 寶石類型
-export const GemType = {
-    RUBY: 'ruby',           // 紅寶石 - 攻擊
-    SAPPHIRE: 'sapphire',   // 藍寶石 - 防禦
-    EMERALD: 'emerald',     // 綠寶石 - 生命
-    TOPAZ: 'topaz',         // 黃寶石 - 暴擊
-    AMETHYST: 'amethyst',   // 紫寶石 - 魔力
-    DIAMOND: 'diamond'      // 鑽石 - 全屬性
+const RARITY_MULTIPLIER = {
+    [ItemRarity.COMMON]: 1,
+    [ItemRarity.UNCOMMON]: 1.25,
+    [ItemRarity.RARE]: 1.65,
+    [ItemRarity.EPIC]: 2.25,
+    [ItemRarity.LEGENDARY]: 3.25
 };
 
-// 寶石屬性加成
-const GEM_BONUSES = {
-    [GemType.RUBY]: { stat: 'atk', value: 5, icon: '🔴', name: '紅寶石' },
-    [GemType.SAPPHIRE]: { stat: 'def', value: 5, icon: '🔵', name: '藍寶石' },
-    [GemType.EMERALD]: { stat: 'hp', value: 30, icon: '🟢', name: '綠寶石' },
-    [GemType.TOPAZ]: { stat: 'critChance', value: 0.05, icon: '🟡', name: '黃寶石' },
-    [GemType.AMETHYST]: { stat: 'mp', value: 20, icon: '🟣', name: '紫寶石' },
-    [GemType.DIAMOND]: { stat: 'all', value: 3, icon: '💎', name: '鑽石' }
+const STABILITY_BY_RARITY = {
+    [ItemRarity.COMMON]: 2,
+    [ItemRarity.UNCOMMON]: 3,
+    [ItemRarity.RARE]: 4,
+    [ItemRarity.EPIC]: 5,
+    [ItemRarity.LEGENDARY]: 6
 };
 
-// 套裝資料
-export const SetBonuses = {
-    'warrior_set': {
-        name: '戰士套裝',
-        pieces: ['warrior_sword', 'warrior_armor', 'warrior_ring'],
-        bonuses: {
-            2: { atk: 5, def: 3, description: '攻擊+5, 防禦+3' },
-            3: { atk: 15, def: 8, hp: 50, description: '攻擊+15, 防禦+8, 生命+50' }
-        }
-    },
-    'mage_set': {
-        name: '法師套裝',
-        pieces: ['mage_staff', 'mage_robe', 'mage_amulet'],
-        bonuses: {
-            2: { mp: 30, critDamage: 0.1, description: '魔力+30, 暴擊傷害+10%' },
-            3: { mp: 60, critDamage: 0.25, atk: 10, description: '魔力+60, 暴擊傷害+25%, 攻擊+10' }
-        }
-    },
-    'shadow_set': {
-        name: '暗影套裝',
-        pieces: ['shadow_blade', 'shadow_cloak', 'shadow_boots'],
-        bonuses: {
-            2: { critChance: 0.1, description: '暴擊率+10%' },
-            3: { critChance: 0.2, critDamage: 0.3, description: '暴擊率+20%, 暴擊傷害+30%' }
-        }
-    }
+const MILESTONE_LEVELS = [3, 6, 9, 10];
+
+const MILESTONE_POOLS = {
+    3: [
+        { stat: AffixStat.ATK, label: '攻擊印記', range: [2, 5] },
+        { stat: AffixStat.DEF, label: '防禦印記', range: [2, 5] },
+        { stat: AffixStat.HP, label: '生命印記', range: [15, 35] }
+    ],
+    6: [
+        { stat: AffixStat.CRIT_DAMAGE, label: '爆傷印記', range: [5, 10] },
+        { stat: AffixStat.BOSS_BONUS, label: '討伐印記', range: [4, 8] },
+        { stat: AffixStat.ARMOR_PENETRATION, label: '穿甲印記', range: [4, 8] },
+        { stat: AffixStat.CRIT_CHANCE, label: '精準印記', range: [1, 3] }
+    ],
+    9: [
+        { stat: AffixStat.DODGE_CHANCE, label: '閃避印記', range: [1, 3] },
+        { stat: AffixStat.LIFE_STEAL, label: '吸血印記', range: [1, 3] },
+        { stat: AffixStat.DAMAGE_REDUCTION, label: '減傷印記', range: [1, 3] },
+        { stat: AffixStat.STUN_CHANCE, label: '暈眩印記', range: [2, 5] },
+        { stat: AffixStat.SLOW_CHANCE, label: '緩速印記', range: [2, 5] }
+    ]
 };
+
+const STAT_LABELS = {
+    [AffixStat.ATK]: '攻擊',
+    [AffixStat.DEF]: '防禦',
+    [AffixStat.HP]: '生命',
+    [AffixStat.CRIT_DAMAGE]: '爆擊傷害',
+    [AffixStat.BOSS_BONUS]: 'Boss 傷害',
+    [AffixStat.ARMOR_PENETRATION]: '護甲穿透',
+    [AffixStat.CRIT_CHANCE]: '爆擊率',
+    [AffixStat.DODGE_CHANCE]: '閃避率',
+    [AffixStat.LIFE_STEAL]: '吸血',
+    [AffixStat.DAMAGE_REDUCTION]: '減傷',
+    [AffixStat.STUN_CHANCE]: '暈眩機率',
+    [AffixStat.SLOW_CHANCE]: '緩速機率',
+    [AffixStat.ALL_STATS]: '全屬性',
+    noDurabilityLoss: '不消耗耐久'
+};
+
+const PERCENT_STATS = new Set([
+    AffixStat.CRIT_DAMAGE,
+    AffixStat.BOSS_BONUS,
+    AffixStat.ARMOR_PENETRATION,
+    AffixStat.CRIT_CHANCE,
+    AffixStat.DODGE_CHANCE,
+    AffixStat.LIFE_STEAL,
+    AffixStat.DAMAGE_REDUCTION,
+    AffixStat.STUN_CHANCE,
+    AffixStat.SLOW_CHANCE,
+    AffixStat.ALL_STATS
+]);
+
+function rollInt([min, max]) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function rollStatValue(value) {
+    if (Array.isArray(value)) return rollInt(value);
+    return value;
+}
+
+function scaleLegendaryValue(stat, value) {
+    if (stat === 'noDurabilityLoss') return value;
+    if (typeof value !== 'number') return value;
+
+    const dangerousStats = new Set([
+        AffixStat.CRIT_CHANCE,
+        AffixStat.LIFE_STEAL,
+        AffixStat.DAMAGE_REDUCTION,
+        AffixStat.ALL_STATS
+    ]);
+    const scale = dangerousStats.has(stat) ? 0.7 : 0.8;
+    return Math.max(1, Math.round(value * scale));
+}
+
+function addBonus(target, stat, value) {
+    if (value === undefined || value === null || value === 0) return;
+    target[stat] = readNumber(target[stat]) + readNumber(value);
+}
+
+function isEquipment(item) {
+    return ['weapon', 'armor', 'accessory', 'equipment'].includes(String(item?.type || '').toLowerCase());
+}
 
 export class EnhancementManager {
     constructor() {
         this.enhancementHistory = [];
     }
 
-    /**
-     * 強化裝備
-     * @param {Object} equipment - 要強化的裝備
-     * @param {boolean} useProtection - 是否使用保護符（失敗不降級）
-     * @returns {Object} 強化結果
-     */
-    enhance(equipment, useProtection = false) {
-        // 驗證裝備
-        if (!equipment) {
-            return { success: false, message: '無效的裝備' };
+    enhance(equipment) {
+        if (!equipment || !isEquipment(equipment)) {
+            return { success: false, message: '請先選擇可強化的裝備。' };
         }
 
-        // 初始化強化等級
-        if (equipment.enhanceLevel === undefined) {
-            equipment.enhanceLevel = 0;
+        if (equipment.canEnhance === false) {
+            return { success: false, message: '這件裝備無法強化。' };
         }
 
-        // 檢查是否達到上限
+        this.initializeEnhancementState(equipment);
+
         if (equipment.enhanceLevel >= MAX_ENHANCEMENT_LEVEL) {
-            return { success: false, message: '裝備已達到最高強化等級！' };
+            return { success: false, message: '裝備已達最高強化等級。' };
         }
 
-        // 計算費用
+        if (equipment.enhancementStability <= 0) {
+            return { success: false, message: '裝備穩定度已耗盡，無法繼續強化。' };
+        }
+
         const cost = this.getEnhancementCost(equipment);
         if (GameManager.getGold() < cost) {
-            return { success: false, message: `金幣不足！需要 ${cost}G` };
+            return { success: false, message: `金幣不足，需要 ${cost} 金幣。` };
         }
 
-        // 扣除費用
         GameManager.removeGold(cost);
 
-        // 計算成功率
+        const fromLevel = equipment.enhanceLevel;
         const successRate = this.getSuccessRate(equipment);
         const roll = Math.random();
-        const isSuccess = roll < successRate;
+        const success = roll < successRate;
 
-        if (isSuccess) {
-            equipment.enhanceLevel++;
-            this.applyEnhancementBonus(equipment);
-            
-            this.enhancementHistory.push({
-                equipment: equipment.name,
-                level: equipment.enhanceLevel,
-                success: true,
-                timestamp: Date.now()
-            });
-
-            return {
-                success: true,
-                newLevel: equipment.enhanceLevel,
-                message: `強化成功！${equipment.name} +${equipment.enhanceLevel}`,
-                isCritical: roll < successRate * 0.1 // 10% 機率大成功
-            };
-        } else {
-            // 失敗處理
-            let message = '強化失敗！';
-            
-            if (!useProtection && equipment.enhanceLevel > 0 && equipment.enhanceLevel >= 5) {
-                // +5 以上失敗會降級
-                equipment.enhanceLevel--;
-                this.applyEnhancementBonus(equipment);
-                message = `強化失敗！${equipment.name} 降級為 +${equipment.enhanceLevel}`;
-            }
-
-            this.enhancementHistory.push({
-                equipment: equipment.name,
-                level: equipment.enhanceLevel,
+        if (!success) {
+            equipment.enhancementStability = Math.max(0, equipment.enhancementStability - 1);
+            const result = {
                 success: false,
-                timestamp: Date.now()
-            });
-
-            return {
-                success: false,
+                fromLevel,
                 newLevel: equipment.enhanceLevel,
-                message
+                stability: equipment.enhancementStability,
+                cost,
+                message: equipment.enhancementStability > 0
+                    ? `強化失敗，穩定度 -1。剩餘 ${equipment.enhancementStability}/${equipment.maxEnhancementStability}`
+                    : '強化失敗，穩定度已耗盡。'
             };
+            this.recordHistory(equipment, result);
+            return result;
         }
-    }
 
-    /**
-     * 獲取強化費用
-     */
-    getEnhancementCost(equipment) {
-        const baseLevel = equipment.enhanceLevel || 0;
-        const baseCost = ENHANCEMENT_COSTS[baseLevel] || 50;
-        
-        // 根據稀有度調整費用
-        const rarityMultiplier = {
-            [ItemRarity.COMMON]: 1,
-            [ItemRarity.UNCOMMON]: 1.2,
-            [ItemRarity.RARE]: 1.5,
-            [ItemRarity.EPIC]: 2,
-            [ItemRarity.LEGENDARY]: 3
+        equipment.enhanceLevel += 1;
+        this.applyEnhancementBonus(equipment);
+
+        const grantedMark = this.tryGrantMilestoneMark(equipment);
+        this.rebuildEnhancementBonuses(equipment);
+
+        const result = {
+            success: true,
+            fromLevel,
+            newLevel: equipment.enhanceLevel,
+            stability: equipment.enhancementStability,
+            cost,
+            milestoneMark: grantedMark,
+            message: grantedMark
+                ? `強化成功至 +${equipment.enhanceLevel}，獲得 ${grantedMark.label}。`
+                : `強化成功至 +${equipment.enhanceLevel}。`
         };
-        
-        return Math.floor(baseCost * (rarityMultiplier[equipment.rarity] || 1));
+
+        this.recordHistory(equipment, result);
+        return result;
     }
 
-    /**
-     * 獲取成功率
-     */
+    initializeEnhancementState(equipment) {
+        if (equipment.enhanceLevel === undefined) equipment.enhanceLevel = 0;
+        if (!equipment.enhancementMarks) equipment.enhancementMarks = {};
+        if (!equipment.maxEnhancementStability) {
+            equipment.maxEnhancementStability = STABILITY_BY_RARITY[equipment.rarity] || STABILITY_BY_RARITY[ItemRarity.COMMON];
+        }
+        if (equipment.enhancementStability === undefined || equipment.enhancementStability === null) {
+            equipment.enhancementStability = equipment.maxEnhancementStability;
+        }
+        if (!equipment.enhancementBonuses) {
+            equipment.enhancementBonuses = createEmptyAffixBonuses(['noDurabilityLoss']);
+        }
+        this.captureBaseStats(equipment);
+        this.applyEnhancementBonus(equipment);
+        this.rebuildEnhancementBonuses(equipment);
+    }
+
+    captureBaseStats(equipment) {
+        if (equipment._enhanceBaseStats) return equipment._enhanceBaseStats;
+
+        equipment._enhanceBaseStats = {
+            atk: readNumber(equipment._baseAtk ?? readItemStat(equipment, 'atk', 'attack', 0)),
+            def: readNumber(equipment._baseDef ?? readItemStat(equipment, 'def', 'defense', 0)),
+            hp: readNumber(readItemStat(equipment, 'hp', [], 0))
+        };
+
+        return equipment._enhanceBaseStats;
+    }
+
+    getEnhancementCost(equipment) {
+        const level = equipment?.enhanceLevel || 0;
+        const baseCost = ENHANCEMENT_COSTS[level] || ENHANCEMENT_COSTS[0];
+        const multiplier = RARITY_MULTIPLIER[equipment?.rarity] || RARITY_MULTIPLIER[ItemRarity.COMMON];
+        return Math.floor(baseCost * multiplier);
+    }
+
     getSuccessRate(equipment) {
-        const level = equipment.enhanceLevel || 0;
-        return ENHANCEMENT_SUCCESS_RATES[level] || 0.1;
+        const level = equipment?.enhanceLevel || 0;
+        return ENHANCEMENT_SUCCESS_RATES[level] || 0;
     }
 
-    /**
-     * 應用強化加成到裝備
-     */
     applyEnhancementBonus(equipment) {
         const level = equipment.enhanceLevel || 0;
-        
-        // 基礎屬性提升 (每級 +5%)
-        const bonusMultiplier = 1 + (level * 0.05);
-        
-        // 存儲原始數值（如果還沒存）
-        if (equipment._baseAtk === undefined && equipment.atk) {
-            equipment._baseAtk = equipment.atk;
+        const base = this.captureBaseStats(equipment);
+        const multiplier = 1 + (level * BASE_STAT_GROWTH);
+
+        if (base.atk > 0) {
+            const atk = Math.floor(base.atk * multiplier);
+            equipment.atk = atk;
+            equipment.attack = atk;
         }
-        if (equipment._baseDef === undefined && equipment.def) {
-            equipment._baseDef = equipment.def;
+
+        if (base.def > 0) {
+            const def = Math.floor(base.def * multiplier);
+            equipment.def = def;
+            equipment.defense = def;
         }
-        
-        // 應用加成
-        if (equipment._baseAtk) {
-            equipment.atk = Math.floor(equipment._baseAtk * bonusMultiplier);
-        }
-        if (equipment._baseDef) {
-            equipment.def = Math.floor(equipment._baseDef * bonusMultiplier);
+
+        if (base.hp > 0) {
+            equipment.hp = Math.floor(base.hp * multiplier);
         }
     }
 
-    /**
-     * 鑲嵌寶石
-     * @param {Object} equipment - 裝備
-     * @param {Object} gem - 寶石物品
-     * @param {number} slotIndex - 槽位索引
-     */
-    socketGem(equipment, gem, slotIndex = 0) {
-        if (!equipment || !gem) {
-            return { success: false, message: '無效的裝備或寶石' };
-        }
+    tryGrantMilestoneMark(equipment) {
+        const level = equipment.enhanceLevel || 0;
+        if (!MILESTONE_LEVELS.includes(level)) return null;
+        if (equipment.enhancementMarks?.[level]) return null;
 
-        // 初始化寶石槽
-        if (!equipment.gemSlots) {
-            equipment.gemSlots = this.getGemSlotCount(equipment);
-        }
-        if (!equipment.socketedGems) {
-            equipment.socketedGems = [];
-        }
+        const mark = level === 10
+            ? this.rollLegendaryMark(equipment)
+            : this.rollMilestoneMark(level);
 
-        // 檢查槽位
-        const maxSlots = equipment.gemSlots;
-        if (slotIndex >= maxSlots) {
-            return { success: false, message: '沒有可用的寶石槽位' };
-        }
+        if (!mark) return null;
+        equipment.enhancementMarks[level] = mark;
+        return mark;
+    }
 
-        // 檢查是否已有寶石
-        if (equipment.socketedGems[slotIndex]) {
-            return { success: false, message: '此槽位已鑲嵌寶石，請先拆除' };
-        }
+    rollMilestoneMark(level) {
+        const pool = MILESTONE_POOLS[level] || [];
+        if (pool.length === 0) return null;
 
-        // 鑲嵌寶石
-        const gemInfo = GEM_BONUSES[gem.gemType] || gem.effect;
-        if (!gemInfo) {
-            return { success: false, message: '無效的寶石類型' };
-        }
-
-        equipment.socketedGems[slotIndex] = {
-            type: gem.gemType || gem.id,
-            ...gemInfo
+        const option = pool[Math.floor(Math.random() * pool.length)];
+        const value = rollInt(option.range);
+        return {
+            id: `enhance_${level}_${option.stat}`,
+            milestone: level,
+            label: option.label,
+            stat: option.stat,
+            value,
+            rarity: level >= 9 ? ItemRarity.EPIC : ItemRarity.RARE
         };
+    }
 
-        // 從背包移除寶石
-        GameManager.removeFromInventory(gem.id);
+    rollLegendaryMark(equipment) {
+        const equipmentType = normalizeEquipmentKind(equipment.type);
+        const existingAffixIds = new Set((equipment.affixes || []).map(affix => affix.id));
+        const legendaryAffixes = [...Object.values(PrefixDatabase), ...Object.values(SuffixDatabase)]
+            .filter(affix => affix.rarity === ItemRarity.LEGENDARY)
+            .filter(affix => affix.applicableTo?.includes(equipmentType))
+            .filter(affix => !existingAffixIds.has(affix.id));
+
+        const fallbackAffixes = [...Object.values(PrefixDatabase), ...Object.values(SuffixDatabase)]
+            .filter(affix => affix.rarity === ItemRarity.LEGENDARY)
+            .filter(affix => affix.applicableTo?.includes(equipmentType));
+
+        const pool = legendaryAffixes.length > 0 ? legendaryAffixes : fallbackAffixes;
+        if (pool.length === 0) return null;
+
+        const selected = pool[Math.floor(Math.random() * pool.length)];
+        const rolledStats = {};
+        for (const [stat, value] of Object.entries(selected.stats || {})) {
+            rolledStats[stat] = scaleLegendaryValue(stat, rollStatValue(value));
+        }
 
         return {
-            success: true,
-            message: `成功將 ${gemInfo.name || gem.name} 鑲嵌到 ${equipment.name}！`
+            id: `enhance_10_${selected.id}`,
+            milestone: 10,
+            label: `傳說印記：${selected.name}`,
+            affixId: selected.id,
+            affixName: selected.name,
+            type: selected.type,
+            rarity: ItemRarity.LEGENDARY,
+            stats: rolledStats
         };
     }
 
-    /**
-     * 拆除寶石
-     */
-    unsocketGem(equipment, slotIndex) {
-        if (!equipment?.socketedGems?.[slotIndex]) {
-            return { success: false, message: '此槽位沒有寶石' };
-        }
+    rebuildEnhancementBonuses(equipment) {
+        const bonuses = createEmptyAffixBonuses(['noDurabilityLoss']);
+        const marks = Object.values(equipment.enhancementMarks || {});
 
-        const cost = 100; // 拆除費用
-        if (GameManager.getGold() < cost) {
-            return { success: false, message: `金幣不足！拆除需要 ${cost}G` };
-        }
-
-        GameManager.removeGold(cost);
-        const gem = equipment.socketedGems[slotIndex];
-        equipment.socketedGems[slotIndex] = null;
-
-        // 返還寶石到背包（以物品形式）
-        // 這裡簡化處理，實際應創建對應的寶石物品
-
-        return {
-            success: true,
-            message: `成功拆除 ${gem.name}！`
-        };
-    }
-
-    /**
-     * 根據裝備稀有度獲取寶石槽數量
-     */
-    getGemSlotCount(equipment) {
-        const slots = {
-            [ItemRarity.COMMON]: 0,
-            [ItemRarity.UNCOMMON]: 1,
-            [ItemRarity.RARE]: 1,
-            [ItemRarity.EPIC]: 2,
-            [ItemRarity.LEGENDARY]: 3
-        };
-        return slots[equipment.rarity] || 0;
-    }
-
-    /**
-     * 計算裝備的總寶石加成
-     */
-    getGemBonuses(equipment) {
-        const bonuses = { atk: 0, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0 };
-        
-        if (!equipment?.socketedGems) return bonuses;
-
-        for (const gem of equipment.socketedGems) {
-            if (!gem) continue;
-            
-            if (gem.stat === 'all') {
-                bonuses.atk += gem.value;
-                bonuses.def += gem.value;
-            } else if (bonuses[gem.stat] !== undefined) {
-                bonuses[gem.stat] += gem.value;
+        for (const mark of marks) {
+            if (mark.stats) {
+                for (const [stat, value] of Object.entries(mark.stats)) {
+                    addBonus(bonuses, stat, value);
+                }
+            } else if (mark.stat) {
+                addBonus(bonuses, mark.stat, mark.value);
             }
         }
 
+        equipment.enhancementBonuses = bonuses;
         return bonuses;
     }
 
-    /**
-     * 計算套裝效果
-     * @param {Object} character - 角色
-     * @returns {Object} 套裝加成
-     */
-    calculateSetBonuses(character) {
-        const bonuses = { atk: 0, def: 0, hp: 0, mp: 0, critChance: 0, critDamage: 0 };
-        const activeSetDescriptions = [];
-        
-        // 獲取已裝備的物品 ID（用來比對套裝 pieces 中的裝備 id）
-        const equippedItemIds = [];
-        if (character.equipment) {
-            for (const slot in character.equipment) {
-                const item = character.equipment[slot];
-                if (item?.id) {
-                    equippedItemIds.push(item.id);
-                }
-            }
+    recordHistory(equipment, result) {
+        this.enhancementHistory.unshift({
+            equipment: equipment.name,
+            level: result.newLevel,
+            success: result.success,
+            message: result.message,
+            timestamp: Date.now()
+        });
+
+        if (this.enhancementHistory.length > 20) {
+            this.enhancementHistory.pop();
         }
-
-        // 檢查每個套裝
-        for (const setId in SetBonuses) {
-            const setInfo = SetBonuses[setId];
-            const equippedPieces = setInfo.pieces.filter(pieceId =>
-                equippedItemIds.includes(pieceId)
-            ).length;
-
-            // 應用套裝加成
-            for (const pieceCount in setInfo.bonuses) {
-                if (equippedPieces >= parseInt(pieceCount)) {
-                    const bonus = setInfo.bonuses[pieceCount];
-                    for (const stat in bonus) {
-                        if (stat !== 'description' && bonuses[stat] !== undefined) {
-                            bonuses[stat] += bonus[stat];
-                        }
-                    }
-                    activeSetDescriptions.push(`${setInfo.name} (${pieceCount}件): ${bonus.description}`);
-                }
-            }
-        }
-
-        return {
-            bonuses,
-            descriptions: activeSetDescriptions
-        };
     }
 
-    /**
-     * 獲取裝備顯示名稱（包含強化等級）
-     */
+    calculateSetBonuses(character) {
+        return calculateActiveSetBonuses(character, SetDatabase);
+    }
+
     getDisplayName(equipment) {
         if (!equipment) return '';
         const level = equipment.enhanceLevel || 0;
-        const levelStr = level > 0 ? ` +${level}` : '';
-        return `${equipment.name}${levelStr}`;
+        return level > 0 ? `${equipment.name} +${level}` : equipment.name;
     }
 
-    /**
-     * 獲取強化預覽
-     */
     getEnhancementPreview(equipment) {
+        if (!equipment) {
+            return {
+                currentLevel: 0,
+                nextLevel: null,
+                cost: 0,
+                successRate: 0,
+                canEnhance: false,
+                stability: 0,
+                maxStability: 0
+            };
+        }
+
+        this.initializeEnhancementState(equipment);
         const currentLevel = equipment.enhanceLevel || 0;
         const nextLevel = currentLevel + 1;
-        
+
         return {
             currentLevel,
             nextLevel: nextLevel <= MAX_ENHANCEMENT_LEVEL ? nextLevel : null,
             cost: this.getEnhancementCost(equipment),
-            successRate: Math.floor(this.getSuccessRate(equipment) * 100),
+            successRate: Math.round(this.getSuccessRate(equipment) * 100),
             canEnhance: currentLevel < MAX_ENHANCEMENT_LEVEL
+                && equipment.enhancementStability > 0
+                && equipment.canEnhance !== false,
+            stability: equipment.enhancementStability,
+            maxStability: equipment.maxEnhancementStability,
+            nextMilestone: MILESTONE_LEVELS.find(level => level > currentLevel) || null
         };
+    }
+
+    getMarkDescription(mark) {
+        if (!mark) return '';
+
+        if (mark.stats) {
+            const stats = Object.entries(mark.stats)
+                .map(([stat, value]) => this.formatStatBonus(stat, value))
+                .join('、');
+            return `${mark.label}：${stats}`;
+        }
+
+        return `${mark.label}：${this.formatStatBonus(mark.stat, mark.value)}`;
+    }
+
+    formatStatBonus(stat, value) {
+        const label = STAT_LABELS[stat] || stat;
+        if (stat === 'noDurabilityLoss') return label;
+        const suffix = PERCENT_STATS.has(stat) ? '%' : '';
+        return `${label} +${value}${suffix}`;
     }
 }
 
-// 單例導出
 export const enhancementManager = new EnhancementManager();
 
-// 向後兼容
 export { EnhancementManager as EnhancementSystem };
 export const enhancementSystem = enhancementManager;
 export default EnhancementManager;

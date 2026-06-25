@@ -5,6 +5,7 @@
 
 import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../data/DropPools.js';
 import { DropSourceType } from '../models/Enums.js';
+import { weightedPick } from '../utils/WeightedPick.js';
 
 // Pool helpers (kept in manager so data file stays logic-free)
 export function registerZonePool(zoneId, pool) {
@@ -28,7 +29,8 @@ const ZoneTypeToPoolKey = {
     low: 'low_forest',
     medium: 'ice_field',
     high: 'volcano',
-    boss: 'volcano'
+    death: 'death_wastes',
+    boss: 'death_wastes'
 };
 
 function resolveZonePoolKey(zoneIdOrType) {
@@ -42,18 +44,6 @@ function resolveZonePoolKey(zoneIdOrType) {
 // DropSource type enum
 // DropSourceType moved to `src/js/models/Enums.js`
 
-// Utilities
-function weightedPick(items, rng = Math.random) {
-    const total = items.reduce((s, it) => s + (it.weight || 0), 0);
-    if (total <= 0) return null;
-    let r = rng() * total;
-    for (const it of items) {
-        r -= (it.weight || 0);
-        if (r <= 0) return it;
-    }
-    return items[items.length - 1];
-}
-
 function resolveQuantity(qty, rng = Math.random) {
     if (qty == null) return 1;
     if (!Array.isArray(qty)) return qty;
@@ -63,9 +53,12 @@ function resolveQuantity(qty, rng = Math.random) {
 }
 
 // Roll implementation for a generic entries array (DropEntry[])
-function rollFromEntries(entries, defaultQuantity = [1, 1], rng = Math.random) {
+function rollFromEntries(entries, defaultQuantity = [1, 1], rng = Math.random, chanceMultiplier = 1) {
     if (!Array.isArray(entries) || entries.length === 0) return null;
-    const candidates = entries.filter(it => it.chance == null || rng() <= it.chance);
+    const candidates = entries.filter(it => {
+        if (it.chance == null) return true;
+        return rng() <= Math.min(1, it.chance * chanceMultiplier);
+    });
     if (candidates.length === 0) return null;
     const picked = weightedPick(candidates, rng);
     if (!picked) return null;
@@ -135,6 +128,8 @@ export function generateDropsFromSources(sources = [], options = {}) {
     const rng = options.rng || Math.random;
     const zoneWeight = options.zoneWeight != null ? options.zoneWeight : 0.8;
     const dungeonWeight = options.dungeonWeight != null ? options.dungeonWeight : 0.15;
+    const dropBonus = Math.max(0, Number(options.dropBonus || 0) || 0);
+    const chanceMultiplier = 1 + dropBonus / 100;
 
     const drops = [];
 
@@ -143,7 +138,7 @@ export function generateDropsFromSources(sources = [], options = {}) {
         if (src.type === DropSourceType.MonsterUnique || src.type === DropSourceType.MonsterEquipment) {
             for (const e of src.entries) {
                 const roll = rng();
-                if (roll <= (e.chance || 0)) {
+                if (roll <= Math.min(1, (e.chance || 0) * chanceMultiplier)) {
                     const qty = resolveQuantity(e.quantity, rng);
                     drops.push({ itemId: e.id, quantity: qty, source: src.type });
                 }
@@ -163,17 +158,17 @@ export function generateDropsFromSources(sources = [], options = {}) {
             const denom = zoneWeight + dungeonWeight;
             const pickDungeonProb = dungeonWeight / denom;
             if (rng() <= pickDungeonProb) {
-                const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng);
+                const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier);
                 if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
             } else {
-                const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng);
+                const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier);
                 if (r) drops.push({ ...r, source: DropSourceType.Zone });
             }
         } else if (dungeonSource) {
-            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng);
+            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier);
             if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
         } else if (zoneSource) {
-            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng);
+            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier);
             if (r) drops.push({ ...r, source: DropSourceType.Zone });
         }
     }
@@ -185,9 +180,9 @@ export function generateDropsFromSources(sources = [], options = {}) {
  * Compatibility wrapper: resolve + generate in one call (used by existing code)
  */
 export function generateDrops(options = {}) {
-    const { monster = null, zoneId = null, dungeonId = null, rng = Math.random, zoneWeight = 0.8, dungeonWeight = 0.15 } = options;
+    const { monster = null, zoneId = null, dungeonId = null, rng = Math.random, zoneWeight = 0.8, dungeonWeight = 0.15, dropBonus = 0 } = options;
     const sources = resolveDropSources({ monster, zoneId, dungeonId });
-    return generateDropsFromSources(sources, { rng, zoneWeight, dungeonWeight });
+    return generateDropsFromSources(sources, { rng, zoneWeight, dungeonWeight, dropBonus });
 }
 
 /**

@@ -1,0 +1,16 @@
+{
+  "source": "incoming/raw/art-v2/portraits-sheet-02.png",
+  "category": "portraits",
+  "columns": 3,
+  "rows": 3,
+  "outputSize": {
+    "width": 768,
+    "height": 768
+  },
+  "format": "webp",
+  "ids": [
+    "gate_captain",
+    "town_scholar",
+    "village_elder"
+  ]
+}

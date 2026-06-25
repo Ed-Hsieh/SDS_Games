@@ -33,8 +33,8 @@
                             <div class="monster-icon">🟢</div>
                             <div class="monster-name">史萊姆王</div>
                             <div class="monster-stats">
-                                <span>HP: 100</span>
-                                <span>ATK: 8</span>
+                                <span>生命：100</span>
+                                <span>攻擊：8</span>
                             </div>
                         </div>
                         <div class="floor-rewards" id="floor-rewards">
@@ -48,29 +48,29 @@
                 <!-- 戰鬥狀態 - 參考 Adventure 風格 -->
                 <div class="battle-state hidden" id="battle-state">
                     <!-- 敵人狀態卡 - 仿 Adventure 風格 -->
-                    <div class="tower-monster-card">
+                    <div class="battle-header tower-monster-card">
                         <div class="monster-avatar-frame">
                             <div class="avatar-hexagon">
-                                <div class="monster-icon" id="monster-icon">🟢</div>
+                                <div class="monster-icon" id="battle-monster-icon">🟢</div>
                             </div>
                             <div class="avatar-glow"></div>
                         </div>
                         <div class="monster-info">
                             <div class="monster-name-bar">
-                                <div class="monster-name" id="monster-name">史萊姆王</div>
-                                <div class="monster-level">LV.<span id="monster-level">1</span></div>
+                                <div class="monster-name" id="battle-monster-name">史萊姆王</div>
+                                <div class="monster-level">等級 <span id="battle-monster-level">1</span></div>
                             </div>
                             <div class="monster-hp-container">
                                 <div class="hp-bar-track">
-                                    <div class="hp-bar-fill" id="monster-hp-fill" style="width: 100%;">
+                                    <div class="hp-bar-fill" id="battle-monster-hp-bar" style="width: 100%;">
                                         <div class="hp-bar-shine"></div>
                                     </div>
                                 </div>
-                                <div class="hp-text" id="monster-hp-text">100/100</div>
+                                <div class="hp-text" id="battle-monster-hp-text">100/100</div>
                             </div>
                             <div class="monster-stats">
-                                <span class="stat-badge stat-atk"><span class="stat-icon">⚔️</span><span id="monster-atk">8</span></span>
-                                <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="monster-def">3</span></span>
+                                <span class="stat-badge stat-atk"><span class="stat-icon">⚔️</span><span id="battle-monster-atk">8</span></span>
+                                <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="battle-monster-def">3</span></span>
                             </div>
                         </div>
                     </div>
@@ -79,48 +79,41 @@
                     <div class="tower-player-battle-panel">
                         <div class="player-info-bar">
                             <div class="info-identity">
-                                <div class="info-level">LV.<span id="battle-player-level">1</span></div>
-                                <div class="info-name">冒險者</div>
+                                <div class="info-level">等級 <span id="hud-player-level">1</span></div>
+                                <div class="info-name" id="hud-player-name">冒險者</div>
                             </div>
                             <div class="info-vital-bars">
                                 <div class="vital-row">
-                                    <span class="vital-label">HP</span>
+                                    <span class="vital-label">生命</span>
                                     <div class="vital-bar-track">
-                                        <div class="vital-bar-fill hp-fill" id="player-hp-fill" style="width: 100%;"></div>
+                                        <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
                                     </div>
-                                    <span class="vital-text" id="player-hp-text">100/100</span>
-                                </div>
-                                <div class="vital-row">
-                                    <span class="vital-label">MP</span>
-                                    <div class="vital-bar-track">
-                                        <div class="vital-bar-fill mp-fill" id="player-mp-fill" style="width: 100%;"></div>
-                                    </div>
-                                    <span class="vital-text" id="player-mp-text">50/50</span>
+                                    <span class="vital-text" id="hud-hp-text">100/100</span>
                                 </div>
                             </div>
                             <!-- Buff 狀態顯示 -->
-                            <div class="buff-indicators" id="tower-buff-indicators">
+                            <div class="buff-indicators" id="buff-indicators">
                                 <!-- 動態生成 Buff 圖示 -->
                             </div>
                         </div>
                     </div>
 
                     <!-- 節奏條 - PRECISION GAUGE (與 Adventure 相同) -->
-                    <div class="rhythm-bar-container">
+                    <div class="rhythm-bar-container" id="tower-rhythm-bar-container">
                         <div class="rhythm-bar" id="tower-rhythm-bar">
                             <!-- MISS 區域（背景填滿整個軌道） -->
                             <div class="zone-miss">
-                                <span class="zone-label">MISS</span>
+                                <span class="zone-label">失誤</span>
                             </div>
                             <!-- HIT 區域（absolute定位） -->
                             <div class="hit-zone" id="tower-hit-zone">
                                 <div class="zone-glow zone-glow-hit"></div>
-                                <span class="zone-label">HIT</span>
+                                <span class="zone-label">命中</span>
                             </div>
                             <!-- CRIT 區域（absolute定位） -->
                             <div class="crit-zone" id="tower-crit-zone">
                                 <div class="zone-glow zone-glow-crit"></div>
-                                <span class="zone-label">CRIT!</span>
+                                <span class="zone-label">暴擊</span>
                             </div>
                             <!-- 雷射指針 -->
                             <div class="rhythm-needle" id="tower-rhythm-needle">
@@ -131,13 +124,14 @@
                     </div>
 
                     <!-- 行動按鈕組 - 卡片風格 -->
-                    <div class="tower-action-deck">
+                    <div class="action-deck tower-action-deck">
                         <!-- 攻擊卡片 -->
                         <div class="action-card attack-card" id="btn-attack">
                             <div class="card-header">
                                 <span class="card-key">[A]</span>
-                                <span class="card-title">ATTACK</span>
+                                <span class="card-title">攻擊</span>
                             </div>
+                            <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
                             <div class="card-body">
                                 <div class="card-icon">⚔️</div>
                                 <div class="card-name">普通攻擊</div>
@@ -148,8 +142,9 @@
                         <div class="action-card item-card" id="btn-item">
                             <div class="card-header">
                                 <span class="card-key">[D]</span>
-                                <span class="card-title">ITEM</span>
+                                <span class="card-title">道具</span>
                             </div>
+                            <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
                             <div class="card-body">
                                 <div class="card-icon">🧪</div>
                                 <div class="card-name">使用道具</div>
@@ -160,17 +155,15 @@
                         <div class="action-card flee-card" id="btn-flee">
                             <div class="card-header">
                                 <span class="card-key">[F]</span>
-                                <span class="card-title">FLEE</span>
+                                <span class="card-title">撤退</span>
                             </div>
+                            <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
                             <div class="card-body">
                                 <div class="card-icon">🏃</div>
                                 <div class="card-name">放棄挑戰</div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- battle log removed -->
-                </div>
+                    </div>                </div>
 
                 <!-- 結果狀態 -->
                 <div class="result-state hidden" id="result-state">
@@ -200,19 +193,15 @@
                     <span class="level-value" id="player-level">1</span>
                 </div>
                 <div class="player-stat">
-                    <span>❤️ HP</span>
+                    <span>❤️ 生命</span>
                     <span id="player-stat-hp">120/120</span>
                 </div>
                 <div class="player-stat">
-                    <span>💙 MP</span>
-                    <span id="player-stat-mp">50/50</span>
-                </div>
-                <div class="player-stat">
-                    <span>⚔️ ATK</span>
+                    <span>⚔️ 攻擊</span>
                     <span id="player-stat-atk">10</span>
                 </div>
                 <div class="player-stat">
-                    <span>🛡️ DEF</span>
+                    <span>🛡️ 防禦</span>
                     <span id="player-stat-def">5</span>
                 </div>
                 <div class="player-stat">

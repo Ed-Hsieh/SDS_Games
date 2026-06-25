@@ -1,176 +1,252 @@
-<div class="hall-scene">
-    
-    <!-- 主要佈局 -->
-    <div class="hall-layout">
-        <!-- 左側面板：角色資訊 -->
-        <div class="hall-left-panel">
-            <!-- 角色資訊卡 -->
-            <div class="card character-info">
-                <div class="card-header">⚔️ CHARACTER</div>
-                <div class="card-body">
-                    <!-- LV & Gold 上排 -->
-                    <div class="character-header">
-                        <div class="character-level">
-                            <div class="character-level-label">LV</div>
-                            <div class="character-level-value" id="character-level">1</div>
+<div class="hall-scene hall-scene-town">
+    <main class="lobby-shell lobby-shell-town">
+        <section class="lobby-world lobby-world-town">
+            <section class="world-stage world-stage-town" id="world-stage" aria-label="城鎮探索">
+                <div class="world-stage-backdrop">
+                    <div class="town-sky"></div>
+                    <div class="town-roofs"></div>
+                    <div class="town-plaza"></div>
+                    <div class="town-road town-road-main"></div>
+                    <div class="town-road town-road-side"></div>
+
+                    <div class="town-place-map" id="town-place-map" aria-label="城鎮場所"></div>
+                    <section class="town-place-view" id="town-place-view" aria-label="場所內部" hidden>
+                        <header class="town-place-view-head">
+                            <button class="town-place-back" data-town-back type="button">← 城鎮地圖</button>
+                            <div class="town-place-view-title">
+                                <span id="town-place-icon">🏘️</span>
+                                <div>
+                                    <small id="town-place-tag">場所</small>
+                                    <strong id="town-place-name">城鎮十字路</strong>
+                                </div>
+                            </div>
+                            <p id="town-place-description" hidden></p>
+                        </header>
+                        <div class="town-place-view-body">
+                            <section class="town-place-section town-place-resident-section" aria-label="你看見的人">
+                                <div class="town-place-section-head">
+                                    <span>你看見</span>
+                                    <small id="town-place-resident-count">0</small>
+                                </div>
+                                <div class="town-place-list" id="town-place-residents"></div>
+                            </section>
+                            <section class="town-place-section town-place-action-section" aria-label="可以靠近的地方">
+                                <div class="town-place-section-head">
+                                    <span>可以靠近</span>
+                                    <small id="town-place-action-count">0</small>
+                                </div>
+                                <div class="town-place-list" id="town-place-actions"></div>
+                            </section>
                         </div>
-                        <div class="character-gold">
-                            <div class="character-gold-label">💰 Gold</div>
-                            <div class="character-gold-value" id="character-gold">1000</div>
-                        </div>
-                    </div>
-                    
-                    <!-- HP 進度條 -->
-                    <div class="stat-row">
-                        <span class="stat-label">HP</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;"></div>
-                        <span class="progress-bar-text" id="hp-text">100 / 100</span>
-                    </div>
-                    
-                    <!-- EXP 進度條 -->
-                    <div class="stat-row">
-                        <span class="stat-label">EXP</span>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;"></div>
-                        <span class="progress-bar-text" id="exp-text">0 / 100</span>
-                    </div>
-                    
-                    <!-- 屬性面板 -->
-                    <div class="attributes-panel">
-                        <div class="attribute-box">
-                            <div class="attribute-label">⚔️ ATK</div>
-                            <div class="attribute-value" id="character-atk">10</div>
-                        </div>
-                        <div class="attribute-box">
-                            <div class="attribute-label">🛡️ DEF</div>
-                            <div class="attribute-value" id="character-def">5</div>
-                        </div>
-                    </div>
-                    <div id="character-set-status" class="character-set-status" style="margin-top:8px;font-size:0.9em;color:#ffd966"></div>
+                    </section>
                 </div>
-            </div>
-        </div>
-        
-        <!-- 中央面板：倉庫 -->
-        <div class="hall-center-panel">
-            <!-- 倉庫資訊卡 -->
-            <div class="card warehouse-info">
-                <div class="card-header">
-                    <span>🏪 STORAGE</span>
-                    <div class="warehouse-controls">
-                        <!-- 排序選單 -->
-                        <select class="warehouse-sort" id="warehouse-sort">
-                            <option value="time-desc">最新獲得</option>
-                            <option value="time-asc">最舊獲得</option>
-                            <option value="rarity-desc">稀有度 ↓</option>
-                            <option value="rarity-asc">稀有度 ↑</option>
-                        </select>
-                        <!-- 倉庫分類篩選 - INLINE -->
-                        <div class="warehouse-filters">
-                            <button class="warehouse-filter active" data-filter="all">ALL</button>
-                            <button class="warehouse-filter" data-filter="weapon">⚔️</button>
-                            <button class="warehouse-filter" data-filter="armor">🛡️</button>
-                            <button class="warehouse-filter" data-filter="accessory">💍</button>
-                            <button class="warehouse-filter" data-filter="potion">🧪</button>
-                            <button class="warehouse-filter" data-filter="material">⛏️</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- 倉庫物品列表 -->
-                    <div class="warehouse-list" id="warehouse-list">
-                        <!-- 動態生成物品卡片 -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 右側面板：角色裝備 & 背包 -->
-        <div class="hall-right-panel">
-            <!-- 角色裝備資訊卡 -->
-            <div class="card character-equipment">
-                <div class="card-header">👤 EQUIPMENT</div>
-                <div class="card-body">
-                    <div class="equipment-slots">
-                        <!-- 武器槽 -->
-                        <div class="equipment-slot empty" id="slot-weapon" data-slot-type="weapon">
-                            <div class="equipment-slot-label">武器</div>
-                            <div class="equipment-slot-icon">⚔️</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                        
-                        <!-- 防具槽 -->
-                        <div class="equipment-slot empty" id="slot-armor" data-slot-type="armor">
-                            <div class="equipment-slot-label">防具</div>
-                            <div class="equipment-slot-icon">🛡️</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                        
-                        <!-- 飾品槽 -->
-                        <div class="equipment-slot empty" id="slot-accessory" data-slot-type="accessory">
-                            <div class="equipment-slot-label">飾品</div>
-                            <div class="equipment-slot-icon">💍</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                    </div>
-                    <div id="active-set-bonuses" class="set-bonuses" aria-live="polite" style="margin-top:8px;font-size:0.9em;color:#ffd966"></div>
-                </div>
-            </div>
-            
-            <!-- 背包區域 -->
-            <div class="card inventory-section">
-                <div class="card-header">
-                    <div class="inventory-header-info">
-                        <span>🎒 INVENTORY</span>
-                        <span class="inventory-capacity">
-                            <span id="inventory-used">0</span> / <span id="inventory-max">10</span>
+            </section>
+
+            <aside class="town-right-rail" aria-label="town side panel">
+                <div class="town-hud" aria-label="冒險者狀態">
+                <button class="traveler-status-card" data-prep-tab="character" type="button" aria-label="查看角色狀態">
+                    <span class="traveler-status-kicker">旅人</span>
+                    <strong>Lv.<span id="character-level">1</span></strong>
+                    <span class="traveler-status-gold">金幣 <b id="character-gold">100</b></span>
+                    <span class="traveler-status-meters">
+                        <span class="traveler-meter">
+                            <span class="traveler-meter-label" id="hp-text">生命：120 / 120</span>
+                            <span class="traveler-mini-bar">
+                                <span class="progress-bar progress-bar-hp" id="hp-bar" style="width: 100%;"></span>
+                            </span>
+                        </span>
+                        <span class="traveler-meter">
+                            <span class="traveler-meter-label" id="exp-text">經驗：0 / 100</span>
+                            <span class="traveler-mini-bar">
+                                <span class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;"></span>
+                            </span>
+                        </span>
+                    </span>
+                </button>
+
+                <button class="satchel-button" data-prep-tab="inventory" type="button" aria-label="打開行囊">
+                    <span class="satchel-button-icon">🎒</span>
+                    <span>行囊</span>
+                </button>
+
+                <section class="traveler-handbook-card" aria-label="旅人手札">
+                    <div class="traveler-handbook-head">
+                        <span class="traveler-handbook-icon">📔</span>
+                        <span>
+                            <small>旅人</small>
+                            <strong>旅人手札</strong>
                         </span>
                     </div>
+                    <div class="traveler-handbook-actions">
+                        <button class="traveler-handbook-action" data-route="quest" type="button">
+                            <span>📜</span>
+                            <b>委託</b>
+                        </button>
+                        <button class="traveler-handbook-action" data-route="encyclopedia" type="button">
+                            <span>📖</span>
+                            <b>百科</b>
+                        </button>
+                    </div>
+                </section>
                 </div>
-                <div class="card-body">
-                    <div class="inventory-list" id="inventory-list">
-                        <!-- 動態生成背包物品卡片 -->
+
+                <section class="town-narrative-panel town-narrative-whisper" id="town-narrative" aria-live="polite">
+                    <div class="town-narrative-head">
+                        <span class="town-narrative-kicker">場景</span>
+                        <strong id="town-narrative-title">城鎮十字路</strong>
+                    </div>
+                    <div class="town-story-board" id="world-story-log">
+                        <div class="town-dialogue-stream" id="town-dialogue-stream"></div>
+                    </div>
+                </section>
+            </aside>
+
+            <div class="town-dialogue-modal" id="town-dialogue-modal" hidden>
+                <div class="town-dialogue-card" role="dialog" aria-modal="true" aria-labelledby="town-dialogue-name" tabindex="-1">
+                    <button class="town-dialogue-close" id="town-dialogue-close" type="button" aria-label="關閉對話">×</button>
+                    <header class="town-dialogue-person">
+                        <div class="town-dialogue-avatar" id="town-dialogue-avatar">🏘️</div>
+                        <div>
+                            <span id="town-dialogue-role">城鎮居民</span>
+                            <strong id="town-dialogue-name">村長</strong>
+                        </div>
+                    </header>
+                    <div class="town-dialogue-topics" id="town-dialogue-topics" hidden></div>
+                    <div class="town-dialogue-lines" id="town-dialogue-lines"></div>
+                    <div class="town-dialogue-effects" id="town-dialogue-effects"></div>
+                    <div class="town-dialogue-actions">
+                        <button class="town-dialogue-done" id="town-dialogue-done" type="button" hidden>關閉</button>
                     </div>
                 </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="lobby-prep-modal lobby-satchel-drawer" id="lobby-prep-modal" aria-hidden="true" hidden>
+        <div class="lobby-prep-dialog" role="dialog" aria-modal="true" aria-labelledby="lobby-prep-title">
+            <header class="lobby-prep-head">
+                <div>
+                    <span>旅行行囊</span>
+                    <strong id="lobby-prep-title">背包整理</strong>
+                </div>
+                <button class="lobby-prep-close" id="lobby-prep-close" type="button" aria-label="關閉行囊">×</button>
+            </header>
+
+            <div class="lobby-prep-body">
+                <section class="lobby-prep-content">
+                    <div class="lobby-prep-tabs" role="tablist" aria-label="行囊分類">
+                        <button class="lobby-prep-tab" data-prep-tab="character" type="button" role="tab" aria-selected="false">角色</button>
+                        <button class="lobby-prep-tab is-active" data-prep-tab="inventory" type="button" role="tab" aria-selected="true">背包</button>
+                        <button class="lobby-prep-tab" data-prep-tab="warehouse" type="button" role="tab" aria-selected="false">倉庫</button>
+                        <button class="lobby-prep-tab" data-prep-tab="system" type="button" role="tab" aria-selected="false">系統</button>
+                    </div>
+
+                    <section class="lobby-prep-pane character-prep-pane" data-prep-pane="character" role="tabpanel" hidden>
+                        <section class="character-equipment prep-character-card" aria-label="目前穿戴">
+                            <div class="equipment-head">
+                                <span>裝備</span>
+                                <strong>目前穿戴</strong>
+                            </div>
+                            <div class="equipment-slots">
+                                <div class="equipment-slot empty" id="slot-weapon" data-slot-type="weapon">
+                                    <div class="equipment-slot-label">武器</div>
+                                    <div class="equipment-slot-icon">⚔️</div>
+                                    <div class="equipment-slot-name">未裝備</div>
+                                </div>
+                                <div class="equipment-slot empty" id="slot-armor" data-slot-type="armor">
+                                    <div class="equipment-slot-label">防具</div>
+                                    <div class="equipment-slot-icon">🛡️</div>
+                                    <div class="equipment-slot-name">未裝備</div>
+                                </div>
+                                <div class="equipment-slot empty" id="slot-accessory" data-slot-type="accessory">
+                                    <div class="equipment-slot-label">飾品</div>
+                                    <div class="equipment-slot-icon">💍</div>
+                                    <div class="equipment-slot-name">未裝備</div>
+                                </div>
+                            </div>
+                            <div id="active-set-bonuses" class="set-bonuses" aria-live="polite"></div>
+                        </section>
+
+                        <div class="attributes-panel">
+                            <div class="attribute-box">
+                                <div class="attribute-label">攻擊</div>
+                                <div class="attribute-value" id="character-atk">5</div>
+                            </div>
+                            <div class="attribute-box">
+                                <div class="attribute-label">防禦</div>
+                                <div class="attribute-value" id="character-def">2</div>
+                            </div>
+                        </div>
+
+                        <section class="passive-effect-panel" aria-label="戰術技能">
+                            <div class="passive-effect-head">
+                                <span>戰術技能</span>
+                                <strong>點擊更換</strong>
+                            </div>
+                            <div class="passive-effect-slots" id="passive-effect-slots" aria-label="已裝備戰術技能"></div>
+                        </section>
+                    </section>
+
+                    <section class="lobby-prep-pane is-active" data-prep-pane="inventory" role="tabpanel">
+                        <div class="storage-section inventory-section" aria-label="背包">
+                            <div class="storage-section-head">
+                                <span>背包</span>
+                                <strong><span id="inventory-used">0</span> / <span id="inventory-max">10</span></strong>
+                            </div>
+                            <div class="inventory-list" id="inventory-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="lobby-prep-pane warehouse-prep-pane" data-prep-pane="warehouse" role="tabpanel" hidden>
+                        <div class="storage-section warehouse-info" aria-label="倉庫">
+                            <div class="storage-section-head warehouse-heading">
+                                <span>倉庫</span>
+                                <strong>戰利品整理</strong>
+                            </div>
+                            <div class="warehouse-controls">
+                                <select class="warehouse-sort" id="warehouse-sort">
+                                    <option value="time-desc">最新獲得</option>
+                                    <option value="time-asc">最舊獲得</option>
+                                    <option value="rarity-desc">稀有度 ↓</option>
+                                    <option value="rarity-asc">稀有度 ↑</option>
+                                </select>
+                                <div class="warehouse-filters">
+                                    <button class="warehouse-filter active" data-filter="all" type="button">全部</button>
+                                    <button class="warehouse-filter" data-filter="weapon" type="button">⚔️</button>
+                                    <button class="warehouse-filter" data-filter="armor" type="button">🛡️</button>
+                                    <button class="warehouse-filter" data-filter="accessory" type="button">💍</button>
+                                    <button class="warehouse-filter" data-filter="potion" type="button">🧪</button>
+                                    <button class="warehouse-filter" data-filter="material" type="button">⛏️</button>
+                                </div>
+                            </div>
+                            <div class="warehouse-list" id="warehouse-list"></div>
+                        </div>
+                    </section>
+
+                    <section class="lobby-prep-pane" data-prep-pane="system" role="tabpanel" hidden>
+                        <div class="save-controls" aria-label="存檔操作">
+                            <button class="save-action" id="btn-save-export" type="button" title="匯出 JSON 存檔">存檔</button>
+                            <button class="save-action" id="btn-save-import" type="button" title="讀取 JSON 存檔">讀取</button>
+                            <button class="save-action" id="btn-grant-test-sets" type="button" title="加入兩套套裝測試裝備" hidden>測試套裝</button>
+                            <button class="save-action save-action-danger" id="btn-save-reset" type="button" title="重置目前進度">重置</button>
+                            <input id="save-file-input" type="file" accept="application/json,.json" hidden>
+                        </div>
+                    </section>
+                </section>
             </div>
         </div>
     </div>
-    
-    <!-- 功能按鈕列 + 冒險按鈕 - 統一控制台 -->
-    <div class="card menu-bar">
-        <div class="card-body">
-            <div class="menu-buttons">
-                <button class="menu-btn" id="btn-go-shop">
-                    <div class="menu-btn-icon">🛒</div>
-                    <div class="menu-btn-text">Shop</div>
-                </button>
-                <button class="menu-btn" id="btn-go-forge">
-                    <div class="menu-btn-icon">⚒️</div>
-                    <div class="menu-btn-text">鑄造</div>
-                </button>
-                <button class="menu-btn" id="btn-go-gamble">
-                    <div class="menu-btn-icon">🎲</div>
-                    <div class="menu-btn-text">Gamble</div>
-                </button>
-                <button class="menu-btn" id="btn-go-quest">
-                    <div class="menu-btn-icon">📜</div>
-                    <div class="menu-btn-text">Quest</div>
-                </button>
-                <button class="menu-btn" id="btn-go-tower">
-                    <div class="menu-btn-icon">🗼</div>
-                    <div class="menu-btn-text">Tower</div>
-                </button>
+
+    <div class="passive-effect-modal" id="passive-effect-modal" aria-hidden="true">
+        <div class="passive-effect-dialog" role="dialog" aria-modal="true" aria-labelledby="passive-effect-modal-title">
+            <div class="passive-effect-dialog-head">
+                <div>
+                    <span>戰術技能</span>
+                    <strong id="passive-effect-modal-title">選擇常駐效果</strong>
+                </div>
+                <button class="passive-effect-close" id="passive-effect-close" type="button" aria-label="關閉戰術技能視窗">×</button>
             </div>
-            
-            <!-- 開始冒險按鈕 - 右側高亮 -->
-            <div class="adventure-section">
-                <button class="adventure-btn" id="btn-start-adventure">
-                    ⚔️ START ADVENTURE
-                </button>
-            </div>
+            <div class="passive-effect-library" id="passive-effect-library" aria-label="可替換戰術技能"></div>
         </div>
     </div>
 </div>

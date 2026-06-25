@@ -1,0 +1,8 @@
+Create a strict 5 by 5 grid source sheet for SDS_Games category "monsters".
+The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
+Place subjects in this exact left-to-right, top-to-bottom order:
+shadow_mage, shadow_overlord, shadow_soldier, skeleton, skeleton_warrior, slime, stone_golem, stone_golem_mini, stone_guardian, thorn_witch, thunder_elemental, tormented_soul, tower_abyss_general, tower_alpha_wolf, tower_dark_dragon, tower_flame_imp, tower_frost_giant, tower_gargoyle, tower_goblin_chief, tower_hell_knight, tower_hydra, tower_iron_golem, tower_lava_lizard, tower_man_eater, tower_poison_queen
+Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
+No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
+Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
+Background: dark neutral flat background inside each cell, subtle grid separation allowed.

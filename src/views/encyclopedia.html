@@ -1,0 +1,37 @@
+<div class="encyclopedia-scene">
+    <header class="codex-header">
+        <div>
+            <span class="codex-kicker">Codex</span>
+            <h1>冒險百科</h1>
+        </div>
+        <div class="codex-header-actions">
+            <button class="btn btn-secondary" id="btn-codex-toggle-reveal" type="button">顯示全部：開</button>
+            <button class="btn btn-primary" id="btn-codex-unlock-all" type="button">解鎖全部資訊</button>
+            <button class="btn btn-secondary" id="btn-codex-back" type="button">返回大廳</button>
+        </div>
+    </header>
+
+    <main class="codex-shell">
+        <aside class="codex-browser">
+            <div class="codex-tabs" role="tablist" aria-label="百科分類">
+                <button class="codex-tab active" data-codex-tab="monsters" type="button">怪物</button>
+                <button class="codex-tab" data-codex-tab="blueprints" type="button">圖紙</button>
+            </div>
+
+            <div class="codex-tools">
+                <input id="codex-search" type="search" placeholder="搜尋" autocomplete="off">
+                <select id="codex-filter" aria-label="篩選">
+                    <option value="all">全部</option>
+                </select>
+                <select id="codex-sort" aria-label="排序">
+                    <option value="level-asc">等級低到高</option>
+                </select>
+            </div>
+
+            <div class="codex-summary" id="codex-summary">怪物 0/0</div>
+            <div class="codex-list" id="codex-list"></div>
+        </aside>
+
+        <section class="codex-detail" id="codex-detail" aria-live="polite"></section>
+    </main>
+</div>

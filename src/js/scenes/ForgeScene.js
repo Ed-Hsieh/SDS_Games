@@ -3,19 +3,27 @@
  * 鍛造工坊場景控制器
  */
 import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
-import { enhancementManager, GemType } from '../managers/EnhancementManager.js';
+import { enhancementManager } from '../managers/EnhancementManager.js';
 import { affixManager } from '../managers/AffixManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
-import { RecipeDatabase, getRecipe, getRecipesByType, canCraft, getMissingMaterials } from '../managers/RecipeManager.js';
+import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js?v=equipment-atlas-20260605b';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
+import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
+import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import {
+    buildItemDisplayModel,
+    buildItemStatChipsHtml,
+    escapeHtml,
+    getItemVisualHtml,
+    getItemRarityText
+} from '../utils/ItemDisplay.js';
 
 export default class ForgeScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
-        this.selectedEquipment = null;
-        this.selectedGem = null;
-        this.selectedGemSlot = null;
+        this.selectedEnhanceEquipment = null;
+        this.enhanceHistory = [];
         this.rerollHistory = [];
         this.affixManager = affixManager;
         
@@ -29,7 +37,6 @@ export default class ForgeScene {
     }
 
     init() {
-        console.log('Forge Scene Initialized');
         this.cacheDOM();
         this.bindEvents();
         this.updateUI();
@@ -38,7 +45,6 @@ export default class ForgeScene {
 
     cleanup() {
         this.unbindEvents();
-        console.log('Forge Scene Cleaned up');
     }
 
     cacheDOM() {
@@ -58,13 +64,27 @@ export default class ForgeScene {
             recipeInfo: this.container.querySelector('#recipe-info'),
             craftResultPreview: this.container.querySelector('#craft-result-preview'),
             materialsList: this.container.querySelector('#materials-list'),
-            craftCost: this.container.querySelector('#craft-cost'),
-            craftSuccessRate: this.container.querySelector('#craft-success-rate'),
+            craftGuidance: this.container.querySelector('#forge-craft-guidance'),
             btnCraft: this.container.querySelector('#btn-craft'),
             craftResult: this.container.querySelector('#craft-result'),
             materialsInventory: this.container.querySelector('#materials-inventory'),
             materialSearch: this.container.querySelector('#material-search'),
             
+            // 裝備強化面板
+            enhancePanel: this.container.querySelector('#enhance-panel'),
+            enhanceEquipmentList: this.container.querySelector('#enhance-equipment-list'),
+            selectedEnhanceEquipment: this.container.querySelector('#selected-enhance-equipment'),
+            enhanceInfo: this.container.querySelector('#enhance-info'),
+            enhanceLevel: this.container.querySelector('#enhance-level'),
+            enhanceStability: this.container.querySelector('#enhance-stability'),
+            enhanceSuccessRate: this.container.querySelector('#enhance-success-rate'),
+            enhanceCost: this.container.querySelector('#enhance-cost'),
+            enhanceNextMilestone: this.container.querySelector('#enhance-next-milestone'),
+            enhanceMarksDisplay: this.container.querySelector('#enhance-marks-display'),
+            btnEnhanceEquipment: this.container.querySelector('#btn-enhance-equipment'),
+            enhanceResult: this.container.querySelector('#enhance-result'),
+            enhanceHistory: this.container.querySelector('#enhance-history'),
+
             // 詞綴重鑄面板
             affixPanel: this.container.querySelector('#affix-panel'),
             affixEquipmentList: this.container.querySelector('#affix-equipment-list'),
@@ -73,19 +93,10 @@ export default class ForgeScene {
             currentAffixesDisplay: this.container.querySelector('#current-affixes-display'),
             affixSlotsDisplay: this.container.querySelector('#affix-slots-display'),
             rerollCost: this.container.querySelector('#reroll-cost'),
+            rerollMaterialCost: this.container.querySelector('#reroll-material-cost'),
             btnRerollAffix: this.container.querySelector('#btn-reroll-affix'),
             rerollResult: this.container.querySelector('#reroll-result'),
-            rerollHistory: this.container.querySelector('#reroll-history'),
-            
-            // 寶石面板
-            gemPanel: this.container.querySelector('#gem-panel'),
-            gemEquipmentList: this.container.querySelector('#gem-equipment-list'),
-            selectedGemEquipment: this.container.querySelector('#selected-gem-equipment'),
-            gemSocketInfo: this.container.querySelector('#gem-socket-info'),
-            gemSlots: this.container.querySelector('#gem-slots'),
-            btnSocketGem: this.container.querySelector('#btn-socket-gem'),
-            btnRemoveGem: this.container.querySelector('#btn-remove-gem'),
-            gemInventory: this.container.querySelector('#gem-inventory')
+            rerollHistory: this.container.querySelector('#reroll-history')
         };
     }
 
@@ -106,12 +117,11 @@ export default class ForgeScene {
         // 材料搜尋
         this.dom.materialSearch?.addEventListener('input', (e) => this.searchMaterials(e.target.value));
         
+        // 裝備強化
+        this.dom.btnEnhanceEquipment?.addEventListener('click', () => this.enhanceSelectedEquipment());
+
         // 詞綴重鑄
         this.dom.btnRerollAffix?.addEventListener('click', () => this.rerollAffixes());
-        
-        // 寶石
-        this.dom.btnSocketGem?.addEventListener('click', () => this.socketGem());
-        this.dom.btnRemoveGem?.addEventListener('click', () => this.removeGem());
         
         // 返回
         this.dom.btnBackLobby?.addEventListener('click', () => this.app.loadScene('lobby'));
@@ -147,12 +157,12 @@ export default class ForgeScene {
                 this.loadRecipeList();
                 this.loadMaterialsInventory();
                 break;
+            case 'enhance':
+                this.loadEnhanceEquipmentList();
+                this.renderEnhanceHistory();
+                break;
             case 'affix':
                 this.loadAffixEquipmentList();
-                break;
-            case 'gem':
-                this.loadGemEquipmentList();
-                this.loadGemInventory();
                 break;
         }
     }
@@ -162,44 +172,143 @@ export default class ForgeScene {
     loadRecipeList() {
         if (!this.dom.recipeList) return;
         
-        const recipes = getRecipesByType(this.recipeFilter);
+        const allRecipes = this.getRecipesForCurrentFilter();
+        const recipes = allRecipes.filter(recipe => getRecipeBlueprintInfo(recipe.id).known);
+        const hiddenCount = allRecipes.length - recipes.length;
         const inventory = GameManager.getInventory() || [];
         const warehouse = GameManager.state?.warehouse || [];
+
+        if (this.selectedRecipe && !recipes.some(recipe => recipe.id === this.selectedRecipe.id)) {
+            this.clearSelectedRecipe();
+        }
         
         this.dom.recipeList.innerHTML = recipes.map(recipe => {
+            const blueprintInfo = getRecipeBlueprintInfo(recipe.id);
+            const known = blueprintInfo.known;
             const craftable = canCraft(recipe.id, inventory, warehouse);
-            const rarityClass = recipe.rarity || 'common';
+            const model = this.getRecipeDisplayModel(recipe);
+            const rarityClass = model.rarity || 'common';
+            const selectedClass = this.selectedRecipe?.id === recipe.id ? 'selected' : '';
+            const stateClass = known
+                ? (craftable ? 'craftable' : 'locked')
+                : 'blueprint-locked';
+            const stateLabel = known
+                ? (craftable ? '可製作' : '素材不足')
+                : '需要圖紙';
+            const badge = known
+                ? (craftable ? '<span class="craftable-badge">可製作</span>' : '<span class="locked-badge">素材不足</span>')
+                : '<span class="blueprint-badge">需要圖紙</span>';
             
             return `
-                <div class="recipe-card ${rarityClass} ${craftable ? 'craftable' : 'locked'}" 
-                     data-recipe-id="${recipe.id}">
-                    <div class="recipe-icon">${recipe.icon}</div>
+                <div class="recipe-card rarity-frame rarity-${rarityClass} ${rarityClass} ${stateClass} ${selectedClass}"
+                     data-recipe-id="${recipe.id}"
+                     role="button"
+                     tabindex="0"
+                     aria-pressed="${this.selectedRecipe?.id === recipe.id ? 'true' : 'false'}"
+                     aria-label="${escapeHtml(`${model.name}，${stateLabel}，${model.typeText}，${model.rarityText}，${recipe.cost} 金幣，成功率 ${recipe.successRate}%`)}">
+                    <div class="recipe-icon">${this.renderItemVisual(model)}</div>
                     <div class="recipe-info">
-                        <div class="recipe-name">${recipe.name}</div>
-                        <div class="recipe-type">${this.getTypeLabel(recipe.type)}</div>
+                        <div class="recipe-card-head">
+                            <div class="recipe-name">${escapeHtml(model.name)}</div>
+                            ${badge}
+                        </div>
+                        <div class="recipe-type recipe-meta">
+                            <span>${escapeHtml(model.typeText)}</span>
+                            <span>${escapeHtml(model.rarityText)}</span>
+                            <span>${escapeHtml(recipe.cost)}G</span>
+                            <span>成功率 ${escapeHtml(recipe.successRate)}%</span>
+                        </div>
                     </div>
-                    ${craftable ? '<span class="craftable-badge">可製作</span>' : '<span class="locked-badge">無法製作</span>'}
                 </div>
             `;
-        }).join('');
+        }).join('') + this.renderHiddenBlueprintNote(hiddenCount);
+
+        if (recipes.length === 0) {
+            this.dom.recipeList.innerHTML = this.renderHiddenBlueprintNote(hiddenCount, true);
+        }
         
         // 綁定點擊事件
         this.dom.recipeList.querySelectorAll('.recipe-card').forEach(card => {
+            const recipe = getRecipe(card.dataset.recipeId);
+            this.attachRecipeTooltip(card, recipe);
             card.addEventListener('click', () => {
                 const recipeId = card.dataset.recipeId;
                 this.selectRecipe(recipeId);
             });
+            card.addEventListener('keydown', event => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                this.selectRecipe(card.dataset.recipeId);
+            });
         });
+    }
+
+    getRecipesForCurrentFilter() {
+        if (this.recipeFilter === 'armor') {
+            return Object.values(RecipeDatabase).filter(recipe => recipe.type === 'armor' || recipe.type === 'equipment');
+        }
+
+        return getRecipesByType(this.recipeFilter);
     }
 
     getTypeLabel(type) {
         const labels = {
             'weapon': '武器',
             'armor': '防具',
+            'equipment': '防具',
             'accessory': '飾品',
             'potion': '藥水'
         };
         return labels[type] || type;
+    }
+
+    getRarityLabel(rarity) {
+        return getItemRarityText(rarity);
+    }
+
+    getRecipeDisplayModel(recipe) {
+        return buildItemDisplayModel(this.getRecipeTooltipItem(recipe), {
+            typeText: this.getTypeLabel(recipe?.result?.type || recipe?.type),
+            rarity: recipe?.result?.rarity || recipe?.rarity || 'common'
+        });
+    }
+
+    getRecipeTooltipItem(recipe) {
+        const result = recipe?.result || {};
+        return {
+            ...result,
+            name: result.name || recipe?.name,
+            icon: result.icon || recipe?.icon,
+            image: result.image || recipe?.image || '',            type: result.type || recipe?.type,
+            rarity: result.rarity || recipe?.rarity || 'common',
+            description: result.description || result.desc || '',
+            desc: result.desc || result.description || ''
+        };
+    }
+
+    renderItemVisual(item, fallbackIcon = '◆') {
+        return getItemVisualHtml(item, fallbackIcon);
+    }
+
+    getRecipeTooltipOptions(recipe, extraOptions = {}) {
+        const result = recipe?.result || {};
+        const footerRows = [
+            ['成功率', `${recipe?.successRate ?? 0}%`],
+            ...(Array.isArray(extraOptions.footerRows) ? extraOptions.footerRows : [])
+        ];
+
+        return {
+            price: recipe?.cost,
+            priceLabel: '製作費',
+            description: result.description || result.desc || '',
+            ...extraOptions,
+            footerRows
+        };
+    }
+
+    attachRecipeTooltip(element, recipe, extraOptions = {}) {
+        if (!element || !recipe?.result) return;
+        attachItemTooltip(element, this.getRecipeTooltipItem(recipe), this.getRecipeTooltipOptions(recipe, extraOptions));
     }
 
     filterRecipes(filter) {
@@ -222,10 +331,42 @@ export default class ForgeScene {
         // 更新選中狀態
         this.dom.recipeList.querySelectorAll('.recipe-card').forEach(card => {
             card.classList.toggle('selected', card.dataset.recipeId === recipeId);
+            card.setAttribute('aria-pressed', card.dataset.recipeId === recipeId ? 'true' : 'false');
         });
         
         // 顯示配方詳情
         this.showRecipeInfo(recipe);
+    }
+
+    clearSelectedRecipe() {
+        this.selectedRecipe = null;
+
+        if (this.dom.selectedRecipe) {
+            this.dom.selectedRecipe.style.display = '';
+            this.dom.selectedRecipe.innerHTML = `
+                <div class="empty-slot">
+                    <span class="empty-icon">📜</span>
+                    <span class="empty-text">選擇要製作的配方</span>
+                </div>
+            `;
+        }
+        if (this.dom.recipeInfo) {
+            this.dom.recipeInfo.style.display = 'none';
+        }
+        if (this.dom.craftResult) {
+            this.dom.craftResult.style.display = 'none';
+        }
+    }
+
+    renderHiddenBlueprintNote(hiddenCount, empty = false) {
+        if (hiddenCount <= 0) return '';
+
+        return `
+            <div class="recipe-discovery-note ${empty ? 'is-empty' : ''}">
+                <strong>${hiddenCount} 份製作圖尚未取得</strong>
+                <span>透過怪物掉落、副本、任務或特殊事件取得圖紙後，相關配方會出現在這裡。</span>
+            </div>
+        `;
     }
 
     showRecipeInfo(recipe) {
@@ -233,61 +374,130 @@ export default class ForgeScene {
         
         const inventory = GameManager.getInventory() || [];
         const warehouse = GameManager.state?.warehouse || [];
+        const blueprintInfo = getRecipeBlueprintInfo(recipe.id);
+        const blueprintKnown = blueprintInfo.known;
         const craftable = canCraft(recipe.id, inventory, warehouse);
         const gold = GameManager.getGold() || 0;
         const hasGold = gold >= recipe.cost;
+        const resultStats = recipe.result?.stats || {};
+        const result = recipe.result || {};
+        const model = this.getRecipeDisplayModel(recipe);
+        const rarity = model.rarity || 'common';
+        const rateClass = this.getRateClass(recipe.successRate);
         
         // 顯示製作結果預覽
-        const result = recipe.result;
         this.dom.craftResultPreview.innerHTML = `
-            <div class="preview-item ${result.rarity || 'common'}">
-                <div class="item-icon">${result.icon}</div>
-                <div class="item-name">${result.name}</div>
-                <div class="item-stats">
-                    ${result.attack ? `<span>⚔️ ${result.attack}</span>` : ''}
-                    ${result.defense ? `<span>🛡️ ${result.defense}</span>` : ''}
-                    ${result.hp ? `<span>❤️ +${result.hp}</span>` : ''}
-                    ${result.mp ? `<span>💙 +${result.mp}</span>` : ''}
+            <div class="preview-item forge-preview-item rarity-frame rarity-${escapeHtml(rarity)} ${escapeHtml(rarity)}">
+                <div class="forge-preview-head">
+                    <div class="forge-preview-icon">${this.renderItemVisual(model)}</div>
+                    <div class="forge-preview-body">
+                        <div class="forge-preview-heading">
+                            <div class="item-name">${escapeHtml(model.name)}</div>
+                            <div class="forge-preview-meta">
+                                <span>${escapeHtml(model.typeText)}</span>
+                                <span>${escapeHtml(model.rarityText)}</span>
+                                <span>${escapeHtml(recipe.cost)} 金幣</span>
+                            </div>
+                        </div>
+                        <span class="forge-success-pill ${rateClass}">成功率 ${escapeHtml(recipe.successRate)}%</span>
+                    </div>
                 </div>
-                <div class="item-desc">${result.desc || ''}</div>
+                <div class="forge-preview-stats">
+                    ${this.renderCraftStatChips(resultStats, result)}
+                </div>
+                ${model.description ? `<div class="forge-preview-desc">${escapeHtml(model.description)}</div>` : ''}
             </div>
         `;
         
         // 顯示所需材料
-        this.dom.materialsList.innerHTML = recipe.materials.map(mat => {
+        const materialRows = recipe.materials.map(mat => {
             const material = getMaterial(mat.id);
             const owned = this.getMaterialCount(mat.id, inventory);
             const enough = owned >= mat.quantity;
+            return { mat, material, owned, enough };
+        });
+
+        this.dom.materialsList.innerHTML = materialRows.map(({ mat, material, owned, enough }) => {
             
             return `
                 <div class="material-req ${enough ? 'enough' : 'not-enough'}">
-                    <span class="mat-icon">${material?.icon || '❓'}</span>
+                    <span class="mat-icon">${material ? getItemVisualHtml(material, '❓') : '❓'}</span>
                     <span class="mat-name">${material?.name || mat.id}</span>
                     <span class="mat-count ${enough ? '' : 'lacking'}">${owned}/${mat.quantity}</span>
                 </div>
             `;
         }).join('');
+
+        this.dom.materialsList.querySelectorAll('.material-req').forEach((rowEl, index) => {
+            const row = materialRows[index];
+            if (!row?.material) return;
+            attachItemTooltip(rowEl, row.material, {
+                footerRows: [
+                    ['持有', `${row.owned}`],
+                    ['需求', `${row.mat.quantity}`]
+                ],
+                hint: row.enough ? '材料已足夠' : '材料不足'
+            });
+        });
         
-        // 費用和成功率
-        this.dom.craftCost.textContent = `${recipe.cost}G`;
-        this.dom.craftCost.className = `cost-value ${hasGold ? '' : 'not-enough'}`;
-        this.dom.craftSuccessRate.textContent = `${recipe.successRate}%`;
+        this.renderCraftGuidance(recipe, gold, blueprintInfo);
         
         // 按鈕狀態
-        this.dom.btnCraft.disabled = !craftable || !hasGold;
+        this.dom.btnCraft.disabled = !blueprintKnown || !craftable || !hasGold;
         
-        this.dom.recipeInfo.style.display = 'block';
+        this.dom.recipeInfo.style.display = 'grid';
         
-        // 更新選中顯示
-        this.dom.selectedRecipe.innerHTML = `
-            <div class="selected-item ${recipe.rarity || 'common'}">
-                <div class="item-icon">${recipe.icon}</div>
-                <div class="item-info">
-                    <div class="item-name">${recipe.name}</div>
-                    <div class="item-rarity">${recipe.rarity || 'common'}</div>
+        if (this.dom.selectedRecipe) {
+            this.dom.selectedRecipe.style.display = 'none';
+        }
+    }
+
+    renderCraftGuidance(recipe, gold, blueprintInfo = null) {
+        if (!this.dom.craftGuidance) return;
+        this.dom.craftGuidance.hidden = false;
+
+        if (blueprintInfo && !blueprintInfo.known) {
+            const discovery = blueprintInfo.discovery;
+            this.dom.craftGuidance.className = 'forge-craft-guidance blueprint';
+            this.dom.craftGuidance.innerHTML = `
+                <strong>製作圖未取得</strong>
+                <div class="forge-missing-list">
+                    <span class="forge-missing-chip">圖紙來源：${discovery?.source || '世界探索'}</span>
                 </div>
-            </div>
-        `;
+            `;
+            return;
+        }
+
+        const goldNeed = Math.max(0, recipe.cost - gold);
+        if (goldNeed > 0) {
+            this.dom.craftGuidance.className = 'forge-craft-guidance blocked';
+            this.dom.craftGuidance.innerHTML = `
+                <strong>金幣不足</strong>
+                <div class="forge-missing-list">
+                    <span class="forge-missing-chip">金幣 ${gold}/${recipe.cost}</span>
+                </div>
+            `;
+            return;
+        }
+
+        this.dom.craftGuidance.hidden = true;
+        this.dom.craftGuidance.innerHTML = '';
+    }
+
+    renderCraftStatChips(stats = {}, result = {}, options = {}) {
+        const itemLike = {
+            ...result,
+            stats: {
+                ...(result.stats || {}),
+                ...(stats || {})
+            }
+        };
+
+        return buildItemStatChipsHtml(itemLike, {
+            ...options,
+            chipClass: 'forge-stat-chip',
+            emptyText: '無額外數值'
+        });
     }
 
     getMaterialCount(materialId, inventory) {
@@ -319,13 +529,18 @@ export default class ForgeScene {
         this.dom.materialsInventory.innerHTML = materials.map(stack => {
             const item = stack.item;
             return `
-                <div class="material-card ${item.rarity || 'common'}">
-                    <span class="mat-icon">${item.icon || '📦'}</span>
+                <div class="material-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
+                    <span class="mat-icon">${getItemVisualHtml(item, '📦')}</span>
                     <span class="mat-name">${item.name}</span>
                     <span class="mat-count">x${stack.quantity || 1}</span>
                 </div>
             `;
         }).join('');
+
+        this.dom.materialsInventory.querySelectorAll('.material-card').forEach((card, index) => {
+            const stack = materials[index];
+            if (stack?.item) attachItemTooltip(card, stack.item, { quantity: stack.quantity || 1 });
+        });
     }
 
     searchMaterials(query) {
@@ -346,6 +561,10 @@ export default class ForgeScene {
         const recipe = this.selectedRecipe;
         const inventory = GameManager.getInventory() || [];
         const warehouse = GameManager.state?.warehouse || [];
+        if (!isRecipeBlueprintKnown(recipe.id)) {
+            this.showMessage('需要先取得這份製作圖。', 'warning');
+            return;
+        }
         
         // 再次檢查
         if (!canCraft(recipe.id, inventory, warehouse)) {
@@ -409,7 +628,6 @@ export default class ForgeScene {
                     const highestIndex = rarityOrder.indexOf(highestAffixRarity);
                     if (highestIndex > equipRarityIndex) {
                         newItem.rarity = highestAffixRarity;
-                        console.log(`[Forge] 裝備稀有度提升至 ${highestAffixRarity}`);
                     }
                 }
             }
@@ -441,6 +659,7 @@ export default class ForgeScene {
         if (!resultEl) return;
         
         resultEl.style.display = 'flex';
+        resultEl.className = 'craft-result is-info';
         resultEl.innerHTML = `
             <div class="result-icon spinning">⚒️</div>
             <div class="result-text">鍛造中...</div>
@@ -454,6 +673,7 @@ export default class ForgeScene {
         if (!resultEl) return;
         
         if (success) {
+            resultEl.className = 'craft-result is-success';
             // 顯示詞綴資訊
             let affixInfo = '';
             if (item.affixes && item.affixes.length > 0) {
@@ -470,14 +690,17 @@ export default class ForgeScene {
             resultEl.innerHTML = `
                 <div class="result-icon success">✅</div>
                 <div class="result-text">鍛造成功！</div>
-                <div class="result-item ${item.rarity || ''}">
-                    <span>${item.icon}</span>
+                <div class="result-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || ''}">
+                    <span>${getItemVisualHtml(item, item.icon || '◆')}</span>
                     <span>${item.name}</span>
                 </div>
                 ${affixInfo}
                 ${durabilityInfo}
             `;
+            const resultItemEl = resultEl.querySelector('.result-item');
+            if (resultItemEl) attachItemTooltip(resultItemEl, item, { hint: '已放入背包' });
         } else {
+            resultEl.className = 'craft-result is-error';
             resultEl.innerHTML = `
                 <div class="result-icon fail">❌</div>
                 <div class="result-text">鍛造失敗！材料已損失...</div>
@@ -523,7 +746,7 @@ export default class ForgeScene {
         if (!this.dom.affixEquipmentList) return;
         
         const card = document.createElement('div');
-        card.className = `equipment-card ${item.rarity || 'common'}`;
+        card.className = `equipment-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}`;
         
         const equippedBadge = isEquipped ? '<span class="equipped-badge">裝備中</span>' : '';
         const affixCount = item.affixes ? item.affixes.length : 0;
@@ -532,7 +755,7 @@ export default class ForgeScene {
             : '';
         
         card.innerHTML = `
-            <div class="card-icon">${item.icon || '⚔️'}</div>
+            <div class="card-icon">${getItemVisualHtml(item, '⚔️')}</div>
             <div class="card-info">
                 <div class="card-name">${item.name}</div>
                 <div class="card-stats">
@@ -545,6 +768,7 @@ export default class ForgeScene {
             ${equippedBadge}
         `;
         
+        attachItemTooltip(card, item, { hint: '點擊選擇裝備' });
         card.addEventListener('click', () => this.selectAffixEquipment(item, isEquipped, slot));
         this.dom.affixEquipmentList.appendChild(card);
     }
@@ -555,14 +779,19 @@ export default class ForgeScene {
         // 更新選中顯示
         if (this.dom.selectedAffixEquipment) {
             this.dom.selectedAffixEquipment.innerHTML = `
-                <div class="selected-item ${item.rarity || 'common'}">
-                    <div class="item-icon">${item.icon || '⚔️'}</div>
+                <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
+                    <div class="item-icon">${this.renderItemVisual(item, '⚔️')}</div>
                     <div class="item-info">
                         <div class="item-name">${item.name}</div>
                         <div class="item-rarity">${this.getRarityText(item.rarity)}</div>
                     </div>
                 </div>
             `;
+            attachItemTooltip(
+                this.dom.selectedAffixEquipment.querySelector('.selected-item'),
+                item,
+                { hint: '目前選擇的重鑄裝備' }
+            );
         }
         
         // 顯示詞綴資訊
@@ -582,7 +811,7 @@ export default class ForgeScene {
                     const rarityClass = affix.rarity || 'common';
                     const typeLabel = affix.type === 'prefix' ? '【前綴】' : '【後綴】';
                     const effectText = this.formatAffixEffect(affix);
-                    return `<div class="affix-item ${rarityClass}">${typeLabel} ${affix.name}: ${effectText}</div>`;
+                    return `<div class="affix-item rarity-frame rarity-${rarityClass} ${rarityClass}">${typeLabel} ${affix.name}: ${effectText}</div>`;
                 }).join('');
             } else {
                 this.dom.currentAffixesDisplay.innerHTML = '<div class="no-affixes">尚無詞綴</div>';
@@ -602,46 +831,103 @@ export default class ForgeScene {
         }
         
         // 計算重鑄費用
-        const rerollCost = this.calculateRerollCost(item);
+        const rerollRequirement = this.calculateRerollRequirements(item);
         if (this.dom.rerollCost) {
-            this.dom.rerollCost.textContent = `${rerollCost}G`;
+            this.dom.rerollCost.textContent = `${rerollRequirement.gold} 金幣`;
+            this.dom.rerollCost.className = `cost-value ${GameManager.getGold() >= rerollRequirement.gold ? '' : 'not-enough'}`;
+        }
+        if (this.dom.rerollMaterialCost) {
+            this.dom.rerollMaterialCost.innerHTML = this.formatRerollMaterials(rerollRequirement.materials);
+            this.dom.rerollMaterialCost.className = `cost-value ${this.hasRerollMaterials(rerollRequirement.materials) ? '' : 'not-enough'}`;
         }
         
         // 按鈕狀態
         if (this.dom.btnRerollAffix) {
             const canReroll = affixSlots.prefix > 0 || affixSlots.suffix > 0;
-            const hasGold = GameManager.getGold() >= rerollCost;
-            this.dom.btnRerollAffix.disabled = !canReroll || !hasGold;
+            const hasGold = GameManager.getGold() >= rerollRequirement.gold;
+            const hasMaterials = this.hasRerollMaterials(rerollRequirement.materials);
+            this.dom.btnRerollAffix.disabled = !canReroll || !hasGold || !hasMaterials;
         }
         
         this.dom.affixInfo.style.display = 'block';
     }
 
+    formatAffixEffect(affix) {
+        if (!affix) return '';
+        if (this.affixManager && typeof this.affixManager.getAffixDescription === 'function') {
+            return this.affixManager.getAffixDescription(affix);
+        }
+        // Fallback: simple serialization
+        return Object.entries(affix.stats || {}).map(([k, v]) => `${k}:${v}`).join(', ');
+    }
+
     calculateRerollCost(item) {
-        const rarityMultiplier = {
+        return this.calculateRerollRequirements(item).gold;
+    }
+
+    calculateRerollRequirements(item) {
+        const goldByRarity = {
             'common': 50,
             'uncommon': 100,
             'rare': 200,
             'epic': 400,
             'legendary': 800
         };
-        return rarityMultiplier[item.rarity] || 100;
+        const materialByRarity = {
+            'common': [{ id: 'iron_shard', quantity: 1 }],
+            'uncommon': [{ id: 'iron_shard', quantity: 2 }],
+            'rare': [{ id: 'high_ore', quantity: 1 }],
+            'epic': [{ id: 'forge_core', quantity: 1 }],
+            'legendary': [{ id: 'rare_metal', quantity: 1 }]
+        };
+
+        const rarity = item?.rarity || 'common';
+        return {
+            gold: goldByRarity[rarity] || 100,
+            materials: materialByRarity[rarity] || materialByRarity.common
+        };
+    }
+
+    hasRerollMaterials(materials = []) {
+        return materials.every(mat => this.getMaterialCount(mat.id) >= mat.quantity);
+    }
+
+    consumeRerollMaterials(materials = []) {
+        for (const mat of materials) {
+            GameManager.removeMaterial(mat.id, mat.quantity);
+        }
+    }
+
+    formatRerollMaterials(materials = []) {
+        if (!materials.length) return '無';
+        return materials.map(mat => {
+            const material = getMaterial(mat.id);
+            const owned = this.getMaterialCount(mat.id);
+            const enough = owned >= mat.quantity;
+            const icon = material ? getItemVisualHtml(material, '📦') : '📦';
+            return `<span class="${enough ? '' : 'lacking'}">${icon} ${material?.name || mat.id} ${owned}/${mat.quantity}</span>`;
+        }).join(' ');
     }
 
     async rerollAffixes() {
         if (!this.selectedAffixEquipment) return;
         
         const { item } = this.selectedAffixEquipment;
-        const cost = this.calculateRerollCost(item);
+        const requirement = this.calculateRerollRequirements(item);
         
         // 檢查金幣
-        if (GameManager.getGold() < cost) {
+        if (GameManager.getGold() < requirement.gold) {
             this.showMessage('金幣不足！', 'error');
+            return;
+        }
+        if (!this.hasRerollMaterials(requirement.materials)) {
+            this.showMessage('重鑄素材不足！', 'error');
             return;
         }
         
         // 扣除金幣
-        GameManager.addGold(-cost);
+        GameManager.addGold(-requirement.gold);
+        this.consumeRerollMaterials(requirement.materials);
         
         // 禁用按鈕
         if (this.dom.btnRerollAffix) {
@@ -768,432 +1054,285 @@ export default class ForgeScene {
     }
 
     getRarityText(rarity) {
-        const rarityMap = {
-            'common': '普通',
-            'uncommon': '優秀',
-            'rare': '稀有',
-            'epic': '史詩',
-            'legendary': '傳說'
-        };
-        return rarityMap[rarity] || rarity || '普通';
+        return getItemRarityText(rarity);
     }
 
-    // ==================== 寶石系統 ====================
+    // ==================== 裝備強化系統 ====================
 
-    loadGemInventory() {
-        const inventory = GameManager.state?.inventory || [];
-        if (!this.dom.gemInventory) return;
-        
-        this.dom.gemInventory.innerHTML = '';
-        
-        inventory.forEach(stack => {
-            const item = stack.item;
-            if (item && (item.type === ItemType.GEM || item.type === ItemType.SOCKET_GEM || item.type === 'socket_gem')) {
-                const gemCard = document.createElement('div');
-                gemCard.className = 'gem-card';
-                gemCard.innerHTML = `
-                    <span class="gem-icon">${item.icon || '💎'}</span>
-                    <span class="gem-name">${item.name}</span>
-                    <span class="gem-count">x${stack.quantity}</span>
-                `;
-                gemCard.addEventListener('click', () => this.selectGem(item));
-                this.dom.gemInventory.appendChild(gemCard);
-            }
-        });
-        
-        if (this.dom.gemInventory.children.length === 0) {
-            this.dom.gemInventory.innerHTML = '<div class="empty-gems">沒有可用的寶石</div>';
-        }
-    }
-
-    selectGem(gem) {
-        this.selectedGem = gem;
-        
-        // 更新 UI 顯示選中狀態
-        this.dom.gemInventory.querySelectorAll('.gem-card').forEach(card => {
-            card.classList.remove('selected');
-        });
-        event.currentTarget.classList.add('selected');
-        
-        this.updateSocketButton();
-    }
-
-    updateGemSlots(item) {
-        if (!this.dom.gemSlots) return;
-        
-        const maxSlots = enhancementManager.getGemSlotCount(item);
-        const socketedGems = item.socketedGems || [];
-        
-        this.dom.gemSlots.innerHTML = '';
-        
-        for (let i = 0; i < 3; i++) {
-            const slot = document.createElement('div');
-            
-            if (i < maxSlots) {
-                const gem = socketedGems[i];
-                if (gem) {
-                    slot.className = 'gem-slot filled';
-                    slot.innerHTML = `
-                        <span class="slot-icon">${gem.icon || '💎'}</span>
-                        <span class="slot-label">${gem.name}</span>
-                    `;
-                } else {
-                    slot.className = 'gem-slot empty';
-                    slot.innerHTML = `
-                        <span class="slot-icon">◇</span>
-                        <span class="slot-label">空槽位</span>
-                    `;
-                }
-                slot.addEventListener('click', () => this.selectGemSlot(i));
-            } else {
-                slot.className = 'gem-slot locked';
-                slot.innerHTML = `
-                    <span class="slot-icon">🔒</span>
-                    <span class="slot-label">未解鎖</span>
-                `;
-            }
-            
-            slot.dataset.slot = i;
-            this.dom.gemSlots.appendChild(slot);
-        }
-    }
-
-    selectGemSlot(slotIndex) {
-        this.selectedGemSlot = slotIndex;
-        
-        this.dom.gemSlots.querySelectorAll('.gem-slot').forEach((slot, i) => {
-            slot.classList.toggle('selected', i === slotIndex);
-        });
-        
-        this.updateSocketButton();
-    }
-
-    updateSocketButton() {
-        if (!this.dom.btnSocketGem) return;
-        
-        const canSocket = this.selectedEquipment && 
-                         this.selectedGem && 
-                         this.selectedGemSlot !== null;
-        
-        this.dom.btnSocketGem.disabled = !canSocket;
-    }
-
-    socketGem() {
-        if (!this.selectedEquipment || !this.selectedGem || this.selectedGemSlot === null) {
-            return;
-        }
-        
-        const result = enhancementManager.socketGem(
-            this.selectedEquipment.item,
-            this.selectedGem,
-            this.selectedGemSlot
+    isEquipmentItem(item) {
+        return item && (
+            item.type === ItemType.WEAPON ||
+            item.type === ItemType.ARMOR ||
+            item.type === ItemType.ACCESSORY ||
+            item.type === 'weapon' ||
+            item.type === 'armor' ||
+            item.type === 'accessory'
         );
-        
-        if (result.success) {
-            this.showMessage(result.message, 'success');
-            this.loadGemInventory();
-            this.updateGemSlots(this.selectedEquipment.item);
-        } else {
-            this.showMessage(result.message, 'error');
-        }
-        
-        this.selectedGem = null;
-        this.selectedGemSlot = null;
-        this.updateSocketButton();
     }
 
-    showMessage(message, type) {
-        // 簡單的訊息顯示
-        alert(message);
-    }
-
-    // ==================== 詞綴系統 ====================
-
-    showAffixInfo(item) {
-        if (!this.dom.affixPanel) {
-            // 如果 DOM 不存在，動態創建詞綴面板
-            this.createAffixPanel();
-        }
-
-        const affixSlots = this.affixManager.getAffixSlots(item.rarity || 'common');
-        const currentAffixes = item.affixes || [];
-
-        // 計算重鑄費用
-        const rerollCost = this.calculateRerollCost(item);
-
-        // 顯示當前詞綴
-        let affixHtml = '<h4>裝備詞綴</h4>';
-        
-        if (affixSlots.prefix === 0 && affixSlots.suffix === 0) {
-            affixHtml += '<p class="no-affix">此稀有度無法擁有詞綴</p>';
-        } else {
-            affixHtml += '<div class="affix-slots">';
-            affixHtml += `<p>詞綴槽位: 前綴 ${affixSlots.prefix} / 後綴 ${affixSlots.suffix}</p>`;
-            
-            if (currentAffixes.length > 0) {
-                affixHtml += '<ul class="affix-list">';
-                for (const affix of currentAffixes) {
-                    const typeLabel = affix.type === 'prefix' ? '【前綴】' : '【後綴】';
-                    const effectText = this.formatAffixEffect(affix);
-                    affixHtml += `<li class="affix-item ${affix.type}">${typeLabel} ${affix.name}: ${effectText}</li>`;
-                }
-                affixHtml += '</ul>';
-            } else {
-                affixHtml += '<p class="no-affix">尚無詞綴</p>';
-            }
-            affixHtml += '</div>';
-        }
-
-        if (this.dom.currentAffixes) {
-            this.dom.currentAffixes.innerHTML = affixHtml;
-        }
-
-        if (this.dom.affixCost) {
-            this.dom.affixCost.textContent = `${rerollCost}G`;
-        }
-
-        if (this.dom.btnRerollAffix) {
-            const canReroll = affixSlots.prefix > 0 || affixSlots.suffix > 0;
-            this.dom.btnRerollAffix.disabled = !canReroll;
-        }
-
-        if (this.dom.affixPanel) {
-            this.dom.affixPanel.style.display = 'block';
-        }
-    }
-
-    createAffixPanel() {
-        // 在寶石面板後動態創建詞綴面板
-        const gemSection = this.container.querySelector('.gem-section');
-        if (!gemSection) return;
-
-        const affixPanel = document.createElement('div');
-        affixPanel.className = 'affix-section';
-        affixPanel.id = 'affix-panel';
-        affixPanel.innerHTML = `
-            <div class="section-header">
-                <h3>⚡ 詞綴重鑄</h3>
-            </div>
-            <div class="affix-content">
-                <div id="current-affixes" class="current-affixes"></div>
-                <div class="reroll-controls">
-                    <span class="cost-label">重鑄費用: <span id="affix-cost">0</span></span>
-                    <button id="btn-reroll-affix" class="btn-reroll">重鑄詞綴</button>
-                </div>
-            </div>
-        `;
-
-        gemSection.after(affixPanel);
-
-        // 重新綁定 DOM 和事件
-        this.dom.affixPanel = affixPanel;
-        this.dom.currentAffixes = affixPanel.querySelector('#current-affixes');
-        this.dom.affixCost = affixPanel.querySelector('#affix-cost');
-        this.dom.btnRerollAffix = affixPanel.querySelector('#btn-reroll-affix');
-        this.dom.btnRerollAffix.addEventListener('click', () => this.rerollAffixes());
-    }
-
-    formatAffixEffect(affix) {
-        const effects = [];
-        if (affix.bonusAtk) effects.push(`攻擊+${affix.bonusAtk}`);
-        if (affix.bonusDef) effects.push(`防禦+${affix.bonusDef}`);
-        if (affix.bonusHp) effects.push(`生命+${affix.bonusHp}`);
-        if (affix.bonusMp) effects.push(`魔力+${affix.bonusMp}`);
-        if (affix.bonusCrit) effects.push(`暴擊+${affix.bonusCrit}%`);
-        if (affix.bonusSpeed) effects.push(`速度+${affix.bonusSpeed}`);
-        if (affix.bonusHpRegen) effects.push(`生命回復+${affix.bonusHpRegen}`);
-        if (affix.bonusMpRegen) effects.push(`魔力回復+${affix.bonusMpRegen}`);
-        if (affix.bonusGoldFind) effects.push(`金幣獲取+${affix.bonusGoldFind}%`);
-        if (affix.bonusExpBonus) effects.push(`經驗加成+${affix.bonusExpBonus}%`);
-        if (affix.bonusLifeSteal) effects.push(`生命偷取+${affix.bonusLifeSteal}%`);
-        if (affix.bonusAtkPercent) effects.push(`攻擊+${affix.bonusAtkPercent}%`);
-        if (affix.bonusDefPercent) effects.push(`防禦+${affix.bonusDefPercent}%`);
-        if (affix.bonusAllStats) effects.push(`全屬性+${affix.bonusAllStats}`);
-        return effects.join(', ') || '無效果';
-    }
-
-    calculateRerollCost(item) {
-        const basePrice = item.price || 100;
-        const rarityMultiplier = {
-            'common': 0,
-            'uncommon': 1,
-            'rare': 2,
-            'epic': 3,
-            'legendary': 5
-        };
-        const multiplier = rarityMultiplier[item.rarity || 'common'] || 1;
-        return Math.floor(basePrice * 0.5 * multiplier);
-    }
-
-    async rerollAffixes() {
-        if (!this.selectedEquipment) {
-            this.showMessage('請先選擇裝備！', 'error');
-            return;
-        }
-
-        const { item } = this.selectedEquipment;
-        const cost = this.calculateRerollCost(item);
-        const currentGold = GameManager.getGold();
-
-        if (currentGold < cost) {
-            this.showMessage(`金幣不足！需要 ${cost}G`, 'error');
-            return;
-        }
-
-        // 扣除金幣
-        GameManager.addGold(-cost);
-
-        // 播放動畫
-        if (this.dom.btnRerollAffix) {
-            this.dom.btnRerollAffix.disabled = true;
-            this.dom.btnRerollAffix.textContent = '🔄 重鑄中...';
-        }
-
-        await this.sleep(1000);
-
-        // 重新生成詞綴
-        const result = this.affixManager.generateAffixes(item, true);
-
-        // 更新顯示
-        this.showAffixInfo(item);
-        this.updateUI();
-
-        // 添加到歷史
-        this.addToHistory({
-            success: true,
-            message: `重鑄詞綴完成，獲得 ${result.affixes.length} 個詞綴！`,
-            isCritical: false
-        });
-
-        // 恢復按鈕
-        if (this.dom.btnRerollAffix) {
-            this.dom.btnRerollAffix.disabled = false;
-            this.dom.btnRerollAffix.textContent = '🔄 重鑄詞綴';
-        }
-
-        // 更新裝備卡片顯示
-        this.loadEquipmentList();
-        
-        this.showMessage(`重鑄成功！獲得 ${result.affixes.length} 個詞綴`, 'success');
-    }
-
-    // ==================== 寶石面板的裝備列表 ====================
-
-    loadGemEquipmentList() {
+    loadEnhanceEquipmentList() {
         const char = GameManager.getCharacter();
         const inventory = GameManager.state?.inventory || [];
-        
-        if (!this.dom.gemEquipmentList) return;
-        
-        this.dom.gemEquipmentList.innerHTML = '';
-        
-        // 已裝備的物品
+
+        if (!this.dom.enhanceEquipmentList) return;
+
+        this.dom.enhanceEquipmentList.innerHTML = '';
+
         if (char?.equipment) {
             for (const slot in char.equipment) {
                 const item = char.equipment[slot];
-                if (item) {
-                    this.addGemEquipmentCard(item, true, slot);
+                if (item && this.isEquipmentItem(item)) {
+                    this.addEnhanceEquipmentCard(item, true, slot);
                 }
             }
         }
-        
-        // 背包中的裝備
+
         inventory.forEach(stack => {
             const item = stack.item;
-            if (item && (item.type === ItemType.WEAPON || item.type === ItemType.ARMOR || item.type === ItemType.ACCESSORY ||
-                         item.type === 'weapon' || item.type === 'armor' || item.type === 'accessory')) {
-                this.addGemEquipmentCard(item, false, null);
+            if (this.isEquipmentItem(item)) {
+                this.addEnhanceEquipmentCard(item, false, null);
             }
         });
+
+        if (!this.dom.enhanceEquipmentList.children.length) {
+            this.dom.enhanceEquipmentList.innerHTML = '<div class="empty-inventory">目前沒有可強化裝備</div>';
+        }
     }
 
-    addGemEquipmentCard(item, isEquipped, slot) {
-        if (!this.dom.gemEquipmentList) return;
-        
+    addEnhanceEquipmentCard(item, isEquipped, slot = null) {
+        if (!this.dom.enhanceEquipmentList) return;
+
+        enhancementManager.initializeEnhancementState(item);
         const card = document.createElement('div');
-        card.className = `equipment-card ${item.rarity || 'common'}`;
-        
-        const gemCount = item.socketedGems?.length || 0;
-        const maxSlots = enhancementManager.getGemSlotCount(item);
+        const isSelected = this.selectedEnhanceEquipment?.item === item;
+        card.className = `equipment-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'} ${isSelected ? 'selected' : ''}`;
+
         const equippedBadge = isEquipped ? '<span class="equipped-badge">裝備中</span>' : '';
-        
+        const level = item.enhanceLevel || 0;
+        const stability = item.enhancementStability ?? 0;
+        const maxStability = item.maxEnhancementStability ?? 0;
+        const markCount = Object.keys(item.enhancementMarks || {}).length;
+
         card.innerHTML = `
-            <div class="card-icon">${item.icon || '⚔️'}</div>
+            <div class="card-icon">${getItemVisualHtml(item, '⚔️')}</div>
             <div class="card-info">
-                <div class="card-name">${item.name}</div>
+                <div class="card-name">${enhancementManager.getDisplayName(item)}</div>
                 <div class="card-stats">
-                    💎 ${gemCount}/${maxSlots}
+                    +${level} / 穩定度 ${stability}/${maxStability} / 印記 ${markCount}
                 </div>
             </div>
             ${equippedBadge}
         `;
-        
-        card.addEventListener('click', () => this.selectGemEquipment(item, isEquipped, slot));
-        this.dom.gemEquipmentList.appendChild(card);
+
+        attachItemTooltip(card, item, { hint: '點擊選擇裝備' });
+        card.addEventListener('click', () => this.selectEnhanceEquipment(item, isEquipped, slot));
+        this.dom.enhanceEquipmentList.appendChild(card);
     }
 
-    selectGemEquipment(item, isEquipped, slot) {
-        this.selectedEquipment = { item, isEquipped, slot };
-        
-        // 更新選中顯示
-        if (this.dom.selectedGemEquipment) {
-            this.dom.selectedGemEquipment.innerHTML = `
-                <div class="selected-item ${item.rarity || 'common'}">
-                    <div class="item-icon">${item.icon || '⚔️'}</div>
+    selectEnhanceEquipment(item, isEquipped, slot) {
+        this.selectedEnhanceEquipment = { item, isEquipped, slot };
+
+        if (this.dom.selectedEnhanceEquipment) {
+            this.dom.selectedEnhanceEquipment.innerHTML = `
+                <div class="selected-item rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'}">
+                    <div class="item-icon">${this.renderItemVisual(item, '⚔️')}</div>
                     <div class="item-info">
-                        <div class="item-name">${item.name}</div>
-                        <div class="item-rarity">${item.rarity || 'common'}</div>
+                        <div class="item-name">${enhancementManager.getDisplayName(item)}</div>
+                        <div class="item-rarity">${this.getRarityText(item.rarity)}</div>
                     </div>
                 </div>
             `;
+            attachItemTooltip(
+                this.dom.selectedEnhanceEquipment.querySelector('.selected-item'),
+                item,
+                { hint: '目前選擇的強化裝備' }
+            );
         }
-        
-        // 顯示寶石槽資訊
-        if (this.dom.gemSocketInfo) {
-            this.dom.gemSocketInfo.style.display = 'block';
-        }
-        
-        this.updateGemSlots(item);
-        this.updateRemoveGemButton();
+
+        this.showEnhanceInfo(item);
+        this.loadEnhanceEquipmentList();
     }
 
-    updateRemoveGemButton() {
-        if (!this.dom.btnRemoveGem) return;
-        
-        const hasSelectedSlotWithGem = this.selectedEquipment && 
-                                        this.selectedGemSlot !== null &&
-                                        this.selectedEquipment.item.socketedGems?.[this.selectedGemSlot];
-        
-        this.dom.btnRemoveGem.disabled = !hasSelectedSlotWithGem;
+    showEnhanceInfo(item) {
+        if (!this.dom.enhanceInfo) return;
+
+        const preview = enhancementManager.getEnhancementPreview(item);
+        const gold = GameManager.getGold() || 0;
+        const hasGold = gold >= preview.cost;
+
+        if (this.dom.enhanceLevel) {
+            this.dom.enhanceLevel.textContent = `+${preview.currentLevel} → ${preview.nextLevel ? `+${preview.nextLevel}` : 'MAX'}`;
+        }
+        if (this.dom.enhanceStability) {
+            this.dom.enhanceStability.textContent = `${preview.stability}/${preview.maxStability}`;
+        }
+        if (this.dom.enhanceSuccessRate) {
+            this.dom.enhanceSuccessRate.textContent = `${preview.successRate}%`;
+            this.dom.enhanceSuccessRate.className = `rate-value ${this.getRateClass(preview.successRate)}`;
+        }
+        if (this.dom.enhanceCost) {
+            this.dom.enhanceCost.textContent = `${preview.cost} 金幣`;
+            this.dom.enhanceCost.className = `cost-value ${hasGold ? '' : 'not-enough'}`;
+        }
+        if (this.dom.enhanceNextMilestone) {
+            this.dom.enhanceNextMilestone.textContent = preview.nextMilestone
+                ? `下一個印記：+${preview.nextMilestone}`
+                : '已達最終強化';
+        }
+
+        this.renderEnhancementMarks(item);
+
+        if (this.dom.btnEnhanceEquipment) {
+            this.dom.btnEnhanceEquipment.disabled = !preview.canEnhance || !hasGold;
+            this.dom.btnEnhanceEquipment.textContent = preview.canEnhance
+                ? `強化至 ${preview.nextLevel ? `+${preview.nextLevel}` : 'MAX'}`
+                : '無法繼續強化';
+        }
+
+        this.dom.enhanceInfo.style.display = 'block';
     }
 
-    removeGem() {
-        if (!this.selectedEquipment || this.selectedGemSlot === null) {
+    renderEnhancementMarks(item) {
+        if (!this.dom.enhanceMarksDisplay) return;
+
+        const marks = Object.values(item.enhancementMarks || {})
+            .sort((a, b) => (a.milestone || 0) - (b.milestone || 0));
+
+        if (marks.length === 0) {
+            this.dom.enhanceMarksDisplay.innerHTML = '<div class="no-affixes">尚無強化印記</div>';
             return;
         }
-        
-        const item = this.selectedEquipment.item;
-        const gem = item.socketedGems?.[this.selectedGemSlot];
-        
-        if (!gem) {
-            this.showMessage('此槽位沒有寶石！', 'error');
+
+        this.dom.enhanceMarksDisplay.innerHTML = marks.map(mark => `
+            <div class="affix-item rarity-frame rarity-${mark.rarity || 'rare'} ${mark.rarity || 'rare'}">
+                +${mark.milestone} ${enhancementManager.getMarkDescription(mark)}
+            </div>
+        `).join('');
+    }
+
+    async enhanceSelectedEquipment() {
+        if (!this.selectedEnhanceEquipment) return;
+
+        const { item } = this.selectedEnhanceEquipment;
+        const preview = enhancementManager.getEnhancementPreview(item);
+
+        if (!preview.canEnhance) {
+            this.showMessage('這件裝備無法繼續強化。', 'warning');
             return;
         }
-        
-        // 移除寶石
-        item.socketedGems[this.selectedGemSlot] = null;
-        
-        // 將寶石返還到背包
-        GameManager.addItem(gem);
-        
-        this.showMessage(`成功移除 ${gem.name}！`, 'success');
-        
-        // 更新 UI
-        this.updateGemSlots(item);
-        this.loadGemInventory();
-        this.updateRemoveGemButton();
-        
-        this.selectedGemSlot = null;
+
+        if (GameManager.getGold() < preview.cost) {
+            this.showMessage('金幣不足。', 'error');
+            return;
+        }
+
+        if (this.dom.btnEnhanceEquipment) {
+            this.dom.btnEnhanceEquipment.disabled = true;
+            this.dom.btnEnhanceEquipment.textContent = '強化中...';
+        }
+
+        await this.playEnhanceAnimation();
+
+        const result = enhancementManager.enhance(item);
+
+        if (result.success) {
+            questManager.updateProgress(ObjectiveType.ENHANCE, item.rarity || 'any', 1);
+            questManager.updateStats('enhance_level', result.newLevel);
+        }
+
+        GameManager.notify('all');
+        this.showEnhanceResult(result);
+        this.addToEnhanceHistory(result);
+        this.updateUI();
+        this.showEnhanceInfo(item);
+        this.loadEnhanceEquipmentList();
+    }
+
+    async playEnhanceAnimation() {
+        const resultEl = this.dom.enhanceResult;
+        if (!resultEl) return;
+
+        resultEl.style.display = 'flex';
+        resultEl.innerHTML = `
+            <div class="result-icon spinning">⚒️</div>
+            <div class="result-text">強化中...</div>
+        `;
+
+        await this.sleep(900);
+    }
+
+    showEnhanceResult(result) {
+        const resultEl = this.dom.enhanceResult;
+        if (!resultEl) return;
+
+        const icon = result.success ? '✓' : '!';
+        const className = result.success ? 'success' : 'fail';
+        const markText = result.milestoneMark
+            ? `<div class="result-affixes"><span class="affix-tag legendary">${enhancementManager.getMarkDescription(result.milestoneMark)}</span></div>`
+            : '';
+
+        resultEl.innerHTML = `
+            <div class="result-icon ${className}">${icon}</div>
+            <div class="result-text">${result.message}</div>
+            ${markText}
+        `;
+
+        setTimeout(() => {
+            resultEl.style.display = 'none';
+        }, 2600);
+    }
+
+    addToEnhanceHistory(result) {
+        this.enhanceHistory.unshift({
+            ...result,
+            timestamp: Date.now()
+        });
+
+        if (this.enhanceHistory.length > 10) {
+            this.enhanceHistory.pop();
+        }
+
+        this.renderEnhanceHistory();
+    }
+
+    renderEnhanceHistory() {
+        if (!this.dom.enhanceHistory) return;
+
+        if (this.enhanceHistory.length === 0) {
+            this.dom.enhanceHistory.innerHTML = '<div class="empty-inventory">尚無強化紀錄</div>';
+            return;
+        }
+
+        this.dom.enhanceHistory.innerHTML = this.enhanceHistory.map(entry => `
+            <div class="history-entry ${entry.success ? 'success' : 'fail'}">
+                <span class="history-icon">${entry.success ? '✓' : '!'}</span>
+                <span class="history-text">${entry.message}</span>
+            </div>
+        `).join('');
+    }
+
+    getRateClass(rate) {
+        if (rate >= 75) return 'high';
+        if (rate >= 40) return 'medium';
+        return 'low';
+    }
+
+    showMessage(message, type = 'info') {
+        if (!this.dom?.craftResult) return;
+
+        const iconMap = {
+            success: '✓',
+            error: '!',
+            warning: '!',
+            info: 'i'
+        };
+
+        this.dom.craftResult.style.display = 'flex';
+        this.dom.craftResult.className = `craft-result is-${type}`;
+        this.dom.craftResult.innerHTML = `
+            <div class="result-icon">${iconMap[type] || iconMap.info}</div>
+            <div class="result-text">${message}</div>
+        `;
     }
 
     sleep(ms) {

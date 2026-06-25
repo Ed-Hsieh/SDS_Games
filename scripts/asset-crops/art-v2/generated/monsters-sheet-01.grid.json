@@ -1,0 +1,38 @@
+{
+  "source": "incoming/raw/art-v2/monsters-sheet-01.png",
+  "category": "monsters",
+  "columns": 5,
+  "rows": 5,
+  "outputSize": {
+    "width": 512,
+    "height": 512
+  },
+  "format": "webp",
+  "ids": [
+    "",
+    "ancient_guardian",
+    "ancient_mage",
+    "ancient_titan",
+    "ancient_treant",
+    "animated_armor",
+    "",
+    "",
+    "cave_bat",
+    "cave_rat",
+    "cave_spider",
+    "crystal_golem",
+    "demon_general",
+    "demon_king",
+    "",
+    "demon_soldier",
+    "dragon_knight",
+    "drake",
+    "",
+    "earth_elemental",
+    "",
+    "elemental_lord",
+    "fire_elemental",
+    "",
+    "frost_giant"
+  ]
+}

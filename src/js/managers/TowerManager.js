@@ -7,8 +7,10 @@
 import GameManager from './GameManager.js';
 import { getTowerMonster, createMonsterInstance } from './MonsterManager.js';
 import { resolveDropSources, generateDropsFromSources } from './DropManager.js';
+import { getEquipmentEffectTotals, getRewardEffectTotals } from './EquipmentEffectResolver.js';
+import { markItemKnown, markMonsterKnown } from './EncyclopediaManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
-import { getMaterial } from './MaterialManager.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
 export { getBossEquipment };
@@ -27,9 +29,9 @@ export const TowerState = {
 const TOWER_CONFIG = {
     maxFloor: 20,
     bossFloors: [5, 10, 15, 20],
-    // 每層休息點（可恢復部分HP/MP）
+    // 每層休息點（可恢復部分 HP）
     restFloors: [5, 10, 15],
-    restHealPercent: 0.3,  // 休息恢復 30% HP/MP
+    restHealPercent: 0.3,  // 休息恢復 30% HP
     // 通關獎勵倍率
     clearBonusMultiplier: {
         5: 1.5,
@@ -53,6 +55,7 @@ export default class TowerManager {
         this.listeners = [];
         
         // 載入存檔
+        GameManager.registerSaveSystem('tower', this);
         this.loadProgress();
     }
     
@@ -60,7 +63,13 @@ export default class TowerManager {
      * 訂閱事件
      */
     subscribe(callback) {
-        this.listeners.push(callback);
+        if (!this.listeners.includes(callback)) {
+            this.listeners.push(callback);
+        }
+    }
+
+    unsubscribe(callback) {
+        this.listeners = this.listeners.filter(listener => listener !== callback);
     }
     
     /**
@@ -108,6 +117,11 @@ export default class TowerManager {
         // MonsterDatabase). Pass the template object so createMonsterInstance
         // can initialize correctly.
         this.currentMonster = createMonsterInstance(monsterData);
+        this.currentMonster.isBoss = this.isBossFloor(this.currentFloor);
+        this.currentMonster.isElite = Boolean(this.currentMonster.isElite);
+        this.currentMonster.maxHp = this.currentMonster.maxHp ?? this.currentMonster.hp ?? this.currentMonster.currentHp ?? 1;
+        this.currentMonster.hp = this.currentMonster.hp ?? this.currentMonster.currentHp ?? this.currentMonster.maxHp;
+        this.currentMonster.currentHp = this.currentMonster.currentHp ?? this.currentMonster.hp;
         this.state = TowerState.IN_BATTLE;
         this.battleLog = [];
         
@@ -125,7 +139,7 @@ export default class TowerManager {
     }
     
     /**
-     * 執行戰鬥回合
+     * 執行塔層戰鬥節奏
      */
     executeBattleRound(playerAction) {
         if (this.state !== TowerState.IN_BATTLE || !this.currentMonster) {
@@ -156,9 +170,8 @@ export default class TowerManager {
             return this.handleDefeat();
         }
         
-        // 回合結束處理
+        // 戰鬥節奏結算處理
         character.tickBuffs();
-        character.tickSkillCooldowns();
         
         this.notify('battle_round', { roundLog, monster, character });
         
@@ -180,6 +193,7 @@ export default class TowerManager {
         let weaponDestroyed = null;
         
         if (action.type === 'attack') {
+            const effects = getEquipmentEffectTotals(character);
             // 武器耐久度消耗
             weaponDestroyed = GameManager.reduceWeaponDurability();
             if (weaponDestroyed) {
@@ -190,7 +204,7 @@ export default class TowerManager {
             if (action.hitType && action.damage !== undefined) {
                 // 使用節奏條判定的結果
                 damage = action.damage;
-                const def = monster.def || 0;
+                const def = monster.def ?? monster.defense ?? 0;
                 
                 // 根據判定類型生成訊息
                 if (action.hitType === 'crit') {
@@ -209,7 +223,7 @@ export default class TowerManager {
             } else {
                 // 備用邏輯：沒有節奏條時使用原始計算
                 const atk = character.getTotalAtk();
-                const def = monster.def || 0;
+                const def = monster.def ?? monster.defense ?? 0;
                 
                 // 計算傷害
                 damage = Math.max(1, atk - def * 0.5);
@@ -225,31 +239,35 @@ export default class TowerManager {
                     message += `你攻擊 ${monster.name}，造成 ${damage} 點傷害。`;
                 }
             }
-            
-            // 生命偷取（僅在造成傷害時觸發）
+
             if (damage > 0) {
-                // Prefer character.getLifesteal() if available (returns fraction), otherwise fallback to raw weapon property
-                const lifesteal = (typeof character.getLifesteal === 'function') ? character.getLifesteal() : (character.equipment.weapon?.lifesteal || 0);
-                if (lifesteal > 0) {
-                    const healAmount = Math.floor(damage * (lifesteal / 100));
-                    character.hp = Math.min(character.maxHp, character.hp + healAmount);
-                    message += ` 偷取 ${healAmount} 點生命。`;
+                if ((monster.isBoss || monster.type === 'boss') && effects.bossBonus > 0) {
+                    damage += Math.floor(damage * (effects.bossBonus / 100));
+                }
+                const maxMonsterHp = monster.maxHp || monster.hp || monster.currentHp || 0;
+                if (effects.execute > 0 && maxMonsterHp > 0 && (monster.currentHp || monster.hp || 0) <= maxMonsterHp * 0.5) {
+                    damage += Math.floor(damage * (effects.execute / 100));
+                }
+                if (effects.fire > 0) damage += Math.floor(damage * (effects.fire / 100));
+                if (effects.voidDamage > 0) damage += Math.floor(damage * (effects.voidDamage / 100));
+                if (effects.doubleStrike > 0 && Math.random() * 100 < effects.doubleStrike) {
+                    const extraDamage = Math.max(1, Math.floor(damage * 0.5));
+                    damage += extraDamage;
+                    message += ` 觸發雙重打擊，追加 ${extraDamage} 點傷害。`;
                 }
             }
             
-        } else if (action.type === 'skill') {
-            // 使用技能
-            const skillResult = character.useSkill(action.skillIndex, monster);
-            if (skillResult) {
-                damage = skillResult.damage || 0;
-                message = skillResult.message;
-                
-                // 處理 Buff
-                if (skillResult.buff) {
-                    character.addBuff(skillResult.buff.type, skillResult.buff.value, skillResult.buff.duration);
+            // 生命偷取（僅在造成傷害時觸發）
+            if (damage > 0) {
+                const lifesteal = effects.lifesteal;
+                if (lifesteal > 0) {
+                    const missingHp = Math.max(0, character.maxHp - character.hp);
+                    const healAmount = missingHp > 0
+                        ? Math.min(missingHp, Math.max(1, Math.floor(damage * (lifesteal / 100))))
+                        : 0;
+                    character.hp = Math.min(character.maxHp, character.hp + healAmount);
+                    if (healAmount > 0) message += ` 偷取 ${healAmount} 點生命。`;
                 }
-            } else {
-                message = '技能使用失敗！';
             }
             
         } else if (action.type === 'item') {
@@ -275,23 +293,61 @@ export default class TowerManager {
      * 執行怪物行動
      */
     executeMonsterAction(monster, character) {
-        const monsterAtk = monster.atk || 10;
+        const monsterAtk = monster.atk ?? monster.attack ?? 10;
         const playerDef = character.getTotalDef();
+        const effects = getEquipmentEffectTotals(character);
         
         // 計算傷害
         let damage = Math.max(1, monsterAtk - playerDef * 0.5);
         damage = Math.floor(damage);
+
+        if (effects.dodgeChance > 0 && Math.random() * 100 < effects.dodgeChance) {
+            return {
+                actor: 'monster',
+                action: 'attack',
+                damage: 0,
+                message: `${monster.name} 攻擊落空，你閃避了這次攻擊。`,
+                targetHp: character.hp,
+                dodged: true
+            };
+        }
         
         // 傷害減免
-        const damageReduction = character.equipment.armor?.damageReduction || 0;
-        if (damageReduction > 0) {
-            damage = Math.floor(damage * (1 - damageReduction));
+        const damageReduction = typeof character.getDamageReduction === 'function'
+            ? character.getDamageReduction()
+            : (character.equipment.armor?.damageReduction || 0);
+        const normalizedReduction = Math.abs(damageReduction) > 1 ? damageReduction / 100 : damageReduction;
+        if (normalizedReduction > 0) {
+            damage = Math.floor(damage * (1 - Math.min(normalizedReduction, 0.75)));
+        }
+
+        const passiveReduction = typeof character.getPassiveCombatBonus === 'function'
+            ? (monster.isBoss ? Number(character.getPassiveCombatBonus('bossDamageReduction')) || 0 : 0)
+                + (monster.isElite ? Number(character.getPassiveCombatBonus('eliteDamageReduction')) || 0 : 0)
+                + (Number(character.getPassiveCombatBonus('monsterDamageReduction')) || 0)
+            : 0;
+        if (passiveReduction > 0) {
+            damage = Math.max(1, Math.floor(damage * (1 - Math.min(passiveReduction, 0.75))));
         }
         
         // 應用傷害
         character.hp = Math.max(0, character.hp - damage);
         
         let message = `${monster.name} 攻擊你，造成 ${damage} 點傷害。`;
+
+        let reflectedDamage = 0;
+        if (damage > 0 && effects.damageReflect > 0) {
+            reflectedDamage = Math.max(1, Math.floor(damage * (effects.damageReflect / 100)));
+            monster.currentHp = Math.max(0, (monster.currentHp ?? monster.hp ?? 0) - reflectedDamage);
+            message += ` 反彈 ${reflectedDamage} 點傷害。`;
+        }
+
+        let revived = false;
+        if (character.hp <= 0 && effects.revive > 0 && Math.random() * 100 < effects.revive) {
+            character.hp = Math.max(1, Math.floor(character.maxHp * 0.3));
+            revived = true;
+            message += ` 你觸發復活，勉強站了起來。`;
+        }
         
         // 防具耐久度消耗
         const armorDestroyed = GameManager.reduceArmorDurability();
@@ -305,7 +361,9 @@ export default class TowerManager {
             damage,
             message,
             targetHp: character.hp,
-            armorDestroyed: armorDestroyed
+            armorDestroyed: armorDestroyed,
+            reflectedDamage,
+            revived
         };
     }
     
@@ -381,12 +439,15 @@ export default class TowerManager {
      * 計算獎勵
      */
     calculateRewards(monster, isBoss) {
+        markMonsterKnown(monster, { towerFloor: this.currentFloor });
+
         const rewards = {
             gold: monster.gold || 0,
             exp: monster.exp || 0,
             items: [],
             equipment: null
         };
+        const rewardEffects = getRewardEffectTotals(GameManager.getCharacter());
         
         // BOSS 層獎勵加成
         if (isBoss) {
@@ -398,17 +459,25 @@ export default class TowerManager {
             const bossEquipment = getBossEquipment(monster.id);
             if (bossEquipment) {
                 rewards.equipment = bossEquipment;
+                markItemKnown(bossEquipment.id);
             }
         }
+
+        rewards.gold = Math.floor(rewards.gold * (1 + (rewardEffects.goldBonus || 0) / 100));
+        rewards.exp = Math.floor(rewards.exp * (1 + (rewardEffects.expBonus || 0) / 100));
         
         // 計算掉落物品（使用 resolve + generate）
         const sources = resolveDropSources({ monster });
-        const drops = generateDropsFromSources(sources, { rng: Math.random });
+        const drops = generateDropsFromSources(sources, {
+            rng: Math.random,
+            dropBonus: rewardEffects.dropBonus
+        });
         for (const drop of drops) {
-            const material = getMaterial(drop.itemId);
-            if (material) {
+            const item = resolveItemById(drop.itemId, { preferBossEquipment: true });
+            if (item && item.id !== rewards.equipment?.id) {
+                markItemKnown(drop.itemId);
                 rewards.items.push({
-                    ...material,
+                    ...item,
                     quantity: drop.quantity
                 });
             }
@@ -479,12 +548,10 @@ export default class TowerManager {
     restHeal() {
         const character = GameManager.getCharacter();
         const healAmount = Math.floor(character.maxHp * TOWER_CONFIG.restHealPercent);
-        const mpAmount = Math.floor(character.maxMp * TOWER_CONFIG.restHealPercent);
         
         character.hp = Math.min(character.maxHp, character.hp + healAmount);
-        character.mp = Math.min(character.maxMp, character.mp + mpAmount);
         
-        this.notify('rest_heal', { healAmount, mpAmount });
+        this.notify('rest_heal', { healAmount });
     }
     
     /**
@@ -540,29 +607,14 @@ export default class TowerManager {
      * 儲存進度
      */
     saveProgress() {
-        try {
-            const saveData = {
-                highestFloor: this.highestFloor
-            };
-            localStorage.setItem('towerProgress', JSON.stringify(saveData));
-        } catch (e) {
-            console.warn('無法儲存無盡塔進度:', e);
-        }
+        GameManager.markSaveDirty('tower');
     }
     
     /**
      * 載入進度
      */
     loadProgress() {
-        try {
-            const saveData = localStorage.getItem('towerProgress');
-            if (saveData) {
-                const data = JSON.parse(saveData);
-                this.highestFloor = data.highestFloor || 0;
-            }
-        } catch (e) {
-            console.warn('無法載入無盡塔進度:', e);
-        }
+        return this.serialize();
     }
     
     /**
@@ -572,7 +624,26 @@ export default class TowerManager {
         this.highestFloor = 0;
         this.currentFloor = 1;
         this.state = TowerState.IDLE;
-        localStorage.removeItem('towerProgress');
+        this.currentMonster = null;
+        this.battleLog = [];
+        this.collectedRewards = [];
+        this.notify('progress_reset', { highestFloor: this.highestFloor });
+    }
+
+    serialize() {
+        return {
+            highestFloor: this.highestFloor
+        };
+    }
+
+    deserialize(data = {}) {
+        this.highestFloor = Math.max(0, Number(data.highestFloor) || 0);
+        this.currentFloor = 1;
+        this.state = TowerState.IDLE;
+        this.currentMonster = null;
+        this.battleLog = [];
+        this.collectedRewards = [];
+        this.notify('progress_loaded', { highestFloor: this.highestFloor });
     }
     
     /**

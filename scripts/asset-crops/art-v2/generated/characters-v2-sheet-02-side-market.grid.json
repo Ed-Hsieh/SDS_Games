@@ -1,0 +1,22 @@
+{
+  "source": "incoming/raw/art-v2/characters-v2-sheet-02-side-market.png",
+  "category": "portraits",
+  "columns": 3,
+  "rows": 3,
+  "outputSize": {
+    "width": 768,
+    "height": 768
+  },
+  "format": "webp",
+  "ids": [
+    "black_market",
+    "casino_dealer",
+    "tower_warden",
+    "collector_ivan",
+    "accountant_marlo",
+    "lamplighter_tavi",
+    "standard_bearer_frey",
+    "herb_gatherer_leah",
+    "old_miner_bran"
+  ]
+}

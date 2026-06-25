@@ -46,11 +46,10 @@ async function walk(dir) {
 }
 
 function extractSelectorsFromCss(text) {
-  // split by { to get selector groups (naive but practical)
   const candidates = new Set();
-  const parts = text.split('{');
-  for (let i = 0; i < parts.length - 1; i++) {
-    const sel = parts[i].trim();
+  for (const { selector } of extractRuleBlocks(text)) {
+    const sel = selector.trim();
+    if (!sel || sel.startsWith('@')) continue;
     // selectors might be comma separated; keep each chunk
     const groups = sel.split(',');
     for (let g of groups) {
@@ -60,14 +59,47 @@ function extractSelectorsFromCss(text) {
       const idRe = /#([A-Za-z0-9_\-]+)/g;
       let m;
       while ((m = classRe.exec(g)) !== null) {
-        candidates.add({ type: 'class', name: m[1], raw: '.' + m[1] });
+        candidates.add(['class', m[1], '.' + m[1]].join('|'));
       }
       while ((m = idRe.exec(g)) !== null) {
-        candidates.add({ type: 'id', name: m[1], raw: '#' + m[1] });
+        candidates.add(['id', m[1], '#' + m[1]].join('|'));
       }
     }
   }
-  return Array.from(candidates);
+  return Array.from(candidates).map(value => {
+    const [type, name, raw] = value.split('|');
+    return { type, name, raw };
+  });
+}
+
+function extractRuleBlocks(text) {
+  const withoutComments = text.replace(/\/\*[\s\S]*?\*\//g, '');
+  const blocks = [];
+  let i = 0;
+
+  while (i < withoutComments.length) {
+    const open = withoutComments.indexOf('{', i);
+    if (open === -1) break;
+
+    const selector = withoutComments.slice(i, open).trim();
+    let depth = 1;
+    let j = open + 1;
+    while (j < withoutComments.length && depth > 0) {
+      if (withoutComments[j] === '{') depth++;
+      if (withoutComments[j] === '}') depth--;
+      j++;
+    }
+
+    const body = withoutComments.slice(open + 1, j - 1).trim();
+    if (selector.startsWith('@')) {
+      blocks.push(...extractRuleBlocks(body));
+    } else if (selector && body) {
+      blocks.push({ selector, body, rule: `${selector} {\n${body}` });
+    }
+    i = j;
+  }
+
+  return blocks;
 }
 
 function readFileSyncSafe(file) {
@@ -102,13 +134,10 @@ function readFileSyncSafe(file) {
     for (const [cssFile, sels] of Object.entries(selectorsByFile)) {
       const cssText = readFileSyncSafe(cssFile);
       // For better context, map selectors to their rule block text
-      const blocks = cssText.split('}');
+      const blocks = extractRuleBlocks(cssText);
       const blockMap = {};
       for (const block of blocks) {
-        const i = block.indexOf('{');
-        if (i === -1) continue;
-        const sel = block.slice(0, i).trim();
-        const body = block.slice(i + 1).trim();
+        const sel = block.selector;
         // gather class/id names present in sel
         const classRe = /\.([A-Za-z0-9_:\-]+)/g;
         const idRe = /#([A-Za-z0-9_\-]+)/g;
@@ -118,7 +147,7 @@ function readFileSyncSafe(file) {
         while ((m = idRe.exec(sel)) !== null) names.push({type:'id', name: m[1]});
         if (names.length) {
           for (const nm of names) {
-            blockMap[nm.name] = block.trim();
+            blockMap[nm.name] = block.rule;
           }
         }
       }

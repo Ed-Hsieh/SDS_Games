@@ -92,7 +92,7 @@ export const PrefixDatabase = {
         name: '嗜血的',
         rarity: ItemRarity.RARE,
         type: 'prefix',
-        stats: { [AffixStat.LIFESTEAL]: [3, 6] },
+        stats: { [AffixStat.LIFE_STEAL]: [3, 6] },
         description: '生命偷取 +{lifesteal}%',
         applicableTo: ['weapon']
     },
@@ -121,7 +121,7 @@ export const PrefixDatabase = {
         name: '鮮血的',
         rarity: ItemRarity.EPIC,
         type: 'prefix',
-        stats: { [AffixStat.LIFESTEAL]: [6, 10], [AffixStat.ATK]: [5, 10] },
+        stats: { [AffixStat.LIFE_STEAL]: [6, 10], [AffixStat.ATK]: [5, 10] },
         description: '生命偷取 +{lifesteal}%，攻擊力 +{atk}',
         applicableTo: ['weapon']
     },
@@ -141,7 +141,7 @@ export const PrefixDatabase = {
         name: '不朽的',
         rarity: ItemRarity.LEGENDARY,
         type: 'prefix',
-        stats: { [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [60, 100], [AffixStat.LIFESTEAL]: 10, [AffixStat.DAMAGE_REDUCTION]: 10 },
+        stats: { [AffixStat.DEF]: [6, 10], [AffixStat.HP]: [60, 100], [AffixStat.LIFE_STEAL]: 10, [AffixStat.DAMAGE_REDUCTION]: 10 },
         description: '防禦力 +{def}，生命 +{hp}，生命偷取 +{lifesteal}%，傷害減免 +{damageReduction}%',
         applicableTo: ['armor']
     },
@@ -281,7 +281,7 @@ export const SuffixDatabase = {
         name: '生機',
         rarity: ItemRarity.EPIC,
         type: 'suffix',
-        stats: { [AffixStat.LIFESTEAL]: [5, 10], [AffixStat.HP]: 40 },
+        stats: { [AffixStat.LIFE_STEAL]: [5, 10], [AffixStat.HP]: 40 },
         description: '吸血 +{lifesteal}%，生命 +{hp}',
         applicableTo: ['armor', 'accessory']
     },
