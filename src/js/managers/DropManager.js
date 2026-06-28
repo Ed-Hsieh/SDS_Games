@@ -33,6 +33,9 @@ const ZoneTypeToPoolKey = {
     boss: 'death_wastes'
 };
 
+const MATERIAL_DROP_CHANCE_MULTIPLIER = 0.58;
+const MATERIAL_POOL_DEFAULT_CHANCE = 0.55;
+
 function resolveZonePoolKey(zoneIdOrType) {
     if (!zoneIdOrType) return null;
     if (ZoneDropPools[zoneIdOrType]) return zoneIdOrType;
@@ -52,12 +55,19 @@ function resolveQuantity(qty, rng = Math.random) {
     return min + Math.floor(rng() * (max - min + 1));
 }
 
+function resolveScaledChance(chance, multiplier = 1) {
+    const baseChance = Number(chance) || 0;
+    if (baseChance >= 1) return 1;
+    return Math.max(0, Math.min(1, baseChance * multiplier));
+}
+
 // Roll implementation for a generic entries array (DropEntry[])
-function rollFromEntries(entries, defaultQuantity = [1, 1], rng = Math.random, chanceMultiplier = 1) {
+function rollFromEntries(entries, defaultQuantity = [1, 1], rng = Math.random, chanceMultiplier = 1, defaultEntryChance = null) {
     if (!Array.isArray(entries) || entries.length === 0) return null;
     const candidates = entries.filter(it => {
-        if (it.chance == null) return true;
-        return rng() <= Math.min(1, it.chance * chanceMultiplier);
+        const baseChance = it.chance == null ? defaultEntryChance : it.chance;
+        if (baseChance == null || baseChance >= 1) return true;
+        return rng() <= Math.min(1, baseChance * chanceMultiplier);
     });
     if (candidates.length === 0) return null;
     const picked = weightedPick(candidates, rng);
@@ -136,9 +146,12 @@ export function generateDropsFromSources(sources = [], options = {}) {
     // 1) Handle monster_unique and monster_equip: each entry is an independent chance roll
     for (const src of sources) {
         if (src.type === DropSourceType.MonsterUnique || src.type === DropSourceType.MonsterEquipment) {
+            const sourceChanceMultiplier = src.type === DropSourceType.MonsterEquipment
+                ? chanceMultiplier
+                : chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER;
             for (const e of src.entries) {
                 const roll = rng();
-                if (roll <= Math.min(1, (e.chance || 0) * chanceMultiplier)) {
+                if (roll <= resolveScaledChance(e.chance, sourceChanceMultiplier)) {
                     const qty = resolveQuantity(e.quantity, rng);
                     drops.push({ itemId: e.id, quantity: qty, source: src.type });
                 }
@@ -157,18 +170,19 @@ export function generateDropsFromSources(sources = [], options = {}) {
         if (zoneSource && dungeonSource) {
             const denom = zoneWeight + dungeonWeight;
             const pickDungeonProb = dungeonWeight / denom;
+            const poolChanceMultiplier = chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER;
             if (rng() <= pickDungeonProb) {
-                const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier);
+                const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, poolChanceMultiplier, MATERIAL_POOL_DEFAULT_CHANCE);
                 if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
             } else {
-                const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier);
+                const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, poolChanceMultiplier, MATERIAL_POOL_DEFAULT_CHANCE);
                 if (r) drops.push({ ...r, source: DropSourceType.Zone });
             }
         } else if (dungeonSource) {
-            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier);
+            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
             if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
         } else if (zoneSource) {
-            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier);
+            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
             if (r) drops.push({ ...r, source: DropSourceType.Zone });
         }
     }

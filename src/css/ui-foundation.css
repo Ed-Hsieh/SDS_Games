@@ -4697,9 +4697,10 @@ body {
 .combat-panel-bottom {
     padding: 12px !important;
     gap: 10px !important;
-    background: rgba(255, 255, 255, 0.045) !important;
-    border: 1px solid var(--ui-border) !important;
-    border-radius: 10px !important;
+    background: rgba(9, 14, 22, 0.36) !important;
+    border: 0 !important;
+    border-top: 1px solid var(--ui-border) !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
 }
 
@@ -4707,7 +4708,7 @@ body {
 .combat-panel-bottom .player-info-bar {
     padding: 10px 12px !important;
     gap: 12px !important;
-    background: rgba(255, 255, 255, 0.045) !important;
+    background: rgba(255, 255, 255, 0.035) !important;
     border: 1px solid var(--ui-border) !important;
     border-radius: 8px !important;
     box-shadow: none !important;
@@ -8419,6 +8420,41 @@ body {
 .tower-player-battle-panel,
 .combat-panel-bottom {
     position: relative;
+}
+
+.tower-scene .battle-state:not(.hidden) {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 2300 !important;
+    width: min(980px, calc(100vw - 72px)) !important;
+    max-height: calc(100dvh - 72px) !important;
+    overflow-y: auto !important;
+    display: grid !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    border: 1px solid var(--ui-border-strong) !important;
+    border-radius: 10px !important;
+    background: rgba(16, 21, 30, 0.96) !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55) !important;
+    isolation: isolate;
+}
+
+.tower-scene .battle-state:not(.hidden)::before {
+    content: '';
+    position: fixed;
+    inset: -100vmax;
+    z-index: -1;
+    background: rgba(5, 8, 13, 0.72);
+    backdrop-filter: blur(8px) saturate(115%);
+}
+
+.tower-scene .battle-state:not(.hidden) .tower-player-battle-panel,
+.tower-scene .battle-state:not(.hidden) .tower-action-deck {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
 }
 
 .combat-rank-badge {

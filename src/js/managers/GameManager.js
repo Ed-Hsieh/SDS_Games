@@ -862,8 +862,8 @@ class GameManager {
         
         // 如果沒有耐久度屬性，初始化
         if (weapon.durability === undefined) {
-            weapon.durability = 50;
-            weapon.maxDurability = 50;
+            weapon.durability = 35;
+            weapon.maxDurability = 35;
         }
         
         weapon.durability = Math.max(0, weapon.durability - 1);
@@ -894,8 +894,8 @@ class GameManager {
         
         // 如果沒有耐久度屬性，初始化
         if (armor.durability === undefined) {
-            armor.durability = 50;
-            armor.maxDurability = 50;
+            armor.durability = 35;
+            armor.maxDurability = 35;
         }
         
         armor.durability = Math.max(0, armor.durability - 1);
@@ -919,8 +919,8 @@ class GameManager {
         if (!equipment) return null;
         
         return {
-            current: equipment.durability ?? 50,
-            max: equipment.maxDurability ?? 50
+            current: equipment.durability ?? 35,
+            max: equipment.maxDurability ?? 35
         };
     }
     

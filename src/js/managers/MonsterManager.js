@@ -12,6 +12,7 @@ import {
     TowerMonsters,
     MonsterType
 } from '../data/Monsters.js';
+import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
 
 export function getMonster(monsterId) {
     return AllMonsters.find(m => m.id === monsterId) || null;
@@ -50,7 +51,7 @@ export function createMonsterInstance(monsterOrId) {
     const atk = template.atk ?? template.attack ?? 0;
     const def = template.def ?? template.defense ?? 0;
 
-    return {
+    return applyMonsterCombatBalance({
         ...template,
 
         // base identity
@@ -87,7 +88,7 @@ export function createMonsterInstance(monsterOrId) {
 
         buffs: [],
         debuffs: []
-    };
+    });
 }
 
 export function createRandomMonsterForZone(zoneType, rng = Math.random) {

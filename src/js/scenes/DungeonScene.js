@@ -12,6 +12,7 @@ import { markBlueprintKnown, markMonsterKnown } from '../managers/EncyclopediaMa
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
+import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { escapeHtml } from '../utils/ItemDisplay.js';
@@ -33,6 +34,8 @@ let FightManager = null;
 const FightManagerReady = import('../managers/FightManager.js')
     .then(mod => { FightManager = mod; return mod; })
     .catch(err => { console.error('Failed to preload FightManager:', err); return null; });
+
+const MATERIAL_TREASURE_CHANCE_MULTIPLIER = 0.58;
 
 class DungeonSceneClass {
     constructor() {
@@ -973,7 +976,7 @@ class DungeonSceneClass {
 
     getDungeonTreasureQuantity(item) {
         const type = String(item?.type || '').toLowerCase();
-        if (type === 'material') return Math.random() < 0.35 ? 2 : 1;
+        if (type === 'material') return Math.random() < 0.20 ? 2 : 1;
         return 1;
     }
 
@@ -1001,10 +1004,16 @@ class DungeonSceneClass {
 
     tryGrantDungeonTreasureItem(chance = 0, label = '找到副本物資', dungeonData = DungeonDatabase[this.dungeonType]) {
         const safeChance = Math.max(0, Math.min(1, Number(chance) || 0));
-        if (safeChance <= 0 || Math.random() >= safeChance) return false;
+        if (safeChance <= 0) return false;
 
         const item = this.pickDungeonTreasureItem(dungeonData);
         if (!item) return false;
+
+        const type = String(item?.type || '').toLowerCase();
+        const adjustedChance = type === 'material'
+            ? safeChance * MATERIAL_TREASURE_CHANCE_MULTIPLIER
+            : safeChance;
+        if (Math.random() >= adjustedChance) return false;
 
         return this.grantDungeonItem(item, this.getDungeonTreasureQuantity(item), label);
     }
@@ -1075,6 +1084,7 @@ class DungeonSceneClass {
         monster.defense = Math.floor(baseDefense * floorBonus);
         monster.atk = monster.attack;
         monster.def = monster.defense;
+        applyMonsterCombatBalance(monster);
         
         this.currentMonster = monster;
         this.isInCombat = true;
@@ -1255,8 +1265,8 @@ class DungeonSceneClass {
         // For dungeon simple action, treat as a normal hit
         const res = this._engine.playerAttack('hit');
         if (!res) return;
-        const attackCooldown = this._engine.getPlayerActionCooldownSeconds?.(GameManager.getCharacter()?.getAttackSpeed?.() || 1)
-            || GameManager.getCharacter()?.getAttackSpeed?.()
+        const attackCooldown = this._engine.getPlayerActionCooldownSeconds?.()
+            || GameManager.getCharacter()?.getAttackInterval?.()
             || 1;
         startCombatActionCooldown(this.dom.btnAttack, attackCooldown);
 
@@ -1265,9 +1275,14 @@ class DungeonSceneClass {
 
         if (applyRes && typeof applyRes.finalDamage === 'number') {
             const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
-            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage);
+            const profileStrikeDamage = Math.max(0, Number(applyRes.profileStrike?.finalDamage) || 0);
+            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage - profileStrikeDamage);
             this.addMessage(`⚔️ 造成 ${applyRes.finalDamage} 點傷害`, 'player-action');
             this.showMonsterDamageNumber(primaryDamage || applyRes.finalDamage, Boolean(res.computeRes?.isCrit));
+            if (profileStrikeDamage > 0) {
+                this.addMessage(`⚡ ${applyRes.profileStrike?.label || '武器追擊'} 追加 ${profileStrikeDamage} 點傷害`, 'player-action');
+                this.showMonsterDamageNumber(profileStrikeDamage, false, 'doubleStrike', `${applyRes.profileStrike?.label || '武器追擊'} -${profileStrikeDamage}`);
+            }
             if (doubleStrikeDamage > 0) {
                 this.addMessage(`⚡ 雙重打擊追加 ${doubleStrikeDamage} 點傷害`, 'player-action');
                 this.showMonsterDamageNumber(doubleStrikeDamage, false, 'doubleStrike', `⚡ 連擊 -${doubleStrikeDamage}`);

@@ -4,6 +4,7 @@
  */
 
 import { DungeonStoryDatabase } from './DungeonStories.js';
+import { applyMonsterCombatBalance } from './CombatBalance.js';
 
 // ==================== 副本類型 ====================
 export const DungeonType = {
@@ -660,7 +661,7 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
     const attack = Math.floor((monster.attack ?? monster.atk ?? 0) * floorMultiplier);
     const defense = Math.floor((monster.defense ?? monster.def ?? 0) * floorMultiplier);
     
-    return {
+    return applyMonsterCombatBalance({
         ...monster,
         hp: Math.floor(monster.hp * floorMultiplier),
         maxHp: Math.floor(monster.hp * floorMultiplier),
@@ -670,7 +671,7 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
         def: defense,
         exp: Math.floor(monster.exp * floorMultiplier),
         gold: monster.gold.map(g => Math.floor(g * floorMultiplier))
-    };
+    });
 }
 
 /**
@@ -683,7 +684,7 @@ export function generateDungeonBoss(dungeonType) {
     const attack = boss.attack ?? boss.atk ?? 0;
     const defense = boss.defense ?? boss.def ?? 0;
     
-    return {
+    return applyMonsterCombatBalance({
         ...boss,
         maxHp: boss.hp,
         attack,
@@ -691,7 +692,7 @@ export function generateDungeonBoss(dungeonType) {
         atk: attack,
         def: defense,
         isBoss: true
-    };
+    });
 }
 
 /**

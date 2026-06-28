@@ -604,12 +604,19 @@ class TowerScene {
         const applyRes = res.applyRes || {};
         const damage = applyRes.finalDamage ?? 0;
         const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
-        const primaryDamage = Math.max(0, damage - doubleStrikeDamage);
+        const profileStrikeDamage = Math.max(0, Number(applyRes.profileStrike?.finalDamage) || 0);
+        const primaryDamage = Math.max(0, damage - doubleStrikeDamage - profileStrikeDamage);
         showCombatDamageNumber(this.battleStateEl, primaryDamage || damage, {
             type: hitType === 'miss' ? 'dodge' : damage <= 0 ? 'block' : res.computeRes?.isCrit ? 'critical' : 'normal',
             isCrit: Boolean(res.computeRes?.isCrit),
             isMiss: hitType === 'miss'
         });
+        if (profileStrikeDamage > 0) {
+            showCombatDamageNumber(this.battleStateEl, profileStrikeDamage, {
+                type: 'doubleStrike',
+                label: `${applyRes.profileStrike?.label || '武器追擊'} -${profileStrikeDamage}`
+            });
+        }
         if (doubleStrikeDamage > 0) {
             showCombatDamageNumber(this.battleStateEl, doubleStrikeDamage, {
                 type: 'doubleStrike',

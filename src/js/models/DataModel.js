@@ -49,8 +49,8 @@ export class Equipment extends Item {
         this.critChance = critChance; // 所有裝備都有爆擊率
         this.critDamage = critDamage; // 所有裝備都有爆擊傷害
 
-        // 耐久度系統 - 武器和防具才有；如果未提供則落在預設 50
-        const resolvedMaxDurability = Number.isFinite(maxDurability) ? maxDurability : 50;
+        // 耐久度系統 - 武器和防具才有；如果未提供則落在預設 35
+        const resolvedMaxDurability = Number.isFinite(maxDurability) ? maxDurability : 35;
         this.maxDurability = resolvedMaxDurability;
         this.durability = Number.isFinite(durability) ? durability : resolvedMaxDurability;
     }

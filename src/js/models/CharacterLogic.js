@@ -78,14 +78,14 @@ export function getTotalDef(character) {
 }
 
 export function getCritChance(character) {
-    let totalCritChance = 0.05;
+    let totalCritChance = 0.04;
     const effects = getResolvedEquipmentEffects(character);
     Object.values(character.equipment || {}).forEach(item => {
         totalCritChance += toFraction(readItemStat(item, 'critChance', 'crit_chance'));
     });
     totalCritChance += toFraction(effects.critChance);
     totalCritChance += toFraction(getBuffValue(character, 'critChance'));
-    return Math.min(totalCritChance, 1.0);
+    return Math.min(totalCritChance, 0.45);
 }
 
 export function getCritDamage(character) {
@@ -98,7 +98,9 @@ export function getCritDamage(character) {
     });
     additionalCritDamage += toFraction(effects.critDamage);
     additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
-    return totalCritDamage + additionalCritDamage;
+    const rawCritDamage = totalCritDamage + additionalCritDamage;
+    if (rawCritDamage <= 2.0) return rawCritDamage;
+    return Math.min(2.45, 2.0 + (rawCritDamage - 2.0) * 0.45);
 }
 
 export function getWeaponSpeed(character) {
@@ -257,10 +259,16 @@ export function calculateMaxExp(character) {
 export function checkLevelUp(character) {
     const getMaxExp = () => calculateMaxExp(character);
     while ((character.exp || 0) >= getMaxExp()) {
+        const requiredExp = getMaxExp();
+        const previousMaxHp = character.maxHp || calculateMaxHp(character);
+        const previousHp = character.hp || 0;
         character.level = (character.level || 1) + 1;
-        character.exp -= getMaxExp();
+        character.exp -= requiredExp;
         character.maxHp = calculateMaxHp(character);
-        character.hp = character.maxHp;
+        const maxHpGain = Math.max(0, character.maxHp - previousMaxHp);
+        const levelHeal = Math.max(maxHpGain, Math.floor(character.maxHp * 0.35));
+        character.hp = Math.min(character.maxHp, previousHp + levelHeal);
+        character.lastLevelUpHeal = character.hp - previousHp;
         character.maxExp = calculateMaxExp(character);
     }
 }

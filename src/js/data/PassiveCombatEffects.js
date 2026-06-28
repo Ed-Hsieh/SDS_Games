@@ -7,7 +7,7 @@ export const PassiveCombatEffectDatabase = {
         icon: '🎯',
         rarity: 'common',
         description: '戰鬥中永久提高爆擊率。',
-        bonuses: { critChance: 0.10 }
+        bonuses: { critChance: 0.04 }
     },
     heavy_grip: {
         id: 'heavy_grip',

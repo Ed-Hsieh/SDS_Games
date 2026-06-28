@@ -3486,8 +3486,8 @@ export default class AdventureScene {
                 weaponCard.appendChild(durabilityEl);
             }
             if (durabilityEl) {
-                const dur = weapon.durability ?? 50;
-                const maxDur = weapon.maxDurability ?? 50;
+                const dur = weapon.durability ?? 35;
+                const maxDur = weapon.maxDurability ?? 35;
                 const durPercent = (dur / maxDur) * 100;
                 const durClass = durPercent <= 20 ? 'critical' : durPercent <= 50 ? 'warning' : '';
                 durabilityEl.className = `durability-display ${durClass}`;
@@ -3754,8 +3754,12 @@ class AdventureBattleViewController {
         // show actual final damage
         if (applyRes && typeof applyRes.finalDamage === 'number') {
             const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
-            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage);
+            const profileStrikeDamage = Math.max(0, Number(applyRes.profileStrike?.finalDamage) || 0);
+            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage - profileStrikeDamage);
             this.showDamageNumber(primaryDamage || applyRes.finalDamage, computeRes.isCrit, false);
+            if (profileStrikeDamage > 0) {
+                this.showEffectNumber('doubleStrike', profileStrikeDamage, `${applyRes.profileStrike?.label || '武器追擊'} -${profileStrikeDamage}`);
+            }
             if (doubleStrikeDamage > 0) {
                 this.showEffectNumber('doubleStrike', doubleStrikeDamage, `⚡ 連擊 -${doubleStrikeDamage}`);
             }

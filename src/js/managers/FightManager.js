@@ -1,6 +1,8 @@
 
 import GameManager from './GameManager.js';
 import { getEquipmentEffectTotals } from './EquipmentEffectResolver.js';
+import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
+import { getWeaponCombatProfile, getWeaponLifestealBounds } from '../utils/WeaponCombatProfile.js';
 
 function getPassiveCombatBonus(character, stat) {
     return typeof character?.getPassiveCombatBonus === 'function'
@@ -65,11 +67,29 @@ function syncActiveStatusEffects(entity, now = Date.now()) {
     return active;
 }
 
+function getTargetArmorBreakPercent(target, now = Date.now()) {
+    return Math.min(
+        75,
+        syncActiveStatusEffects(target, now)
+            .filter(effect => effect.type === 'armorBreak')
+            .reduce((sum, effect) => sum + (Number(effect.percent) || 0), 0)
+    );
+}
+
+function rollFlatLifestealBonus(bounds) {
+    if (!bounds) return 0;
+    const min = Math.max(0, Math.floor(Number(bounds.min) || 0));
+    const max = Math.max(min, Math.floor(Number(bounds.max) || min));
+    if (max <= 0) return 0;
+    return min + Math.floor(Math.random() * (max - min + 1));
+}
+
 function getStatusLabel(effect) {
     const labels = {
         stun: '暈眩',
         slow: '緩速',
-        poison: '中毒'
+        poison: '中毒',
+        armorBreak: '破甲'
     };
     return effect?.name || labels[effect?.type] || '狀態';
 }
@@ -79,6 +99,7 @@ function getStatusIcon(effect) {
         stun: '⚡',
         slow: '❄️',
         poison: '☠️',
+        armorBreak: '🛡️',
         attackSpeed: '✨',
         hpRegen: '💚'
     };
@@ -112,7 +133,7 @@ export function normalizeMonsterCombatStats(monster) {
     monster.maxHp = maxHp;
     if (monster.currentHp === undefined) monster.currentHp = hp;
 
-    return monster;
+    return applyMonsterCombatBalance(monster);
 }
 
 /**
@@ -123,16 +144,33 @@ export function computePlayerAttack(player, hitType) {
     if (!player) return { damage: 0, isCrit: false, breakdown: {} };
 
     const playerAtk = player.getTotalAtk ? player.getTotalAtk() : (player.atk || 0);
-    if (hitType === 'miss') return { damage: 0, isCrit: false, breakdown: { base: 0 } };
+    const weaponProfile = getWeaponCombatProfile(player);
+    if (hitType === 'miss') {
+        return {
+            damage: 0,
+            isCrit: false,
+            breakdown: {
+                base: 0,
+                weaponProfileId: weaponProfile.id,
+                weaponProfileLabel: weaponProfile.label
+            }
+        };
+    }
 
     let damage = 0;
     let isCrit = false;
+    const damageMultiplier = Math.max(0.1, Number(weaponProfile.damageMultiplier) || 1);
+    const critDamageMultiplier = Math.max(0.1, Number(weaponProfile.critDamageMultiplier) || 1);
     if (hitType === 'crit') {
-        const critMult = player.getCritDamage ? player.getCritDamage() : 1.5;
+        const critMult = (player.getCritDamage ? player.getCritDamage() : 1.5) * critDamageMultiplier;
         damage = Math.floor(playerAtk * critMult);
         isCrit = true;
     } else {
         damage = Math.floor(playerAtk);
+    }
+
+    if (damage > 0 && damageMultiplier !== 1) {
+        damage = Math.max(1, Math.floor(damage * damageMultiplier));
     }
 
     const equipmentEffects = getEquipmentEffectTotals(player);
@@ -165,7 +203,10 @@ export function computePlayerAttack(player, hitType) {
         poisonPercent,
         lightPercent,
         voidDamagePercent,
-        elementalBonus
+        elementalBonus,
+        weaponProfileId: weaponProfile.id,
+        weaponProfileLabel: weaponProfile.label,
+        profileArmorPenetrationBonus: weaponProfile.armorPenetrationBonus || 0
     };
     if (voidBonus > 0) breakdown.voidBonus = voidBonus;
 
@@ -230,9 +271,12 @@ export function applyDamage(attacker, target, damageObj) {
     const targetDef = (typeof target.getTotalDef === 'function') ? (target.getTotalDef()) : (target.def || target.defense || 0);
     if (targetDef && damage > 0) {
         // Calculate armor penetration from attacker equipment (reduces target armor before subtraction)
-        const armorPenPercent = attackerEffects?.armorPenetration || 0;
-        const pen = Math.max(0, Math.min(100, armorPenPercent || 0));
-        const effectiveDef = Math.max(0, Math.floor(targetDef * (1 - pen / 100)));
+        const profilePenPercent = Number(damageObj.breakdown?.profileArmorPenetrationBonus) || 0;
+        const armorPenPercent = (attackerEffects?.armorPenetration || 0) + profilePenPercent;
+        const armorBreakPercent = getTargetArmorBreakPercent(target);
+        const pen = Math.max(0, Math.min(90, armorPenPercent || 0));
+        const brokenDef = Math.max(0, Math.floor(targetDef * (1 - armorBreakPercent / 100)));
+        const effectiveDef = Math.max(0, Math.floor(brokenDef * (1 - pen / 100)));
         damage = Math.max(0, Math.floor(damage - effectiveDef));
     }
 
@@ -257,9 +301,11 @@ export function applyDamage(attacker, target, damageObj) {
             const currentHp = getCurrentHp(attacker);
             const maxHp = getMaxHp(attacker) || Infinity;
             const missingHp = Math.max(0, maxHp - currentHp);
+            const flatLifesteal = rollFlatLifestealBonus(getWeaponLifestealBounds(attacker));
+            const percentLifesteal = Math.max(1, Math.floor(finalDamage * (lifestealPercent / 100)));
             // Small early-game hits should still visibly trigger lifesteal.
             lifestealRecovered = missingHp > 0
-                ? Math.min(missingHp, Math.max(1, Math.floor(finalDamage * (lifestealPercent / 100))))
+                ? Math.min(missingHp, Math.max(percentLifesteal, flatLifesteal))
                 : 0;
             if (typeof attacker.hp === 'number') {
                 attacker.hp = Math.min((attacker.maxHp || Infinity), attacker.hp + lifestealRecovered);
@@ -353,6 +399,7 @@ export class BattleController {
         this._statusTickIntervalId = null;
         this._nextPlayerRegenAt = 0;
         this._playerAttackSpeedBonusPercent = 0;
+        this._weaponProfileCombo = 0;
     }
 
     _getActiveMonsterStatusEffects(now = Date.now()) {
@@ -385,9 +432,15 @@ export class BattleController {
     }
 
     getPlayerActionCooldownSeconds(baseSeconds = null) {
-        const base = Number(baseSeconds ?? this.player?.getAttackSpeed?.() ?? 1) || 1;
+        const intervalFromSpeed = this.player?.getAttackSpeed
+            ? 1 / Math.max(0.1, Number(this.player.getAttackSpeed()) || 1)
+            : 1;
+        const baseInterval = Number(baseSeconds ?? this.player?.getAttackInterval?.() ?? intervalFromSpeed) || 1;
+        const profile = getWeaponCombatProfile(this.player);
+        const profileCooldown = Math.max(0.1, Number(profile.cooldownMultiplier) || 1);
+        const base = baseInterval * profileCooldown;
         const multiplier = 1 + this.getPlayerAttackSpeedBonusPercent() / 100;
-        return Math.max(0.1, base / Math.max(0.1, multiplier));
+        return Math.max(0.18, base / Math.max(0.1, multiplier));
     }
 
     _getMonsterAttackDelayMs() {
@@ -427,6 +480,10 @@ export class BattleController {
             status.dps = dps;
             status.nextTickAt = now + 1000;
             status.description = `每秒 ${dps} 傷害，持續 ${Math.ceil(duration)} 秒`;
+        } else if (effect.type === 'armorBreak') {
+            const percent = Math.max(0, Number(effect.percent) || 0);
+            status.percent = percent;
+            status.description = `防禦降低 ${Math.round(percent)}%，持續 ${Math.ceil(duration)} 秒`;
         }
 
         if (existing) {
@@ -472,7 +529,7 @@ export class BattleController {
             const percent = Math.max(0, Number(effect.percent) || 0);
             if (percent <= 0) continue;
 
-            this._playerAttackSpeedBonusPercent += percent;
+            this._playerAttackSpeedBonusPercent = Math.min(35, this._playerAttackSpeedBonusPercent + percent);
             statusEvents.push({
                 type: 'attackSpeed',
                 source: effect.source || 'equipment',
@@ -613,6 +670,76 @@ export class BattleController {
         this._scheduleNextAutoAttack();
     }
 
+    _isMonsterAlive() {
+        return Boolean(
+            this.monster
+            && getCurrentHp(this.monster) > 0
+            && !(typeof this.monster.isDead === 'function' && this.monster.isDead())
+        );
+    }
+
+    _resolveWeaponProfileEffects(profile, hitType, computeRes, applyRes) {
+        const effects = {
+            statusEffects: [],
+            attackerStatusEffects: [],
+            extraStrike: null
+        };
+
+        if (!profile || hitType === 'miss' || !applyRes?.finalDamage) {
+            this._weaponProfileCombo = 0;
+            return effects;
+        }
+
+        this._weaponProfileCombo += 1;
+
+        if (profile.armorBreakPercent > 0) {
+            effects.statusEffects.push({
+                type: 'armorBreak',
+                percent: profile.armorBreakPercent,
+                duration: profile.armorBreakDuration || 4,
+                source: `weapon:${profile.id}`,
+                value: profile.armorBreakPercent
+            });
+        }
+
+        if (profile.slowChance > 0) {
+            const chance = hitType === 'crit'
+                ? Math.max(profile.slowChance, 75)
+                : profile.slowChance;
+            if (Math.random() * 100 < chance) {
+                effects.statusEffects.push({
+                    type: 'slow',
+                    percent: profile.slowPercent || 20,
+                    duration: profile.slowDuration || 2.5,
+                    source: `weapon:${profile.id}`,
+                    value: chance
+                });
+            }
+        }
+
+        if (profile.critTempoPercent > 0 && hitType === 'crit') {
+            effects.attackerStatusEffects.push({
+                type: 'attackSpeed',
+                percent: profile.critTempoPercent,
+                stacking: 'infinite',
+                source: `weapon:${profile.id}`
+            });
+        }
+
+        if (
+            profile.comboEvery > 0
+            && this._weaponProfileCombo > 0
+            && this._weaponProfileCombo % profile.comboEvery === 0
+        ) {
+            effects.extraStrike = {
+                damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.comboDamageRatio || 0.45))),
+                label: profile.comboLabel || profile.label || 'Weapon Chain'
+            };
+        }
+
+        return effects;
+    }
+
     /**
      * Execute a player attack. Returns an object with computation and application results.
      * The method will schedule a monsterAttack() call after 1s if the battle hasn't ended.
@@ -642,6 +769,33 @@ export class BattleController {
             try {
                 applyRes = applyDamage(this.player, this.monster, { damage: computeRes.damage, isCrit: computeRes.isCrit, breakdown: computeRes.breakdown });
                 const pendingStatusEffects = [...(applyRes.appliedEffects || [])];
+                const weaponProfile = getWeaponCombatProfile(this.player);
+                const profileEffects = this._resolveWeaponProfileEffects(weaponProfile, hitType, computeRes, applyRes);
+                pendingStatusEffects.push(...profileEffects.statusEffects);
+                applyRes.attackerEffects = [
+                    ...(applyRes.attackerEffects || []),
+                    ...profileEffects.attackerStatusEffects
+                ];
+
+                if (profileEffects.extraStrike && this._isMonsterAlive()) {
+                    const profileStrikeRes = applyDamage(this.player, this.monster, {
+                        damage: profileEffects.extraStrike.damage,
+                        isCrit: false,
+                        breakdown: {
+                            ...computeRes.breakdown,
+                            profileStrike: true,
+                            profileStrikeSource: weaponProfile.id
+                        }
+                    });
+                    applyRes.finalDamage += profileStrikeRes.finalDamage;
+                    applyRes.afterHP = profileStrikeRes.afterHP;
+                    applyRes.lifestealRecovered += profileStrikeRes.lifestealRecovered || 0;
+                    pendingStatusEffects.push(...(profileStrikeRes.appliedEffects || []));
+                    applyRes.profileStrike = {
+                        ...profileStrikeRes,
+                        label: profileEffects.extraStrike.label
+                    };
+                }
 
                 const effects = getEquipmentEffectTotals(this.player);
                 if (
@@ -665,6 +819,7 @@ export class BattleController {
                     applyRes.doubleStrike = secondaryRes;
                 }
 
+                applyRes.appliedEffects = pendingStatusEffects;
                 const statusEvents = this.applyMonsterStatusEffects(pendingStatusEffects);
                 applyRes.statusEvents = statusEvents;
                 const attackerStatusEvents = this.applyAttackerStatusEffects(applyRes.attackerEffects);

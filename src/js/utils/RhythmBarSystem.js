@@ -3,6 +3,7 @@
  * 用於 AdventureScene 和 TowerScene 的戰鬥節奏條
  */
 import audioManager from './AudioManager.js';
+import { getWeaponCombatProfile } from './WeaponCombatProfile.js';
 
 class RhythmBarSystem {
     constructor(character, container, options = {}) {
@@ -49,12 +50,16 @@ class RhythmBarSystem {
         // 取得武器速度（控制指針移動速度）
         // weaponSpeed 越高，指針移動越快
         this.weaponSpeed = this.character.getWeaponSpeed?.() || 1.0;
+        this.weaponProfile = getWeaponCombatProfile(this.character);
+        this.weaponSpeed *= Math.max(0.1, Number(this.weaponProfile.needleSpeedMultiplier) || 1);
         
         // 取得攻擊速度（控制冷卻時間）
-        // attackSpeed 是冷卻秒數
-        const baseAttackSpeed = this.character.getAttackSpeed?.() || 1.0;
+        // attackSpeed is stored as attacks-per-second; cooldown needs seconds-per-attack.
+        const baseAttackSpeed = this.character.getAttackInterval?.()
+            || (1 / Math.max(0.1, this.character.getAttackSpeed?.() || 1.0));
+        const profileCooldown = Math.max(0.1, Number(this.weaponProfile.cooldownMultiplier) || 1);
         const battleMultiplier = 1 + Math.max(0, Number(this.battleAttackSpeedBonusPercent) || 0) / 100;
-        this.attackSpeed = Math.max(0.1, baseAttackSpeed / Math.max(0.1, battleMultiplier));
+        this.attackSpeed = Math.max(0.18, (baseAttackSpeed * profileCooldown) / Math.max(0.1, battleMultiplier));
         
         // 取得爆擊機率（決定 Crit Zone 寬度）
         this.critChance = this.character.getCritChance?.() || 0.05;
@@ -94,14 +99,15 @@ class RhythmBarSystem {
      */
     _calculateHitZoneWidth() {
         const rarityWidths = {
-            'common': 20,
-            'uncommon': 24,
-            'rare': 28,
-            'epic': 32,
-            'legendary': 36,
-            'mythic': 40
+            'common': 14,
+            'uncommon': 16,
+            'rare': 18,
+            'epic': 20,
+            'legendary': 22,
+            'mythic': 24
         };
-        return rarityWidths[this.weaponRarity] || 20;
+        const profileWidth = Math.max(0.5, Number(this.weaponProfile?.hitZoneMultiplier) || 1);
+        return Math.max(8, Math.min(28, (rarityWidths[this.weaponRarity] || 14) * profileWidth));
     }
 
     /**
@@ -111,7 +117,8 @@ class RhythmBarSystem {
     generateZones() {
         // ===== 計算區域寬度 =====
         // Crit Zone 寬度 = critChance * 100%（例：12% 暴擊率 = 12% 寬度）
-        const critWidth = Math.max(5, Math.min(30, this.critChance * 100));
+        const profileCritWidth = Math.max(0.4, Number(this.weaponProfile?.critZoneMultiplier) || 1);
+        const critWidth = Math.max(3, Math.min(14, this.critChance * 100 * 0.55 * profileCritWidth));
         
         // Hit Zone 寬度根據武器稀有度（20% ~ 40%）
         const hitWidth = this._calculateHitZoneWidth();

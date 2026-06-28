@@ -1,7 +1,7 @@
 import { ItemRarity, ItemType } from './Enums.js';
 
 export const DEFAULT_SELL_RATE = 0.5;
-export const DEFAULT_DURABILITY = 50;
+export const DEFAULT_DURABILITY = 35;
 
 export const EQUIPMENT_DEFAULTS = {
     [ItemType.WEAPON]: {
