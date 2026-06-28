@@ -10,6 +10,7 @@ import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../manage
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import audioManager from '../utils/AudioManager.js';
 import {
     buildItemDisplayModel,
     buildItemStatChipsHtml,
@@ -657,6 +658,7 @@ export default class ForgeScene {
     async playCraftAnimation() {
         const resultEl = this.dom.craftResult;
         if (!resultEl) return;
+        audioManager.play('hammer', { throttleKey: 'forge-craft-hammer', throttleMs: 250 });
         
         resultEl.style.display = 'flex';
         resultEl.className = 'craft-result is-info';
@@ -673,6 +675,7 @@ export default class ForgeScene {
         if (!resultEl) return;
         
         if (success) {
+            audioManager.play('craft-success', { throttleKey: 'forge-craft-success', throttleMs: 260 });
             resultEl.className = 'craft-result is-success';
             // 顯示詞綴資訊
             let affixInfo = '';
@@ -700,6 +703,7 @@ export default class ForgeScene {
             const resultItemEl = resultEl.querySelector('.result-item');
             if (resultItemEl) attachItemTooltip(resultItemEl, item, { hint: '已放入背包' });
         } else {
+            audioManager.play('craft-fail', { throttleKey: 'forge-craft-fail', throttleMs: 260 });
             resultEl.className = 'craft-result is-error';
             resultEl.innerHTML = `
                 <div class="result-icon fail">❌</div>
@@ -1001,6 +1005,7 @@ export default class ForgeScene {
     async playRerollAnimation() {
         const resultEl = this.dom.rerollResult;
         if (!resultEl) return;
+        audioManager.play('reroll', { throttleKey: 'forge-reroll-start', throttleMs: 260 });
         
         resultEl.style.display = 'flex';
         resultEl.innerHTML = `
@@ -1018,6 +1023,10 @@ export default class ForgeScene {
         const affixCount = result.affixes ? result.affixes.length : 0;
         const hasLegendary = result.affixes?.some(a => a.rarity === 'legendary');
         const icon = hasLegendary ? '🌟' : '✨';
+        audioManager.play(hasLegendary ? 'jackpot' : 'reward', {
+            throttleKey: 'forge-reroll-result',
+            throttleMs: 260
+        });
         
         resultEl.innerHTML = `
             <div class="result-icon success">${icon}</div>
@@ -1251,6 +1260,7 @@ export default class ForgeScene {
     async playEnhanceAnimation() {
         const resultEl = this.dom.enhanceResult;
         if (!resultEl) return;
+        audioManager.play('hammer', { throttleKey: 'forge-enhance-hammer', throttleMs: 250 });
 
         resultEl.style.display = 'flex';
         resultEl.innerHTML = `
@@ -1267,6 +1277,10 @@ export default class ForgeScene {
 
         const icon = result.success ? '✓' : '!';
         const className = result.success ? 'success' : 'fail';
+        audioManager.play(result.success ? 'craft-success' : 'craft-fail', {
+            throttleKey: 'forge-enhance-result',
+            throttleMs: 260
+        });
         const markText = result.milestoneMark
             ? `<div class="result-affixes"><span class="affix-tag legendary">${enhancementManager.getMarkDescription(result.milestoneMark)}</span></div>`
             : '';

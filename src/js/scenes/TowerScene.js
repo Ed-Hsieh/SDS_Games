@@ -18,6 +18,7 @@ import {
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import audioManager from '../utils/AudioManager.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
@@ -652,6 +653,7 @@ class TowerScene {
     useItem(instanceId) {
         const result = GameManager.useConsumable(instanceId);
         if (result) {
+            audioManager.play('heal', { throttleKey: 'tower-use-item', throttleMs: 180 });
             this.updatePlayerStats();
             this.updateBattleUI();
         }
@@ -700,6 +702,7 @@ class TowerScene {
         if (!confirmed) return;
 
         startCombatActionCooldown(this.btnFlee, 1);
+        audioManager.play('flee', { throttleKey: 'tower-flee', throttleMs: 180 });
         this.stopRhythmBar();
         this.destroyBattleEngine();
         towerManager.abandonChallenge();
@@ -746,6 +749,8 @@ class TowerScene {
     }
 
     onBattleStart(data) {
+        audioManager.play('combat-start', { throttleKey: 'tower-combat-start', throttleMs: 650 });
+        audioManager.playBgm('combat');
         this.showBattleState();
         this.updateBattleUI();
         this.createBattleEngine(data.monster);
@@ -793,12 +798,15 @@ class TowerScene {
     onBattleVictory(data) {
         this.stopRhythmBar();
         this.destroyBattleEngine();
+        audioManager.restoreSceneBgm();
         this.showResultState(true, data);
     }
 
     onBattleDefeat(data) {
         this.stopRhythmBar();
         this.destroyBattleEngine();
+        audioManager.play('defeat', { throttleKey: 'tower-defeat', throttleMs: 600 });
+        audioManager.restoreSceneBgm();
         this.showResultState(false, data);
     }
 
@@ -816,6 +824,7 @@ class TowerScene {
     }
 
     onRestHeal(data) {
+        audioManager.play('heal', { throttleKey: 'tower-rest-heal', throttleMs: 220 });
         this.updatePlayerStats();
     }
 
@@ -823,6 +832,7 @@ class TowerScene {
 
     showIdleState() {
         this.destroyBattleEngine();
+        audioManager.restoreSceneBgm();
         this.clearActionCooldowns();
         this.idleStateEl?.classList.remove('hidden');
         this.battleStateEl?.classList.add('hidden');

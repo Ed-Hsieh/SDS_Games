@@ -139,22 +139,26 @@ export const PassiveCombatEffectUnlockSources = {
     },
     swamp_pathfinding: {
         questIds: ['main_008'],
+        itemIds: ['thorn_trade_bead'],
         flags: ['town.apothecary.understands_thorn_trade'],
-        sourceText: '荊棘女巫線或藥師交易規則調查後解鎖'
+        sourceText: '荊棘女巫線、荊棘交換珠，或藥師交易規則調查後解鎖'
     },
     ruin_literacy: {
         questIds: ['dungeon_ruins_002'],
+        itemIds: ['julian_margin_notes'],
         flags: ['dungeon.ruins.cleared', 'town.scholar.julian_margin_read'],
-        sourceText: '遠古遺跡通關，或書記完成朱利安邊註後解鎖'
+        sourceText: '遠古遺跡通關，或取得朱利安邊註後解鎖'
     },
     field_medic: {
+        itemIds: ['field_medic_notes', 'last_soup_ladle'],
         flags: ['town.apothecary.stock_basic_potion'],
-        sourceText: '藥師補上基礎藥水供應後解鎖'
+        sourceText: '取得野戰醫術手記、最後一鍋湯杓，或藥師補上基礎藥水供應後解鎖'
     },
     boss_composure: {
         questIds: ['main_012'],
+        itemIds: ['living_index', 'retreat_rollcall'],
         flags: ['town.scholar.last_index_bound'],
-        sourceText: '第三章進入龍巢之路，或書記完成最後索引後解鎖'
+        sourceText: '第三章進入龍巢之路，或取得活索引、撤退點名冊後解鎖'
     }
 };
 

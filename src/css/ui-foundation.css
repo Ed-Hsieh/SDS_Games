@@ -9,6 +9,147 @@
     --ui-hall-footer: 108px;
 }
 
+.audio-settings-widget {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 12000;
+    display: grid;
+    justify-items: end;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.audio-settings-toggle,
+.audio-settings-panel {
+    pointer-events: auto;
+}
+
+.audio-settings-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.36);
+    border-radius: 8px;
+    background: rgba(12, 18, 29, 0.94);
+    color: #f8fafc;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.38);
+    cursor: pointer;
+    font-size: 20px;
+    line-height: 1;
+    backdrop-filter: blur(12px);
+}
+
+.audio-settings-toggle:hover,
+.audio-settings-toggle:focus-visible {
+    border-color: rgba(96, 165, 250, 0.66);
+    background: rgba(22, 31, 49, 0.98);
+    outline: none;
+}
+
+.audio-settings-panel {
+    width: min(310px, calc(100vw - 24px));
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: rgba(10, 14, 24, 0.96);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(14px);
+    display: grid;
+    gap: 10px;
+}
+
+.audio-settings-panel[hidden] {
+    display: none;
+}
+
+.audio-settings-row {
+    display: grid;
+    gap: 6px;
+}
+
+.audio-settings-head,
+.audio-settings-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.audio-settings-head span,
+.audio-music-toggle span {
+    color: rgba(226, 232, 240, 0.86);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.audio-settings-value {
+    min-width: 36px;
+    padding: 3px 7px;
+    border-radius: 7px;
+    background: rgba(96, 165, 250, 0.14);
+    color: #f8fafc;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.audio-volume-slider {
+    width: 100%;
+    accent-color: #60a5fa;
+}
+
+.audio-settings-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.audio-music-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 32px;
+}
+
+.audio-music-toggle input {
+    width: 16px;
+    height: 16px;
+    accent-color: #34d399;
+}
+
+.audio-preview-button {
+    min-height: 32px;
+    padding: 6px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: #f8fafc;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    flex: 1 1 92px;
+}
+
+.audio-preview-button:hover,
+.audio-preview-button:focus-visible {
+    border-color: rgba(52, 211, 153, 0.5);
+    background: rgba(52, 211, 153, 0.14);
+    outline: none;
+}
+
+@media (max-width: 640px) {
+    .audio-settings-widget {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .audio-settings-toggle {
+        width: 42px;
+        height: 42px;
+    }
+}
+
 /* Final rarity and item preview layer. Keep this last so older scene files cannot override it. */
 :root {
     --rarity-common-soft: rgba(158, 158, 158, 0.12);
@@ -10641,6 +10782,42 @@ body {
     object-fit: cover;
 }
 
+.location-toast.has-location-image {
+    width: min(560px, calc(100vw - 40px));
+    padding: 10px 12px 14px;
+    border: 1px solid rgba(216, 181, 95, 0.28);
+    border-radius: 8px;
+    background: rgba(5, 9, 12, 0.78);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(10px);
+}
+
+.location-toast-image {
+    display: none;
+}
+
+.location-toast.has-location-image .location-toast-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    box-shadow: inset 0 -44px 50px rgba(0, 0, 0, 0.32);
+}
+
+.small-location-hint-image.is-unknown {
+    color: #f8fafc;
+    background: rgba(2, 4, 8, 0.96);
+    border-color: rgba(255, 255, 255, 0.26);
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1;
+}
+
 .dungeon-entrance-card.has-dungeon-scene {
     position: relative;
     overflow: hidden;
@@ -11018,6 +11195,97 @@ body {
     border-radius: inherit;
 }
 
+.event-modal.is-landmark-event .event-content {
+    width: min(680px, calc(100vw - 32px));
+    max-width: min(680px, calc(100vw - 32px));
+    padding: 0;
+    overflow: hidden;
+    text-align: left;
+    border-color: rgba(216, 181, 95, 0.48);
+    border-radius: 10px;
+    background: rgba(7, 12, 18, 0.98);
+    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.62), 0 0 40px rgba(216, 181, 95, 0.16);
+}
+
+.event-modal.is-landmark-event .modal-header {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    border-bottom: 0;
+    color: #f8fafc;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.event-modal.is-landmark-event .event-icon.is-scene-image {
+    display: block;
+    width: 100%;
+    height: clamp(190px, 34vh, 300px);
+    margin: 0;
+    border-radius: 0;
+    background: #020408;
+    font-size: 0;
+    animation: none;
+}
+
+.event-modal.is-landmark-event #event-title {
+    margin: 16px 20px 0;
+    color: #f8fafc;
+    font-size: 28px;
+    line-height: 1.18;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.event-modal.is-landmark-event .modal-body {
+    margin: 0;
+    padding: 12px 20px 0;
+}
+
+.event-modal.is-landmark-event .event-description {
+    margin: 0 0 14px;
+    color: rgba(226, 232, 240, 0.84);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.event-modal.is-landmark-event .event-result {
+    margin: 0;
+    padding: 0;
+    color: rgba(226, 232, 240, 0.9);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.event-modal.is-landmark-event .event-reward {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border: 1px solid rgba(216, 181, 95, 0.24);
+    border-radius: 8px;
+    background: rgba(216, 181, 95, 0.08);
+    text-align: left;
+}
+
+.event-modal.is-landmark-event .event-reward strong {
+    display: block;
+    color: #f3d990;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.event-modal.is-landmark-event .event-reward p,
+.event-modal.is-landmark-event .event-reward small {
+    color: rgba(226, 232, 240, 0.78);
+    line-height: 1.55;
+}
+
+.event-modal.is-landmark-event .modal-footer {
+    margin-top: 0;
+    padding: 16px 20px 20px;
+    border-top-color: rgba(216, 181, 95, 0.18);
+}
+
 #town-place-icon {
     overflow: hidden;
 }
@@ -11139,7 +11407,7 @@ body {
 .casino-rework .casino-header {
     min-height: 94px;
     display: grid;
-    grid-template-columns: minmax(260px, 1fr) minmax(360px, auto) auto;
+    grid-template-columns: minmax(260px, 1fr) minmax(400px, auto) auto;
     gap: 14px;
     align-items: center;
     padding: 14px 20px;
@@ -11181,7 +11449,7 @@ body {
 
 .casino-wallet {
     display: grid;
-    grid-template-columns: repeat(3, minmax(86px, 1fr));
+    grid-template-columns: repeat(4, minmax(78px, 1fr));
     gap: 8px;
 }
 
@@ -11213,7 +11481,7 @@ body {
     gap: 8px;
 }
 
-.casino-rework :is(.bonus-btn, .back-btn, .action-btn, .game-tab, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn, .chip-exchange-btn, .casino-pool-card, .dark-table-btn) {
+.casino-rework :is(.bonus-btn, .back-btn, .action-btn, .game-tab, .casino-venue-card, .bet-btn, .dice-bet-btn, .bet-type-btn, .option-btn, .chip-exchange-btn, .casino-pool-card, .dark-table-btn) {
     cursor: pointer;
 }
 
@@ -11234,11 +11502,10 @@ body {
 
 .casino-rework .casino-main {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 280px !important;
-    grid-template-rows: auto minmax(0, 1fr) !important;
+    grid-template-columns: 250px minmax(0, 1fr) 280px !important;
+    grid-template-rows: minmax(0, 1fr) !important;
     grid-template-areas:
-        "tabs tabs"
-        "game stats" !important;
+        "venues game stats" !important;
     gap: 10px;
     height: calc(100dvh - 94px);
     min-height: 0;
@@ -11248,8 +11515,8 @@ body {
 
 .casino-rework .game-tabs {
     grid-area: tabs;
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    display: none;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 8px;
     margin: 0;
     overflow: visible;
@@ -11270,6 +11537,137 @@ body {
 .casino-rework .game-tab.active {
     border-color: rgba(217, 184, 95, 0.58);
     background: rgba(66, 54, 28, 0.72);
+    color: #ffe08a;
+}
+
+.casino-rework .casino-venue-map {
+    grid-area: venues;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 10px;
+    background: rgba(8, 13, 20, 0.76);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+}
+
+.casino-rework .casino-venue-map-head {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+    padding: 8px 8px 10px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.casino-rework .casino-venue-map-head span {
+    color: #f7d77c;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-rework .casino-venue-map-head strong {
+    min-width: 0;
+    color: #f8fafc;
+    font-size: 20px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.casino-rework .casino-venue-list {
+    min-height: 0;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.casino-rework .casino-venue-card {
+    position: relative;
+    min-width: 0;
+    min-height: 70px;
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.66);
+    color: #f8fafc;
+    padding: 8px;
+    text-align: left;
+    overflow: hidden;
+}
+
+.casino-rework .casino-venue-card:hover,
+.casino-rework .casino-venue-card:focus-visible,
+.casino-rework .casino-venue-card.active {
+    border-color: rgba(250, 204, 21, 0.72);
+    box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.18);
+    outline: none;
+}
+
+.casino-rework .casino-venue-card.active {
+    background:
+        linear-gradient(90deg, rgba(80, 63, 24, 0.8), rgba(15, 23, 42, 0.72));
+}
+
+.casino-rework .casino-venue-thumb {
+    width: 58px;
+    height: 48px;
+    border-radius: 7px;
+    border: 1px solid rgba(250, 204, 21, 0.18);
+    background:
+        linear-gradient(180deg, rgba(4, 7, 10, 0.04), rgba(4, 7, 10, 0.35)),
+        var(--venue-bg) var(--venue-focus, center) / cover no-repeat;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.casino-rework .casino-venue-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.casino-rework .casino-venue-card small {
+    color: #f7d77c;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.casino-rework .casino-venue-card strong,
+.casino-rework .casino-venue-card em {
+    min-width: 0;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.casino-rework .casino-venue-card strong {
+    font-size: 15px;
+    line-height: 1.1;
+}
+
+.casino-rework .casino-venue-card em {
+    justify-self: end;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    color: rgba(226, 232, 240, 0.72);
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 900;
+    padding: 5px 7px;
+}
+
+.casino-rework .casino-venue-card.active em {
+    background: rgba(250, 204, 21, 0.16);
     color: #ffe08a;
 }
 
@@ -11318,6 +11716,7 @@ body {
 .casino-rework .casino-table-panel.active::before,
 .casino-rework .casino-prize-panel.active::before,
 .casino-rework .casino-cashier-panel.active::before,
+.casino-rework .casino-showcase-panel.active::before,
 .casino-rework .casino-dark-table-panel.active::before {
     content: "";
     position: absolute;
@@ -11332,7 +11731,7 @@ body {
 .casino-rework .casino-table-panel.active::before {
     background:
         linear-gradient(180deg, rgba(12, 15, 20, 0.72), rgba(12, 15, 20, 0.9)),
-        url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp") center / cover no-repeat;
+        var(--casino-active-bg, url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp")) var(--casino-active-position, center) / cover no-repeat;
     opacity: 0.72;
 }
 
@@ -11341,6 +11740,14 @@ body {
         linear-gradient(180deg, rgba(12, 15, 20, 0.66), rgba(12, 15, 20, 0.9)),
         url("/src/assets/images/art-v2/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
     opacity: 0.74;
+}
+
+.casino-rework .casino-showcase-panel.active::before {
+    background:
+        linear-gradient(180deg, rgba(10, 11, 14, 0.6), rgba(10, 12, 16, 0.92)),
+        radial-gradient(circle at 72% 34%, rgba(250, 204, 21, 0.14), transparent 32%),
+        url("/src/assets/images/art-v2/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
+    opacity: 0.78;
 }
 
 .casino-rework .casino-dark-table-panel.active::before {
@@ -11496,6 +11903,210 @@ body {
     grid-template-areas:
         "copy"
         "prize";
+}
+
+.casino-rework .casino-showcase-panel.active {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+        "copy"
+        "showcase";
+}
+
+.casino-showcase-layout {
+    grid-area: showcase;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(230px, 0.42fr) minmax(0, 1fr);
+    gap: 10px;
+    overflow: hidden;
+}
+
+.casino-showcase-list {
+    min-height: 0;
+    display: grid;
+    align-content: flex-start;
+    gap: 8px;
+    overflow: auto;
+    padding-right: 2px;
+}
+
+.casino-showcase-card {
+    min-height: 76px;
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    border: 1px solid rgba(217, 184, 95, 0.2);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.68);
+    color: #e2e8f0;
+    padding: 9px 10px;
+    text-align: left;
+}
+
+.casino-showcase-card.active {
+    border-color: rgba(250, 204, 21, 0.68);
+    background: rgba(76, 59, 24, 0.64);
+}
+
+.casino-showcase-card.seen small {
+    color: #86efac;
+}
+
+.casino-showcase-icon,
+.casino-showcase-large-icon {
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(2, 6, 23, 0.55);
+}
+
+.casino-showcase-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 26px;
+}
+
+.casino-showcase-icon img,
+.casino-showcase-large-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.casino-showcase-card b,
+.casino-showcase-card em,
+.casino-showcase-card small {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.casino-showcase-card b {
+    color: #f8fafc;
+    font-size: 15px;
+}
+
+.casino-showcase-card em,
+.casino-showcase-card small {
+    color: rgba(203, 213, 225, 0.72);
+    font-size: 12px;
+    font-style: normal;
+    font-weight: 850;
+}
+
+.casino-showcase-detail {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 10px;
+}
+
+.casino-showcase-preview {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    gap: 9px;
+    overflow: hidden;
+}
+
+.casino-showcase-heading {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.72);
+    padding: 12px;
+}
+
+.casino-showcase-large-icon {
+    width: 88px;
+    height: 88px;
+    font-size: 48px;
+}
+
+.casino-showcase-heading span,
+.casino-showcase-future span {
+    color: #d9b85f;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.casino-showcase-heading h3 {
+    margin: 2px 0 4px;
+    color: #f8fafc;
+    font-size: 26px;
+    line-height: 1.05;
+}
+
+.casino-showcase-heading p,
+.casino-showcase-future p,
+.casino-showcase-future em {
+    margin: 0;
+    color: rgba(226, 232, 240, 0.76);
+    line-height: 1.55;
+}
+
+.casino-showcase-note {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+    border: 1px solid rgba(125, 211, 252, 0.22);
+    border-radius: 8px;
+    background: rgba(8, 47, 73, 0.3);
+    padding: 8px 10px;
+}
+
+.casino-showcase-note strong {
+    color: #bae6fd;
+    font-size: 12px;
+}
+
+.casino-showcase-note span {
+    color: rgba(226, 232, 240, 0.76);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.casino-showcase-owner-line {
+    border-left: 3px solid rgba(250, 204, 21, 0.62);
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.24);
+    color: rgba(248, 250, 252, 0.84);
+    padding: 9px 11px;
+    line-height: 1.55;
+}
+
+.casino-showcase-future {
+    min-height: 0;
+    display: grid;
+    align-content: flex-start;
+    gap: 6px;
+    overflow: auto;
+    border: 1px solid rgba(217, 184, 95, 0.18);
+    border-radius: 9px;
+    background: rgba(15, 23, 42, 0.58);
+    padding: 10px 12px;
+}
+
+.casino-showcase-future em {
+    color: rgba(125, 211, 252, 0.86);
+    font-style: normal;
+    font-weight: 900;
+}
+
+.casino-rework .casino-showcase-choice-btn {
+    border-color: rgba(217, 184, 95, 0.34);
+    background: rgba(66, 54, 28, 0.45);
+    color: #facc15;
 }
 
 .casino-prize-layout {
@@ -12133,6 +12744,25 @@ body {
         gap: 8px;
     }
 
+    .casino-showcase-layout {
+        grid-template-columns: minmax(200px, 0.4fr) minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    .casino-showcase-card {
+        min-height: 66px;
+    }
+
+    .casino-showcase-heading {
+        grid-template-columns: 72px minmax(0, 1fr);
+        padding: 9px;
+    }
+
+    .casino-showcase-large-icon {
+        width: 68px;
+        height: 68px;
+    }
+
     .casino-dark-contract,
     .casino-dark-wager {
         padding: 10px;
@@ -12187,6 +12817,46 @@ body {
 
     .casino-side-panel .stat-row {
         padding: 4px 0;
+    }
+}
+
+@media (max-width: 860px) {
+    .casino-rework .casino-main {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: auto auto auto auto !important;
+        grid-template-areas:
+            "tabs"
+            "venues"
+            "game"
+            "stats" !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .casino-rework .game-tabs {
+        grid-template-columns: repeat(4, minmax(112px, 1fr));
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .casino-rework .casino-venue-map {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 2px;
+    }
+
+    .casino-rework .casino-venue-card {
+        flex: 0 0 164px;
+        min-height: 76px;
+    }
+
+    .casino-rework .game-area,
+    .casino-rework .casino-side-panel {
+        overflow: visible;
+    }
+
+    .casino-rework .game-panel {
+        min-height: 520px;
     }
 }
 .town-place-tower { --place-x: 60%; --place-y: 22%; --place-tx: -50%; --place-ty: -50%; }
@@ -13182,7 +13852,7 @@ body {
         linear-gradient(180deg, rgba(4, 7, 10, 0.04), rgba(4, 7, 10, 0.46)),
         linear-gradient(90deg, rgba(3, 6, 8, 0.46), transparent 24%, transparent 72%, rgba(3, 6, 8, 0.28)),
         var(--market-bg);
-    background-position: center;
+    background-position: center, center, var(--market-bg-position, center);
 }
 
 .market-place-scene.is-trading .market-stage-backdrop {
@@ -13713,7 +14383,7 @@ body {
         linear-gradient(90deg, rgba(4, 8, 10, 0.5), transparent 28%, transparent 72%, rgba(4, 8, 10, 0.42)),
         var(--market-bg) !important;
     background-size: cover !important;
-    background-position: center !important;
+    background-position: center, center, var(--market-bg-position, center) !important;
     filter: saturate(1.02) contrast(1.04) brightness(0.92) !important;
 }
 
@@ -13915,6 +14585,28 @@ body {
 .market-dialogue-scene .vendor-card-copy p {
     white-space: normal !important;
     line-height: 1.35 !important;
+}
+
+.market-dialogue-scene .vendor-function-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 7px;
+}
+
+.market-dialogue-scene .vendor-function-list span {
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(220, 201, 154, 0.18);
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.42);
+    color: rgba(237, 242, 244, 0.82);
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 820;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .market-dialogue-scene .supply-dialogue {
@@ -14264,6 +14956,86 @@ body {
 
 .market-dialogue-scene .market-prep-card .supply-card-side {
     align-content: center;
+}
+
+.market-dialogue-scene .market-prep-card.market-place-card {
+    grid-template-columns: 58px minmax(0, 1fr) 92px !important;
+    align-items: stretch !important;
+}
+
+.market-dialogue-scene .market-prep-avatar {
+    width: 58px;
+    height: 58px;
+    align-self: center;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(220, 201, 154, 0.24);
+    border-radius: 12px;
+    background: rgba(2, 6, 23, 0.5);
+    color: #f7d77c;
+    font-size: 28px;
+    font-weight: 900;
+}
+
+.market-dialogue-scene .market-prep-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.market-dialogue-scene .market-prep-functions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 6px;
+}
+
+.market-dialogue-scene .market-prep-functions small {
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(125, 211, 252, 0.16);
+    border-radius: 999px;
+    background: rgba(2, 6, 23, 0.42);
+    color: rgba(226, 232, 240, 0.78);
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.market-dialogue-scene .market-prep-card.market-place-card .supply-card-side {
+    gap: 7px;
+    justify-items: stretch;
+}
+
+.market-dialogue-scene .market-prep-card.market-place-card .supply-card-side strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+    .market-dialogue-scene .market-prep-card.market-place-card {
+        grid-template-columns: 48px minmax(0, 1fr) !important;
+    }
+
+    .market-dialogue-scene .market-prep-card.market-place-card .supply-card-side {
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+    }
+
+    .market-dialogue-scene .market-prep-avatar {
+        width: 48px;
+        height: 48px;
+    }
 }
 
 @media (max-width: 1360px) {
@@ -14708,5 +15480,80 @@ body {
 
     .market-dialogue-scene .market-dynamic-panel .market-feed-card {
         padding: 9px 10px !important;
+    }
+}
+
+@media (max-width: 720px) {
+    .market-dialogue-scene .market-dialogue-layout {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-areas: "stage" !important;
+    }
+
+    .market-dialogue-scene .market-side-rail {
+        display: none !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map {
+        inset: auto 12px 14px 12px !important;
+        height: 78px !important;
+        display: flex !important;
+        gap: 8px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        z-index: 30 !important;
+        padding: 2px !important;
+        scrollbar-width: none;
+    }
+
+    .market-dialogue-scene .market-vendor-map::-webkit-scrollbar {
+        display: none;
+    }
+
+    .market-dialogue-scene.is-trading .market-vendor-map {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .market-resident {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+        flex: 0 0 148px !important;
+        width: 148px !important;
+        min-height: 64px !important;
+    }
+
+    .market-dialogue-scene .market-vendor-map .market-resident:hover,
+    .market-dialogue-scene .market-vendor-map .market-resident:focus-visible,
+    .market-dialogue-scene .market-vendor-map .market-resident.active {
+        transform: none !important;
+    }
+
+    .market-dialogue-scene .market-stage-caption {
+        bottom: 104px !important;
+    }
+
+    .market-dialogue-scene .market-prep-card.market-place-card {
+        grid-template-columns: 52px minmax(0, 1fr) !important;
+        grid-auto-rows: auto !important;
+        min-height: 0 !important;
+        align-items: start !important;
+    }
+
+    .market-dialogue-scene .market-prep-card.market-place-card .supply-card-copy {
+        min-width: 0 !important;
+    }
+
+    .market-dialogue-scene .market-prep-card.market-place-card .supply-card-side {
+        grid-column: 1 / -1 !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        min-width: 0 !important;
+    }
+
+    .market-dialogue-scene .market-prep-card.market-place-card .supply-card-side button {
+        min-width: 84px !important;
     }
 }

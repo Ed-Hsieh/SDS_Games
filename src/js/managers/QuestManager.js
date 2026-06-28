@@ -334,9 +334,12 @@ class QuestManager {
                     order: ['questReward', 'material', 'equipment', 'shop', 'bossEquipment']
                 });
                 if (itemData) {
-                    // 創建道具實例並加入背包
+                    // Unique quest rewards should never disappear because the bag is full.
                     const item = this.createQuestRewardItem(itemData);
-                    GameManager.addToInventory(item);
+                    const addedToInventory = GameManager.addToInventory(item);
+                    if (!addedToInventory) {
+                        GameManager.addToWarehouse(item);
+                    }
                     result.items.push(item);
                 }
             });

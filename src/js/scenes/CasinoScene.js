@@ -7,6 +7,66 @@ import { casinoManager } from '../managers/CasinoManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import audioManager from '../utils/AudioManager.js';
+
+const CASINO_VENUES = [
+    {
+        game: 'dice',
+        title: '骨骰賭桌',
+        label: '低額試手',
+        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        focus: '50% 56%',
+        copy: '木桌邊緣被骰子敲出細痕，適合用小注換獎券。'
+    },
+    {
+        game: 'slots',
+        title: '老虎機廳',
+        label: '連勝誘惑',
+        image: 'src/assets/images/art-v2/backgrounds/casino-hall.webp',
+        focus: '42% 48%',
+        copy: '燈泡一排排亮起，拉桿聲會把人往下一局推。'
+    },
+    {
+        game: 'roulette',
+        title: '輪盤長桌',
+        label: '快節奏下注',
+        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        focus: '64% 50%',
+        copy: '輪盤旁的人群比較安靜，因為每個人都在等指針替自己說話。'
+    },
+    {
+        game: 'dark',
+        title: '暗桌門簾',
+        label: '高風險',
+        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        focus: '78% 44%',
+        copy: '門簾後方沒有招牌，只有莊家把籌碼推回陰影裡。'
+    },
+    {
+        game: 'showcase',
+        title: '老闆展示櫃',
+        label: '長支線伏筆',
+        image: 'src/assets/images/art-v2/backgrounds/casino-prize-wall.webp',
+        focus: '58% 46%',
+        copy: '玻璃後的展品比獎池更昂貴，也更容易讓老闆記住你。'
+    },
+    {
+        game: 'prize',
+        title: '奇物獎池',
+        label: '公開機率',
+        image: 'src/assets/images/art-v2/backgrounds/casino-prize-wall.webp',
+        focus: '42% 50%',
+        copy: '獎券在這裡被撕下，裝備、素材與傳說物都從暗格裡醒來。'
+    },
+    {
+        game: 'cashier',
+        title: '瑪洛帳房',
+        label: '金幣換籌碼',
+        image: 'src/assets/images/art-v2/backgrounds/casino-hall.webp',
+        focus: '58% 54%',
+        copy: '金幣先變成籌碼，籌碼再變成獎券，最後才變成你真正想要的東西。'
+    }
+];
 
 export default class CasinoScene {
     constructor(container, app) {
@@ -17,7 +77,9 @@ export default class CasinoScene {
         this.selectedBetValue = 'red';
         this.selectedDiceBet = 'big';
         this.selectedPrizePool = 'daily_curios';
+        this.selectedShowcaseItem = 'phoenix_feather_case';
         this.isSpinning = false;
+        this.handleVenueClick = this.handleVenueClick.bind(this);
     }
 
     init() {
@@ -35,12 +97,14 @@ export default class CasinoScene {
         this.dom = {
             gold: this.container.querySelector('#casino-gold'),
             chips: this.container.querySelector('#casino-chips'),
+            tickets: this.container.querySelector('#casino-tickets'),
             luck: this.container.querySelector('#casino-luck'),
             resultMessage: this.container.querySelector('#result-message'),
             
             // Tabs
             gameTabs: this.container.querySelectorAll('.game-tab'),
             gamePanels: this.container.querySelectorAll('.game-panel'),
+            venueMap: this.container.querySelector('#casino-venue-map'),
             
             // Slots
             reels: [
@@ -93,6 +157,11 @@ export default class CasinoScene {
             prizePreview: this.container.querySelector('#casino-prize-preview'),
             btnDrawPrize: this.container.querySelector('#btn-draw-prize'),
 
+            // Showcase
+            showcaseList: this.container.querySelector('#casino-showcase-list'),
+            showcasePreview: this.container.querySelector('#casino-showcase-preview'),
+            btnShowcaseChoice: this.container.querySelector('#btn-showcase-choice'),
+
             // Cashier
             exchangeButtons: this.container.querySelectorAll('.chip-exchange-btn'),
             ledgerText: this.container.querySelector('#casino-ledger-text'),
@@ -108,6 +177,7 @@ export default class CasinoScene {
         this.dom.gameTabs.forEach(tab => {
             tab.addEventListener('click', () => this.switchGame(tab.dataset.game));
         });
+        this.dom.venueMap?.addEventListener('click', this.handleVenueClick);
 
         // Slots
         this.dom.btnSpin?.addEventListener('click', () => this.playSlots());
@@ -143,22 +213,33 @@ export default class CasinoScene {
     }
 
     unbindEvents() {
-        // Clean up if needed
+        this.dom.venueMap?.removeEventListener('click', this.handleVenueClick);
+    }
+
+    handleVenueClick(event) {
+        const button = event.target.closest('[data-casino-venue]');
+        if (!button) return;
+        this.switchGame(button.dataset.casinoVenue);
     }
 
     updateUI() {
         const gold = GameManager.getGold() || 0;
         const chips = casinoManager.getChips();
+        const tickets = casinoManager.getTickets();
         const char = GameManager.getCharacter();
         const luck = char?.getBuffValue?.('luck') || 0;
 
         if (this.dom.gold) this.dom.gold.textContent = gold;
         if (this.dom.chips) this.dom.chips.textContent = chips;
+        if (this.dom.tickets) this.dom.tickets.textContent = tickets;
         if (this.dom.luck) this.dom.luck.textContent = luck;
 
         this.updateStats();
         this.updateDarkFlow();
         this.updateDarkTable();
+        this.applyCasinoVenueScene(this.currentGame);
+        this.renderVenueMap();
+        this.renderShowcase();
         this.renderPrizePools();
         this.updateLedger();
     }
@@ -210,6 +291,7 @@ export default class CasinoScene {
 
     switchGame(game) {
         this.currentGame = game;
+        this.applyCasinoVenueScene(game);
         
         this.dom.gameTabs.forEach(tab => {
             tab.classList.toggle('active', tab.dataset.game === game);
@@ -220,8 +302,144 @@ export default class CasinoScene {
         });
 
         if (game === 'prize') this.renderPrizePools();
+        if (game === 'showcase') this.renderShowcase();
         if (game === 'cashier') this.updateLedger();
         if (game === 'dark') this.updateDarkTable();
+        this.renderVenueMap();
+    }
+
+    applyCasinoVenueScene(game) {
+        const venue = CASINO_VENUES.find(entry => entry.game === game) || CASINO_VENUES[0];
+        if (!venue) return;
+        this.container.style.setProperty('--casino-active-bg', `url("/${venue.image}")`);
+        this.container.style.setProperty('--casino-active-position', venue.focus || 'center');
+    }
+
+    renderVenueMap() {
+        if (!this.dom.venueMap) return;
+        const activeVenue = CASINO_VENUES.find(venue => venue.game === this.currentGame) || CASINO_VENUES[0];
+        this.dom.venueMap.innerHTML = `
+            <div class="casino-venue-map-head">
+                <span>場內地圖</span>
+                <strong>${escapeHtml(activeVenue?.title || '賭場')}</strong>
+            </div>
+            <div class="casino-venue-list">
+                ${CASINO_VENUES.map(venue => `
+            <button
+                type="button"
+                class="casino-venue-card ${venue.game === this.currentGame ? 'active' : ''}"
+                data-casino-venue="${escapeHtml(venue.game)}"
+                style="--venue-bg:url('/${escapeHtml(venue.image)}'); --venue-focus:${escapeHtml(venue.focus || 'center')}"
+            >
+                        <span class="casino-venue-thumb" aria-hidden="true"></span>
+                        <span class="casino-venue-copy">
+                            <small>${escapeHtml(venue.label)}</small>
+                            <strong>${escapeHtml(venue.title)}</strong>
+                        </span>
+                        <em>${venue.game === this.currentGame ? '所在' : '前往'}</em>
+            </button>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    renderShowcase() {
+        if (!this.dom.showcaseList || !this.dom.showcasePreview) return;
+
+        const showcaseItems = casinoManager.getShowcaseItems?.() || [];
+        const routeState = casinoManager.getShowcaseRouteState?.() || {};
+        if (!showcaseItems.length) {
+            this.dom.showcasePreview.innerHTML = '<div class="casino-empty-note">展示櫃目前是空的。</div>';
+            if (this.dom.btnShowcaseChoice) this.dom.btnShowcaseChoice.disabled = true;
+            return;
+        }
+
+        if (!showcaseItems.some(item => item.id === this.selectedShowcaseItem)) {
+            this.selectedShowcaseItem = showcaseItems[0].id;
+        }
+
+        this.dom.showcaseList.innerHTML = showcaseItems.map(entry => {
+            const item = entry.item || entry;
+            return `
+                <button class="casino-showcase-card rarity-frame rarity-${escapeHtml(entry.rarity || item.rarity || 'legendary')} ${entry.id === this.selectedShowcaseItem ? 'active' : ''} ${entry.seen ? 'seen' : ''}"
+                    data-showcase-id="${escapeHtml(entry.id)}">
+                    <span class="casino-showcase-icon">${getItemVisualHtml(item, entry.icon || '◆')}</span>
+                    <span>
+                        <b>${escapeHtml(entry.cabinetTitle || entry.name || item.name || '展示品')}</b>
+                        <em>${escapeHtml(entry.displayTag || '展品')}</em>
+                    </span>
+                    <small>${entry.seen ? '已查看' : '靠近查看'}</small>
+                </button>
+            `;
+        }).join('');
+
+        this.dom.showcaseList.querySelectorAll('.casino-showcase-card').forEach(button => {
+            const entry = showcaseItems.find(item => item.id === button.dataset.showcaseId);
+            if (entry?.item) {
+                attachItemTooltip(button, entry.item, {
+                    hint: '賭場展示櫃展品'
+                });
+            }
+            button.addEventListener('click', () => this.inspectShowcaseItem(button.dataset.showcaseId));
+        });
+
+        const selected = showcaseItems.find(item => item.id === this.selectedShowcaseItem) || showcaseItems[0];
+        this.renderShowcaseDetail(selected, routeState);
+    }
+
+    inspectShowcaseItem(showcaseId) {
+        audioManager.play('page', { throttleKey: 'casino-showcase-inspect', throttleMs: 180 });
+        const result = casinoManager.inspectShowcaseItem?.(showcaseId);
+        if (!result?.success) {
+            this.showResult(result?.message || '展示櫃沒有反應。', false);
+            return;
+        }
+
+        this.selectedShowcaseItem = showcaseId;
+        this.showResult(result.message, true);
+        this.updateDarkFlow(result.deepEvent);
+        this.renderShowcase();
+        this.updateStats();
+    }
+
+    renderShowcaseDetail(entry, routeState = {}) {
+        if (!this.dom.showcasePreview) return;
+        const item = entry?.item || entry || {};
+        const examinedText = `${routeState.examinedCount || 0}/${routeState.total || 0} 件展品已查看`;
+        const hookText = routeState.questHookReady
+            ? '賭場老闆已注意到你的視線，後續長支線可從這裡接入。'
+            : '多查看幾件展品，才會讓賭場老闆確定你不是普通客人。';
+        const choiceText = routeState.finalChoiceUnlocked
+            ? '選取流程預留完成，等待長支線正式接上。'
+            : '長支線完成前，展示櫃只供查看。';
+
+        if (this.dom.btnShowcaseChoice) {
+            this.dom.btnShowcaseChoice.disabled = true;
+            this.dom.btnShowcaseChoice.textContent = routeState.finalChoiceUnlocked
+                ? '展品選取待後續實作'
+                : '長支線完成後開放選取';
+        }
+
+        this.dom.showcasePreview.innerHTML = `
+            <div class="casino-showcase-heading rarity-frame rarity-${escapeHtml(entry?.rarity || item.rarity || 'legendary')}">
+                <span class="casino-showcase-large-icon">${getItemVisualHtml(item, entry?.icon || '◆')}</span>
+                <div>
+                    <span>${escapeHtml(entry?.displayTag || '展示品')}</span>
+                    <h3>${escapeHtml(item.name || entry?.name || '未知展品')}</h3>
+                    <p>${escapeHtml(item.description || entry?.description || '')}</p>
+                </div>
+            </div>
+            <div class="casino-showcase-note">
+                <strong>${escapeHtml(examinedText)}</strong>
+                <span>${escapeHtml(hookText)}</span>
+            </div>
+            <div class="casino-showcase-owner-line">${escapeHtml(entry?.ownerLine || '')}</div>
+            <div class="casino-showcase-future">
+                <span>後續支線用途</span>
+                <p>${escapeHtml(entry?.routeBeat || '')}</p>
+                <em>${escapeHtml(choiceText)}</em>
+            </div>
+        `;
     }
 
     renderPrizePools() {
@@ -239,7 +457,7 @@ export default class CasinoScene {
                     data-pool-id="${escapeHtml(pool.id)}">
                     <span>${escapeHtml(pool.subtitle || '')}</span>
                     <strong>${escapeHtml(pool.name)}</strong>
-                    <em>${pool.cost} 籌碼 / 保底 ${pool.pity || 0}/${pool.pityAfter || '-'}</em>
+                    <em>${pool.cost} 獎券 / 已抽 ${pool.draws || 0}</em>
                     ${lockedText}
                 </button>
             `;
@@ -264,12 +482,12 @@ export default class CasinoScene {
             return;
         }
 
-        const chips = casinoManager.getChips();
-        const disabled = !pool.unlocked || chips < pool.cost;
+        const tickets = casinoManager.getTickets();
+        const disabled = !pool.unlocked || tickets < pool.cost;
         if (this.dom.btnDrawPrize) {
             this.dom.btnDrawPrize.disabled = disabled;
             this.dom.btnDrawPrize.textContent = pool.unlocked
-                ? `抽取奇物（${pool.cost} 籌碼）`
+                ? `抽取奇物（${pool.cost} 獎券）`
                 : '獎池尚未開放';
         }
 
@@ -286,12 +504,13 @@ export default class CasinoScene {
                 ? this.formatRange(reward.amount)
                 : (reward.quantity ? `x${this.formatRange(reward.quantity)}` : '');
             const limitedText = reward.limit ? `${reward.claimed || 0}/${reward.limit}` : '';
+            const oddsText = reward.exhausted ? '已取完' : (reward.locked ? '未開放' : `${reward.oddsPercent || '0%'} 機率`);
             const lockedText = reward.locked ? '<small>未開放</small>' : '';
             return `
-                <div class="casino-prize-token rarity-frame rarity-${escapeHtml(reward.rarity || 'common')} ${reward.locked ? 'locked' : ''}" data-reward-id="${escapeHtml(reward.id)}">
+                <div class="casino-prize-token rarity-frame rarity-${escapeHtml(reward.rarity || 'common')} ${reward.locked || reward.exhausted ? 'locked' : ''}" data-reward-id="${escapeHtml(reward.id)}">
                     <span class="casino-prize-icon">${getItemVisualHtml(item, reward.icon || '◆')}</span>
                     <span class="casino-prize-name">${escapeHtml(reward.name || item.name || '未知奇物')}</span>
-                    <span class="casino-prize-meta">${escapeHtml(reward.rarityText || reward.rarity || '')} ${escapeHtml(amountText)}</span>
+                    <span class="casino-prize-meta">${escapeHtml(reward.rarityText || reward.rarity || '')} ${escapeHtml(amountText)} / ${escapeHtml(oddsText)}</span>
                     ${limitedText ? `<span class="casino-prize-limit">${escapeHtml(limitedText)}</span>` : ''}
                     ${lockedText}
                 </div>
@@ -322,7 +541,7 @@ export default class CasinoScene {
             };
             attachItemTooltip(element, item, {
                 quantity: reward.quantity ? this.formatRange(reward.quantity) : undefined,
-                hint: reward.locked ? '章節尚未開放' : `${pool.name} 可能獎品`
+                hint: reward.locked ? '章節尚未開放' : `${pool.name} 可能獎品 / ${reward.oddsPercent || '0%'}`
             });
         });
     }
@@ -334,20 +553,17 @@ export default class CasinoScene {
             .map(tier => `${tier.text} ${tier.percent}%`)
             .join(' / ');
         const lockedReason = this.getPrizePoolLockedReason(pool, summary);
-        const pityText = lockedReason || (summary.pityRemaining === null
-            ? '無保底'
-            : (summary.pityRemaining <= 0
-                ? `本抽觸發 ${summary.pityMinRarityText || '稀有'} 保底`
-                : `${summary.pityRemaining} 抽後 ${summary.pityMinRarityText || '稀有'} 保底`));
+        const randomText = lockedReason || '純隨機，無保底';
         const limitedText = summary.limitedRemaining > 0
             ? `限量獎剩 ${summary.limitedRemaining}`
             : '限量獎已取完或無限量';
+        const costText = `每抽 ${summary.drawCost || pool.cost || 0} 獎券 / ${limitedText}`;
 
         return `
             <div class="casino-prize-summary ${summary.unlocked ? '' : 'is-locked'}" aria-label="獎池概況">
                 <span>${escapeHtml(`${summary.unlocked ? '' : '預覽：'}${tierText || '目前沒有可抽取獎品'}`)}</span>
-                <strong>${escapeHtml(pityText)}</strong>
-                <em>${escapeHtml(limitedText)}</em>
+                <strong>${escapeHtml(randomText)}</strong>
+                <em>${escapeHtml(costText)}</em>
             </div>
         `;
     }
@@ -371,6 +587,7 @@ export default class CasinoScene {
     }
 
     drawPrize() {
+        audioManager.play('loot', { throttleKey: 'casino-draw-prize', throttleMs: 220 });
         const result = casinoManager.drawPrize(this.selectedPrizePool);
         this.showResult(result.message, result.success);
         if (result.success) {
@@ -383,6 +600,7 @@ export default class CasinoScene {
             }
             questManager.updateStats?.('casino_prize_draw');
             if (result.reward?.rarity === 'legendary') {
+                audioManager.play('jackpot', { throttleKey: 'casino-prize-jackpot', throttleMs: 500 });
                 questManager.updateStats?.('jackpot');
             }
             if (name) this.flashPrize(name, result.reward?.rarity);
@@ -393,6 +611,7 @@ export default class CasinoScene {
 
     exchangeChips(goldAmount) {
         const result = casinoManager.exchangeGoldForChips(goldAmount);
+        if (result.success) audioManager.play('coin', { throttleKey: 'casino-exchange', throttleMs: 180 });
         this.showResult(result.message, result.success);
         this.updateUI();
     }
@@ -407,13 +626,13 @@ export default class CasinoScene {
         if (attention >= 70) {
             this.dom.ledgerText.textContent = '你的名字被寫在帳冊邊緣，墨水還沒乾。守衛開始記得你的臉。';
         } else if (chapter >= 3) {
-            this.dom.ledgerText.textContent = '瑪洛把一部分籌碼換成補給券。賭場還在笑，但笑聲下面多了避難者的腳步聲。';
+            this.dom.ledgerText.textContent = '瑪洛把高額獎券的流向記成補給券。賭場還在笑，但笑聲下面多了避難者的腳步聲。';
         } else if (chapter >= 2) {
             this.dom.ledgerText.textContent = '勝率表的曲線不太自然。瑪洛說，如果數字看起來太乖，通常代表有人抓著它的脖子。';
         } else if (net < -300) {
             this.dom.ledgerText.textContent = '你輸掉不少籌碼，桌邊有人遞來一杯劣酒，像是在恭喜你正式成為這裡的一部分。';
         } else {
-            this.dom.ledgerText.textContent = '賭場的燈還很亮，帳冊上目前沒有太多值得害怕的曲線。';
+            this.dom.ledgerText.textContent = '賭場的燈還很亮。金幣進帳房，籌碼進賭桌，獎券進奇物櫃，曲線暫時還算乾淨。';
         }
     }
 
@@ -434,6 +653,7 @@ export default class CasinoScene {
         
         this.isSpinning = true;
         this.dom.btnSpin.disabled = true;
+        audioManager.play('slots', { throttleKey: 'casino-slots-spin', throttleMs: 500 });
         
         // 動畫效果
         await this.animateSlots();
@@ -451,10 +671,14 @@ export default class CasinoScene {
             if (result.chipReward > 0) {
                 setTimeout(() => this.showResult(`桌邊籌碼滑回你面前：+${result.chipReward} 籌碼。`, true), 700);
             }
+            if (result.ticketReward > 0) {
+                setTimeout(() => this.showResult(`獎券結算：+${result.ticketReward} 張。`, true), 1050);
+            }
             if (result.bonusMessage) {
                 setTimeout(() => this.showResult(result.bonusMessage, true), 1500);
             }
             if (result.isJackpot) {
+                audioManager.play('jackpot', { throttleKey: 'casino-slots-jackpot', throttleMs: 500 });
                 this.showJackpot();
                 // 任務系統：中頭獎
                 questManager.updateStats('jackpot');
@@ -573,6 +797,7 @@ export default class CasinoScene {
         
         this.isSpinning = true;
         this.dom.btnRouletteSpin.disabled = true;
+        audioManager.play('roulette', { throttleKey: 'casino-roulette-spin', throttleMs: 500 });
         
         // 動畫
         await this.animateRoulette();
@@ -586,6 +811,9 @@ export default class CasinoScene {
             this.showResult(result.message, result.isWin);
             if (result.chipReward > 0) {
                 setTimeout(() => this.showResult(`帳房記下一筆籌碼回流：+${result.chipReward} 籌碼。`, true), 700);
+            }
+            if (result.ticketReward > 0) {
+                setTimeout(() => this.showResult(`輪盤票口吐出 +${result.ticketReward} 張獎券。`, true), 1050);
             }
             
             // 任務系統：賭博勝利/失敗
@@ -630,6 +858,7 @@ export default class CasinoScene {
         
         this.isSpinning = true;
         this.dom.btnDiceRoll.disabled = true;
+        audioManager.play('dice', { throttleKey: 'casino-dice-roll', throttleMs: 500 });
         
         // 動畫
         await this.animateDice();
@@ -647,6 +876,9 @@ export default class CasinoScene {
             this.showResult(result.message, result.isWin);
             if (result.chipReward > 0) {
                 setTimeout(() => this.showResult(`骨骰停住後，莊家推回 +${result.chipReward} 籌碼。`, true), 700);
+            }
+            if (result.ticketReward > 0) {
+                setTimeout(() => this.showResult(`骨骰桌結算獎券：+${result.ticketReward} 張。`, true), 1050);
             }
             
             if (result.isTriple) {
@@ -732,6 +964,7 @@ export default class CasinoScene {
         if (this.isSpinning) return;
 
         const bet = parseInt(this.dom.darkBet?.value) || 80;
+        audioManager.play('dark-table', { throttleKey: 'casino-dark-table', throttleMs: 500 });
         const result = casinoManager.playDarkTable(bet);
         this.showResult(result.message, result.success && result.isWin);
 
@@ -767,6 +1000,12 @@ export default class CasinoScene {
                     isWin: true
                 });
             }
+            if (result.ticketReward > 0) {
+                followUpNotices.push({
+                    message: `暗桌票匣吐出 +${result.ticketReward} 張獎券。`,
+                    isWin: true
+                });
+            }
             followUpNotices.forEach((notice, index) => {
                 setTimeout(() => this.showResult(notice.message, notice.isWin), 700 + index * 700);
             });
@@ -780,6 +1019,10 @@ export default class CasinoScene {
     
     showResult(message, isWin) {
         if (!this.dom.resultMessage) return;
+        audioManager.play(isWin ? 'reward' : 'toast-warning', {
+            throttleKey: `casino-result-${isWin ? 'win' : 'lose'}`,
+            throttleMs: 260
+        });
         
         this.dom.resultMessage.textContent = message;
         this.dom.resultMessage.className = `result-message ${isWin ? 'win' : 'lose'} show`;
@@ -791,6 +1034,7 @@ export default class CasinoScene {
 
     claimDailyBonus() {
         const result = casinoManager.claimDailyBonus();
+        if (result.success) audioManager.play('coin', { throttleKey: 'casino-daily-bonus', throttleMs: 180 });
         this.showResult(result.message, result.success);
         if (result.success) {
             this.updateUI();

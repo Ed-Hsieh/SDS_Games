@@ -16,6 +16,7 @@ import GameManager from './managers/GameManager.js';
 import './utils/RhythmBarSystem.js';
 import './utils/ItemTooltip.js';
 import './components/ItemDetailModal.js';
+import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 
@@ -153,6 +154,7 @@ class App {
                 DungeonScene.init(dungeonType);
             }
             this.currentSceneName = sceneName;
+            audioManager.setScene(sceneName);
 
         } catch (error) {
             console.error('Error loading scene:', error);
@@ -191,6 +193,8 @@ class App {
 // when cache-busted imports are slow, so bootstrap immediately if the DOM is ready.
 function bootstrapApp() {
     if (window.gameApp) return;
+
+    audioManager.installGlobalHooks();
 
     // 先還原本機存檔再進場景；主檔損壞時自動回退備份。
     const restore = GameManager.loadFromLocalStorage();

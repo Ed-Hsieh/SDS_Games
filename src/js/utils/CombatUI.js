@@ -1,5 +1,6 @@
 import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
 import { getGeneratedCombatEffectImage, getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import audioManager from './AudioManager.js';
 
 function find(root, selectors) {
     if (!root) return null;
@@ -29,6 +30,42 @@ function setImageOrTextIcon(root, selectors, image, label, fallback = '') {
         return;
     }
     el.textContent = fallback;
+}
+
+function playCombatDamageSound(type, damage, options = {}) {
+    const normalizedType = String(type || '').toLowerCase();
+    const numericDamage = Number(damage) || 0;
+    let sound = null;
+    let throttleKey = `combat-damage-${normalizedType}`;
+
+    if (options.isMiss || normalizedType === 'dodge' || normalizedType === 'miss') {
+        sound = 'miss';
+    } else if (options.isCrit || normalizedType === 'critical' || normalizedType === 'crit') {
+        sound = 'crit';
+    } else if (normalizedType === 'block' || numericDamage <= 0 && !normalizedType.startsWith('status')) {
+        sound = 'block';
+    } else if (normalizedType === 'heal' || normalizedType === 'lifesteal') {
+        sound = 'heal';
+    } else if (normalizedType === 'dot' || normalizedType === 'statuspoison') {
+        sound = 'poison';
+    } else if (normalizedType === 'revive') {
+        sound = 'revive';
+    } else if (normalizedType.startsWith('status')) {
+        sound = 'status';
+    } else if (normalizedType === 'doublestrike' || normalizedType === 'reflect') {
+        sound = 'hit';
+        throttleKey = `combat-${normalizedType}`;
+    } else if (numericDamage > 0) {
+        sound = 'hit';
+    }
+
+    if (sound) {
+        audioManager.play(sound, {
+            throttleKey,
+            throttleMs: sound === 'hit' ? 55 : 90,
+            intensity: numericDamage > 40 ? 'heavy' : 'light'
+        });
+    }
 }
 
 function getCombatEffectAssetId(effect = {}) {
@@ -533,6 +570,8 @@ export function showCombatDamageNumber(root, damage, options = {}) {
         statusPoison: { text: options.label || '中毒', className: 'damage-status damage-status-poison' }
     }[type] || { text: `-${numericDamage}`, className: 'damage-normal' };
 
+    playCombatDamageSound(type, numericDamage, options);
+
     const damageEl = document.createElement('div');
     damageEl.className = `damage-number ${config.className}`;
     damageEl.textContent = options.label || config.text;
@@ -603,6 +642,7 @@ export function triggerCombatImpact(root, options = {}) {
 export function showCombatKillFreeze(root) {
     const surface = getCombatSurface(root);
     if (!surface) return;
+    audioManager.play('victory', { throttleKey: 'combat-kill-freeze', throttleMs: 420 });
     surface.classList.add('combat-kill-freeze');
     triggerCombatImpact(surface, { intensity: 'medium', slowMotion: true });
     setTimeout(() => surface.classList.remove('combat-kill-freeze'), 420);
@@ -611,6 +651,7 @@ export function showCombatKillFreeze(root) {
 export function showCombatPhaseWarning(root, monster, phase = 2) {
     const surface = getCombatSurface(root);
     if (!surface) return;
+    audioManager.play('boss-phase', { throttleKey: 'combat-boss-phase', throttleMs: 1200 });
     const warning = document.createElement('div');
     warning.className = `combat-phase-warning combat-phase-warning-${phase}`;
     warning.innerHTML = `
@@ -628,6 +669,11 @@ export function showCombatPlayerHitFeedback(root, character, damage = 0) {
     const maxHp = getCharacterMaxHp(character);
     const hpPercent = (getCharacterHp(character) / maxHp) * 100;
     const damagePercent = (Number(damage) || 0) / maxHp * 100;
+    audioManager.play('player-hit', {
+        throttleKey: 'combat-player-hit',
+        throttleMs: 90,
+        intensity: damagePercent > 15 ? 'heavy' : 'light'
+    });
     showCombatPlayerDamageNumber(root, damage, { heavyThreshold: maxHp * 0.16 });
 
     let vignetteEl = root.querySelector('.hit-vignette');

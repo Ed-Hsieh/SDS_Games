@@ -17,6 +17,7 @@ import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/I
 import { attachItemTooltip, closeItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import audioManager from '../utils/AudioManager.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getLandmark } from '../data/WorldStories.js';
 import { getQuestStory } from '../data/QuestStories.js';
@@ -36,6 +37,7 @@ import {
 import {
     getGeneratedBackgroundImage,
     getGeneratedDungeonImage,
+    getGeneratedLandmarkFullImage,
     getGeneratedLandmarkImage,
     getGeneratedMapPropImage,
     getGeneratedStoryRelicImage,
@@ -254,6 +256,7 @@ export default class AdventureScene {
             playerHp: this.container.querySelector('#adv-player-hp'),
             playerGold: this.container.querySelector('#adv-player-gold'),
             locationToast: this.container.querySelector('#location-toast'),
+            locationToastImage: this.container.querySelector('#location-toast-image'),
             locationToastKicker: this.container.querySelector('#location-toast-kicker'),
             locationToastTitle: this.container.querySelector('#location-toast-title'),
             locationToastDescription: this.container.querySelector('#location-toast-description'),
@@ -876,6 +879,52 @@ export default class AdventureScene {
         return true;
     }
 
+    getLandmarkImage(landmarkOrId = null, options = {}) {
+        const landmark = typeof landmarkOrId === 'object' && landmarkOrId
+            ? landmarkOrId
+            : { id: landmarkOrId };
+        if (options.full) {
+            return landmark?.fullImage
+                || getGeneratedLandmarkFullImage(landmark?.id)
+                || landmark?.image
+                || getGeneratedLandmarkImage(landmark?.id);
+        }
+        return landmark?.image || getGeneratedLandmarkImage(landmark?.id);
+    }
+
+    getLandmarkVisitedFlag(landmarkId) {
+        return worldStoryManager.getLandmarkVisitedFlag?.(landmarkId)
+            || `world.landmark.${landmarkId}.visited`;
+    }
+
+    isLandmarkDiscovered(landmarkId) {
+        if (!landmarkId) return false;
+        const currentLandmarkId = this.worldMap?.getCurrentLandmark?.()?.id;
+        if (currentLandmarkId === landmarkId) return true;
+        return Boolean(GameManager.getFlag(this.getLandmarkVisitedFlag(landmarkId)));
+    }
+
+    drawUnknownLandmarkMarker(ctx, cx, cy, size) {
+        if (!ctx) return;
+        const radius = size / 2;
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.72)';
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = 'rgba(2, 4, 8, 0.96)';
+        ctx.strokeStyle = 'rgba(229, 231, 235, 0.34)';
+        ctx.lineWidth = Math.max(1.5, size * 0.07);
+        ctx.beginPath();
+        ctx.roundRect(cx - radius, cy - radius, size, size, Math.max(3, size * 0.12));
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+        ctx.font = `900 ${Math.max(16, Math.floor(size * 0.64))}px Rajdhani, Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('?', cx, cy + size * 0.02);
+        ctx.restore();
+    }
+
     updateWorldNarrativePanel(override = null) {
         if (!this.worldMap) return;
 
@@ -928,6 +977,14 @@ export default class AdventureScene {
 
         if (this.dom.locationToastKicker) {
             this.dom.locationToastKicker.textContent = narrative.landmark ? '發現地點' : '進入區域';
+        }
+        if (this.dom.locationToastImage) {
+            const image = narrative.landmark ? this.getLandmarkImage(narrative.landmark, { full: true }) : '';
+            this.dom.locationToast.classList.toggle('has-location-image', Boolean(image));
+            this.dom.locationToastImage.style.backgroundImage = image
+                ? `url("${this.normalizeCanvasAssetSrc(image)}")`
+                : '';
+            this.dom.locationToastImage.setAttribute('aria-hidden', 'true');
         }
         if (this.dom.locationToastTitle) {
             this.dom.locationToastTitle.textContent = narrative.title || '未知地點';
@@ -1010,14 +1067,17 @@ export default class AdventureScene {
         if (this.dom.smallLocationHintKicker) {
             this.dom.smallLocationHintKicker.textContent = distance <= 1 ? '近在眼前' : '附近地點';
         }
+        const isDiscovered = this.isLandmarkDiscovered(landmark.id);
         if (this.dom.smallLocationHintTitle) {
-            const image = landmark.image || getGeneratedLandmarkImage(landmark.id);
+            const image = isDiscovered ? this.getLandmarkImage(landmark) : '';
             this.dom.smallLocationHintTitle.innerHTML = image
                 ? `<span class="small-location-hint-image"><img src="${escapeHtml(image)}" alt="${escapeHtml(landmark.name || '')}"></span><span>${escapeHtml(landmark.name || '未知地點')}</span>`
-                : `${escapeHtml(landmark.icon || '◆')} ${escapeHtml(landmark.name || '未知地點')}`;
+                : `<span class="small-location-hint-image is-unknown" aria-hidden="true">?</span><span>${isDiscovered ? escapeHtml(landmark.name || '未知地點') : '未知路標'}</span>`;
         }
         if (this.dom.smallLocationHintText) {
-            const hintText = landmark.mapHint || landmark.arrival || '再靠近即可調查。';
+            const hintText = isDiscovered
+                ? (landmark.mapHint || landmark.arrival || '再靠近即可調查。')
+                : '前方有尚未記錄的路標。';
             const actionHint = distance <= 1 ? '按 F 調查。' : '靠近後按 F 調查。';
             this.dom.smallLocationHintText.textContent = `${hintText} ${actionHint}`;
         }
@@ -1046,6 +1106,10 @@ export default class AdventureScene {
 
     toggleClueBook(forceOpen = null) {
         this.clueBookOpen = forceOpen === null ? !this.clueBookOpen : Boolean(forceOpen);
+        audioManager.play(this.clueBookOpen ? 'book-open' : 'book-close', {
+            throttleKey: 'adventure-clue-book-toggle',
+            throttleMs: 180
+        });
         if (this.dom.clueBookPanel) {
             this.dom.clueBookPanel.classList.toggle('is-open', this.clueBookOpen);
             this.dom.clueBookPanel.setAttribute('aria-hidden', String(!this.clueBookOpen));
@@ -1855,7 +1919,13 @@ export default class AdventureScene {
         };
         const drawLandmarkMarker = (cell, x, y) => {
             const { cx, cy } = center(x, y);
-            const landmarkImage = getGeneratedLandmarkImage(cell.data.landmarkId);
+            const landmarkId = cell.data.landmarkId;
+            if (!this.isLandmarkDiscovered(landmarkId)) {
+                this.drawUnknownLandmarkMarker(ctx, cx, cy, gridSize * 0.66);
+                return;
+            }
+
+            const landmarkImage = this.getLandmarkImage(cell.data.landmarkData || landmarkId);
             if (this.drawCanvasImageMarker(ctx, landmarkImage, cx, cy, gridSize * 0.66, {
                 shadowColor: 'rgba(216, 181, 95, 0.58)',
                 stroke: 'rgba(222, 195, 126, 0.86)'
@@ -2293,6 +2363,7 @@ export default class AdventureScene {
             zoneId: landmarkRef.zone,
             source: 'adventure_map'
         });
+        this.renderMap();
         if ((outcome.newClues || []).length > 0 && this.dom.btnToggleClueBook && !this.clueBookOpen) {
             this.dom.btnToggleClueBook.classList.add('has-new');
         }
@@ -2323,7 +2394,13 @@ export default class AdventureScene {
         });
         this.worldMap.clearCurrentLandmark();
         this.showEventModal(
-            outcome.icon || '◆',
+            {
+                type: 'landmark',
+                icon: outcome.icon || '◆',
+                name: outcome.title,
+                landmarkId: landmarkRef.id,
+                image: this.getLandmarkImage(outcome.landmark || landmarkRef.data || landmarkRef.id, { full: true })
+            },
             outcome.title || '未知地標',
             outcome.description || '你抵達一處值得記錄的地方。',
             resultHTML
@@ -3035,7 +3112,12 @@ export default class AdventureScene {
     showEventModal(icon, title, description, resultHTML) {
         if (!this.dom.eventModal) return;
         
-        if (this.dom.eventIcon) this.dom.eventIcon.innerHTML = this.renderEventVisual(icon, title);
+        const isLandmarkEvent = Boolean(icon && typeof icon === 'object' && icon.type === 'landmark');
+        this.dom.eventModal.classList.toggle('is-landmark-event', isLandmarkEvent);
+        if (this.dom.eventIcon) {
+            this.dom.eventIcon.classList.toggle('is-scene-image', isLandmarkEvent);
+            this.dom.eventIcon.innerHTML = this.renderEventVisual(icon, title);
+        }
         if (this.dom.eventTitle) this.dom.eventTitle.textContent = title;
         if (this.dom.eventDescription) this.dom.eventDescription.textContent = description;
         if (this.dom.eventResult) this.dom.eventResult.innerHTML = resultHTML;
@@ -3047,7 +3129,9 @@ export default class AdventureScene {
         const event = typeof eventOrIcon === 'object' && eventOrIcon ? eventOrIcon : null;
         const icon = event?.icon || eventOrIcon || '◆';
         const imageId = this.getEventMapPropId(event, title);
-        const image = imageId ? getGeneratedMapPropImage(imageId) : '';
+        const image = event?.image
+            || (event?.landmarkId ? this.getLandmarkImage(event.landmarkId, { full: true }) : '')
+            || (imageId ? getGeneratedMapPropImage(imageId) : '');
         const label = event?.name || title || '';
         if (image) {
             return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}">`;
@@ -3119,6 +3203,8 @@ export default class AdventureScene {
 
     startBattle() {
         const monster = this.worldMap.getCurrentMonster();
+        audioManager.play('combat-start', { throttleKey: 'adventure-combat-start', throttleMs: 650 });
+        audioManager.playBgm('combat');
         this.currentBattleZone = monster?.zoneId || this.worldMap?.getCurrentZone?.() || null;
         if (monster && !monster.zoneId) {
             monster.zoneId = this.currentBattleZone;
@@ -3244,6 +3330,7 @@ export default class AdventureScene {
             this.rhythmSystem.stop();
             this.rhythmSystem = null;
         }
+        audioManager.restoreSceneBgm();
         this.worldMap.clearCurrentMonster();
         // Stop engine auto-attack if running
         try {
@@ -3288,6 +3375,7 @@ export default class AdventureScene {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
         const fleeCard = this.container.querySelector('#action-flee');
         if (isCombatActionCooling(fleeCard)) return;
+        audioManager.play('flee', { throttleKey: 'adventure-flee', throttleMs: 180 });
         startCombatActionCooldown(fleeCard, 1);
         this.currentBattle.flee();
     }
@@ -3331,6 +3419,7 @@ export default class AdventureScene {
             const index = inventory.indexOf(potionStack);
             if (index > -1) inventory.splice(index, 1);
         }
+        audioManager.play('heal', { throttleKey: 'adventure-potion', throttleMs: 180 });
         startCombatActionCooldown(potionCard, 1);
 
         // 更新UI
@@ -3424,6 +3513,7 @@ export default class AdventureScene {
     }
 
     showLoot(exp, gold, items) {
+        audioManager.play('loot', { throttleKey: 'adventure-loot-open', throttleMs: 300 });
         this.dom.battleModal?.classList.add('battle-result-mode');
         if (this.dom.battleBody) this.dom.battleBody.hidden = true;
         this.dom.lootModal.classList.remove('is-entering');
@@ -3935,6 +4025,7 @@ class AdventureBattleViewController {
 
     handleDefeat() {
         this.battleEnded = true;
+        audioManager.play('defeat', { throttleKey: 'adventure-defeat', throttleMs: 600 });
         
         const penalty = Math.floor(this.player.gold * 0.1);
         GameManager.removeGold(penalty);

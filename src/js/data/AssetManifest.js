@@ -122,7 +122,18 @@ const sets = {
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle', 'dungeon_ruins', 'dungeon_snow',
         'zone_death', 'zone_high', 'zone_low', 'zone_medium'
     ]),
+    'dungeon-zone-scenes-full': new Set([
+        'dungeon_cave', 'dungeon_hell', 'dungeon_jungle', 'dungeon_ruins', 'dungeon_snow',
+        'zone_death', 'zone_high', 'zone_low', 'zone_medium'
+    ]),
     'world-landmarks': new Set([
+        'abyssal_seal_break', 'black_iron_storehouse', 'broken_horn_camp', 'charred_obelisk',
+        'cut_roadsign', 'dragon_heat_crag', 'drowned_bell_coast', 'hunter_boardwalk',
+        'mist_tablet_hill', 'moon_moss_slope', 'northern_drake_watch', 'obsidian_keep_gate',
+        'old_campfire_site', 'old_wolf_den', 'opened_ancient_tomb', 'rotroot_ravine',
+        'silver_snare_pass', 'south_gate_farmland', 'sunken_altar_reef', 'thorn_glasshouse_ruin'
+    ]),
+    'world-landmarks-full': new Set([
         'abyssal_seal_break', 'black_iron_storehouse', 'broken_horn_camp', 'charred_obelisk',
         'cut_roadsign', 'dragon_heat_crag', 'drowned_bell_coast', 'hunter_boardwalk',
         'mist_tablet_hill', 'moon_moss_slope', 'northern_drake_watch', 'obsidian_keep_gate',
@@ -236,15 +247,24 @@ export function getGeneratedMonsterImage(monsterId) {
 }
 
 export function getGeneratedDungeonImage(dungeonId) {
-    return knownAssetPath('dungeon-zone-scenes', `dungeon_${dungeonId}`);
+    const imageId = `dungeon_${dungeonId}`;
+    return knownAssetPath('dungeon-zone-scenes-full', imageId)
+        || knownAssetPath('dungeon-zone-scenes', imageId);
 }
 
 export function getGeneratedZoneImage(zoneId) {
-    return knownAssetPath('dungeon-zone-scenes', `zone_${zoneId}`);
+    const imageId = `zone_${zoneId}`;
+    return knownAssetPath('dungeon-zone-scenes-full', imageId)
+        || knownAssetPath('dungeon-zone-scenes', imageId);
 }
 
 export function getGeneratedLandmarkImage(landmarkId) {
     return knownAssetPath('world-landmarks', landmarkId);
+}
+
+export function getGeneratedLandmarkFullImage(landmarkId) {
+    return knownAssetPath('world-landmarks-full', landmarkId)
+        || knownAssetPath('world-landmarks', landmarkId);
 }
 
 export function getGeneratedCombatEffectImage(effectId) {

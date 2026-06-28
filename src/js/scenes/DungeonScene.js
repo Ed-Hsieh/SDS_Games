@@ -13,6 +13,7 @@ import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import audioManager from '../utils/AudioManager.js';
 import { escapeHtml } from '../utils/ItemDisplay.js';
 import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import {
@@ -740,6 +741,11 @@ class DungeonSceneClass {
         const finalAmount = Math.max(1, Math.floor(baseAmount * (1 - mitigation)));
         const mitigatedText = finalAmount < baseAmount ? `（技能減免 ${baseAmount - finalAmount}）` : '';
         char.hp = Math.max(0, (char.hp || 0) - finalAmount);
+        audioManager.play('player-hit', {
+            throttleKey: 'dungeon-hazard-damage',
+            throttleMs: 220,
+            intensity: finalAmount > 25 ? 'heavy' : 'light'
+        });
         this.addMessage(`${reason}：受到 ${finalAmount} 點傷害${mitigatedText}。`, type);
         GameManager.markSaveDirty?.('dungeon-damage');
         return finalAmount;
@@ -1042,6 +1048,8 @@ class DungeonSceneClass {
     startBattle(monsterType) {
         const dungeonData = DungeonDatabase[this.dungeonType];
         let monster;
+        audioManager.play('combat-start', { throttleKey: 'dungeon-combat-start', throttleMs: 650 });
+        audioManager.playBgm('combat');
         
         switch (monsterType) {
             case 'elite':
@@ -1243,6 +1251,7 @@ class DungeonSceneClass {
             return;
         }
 
+        audioManager.play('attack-swing', { throttleKey: 'dungeon-attack-swing', throttleMs: 80 });
         // For dungeon simple action, treat as a normal hit
         const res = this._engine.playerAttack('hit');
         if (!res) return;
@@ -1300,6 +1309,7 @@ class DungeonSceneClass {
         }
 
         this.addMessage(`使用 ${itemName}，角色狀態已更新。`, 'success');
+        audioManager.play('heal', { throttleKey: 'dungeon-use-item', throttleMs: 180 });
         startCombatActionCooldown(this.dom.btnItem, 1);
         this.updateUI();
         this.updateBattlePlayerDisplay();
@@ -1316,6 +1326,7 @@ class DungeonSceneClass {
         }
 
         startCombatActionCooldown(this.dom.btnFlee, 1);
+        audioManager.play('flee', { throttleKey: 'dungeon-flee', throttleMs: 180 });
         const fleeChance = this.getDungeonFleeChance();
         if (Math.random() < fleeChance) {
             this.applyDungeonRetreatCost();
@@ -1477,6 +1488,7 @@ class DungeonSceneClass {
         }
 
         this.isInCombat = false;
+        audioManager.restoreSceneBgm();
         try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
 
         const finishBattleCleanup = () => {
@@ -1553,6 +1565,8 @@ class DungeonSceneClass {
     
     handlePlayerDeath() {
         this.addMessage('💀 你被擊敗了...', 'danger');
+        audioManager.play('defeat', { throttleKey: 'dungeon-defeat', throttleMs: 600 });
+        audioManager.restoreSceneBgm();
         this.isInCombat = false;
         this.hideBattleModal();
         
@@ -1584,6 +1598,7 @@ class DungeonSceneClass {
     // ==================== 互動事件 ====================
     
     showTreasure() {
+        audioManager.play('loot', { throttleKey: 'dungeon-treasure', throttleMs: 220 });
         const dungeonData = DungeonDatabase[this.dungeonType];
         const goldMin = 20 + this.currentFloor * 10;
         const goldMax = 50 + this.currentFloor * 20;
@@ -1606,6 +1621,7 @@ class DungeonSceneClass {
         const char = GameManager.getCharacter();
         const healAmount = this.applyPassiveHealingBonus(Math.floor(char.maxHp * 0.3));
         char.hp = Math.min(char.maxHp, char.hp + healAmount);
+        audioManager.play('heal', { throttleKey: 'dungeon-healing-spring', throttleMs: 220 });
         
         this.addMessage(`⛲ 恢復 ${healAmount} 生命`, 'success');
         GameManager.markSaveDirty?.('dungeon-healing');

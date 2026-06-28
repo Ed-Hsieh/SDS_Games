@@ -15,6 +15,7 @@ import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml, getItemDisplayDescription, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, closeItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
+import audioManager from '../utils/AudioManager.js';
 
 const PANEL_LABELS = {
     shelf: '貨架',
@@ -109,6 +110,7 @@ export default class ShopScene {
             vendorPlace: this.container.querySelector('#vendor-place'),
             vendorName: this.container.querySelector('#vendor-name'),
             vendorRole: this.container.querySelector('#vendor-role'),
+            vendorFunctionList: this.container.querySelector('#vendor-function-list'),
             npcDialogue: this.container.querySelector('#dialogue-box'),
             tradeStatus: this.container.querySelector('#trade-status'),
             tradeStatusIcon: this.container.querySelector('#trade-status-icon'),
@@ -161,13 +163,22 @@ export default class ShopScene {
         this.currentVendorId = null;
         this.currentVendor = null;
         this.dom.scene?.classList.remove('is-trading');
+        this.applySceneAssets();
         this.renderVendorHotspots();
         this.renderMarketPrompt();
     }
 
-    applySceneAssets() {
+    applySceneAssets(vendor = null) {
         if (this.dom.stage) {
-            this.dom.stage.style.setProperty('--market-bg', `url("/${MarketSceneAssets.background}")`);
+            const image = vendor?.sceneImage || MarketSceneAssets.background;
+            const focus = vendor?.sceneFocus || MarketSceneAssets.focus || 'center';
+            this.dom.stage.style.setProperty('--market-bg', `url("/${image}")`);
+            this.dom.stage.style.setProperty('--market-bg-position', focus);
+        }
+        if (this.dom.shopCurrentCopy) {
+            const copy = vendor?.sceneCaption || MARKET_HEADER_COPY;
+            this.dom.shopCurrentCopy.textContent = copy;
+            this.dom.shopCurrentCopy.hidden = false;
         }
     }
 
@@ -267,6 +278,7 @@ export default class ShopScene {
         this.currentVendorId = vendorId;
         this.currentVendor = getMarketVendor(vendorId);
         this.dom.scene?.classList.add('is-trading');
+        this.applySceneAssets(this.currentVendor);
         this.renderVendorHotspots();
         this.renderVendorCard();
         this.renderCurrentPanel();
@@ -296,7 +308,11 @@ export default class ShopScene {
         if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = vendor.place || '市集';
         if (this.dom.vendorName) this.dom.vendorName.textContent = vendor.name;
         if (this.dom.vendorRole) this.dom.vendorRole.textContent = locked ? '尚未開張' : vendor.role;
-        if (this.dom.shopCurrentCopy) this.dom.shopCurrentCopy.textContent = '';
+        if (this.dom.shopCurrentCopy) {
+            this.dom.shopCurrentCopy.textContent = vendor.sceneCaption || summary || MARKET_HEADER_COPY;
+            this.dom.shopCurrentCopy.hidden = false;
+        }
+        this.renderVendorFunctionList(vendor, locked);
         this.renderNpcDialogue(dialogue || '');
         this.pushMarketNarrative(
             locked ? `${vendor.name}還沒開張` : `${vendor.name}的攤位`,
@@ -337,6 +353,7 @@ export default class ShopScene {
         if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = '市集';
         if (this.dom.vendorName) this.dom.vendorName.textContent = '選擇攤位';
         if (this.dom.vendorRole) this.dom.vendorRole.textContent = '走近攤位後再查看貨架、訂單與交換。';
+        this.applySceneAssets();
         if (this.dom.portraitFallback) {
             this.dom.portraitFallback.textContent = '市';
             this.dom.portraitFallback.hidden = false;
@@ -345,9 +362,7 @@ export default class ShopScene {
             this.dom.npcPortrait.removeAttribute('src');
             this.dom.npcPortrait.hidden = true;
         }
-        if (this.dom.shopCurrentCopy) {
-            this.dom.shopCurrentCopy.textContent = '';
-        }
+        this.renderVendorFunctionList(null);
         this.renderNpcDialogue('先在市集裡選一個攤位。');
         this.dom.panel.innerHTML = this.renderPreparationBoard();
         this.setTradeStatus(MARKET_SCENE_TITLE, MARKET_SCENE_COPY, 'info');
@@ -555,14 +570,25 @@ export default class ShopScene {
     }
 
     renderPreparationCard(card = {}) {
+        const vendor = card.vendorId ? getMarketVendor(card.vendorId) : null;
+        const locked = vendor ? this.isVendorLocked(vendor) : false;
+        const avatar = vendor?.portrait && !locked
+            ? `<img src="${escapeHtml(vendor.portrait)}" alt="${escapeHtml(vendor.name)}">`
+            : escapeHtml(vendor?.icon || '市');
+        const functions = card.functions || vendor?.functionList || this.getVendorFunctionList(vendor);
         return `
-            <article class="supply-card market-prep-card is-${escapeHtml(card.tone || 'info')}">
+            <article class="supply-card market-prep-card market-place-card is-${escapeHtml(card.tone || 'info')}">
+                <div class="market-prep-avatar">${avatar}</div>
                 <div class="supply-card-copy">
-                    <span>${escapeHtml(card.label || '準備')}</span>
+                    <span>${escapeHtml(`${card.label || '準備'} · ${vendor?.place || '市集'}`)}</span>
                     <h3>${escapeHtml(card.title || '確認攤位')}</h3>
                     <p>${escapeHtml(card.copy || '')}</p>
+                    <div class="market-prep-functions">
+                        ${functions.slice(0, 3).map(item => `<small>${escapeHtml(item)}</small>`).join('')}
+                    </div>
                 </div>
                 <div class="supply-card-side">
+                    <strong>${escapeHtml(vendor?.name || '市集')}</strong>
                     <button
                         type="button"
                         data-supply-action="prepare"
@@ -572,6 +598,26 @@ export default class ShopScene {
                 </div>
             </article>
         `;
+    }
+
+    getVendorFunctionList(vendor) {
+        if (!vendor) return ['選擇攤位後查看功能'];
+        const list = [];
+        if ((vendor.shelves || []).length) list.push(`貨架：${vendor.shelves.length} 項`);
+        if ((vendor.orders || []).length) list.push(`訂單：${vendor.orders.length} 項`);
+        if ((vendor.exchanges || []).length) list.push(`交換：${vendor.exchanges.length} 項`);
+        return list.length ? list : ['目前沒有開放交易'];
+    }
+
+    renderVendorFunctionList(vendor, locked = false) {
+        if (!this.dom.vendorFunctionList) return;
+        const functions = locked
+            ? [vendor?.lockedSummary || '尚未開放']
+            : (vendor?.functionList || this.getVendorFunctionList(vendor));
+        this.dom.vendorFunctionList.innerHTML = functions
+            .slice(0, 4)
+            .map(item => `<span>${escapeHtml(item)}</span>`)
+            .join('');
     }
 
     renderLockedVendor(vendor) {
@@ -882,6 +928,7 @@ export default class ShopScene {
         const itemName = item.name || '物品';
 
         if (this.getPlayerGold() < price || !GameManager.removeGold(price)) {
+            audioManager.play('toast-error', { throttleKey: 'market-buy-failed', throttleMs: 180 });
             this.showFeedback('金幣不足', `無法購買「${itemName}」，目前持有 ${this.getPlayerGold()} 金幣。`, 'error');
             return;
         }
@@ -890,12 +937,14 @@ export default class ShopScene {
         const added = GameManager.addToInventory(purchasedItem, quantity);
         if (!added) {
             GameManager.addGold(price);
+            audioManager.play('toast-error', { throttleKey: 'market-buy-full', throttleMs: 180 });
             this.showFeedback('背包已滿', `「${itemName}」無法放入背包，金幣已退回。`, 'error');
             return;
         }
 
         GameManager.markSaveDirty?.('market-buy');
         this.closeItemModal();
+        audioManager.play('coin', { throttleKey: 'market-buy-success', throttleMs: 180 });
         const unlockText = this.consumePassiveUnlockText();
         this.showFeedback(
             '購買完成',
@@ -920,12 +969,14 @@ export default class ShopScene {
         }
 
         if (earnedGold === false) {
+            audioManager.play('toast-error', { throttleKey: 'market-sell-failed', throttleMs: 180 });
             this.showFeedback('出售失敗', `找不到「${itemName}」，請重新整理背包後再試。`, 'error');
             return;
         }
 
         GameManager.markSaveDirty?.('market-sell');
         this.closeItemModal();
+        audioManager.play('coin', { throttleKey: 'market-sell-success', throttleMs: 180 });
         this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
     }
 
@@ -940,12 +991,17 @@ export default class ShopScene {
             });
             const message = outcome.messages?.join(' ') || '供應線有了新的反應。';
             if (outcome.success) this.markEntryCompleted(entry.entryType, entry);
+            audioManager.play(outcome.success ? 'reward' : 'toast-warning', {
+                throttleKey: 'market-interaction-exchange',
+                throttleMs: 180
+            });
             this.showFeedback(outcome.success ? '交換完成' : '交換失敗', message, outcome.success ? 'success' : 'warning');
             this.renderCurrentPanel();
             return;
         }
 
         if (!this.consumeEntryCost(entry)) {
+            audioManager.play('toast-warning', { throttleKey: 'market-exchange-failed', throttleMs: 180 });
             this.showFeedback('材料不足', '你身上的材料或金幣不足。', 'warning');
             return;
         }
@@ -975,6 +1031,7 @@ export default class ShopScene {
 
         this.markEntryCompleted(entry.entryType, entry);
         GameManager.markSaveDirty?.('market-supply-entry');
+        audioManager.play('reward', { throttleKey: 'market-exchange-success', throttleMs: 180 });
         const unlockText = this.consumePassiveUnlockText();
         this.showFeedback(
             entry.entryType === 'order' ? '訂單完成' : '交換完成',

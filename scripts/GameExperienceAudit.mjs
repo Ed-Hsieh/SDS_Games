@@ -5,10 +5,17 @@ import { DungeonDatabase } from '../src/js/data/Dungeons.js';
 import { getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/CasinoRewards.js';
 import { MarketVendors } from '../src/js/data/MarketSupply.js';
 import { getCharacterProfile } from '../src/js/data/CharacterProfiles.js';
+import { getEquipmentPowerBudget } from '../src/js/data/EquipmentBalance.js';
 
 const issues = [];
 const warnings = [];
 const summary = {};
+
+const CASINO_POOL_POWER_LIMITS = {
+    1: { common: 14, uncommon: 22, rare: 32, epic: 42, legendary: 52 },
+    2: { common: 24, uncommon: 42, rare: 64, epic: 88, legendary: 98 },
+    3: { common: 36, uncommon: 60, rare: 92, epic: 128, legendary: 165 }
+};
 
 function hasText(value) {
     return typeof value === 'string' && value.trim().length > 0;
@@ -20,6 +27,21 @@ function addIssue(message, details = {}) {
 
 function addWarning(message, details = {}) {
     warnings.push({ message, ...details });
+}
+
+function isEquipmentReward(item) {
+    const type = String(item?.type || '').toLowerCase();
+    return Boolean(item && (
+        item.stats
+        || item.attack !== undefined
+        || item.defense !== undefined
+        || ['weapon', 'equipment', 'armor', 'accessory'].includes(type)
+    ));
+}
+
+function getCasinoPowerLimit(poolChapter, rarity) {
+    const chapter = Math.max(1, Math.min(3, Number(poolChapter) || 1));
+    return CASINO_POOL_POWER_LIMITS[chapter]?.[rarity] || null;
 }
 
 function flattenQuestGroups() {
@@ -239,19 +261,41 @@ function auditCasino() {
         if (!hasText(pool.description) || !hasText(pool.atmosphere)) {
             addWarning('賭場獎池缺少氛圍或用途描述', { poolId: pool.id });
         }
-        if (!pool.pityAfter || !pool.pityMinRarity) {
-            addIssue('賭場獎池缺少保底規則', { poolId: pool.id });
+        if (pool.pityAfter || pool.pityMinRarity) {
+            addIssue('賭場獎池仍保留保底規則，與純隨機設計不一致', { poolId: pool.id });
         }
         if (!Array.isArray(pool.rewards) || pool.rewards.length < 6) {
             addWarning('賭場獎池獎項偏少，抽獎期待感可能不足', { poolId: pool.id });
         }
 
+        const totalWeight = (pool.rewards || [])
+            .reduce((sum, reward) => sum + Math.max(0, Number(reward.weight) || 0), 0);
+        if (totalWeight <= 0) {
+            addIssue('賭場獎池缺少可公開換算的機率權重', { poolId: pool.id });
+        }
+
         for (const reward of pool.rewards || []) {
-            if (reward.kind === 'item' && !resolveCasinoRewardItem(reward.itemId)) {
+            const rewardItem = reward.kind === 'item' ? resolveCasinoRewardItem(reward.itemId) : null;
+            if (!Number.isFinite(Number(reward.weight)) || Number(reward.weight) <= 0) {
+                addIssue('賭場獎項缺少正權重，無法公開機率', { poolId: pool.id, rewardId: reward.id });
+            }
+            if (reward.kind === 'item' && !rewardItem) {
                 addIssue('賭場獎池指向不存在的道具', { poolId: pool.id, rewardId: reward.id, itemId: reward.itemId });
             }
-            if (reward.rarity === 'legendary' && (pool.minChapter || 1) < 3 && (reward.minChapter || 1) < 3) {
-                addIssue('傳說賭場獎勵過早開放', { poolId: pool.id, rewardId: reward.id });
+            if (isEquipmentReward(rewardItem)) {
+                const powerBudget = getEquipmentPowerBudget(rewardItem);
+                const powerLimit = getCasinoPowerLimit(pool.minChapter, reward.rarity);
+                if (powerLimit !== null && powerBudget.score > powerLimit) {
+                    addIssue('賭場裝備獎勵超出章節強度曲線', {
+                        poolId: pool.id,
+                        rewardId: reward.id,
+                        itemId: reward.itemId,
+                        chapter: pool.minChapter || 1,
+                        rarity: reward.rarity,
+                        score: powerBudget.score,
+                        limit: powerLimit
+                    });
+                }
             }
         }
     }

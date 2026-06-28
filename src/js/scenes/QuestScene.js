@@ -16,6 +16,7 @@ import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldSto
 import { getTownPlaces } from '../data/TownPlaces.js';
 import { RecipeDatabase, getMissingMaterials } from '../managers/RecipeManager.js';
 import { isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
+import audioManager from '../utils/AudioManager.js';
 
 const HANDBOOK_TABS = {
     commissions: {
@@ -138,6 +139,7 @@ export default class QuestScene {
             if (this.selectedQuestId) {
                 const result = questManager.acceptQuest(this.selectedQuestId);
                 if (result.success) {
+                    audioManager.play('page', { throttleKey: 'quest-accept', throttleMs: 180 });
                     this.showNotification('任務接取', result.message);
                     this.renderQuestList();
                     this.renderQuestDetail(this.selectedQuestId);
@@ -150,6 +152,7 @@ export default class QuestScene {
             if (this.selectedQuestId) {
                 const result = questManager.abandonQuest(this.selectedQuestId);
                 if (result.success) {
+                    audioManager.play('toast-warning', { throttleKey: 'quest-abandon', throttleMs: 180 });
                     this.showNotification('任務放棄', result.message);
                     this.renderQuestList();
                     this.clearDetail();
@@ -165,6 +168,7 @@ export default class QuestScene {
 
     selectHandbookTab(tabId) {
         if (!HANDBOOK_TABS[tabId] || tabId === this.activeTab) return;
+        audioManager.play('page', { throttleKey: 'quest-tab-page', throttleMs: 140 });
         this.activeTab = tabId;
         this.selectedRecordKey = null;
         this.selectedQuestId = null;

@@ -134,6 +134,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 220,
                 exp: 140,
+                items: ['silver_thread_hook'],
                 materials: [
                     { id: 'spider_silk', quantity: 2 },
                     { id: 'poison_gland', quantity: 1 }
@@ -159,6 +160,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 320,
                 exp: 220,
+                items: ['black_bark_guardian_core'],
                 materials: [
                     { id: 'ancient_bark', quantity: 3 },
                     { id: 'forest_essence', quantity: 1 },
@@ -184,6 +186,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 420,
                 exp: 260,
+                items: ['blood_moon_pendant'],
                 materials: [
                     { id: 'life_seed', quantity: 2 },
                     { id: 'forest_essence', quantity: 1 },
@@ -210,6 +213,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 520,
                 exp: 300,
+                items: ['mist_tablet_rubbing'],
                 materials: [
                     { id: 'dark_crystal', quantity: 2 },
                     { id: 'ancient_rune', quantity: 1 }
@@ -237,6 +241,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 620,
                 exp: 360,
+                items: ['thorn_trade_bead'],
                 materials: [
                     { id: 'forest_essence', quantity: 1 },
                     { id: 'poison_gland', quantity: 2 }
@@ -263,6 +268,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 760,
                 exp: 430,
+                items: ['deep_sea_orb'],
                 materials: [
                     { id: 'dark_crystal', quantity: 2 },
                     { id: 'ancient_rune', quantity: 1 }
@@ -289,6 +295,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 940,
                 exp: 520,
+                items: ['lich_staff_remnant'],
                 materials: [
                     { id: 'lich_phylactery', quantity: 1 },
                     { id: 'dark_crystal', quantity: 2 }
@@ -315,6 +322,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 1120,
                 exp: 620,
+                items: ['ash_ledger_page'],
                 materials: [
                     { id: 'ember_stone', quantity: 2 },
                     { id: 'rare_metal', quantity: 1 }
@@ -343,6 +351,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 1400,
                 exp: 760,
+                items: ['dragon_nest_resonance'],
                 materials: [
                     { id: 'elder_dragon_scale', quantity: 1 },
                     { id: 'rare_metal', quantity: 1 }
@@ -368,6 +377,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 2600,
                 exp: 1200,
+                items: ['elder_dragon_fang'],
                 materials: [
                     { id: 'elder_dragon_scale', quantity: 3 },
                     { id: 'world_shard', quantity: 1 }
@@ -394,6 +404,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 1700,
                 exp: 900,
+                items: ['abyss_vanguard_oath'],
                 materials: [
                     { id: 'soul_fragment', quantity: 2 },
                     { id: 'dark_crystal', quantity: 2 }
@@ -448,7 +459,10 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 80,
-                exp: 40
+                exp: 40,
+                materials: [
+                    { id: 'slime_jelly', quantity: 2 }
+                ]
             },
             unlocks: []
         },
@@ -464,7 +478,11 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 150,
-                exp: 80
+                exp: 80,
+                materials: [
+                    { id: 'goblin_ear', quantity: 2 },
+                    { id: 'goblin_coin', quantity: 1 }
+                ]
             },
             unlocks: ['bounty_003']
         },
@@ -497,7 +515,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 500,
-                exp: 300
+                exp: 300,
+                items: ['assassin_dagger']
             },
             unlocks: []
         }
@@ -518,7 +537,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 200,
                 exp: 100,
-                // items: ['torch']
+                items: ['torch']
             },
             unlocks: ['dungeon_cave_002'],
             dialogue: {
@@ -539,7 +558,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 250,
-                // items: ['bat_wing_cloak']
+                items: ['bat_wing_cloak']
             },
             unlocks: ['dungeon_snow_001'],
             dialogue: {
@@ -581,7 +600,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 800,
-                exp: 400
+                exp: 400,
+                items: ['frost_crown']
             },
             unlocks: ['dungeon_ruins_001'],
             dialogue: {
@@ -603,7 +623,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 400,
                 exp: 200,
-                // items: ['ancient_key']
+                items: ['ancient_key']
             },
             unlocks: ['dungeon_ruins_002'],
             dialogue: {
@@ -623,7 +643,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 1000,
-                exp: 500
+                exp: 500,
+                items: ['guardian_shield']
             },
             unlocks: ['dungeon_jungle_001'],
             dialogue: {
@@ -645,7 +666,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 500,
                 exp: 250,
-                // items: ['compass']
+                items: ['compass']
             },
             unlocks: ['dungeon_jungle_002'],
             dialogue: {
@@ -665,7 +686,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 1200,
-                exp: 600
+                exp: 600,
+                items: ['jungle_heart']
             },
             unlocks: ['dungeon_hell_001'],
             dialogue: {
@@ -687,7 +709,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 600,
                 exp: 300,
-                // items: ['fire_resist_potion']
+                items: ['fire_resist_potion']
             },
             unlocks: ['dungeon_hell_002'],
             dialogue: {
@@ -708,7 +730,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 2000,
                 exp: 1000,
-                // items: ['demon_slayer']
+                items: ['demon_slayer']
             },
             unlocks: ['hidden_dungeon_master'],
             dialogue: {
@@ -731,7 +753,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 150,
-                // items: ['dungeon_token']
+                items: ['dungeon_token']
             },
             unlocks: [],
             dialogue: {
@@ -766,6 +788,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 180,
                 exp: 120,
+                items: ['enhance_scroll'],
                 materials: [
                     { id: 'rare_metal', quantity: 1 }
                 ]
@@ -798,6 +821,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 420,
                 exp: 260,
+                items: ['master_hammer'],
                 materials: [
                     { id: 'rare_metal', quantity: 1 },
                     { id: 'dark_steel', quantity: 1 }
@@ -828,7 +852,10 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 90,
-                exp: 45
+                exp: 45,
+                materials: [
+                    { id: 'iron_shard', quantity: 3 }
+                ]
             },
             unlocks: [],
             dialogue: {
@@ -856,7 +883,10 @@ export const QuestDatabase = {
             rewards: {
                 gold: 70,
                 exp: 50,
-                items: ['health_potion_s']
+                items: ['health_potion_s'],
+                materials: [
+                    { id: 'antidote', quantity: 1 }
+                ]
             },
             unlocks: [],
             dialogue: {
@@ -883,7 +913,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 80,
-                exp: 45
+                exp: 45,
+                items: ['gate_patrol_map']
             },
             unlocks: [],
             dialogue: {
@@ -912,6 +943,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 180,
                 exp: 110,
+                items: ['field_medic_notes'],
                 materials: [
                     { id: 'forest_essence', quantity: 1 }
                 ]
@@ -945,6 +977,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 230,
                 exp: 145,
+                items: ['leah_stitched_name'],
                 materials: [
                     { id: 'poison_gland', quantity: 1 },
                     { id: 'life_seed', quantity: 1 }
@@ -978,6 +1011,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 210,
                 exp: 130,
+                items: ['julian_bookmark'],
                 materials: [
                     { id: 'ancient_rune', quantity: 1 }
                 ]
@@ -1011,6 +1045,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 260,
                 exp: 170,
+                items: ['julian_margin_notes'],
                 materials: [
                     { id: 'golem_core', quantity: 1 }
                 ]
@@ -1043,6 +1078,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 190,
                 exp: 120,
+                items: ['bell_rhythm_charm'],
                 materials: [
                     { id: 'frost_crystal', quantity: 1 },
                     { id: 'ancient_rune', quantity: 1 }
@@ -1076,6 +1112,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 260,
                 exp: 160,
+                items: ['ash_nameplate'],
                 materials: [
                     { id: 'rare_metal', quantity: 1 },
                     { id: 'dark_steel', quantity: 1 }
@@ -1110,6 +1147,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 190,
+                items: ['craftsman_gouge'],
                 materials: [
                     { id: 'rare_metal', quantity: 1 }
                 ]
@@ -1142,6 +1180,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 340,
                 exp: 220,
+                items: ['north_letter_seal'],
                 materials: [
                     { id: 'dragon_tooth', quantity: 1 },
                     { id: 'rare_metal', quantity: 1 }
@@ -1176,6 +1215,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 380,
                 exp: 250,
+                items: ['unsent_reply'],
                 materials: [
                     { id: 'wyvern_wing', quantity: 1 }
                 ]
@@ -1209,6 +1249,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 300,
                 exp: 240,
+                items: ['last_soup_ladle'],
                 materials: [
                     { id: 'life_seed', quantity: 1 },
                     { id: 'health_potion_s', quantity: 2 }
@@ -1243,6 +1284,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 240,
                 exp: 150,
+                items: ['lamplighter_oil'],
                 materials: [
                     { id: 'frost_crystal', quantity: 1 }
                 ]
@@ -1275,6 +1317,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 380,
                 exp: 280,
+                items: ['frey_broken_standard'],
                 materials: [
                     { id: 'soul_fragment', quantity: 1 }
                 ]
@@ -1308,6 +1351,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 430,
                 exp: 310,
+                items: ['retreat_rollcall'],
                 materials: [
                     { id: 'soul_fragment', quantity: 1 },
                     { id: 'demonic_steel', quantity: 1 }
@@ -1341,6 +1385,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 520,
                 exp: 360,
+                items: ['living_index'],
                 materials: [
                     { id: 'world_shard', quantity: 1 }
                 ]
@@ -1374,7 +1419,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 240,
-                exp: 140
+                exp: 140,
+                items: ['vip_card', 'marlo_odds_sheet']
             },
             unlocks: [],
             dialogue: {
@@ -1402,7 +1448,8 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 500,
-                exp: 320
+                exp: 320,
+                items: ['relief_voucher']
             },
             unlocks: [],
             dialogue: {
@@ -1430,7 +1477,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 0,
-                items: ['mystery_box']
+                items: ['mystery_box', 'black_market_ticket']
             },
             unlocks: [],
             dialogue: {
@@ -1677,6 +1724,162 @@ export const QuestRewardItems = {
         description: '開啟獲得隨機傳說武器！',
         isQuestReward: true
     },
+    silver_thread_hook: {
+        id: 'silver_thread_hook',
+        name: '銀絲反鉤',
+        icon: '🪝',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            attack: 4,
+            critChance: 0.06
+        },
+        description: '用銀鐮伏獵者的陷絲反製成的鉤飾。它提醒你，讀懂陷阱的人也能把陷阱變成武器。',
+        specialEffects: [
+            { type: AffixStat.DODGE_CHANCE, value: 0.04 }
+        ],
+        isQuestReward: true
+    },
+    black_bark_guardian_core: {
+        id: 'black_bark_guardian_core',
+        name: '黑樹守衛核心',
+        icon: '🪵',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            defense: 6
+        },
+        description: '古樹守衛胸口留下的焦黑核心。仍有微弱生命力，能讓傷口慢慢合攏。',
+        specialEffects: [
+            { type: AffixStat.HP_REGEN, value: 0.01 },
+            { type: 'natureBonus', value: 0.08 }
+        ],
+        isQuestReward: true
+    },
+    blood_moon_pendant: {
+        id: 'blood_moon_pendant',
+        name: '血月折角墜',
+        icon: '🌙',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        stats: {
+            attack: 7,
+            critChance: 0.07
+        },
+        description: '血月角鹿斷角磨成的墜飾。它不像戰利品，更像把失控痛覺繫在胸口的提醒。',
+        specialEffects: [
+            { type: AffixStat.LIFESTEAL, value: 0.02 }
+        ],
+        isQuestReward: true
+    },
+    mist_tablet_rubbing: {
+        id: 'mist_tablet_rubbing',
+        name: '霧碑拓片',
+        icon: '🪨',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '從霧碑丘陵拓下的石紋。它無法替你打贏戰鬥，卻能讓高威脅區的路線少一點盲走。',
+        specialEffects: [
+            { type: 'mapScout', value: 1 },
+            { type: 'eventClueBonus', value: 0.08 }
+        ],
+        isQuestReward: true
+    },
+    thorn_trade_bead: {
+        id: 'thorn_trade_bead',
+        name: '荊棘交換珠',
+        icon: '🌿',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            defense: 4
+        },
+        description: '女巫交易網裡流通的綠色珠子。握著它時，毒霧像認得你一樣退開半步。',
+        specialEffects: [
+            { type: 'poisonMitigation', value: 0.18 },
+            { type: 'retreatCostReduction', value: 0.2 }
+        ],
+        isQuestReward: true
+    },
+    deep_sea_orb: {
+        id: 'deep_sea_orb',
+        name: '沉鐘海珠',
+        icon: '🔵',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        stats: {
+            defense: 8
+        },
+        description: '沉鐘神諭失去的深海寶珠殘光。它讓冰冷與恐懼都慢一拍抵達。',
+        specialEffects: [
+            { type: 'coldMitigation', value: 0.16 },
+            { type: AffixStat.ICE, value: 0.08 }
+        ],
+        isQuestReward: true
+    },
+    lich_staff_remnant: {
+        id: 'lich_staff_remnant',
+        name: '巫妖杖芯殘片',
+        icon: '🦴',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        stats: {
+            attack: 8,
+            critDamage: 0.18
+        },
+        description: '巫妖法杖裡折出的杖芯。它仍會記得古墓裡那些錯誤命令的節奏。',
+        specialEffects: [
+            { type: 'undeadBonus', value: 0.18 }
+        ],
+        isQuestReward: true
+    },
+    ash_ledger_page: {
+        id: 'ash_ledger_page',
+        name: '灰燼帳冊頁',
+        icon: '📒',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '灰燼男爵地宮裡撕下的帳頁。黑市商人討厭它，因為它知道太多價格的真相。',
+        specialEffects: [
+            { type: 'blackMarketPriceReduction', value: 0.08 },
+            { type: 'casinoOddsReveal', value: true }
+        ],
+        isQuestReward: true
+    },
+    dragon_nest_resonance: {
+        id: 'dragon_nest_resonance',
+        name: '龍巢共鳴石',
+        icon: '🐉',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        stats: {
+            attack: 5,
+            defense: 5
+        },
+        description: '追上龍巢之路後留下的熱痕石。面對菁英與首領時，它會先替你穩住呼吸。',
+        specialEffects: [
+            { type: 'eliteDamageReduction', value: 0.05 },
+            { type: 'bossDamageReduction', value: 0.04 }
+        ],
+        isQuestReward: true
+    },
+    abyss_vanguard_oath: {
+        id: 'abyss_vanguard_oath',
+        name: '深淵先鋒誓痕',
+        icon: '😈',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.EPIC,
+        stats: {
+            attack: 6,
+            defense: 10
+        },
+        description: '從深淵先鋒身上剝下的誓痕。它像一塊戰前警告，提醒你終局不是單純更大的怪物。',
+        specialEffects: [
+            { type: 'demonMitigation', value: 0.12 },
+            { type: 'bossDamageReduction', value: 0.05 }
+        ],
+        isQuestReward: true
+    },
 
     // 懸賞獎勵
     wolf_fang: {
@@ -1765,6 +1968,256 @@ export const QuestRewardItems = {
         type: ItemType.KEY,
         rarity: ItemRarity.EPIC,
         description: '不知道裡面是什麼...開啟看看？',
+        isQuestReward: true
+    },
+    gate_patrol_map: {
+        id: 'gate_patrol_map',
+        name: '南門巡路圖',
+        icon: '🗺️',
+        type: ItemType.KEY,
+        rarity: ItemRarity.UNCOMMON,
+        description: '守衛把磨破靴底時走過的路線畫在羊皮紙上。短任務的報酬不華麗，但讓近郊路標更像有人真的巡過。',
+        specialEffects: [
+            { type: 'mapScout', value: 1 }
+        ],
+        isQuestReward: true
+    },
+    field_medic_notes: {
+        id: 'field_medic_notes',
+        name: '野戰醫術手記',
+        icon: '📗',
+        type: ItemType.BOOK,
+        rarity: ItemRarity.RARE,
+        passiveEffectId: 'field_medic',
+        description: '藥師把採藥籃與毒霧症狀整理成手記。取得後可解鎖野戰醫術戰術。',
+        specialEffects: [
+            { type: 'healingReceived', value: 0.08 }
+        ],
+        isQuestReward: true
+    },
+    leah_stitched_name: {
+        id: 'leah_stitched_name',
+        name: '莉雅縫名帶',
+        icon: '🧵',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            defense: 3
+        },
+        description: '失蹤採藥人莉雅縫在籃底的名字。毒霧靠近時，線結會微微收緊。',
+        specialEffects: [
+            { type: 'poisonMitigation', value: 0.12 },
+            { type: 'retreatCostReduction', value: 0.12 }
+        ],
+        isQuestReward: true
+    },
+    julian_bookmark: {
+        id: 'julian_bookmark',
+        name: '朱利安書籤',
+        icon: '🔖',
+        type: ItemType.KEY,
+        rarity: ItemRarity.UNCOMMON,
+        description: '墓園找到的舊書籤，上面夾著一行未寫完的索引。它不強大，但讓書記的失蹤研究重新有了頁碼。',
+        specialEffects: [
+            { type: 'puzzleClueBonus', value: 1 }
+        ],
+        isQuestReward: true
+    },
+    julian_margin_notes: {
+        id: 'julian_margin_notes',
+        name: '朱利安邊註',
+        icon: '📖',
+        type: ItemType.BOOK,
+        rarity: ItemRarity.RARE,
+        passiveEffectId: 'ruin_literacy',
+        description: '朱利安在書頁邊緣留下的遺跡讀法。取得後可解鎖碑文識讀戰術。',
+        specialEffects: [
+            { type: 'trapDamageReduction', value: 0.1 }
+        ],
+        isQuestReward: true
+    },
+    bell_rhythm_charm: {
+        id: 'bell_rhythm_charm',
+        name: '沉鐘節拍符',
+        icon: '🔔',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            defense: 4
+        },
+        description: '從海邊沉鐘的節拍裡校出的護符。它不能讓海安靜，但能讓冰冷與恐懼慢一點纏上來。',
+        specialEffects: [
+            { type: 'coldMitigation', value: 0.1 },
+            { type: 'fearResist', value: 0.12 }
+        ],
+        isQuestReward: true
+    },
+    ash_nameplate: {
+        id: 'ash_nameplate',
+        name: '灰燼名牌',
+        icon: '🏷️',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            defense: 5
+        },
+        description: '灰燼帳冊裡被找回名字的人留下的舊名牌。它讓黑市價格和犧牲成本都不再只是數字。',
+        specialEffects: [
+            { type: 'blackMarketPriceReduction', value: 0.04 },
+            { type: AffixStat.GOLD_BONUS, value: 0.04 }
+        ],
+        isQuestReward: true
+    },
+    craftsman_gouge: {
+        id: 'craftsman_gouge',
+        name: '工匠刻刀',
+        icon: '🪛',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            attack: 3,
+            defense: 3
+        },
+        description: '帳冊名單裡一位工匠最後留下的刻刀。強化時握著它，失手的線條會少一點。',
+        specialEffects: [
+            { type: 'enhanceBonus', value: 0.05 }
+        ],
+        isQuestReward: true
+    },
+    north_letter_seal: {
+        id: 'north_letter_seal',
+        name: '北境信封蠟印',
+        icon: '✉️',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '北境來信上被保留下來的蠟印。它證明遠方不是傳聞，而是一條真的會把人帶走的路。',
+        specialEffects: [
+            { type: 'eventClueBonus', value: 0.08 }
+        ],
+        isQuestReward: true
+    },
+    unsent_reply: {
+        id: 'unsent_reply',
+        name: '未寄出的回信',
+        icon: '💌',
+        type: ItemType.BOOK,
+        rarity: ItemRarity.RARE,
+        description: '一封寫到一半的回信，紙上沒有豪言壯語，只有讓人面對北境時不再發抖的句子。',
+        specialEffects: [
+            { type: 'eliteDamageReduction', value: 0.04 },
+            { type: 'bossDamageReduction', value: 0.03 }
+        ],
+        isQuestReward: true
+    },
+    last_soup_ladle: {
+        id: 'last_soup_ladle',
+        name: '最後一鍋湯杓',
+        icon: '🥄',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.UNCOMMON,
+        stats: {
+            defense: 2
+        },
+        passiveEffectId: 'field_medic',
+        description: '救濟廚房留下的湯杓。它很普通，但普通到足以提醒你治療不是奇蹟，而是有人願意多煮一鍋。',
+        specialEffects: [
+            { type: 'healingReceived', value: 0.1 }
+        ],
+        isQuestReward: true
+    },
+    lamplighter_oil: {
+        id: 'lamplighter_oil',
+        name: '守燈人油瓶',
+        icon: '🛢️',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '海岸守燈人省下的最後一瓶燈油。夜路、霧路和潮聲都會因此少一點惡意。',
+        specialEffects: [
+            { type: 'darkVision', value: 0.16 },
+            { type: 'eventClueBonus', value: 0.06 }
+        ],
+        isQuestReward: true
+    },
+    frey_broken_standard: {
+        id: 'frey_broken_standard',
+        name: '弗雷斷旗',
+        icon: '🚩',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        stats: {
+            attack: 4,
+            defense: 4
+        },
+        description: '一面被折斷後仍被帶回來的旗。它不再指揮隊伍，只提醒你別把撤退看成失敗。',
+        specialEffects: [
+            { type: 'eliteDamageReduction', value: 0.05 },
+            { type: 'retreatCostReduction', value: 0.15 }
+        ],
+        isQuestReward: true
+    },
+    retreat_rollcall: {
+        id: 'retreat_rollcall',
+        name: '撤退點名冊',
+        icon: '📋',
+        type: ItemType.BOOK,
+        rarity: ItemRarity.RARE,
+        passiveEffectId: 'boss_composure',
+        description: '弗雷隊伍撤退時的點名冊。每一個名字都讓下一次面對強敵時更穩一點。',
+        specialEffects: [
+            { type: 'bossDamageReduction', value: 0.04 }
+        ],
+        isQuestReward: true
+    },
+    living_index: {
+        id: 'living_index',
+        name: '活索引',
+        icon: '📚',
+        type: ItemType.BOOK,
+        rarity: ItemRarity.EPIC,
+        passiveEffectId: 'boss_composure',
+        description: '書記把最後索引裝訂回活人的順序裡。取得後可解鎖王敵定心戰術。',
+        specialEffects: [
+            { type: 'bossDamageReduction', value: 0.06 },
+            { type: 'puzzleClueBonus', value: 1 }
+        ],
+        isQuestReward: true
+    },
+    marlo_odds_sheet: {
+        id: 'marlo_odds_sheet',
+        name: '瑪洛修正勝率表',
+        icon: '📈',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '瑪洛偷偷塞來的勝率表。它不能保證你贏，但能讓賭場遊戲額外結算一點獎券。',
+        specialEffects: [
+            { type: 'casinoOddsReveal', value: true },
+            { type: 'casinoTicketBonus', value: 0.1 }
+        ],
+        isQuestReward: true
+    },
+    black_market_ticket: {
+        id: 'black_market_ticket',
+        name: '黑市籤',
+        icon: '🎟️',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '用舊羊皮紙裁成的籤，背面有一行幾乎看不清的暗號。',
+        specialEffects: [
+            { type: 'blackMarketAccess', value: true }
+        ],
+        isQuestReward: true
+    },
+    relief_voucher: {
+        id: 'relief_voucher',
+        name: '避難補給券',
+        icon: '🎫',
+        type: ItemType.KEY,
+        rarity: ItemRarity.RARE,
+        description: '賭場把一部分黑錢換成乾糧與藥品後留下的憑證。這可能是城裡最荒唐的善行。',
+        specialEffects: [
+            { type: 'healingReceived', value: 0.06 },
+            { type: 'townReliefCredit', value: true }
+        ],
         isQuestReward: true
     },
 

@@ -1,4 +1,5 @@
 import { escapeHtml } from './ItemDisplay.js';
+import audioManager from './AudioManager.js';
 
 const TOAST_ICONS = {
     success: '✅',
@@ -31,6 +32,14 @@ export function showGlobalToast(title, message, type = 'info', options = {}) {
     if (typeof document === 'undefined') return null;
 
     const safeType = getToastType(type);
+    audioManager.play(
+        safeType === 'success' ? 'toast-success'
+            : safeType === 'warning' || safeType === 'danger' ? 'toast-warning'
+                : safeType === 'error' ? 'toast-error'
+                    : safeType === 'quest' ? 'page'
+                        : 'toast-info',
+        { throttleKey: `toast-${safeType}`, throttleMs: 160 }
+    );
     const container = ensureToastContainer();
     const id = `app-toast-${toastId += 1}`;
     const duration = Number(options.duration) > 0 ? Number(options.duration) : 4200;
@@ -81,6 +90,10 @@ export function confirmAction({
     type = 'warning'
 } = {}) {
     return new Promise(resolve => {
+        audioManager.play(type === 'danger' ? 'toast-warning' : 'ui-select', {
+            throttleKey: 'confirm-open',
+            throttleMs: 160
+        });
         const overlay = document.createElement('div');
         const safeType = type === 'danger' ? 'danger' : type;
         const detailItems = Array.isArray(details)
@@ -107,6 +120,10 @@ export function confirmAction({
         const finish = result => {
             if (resolved) return;
             resolved = true;
+            audioManager.play(result ? 'ui-select' : 'ui-close', {
+                throttleKey: 'confirm-finish',
+                throttleMs: 120
+            });
             document.removeEventListener('keydown', onKeyDown);
             overlay.classList.remove('active');
             setTimeout(() => overlay.remove(), 180);

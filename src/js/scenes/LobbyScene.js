@@ -9,6 +9,7 @@ import { attachItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
 import { buildEquippedSetSummaryHtml } from '../utils/SetDisplay.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
+import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js';
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
@@ -568,6 +569,7 @@ export default class LobbyScene {
 
         this.dom.townDialogueCard?.classList.add('is-topic-mode');
         this.dom.townDialogueModal.hidden = false;
+        audioManager.play('book-open', { throttleKey: 'town-dialogue-topic-open', throttleMs: 180 });
         this.dom.townDialogueTopics?.querySelector('button')?.focus?.();
     }
 
@@ -637,6 +639,7 @@ export default class LobbyScene {
         if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
 
         this.dom.townDialogueModal.hidden = false;
+        audioManager.play('dialogue-open', { throttleKey: 'town-dialogue-open', throttleMs: 180 });
         this.startTownDialogueLine();
         this.dom.townDialogueCard?.focus?.();
     }
@@ -689,6 +692,7 @@ export default class LobbyScene {
             const chunkSize = remaining > 24 ? 2 : 1;
             dialogue.currentText = text.slice(0, dialogue.currentText.length + chunkSize);
             this.renderTownDialogueLines();
+            audioManager.play('type', { throttleKey: 'town-dialogue-type', throttleMs: 38 });
 
             const lastChar = dialogue.currentText.at(-1) || '';
             const delay = /[，。！？、；：]/.test(lastChar) ? 110 : 28;
@@ -822,6 +826,7 @@ export default class LobbyScene {
         }
 
         dialogue.currentIndex += 1;
+        audioManager.play('page', { throttleKey: 'town-dialogue-next-line', throttleMs: 120 });
         this.startTownDialogueLine();
     }
 
@@ -1000,6 +1005,7 @@ export default class LobbyScene {
         } else {
             this.clearTownDialogueTimers();
         }
+        audioManager.play('book-close', { throttleKey: 'town-dialogue-close', throttleMs: 180 });
         this.dom.townDialogueModal.hidden = true;
         this.dom.townDialogueCard?.classList.remove('is-topic-mode');
         this.activeTownDialogue = null;
@@ -1354,8 +1360,9 @@ export default class LobbyScene {
             button.type = 'button';
             button.className = `town-place-card ${place.mapClass || ''}${readyCount > 0 ? ' is-ready' : ''}`;
             button.dataset.townPlaceId = place.id;
-            if (place.sceneImage) {
-                button.style.setProperty('--town-place-card-image', this.formatSceneAssetUrl(place.sceneImage));
+            const cardImage = place.cardImage || place.sceneImage;
+            if (cardImage) {
+                button.style.setProperty('--town-place-card-image', this.formatSceneAssetUrl(cardImage));
             }
             if (place.scenePosition) {
                 button.style.setProperty('--town-place-card-image-position', place.scenePosition);
@@ -1430,6 +1437,7 @@ export default class LobbyScene {
         } else {
             view.style.removeProperty('--town-place-image-position');
         }
+
     }
 
     renderTownPlaceCardIcon(place = {}) {

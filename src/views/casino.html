@@ -16,6 +16,10 @@
                 <strong id="casino-chips">0</strong>
             </div>
             <div class="casino-wallet-card">
+                <span>獎券</span>
+                <strong id="casino-tickets">0</strong>
+            </div>
+            <div class="casino-wallet-card">
                 <span>幸運</span>
                 <strong id="casino-luck">0</strong>
             </div>
@@ -28,21 +32,14 @@
     </header>
 
     <main class="casino-main">
-        <nav class="game-tabs">
-            <button class="game-tab active" data-game="dice">骨骰賭桌</button>
-            <button class="game-tab" data-game="slots">老虎機</button>
-            <button class="game-tab" data-game="roulette">輪盤</button>
-            <button class="game-tab" data-game="dark">暗桌</button>
-            <button class="game-tab" data-game="prize">奇物獎池</button>
-            <button class="game-tab" data-game="cashier">帳房</button>
-        </nav>
+        <section id="casino-venue-map" class="casino-venue-map" aria-label="賭場區域導覽"></section>
 
         <section class="game-area">
             <div id="game-dice" class="game-panel casino-table-panel active">
                 <div class="casino-panel-copy">
                     <span class="casino-panel-label">骨骰賭局</span>
                     <h2>骨骰落桌，聽起來像某種不太乾淨的邀請。</h2>
-                    <p>骰子勝利會額外累積籌碼；連續失手時，賭場也會丟給你一點「安慰」。</p>
+                    <p>用籌碼下注，結算時會累積獎券。獎券才是奇物櫃真正要收的門票。</p>
                 </div>
 
                 <div class="dice-area">
@@ -167,11 +164,27 @@
                 </div>
             </div>
 
+            <div id="game-showcase" class="game-panel casino-showcase-panel">
+                <div class="casino-panel-copy">
+                    <span class="casino-panel-label">老闆展示櫃</span>
+                    <h2>真正昂貴的東西不放進獎池，只放在所有人都看得到的玻璃後面。</h2>
+                    <p>查看展品會留下賭場老闆注意你的痕跡。長支線完成後，這裡會開放任選一件展品。</p>
+                </div>
+
+                <div class="casino-showcase-layout">
+                    <div id="casino-showcase-list" class="casino-showcase-list"></div>
+                    <div class="casino-showcase-detail">
+                        <div id="casino-showcase-preview" class="casino-showcase-preview"></div>
+                        <button id="btn-showcase-choice" class="action-btn casino-showcase-choice-btn" disabled>長支線完成後開放選取</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="game-prize" class="game-panel casino-prize-panel">
                 <div class="casino-panel-copy">
                     <span class="casino-panel-label">奇物獎池</span>
-                    <h2>籌碼在這裡不再只是賭資，而是打開暗格的鑰匙。</h2>
-                    <p>高階獎池會隨章節與賭場支線開放，傳說獎品有限量與門檻。</p>
+                    <h2>獎券被撕下時，暗格裡總會有東西醒過來。</h2>
+                    <p>高階獎池會隨章節與賭場支線開放。每抽獨立隨機，公開機率，沒有保底。</p>
                 </div>
 
                 <div class="casino-prize-layout">
@@ -187,7 +200,7 @@
                 <div class="casino-panel-copy">
                     <span class="casino-panel-label">帳房</span>
                     <h2>瑪洛相信數字不會說謊，只是偶爾會被人拿刀逼著閉嘴。</h2>
-                    <p>用金幣兌換籌碼，再把籌碼投入獎池、情報與特殊交易。第三章會有更高兌換效率。</p>
+                    <p>金幣兌換籌碼，籌碼用來下注，賭局結算取得獎券。第三章會有更高兌換效率。</p>
                 </div>
 
                 <div class="casino-cashier-grid">

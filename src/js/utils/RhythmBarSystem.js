@@ -2,6 +2,8 @@
  * RhythmBarSystem - 共用節奏條系統
  * 用於 AdventureScene 和 TowerScene 的戰鬥節奏條
  */
+import audioManager from './AudioManager.js';
+
 class RhythmBarSystem {
     constructor(character, container, options = {}) {
         this.character = character;
@@ -251,6 +253,7 @@ class RhythmBarSystem {
             return { type: 'cooldown', damage: 0 };
         }
         
+        audioManager.play('attack-swing', { throttleKey: 'rhythm-attack-swing', throttleMs: 80 });
         const pos = this.needlePosition;
         let hitType = 'miss';
         let damage = 0;

@@ -9,6 +9,7 @@ import {
     CasinoRewardTierOrder,
     getCasinoPrizePool,
     getCasinoPrizePools,
+    getCasinoShowcaseItems,
     resolveCasinoRewardItem
 } from '../data/CasinoRewards.js';
 
@@ -75,6 +76,8 @@ export default class CasinoManager {
             chipsBought: 0,
             chipsWon: 0,
             chipsSpent: 0,
+            ticketsWon: 0,
+            ticketsSpent: 0,
             prizeDraws: 0,
             legendaryPrizes: 0,
             houseAttention: 0,
@@ -84,9 +87,11 @@ export default class CasinoManager {
             darkRoomInvites: 0,
             darkTableWins: 0,
             darkTableLosses: 0,
-            darkTableBloodPaid: 0
+            darkTableBloodPaid: 0,
+            showcaseViews: 0
         };
         this.chips = 0;
+        this.tickets = 0;
         this.poolState = {};
         this.dailyBonus = null;
         this.luckyStreak = 0;
@@ -155,6 +160,7 @@ export default class CasinoManager {
             game: CasinoGame.SLOTS
         });
         const chipReward = outcome.chipReward;
+        const ticketReward = outcome.ticketReward;
 
         let bonusMessage = '';
         if (this.luckyStreak >= 3) {
@@ -170,6 +176,7 @@ export default class CasinoManager {
             multiplier,
             winnings,
             chipReward,
+            ticketReward,
             deepEvent: outcome.deepEvent,
             pressure: this.getPressureState(),
             isJackpot,
@@ -261,6 +268,7 @@ export default class CasinoManager {
             game: CasinoGame.ROULETTE
         });
         const chipReward = outcome.chipReward;
+        const ticketReward = outcome.ticketReward;
 
         return {
             success: true,
@@ -271,6 +279,7 @@ export default class CasinoManager {
             isWin,
             winnings,
             chipReward,
+            ticketReward,
             deepEvent: outcome.deepEvent,
             pressure: this.getPressureState(),
             netGain: winnings - bet,
@@ -345,6 +354,7 @@ export default class CasinoManager {
             game: CasinoGame.DICE
         });
         const chipReward = outcome.chipReward;
+        const ticketReward = outcome.ticketReward;
 
         return {
             success: true,
@@ -356,6 +366,7 @@ export default class CasinoManager {
             isWin,
             winnings,
             chipReward,
+            ticketReward,
             deepEvent: outcome.deepEvent,
             pressure: this.getPressureState(),
             netGain: winnings - bet,
@@ -555,6 +566,7 @@ export default class CasinoManager {
             hpAfter,
             maxHp,
             chipReward: outcome.chipReward,
+            ticketReward: outcome.ticketReward,
             bonusReward,
             deepEvent,
             pressure: this.getPressureState(),
@@ -601,6 +613,55 @@ export default class CasinoManager {
         return true;
     }
 
+    getTickets() {
+        return Math.max(0, Math.floor(Number(this.tickets) || 0));
+    }
+
+    addTickets(amount, reason = 'casino') {
+        const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+        if (safeAmount <= 0) return 0;
+        this.tickets = this.getTickets() + safeAmount;
+        if (reason !== 'refund') {
+            this.stats.ticketsWon = (this.stats.ticketsWon || 0) + safeAmount;
+        }
+        GameManager.markSaveDirty?.(`casino-tickets-${reason}`);
+        return safeAmount;
+    }
+
+    spendTickets(amount) {
+        const safeAmount = Math.max(0, Math.floor(Number(amount) || 0));
+        if (safeAmount <= 0 || this.getTickets() < safeAmount) return false;
+        this.tickets = this.getTickets() - safeAmount;
+        this.stats.ticketsSpent = (this.stats.ticketsSpent || 0) + safeAmount;
+        GameManager.markSaveDirty?.('casino-spend-tickets');
+        return true;
+    }
+
+    getStoredCasinoItems() {
+        const unwrap = stack => stack?.item || stack;
+        const inventory = Array.isArray(GameManager.state?.inventory) ? GameManager.state.inventory : [];
+        const warehouse = Array.isArray(GameManager.state?.warehouse) ? GameManager.state.warehouse : [];
+        const equipment = Object.values(GameManager.state?.character?.equipment || {});
+        return [...inventory, ...warehouse, ...equipment]
+            .map(unwrap)
+            .filter(Boolean);
+    }
+
+    getCasinoTicketBonusRate() {
+        const seen = new Set();
+        let bonus = 0;
+        this.getStoredCasinoItems().forEach(item => {
+            if (!item?.id || seen.has(item.id)) return;
+            seen.add(item.id);
+            (item.specialEffects || []).forEach(effect => {
+                if (effect?.type === 'casinoTicketBonus' || effect?.type === 'casinoBonus') {
+                    bonus += Math.max(0, Number(effect.value) || 0);
+                }
+            });
+        });
+        return Math.min(0.35, bonus);
+    }
+
     exchangeGoldForChips(goldAmount) {
         const amount = Math.max(0, Math.floor(Number(goldAmount) || 0));
         if (amount <= 0) {
@@ -629,12 +690,16 @@ export default class CasinoManager {
         const safeWinnings = Math.max(0, Number(winnings) || 0);
         const netGain = safeWinnings - safeBet;
         let chipReward = 0;
+        let ticketReward = 0;
         let deepEvent = null;
+        const baseTickets = safeBet > 0 ? Math.max(1, Math.floor(safeBet / 50)) : 0;
 
         if (safeWinnings > 0) {
             this.stats.lossStreak = 0;
             this.stats.winStreak = (this.stats.winStreak || 0) + 1;
             chipReward = Math.max(6, Math.floor(safeWinnings * (isJackpot ? 0.16 : 0.08)));
+            ticketReward = baseTickets + Math.max(1, Math.floor(Math.max(0, netGain) / 120));
+            if (isJackpot) ticketReward += Math.max(8, baseTickets * 3);
             if (netGain >= safeBet * 3 || isJackpot) {
                 this.stats.houseAttention = Math.min(100, this.stats.houseAttention + (isJackpot ? 12 : 5));
             }
@@ -664,6 +729,7 @@ export default class CasinoManager {
         } else {
             this.stats.lossStreak += 1;
             this.stats.winStreak = 0;
+            ticketReward = Math.max(1, Math.ceil(baseTickets / 2));
             if (this.stats.lossStreak > 0 && this.stats.lossStreak % 4 === 0) {
                 chipReward = 12;
                 deepEvent = this.createDeepEvent('ruined_gambler_tip', {
@@ -679,10 +745,15 @@ export default class CasinoManager {
         const pressureEvent = this.tryCreatePressureEvent(game);
         if (pressureEvent) deepEvent = pressureEvent;
 
+        if (ticketReward > 0) {
+            ticketReward = Math.max(1, Math.floor(ticketReward * (1 + this.getCasinoTicketBonusRate())));
+        }
         if (chipReward > 0) this.addChips(chipReward, 'win');
+        if (ticketReward > 0) this.addTickets(ticketReward, 'game');
         GameManager.markSaveDirty?.('casino-game-outcome');
         return {
             chipReward,
+            ticketReward,
             deepEvent
         };
     }
@@ -822,7 +893,7 @@ export default class CasinoManager {
 
     getPoolState(poolId) {
         if (!this.poolState[poolId] || typeof this.poolState[poolId] !== 'object') {
-            this.poolState[poolId] = { draws: 0, pity: 0, claimed: {} };
+            this.poolState[poolId] = { draws: 0, claimed: {} };
         }
         if (!this.poolState[poolId].claimed || typeof this.poolState[poolId].claimed !== 'object') {
             this.poolState[poolId].claimed = {};
@@ -839,7 +910,6 @@ export default class CasinoManager {
                 chapter,
                 unlocked: this.isPoolUnlocked(pool),
                 draws: state.draws || 0,
-                pity: state.pity || 0,
                 claimed: { ...(state.claimed || {}) },
                 oddsSummary: this.getPoolOddsSummary(pool),
                 rewards: this.getVisibleRewards(pool.id)
@@ -876,9 +946,6 @@ export default class CasinoManager {
             .sort((a, b) => a.tier - b.tier);
 
         const bestTier = tiers.reduce((best, tier) => tier.tier > (best?.tier || 0) ? tier : best, null);
-        const pityAfter = Number(pool.pityAfter) || 0;
-        const pity = Number(state.pity) || 0;
-        const pityRemaining = pityAfter > 0 ? Math.max(0, pityAfter - pity) : null;
         const limitedRemaining = rewards.filter(reward => reward.limit).reduce((sum, reward) => {
             const claimed = Number(state.claimed?.[reward.id]) || 0;
             return sum + Math.max(0, Number(reward.limit) - claimed);
@@ -895,11 +962,69 @@ export default class CasinoManager {
             tiers,
             bestRarity: bestTier?.rarity || null,
             bestRarityText: bestTier?.text || '',
-            pity,
-            pityAfter,
-            pityRemaining,
-            pityMinRarityText: CasinoRewardRarityText[pool.pityMinRarity] || pool.pityMinRarity || '',
-            limitedRemaining
+            limitedRemaining,
+            drawCost: Number(pool.cost) || 0,
+            costCurrency: 'tickets',
+            noPity: true
+        };
+    }
+
+    getShowcaseItems() {
+        return getCasinoShowcaseItems().map(entry => ({
+            ...entry,
+            seen: Boolean(GameManager.getFlag?.(entry.hookFlag))
+        }));
+    }
+
+    getShowcaseRouteState() {
+        const items = this.getShowcaseItems();
+        const examinedCount = items.filter(item => item.seen).length;
+        const finalChoiceUnlocked = Boolean(GameManager.getFlag?.('town.casino.showcase_final_choice_unlocked'));
+        return {
+            seenShowcase: Boolean(GameManager.getFlag?.('town.casino.showcase_seen')),
+            examinedCount,
+            total: items.length,
+            futureQuestId: 'commission_casino_showcase_001',
+            questHookReady: examinedCount >= 2,
+            finalChoiceUnlocked,
+            finalChoiceClaimed: Boolean(GameManager.getFlag?.('town.casino.showcase_final_choice_claimed'))
+        };
+    }
+
+    inspectShowcaseItem(showcaseId) {
+        const showcase = this.getShowcaseItems().find(entry => entry.id === showcaseId);
+        if (!showcase) {
+            return { success: false, message: '展示櫃裡沒有這件展品。' };
+        }
+
+        const wasSeen = Boolean(GameManager.getFlag?.(showcase.hookFlag));
+        GameManager.setFlag?.('town.casino.showcase_seen', true);
+        GameManager.setFlag?.(showcase.hookFlag, true);
+
+        let deepEvent = null;
+        if (!wasSeen) {
+            this.stats.showcaseViews = (this.stats.showcaseViews || 0) + 1;
+            if ((this.stats.showcaseViews || 0) === 1) {
+                this.stats.houseAttention = Math.min(100, (this.stats.houseAttention || 0) + 4);
+                deepEvent = this.createDeepEvent('showcase_owner_attention', {
+                    game: 'showcase',
+                    title: '展示櫃後的視線',
+                    message: '你停在展示櫃前太久。二樓帷幕後有人把酒杯放下，像終於確認你看見了真正的賭注。',
+                    tone: 'warning',
+                    attentionDelta: 0
+                });
+            }
+        }
+
+        GameManager.markSaveDirty?.('casino-showcase-inspect');
+        return {
+            success: true,
+            showcase,
+            state: this.getShowcaseRouteState(),
+            deepEvent,
+            message: wasSeen
+                ? `${showcase.cabinetTitle}：你再次看向 ${showcase.name}。賭場老闆像是早知道你會回頭。`
+                : `${showcase.cabinetTitle}：你看見 ${showcase.name}。展示牌背面似乎藏著賭場老闆的私人標記。`
         };
     }
 
@@ -908,10 +1033,16 @@ export default class CasinoManager {
         if (!pool) return [];
         const chapter = this.getStoryChapter();
         const state = this.getPoolState(pool.id);
+        const eligibleRewards = this.getEligibleRewards(pool);
+        const totalEligibleWeight = eligibleRewards.reduce((sum, reward) => sum + Math.max(0, Number(reward.weight) || 0), 0);
         return (pool.rewards || []).map(reward => {
             const item = reward.itemId ? resolveCasinoRewardItem(reward.itemId) : null;
             const claimed = state.claimed?.[reward.id] || 0;
             const locked = chapter < (reward.minChapter || pool.minChapter || 1);
+            const exhausted = reward.limit && claimed >= reward.limit;
+            const odds = !locked && !exhausted && totalEligibleWeight > 0
+                ? (Math.max(0, Number(reward.weight) || 0) / totalEligibleWeight) * 100
+                : 0;
             return {
                 ...reward,
                 item,
@@ -919,27 +1050,28 @@ export default class CasinoManager {
                 icon: reward.icon || item?.icon || '◆',
                 claimed,
                 locked,
+                exhausted,
+                oddsPercent: this.formatOddsPercent(odds),
                 rarityText: CasinoRewardRarityText[reward.rarity] || reward.rarity
             };
         });
     }
 
+    formatOddsPercent(percent) {
+        if (!Number.isFinite(percent) || percent <= 0) return '0%';
+        if (percent < 1) return `${percent.toFixed(2)}%`;
+        if (percent < 10) return `${percent.toFixed(1)}%`;
+        return `${Math.round(percent)}%`;
+    }
+
     getEligibleRewards(pool) {
         const chapter = this.getStoryChapter();
         const state = this.getPoolState(pool.id);
-        let rewards = (pool.rewards || []).filter(reward => {
+        return (pool.rewards || []).filter(reward => {
             if (chapter < (reward.minChapter || pool.minChapter || 1)) return false;
             if (reward.limit && (state.claimed?.[reward.id] || 0) >= reward.limit) return false;
             return true;
         });
-
-        if (state.pity >= (pool.pityAfter || Infinity) && pool.pityMinRarity) {
-            const minTier = CasinoRewardTierOrder[pool.pityMinRarity] || 1;
-            const pityRewards = rewards.filter(reward => (CasinoRewardTierOrder[reward.rarity] || 1) >= minTier);
-            if (pityRewards.length > 0) rewards = pityRewards;
-        }
-
-        return rewards;
     }
 
     drawPrize(poolId) {
@@ -948,25 +1080,23 @@ export default class CasinoManager {
         if (!this.isPoolUnlocked(pool)) {
             return { success: false, message: `${pool.name} 還沒開櫃。` };
         }
-        if (!this.spendChips(pool.cost)) {
-            return { success: false, message: `籌碼不足，需要 ${pool.cost} 枚籌碼。` };
+        if (!this.spendTickets(pool.cost)) {
+            return { success: false, message: `獎券不足，需要 ${pool.cost} 張獎券。先玩賭局累積獎券。` };
         }
 
         const reward = this.pickReward(pool);
         if (!reward) {
-            this.addChips(pool.cost, 'refund');
+            this.addTickets(pool.cost, 'refund');
             return { success: false, message: '這個獎池暫時沒有可抽取的獎品。' };
         }
 
         const state = this.getPoolState(pool.id);
         state.draws = (state.draws || 0) + 1;
-        state.pity = (state.pity || 0) + 1;
         state.claimed[reward.id] = (state.claimed[reward.id] || 0) + 1;
         this.stats.prizeDraws += 1;
 
         const granted = this.grantReward(reward);
         const rewardTier = CasinoRewardTierOrder[reward.rarity] || 1;
-        if (rewardTier >= CasinoRewardTierOrder.rare) state.pity = 0;
         if (reward.rarity === 'legendary') {
             this.stats.legendaryPrizes += 1;
             this.stats.houseAttention = Math.min(100, this.stats.houseAttention + 18);
@@ -1115,6 +1245,8 @@ export default class CasinoManager {
         return {
             ...this.stats,
             chips: this.getChips(),
+            tickets: this.getTickets(),
+            ticketBonusRate: this.getCasinoTicketBonusRate(),
             storyChapter: this.getStoryChapter(),
             netProfit: this.stats.totalWin - this.stats.totalBet,
             winRate: this.stats.gamesPlayed > 0 
@@ -1133,14 +1265,17 @@ export default class CasinoManager {
         this.dailyBonus = today;
         const bonus = 50 + Math.floor(Math.random() * 51);
         const chips = 35 + Math.floor(Math.random() * 26);
+        const tickets = 3 + Math.floor(Math.random() * 3);
         GameManager.addGold(bonus);
         this.addChips(chips, 'daily');
+        this.addTickets(tickets, 'daily');
 
         return {
             success: true,
             bonus,
             chips,
-            message: `帳房把今日開桌分紅推給你：${bonus}G / ${chips} 枚籌碼。`
+            tickets,
+            message: `帳房把今日開桌分紅推給你：${bonus}G / ${chips} 枚籌碼 / ${tickets} 張獎券。`
         };
     }
 
@@ -1153,6 +1288,8 @@ export default class CasinoManager {
             chipsBought: 0,
             chipsWon: 0,
             chipsSpent: 0,
+            ticketsWon: 0,
+            ticketsSpent: 0,
             prizeDraws: 0,
             legendaryPrizes: 0,
             houseAttention: 0,
@@ -1162,9 +1299,11 @@ export default class CasinoManager {
             darkRoomInvites: 0,
             darkTableWins: 0,
             darkTableLosses: 0,
-            darkTableBloodPaid: 0
+            darkTableBloodPaid: 0,
+            showcaseViews: 0
         };
         this.chips = 0;
+        this.tickets = 0;
         this.poolState = {};
         this.dailyBonus = null;
         this.luckyStreak = 0;
@@ -1177,6 +1316,7 @@ export default class CasinoManager {
         return {
             stats: { ...this.stats },
             chips: this.getChips(),
+            tickets: this.getTickets(),
             poolState: JSON.parse(JSON.stringify(this.poolState || {})),
             dailyBonus: this.dailyBonus,
             luckyStreak: this.luckyStreak,
@@ -1195,6 +1335,8 @@ export default class CasinoManager {
             chipsBought: 0,
             chipsWon: 0,
             chipsSpent: 0,
+            ticketsWon: 0,
+            ticketsSpent: 0,
             prizeDraws: 0,
             legendaryPrizes: 0,
             houseAttention: 0,
@@ -1205,9 +1347,11 @@ export default class CasinoManager {
             darkTableWins: 0,
             darkTableLosses: 0,
             darkTableBloodPaid: 0,
+            showcaseViews: 0,
             ...(data.stats || {})
         };
         this.chips = Math.max(0, Math.floor(Number(data.chips) || 0));
+        this.tickets = Math.max(0, Math.floor(Number(data.tickets) || 0));
         this.poolState = data.poolState && typeof data.poolState === 'object'
             ? data.poolState
             : {};
