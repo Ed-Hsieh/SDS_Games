@@ -1,69 +1,73 @@
-# 2026-06-29 戰鬥改版接續紀錄
+# 2026-06-29 戰鬥續作清單
 
-狀態：本文件紀錄目前工作樹中「已改但尚未提交」與「尚未完成」的戰鬥改版。下次接續時不要重置這批檔案。
+本文件整理昨天戰鬥調整後的接續狀態。2026-06-29 本輪已完成「驗證、UI 實測、資產覆蓋、檢查腳本同步 runtime 平衡」等收尾項目；較大的戰鬥重設計與長時間掉落/耐久 playtest 仍保留為後續工作。
 
-使用者偏好：之後專注電腦版，不再額外開發手機版介面。
+## 本輪已完成
 
-## 這輪已經完成但尚未提交
+- 已重跑主要語法與資料檢查，確認目前沒有阻擋性錯誤。
+- 已修正資產覆蓋檢查：
+  - 為 26 個 casino special equipment 補上可用的 equipment asset alias。
+  - `town-place` 若使用 `sceneImage`，改用 16:9 場景圖尺寸規則；只有 fallback generated icon 才要求方圖。
+- 已完成冒險戰鬥 UI 瀏覽器驗收：
+  - `#adventure` BOSS test panel 改為 fixed 定位，1280x631 viewport 不再水平溢出。
+  - 戰鬥 modal、節奏/攻擊控制、補給卡顯示正常。
+  - 補給不再顯示 `生命 +0`；沒有補血值的 consumable 會顯示 `可用`。
+- 已完成副本戰鬥 UI 瀏覽器驗收：
+  - `?dev=1` 時新增副本遭遇測試工具，可直接觸發普通/精英/Boss 戰。
+  - `#dungeon` 戰鬥 overlay、行動卡、攻擊冷卻、戰鬥 log 在 1280x631 viewport 正常。
+- 已完成怪物平衡檢查策略決策：
+  - 保留 runtime `CombatBalance.js` 作為目前怪物戰鬥倍率來源。
+  - `scripts/MonsterBalanceCheck_v4.js` 已改成 v4.1，直接載入 `Monsters.js` 與 `CombatBalance.js`，避免舊報表使用未套倍率資料。
+- 已確認武器手感實作路徑仍在：
+  - 史萊姆劍 flat lifesteal 3-5。
+  - 劍系爆擊改成攻速節奏加成，不靠暴擊倍率秒怪。
+  - 短刀連段、重武破甲、法杖緩速、長槍穿甲皆由 `WeaponCombatProfile` 與 `FightManager` 套用。
+- 已更新前端 cache-bust 版本為 `combat-continuation-20260629`，避免瀏覽器沿用舊 bundle。
 
-- 戰鬥畫面：塔戰鬥已改成獨立中央 fixed 彈窗，背景遮罩已在瀏覽器確認生效；冒險/副本原本已有 modal，底部控制區已弱化「下方切分卡片」感。
-- 戰鬥節奏：新增 `src/js/utils/WeaponCombatProfile.js`，讓武器類型有不同節奏與效果。
-  - 劍類：平衡型，爆擊後給有限攻速感。
-  - 短刀：較快、命中區較窄，每 3 次命中追加追擊。
-  - 重武器：較慢、傷害較高，附破甲。
-  - 法杖/魔導：附緩速。
-  - 長柄：附穿甲。
-  - 史萊姆之劍：保留吸血定位，補上每次命中約 3-5 的吸血下限。
-- 怪物強度：新增 `src/js/data/CombatBalance.js`，世界/塔/副本 runtime 怪物會套用三圍倍率，讓戰鬥有時間跑出武器機制。
-- 暴擊降溫：降低基礎暴擊、暴擊上限、預設被動 `sharp_focus`，並縮小節奏條 Crit Zone。
-- 冷卻修正：節奏條與副本攻擊冷卻改用 `getAttackInterval()`，避免把攻速倍率誤當秒數。
-- 掉落與耐久：素材掉落機率下修；新裝備/舊裝備 fallback 耐久基準從 50 降到 35，裝備生成耐久曲線也下修。
-- 升級回血：修正升級扣經驗順序，升級改為部分回血且不再出現回復 0 的狀況。
+## 本輪驗證紀錄
 
-## 已跑過的驗證
+- `node --check`
+  - `src/js/main.js`
+  - `src/js/scenes/DungeonScene.js`
+  - `src/js/utils/CombatUI.js`
+  - `src/js/data/AssetManifest.js`
+  - `scripts/AssetCoverageCheck.mjs`
+  - `scripts/MonsterBalanceCheck_v4.js`
+- `node scripts/DataConsistencyCheck.mjs` 通過。
+- `node scripts/StructureConsistencyCheck.mjs` 通過。
+- `node scripts/ItemFlowCheck.mjs` 通過。
+- `node scripts/AssetCoverageCheck.mjs` 通過，missing mappings/files/dimension warnings 皆為 0。
+- `node scripts/EventPoolCheck.mjs` 通過，role rotation probe 無 repeated last role。
+- `node scripts/SideStoryFlowCheck.mjs` 通過，檢查 29 個 side/hidden quests。
+- `node scripts/ChapterStoryCompletenessCheck.mjs` 通過。
+- `node scripts/EquipmentBalanceCheck.js` 通過，issues 0。
+- `node scripts/GameExperienceAudit.mjs` 通過，issues 0。
+- `node scripts/BetaConvergenceCheck.mjs` 通過，issues 0。
+- `node scripts/FightMatchupCheck.js` 通過。
+- `node scripts/MonsterBalanceCheck_v4.js` 通過並確認：
+  - `Source: runtime`
+  - `Runtime balance: on`
+  - 43 monsters checked
+  - 27 monsters flagged as follow-up tuning candidates
 
-- `node --check` 已通過：`FightManager.js`、`RhythmBarSystem.js`、`WeaponCombatProfile.js`、`CombatBalance.js`、`DropManager.js`、`MonsterManager.js`、`Dungeons.js`、`CharacterLogic.js`、`AdventureScene.js`、`DungeonScene.js`、`TowerScene.js`、`ForgeScene.js`、`GameManager.js`、`DataModel.js`、`ItemSchema.js`、`EquipmentBalance.js`。
-- `scripts/GameExperienceAudit.mjs`：通過，issues 0。
-- `scripts/BetaConvergenceCheck.mjs`：通過，issues 0。
-- `scripts/FightMatchupCheck.js`：通過。
-- `scripts/MonsterBalanceCheck_v4.js`：可跑，但它看起來仍用舊資料/舊模型評估一般怪偏弱，未必吃到 runtime `CombatBalance`。
-- 瀏覽器實測：`#tower` 開始戰鬥後，`#battle-state` 為 `position: fixed`、寬 980、高約 612、遮罩生效、console error 0。
+## 仍保留為後續項目
 
-## 尚未完成，下一次優先處理
+- 戰鬥大改版尚未進行：
+  - 例如玩家職業/武器流派差異、怪物技能節奏、Boss 階段化、長期數值曲線重整。
+- 掉落與耐久仍需要長時間 playtest：
+  - 目前資料檢查與掉落鏈接已通過，但還沒有足夠長的實玩樣本判斷「掉落頻率、裝備替換速度、耐久消耗」是否舒服。
+- 怪物手感仍需要人工調參：
+  - v4.1 報表已能套 runtime 倍率，接下來可依 flagged list 分批調整。
+  - 目前報表偏向把早期小怪標記為偏軟、部分 Boss 標記為偏致命；這是下一輪平衡調參的入口，不是程式錯誤。
 
-- 重新跑一次所有檢查：最後有再提高 `CombatBalance` 的怪物倍率，這個微調後尚未重跑全套驗證。
-- 實際遊玩驗證冒險與副本戰鬥畫面：塔已確認彈窗，冒險/副本還需要用瀏覽器進戰鬥看底部控制區是否仍有違和感。
-- 戰鬥手感微調：
-  - 確認史萊姆之劍吸血是否穩定落在約 3-5，且不會過強。
-  - 確認暴擊頻率是否不再容易秒怪。
-  - 確認短刀追擊、重武器破甲、法杖緩速、長柄穿甲在 UI 浮字與戰鬥結果上都有明確感受。
-- 怪物數值策略需要決定：
-  - 若 runtime `CombatBalance` 手感好，可以保留 helper。
-  - 若希望稽核腳本與資料完全一致，下一步要把倍率回寫到怪物資料或更新 `MonsterBalanceCheck_v4.js` 讀取 runtime balance。
-- 戰鬥系統大改仍未完成：
-  - 目前只是先做武器差異化與節奏修正，還不是完整「主動判斷怪物招式 / 玩家節奏反應 / 技能選擇」系統。
-  - 下一階段應設計怪物攻擊預告、玩家防禦/閃避窗口、不同武器的主動節奏玩法，而不是只等讀取條。
-- 掉落與耐久需要 playtest：
-  - 素材掉落已下修，但還沒用一段冒險流程確認資源壓力是否舒服。
-  - 耐久基準已降低，但修理/替換裝備的經濟壓力還要確認。
+## 本輪觸及檔案
 
-## 目前這輪主要異動檔案
-
+- `index.html`
+- `scripts/AssetCoverageCheck.mjs`
+- `scripts/MonsterBalanceCheck_v4.js`
 - `src/css/ui-foundation.css`
-- `src/js/data/CombatBalance.js`
-- `src/js/utils/WeaponCombatProfile.js`
-- `src/js/managers/FightManager.js`
-- `src/js/utils/RhythmBarSystem.js`
-- `src/js/models/CharacterLogic.js`
-- `src/js/managers/DropManager.js`
-- `src/js/data/Dungeons.js`
-- `src/js/managers/MonsterManager.js`
-- `src/js/scenes/AdventureScene.js`
+- `src/js/data/AssetManifest.js`
+- `src/js/main.js`
 - `src/js/scenes/DungeonScene.js`
-- `src/js/scenes/TowerScene.js`
-- `src/js/data/EquipmentBalance.js`
-- `src/js/models/ItemSchema.js`
-- `src/js/models/DataModel.js`
-- `src/js/managers/GameManager.js`
-- `src/js/scenes/ForgeScene.js`
-- `src/js/data/PassiveCombatEffects.js`
+- `src/js/utils/CombatUI.js`
+- `src/style/adventure.css`

@@ -16,6 +16,58 @@ import {
 } from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
 
+export const INVENTORY_UPGRADE_TIERS = [
+    {
+        level: 0,
+        capacity: 10,
+        label: '舊行囊',
+        materials: []
+    },
+    {
+        level: 1,
+        capacity: 13,
+        label: '加固行囊',
+        materials: [
+            { id: 'beast_hide', quantity: 3 },
+            { id: 'slime_jelly', quantity: 4 }
+        ]
+    },
+    {
+        level: 2,
+        capacity: 16,
+        label: '獵人背包',
+        materials: [
+            { id: 'wolf_pelt', quantity: 3 },
+            { id: 'spider_silk', quantity: 4 },
+            { id: 'iron_shard', quantity: 4 }
+        ]
+    },
+    {
+        level: 3,
+        capacity: 19,
+        label: '遠行背架',
+        materials: [
+            { id: 'iron_ore', quantity: 4 },
+            { id: 'ancient_bark', quantity: 3 },
+            { id: 'rare_metal', quantity: 1 }
+        ]
+    },
+    {
+        level: 4,
+        capacity: 22,
+        label: '大探險背包',
+        materials: [
+            { id: 'rare_metal', quantity: 3 },
+            { id: 'forge_core', quantity: 2 },
+            { id: 'forest_essence', quantity: 1 }
+        ]
+    }
+];
+
+export const ADVENTURE_FATIGUE_BASE_MAX = 20;
+export const ADVENTURE_FATIGUE_PER_LEVEL = 10;
+export const ADVENTURE_FATIGUE_REGEN_MS = 1000;
+
 class GameManager {
     constructor() {
         if (GameManager.instance) {
@@ -36,6 +88,11 @@ class GameManager {
             character: new CharacterManager(),
             inventory: [], // Array of stacked items: { item: Item, quantity: number }
             inventoryCapacity: 10,
+            inventoryUpgradeLevel: 0,
+            adventureFatigue: {
+                current: ADVENTURE_FATIGUE_BASE_MAX,
+                lastRecoveredAt: Date.now()
+            },
             warehouse: [], // Array of stacked items (Unlimited capacity)
             mapState: null,
             ui: {
@@ -384,6 +441,196 @@ class GameManager {
 
     getInventory() {
         return this.state.inventory;
+    }
+
+    getAdventureFatigueMax() {
+        const level = Math.max(1, Number(this.state.character?.level) || 1);
+        return ADVENTURE_FATIGUE_BASE_MAX + (level - 1) * ADVENTURE_FATIGUE_PER_LEVEL;
+    }
+
+    normalizeAdventureFatigue() {
+        if (!this.state.adventureFatigue || typeof this.state.adventureFatigue !== 'object') {
+            this.state.adventureFatigue = {
+                current: this.getAdventureFatigueMax(),
+                lastRecoveredAt: Date.now()
+            };
+        }
+
+        const max = this.getAdventureFatigueMax();
+        const current = Number(this.state.adventureFatigue.current);
+        this.state.adventureFatigue.current = Math.max(0, Math.min(max, Number.isFinite(current) ? current : max));
+        if (!Number.isFinite(Number(this.state.adventureFatigue.lastRecoveredAt))) {
+            this.state.adventureFatigue.lastRecoveredAt = Date.now();
+        }
+        return this.state.adventureFatigue;
+    }
+
+    recoverAdventureFatigue(now = Date.now()) {
+        const fatigue = this.normalizeAdventureFatigue();
+        const max = this.getAdventureFatigueMax();
+        if (fatigue.current >= max) {
+            fatigue.current = max;
+            fatigue.lastRecoveredAt = now;
+            return { current: fatigue.current, max, recovered: 0 };
+        }
+
+        const elapsed = Math.max(0, now - Number(fatigue.lastRecoveredAt || now));
+        const recovered = Math.floor(elapsed / ADVENTURE_FATIGUE_REGEN_MS);
+        if (recovered <= 0) return { current: fatigue.current, max, recovered: 0 };
+
+        fatigue.current = Math.min(max, fatigue.current + recovered);
+        fatigue.lastRecoveredAt = fatigue.current >= max
+            ? now
+            : Number(fatigue.lastRecoveredAt) + recovered * ADVENTURE_FATIGUE_REGEN_MS;
+        this.markSaveDirty('adventure-fatigue-recover');
+        this.notify('fatigue');
+        return { current: fatigue.current, max, recovered };
+    }
+
+    getAdventureFatigueStatus() {
+        this.recoverAdventureFatigue();
+        const fatigue = this.normalizeAdventureFatigue();
+        const max = this.getAdventureFatigueMax();
+        return {
+            current: fatigue.current,
+            max,
+            percent: max > 0 ? (fatigue.current / max) * 100 : 0
+        };
+    }
+
+    consumeAdventureFatigue(amount = 1) {
+        const cost = Math.max(0, Math.ceil(Number(amount) || 0));
+        if (cost <= 0) return true;
+        this.recoverAdventureFatigue();
+        const fatigue = this.normalizeAdventureFatigue();
+        if (fatigue.current < cost) return false;
+
+        fatigue.current = Math.max(0, fatigue.current - cost);
+        fatigue.lastRecoveredAt = Date.now();
+        this.markSaveDirty('adventure-fatigue-consume');
+        this.notify('fatigue');
+        return true;
+    }
+
+    restoreAdventureFatigue(amount = 1) {
+        const value = Math.max(0, Math.ceil(Number(amount) || 0));
+        if (value <= 0) return this.getAdventureFatigueStatus();
+        const fatigue = this.normalizeAdventureFatigue();
+        fatigue.current = Math.min(this.getAdventureFatigueMax(), fatigue.current + value);
+        fatigue.lastRecoveredAt = Date.now();
+        this.markSaveDirty('adventure-fatigue-restore');
+        this.notify('fatigue');
+        return this.getAdventureFatigueStatus();
+    }
+
+    getInventoryUpgradeTier(level = this.state.inventoryUpgradeLevel) {
+        const safeLevel = Math.max(0, Number(level) || 0);
+        return INVENTORY_UPGRADE_TIERS.find(tier => tier.level === safeLevel)
+            || INVENTORY_UPGRADE_TIERS[0];
+    }
+
+    getNextInventoryUpgrade() {
+        const currentLevel = Math.max(0, Number(this.state.inventoryUpgradeLevel) || 0);
+        return INVENTORY_UPGRADE_TIERS.find(tier => tier.level === currentLevel + 1) || null;
+    }
+
+    getItemCountAcrossStorage(itemId) {
+        const countIn = stacks => (stacks || [])
+            .filter(stack => stack?.item?.id === itemId)
+            .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
+        return countIn(this.state.inventory) + countIn(this.state.warehouse);
+    }
+
+    getInventoryUpgradeStatus() {
+        const current = this.getInventoryUpgradeTier();
+        const next = this.getNextInventoryUpgrade();
+        const requirements = (next?.materials || []).map(material => ({
+            ...material,
+            owned: this.getItemCountAcrossStorage(material.id)
+        }));
+
+        return {
+            current,
+            next,
+            requirements,
+            canUpgrade: Boolean(next) && requirements.every(req => req.owned >= req.quantity)
+        };
+    }
+
+    getRepairRequirement(item) {
+        const maxDurability = Number(item?.maxDurability) || 0;
+        const durability = Number(item?.durability);
+        if (!item || maxDurability <= 0 || !Number.isFinite(durability) || durability >= maxDurability) {
+            return null;
+        }
+
+        const missing = Math.max(1, maxDurability - durability);
+        const rarity = String(item.rarity || ItemRarity.COMMON).toLowerCase();
+        const materialByRarity = {
+            common: 'iron_shard',
+            uncommon: 'iron_shard',
+            rare: 'high_ore',
+            epic: 'forge_core',
+            legendary: 'rare_metal'
+        };
+        const materialId = materialByRarity[rarity] || 'iron_shard';
+        const repairMaterialDivisor = {
+            common: 12,
+            uncommon: 10,
+            rare: 9,
+            epic: 8,
+            legendary: 7
+        }[rarity] || 10;
+        const goldMultiplier = (rarity === 'common' || rarity === 'uncommon') ? 1.35 : 2;
+        const materialQuantity = Math.max(1, Math.ceil(missing / repairMaterialDivisor));
+
+        return {
+            gold: Math.max(5, Math.ceil(missing * goldMultiplier)),
+            materials: [{ id: materialId, quantity: materialQuantity }],
+            missing
+        };
+    }
+
+    repairEquipmentItem(item) {
+        const requirement = this.getRepairRequirement(item);
+        if (!requirement) return { success: false, reason: 'not-needed' };
+
+        if (this.getGold() < requirement.gold) {
+            return { success: false, reason: 'gold', requirement };
+        }
+
+        const lacking = requirement.materials.find(material => this.getItemCountAcrossStorage(material.id) < material.quantity);
+        if (lacking) {
+            return { success: false, reason: 'materials', requirement };
+        }
+
+        if (!this.removeGold(requirement.gold)) {
+            return { success: false, reason: 'gold', requirement };
+        }
+
+        for (const material of requirement.materials) {
+            this.removeMaterial(material.id, material.quantity);
+        }
+
+        item.durability = Number(item.maxDurability) || item.durability;
+        this.markSaveDirty('repair-equipment');
+        this.notify('all');
+        return { success: true, requirement };
+    }
+
+    upgradeInventoryCapacity() {
+        const status = this.getInventoryUpgradeStatus();
+        if (!status.next || !status.canUpgrade) return false;
+
+        for (const requirement of status.requirements) {
+            if (!this.removeMaterial(requirement.id, requirement.quantity)) return false;
+        }
+
+        this.state.inventoryUpgradeLevel = status.next.level;
+        this.state.inventoryCapacity = status.next.capacity;
+        this.markSaveDirty('inventory-upgrade');
+        this.notify('all');
+        return true;
     }
 
     addToInventory(itemData, quantity = 1) {
@@ -862,8 +1109,8 @@ class GameManager {
         
         // 如果沒有耐久度屬性，初始化
         if (weapon.durability === undefined) {
-            weapon.durability = 35;
-            weapon.maxDurability = 35;
+            weapon.durability = 18;
+            weapon.maxDurability = 18;
         }
         
         weapon.durability = Math.max(0, weapon.durability - 1);
@@ -894,8 +1141,8 @@ class GameManager {
         
         // 如果沒有耐久度屬性，初始化
         if (armor.durability === undefined) {
-            armor.durability = 35;
-            armor.maxDurability = 35;
+            armor.durability = 18;
+            armor.maxDurability = 18;
         }
         
         armor.durability = Math.max(0, armor.durability - 1);
@@ -919,8 +1166,8 @@ class GameManager {
         if (!equipment) return null;
         
         return {
-            current: equipment.durability ?? 35,
-            max: equipment.maxDurability ?? 35
+            current: equipment.durability ?? 18,
+            max: equipment.maxDurability ?? 18
         };
     }
     

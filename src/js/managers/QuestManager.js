@@ -9,6 +9,7 @@ import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 import { getMaterial } from './MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { unlockRecipesForInteraction } from './BlueprintManager.js';
+import { markItemKnown } from './EncyclopediaManager.js';
 import { worldStoryManager } from './WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
@@ -340,6 +341,7 @@ class QuestManager {
                     if (!addedToInventory) {
                         GameManager.addToWarehouse(item);
                     }
+                    markItemKnown(item.id);
                     result.items.push(item);
                 }
             });
@@ -351,6 +353,7 @@ class QuestManager {
                 const quantity = Math.max(1, Number(entry.quantity) || 1);
                 if (material) {
                     GameManager.addToInventory(material, quantity);
+                    markItemKnown(material.id);
                     result.materials.push({ ...material, quantity });
                 }
             });

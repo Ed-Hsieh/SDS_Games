@@ -81,7 +81,7 @@ export const MonsterDatabase = {
             { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'goblin_dagger', chance: 0.015 }
+            { equipmentId: 'goblin_dagger', chance: 0.05 }
         ],
         skills: [],
         description: '矮小但狡猾的哥布林。'
@@ -108,8 +108,8 @@ export const MonsterDatabase = {
             { itemId: 'raw_meat', chance: 0.3, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'wolf_fang_blade', chance: 0.03 },
-            { equipmentId: 'wolf_pelt_armor', chance: 0.025 }
+            { equipmentId: 'wolf_fang_blade', chance: 0.055 },
+            { equipmentId: 'wolf_pelt_armor', chance: 0.05 }
         ],
         skills: [],
         description: '森林中的野狼，攻擊性強。'
@@ -223,7 +223,7 @@ export const MonsterDatabase = {
             { itemId: 'poison_gland', chance: 0.3, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'spider_silk_gloves', chance: 0.025 }
+            { equipmentId: 'spider_silk_gloves', chance: 0.04 }
         ],
         skills: ['poison_bite'],
         description: '會噴射毒液的巨型蜘蛛。'

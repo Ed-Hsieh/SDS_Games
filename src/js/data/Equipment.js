@@ -11,7 +11,7 @@ export const EquipmentDatabase = {
     // ==================== 第一章掉落武器 ====================
     old_sword: {
         id: 'old_sword',
-        name: '舊劍',
+        name: '生鏽短劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.COMMON,
@@ -25,7 +25,7 @@ export const EquipmentDatabase = {
             attackSpeed: 1.0     // 攻擊頻率（每秒）
         },
         setId: null,
-        description: 'd一把看起來很舊的劍，但仍能使用。'
+        description: '劍身鏽蝕、刃口不平，但足夠讓白手起家的旅人撐過最初幾場戰鬥。'
     },
 
     old_armor: {

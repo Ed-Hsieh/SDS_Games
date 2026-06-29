@@ -61,17 +61,23 @@
                                 <span class="progress-bar progress-bar-exp" id="exp-bar" style="width: 0%;"></span>
                             </span>
                         </span>
+                        <span class="traveler-meter">
+                            <span class="traveler-meter-label" id="fatigue-text">疲勞：20 / 20</span>
+                            <span class="traveler-mini-bar">
+                                <span class="progress-bar progress-bar-fatigue" id="fatigue-bar" style="width: 100%;"></span>
+                            </span>
+                        </span>
                     </span>
                 </button>
 
-                <button class="satchel-button" data-prep-tab="inventory" type="button" aria-label="打開行囊">
-                    <span class="satchel-button-icon">🎒</span>
+                <button class="satchel-button" data-prep-tab="inventory" type="button" aria-label="打開行囊" title="背包容量可在市集邊棚找匠人擴充">
+                    <span class="satchel-button-icon" aria-hidden="true">🎒</span>
                     <span>行囊</span>
                 </button>
 
                 <section class="traveler-handbook-card" aria-label="旅人手札">
                     <div class="traveler-handbook-head">
-                        <span class="traveler-handbook-icon">📔</span>
+                        <span class="traveler-handbook-icon" aria-hidden="true">📔</span>
                         <span>
                             <small>旅人</small>
                             <strong>旅人手札</strong>

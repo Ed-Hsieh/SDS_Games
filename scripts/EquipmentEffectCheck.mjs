@@ -151,7 +151,7 @@ const reflectPlayer = makePlayer({ armor: EquipmentDatabase.crystal_shield }, { 
 const reflectMonster = makeMonster({ hp: 100, attack: 40 });
 const reflectController = new BattleController(reflectPlayer, reflectMonster);
 const reflectRes = reflectController.monsterAttack();
-assert(reflectRes?.reflectedDamage > 0 && reflectMonster.hp < 100, '反傷應在玩家受擊後回敬怪物傷害。');
+assert(reflectRes?.reflectedDamage > 0 && reflectMonster.hp < reflectMonster.maxHp, '反傷應在玩家受擊後回敬怪物傷害。');
 
 withFixedRandom(0, () => {
     const player = makePlayer({ accessory: EquipmentDatabase.demon_lord_crown }, { hp: 10, maxHp: 120, def: 0 });

@@ -17,6 +17,7 @@ import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { escapeHtml } from '../utils/ItemDisplay.js';
 import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
+import { isDevModeEnabled } from '../utils/DevMode.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -99,6 +100,7 @@ class DungeonSceneClass {
         
         // 綁定事件
         this.bindEvents();
+        this.installDevCombatControls();
         
         // 初始渲染
         this.updateUI();
@@ -217,7 +219,10 @@ class DungeonSceneClass {
             floorCompleteOverlay: document.getElementById('floor-complete-overlay'),
             floorCompleteText: document.getElementById('floor-complete-text'),
             btnNextFloor: document.getElementById('btn-next-floor'),
-            btnStay: document.getElementById('btn-stay')
+            btnStay: document.getElementById('btn-stay'),
+
+            // 開發驗收工具
+            devCombatControls: null
         };
         
         // 驗證必要元素
@@ -287,6 +292,27 @@ class DungeonSceneClass {
             this.hideFloorCompleteOverlay();
         });
     }
+
+    installDevCombatControls() {
+        if (!isDevModeEnabled() || this.dom.devCombatControls || !this.container) return;
+
+        const controls = document.createElement('div');
+        controls.className = 'dungeon-dev-combat-tools';
+        controls.innerHTML = `
+            <span>遭遇測試</span>
+            <button type="button" data-dungeon-dev-battle="normal">普通</button>
+            <button type="button" data-dungeon-dev-battle="elite">精英</button>
+            <button type="button" data-dungeon-dev-battle="boss">Boss</button>
+        `;
+        controls.addEventListener('click', event => {
+            const button = event.target.closest?.('[data-dungeon-dev-battle]');
+            if (!button || this.isInCombat) return;
+            this.startBattle(button.dataset.dungeonDevBattle || 'normal');
+        });
+
+        this.container.appendChild(controls);
+        this.dom.devCombatControls = controls;
+    }
     
     destroy() {
         if (this.boundKeyHandler) {
@@ -303,6 +329,8 @@ class DungeonSceneClass {
         this._engine = null;
         this.isInCombat = false;
         this.currentMonster = null;
+        this.dom.devCombatControls?.remove?.();
+        this.dom.devCombatControls = null;
     }
 
     cleanup() {

@@ -1,6 +1,7 @@
 import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
 import { getGeneratedCombatEffectImage, getGeneratedMonsterImage } from '../data/AssetManifest.js';
 import audioManager from './AudioManager.js';
+import { getWeaponProfileTriggerText } from './WeaponCombatProfile.js';
 
 function find(root, selectors) {
     if (!root) return null;
@@ -412,16 +413,33 @@ export function renderCombatActionDeck(root, character, options = {}) {
     if (!root || !character) return;
 
     const weapon = character.equipment?.weapon || null;
+    const triggerText = getWeaponProfileTriggerText(character);
     setIcon(root, '#weapon-icon', weapon, '⚔️');
     setText(root, '#weapon-name', weapon?.name || options.unarmedName || '徒手攻擊');
     setText(root, '#weapon-damage', getTotalAttack(character));
 
+    const weaponCard = find(root, '#action-weapon, #btn-attack');
+    if (weaponCard) {
+        let triggerEl = weaponCard.querySelector('.weapon-trigger-condition');
+        if (triggerText) {
+            if (!triggerEl) {
+                triggerEl = document.createElement('div');
+                triggerEl.className = 'weapon-trigger-condition';
+                weaponCard.appendChild(triggerEl);
+            }
+            triggerEl.textContent = triggerText;
+        } else {
+            triggerEl?.remove();
+        }
+    }
+
     const stack = getFirstConsumableStack(options.inventory || []);
     const potion = stack?.item || null;
     const quantity = Number(stack?.quantity ?? 0) || 0;
+    const potionHeal = Number(potion?.effect?.hp) || 0;
     setIcon(root, '#potion-icon', potion, '🧪');
     setText(root, '#potion-name', potion?.name || options.emptyPotionName || '沒有補給');
-    setText(root, '#potion-heal', potion ? `+${potion.effect?.hp || 0}` : '+0');
+    setText(root, '#potion-heal', potion ? (potionHeal > 0 ? `+${potionHeal}` : '可用') : '無');
     setText(root, '#potion-quantity', quantity > 0 ? `x${quantity}` : '無');
 
     const potionCard = find(root, '#action-potion, #btn-item');

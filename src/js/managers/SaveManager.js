@@ -2,7 +2,7 @@ import { CharacterManager } from '../models/DataModel.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { cloneData } from '../models/ItemSchema.js';
 
-export const SAVE_SCHEMA_VERSION = 3;
+export const SAVE_SCHEMA_VERSION = 5;
 export const SAVE_FILE_BASENAME = 'sds-save';
 export const LOCAL_SAVE_KEY = 'sds:save';
 export const LOCAL_BACKUP_KEY = 'sds:save:backup';
@@ -135,6 +135,8 @@ export function serializeGameState(state) {
         character: serializeCharacter(state?.character),
         inventory: (state?.inventory || []).map(serializeStack).filter(Boolean),
         inventoryCapacity: readPositiveNumber(state?.inventoryCapacity, 10),
+        inventoryUpgradeLevel: readPositiveNumber(state?.inventoryUpgradeLevel, 0),
+        adventureFatigue: safeClone(state?.adventureFatigue, null),
         warehouse: (state?.warehouse || []).map(serializeStack).filter(Boolean),
         mapState: safeClone(state?.mapState, null),
         flags: {
@@ -151,6 +153,8 @@ export function hydrateGameState(gameData, createInitialState) {
             character: new CharacterManager(),
             inventory: [],
             inventoryCapacity: 10,
+            inventoryUpgradeLevel: 0,
+            adventureFatigue: { current: 20, lastRecoveredAt: Date.now() },
             warehouse: [],
             mapState: null,
             flags: { secretShopUnlocked: false }
@@ -162,6 +166,8 @@ export function hydrateGameState(gameData, createInitialState) {
         character: hydrateCharacter(data.character),
         inventory: (data.inventory || []).map(hydrateStack).filter(Boolean),
         inventoryCapacity: readPositiveNumber(data.inventoryCapacity, baseState.inventoryCapacity || 10),
+        inventoryUpgradeLevel: readPositiveNumber(data.inventoryUpgradeLevel, baseState.inventoryUpgradeLevel || 0),
+        adventureFatigue: safeClone(data.adventureFatigue, baseState.adventureFatigue || { current: 20, lastRecoveredAt: Date.now() }),
         warehouse: (data.warehouse || []).map(hydrateStack).filter(Boolean),
         mapState: safeClone(data.mapState, null),
         flags: {
@@ -199,6 +205,29 @@ const SaveMigrations = {
                 delete questStates[questId];
             }
         }
+        return saveData;
+    },
+
+    // v3 -> v4: add material-crafted backpack progression.
+    3(saveData) {
+        const game = saveData.game || {};
+        const capacity = readPositiveNumber(game.inventoryCapacity, 10);
+        game.inventoryUpgradeLevel = readPositiveNumber(
+            game.inventoryUpgradeLevel,
+            capacity >= 22 ? 4 : capacity >= 19 ? 3 : capacity >= 16 ? 2 : capacity >= 13 ? 1 : 0
+        );
+        game.inventoryCapacity = Math.max(10, capacity);
+        saveData.game = game;
+        return saveData;
+    },
+
+    // v4 -> v5: add rechargeable adventure fatigue used for map movement.
+    4(saveData) {
+        const game = saveData.game || {};
+        game.adventureFatigue = game.adventureFatigue && typeof game.adventureFatigue === 'object'
+            ? game.adventureFatigue
+            : { current: 20, lastRecoveredAt: Date.now() };
+        saveData.game = game;
         return saveData;
     }
 };

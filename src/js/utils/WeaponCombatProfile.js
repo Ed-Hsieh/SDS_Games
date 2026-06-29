@@ -20,6 +20,7 @@ const BASE_PROFILES = {
     sword: {
         id: 'sword',
         label: 'Blade Tempo',
+        triggerCondition: '暴擊時獲得攻速節奏',
         needleSpeedMultiplier: 1.00,
         cooldownMultiplier: 1.00,
         hitZoneMultiplier: 1.00,
@@ -31,6 +32,7 @@ const BASE_PROFILES = {
     dagger: {
         id: 'dagger',
         label: 'Quick Chain',
+        triggerCondition: '連續命中第 3 下追擊',
         needleSpeedMultiplier: 1.18,
         cooldownMultiplier: 0.82,
         hitZoneMultiplier: 0.84,
@@ -44,6 +46,7 @@ const BASE_PROFILES = {
     heavy: {
         id: 'heavy',
         label: 'Guard Break',
+        triggerCondition: '暴擊或命中重甲目標時破甲',
         needleSpeedMultiplier: 0.78,
         cooldownMultiplier: 1.22,
         hitZoneMultiplier: 0.94,
@@ -51,11 +54,13 @@ const BASE_PROFILES = {
         damageMultiplier: 1.14,
         critDamageMultiplier: 0.80,
         armorBreakPercent: 18,
-        armorBreakDuration: 4
+        armorBreakDuration: 4,
+        armorBreakMinDefense: 10
     },
     focus: {
         id: 'focus',
         label: 'Focus Cast',
+        triggerCondition: '暴擊時有高機率緩速',
         needleSpeedMultiplier: 0.95,
         cooldownMultiplier: 1.08,
         hitZoneMultiplier: 0.96,
@@ -63,19 +68,22 @@ const BASE_PROFILES = {
         damageMultiplier: 0.96,
         critDamageMultiplier: 0.86,
         slowChance: 35,
+        slowRequiresCrit: true,
         slowPercent: 22,
         slowDuration: 2.6
     },
     lance: {
         id: 'lance',
         label: 'Piercing Line',
+        triggerCondition: '暴擊或命中高防目標時穿甲',
         needleSpeedMultiplier: 1.08,
         cooldownMultiplier: 0.95,
         hitZoneMultiplier: 0.90,
         critZoneMultiplier: 0.68,
         damageMultiplier: 0.97,
         critDamageMultiplier: 0.86,
-        armorPenetrationBonus: 16
+        armorPenetrationBonus: 16,
+        armorPenetrationMinDefense: 8
     }
 };
 
@@ -107,6 +115,7 @@ export function getWeaponCombatProfile(character) {
             ...profile,
             id: 'slime_sword',
             label: 'Slime Drain',
+            triggerCondition: '命中且自身受傷時吸血',
             lifestealMin: 3,
             lifestealMax: 5
         };
@@ -124,7 +133,13 @@ export function getWeaponLifestealBounds(character) {
     };
 }
 
+export function getWeaponProfileTriggerText(character) {
+    const profile = getWeaponCombatProfile(character);
+    return profile.triggerCondition || '';
+}
+
 export default {
     getWeaponCombatProfile,
-    getWeaponLifestealBounds
+    getWeaponLifestealBounds,
+    getWeaponProfileTriggerText
 };

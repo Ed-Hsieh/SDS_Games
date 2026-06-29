@@ -33,8 +33,8 @@ const ZoneTypeToPoolKey = {
     boss: 'death_wastes'
 };
 
-const MATERIAL_DROP_CHANCE_MULTIPLIER = 0.58;
-const MATERIAL_POOL_DEFAULT_CHANCE = 0.55;
+const MATERIAL_DROP_CHANCE_MULTIPLIER = 0.38;
+const MATERIAL_POOL_DEFAULT_CHANCE = 0.32;
 
 function resolveZonePoolKey(zoneIdOrType) {
     if (!zoneIdOrType) return null;

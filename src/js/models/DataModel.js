@@ -49,8 +49,8 @@ export class Equipment extends Item {
         this.critChance = critChance; // 所有裝備都有爆擊率
         this.critDamage = critDamage; // 所有裝備都有爆擊傷害
 
-        // 耐久度系統 - 武器和防具才有；如果未提供則落在預設 35
-        const resolvedMaxDurability = Number.isFinite(maxDurability) ? maxDurability : 35;
+        // 耐久度系統 - 武器和防具才有；如果未提供則落在前期易耗的預設值
+        const resolvedMaxDurability = Number.isFinite(maxDurability) ? maxDurability : 18;
         this.maxDurability = resolvedMaxDurability;
         this.durability = Number.isFinite(durability) ? durability : resolvedMaxDurability;
     }
@@ -120,7 +120,7 @@ export class CharacterManager {
         this._hp = 120;      // 100 + (1 * 20) = 120
         this._maxHp = 120;
         this._exp = 0;
-        this._maxExp = 100;
+        this._maxExp = 120;
         this.gold = 100;
         this.baseAtk = 5;    // 基礎攻擊力
         this.baseDef = 2;    // 基礎防禦力
@@ -155,7 +155,7 @@ export class CharacterManager {
     get exp() { return Number.isFinite(this._exp) ? this._exp : 0; }
     set exp(v) { this._exp = Math.max(0, Number(v) || 0); }
 
-    get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : 100; }
+    get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : 120; }
     set maxExp(v) { this._maxExp = Math.max(1, Number(v) || 1); }
 
     // 向後相容別名

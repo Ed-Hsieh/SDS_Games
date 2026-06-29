@@ -604,8 +604,8 @@ export default class ForgeScene {
             if (newItem.type === 'weapon' || newItem.type === 'armor' || newItem.type === 'accessory') {
                 // 添加耐久度屬性
                 if (newItem.durability === undefined) {
-                    newItem.durability = 35;
-                    newItem.maxDurability = 35;
+                    newItem.durability = 18;
+                    newItem.maxDurability = 18;
                 }
                 
                 // 生成隨機詞綴

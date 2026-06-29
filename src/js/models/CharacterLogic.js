@@ -253,7 +253,7 @@ export function calculateMaxHp(character) {
 }
 
 export function calculateMaxExp(character) {
-    return Math.floor(100 * Math.pow(1.2, (character.level || 1) - 1));
+    return Math.floor(120 * Math.pow(1.25, (character.level || 1) - 1));
 }
 
 export function checkLevelUp(character) {

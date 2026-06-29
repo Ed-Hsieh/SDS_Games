@@ -18,7 +18,7 @@ export const RARITY_BALANCE = {
         label: '普通',
         power: 1.00,
         price: 1.00,
-        durabilityBase: 24,
+        durabilityBase: 12,
         affixCount: { min: 0, max: 1 },
         affixSlots: { prefix: 0, suffix: 1 },
         affixWeights: { common: 70, uncommon: 25, rare: 5, epic: 0, legendary: 0 }
@@ -27,7 +27,7 @@ export const RARITY_BALANCE = {
         label: '優秀',
         power: 1.18,
         price: 1.35,
-        durabilityBase: 30,
+        durabilityBase: 15,
         affixCount: { min: 1, max: 2 },
         affixSlots: { prefix: 1, suffix: 1 },
         affixWeights: { common: 50, uncommon: 35, rare: 12, epic: 3, legendary: 0 }
@@ -36,7 +36,7 @@ export const RARITY_BALANCE = {
         label: '稀有',
         power: 1.42,
         price: 1.85,
-        durabilityBase: 36,
+        durabilityBase: 20,
         affixCount: { min: 1, max: 3 },
         affixSlots: { prefix: 1, suffix: 2 },
         affixWeights: { common: 30, uncommon: 35, rare: 25, epic: 8, legendary: 2 }
@@ -45,7 +45,7 @@ export const RARITY_BALANCE = {
         label: '史詩',
         power: 1.72,
         price: 2.55,
-        durabilityBase: 42,
+        durabilityBase: 26,
         affixCount: { min: 2, max: 4 },
         affixSlots: { prefix: 2, suffix: 2 },
         affixWeights: { common: 10, uncommon: 25, rare: 35, epic: 25, legendary: 5 }
@@ -54,7 +54,7 @@ export const RARITY_BALANCE = {
         label: '傳說',
         power: 2.12,
         price: 3.60,
-        durabilityBase: 48,
+        durabilityBase: 34,
         affixCount: { min: 3, max: 5 },
         affixSlots: { prefix: 2, suffix: 3 },
         affixWeights: { common: 0, uncommon: 10, rare: 30, epic: 40, legendary: 20 }
@@ -112,7 +112,7 @@ export const EQUIPMENT_LEVEL_BANDS = [
 export const EQUIPMENT_TYPE_BALANCE = {
     [ItemType.WEAPON]: {
         label: '武器',
-        durabilityBonus: 4,
+        durabilityBonus: 1,
         attackBase: 3.5,
         attackPerLevel: 1.85,
         defenseBase: 0,
@@ -123,7 +123,7 @@ export const EQUIPMENT_TYPE_BALANCE = {
     },
     [ItemType.ARMOR]: {
         label: '防具',
-        durabilityBonus: 6,
+        durabilityBonus: 2,
         attackBase: 0,
         attackPerLevel: 0.35,
         defenseBase: 4,
@@ -244,7 +244,7 @@ export function getDurabilityForEquipment(item, index = 0) {
     const rarityBase = getRarityBalance(rarity).durabilityBase;
     const typeBonus = EQUIPMENT_TYPE_BALANCE[kind]?.durabilityBonus ?? 0;
 
-    return rarityBase + typeBonus + Math.max(0, Math.floor(level / 2)) + (index % 7);
+    return rarityBase + typeBonus + Math.max(0, Math.floor(level / 3)) + (index % 4);
 }
 
 export function getRecommendedEquipmentStats(itemLike = {}) {

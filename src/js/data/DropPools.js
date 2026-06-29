@@ -13,9 +13,9 @@
 export const ZoneDropPools = {
     low_forest: {
         items: [
-            { id: 'iron_shard', weight: 50, quantity: [1, 2] },
-            { id: 'iron_ore', weight: 35, quantity: [1, 2] },
-            { id: 'slime_jelly', weight: 15, quantity: [1, 3] }
+            { id: 'iron_shard', weight: 55, quantity: [2, 3], chance: 0.75 },
+            { id: 'iron_ore', weight: 25, quantity: [1, 2], chance: 0.18 },
+            { id: 'slime_jelly', weight: 20, quantity: [1, 3], chance: 0.28 }
         ],
         defaultQuantity: [1, 1]
     },

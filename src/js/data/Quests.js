@@ -62,8 +62,8 @@ export const QuestDatabase = {
                 exp: 50,
                 items: ['old_sword'],
                 materials: [
-                    { id: 'slime_jelly', quantity: 3 },
-                    { id: 'beast_hide', quantity: 3 }
+                    { id: 'slime_jelly', quantity: 1 },
+                    { id: 'beast_hide', quantity: 1 }
                 ]
             },
             unlocks: ['main_002'], // 完成後解鎖
@@ -85,10 +85,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 150,
                 exp: 80,
-                items: ['health_potion_s'],
-                materials: [
-                    { id: 'iron_ore', quantity: 5 }
-                ]
+                items: ['health_potion_s']
             },
             unlocks: ['main_003'],
             dialogue: {
@@ -108,12 +105,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 100,
-                exp: 60,
-                items: ['old_armor'],
-                materials: [
-                    { id: 'wolf_pelt', quantity: 3 },
-                    { id: 'wolf_fang', quantity: 3 }
-                ]
+                exp: 60
             },
             unlocks: ['main_004'],
             dialogue: {
@@ -136,8 +128,7 @@ export const QuestDatabase = {
                 exp: 140,
                 items: ['silver_thread_hook'],
                 materials: [
-                    { id: 'spider_silk', quantity: 2 },
-                    { id: 'poison_gland', quantity: 1 }
+                    { id: 'spider_silk', quantity: 1 }
                 ]
             },
             unlocks: ['main_005'],
@@ -162,9 +153,7 @@ export const QuestDatabase = {
                 exp: 220,
                 items: ['black_bark_guardian_core'],
                 materials: [
-                    { id: 'ancient_bark', quantity: 3 },
-                    { id: 'forest_essence', quantity: 1 },
-                    { id: 'life_seed', quantity: 1 }
+                    { id: 'ancient_bark', quantity: 1 }
                 ]
             },
             unlocks: ['main_006'],
@@ -188,9 +177,7 @@ export const QuestDatabase = {
                 exp: 260,
                 items: ['blood_moon_pendant'],
                 materials: [
-                    { id: 'life_seed', quantity: 2 },
-                    { id: 'forest_essence', quantity: 1 },
-                    { id: 'rare_metal', quantity: 1 }
+                    { id: 'life_seed', quantity: 1 }
                 ]
             },
             unlocks: ['main_007', 'dungeon_cave_001'],
@@ -459,10 +446,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 80,
-                exp: 40,
-                materials: [
-                    { id: 'slime_jelly', quantity: 2 }
-                ]
+                exp: 40
             },
             unlocks: []
         },
@@ -478,11 +462,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 150,
-                exp: 80,
-                materials: [
-                    { id: 'goblin_ear', quantity: 2 },
-                    { id: 'goblin_coin', quantity: 1 }
-                ]
+                exp: 80
             },
             unlocks: ['bounty_003']
         },
@@ -498,8 +478,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 250,
-                exp: 120,
-                items: ['wolf_fang']
+                exp: 120
             },
             unlocks: []
         },
@@ -852,10 +831,7 @@ export const QuestDatabase = {
             ],
             rewards: {
                 gold: 90,
-                exp: 45,
-                materials: [
-                    { id: 'iron_shard', quantity: 3 }
-                ]
+                exp: 45
             },
             unlocks: [],
             dialogue: {
@@ -883,10 +859,7 @@ export const QuestDatabase = {
             rewards: {
                 gold: 70,
                 exp: 50,
-                items: ['health_potion_s'],
-                materials: [
-                    { id: 'antidote', quantity: 1 }
-                ]
+                items: ['health_potion_s']
             },
             unlocks: [],
             dialogue: {
@@ -1944,9 +1917,7 @@ export const QuestRewardItems = {
         type: ItemType.KEY,
         rarity: ItemRarity.RARE,
         description: '在賭場享有特殊待遇。',
-        specialEffects: [
-            { type: 'casinoBonus', value: 0.05 }
-        ],
+        specialEffects: [],
         isQuestReward: true
     },
     loaded_dice: {
@@ -2188,10 +2159,9 @@ export const QuestRewardItems = {
         icon: '📈',
         type: ItemType.KEY,
         rarity: ItemRarity.RARE,
-        description: '瑪洛偷偷塞來的勝率表。它不能保證你贏，但能讓賭場遊戲額外結算一點獎券。',
+        description: '瑪洛偷偷塞來的勝率表。它不能保證你贏，但能讓你看懂賭場暗藏的規律。',
         specialEffects: [
-            { type: 'casinoOddsReveal', value: true },
-            { type: 'casinoTicketBonus', value: 0.1 }
+            { type: 'casinoOddsReveal', value: true }
         ],
         isQuestReward: true
     },

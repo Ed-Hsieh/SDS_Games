@@ -234,6 +234,11 @@ export default class ShopScene {
             return;
         }
 
+        if (action === 'upgrade-backpack') {
+            this.handleBackpackUpgrade();
+            return;
+        }
+
         if (action === 'complete') {
             const entry = this.entryIndex.get(button.dataset.entryId);
             if (entry) this.completeSupplyEntry(entry);
@@ -644,14 +649,70 @@ export default class ShopScene {
 
     renderOrders(vendor) {
         const entries = vendor.orders || [];
-        if (entries.length === 0) return this.renderEmpty('沒有新的訂單', '這條供應線目前沒有需要你處理的委託。');
-        return entries.map(entry => this.renderSupplyEntryCard(entry, 'order')).join('');
+        const cards = entries.map(entry => this.renderSupplyEntryCard(entry, 'order'));
+        if (vendor.id === 'tinker') cards.unshift(this.renderBackpackUpgradeCard());
+        if (cards.length === 0) return this.renderEmpty('沒有新的訂單', '這條供應線目前沒有需要你處理的委託。');
+        return cards.join('');
     }
 
     renderExchanges(vendor) {
         const entries = vendor.exchanges || [];
         if (entries.length === 0) return this.renderEmpty('沒有交換項目', '這個人物目前沒有開出材料交換。');
         return entries.map(entry => this.renderSupplyEntryCard(entry, 'exchange')).join('');
+    }
+
+    renderBackpackUpgradeCard() {
+        const status = GameManager.getInventoryUpgradeStatus?.();
+        if (!status) return '';
+
+        const { current, next, requirements, canUpgrade } = status;
+        const capacity = GameManager.state.inventoryCapacity || current?.capacity || 10;
+        const blockedLabel = next ? '材料不足' : '已達最大';
+        return `
+            <article class="supply-card supply-contract backpack-upgrade-section ${!next ? 'is-completed' : ''}">
+                <div class="supply-card-copy contract-copy">
+                    <span>修補匠委託</span>
+                    <h3>背包擴充</h3>
+                    <p>讓修補匠把目前的${escapeHtml(current?.label || '行囊')}加固改造。背包限制外出拾取量，倉庫仍保留城鎮素材。</p>
+                    <div class="contract-flow">
+                        <div>
+                            <b>需要</b>
+                            ${this.renderBackpackRequirementList(requirements, next)}
+                        </div>
+                        <div>
+                            <b>回饋</b>
+                            <span class="contract-token is-reward">
+                                <span class="contract-token-icon">＋</span>
+                                ${next ? `容量 ${capacity} → ${next.capacity}` : `容量 ${capacity}`}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="supply-card-side">
+                    <strong>${escapeHtml(current?.label || '行囊')}</strong>
+                    <button type="button" data-supply-action="upgrade-backpack" ${next && canUpgrade ? '' : 'disabled'}>
+                        ${next && canUpgrade ? '委託擴充' : blockedLabel}
+                    </button>
+                </div>
+            </article>
+        `;
+    }
+
+    renderBackpackRequirementList(requirements = [], next = null) {
+        if (!next) return '<span class="contract-token is-ready">已擴充到最大</span>';
+        if (!requirements.length) return '<span class="contract-token is-ready">無</span>';
+
+        return requirements.map(requirement => {
+            const item = this.resolveItem(requirement.id);
+            const owned = Math.max(0, Number(requirement.owned) || 0);
+            const need = Math.max(1, Number(requirement.quantity) || 1);
+            return `
+                <span class="contract-token ${owned >= need ? 'is-ready' : 'is-missing'}">
+                    ${this.renderItemIcon(item, 'contract-token-icon')}
+                    ${escapeHtml(item?.name || requirement.id)} ${owned}/${need}
+                </span>
+            `;
+        }).join('');
     }
 
     renderShelfCard(entry) {
@@ -978,6 +1039,34 @@ export default class ShopScene {
         this.closeItemModal();
         audioManager.play('coin', { throttleKey: 'market-sell-success', throttleMs: 180 });
         this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
+    }
+
+    handleBackpackUpgrade() {
+        const status = GameManager.getInventoryUpgradeStatus?.();
+        if (!status?.next) {
+            audioManager.play('toast-warning', { throttleKey: 'market-backpack-max', throttleMs: 180 });
+            this.showFeedback('背包已滿階', '目前行囊容量已擴充到最大。', 'info');
+            return;
+        }
+
+        if (!status.canUpgrade) {
+            audioManager.play('toast-warning', { throttleKey: 'market-backpack-materials', throttleMs: 180 });
+            this.showFeedback('材料不足', '先收集需要的素材，再回市集找修補匠擴充。', 'warning');
+            return;
+        }
+
+        const success = GameManager.upgradeInventoryCapacity?.();
+        if (!success) {
+            audioManager.play('toast-error', { throttleKey: 'market-backpack-failed', throttleMs: 180 });
+            this.showFeedback('擴充失敗', '材料狀態剛剛改變，請重新確認委託需求。', 'error');
+            this.renderCurrentPanel();
+            return;
+        }
+
+        audioManager.play('reward', { throttleKey: 'market-backpack-success', throttleMs: 180 });
+        this.showFeedback('背包已擴充', `容量提升到 ${GameManager.state.inventoryCapacity} 格。`, 'success');
+        this.renderCurrentPanel();
+        this.renderPlayerInventory(GameManager.state.inventory || []);
     }
 
     completeSupplyEntry(entry) {

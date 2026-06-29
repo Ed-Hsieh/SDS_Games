@@ -26,6 +26,12 @@ function getMaxHp(entity) {
     return (typeof entity?.maxHp === 'number') ? entity.maxHp : (entity?.getMaxHP ? entity.getMaxHP() : 0);
 }
 
+function getEntityDefense(entity) {
+    if (!entity) return 0;
+    if (typeof entity.getTotalDef === 'function') return Number(entity.getTotalDef()) || 0;
+    return Number(entity.defense ?? entity.def ?? entity.armor ?? 0) || 0;
+}
+
 function isBossLike(target) {
     return Boolean(
         target?.isBoss
@@ -117,6 +123,13 @@ function getPlayerHpRegenAmount(player, effects = null) {
     return Math.min(maxHp - currentHp, Math.max(1, Math.floor(maxHp * (hpRegenPercent / 100))));
 }
 
+function shouldTriggerArmorPenetration(profile, hitType, target) {
+    if (!profile?.armorPenetrationBonus) return false;
+    if (hitType === 'crit') return true;
+    const minDefense = Number(profile.armorPenetrationMinDefense) || Infinity;
+    return getEntityDefense(target) >= minDefense;
+}
+
 export function normalizeMonsterCombatStats(monster) {
     if (!monster) return monster;
 
@@ -140,7 +153,7 @@ export function normalizeMonsterCombatStats(monster) {
  * Compute player attack damage (includes elemental bonuses and crit handling)
  * hitType: 'crit' | 'hit' | 'miss'
  */
-export function computePlayerAttack(player, hitType) {
+export function computePlayerAttack(player, hitType, target = null) {
     if (!player) return { damage: 0, isCrit: false, breakdown: {} };
 
     const playerAtk = player.getTotalAtk ? player.getTotalAtk() : (player.atk || 0);
@@ -194,6 +207,10 @@ export function computePlayerAttack(player, hitType) {
         damage += voidBonus;
     }
 
+    const profileArmorPenetrationBonus = shouldTriggerArmorPenetration(weaponProfile, hitType, target)
+        ? (weaponProfile.armorPenetrationBonus || 0)
+        : 0;
+
     const breakdown = {
         base: Math.floor(playerAtk),
         crit: isCrit,
@@ -206,7 +223,7 @@ export function computePlayerAttack(player, hitType) {
         elementalBonus,
         weaponProfileId: weaponProfile.id,
         weaponProfileLabel: weaponProfile.label,
-        profileArmorPenetrationBonus: weaponProfile.armorPenetrationBonus || 0
+        profileArmorPenetrationBonus
     };
     if (voidBonus > 0) breakdown.voidBonus = voidBonus;
 
@@ -692,7 +709,13 @@ export class BattleController {
 
         this._weaponProfileCombo += 1;
 
-        if (profile.armorBreakPercent > 0) {
+        const targetDefense = getEntityDefense(this.monster);
+        const canArmorBreak = profile.armorBreakPercent > 0
+            && (
+                hitType === 'crit'
+                || targetDefense >= (Number(profile.armorBreakMinDefense) || Infinity)
+            );
+        if (canArmorBreak) {
             effects.statusEffects.push({
                 type: 'armorBreak',
                 percent: profile.armorBreakPercent,
@@ -702,7 +725,7 @@ export class BattleController {
             });
         }
 
-        if (profile.slowChance > 0) {
+        if (profile.slowChance > 0 && (!profile.slowRequiresCrit || hitType === 'crit')) {
             const chance = hitType === 'crit'
                 ? Math.max(profile.slowChance, 75)
                 : profile.slowChance;
@@ -759,7 +782,7 @@ export class BattleController {
         // Compute damage
         let computeRes = { damage: 0, isCrit: false, breakdown: {} };
         try {
-            computeRes = computePlayerAttack(this.player, hitType);
+            computeRes = computePlayerAttack(this.player, hitType, this.monster);
         } catch (e) {
             console.error('computePlayerAttack failed:', e);
         }

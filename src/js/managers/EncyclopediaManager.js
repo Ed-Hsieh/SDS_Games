@@ -9,6 +9,10 @@ import { DungeonDatabase } from '../data/Dungeons.js';
 import { MonsterUniqueDrops } from '../data/DropPools.js';
 import { RecipeDatabase } from '../data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../data/RecipeDiscoveries.js';
+import { EquipmentDatabase } from '../data/Equipment.js';
+import { MaterialDatabase } from '../data/Materials.js';
+import { QuestRewardItems } from '../data/Quests.js';
+import { CasinoSpecialItems } from '../data/CasinoRewards.js';
 import {
     BlueprintDropDatabase,
     getBlueprintDropsForMonster,
@@ -41,6 +45,13 @@ const TypeLabels = {
     potion: '消耗品',
     material: '素材',
     key: '關鍵道具'
+};
+
+const ItemSourceLabels = {
+    equipment: '裝備資料',
+    material: '素材資料',
+    questReward: '任務獎勵',
+    casino: '賭場獎池'
 };
 
 const ElementLabels = {
@@ -297,6 +308,72 @@ function findMonsterByBlueprintSource(sourceKey) {
     return { name: sourceKey, sourceLabel: '未知來源', entryId: sourceKey };
 }
 
+function addItemEntry(index, rawItem, sourceType) {
+    if (!rawItem) return;
+    const id = rawItem.id;
+    if (!id) return;
+
+    const source = {
+        type: sourceType,
+        label: ItemSourceLabels[sourceType] || sourceType
+    };
+
+    const existing = index.get(id);
+    if (existing) {
+        if (!existing.sources.some(entry => entry.type === source.type)) {
+            existing.sources.push(source);
+        }
+        if (sourceType === 'casino') {
+            existing.item = { ...rawItem };
+            existing.sourceType = sourceType;
+            existing.sourceLabel = source.label;
+        }
+        return;
+    }
+
+    const item = { ...rawItem, id };
+    index.set(id, {
+        id,
+        entryId: `item:${id}`,
+        item,
+        name: item.name || id,
+        icon: item.icon || '◆',
+        type: item.type || 'material',
+        rarity: item.rarity || 'common',
+        level: item.level ?? null,
+        price: item.price ?? null,
+        description: item.description || item.desc || '',
+        stats: item.stats || {},
+        specialEffects: item.specialEffects || [],
+        sourceType,
+        sourceLabel: source.label,
+        sources: [source],
+        known: isItemKnown(id)
+    });
+}
+
+export function getItemEntries() {
+    const index = new Map();
+
+    for (const [id, item] of Object.entries(EquipmentDatabase || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'equipment');
+    }
+
+    for (const [id, item] of Object.entries(MaterialDatabase || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'material');
+    }
+
+    for (const [id, item] of Object.entries(QuestRewardItems || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'questReward');
+    }
+
+    for (const [id, item] of Object.entries(CasinoSpecialItems || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'casino');
+    }
+
+    return [...index.values()];
+}
+
 export function getBlueprintEntries() {
     return Object.entries(RecipeDiscoveryDatabase).map(([recipeId, discovery]) => {
         const recipe = RecipeDatabase[recipeId];
@@ -336,6 +413,10 @@ export function unlockAllEncyclopediaEntries() {
 
     for (const recipeId of Object.keys(RecipeDiscoveryDatabase)) {
         setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`, true);
+    }
+
+    for (const item of getItemEntries()) {
+        setFlagSilently(`${ITEM_FLAG_PREFIX}${item.id}`, true);
     }
 
     notifyFlags();

@@ -14,6 +14,10 @@
                     <span class="info-label">金幣</span>
                     <span class="info-value" id="adv-player-gold">1000</span>
                 </div>
+                <div class="info-item">
+                    <span class="info-label">疲勞</span>
+                    <span class="info-value" id="adv-player-fatigue">18/18</span>
+                </div>
             </div>
             <div class="header-buttons">
                 <button class="btn btn-primary" id="btn-open-inventory">背包</button>
@@ -282,7 +286,7 @@
                         <!-- 中間：交換箭頭 -->
                         <div class="exchange-indicator">
                             <div class="arrow-left">←</div>
-                            <div class="exchange-text">點擊移動</div>
+                            <div class="exchange-text">選擇帶走</div>
                             <div class="arrow-right">→</div>
                         </div>
 
@@ -299,7 +303,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn btn-primary btn-large" id="btn-close-loot">收集剩餘並離開</button>
+                    <button class="btn btn-primary btn-large" id="btn-close-loot">離開（未帶走會遺失）</button>
                 </div>
             </div>
         </div>
@@ -311,7 +315,7 @@
 <div class="modal inventory-modal" id="inventory-modal" style="display: none;">
     <div class="modal-content inventory-content">
         <div class="modal-header">
-            <h2>🎒 背包與裝備</h2>
+            <h2>🎒 探險行囊</h2>
             <span class="inventory-capacity" id="inventory-capacity">5/10</span>
         </div>
         <div class="modal-body inventory-body">
@@ -343,6 +347,7 @@
                 <!-- 右側：背包物品 -->
                 <div class="inventory-panel">
                     <div class="panel-title">🎒 背包格</div>
+                    <p class="adventure-inventory-note">探險中只能使用身上行囊；倉庫物品需回城整理。</p>
                     <div class="adventure-inventory-list" id="adventure-inventory-list">
                         <!-- 背包物品動態插入 -->
                     </div>

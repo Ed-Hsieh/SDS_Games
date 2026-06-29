@@ -68,6 +68,20 @@ const CASINO_VENUES = [
     }
 ];
 
+const CASINO_VENUE_HOTSPOTS = {
+    dice: { icon: 'D6', x: 52, y: 70 },
+    slots: { icon: '777', x: 30, y: 58 },
+    roulette: { icon: 'R', x: 66, y: 58 },
+    dark: { icon: 'VIP', x: 73, y: 42 },
+    showcase: { icon: 'ART', x: 62, y: 26 },
+    prize: { icon: 'BOX', x: 38, y: 36 },
+    cashier: { icon: 'EX', x: 27, y: 72 }
+};
+
+function getCasinoVenueHotspot(game) {
+    return CASINO_VENUE_HOTSPOTS[game] || { icon: 'GO', x: 50, y: 55 };
+}
+
 export default class CasinoScene {
     constructor(container, app) {
         this.container = container;
@@ -311,8 +325,9 @@ export default class CasinoScene {
     applyCasinoVenueScene(game) {
         const venue = CASINO_VENUES.find(entry => entry.game === game) || CASINO_VENUES[0];
         if (!venue) return;
-        this.container.style.setProperty('--casino-active-bg', `url("/${venue.image}")`);
-        this.container.style.setProperty('--casino-active-position', venue.focus || 'center');
+        const root = this.container.querySelector('.casino-rework') || this.container;
+        root.style.setProperty('--casino-active-bg', `url("/${venue.image}")`);
+        root.style.setProperty('--casino-active-position', venue.focus || 'center');
     }
 
     renderVenueMap() {
@@ -323,13 +338,16 @@ export default class CasinoScene {
                 <span>場內地圖</span>
                 <strong>${escapeHtml(activeVenue?.title || '賭場')}</strong>
             </div>
-            <div class="casino-venue-list">
-                ${CASINO_VENUES.map(venue => `
+            <div class="casino-venue-list casino-scene-board" style="--casino-map-bg:url('/src/assets/images/art-v2/backgrounds/casino-hall.webp')">
+                <span class="casino-hall-vignette" aria-hidden="true"></span>
+                ${CASINO_VENUES.map(venue => {
+                    const hotspot = getCasinoVenueHotspot(venue.game);
+                    return `
             <button
                 type="button"
-                class="casino-venue-card ${venue.game === this.currentGame ? 'active' : ''}"
+                class="casino-venue-card casino-scene-card ${venue.game === this.currentGame ? 'active' : ''}"
                 data-casino-venue="${escapeHtml(venue.game)}"
-                style="--venue-bg:url('/${escapeHtml(venue.image)}'); --venue-focus:${escapeHtml(venue.focus || 'center')}"
+                style="--x:${hotspot.x}%; --y:${hotspot.y}%; --venue-bg:url('/${escapeHtml(venue.image)}'); --venue-focus:${escapeHtml(venue.focus || 'center')}"
             >
                         <span class="casino-venue-thumb" aria-hidden="true"></span>
                         <span class="casino-venue-copy">
@@ -338,7 +356,8 @@ export default class CasinoScene {
                         </span>
                         <em>${venue.game === this.currentGame ? '所在' : '前往'}</em>
             </button>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
     }

@@ -48,6 +48,13 @@ const AMBUSH_MANTIS_CHAIN_ID = 'ambush_mantis';
 const AMBUSH_MANTIS_BOSS_ID = 'ambush_mantis';
 const AMBUSH_MANTIS_BAIT_ITEM_ID = 'silver_thread_bait';
 const AMBUSH_MANTIS_TRIGGER_LANDMARK_ID = 'silver_snare_pass';
+const ADVENTURE_TRAVEL_COSTS = {
+    low: { fatigue: 1 },
+    medium: { fatigue: 2 },
+    high: { fatigue: 4 },
+    death: { fatigue: 7 },
+    boss: { fatigue: 7 }
+};
 const AMBUSH_MANTIS_RELATED_LANDMARKS = new Set([
     'hunter_boardwalk',
     'old_campfire_site',
@@ -170,6 +177,7 @@ export default class AdventureScene {
         this.smallLocationHintRecentKeys = new Map();
         this.smallLocationHintRepeatCooldownMs = 7000;
         this.smallLocationHintTimer = null;
+        this.travelCostToastAt = 0;
         this.mapImageCache = new Map();
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
 
@@ -255,6 +263,7 @@ export default class AdventureScene {
             playerLevel: this.container.querySelector('#adv-player-level'),
             playerHp: this.container.querySelector('#adv-player-hp'),
             playerGold: this.container.querySelector('#adv-player-gold'),
+            playerFatigue: this.container.querySelector('#adv-player-fatigue'),
             locationToast: this.container.querySelector('#location-toast'),
             locationToastImage: this.container.querySelector('#location-toast-image'),
             locationToastKicker: this.container.querySelector('#location-toast-kicker'),
@@ -685,8 +694,40 @@ export default class AdventureScene {
     movePlayerBy(dx, dy) {
         if (this.isLocked || !this.worldMap || (dx === 0 && dy === 0)) return;
 
+        const travelZone = this.worldMap.getCurrentZone?.() || 'low';
+        if (!this.hasAdventureTravelCost(travelZone)) return;
+
+        const before = { ...this.worldMap.playerPos };
         const result = this.worldMap.movePlayer(dx, dy);
+        const moved = before.x !== this.worldMap.playerPos.x || before.y !== this.worldMap.playerPos.y;
+        if (moved && result !== 'home') {
+            this.consumeAdventureTravelCost(travelZone);
+        }
         this.handleMapMoveResult(result);
+    }
+
+    hasAdventureTravelCost(zone) {
+        const cost = ADVENTURE_TRAVEL_COSTS[zone] || ADVENTURE_TRAVEL_COSTS.low;
+        const fatigueCost = Math.max(0, Number(cost?.fatigue) || 0);
+        if (fatigueCost <= 0) return true;
+
+        const status = GameManager.getAdventureFatigueStatus?.();
+        if (!status || status.current >= fatigueCost) return true;
+
+        const now = Date.now();
+        if (now - this.travelCostToastAt > 5000) {
+            this.travelCostToastAt = now;
+            showGlobalToast('疲勞不足', '先回到大廳休息，或用補給、委託任務恢復疲勞後再出發。', 'warning');
+        }
+        this.updateUI();
+        return false;
+    }
+
+    consumeAdventureTravelCost(zone) {
+        const cost = ADVENTURE_TRAVEL_COSTS[zone] || ADVENTURE_TRAVEL_COSTS.low;
+        if (!cost) return;
+
+        GameManager.consumeAdventureFatigue?.(cost.fatigue || 0);
     }
 
     handleMapMoveResult(result) {
@@ -814,6 +855,10 @@ export default class AdventureScene {
         }
         if (this.dom.playerGold) {
             this.dom.playerGold.textContent = char.gold || 0;
+        }
+        if (this.dom.playerFatigue) {
+            const fatigue = GameManager.getAdventureFatigueStatus?.();
+            if (fatigue) this.dom.playerFatigue.textContent = `${fatigue.current}/${fatigue.max}`;
         }
         
         this.updateWorldNarrativePanel();
@@ -3486,8 +3531,8 @@ export default class AdventureScene {
                 weaponCard.appendChild(durabilityEl);
             }
             if (durabilityEl) {
-                const dur = weapon.durability ?? 35;
-                const maxDur = weapon.maxDurability ?? 35;
+                const dur = weapon.durability ?? 18;
+                const maxDur = weapon.maxDurability ?? 18;
                 const durPercent = (dur / maxDur) * 100;
                 const durClass = durPercent <= 20 ? 'critical' : durPercent <= 50 ? 'warning' : '';
                 durabilityEl.className = `durability-display ${durClass}`;
@@ -3594,14 +3639,14 @@ export default class AdventureScene {
                 slot.type = 'button';
                 slot.className = `loot-slot loot-grid-cell rarity-frame rarity-${rarity} ${rarity}`;
                 slot.dataset.instanceId = stack.instanceId || '';
-                slot.setAttribute('aria-label', `${it.name || '未知物品'}，點擊移回戰利品暫存`);
+                slot.setAttribute('aria-label', `${it.name || '未知物品'}，點擊放到地上騰出背包格`);
                 slot.innerHTML = `
                     <div class="slot-icon">${getIconHtml(it)}</div>
                     ${quantity > 1 ? `<span class="slot-quantity">x${quantity}</span>` : ''}
                     <div class="slot-name">${escapeHtml(it.name || '未知')}</div>
                     <span class="slot-action" aria-hidden="true">→</span>
                 `;
-                attachLootTooltip(slot, { ...it, quantity }, { hint: '點擊移回戰利品暫存' });
+                attachLootTooltip(slot, { ...it, quantity }, { hint: '放到地上騰出背包格；離開時未帶走會遺失' });
                 // Move from inventory back to loot pool
                 slot.onclick = () => {
                     const instanceId = slot.dataset.instanceId;
@@ -3675,7 +3720,7 @@ export default class AdventureScene {
         updatePlayerInventory();
         updateLootPool();
 
-        // Close button behavior: collect remaining loot into warehouse then close modal
+        // Close button behavior: remaining loot is abandoned. Adventure cannot use warehouse storage.
         const closeBtn = this.dom.lootCloseBtn || this.container.querySelector('#btn-close-loot');
         if (closeBtn) {
             if (this.lootCloseHandler) {
@@ -3683,11 +3728,7 @@ export default class AdventureScene {
             }
 
             this.lootCloseHandler = () => {
-                // send remaining loot to warehouse
-                lootPool.forEach(it => {
-                    if (it.autoUnlockedBlueprint || it.type === 'blueprint') return;
-                    try { GameManager.addToWarehouse(it, getQuantity(it)); } catch (e) { console.warn('addToWarehouse failed', e); }
-                });
+                const lostCount = lootPool.filter(it => !(it.autoUnlockedBlueprint || it.type === 'blueprint')).length;
                 closeItemTooltip();
                 // hide result stage
                 this.closeBattleResult();
@@ -3698,6 +3739,9 @@ export default class AdventureScene {
                 // Remove this listener to avoid duplicates
                 closeBtn.removeEventListener('click', this.lootCloseHandler);
                 this.lootCloseHandler = null;
+                if (lostCount > 0) {
+                    showGlobalToast('戰利品留在原地', `未放入背包的 ${lostCount} 件物品已遺失。`, 'warning');
+                }
             };
             closeBtn.addEventListener('click', this.lootCloseHandler);
         }

@@ -119,7 +119,11 @@ export function getItemVisualHtml(item, fallbackIcon = '◆', extraClass = '') {
     const image = getGeneratedItemImage(item) || item?.image || '';
     if (image) {
         const classAttribute = extraClass ? ` class="${escapeHtml(extraClass)}"` : '';
-        return `<img src="${escapeHtml(image)}" alt="${escapeHtml(item?.name || '')}"${classAttribute}>`;
+        const dataAttributes = [
+            item?.id ? `data-item-id="${escapeHtml(item.id)}"` : '',
+            item?.type ? `data-item-type="${escapeHtml(item.type)}"` : ''
+        ].filter(Boolean).join(' ');
+        return `<img src="${escapeHtml(image)}" alt="${escapeHtml(item?.name || '')}"${classAttribute}${dataAttributes ? ` ${dataAttributes}` : ''}>`;
     }
     return escapeHtml(item?.icon || fallbackIcon);
 }

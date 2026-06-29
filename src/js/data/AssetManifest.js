@@ -182,6 +182,34 @@ const ITEM_TYPE_CATEGORY = {
 };
 
 const ASSET_ALIASES = {
+    equipment: {
+        casino_copper_luck_ring: 'lucky_coin',
+        casino_green_felt_gloves: 'spider_silk_gloves',
+        casino_table_cutter: 'assassin_dagger',
+        casino_house_runner_boots: 'bat_wing_cloak',
+        casino_cashier_lantern: 'torch',
+        casino_last_lamp_token: 'lucky_coin',
+        casino_red_chip_bracer: 'rune_badge',
+        casino_weighted_dice_belt: 'loaded_dice',
+        casino_velvet_dealer_vest: 'bat_wing_cloak',
+        casino_moon_slot_blade: 'assassin_blade',
+        casino_oddskeeper_goggles: 'compass',
+        casino_loaded_dice_charm: 'loaded_dice',
+        casino_jackpot_revolver: 'fate_crystal',
+        casino_marlo_balance_chain: 'lucky_charm_7',
+        casino_showcase_glass_key: 'compass',
+        casino_silver_odds_mask: 'shadow_badge',
+        casino_black_lamp_coat: 'bat_wing_cloak',
+        casino_house_edge_ring: 'lucky_charm_7',
+        casino_glass_case_keyblade: 'ancient_sword',
+        casino_blood_chip_cuirass: 'demon_general_armor',
+        casino_false_odds_orb: 'fate_crystal',
+        casino_seventh_bell_crown: 'frost_crown',
+        casino_last_lamp_blade: 'demon_slayer',
+        casino_owner_contract_ring: 'demon_contract',
+        casino_starlit_jackpot_armor: 'overlord_armor',
+        casino_zero_number_dice: 'loaded_dice'
+    },
     portraits: {
         supply_captain: 'merchant',
         secret_vendor: 'black_market',

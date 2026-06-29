@@ -4,6 +4,7 @@
  * (從 scenes/CasinoSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
+import { markItemKnown } from './EncyclopediaManager.js';
 import {
     CasinoRewardRarityText,
     CasinoRewardTierOrder,
@@ -637,31 +638,6 @@ export default class CasinoManager {
         return true;
     }
 
-    getStoredCasinoItems() {
-        const unwrap = stack => stack?.item || stack;
-        const inventory = Array.isArray(GameManager.state?.inventory) ? GameManager.state.inventory : [];
-        const warehouse = Array.isArray(GameManager.state?.warehouse) ? GameManager.state.warehouse : [];
-        const equipment = Object.values(GameManager.state?.character?.equipment || {});
-        return [...inventory, ...warehouse, ...equipment]
-            .map(unwrap)
-            .filter(Boolean);
-    }
-
-    getCasinoTicketBonusRate() {
-        const seen = new Set();
-        let bonus = 0;
-        this.getStoredCasinoItems().forEach(item => {
-            if (!item?.id || seen.has(item.id)) return;
-            seen.add(item.id);
-            (item.specialEffects || []).forEach(effect => {
-                if (effect?.type === 'casinoTicketBonus' || effect?.type === 'casinoBonus') {
-                    bonus += Math.max(0, Number(effect.value) || 0);
-                }
-            });
-        });
-        return Math.min(0.35, bonus);
-    }
-
     exchangeGoldForChips(goldAmount) {
         const amount = Math.max(0, Math.floor(Number(goldAmount) || 0));
         if (amount <= 0) {
@@ -745,9 +721,6 @@ export default class CasinoManager {
         const pressureEvent = this.tryCreatePressureEvent(game);
         if (pressureEvent) deepEvent = pressureEvent;
 
-        if (ticketReward > 0) {
-            ticketReward = Math.max(1, Math.floor(ticketReward * (1 + this.getCasinoTicketBonusRate())));
-        }
         if (chipReward > 0) this.addChips(chipReward, 'win');
         if (ticketReward > 0) this.addTickets(ticketReward, 'game');
         GameManager.markSaveDirty?.('casino-game-outcome');
@@ -875,6 +848,7 @@ export default class CasinoManager {
         const safeQuantity = this.rollQuantity(quantity);
         const addedToInventory = GameManager.addToInventory(item, safeQuantity);
         const addedToWarehouse = addedToInventory ? false : GameManager.addToWarehouse(item, safeQuantity);
+        markItemKnown(item.id);
         return {
             kind: 'item',
             item,
@@ -1198,6 +1172,7 @@ export default class CasinoManager {
             const quantity = this.rollQuantity(reward.quantity);
             const addedToInventory = GameManager.addToInventory(item, quantity);
             const addedToWarehouse = addedToInventory ? false : GameManager.addToWarehouse(item, quantity);
+            markItemKnown(item.id);
             return {
                 kind: 'item',
                 item,
@@ -1246,7 +1221,6 @@ export default class CasinoManager {
             ...this.stats,
             chips: this.getChips(),
             tickets: this.getTickets(),
-            ticketBonusRate: this.getCasinoTicketBonusRate(),
             storyChapter: this.getStoryChapter(),
             netProfit: this.stats.totalWin - this.stats.totalBet,
             winRate: this.stats.gamesPlayed > 0 

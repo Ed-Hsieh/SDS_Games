@@ -263,7 +263,7 @@ Object.assign(CasinoSpecialItems, {
         rarity: ItemRarity.COMMON,
         level: 1,
         stats: { attack: 1, defense: 1, critChance: 0.02 },
-        specialEffects: [{ type: 'casinoTicketBonus', value: 0.02 }],
+        specialEffects: [{ type: AffixStat.GOLD_BONUS, value: 0.03 }],
         description: '用退役籌碼打薄後捲成的戒指。它不會讓你變強太多，但會讓你更想再抽一次。',
         isCasinoUnique: true,
         source: 'casino_prize_pool'
@@ -328,7 +328,7 @@ Object.assign(CasinoSpecialItems, {
         rarity: ItemRarity.COMMON,
         level: 12,
         stats: { attack: 6, defense: 8, critChance: 0.04 },
-        specialEffects: [{ type: 'casinoTicketBonus', value: 0.04 }],
+        specialEffects: [{ type: AffixStat.EXP_BONUS, value: 0.04 }],
         description: '最後一盞燈熄滅前發出的客籌。拿著它的人通常已經不知道自己是贏家還是欠債者。',
         isCasinoUnique: true,
         source: 'casino_prize_pool'
@@ -341,7 +341,7 @@ Object.assign(CasinoSpecialItems, {
         rarity: ItemRarity.UNCOMMON,
         level: 4,
         stats: { attack: 5, defense: 5, critChance: 0.04 },
-        specialEffects: [{ type: 'casinoTicketBonus', value: 0.05 }],
+        specialEffects: [{ type: AffixStat.CRIT_CHANCE, value: 0.03 }],
         description: '護腕內側嵌著紅籌碎片。每次格擋都像把賭注壓回桌面。',
         isCasinoUnique: true,
         source: 'casino_prize_pool'
@@ -407,7 +407,6 @@ Object.assign(CasinoSpecialItems, {
         level: 6,
         stats: { attack: 7, defense: 6, critChance: 0.06 },
         specialEffects: [
-            { type: 'casinoTicketBonus', value: 0.05 },
             { type: AffixStat.DODGE_CHANCE, value: 0.02 }
         ],
         description: '骰點永遠停在對你有利的一面，直到你開始相信那不是作弊。',
@@ -488,7 +487,6 @@ Object.assign(CasinoSpecialItems, {
         level: 14,
         stats: { attack: 18, defense: 16, critChance: 0.12 },
         specialEffects: [
-            { type: 'casinoTicketBonus', value: 0.12 },
             { type: AffixStat.CRIT_DAMAGE, value: 0.2 }
         ],
         description: '戒面看似平滑，其實刻著一道極小的斜角。所有不公平都從那一點開始。',
@@ -544,7 +542,7 @@ Object.assign(CasinoSpecialItems, {
         stats: { attack: 12, defense: 12, hp: 60, critChance: 0.08 },
         specialEffects: [
             { type: AffixStat.ALL_STATS, value: 0.03 },
-            { type: 'casinoTicketBonus', value: 0.10 }
+            { type: AffixStat.DODGE_CHANCE, value: 0.03 }
         ],
         description: '據說只有在第七次鐘聲後仍不離桌的人，才會被它承認。',
         isCasinoUnique: true,
@@ -575,7 +573,6 @@ Object.assign(CasinoSpecialItems, {
         level: 16,
         stats: { attack: 22, defense: 22, hp: 110, critChance: 0.10 },
         specialEffects: [
-            { type: 'casinoTicketBonus', value: 0.14 },
             { type: AffixStat.GOLD_BONUS, value: 0.12 }
         ],
         description: '戒內刻著一行小字：你可以贏走東西，但不一定能離開那張桌。',

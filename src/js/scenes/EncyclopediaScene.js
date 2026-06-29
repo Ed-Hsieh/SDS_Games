@@ -12,6 +12,7 @@ import {
     formatChance,
     formatQuantity,
     getBlueprintEntries,
+    getItemEntries,
     getMonsterEntries,
     getReadableElement,
     getReadableType,
@@ -23,7 +24,7 @@ import {
     unlockAllEncyclopediaEntries
 } from '../managers/EncyclopediaManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { escapeHtml, formatAffixStats, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { buildItemStatChipsHtml, escapeHtml, formatAffixStats, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
@@ -176,7 +177,9 @@ export default class EncyclopediaScene {
     }
 
     getEntries() {
-        return this.activeTab === 'monsters' ? getMonsterEntries() : getBlueprintEntries();
+        if (this.activeTab === 'monsters') return getMonsterEntries();
+        if (this.activeTab === 'items') return getItemEntries();
+        return getBlueprintEntries();
     }
 
     getDefaultSortValue(tab = this.activeTab) {
@@ -191,6 +194,7 @@ export default class EncyclopediaScene {
                 || entry.rank === this.filterValue
                 || entry.rarity === this.filterValue
                 || entry.sourceType === this.filterValue
+                || (entry.sources || []).some(source => source.type === this.filterValue)
                 || entry.type === this.filterValue;
 
             if (!matchesFilter) return false;
@@ -200,6 +204,7 @@ export default class EncyclopediaScene {
                 entry.id,
                 entry.name,
                 entry.sourceLabel,
+                ...(entry.sources || []).map(source => source.label),
                 entry.rarity,
                 entry.rank,
                 entry.type
@@ -212,7 +217,7 @@ export default class EncyclopediaScene {
         const getRarityRank = entry => RaritySortRank[entry.rarity] || 0;
         const getLevel = entry => Number.isFinite(Number(entry.level)) ? Number(entry.level) : null;
         const getLevelMissingRank = entry => getLevel(entry) === null ? 1 : 0;
-        const getSourceCount = entry => entry.drops?.length || (entry.discovery?.interactionId ? 1 : 0);
+        const getSourceCount = entry => entry.drops?.length || entry.sources?.length || (entry.discovery?.interactionId ? 1 : 0);
         const getName = entry => entry.name || entry.id || entry.entryId || '';
 
         sorted.sort((a, b) => {
@@ -281,7 +286,12 @@ export default class EncyclopediaScene {
 
         if (this.dom.summary) {
             const knownCount = entries.filter(entry => entry.known).length;
-            const label = this.activeTab === 'monsters' ? '怪物' : '圖紙';
+            const labels = {
+                monsters: '怪物',
+                blueprints: '圖紙',
+                items: '物品'
+            };
+            const label = labels[this.activeTab] || '項目';
             this.dom.summary.textContent = `${label} ${knownCount}/${allEntries.length}`;
         }
     }
@@ -299,6 +309,23 @@ export default class EncyclopediaScene {
                         <option value="elite">菁英</option>
                         <option value="boss">BOSS</option>
                         <option value="world_boss">世界 BOSS</option>
+                    `;
+                } else if (this.activeTab === 'items') {
+                    this.dom.filter.innerHTML = `
+                        <option value="all">全部</option>
+                        <option value="casino">賭場獎池</option>
+                        <option value="questReward">任務獎勵</option>
+                        <option value="equipment">裝備資料</option>
+                        <option value="material">素材資料</option>
+                        <option value="weapon">武器</option>
+                        <option value="armor">防具</option>
+                        <option value="accessory">飾品</option>
+                        <option value="key">關鍵物品</option>
+                        <option value="common">Common</option>
+                        <option value="uncommon">Uncommon</option>
+                        <option value="rare">Rare</option>
+                        <option value="epic">Epic</option>
+                        <option value="legendary">Legendary</option>
                     `;
                 } else {
                     this.dom.filter.innerHTML = `
@@ -365,9 +392,9 @@ export default class EncyclopediaScene {
         this.dom.list.innerHTML = entries.map(entry => {
             const id = this.getEntryId(entry);
             const isSelected = id === this.selectedId;
-            return this.activeTab === 'monsters'
-                ? this.renderMonsterRow(entry, isSelected)
-                : this.renderBlueprintRow(entry, isSelected);
+            if (this.activeTab === 'monsters') return this.renderMonsterRow(entry, isSelected);
+            if (this.activeTab === 'items') return this.renderItemRow(entry, isSelected);
+            return this.renderBlueprintRow(entry, isSelected);
         }).join('');
     }
 
@@ -410,6 +437,27 @@ export default class EncyclopediaScene {
         `;
     }
 
+    renderItemRow(entry, isSelected) {
+        const known = entry.known;
+        const item = entry.item || entry;
+        const icon = known
+            ? getItemVisualHtml(item, '◆', 'codex-item-image')
+            : escapeHtml(getSilhouette(entry.type, '◆'));
+        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
+        const meta = entry.level ? `Lv.${entry.level}` : entry.rarity;
+
+        return `
+            <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.id)}" type="button">
+                <span class="codex-row-icon">${icon}</span>
+                <span class="codex-row-main">
+                    <strong>${escapeHtml(known ? entry.name : '未知物品')}</strong>
+                    <small>${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(sourceLabel)}</small>
+                </span>
+                <span class="codex-row-meta">${escapeHtml(meta)}</span>
+            </button>
+        `;
+    }
+
     renderDetail(entry) {
         if (!this.dom.detail) return;
         if (!entry) {
@@ -417,9 +465,13 @@ export default class EncyclopediaScene {
             return;
         }
 
-        this.dom.detail.innerHTML = this.activeTab === 'monsters'
-            ? this.renderMonsterDetail(entry)
-            : this.renderBlueprintDetail(entry);
+        if (this.activeTab === 'monsters') {
+            this.dom.detail.innerHTML = this.renderMonsterDetail(entry);
+        } else if (this.activeTab === 'items') {
+            this.dom.detail.innerHTML = this.renderItemDetail(entry);
+        } else {
+            this.dom.detail.innerHTML = this.renderBlueprintDetail(entry);
+        }
     }
 
     renderMonsterDetail(entry) {
@@ -481,6 +533,55 @@ export default class EncyclopediaScene {
 
             ${this.renderMaterials(entry, known)}
             ${this.renderBlueprintSources(entry)}
+        `;
+    }
+
+    renderItemDetail(entry) {
+        const known = entry.known;
+        const item = entry.item || entry;
+        const icon = known
+            ? getItemVisualHtml(item, '◆', 'codex-item-image')
+            : escapeHtml(getSilhouette(entry.type, '◆'));
+        const title = known ? entry.name : '未知物品';
+        const description = known ? (entry.description || item.description || '暫無描述。') : '尚未解鎖此物品紀錄。';
+        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
+        const statText = known ? formatStats(entry.stats || item.stats || {}) : '';
+        const specialText = known && Array.isArray(entry.specialEffects) && entry.specialEffects.length > 0
+            ? formatStats(Object.fromEntries(entry.specialEffects.map(effect => [effect.type, effect.value])))
+            : '';
+        const statChips = known
+            ? buildItemStatChipsHtml(item, { chipClass: 'codex-pill', emptyText: '無戰鬥能力', showMore: false })
+            : '<span class="codex-pill muted">尚未解鎖</span>';
+
+        return `
+            <section class="codex-detail-head">
+                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
+                <div>
+                    <div class="codex-kicker">${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</div>
+                    <h2>${escapeHtml(title)}</h2>
+                    <p>${escapeHtml(description)}</p>
+                </div>
+            </section>
+
+            <section class="codex-stat-grid">
+                ${this.renderStat('來源', known ? sourceLabel : '???')}
+                ${this.renderStat('等級', known ? (entry.level ?? '-') : '???')}
+                ${this.renderStat('價格', known ? (entry.price != null ? `${entry.price}G` : '-') : '???')}
+                ${this.renderStat('稀有度', known ? entry.rarity : '???')}
+            </section>
+
+            <section class="codex-section">
+                <h3>能力</h3>
+                <div class="codex-pill-row">${statChips}</div>
+            </section>
+
+            <section class="codex-section">
+                <h3>資料摘要</h3>
+                <div class="codex-source-list">
+                    <div class="codex-source-row"><span>基礎數值</span><strong>${escapeHtml(statText || '-')}</strong></div>
+                    <div class="codex-source-row"><span>特殊詞條</span><strong>${escapeHtml(specialText || '-')}</strong></div>
+                </div>
+            </section>
         `;
     }
 
@@ -631,7 +732,7 @@ export default class EncyclopediaScene {
         if (this.activeTab === 'monsters') {
             this.attachMonsterDropTooltips(entry);
             this.attachSkillTooltips(entry);
-        } else {
+        } else if (this.activeTab === 'blueprints') {
             this.attachBlueprintDetailTooltips(entry);
         }
     }
@@ -641,6 +742,11 @@ export default class EncyclopediaScene {
 
         if (entryType === 'monsters') {
             attachItemTooltip(element, this.getMonsterTooltipItem(entry), this.getMonsterTooltipOptions(entry));
+            return;
+        }
+
+        if (entryType === 'items') {
+            attachItemTooltip(element, this.getItemTooltipItem(entry), this.getItemTooltipOptions(entry));
             return;
         }
 
@@ -846,6 +952,36 @@ export default class EncyclopediaScene {
                 ...extraFooterRows.filter(([, value]) => value !== undefined && value !== null)
             ],
             hint: known ? '百科圖紙資料' : '取得圖紙後解鎖'
+        };
+    }
+
+    getItemTooltipItem(entry) {
+        const known = entry.known;
+        const item = entry.item || entry;
+        return known
+            ? item
+            : {
+                id: entry.id,
+                name: '未知物品',
+                icon: getSilhouette(entry.type),
+                type: entry.type,
+                rarity: entry.rarity,
+                description: '尚未解鎖此物品紀錄。'
+            };
+    }
+
+    getItemTooltipOptions(entry) {
+        const known = entry.known;
+        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
+        return {
+            typeText: known ? getReadableType(entry.type) : '未知物品',
+            rarityText: entry.rarity || 'common',
+            description: known ? undefined : '尚未解鎖此物品紀錄。',
+            footerRows: known ? [
+                ['來源', sourceLabel],
+                ['等級', entry.level ?? '-']
+            ] : [],
+            hint: known ? '百科物品資料' : '取得或解鎖後顯示完整資訊'
         };
     }
 

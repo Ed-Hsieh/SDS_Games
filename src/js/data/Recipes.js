@@ -29,9 +29,9 @@ export const RecipeDatabase = {
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.COMMON,
         materials: [
-            { id: 'iron_ore', quantity: 5 }
+            { id: 'iron_shard', quantity: 3 }
         ],
-        cost: 50,
+        cost: 25,
         successRate: 100,
         result: {
             id: 'crafted_iron_sword',
@@ -298,9 +298,10 @@ export const RecipeDatabase = {
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.COMMON,
         materials: [
-            { id: 'beast_hide', quantity: 5 }
+            { id: 'beast_hide', quantity: 2 },
+            { id: 'iron_shard', quantity: 2 }
         ],
-        cost: 40,
+        cost: 25,
         successRate: 100,
         result: {
             id: 'crafted_leather_armor',
@@ -310,7 +311,7 @@ export const RecipeDatabase = {
             rarity: ItemRarity.COMMON,
             stats: {
                 attack: 0,
-                defense: 4,
+                defense: 8,
                 critChance: 0,
                 critDamage: 0
             },

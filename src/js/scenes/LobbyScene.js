@@ -13,6 +13,7 @@ import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js';
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
+import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
 import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
@@ -51,6 +52,7 @@ export default class LobbyScene {
         this.activeTownTopic = null;
         this.townDialogueTypeTimer = null;
         this.townDialogueAutoTimer = null;
+        this.fatigueTimer = null;
 
         this.narrativeLines = [];
         this.ambientTimer = null;
@@ -72,6 +74,7 @@ export default class LobbyScene {
 
             this.restoreTownPlaceReturn();
             this.initializeTownNarrative();
+            this.startFatigueRecoveryLoop();
 
             // Force initial UI update with current state
             this.updateUI(GameManager.state, 'all');
@@ -126,6 +129,8 @@ export default class LobbyScene {
             hpText: this.container.querySelector('#hp-text'),
             expBar: this.container.querySelector('#exp-bar'),
             expText: this.container.querySelector('#exp-text'),
+            fatigueBar: this.container.querySelector('#fatigue-bar'),
+            fatigueText: this.container.querySelector('#fatigue-text'),
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
             inventoryList: this.container.querySelector('#inventory-list'),
@@ -281,6 +286,7 @@ export default class LobbyScene {
         if (source === 'warehouse') {
             if (isEquipment) {
                 buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                if (this.canRepairItem(item)) buttons.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
                 buttons.push(this.createButton('🎒 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
                 buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
             } else {
@@ -291,6 +297,7 @@ export default class LobbyScene {
         } else if (source === 'inventory') {
             if (isEquipment) {
                 buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                if (this.canRepairItem(item)) buttons.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
                 buttons.push(this.createButton('🏦 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
                 buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
                 buttons.push(this.createButton('🗑️ 回收', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
@@ -366,6 +373,14 @@ export default class LobbyScene {
                 }
             } catch (e) {
                 console.warn('Failed to render set hints:', e);
+            }
+        }
+
+        if (type === 'all' || type === 'character' || type === 'fatigue') {
+            const fatigue = GameManager.getAdventureFatigueStatus?.();
+            if (fatigue && this.dom.fatigueBar && this.dom.fatigueText) {
+                this.dom.fatigueBar.style.width = `${Math.max(0, Math.min(100, fatigue.percent))}%`;
+                this.dom.fatigueText.textContent = `疲勞：${fatigue.current} / ${fatigue.max}`;
             }
         }
         
@@ -1650,6 +1665,21 @@ export default class LobbyScene {
         this.renderWorldStage();
     }
 
+    startFatigueRecoveryLoop() {
+        if (this.fatigueTimer) {
+            clearInterval(this.fatigueTimer);
+            this.fatigueTimer = null;
+        }
+
+        GameManager.recoverAdventureFatigue?.();
+        this.fatigueTimer = setInterval(() => {
+            const result = GameManager.recoverAdventureFatigue?.();
+            if (result?.recovered > 0) {
+                this.updateUI(GameManager.state, 'fatigue');
+            }
+        }, 1000);
+    }
+
     cleanup() {
         // Unsubscribe from GameManager
         GameManager.unsubscribe(this.updateUI);
@@ -1660,6 +1690,10 @@ export default class LobbyScene {
         if (this.ambientTimer) {
             clearInterval(this.ambientTimer);
             this.ambientTimer = null;
+        }
+        if (this.fatigueTimer) {
+            clearInterval(this.fatigueTimer);
+            this.fatigueTimer = null;
         }
         this.clearTownDialogueTimers();
         document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
@@ -2037,12 +2071,14 @@ export default class LobbyScene {
     }
     
     showEquipmentModal(item, slotType) {
-        const unequipBtn = this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType));
+        const actions = [];
+        if (this.canRepairItem(item)) actions.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
+        actions.push(this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType)));
 
         if (window.ItemDetailModal) {
             window.ItemDetailModal.open(item, {
                 ...buildItemModalOptions(item),
-                actions: [unequipBtn]
+                actions
             });
         }
     }
@@ -2061,6 +2097,37 @@ export default class LobbyScene {
         }
         this.selectedItem = null;
         this.selectedItemSource = null;
+    }
+
+    canRepairItem(item) {
+        return Boolean(GameManager.getRepairRequirement?.(item));
+    }
+
+    repairItem(item) {
+        const requirement = GameManager.getRepairRequirement?.(item);
+        if (!requirement) {
+            showGlobalToast('不需要修復', '這件裝備耐久已滿。', 'info');
+            return;
+        }
+
+        const result = GameManager.repairEquipmentItem?.(item);
+        if (result?.success) {
+            if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();
+            const materialText = requirement.materials.map(mat => {
+                const material = MaterialDatabase[mat.id];
+                return `${material?.name || mat.id} x${mat.quantity}`;
+            }).join('、');
+            showGlobalToast('修復完成', `消耗 ${requirement.gold} 金幣、${materialText}。`, 'success');
+            return;
+        }
+
+        if (result?.reason === 'gold') {
+            showGlobalToast('金幣不足', `修復需要 ${requirement.gold} 金幣。`, 'warning');
+        } else if (result?.reason === 'materials') {
+            showGlobalToast('材料不足', '修復需要對應鍛造材料，先去收集或整理倉庫。', 'warning');
+        } else {
+            showGlobalToast('修復失敗', '目前無法修復這件裝備。', 'error');
+        }
     }
     
     // ===== Item Actions =====

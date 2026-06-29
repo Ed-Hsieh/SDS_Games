@@ -182,7 +182,11 @@ for (const [id, monster] of entries(TowerMonsterData)) {
 }
 
 for (const place of TownPlaceDatabase || []) {
-    checkAsset('town-place', place.id, place.sceneImage || getGeneratedTownPlaceImage(place.id), { square: true, minWidth: 256, minHeight: 256 });
+    checkAsset('town-place', place.id, place.sceneImage || getGeneratedTownPlaceImage(place.id), {
+        square: !place.sceneImage,
+        minWidth: place.sceneImage ? 1024 : 256,
+        minHeight: place.sceneImage ? 576 : 256
+    });
     for (const resident of place.residents || []) {
         checkAsset('town-resident', resident.npcId || resident.label, resident.portrait || getGeneratedPortraitImage(resident.npcId), { square: true, minWidth: 256, minHeight: 256 });
     }

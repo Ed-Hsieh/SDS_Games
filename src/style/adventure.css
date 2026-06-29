@@ -605,9 +605,9 @@
 }
 
 .boss-test-panel {
-    position: absolute;
+    position: fixed;
     right: 18px;
-    top: 68px;
+    top: 84px;
     bottom: 18px;
     z-index: 14;
     width: min(720px, calc(100vw - 36px));

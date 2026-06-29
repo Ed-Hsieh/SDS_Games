@@ -1387,6 +1387,10 @@
     background: linear-gradient(90deg, #4d908e, #76b8d8);
 }
 
+.progress-bar-fatigue {
+    background: linear-gradient(90deg, #f08c00, #ffd43b);
+}
+
 .progress-bar-text {
     position: absolute;
     inset: 0;
