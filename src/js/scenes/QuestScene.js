@@ -387,7 +387,7 @@ export default class QuestScene {
         }
 
         el.innerHTML = `
-            <div class="quest-item-icon">${escapeHtml(record.icon || '📖')}</div>
+            <div class="quest-item-icon">${this.renderHandbookRecordIcon(record, 'handbook-list-image')}</div>
             <div class="quest-item-info">
                 <div class="quest-item-name">${escapeHtml(record.title)}</div>
                 <div class="quest-item-status">
@@ -406,6 +406,18 @@ export default class QuestScene {
         });
 
         return el;
+    }
+
+    renderHandbookRecordIcon(record = {}, extraClass = 'handbook-icon-image') {
+        const item = record.visualItem
+            || record.item
+            || (record.itemId ? resolveItemById(record.itemId) : null);
+
+        if (item) {
+            return getItemVisualHtml(item, record.icon || '◆', extraClass);
+        }
+
+        return escapeHtml(record.icon || '◆');
     }
 
     getBossTraceRecords() {
@@ -680,55 +692,80 @@ export default class QuestScene {
 
         const inventory = GameManager.getInventory?.() || [];
         const warehouse = GameManager.state?.warehouse || [];
+        const gold = Number(GameManager.getGold?.() || 0);
         const recipeRecords = Object.values(RecipeDatabase)
             .filter(recipe => isRecipeBlueprintKnown(recipe.id))
             .map(recipe => {
                 const missing = getMissingMaterials(recipe.id, inventory, warehouse);
-                const costReady = GameManager.getGold() >= Number(recipe.cost || 0);
+                const cost = Number(recipe.cost || 0);
+                const successRate = Number(recipe.successRate || 100);
+                const recipeType = recipe.type || '裝備';
+                const recipeRarity = recipe.rarity || 'common';
+                const costReady = gold >= cost;
                 const craftReady = missing.length === 0 && costReady;
-                const materialLines = (recipe.materials || []).map(mat => {
-                    const material = getMaterial(mat.id);
-                    const miss = missing.find(entry => entry.id === mat.id);
-                    const owned = miss ? miss.owned : mat.quantity;
-                    return `${material?.name || mat.id} ${owned}/${mat.quantity}`;
+                const goldShortage = Math.max(0, cost - gold);
+                const recipeResultItem = recipe.result
+                    || resolveItemById(recipe.result?.id || recipe.id)
+                    || {
+                        id: recipe.result?.id || recipe.id,
+                        name: recipe.name,
+                        icon: recipe.icon,
+                        type: recipe.type,
+                        rarity: recipe.rarity
+                    };
+                const missingLines = missing.map(entry => {
+                    const material = getMaterial(entry.id);
+                    return `${material?.name || entry.id} ${entry.owned}/${entry.required}`;
                 });
-                const missingText = missing.length > 0
-                    ? missing.map(entry => `${getMaterial(entry.id)?.name || entry.id} ${entry.owned}/${entry.required}`).join('、')
-                    : costReady ? '材料與金幣都已備妥。' : `還缺製作費 ${recipe.cost}G。`;
+                const statusText = craftReady
+                    ? '可以製作'
+                    : missing.length > 0 ? '素材不足' : '金幣不足';
+                const statusSummary = craftReady
+                    ? '材料與費用齊備'
+                    : missing.length > 0 ? `缺 ${missing.length} 種素材` : `缺 ${goldShortage}G`;
+                const progressRequired = Math.max(1, (recipe.materials || []).length + 1);
+                const progressCurrent = Math.max(0, (recipe.materials || []).length - missing.length + (costReady ? 1 : 0));
 
                 return {
                     key: `recipe:${recipe.id}`,
                     kind: 'forge',
                     icon: recipe.icon || '⚒️',
+                    visualItem: recipeResultItem,
                     title: recipe.name,
                     typeLabel: '製作圖',
+                    summaryMode: 'compact',
                     statusIcon: craftReady ? '✓' : '⛏',
-                    statusText: craftReady ? '可以製作' : '缺少準備',
+                    statusText,
                     statusTone: craftReady ? 'completed' : 'available',
-                    meta: [recipe.type, recipe.rarity, `${recipe.cost || 0}G / ${recipe.successRate || 100}%`],
+                    meta: [recipeType, recipeRarity, statusSummary],
                     cues: [
-                        craftReady ? '材料齊備' : `缺口：${missingText}`,
-                        `成功率 ${recipe.successRate || 100}%`,
-                        `${recipe.cost || 0}G`
+                        statusSummary,
+                        `成功率 ${successRate}%`
                     ],
-                    current: craftReady ? '這張圖紙已經可以嘗試製作。' : `目前需要補上：${missingText}`,
-                    thoughtTitle: craftReady ? `我現在是否要製作「${recipe.name}」？` : '我現在是否該先補材料？',
+                    current: craftReady
+                        ? `可以前往鍛造鋪製作「${recipe.name}」。`
+                        : missing.length > 0 ? `還缺 ${missing.length} 種素材，詳細缺口列在下方。` : `素材已齊，還缺製作費 ${goldShortage}G。`,
+                    thoughtTitle: craftReady
+                        ? '是否前往鍛造？'
+                        : missing.length > 0 ? '先補哪一種素材？' : '先準備金幣',
                     thoughtText: craftReady
-                        ? '材料、金幣與圖紙都在手上，剩下就是要不要承擔成功率。'
-                        : '配方不是收藏品，缺料清楚列出來才方便回到冒險區找來源。',
+                        ? '材料、金幣與圖紙都在手上；這裡保留行動入口，不再重複列素材。'
+                        : missing.length > 0 ? '看下方缺口後，優先去能掉落該素材的怪物、委託或副本補齊。' : '素材已足夠，先透過委託或戰鬥補足製作費。',
                     progress: {
-                        current: (recipe.materials || []).length - missing.length + (costReady ? 1 : 0),
-                        required: Math.max(1, (recipe.materials || []).length + 1),
-                        percent: Math.min(100, Math.floor((((recipe.materials || []).length - missing.length + (costReady ? 1 : 0)) / Math.max(1, (recipe.materials || []).length + 1)) * 100))
+                        current: progressCurrent,
+                        required: progressRequired,
+                        percent: Math.min(100, Math.floor((progressCurrent / progressRequired) * 100))
                     },
                     sections: [
                         {
-                            title: '所需素材',
-                            lines: materialLines.length > 0 ? materialLines : ['此配方沒有素材需求。']
+                            title: craftReady ? '狀態' : '缺口',
+                            lines: craftReady
+                                ? ['材料與金幣已齊備。']
+                                : missingLines.length > 0 ? missingLines : [`製作費 ${gold}/${cost}G`]
                         },
                         {
-                            title: '製作資訊',
-                            lines: [`費用 ${recipe.cost || 0}G`, `成功率 ${recipe.successRate || 100}%`]
+                            title: '配方資訊',
+                            lines: [`${recipeType} / ${recipeRarity}`, `費用 ${cost}G`, `成功率 ${successRate}%`]
                         }
                     ],
                     route: 'forge',
@@ -905,7 +942,7 @@ export default class QuestScene {
             this.dom.detailContent.style.setProperty('--quest-progress', `${record.progress.percent || 0}%`);
         }
 
-        this.dom.detailIcon.textContent = record.icon || '📖';
+        this.dom.detailIcon.innerHTML = this.renderHandbookRecordIcon(record, 'handbook-detail-image');
         this.dom.detailName.textContent = record.title;
         this.dom.detailType.textContent = record.typeLabel || '旅人手札';
         this.dom.detailType.className = `quest-type-badge type-${record.kind}`;
@@ -931,8 +968,9 @@ export default class QuestScene {
             else this.dom.detailContent.prepend(summary);
         }
 
+        const isCompact = record.summaryMode === 'compact';
         const meta = Array.isArray(record.meta) ? record.meta.filter(Boolean) : [];
-        const cues = Array.isArray(record.cues) ? record.cues.filter(Boolean).slice(0, 3) : [];
+        const cues = !isCompact && Array.isArray(record.cues) ? record.cues.filter(Boolean).slice(0, 3) : [];
         const progress = record.progress || null;
         const progressText = progress
             ? `${progress.current}/${progress.required}`
@@ -952,7 +990,7 @@ export default class QuestScene {
             ` : ''}
             <section class="quest-note-current" aria-label="目前紀錄">
                 <div class="quest-note-speaker">
-                    <span class="quest-note-avatar">${escapeHtml(record.icon || '📖')}</span>
+                    <span class="quest-note-avatar">${this.renderHandbookRecordIcon(record, 'handbook-avatar-image')}</span>
                     <span>
                         <b>${escapeHtml(record.typeLabel || '旅人手札')}</b>
                         <small>目前紀錄</small>
@@ -960,20 +998,22 @@ export default class QuestScene {
                 </div>
                 <p>${escapeHtml(record.current || '這段紀錄還需要補充。')}</p>
             </section>
-            <section class="quest-note-next" aria-label="玩家思考">
-                <div class="quest-note-next-copy">
-                    <span>我在想</span>
-                    <strong>${escapeHtml(record.thoughtTitle || '我現在是否該翻到下一頁？')}</strong>
-                    <p>${escapeHtml(record.thoughtText || '手札把線索收在一起，剩下要靠我決定下一步。')}</p>
+            ${!isCompact ? `
+                <section class="quest-note-next" aria-label="玩家思考">
+                    <div class="quest-note-next-copy">
+                        <span>我在想</span>
+                        <strong>${escapeHtml(record.thoughtTitle || '我現在是否該翻到下一頁？')}</strong>
+                        <p>${escapeHtml(record.thoughtText || '手札把線索收在一起，剩下要靠我決定下一步。')}</p>
+                    </div>
+                    <div class="quest-note-progress" aria-label="紀錄補齊程度">
+                        <strong>${escapeHtml(progressText)}</strong>
+                        <span>${progress ? `${progress.percent || 0}% 補齊` : '收錄'}</span>
+                    </div>
+                </section>
+                <div class="quest-note-meter" aria-label="紀錄總進度">
+                    <div class="quest-note-meter-fill"></div>
                 </div>
-                <div class="quest-note-progress" aria-label="紀錄補齊程度">
-                    <strong>${escapeHtml(progressText)}</strong>
-                    <span>${progress ? `${progress.percent || 0}% 補齊` : '收錄'}</span>
-                </div>
-            </section>
-            <div class="quest-note-meter" aria-label="紀錄總進度">
-                <div class="quest-note-meter-fill"></div>
-            </div>
+            ` : ''}
         `;
     }
 

@@ -7,6 +7,12 @@
     --ui-panel-radius: 10px;
     --ui-min-control: 40px;
     --ui-hall-footer: 108px;
+    --ui-icon-xs: 24px;
+    --ui-icon-sm: 30px;
+    --ui-icon-md: 40px;
+    --ui-icon-lg: 48px;
+    --ui-icon-xl: 72px;
+    --ui-icon-detail: 82px;
 }
 
 .audio-settings-widget {
@@ -15872,4 +15878,1031 @@ body {
     right: 8px;
     max-width: 34px;
     text-align: center;
+}
+
+/* Lobby right-side dynamic info skin test. Remove this block to fully revert. */
+.lobby-world-town .town-right-rail > .town-narrative-whisper {
+    isolation: isolate;
+    padding: 46px 38px 44px !important;
+    border: 0 !important;
+    border-radius: 16px !important;
+    background:
+        linear-gradient(180deg, rgba(5, 6, 8, 0.08), rgba(5, 6, 8, 0.2)),
+        url("../assets/images/art-v2/ui/right_dynamic_panel_frame.png") center / 100% 100% no-repeat !important;
+    box-shadow:
+        0 24px 52px rgba(0, 0, 0, 0.38),
+        0 0 0 1px rgba(225, 184, 91, 0.08) !important;
+    backdrop-filter: none;
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper::before {
+    content: "";
+    position: absolute;
+    inset: 46px 38px 44px;
+    z-index: -1;
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(226, 181, 98, 0.08), transparent 38%),
+        rgba(3, 5, 7, 0.28);
+    pointer-events: none;
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper > * {
+    position: relative;
+    z-index: 1;
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .town-narrative-head {
+    padding-bottom: 10px;
+    border-bottom-color: rgba(223, 190, 121, 0.22);
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .town-narrative-kicker {
+    border-color: rgba(225, 184, 91, 0.34);
+    background: rgba(40, 25, 13, 0.44);
+    color: rgba(238, 197, 111, 0.94);
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .town-story-board {
+    padding-top: 10px !important;
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .town-story-entry {
+    border-color: rgba(223, 190, 121, 0.17);
+    background:
+        linear-gradient(180deg, rgba(255, 241, 205, 0.035), rgba(255, 241, 205, 0.012)),
+        rgba(3, 6, 8, 0.46) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 238, 197, 0.05);
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .world-log-title {
+    color: rgba(233, 189, 101, 0.96);
+}
+
+.lobby-world-town .town-right-rail > .town-narrative-whisper .world-log-message {
+    color: rgba(255, 247, 230, 0.88);
+}
+
+/* Detail surfaces polish: item cards, handbook commissions, and adventure satchel. */
+.component-item-detail-modal,
+#adv-item-detail-modal {
+    background:
+        radial-gradient(circle at 50% 38%, rgba(233, 189, 101, 0.08), transparent 34%),
+        rgba(2, 4, 8, 0.72) !important;
+    backdrop-filter: blur(10px) saturate(118%);
+}
+
+.component-item-detail-modal .modal-content,
+#adv-item-detail-modal .modal-content {
+    position: relative;
+    overflow: hidden;
+    width: min(620px, calc(100vw - 48px));
+    border: 1px solid rgba(223, 190, 121, 0.32) !important;
+    border-radius: 12px !important;
+    padding: 18px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.045), rgba(255, 244, 214, 0.012)),
+        linear-gradient(135deg, rgba(34, 24, 15, 0.94), rgba(6, 10, 14, 0.96) 56%, rgba(16, 19, 24, 0.94)) !important;
+    box-shadow:
+        0 26px 70px rgba(0, 0, 0, 0.66),
+        inset 0 1px 0 rgba(255, 244, 214, 0.08),
+        inset 0 0 0 1px rgba(79, 54, 30, 0.24) !important;
+}
+
+.component-item-detail-modal .modal-content::before,
+#adv-item-detail-modal .modal-content::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border: 1px solid rgba(223, 190, 121, 0.12);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.component-item-detail-modal .modal-header,
+#adv-item-detail-modal .modal-header {
+    position: relative;
+    margin: 0 0 12px !important;
+    padding: 0 0 10px;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.2);
+}
+
+.component-item-detail-modal .modal-title,
+#adv-item-detail-modal .modal-header h2 {
+    color: rgba(233, 189, 101, 0.94) !important;
+    font-size: 12px !important;
+    font-weight: 950 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.component-item-detail-modal .modal-body,
+#adv-item-detail-modal .modal-body {
+    position: relative;
+    z-index: 1;
+}
+
+.component-item-detail-modal .item-detail-header,
+#adv-item-detail-modal .item-detail-header {
+    display: grid !important;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 14px !important;
+    align-items: center;
+    margin-bottom: 14px !important;
+    padding: 0 0 14px !important;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.14) !important;
+}
+
+.component-item-detail-modal .item-detail-icon,
+#adv-item-detail-modal .item-detail-icon {
+    width: 82px !important;
+    height: 82px !important;
+    min-width: 82px !important;
+    border: 1px solid rgba(223, 190, 121, 0.28);
+    border-radius: 10px !important;
+    background:
+        radial-gradient(circle at 50% 34%, rgba(233, 189, 101, 0.16), transparent 52%),
+        linear-gradient(180deg, rgba(255, 244, 214, 0.05), rgba(0, 0, 0, 0.2)),
+        rgba(4, 7, 10, 0.66) !important;
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 244, 214, 0.06),
+        0 12px 24px rgba(0, 0, 0, 0.34);
+}
+
+.component-item-detail-modal .item-detail-image,
+#adv-item-detail-modal .item-detail-icon img {
+    width: 72px !important;
+    height: 72px !important;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.36));
+}
+
+.component-item-detail-modal .item-detail-title,
+#adv-item-detail-modal .item-detail-title {
+    min-width: 0;
+    gap: 5px;
+}
+
+.component-item-detail-modal .item-detail-name,
+#adv-item-detail-modal .item-detail-name {
+    color: #fff3d0 !important;
+    font-size: 23px !important;
+    line-height: 1.18;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.52);
+}
+
+.component-item-detail-modal .item-detail-type,
+#adv-item-detail-modal .item-detail-type {
+    width: fit-content;
+    margin-top: 2px !important;
+    padding: 4px 9px;
+    border: 1px solid rgba(132, 186, 198, 0.22);
+    border-radius: 999px;
+    background: rgba(5, 9, 12, 0.42);
+    color: rgba(213, 235, 239, 0.78) !important;
+    font-size: 11px !important;
+    font-weight: 850;
+}
+
+.component-item-detail-modal .item-detail-main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+}
+
+.component-item-detail-modal.has-detail-side .item-detail-main-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 0.72fr);
+}
+
+.component-item-detail-modal .item-detail-stats,
+#adv-item-detail-modal .item-detail-stats {
+    max-height: 248px;
+    margin-bottom: 10px !important;
+    padding: 10px !important;
+    border: 1px solid rgba(223, 190, 121, 0.14);
+    border-radius: 8px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.034), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.46) !important;
+}
+
+.component-item-detail-modal .stat-row,
+#adv-item-detail-modal .item-detail-stat {
+    min-height: 34px;
+    padding: 7px 8px !important;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.08) !important;
+    border-radius: 6px;
+}
+
+.component-item-detail-modal .stat-row:nth-child(odd),
+#adv-item-detail-modal .item-detail-stat:nth-child(odd) {
+    background: rgba(255, 244, 214, 0.025);
+}
+
+.component-item-detail-modal .stat-label,
+#adv-item-detail-modal .item-detail-stat span:first-child {
+    color: rgba(255, 247, 230, 0.82) !important;
+    font-size: 13px !important;
+    font-weight: 760;
+}
+
+.component-item-detail-modal .stat-base,
+#adv-item-detail-modal .item-detail-stat .value {
+    color: rgba(233, 189, 101, 0.98) !important;
+    font-weight: 950 !important;
+}
+
+.component-item-detail-modal .item-detail-affixes,
+.component-item-detail-modal .item-detail-set {
+    min-width: 0;
+    margin-bottom: 10px !important;
+    padding: 10px;
+    border: 1px solid rgba(223, 190, 121, 0.14);
+    border-radius: 8px;
+    background: rgba(3, 6, 8, 0.38);
+}
+
+.component-item-detail-modal .affix-pill,
+.component-item-detail-modal .forge-attr-pill {
+    border-color: rgba(223, 190, 121, 0.22) !important;
+    border-radius: 7px !important;
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.08), rgba(255, 255, 255, 0.015)),
+        rgba(7, 12, 18, 0.54) !important;
+}
+
+.component-item-detail-modal .item-detail-description,
+#adv-item-detail-modal .item-detail-description {
+    margin: 0 !important;
+    padding: 12px 13px !important;
+    border: 1px solid rgba(132, 186, 198, 0.14) !important;
+    border-left: 3px solid rgba(233, 189, 101, 0.54) !important;
+    border-radius: 8px !important;
+    background: rgba(4, 7, 9, 0.42) !important;
+    color: rgba(255, 247, 230, 0.76) !important;
+    font-size: 13px !important;
+    line-height: 1.65 !important;
+}
+
+.component-item-detail-modal .modal-footer,
+#adv-item-detail-modal .modal-footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 14px !important;
+    padding-top: 12px;
+    border-top: 1px solid rgba(223, 190, 121, 0.14);
+}
+
+.component-item-detail-modal .item-detail-actions,
+#adv-item-detail-modal .item-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.component-item-detail-modal .item-detail-actions .btn,
+#adv-item-detail-modal .item-detail-actions .btn,
+.component-item-detail-modal .modal-close-btn {
+    min-height: 36px;
+    border-radius: 7px !important;
+    font-weight: 850 !important;
+}
+
+.component-item-detail-modal .item-detail-price {
+    color: rgba(233, 189, 101, 0.96) !important;
+}
+
+.scene-quest .quest-board-container {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(233, 189, 101, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(44, 30, 17, 0.88), rgba(8, 11, 14, 0.94)),
+        rgba(7, 10, 12, 0.96);
+    box-shadow:
+        0 22px 52px rgba(0, 0, 0, 0.36),
+        inset 0 1px 0 rgba(255, 244, 214, 0.06);
+}
+
+.scene-quest .quest-story-ledger {
+    min-height: 72px;
+    padding: 15px 22px;
+    border-bottom-color: rgba(223, 190, 121, 0.2);
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.045), rgba(255, 244, 214, 0.012)),
+        rgba(4, 7, 9, 0.28);
+}
+
+.scene-quest .ledger-kicker {
+    color: rgba(233, 189, 101, 0.94);
+}
+
+.scene-quest .ledger-summary {
+    padding: 6px 10px;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 999px;
+    background: rgba(3, 6, 8, 0.3);
+    color: rgba(255, 247, 230, 0.72);
+}
+
+.scene-quest .quest-tabs.handbook-tabs {
+    padding: 0 20px !important;
+    gap: 2px !important;
+    border-bottom-color: rgba(223, 190, 121, 0.18) !important;
+    background: rgba(3, 6, 8, 0.3) !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab {
+    min-height: 46px;
+    border-radius: 9px 9px 0 0 !important;
+    border-color: rgba(223, 190, 121, 0.12) !important;
+    border-bottom-color: transparent !important;
+    background: rgba(255, 244, 214, 0.035) !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab:hover,
+.scene-quest .quest-tabs.handbook-tabs .quest-tab.active {
+    border-color: rgba(233, 189, 101, 0.42) !important;
+    border-bottom-color: rgba(3, 6, 8, 0.82) !important;
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.14), rgba(6, 10, 14, 0.62)) !important;
+    color: #ffe8aa !important;
+}
+
+.scene-quest .quest-main-panel {
+    gap: 0;
+    min-height: 0;
+    background: rgba(3, 6, 8, 0.18);
+}
+
+.scene-quest .quest-list-panel {
+    min-height: 0;
+    border-right: 1px solid rgba(223, 190, 121, 0.16) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.03), transparent),
+        rgba(2, 5, 7, 0.22);
+}
+
+.scene-quest .quest-list-header {
+    border-bottom-color: rgba(223, 190, 121, 0.14) !important;
+}
+
+.scene-quest .quest-list {
+    padding: 12px;
+    gap: 9px;
+}
+
+.scene-quest .quest-list-item {
+    position: relative;
+    min-height: 76px;
+    padding: 12px !important;
+    border-color: rgba(223, 190, 121, 0.13) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.055), transparent 42%),
+        rgba(5, 9, 12, 0.52) !important;
+    overflow: hidden;
+}
+
+.scene-quest .quest-list-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
+    background: rgba(132, 186, 198, 0.42);
+}
+
+.scene-quest .quest-list-item.active::before {
+    background: rgba(125, 211, 252, 0.86);
+}
+
+.scene-quest .quest-list-item.completed::before {
+    background: rgba(74, 222, 128, 0.86);
+}
+
+.scene-quest .quest-list-item.selected,
+.scene-quest .quest-list-item:hover {
+    border-color: rgba(233, 189, 101, 0.42) !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.12), transparent 48%),
+        rgba(8, 13, 17, 0.72) !important;
+}
+
+.scene-quest .quest-item-icon,
+.scene-quest .handbook-record-item .quest-item-icon,
+.quest-board-container .quest-item-icon,
+.quest-board-container .handbook-record-item .quest-item-icon {
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 9px;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(233, 189, 101, 0.16), transparent 58%),
+        rgba(3, 6, 8, 0.44);
+}
+
+.scene-quest .quest-item-name {
+    color: rgba(255, 247, 230, 0.94) !important;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.scene-quest .quest-item-status {
+    color: rgba(233, 189, 101, 0.9);
+    font-weight: 850;
+}
+
+.scene-quest .quest-item-meta span {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255, 244, 214, 0.045);
+}
+
+.scene-quest .quest-progress-bar,
+.scene-quest .quest-note-meter,
+.scene-quest .objective-meter {
+    border: 1px solid rgba(223, 190, 121, 0.14);
+    background: rgba(0, 0, 0, 0.36);
+}
+
+.scene-quest .quest-detail-panel {
+    min-height: 0;
+    padding: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(255, 244, 214, 0.01)),
+        rgba(4, 7, 9, 0.32);
+}
+
+.scene-quest .detail-placeholder {
+    border: 1px dashed rgba(223, 190, 121, 0.22);
+    border-radius: 12px;
+    background: rgba(3, 6, 8, 0.24);
+}
+
+.scene-quest .detail-header {
+    padding: 0 0 14px;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.16);
+}
+
+.scene-quest .quest-icon,
+.quest-board-container .quest-icon {
+    width: 58px;
+    height: 58px;
+    border: 1px solid rgba(223, 190, 121, 0.24);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at 50% 35%, rgba(233, 189, 101, 0.16), transparent 58%),
+        rgba(3, 6, 8, 0.46);
+}
+
+.scene-quest .quest-type-badge {
+    border-color: rgba(233, 189, 101, 0.3) !important;
+    background: rgba(49, 31, 18, 0.42) !important;
+    color: rgba(233, 189, 101, 0.96) !important;
+}
+
+.scene-quest .quest-dialogue-box,
+.scene-quest .objective-item,
+.scene-quest .reward-item,
+.scene-quest .quest-note-current,
+.scene-quest .quest-note-next {
+    border-color: rgba(223, 190, 121, 0.15) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.42) !important;
+}
+
+.scene-quest .dialogue-bubble {
+    background: rgba(3, 6, 8, 0.34) !important;
+    border-color: rgba(223, 190, 121, 0.12) !important;
+}
+
+.scene-quest .quest-objectives h4,
+.scene-quest .quest-rewards h4 {
+    color: rgba(233, 189, 101, 0.94) !important;
+    font-size: 13px;
+    letter-spacing: 0;
+}
+
+.scene-quest .quest-footer {
+    border-top: 1px solid rgba(223, 190, 121, 0.18);
+    background: rgba(3, 6, 8, 0.44) !important;
+}
+
+.inventory-modal {
+    background:
+        radial-gradient(circle at 50% 34%, rgba(132, 186, 198, 0.1), transparent 34%),
+        rgba(0, 0, 0, 0.82) !important;
+    backdrop-filter: blur(8px);
+}
+
+.inventory-modal .inventory-content {
+    position: relative;
+    overflow: hidden;
+    max-width: 860px !important;
+    width: min(860px, calc(100vw - 56px)) !important;
+    border: 1px solid rgba(223, 190, 121, 0.3) !important;
+    border-radius: 12px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.045), rgba(255, 244, 214, 0.012)),
+        linear-gradient(135deg, rgba(31, 22, 14, 0.94), rgba(5, 9, 12, 0.96) 62%, rgba(12, 17, 20, 0.95)) !important;
+    box-shadow:
+        0 28px 72px rgba(0, 0, 0, 0.62),
+        inset 0 1px 0 rgba(255, 244, 214, 0.08) !important;
+}
+
+.inventory-modal .inventory-content::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border: 1px solid rgba(223, 190, 121, 0.1);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.inventory-modal .modal-header {
+    position: relative;
+    z-index: 1;
+    min-height: 64px;
+    padding: 16px 18px 14px !important;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.18) !important;
+    background: rgba(3, 6, 8, 0.24);
+}
+
+.inventory-modal .modal-header h2 {
+    color: rgba(255, 247, 230, 0.96) !important;
+    font-size: 23px !important;
+    line-height: 1.15;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+.inventory-modal .inventory-capacity {
+    min-width: 68px;
+    padding: 5px 10px;
+    border: 1px solid rgba(233, 189, 101, 0.34);
+    border-radius: 999px;
+    background: rgba(49, 31, 18, 0.42);
+    color: rgba(233, 189, 101, 0.98) !important;
+    font-size: 13px;
+    font-weight: 950;
+    text-align: center;
+}
+
+.inventory-modal .inventory-body {
+    position: relative;
+    z-index: 1;
+    max-height: min(68vh, 620px) !important;
+    padding: 16px !important;
+}
+
+.inventory-modal .inventory-layout {
+    display: grid !important;
+    grid-template-columns: 238px minmax(0, 1fr);
+    gap: 14px !important;
+    min-height: 430px;
+}
+
+.inventory-modal .equipment-panel,
+.inventory-modal .inventory-panel {
+    padding: 14px !important;
+    border: 1px solid rgba(223, 190, 121, 0.16) !important;
+    border-radius: 10px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.42) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.035);
+}
+
+.inventory-modal .panel-title {
+    margin-bottom: 12px !important;
+    padding-bottom: 10px !important;
+    border-bottom-color: rgba(223, 190, 121, 0.18) !important;
+    color: rgba(233, 189, 101, 0.96) !important;
+    font-size: 13px !important;
+    font-weight: 950 !important;
+}
+
+.inventory-modal #adv-equipment-slots {
+    gap: 9px;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot {
+    min-height: 74px;
+    padding: 18px 10px 10px !important;
+    border: 1px solid rgba(223, 190, 121, 0.14) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.055), transparent 52%),
+        rgba(3, 6, 8, 0.5) !important;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot:hover,
+.inventory-modal #adv-equipment-slots .equipment-slot.equipped {
+    border-color: rgba(233, 189, 101, 0.38) !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.12), transparent 58%),
+        rgba(5, 9, 12, 0.62) !important;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-label {
+    color: rgba(233, 189, 101, 0.76) !important;
+    font-size: 10px !important;
+    font-weight: 900;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-icon {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(223, 190, 121, 0.14);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+}
+
+.inventory-modal .adventure-inventory-note {
+    margin: -2px 0 12px !important;
+    padding: 8px 10px;
+    border: 1px solid rgba(132, 186, 198, 0.16);
+    border-radius: 8px;
+    background: rgba(4, 8, 10, 0.36);
+    color: rgba(213, 235, 239, 0.72) !important;
+    font-weight: 760;
+}
+
+.inventory-modal .adventure-inventory-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+    align-content: start;
+    gap: 10px !important;
+    max-height: 350px !important;
+    padding: 2px 6px 2px 2px !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-card {
+    min-height: 76px !important;
+    padding: 10px !important;
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr);
+    gap: 10px !important;
+    align-items: center;
+    border: 1px solid rgba(223, 190, 121, 0.14) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.036), rgba(255, 244, 214, 0.012)),
+        rgba(4, 8, 10, 0.5) !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-card::before {
+    background: linear-gradient(90deg, transparent, rgba(233, 189, 101, 0.12), transparent) !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-card:hover {
+    border-color: rgba(233, 189, 101, 0.42) !important;
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.09), rgba(255, 244, 214, 0.016)),
+        rgba(6, 10, 13, 0.66) !important;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28) !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-icon {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(223, 190, 121, 0.16);
+    border-radius: 9px;
+    background: rgba(0, 0, 0, 0.24);
+}
+
+.inventory-modal .adventure-inventory-list .item-icon img {
+    width: 40px !important;
+    height: 40px !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-name {
+    color: rgba(255, 247, 230, 0.92) !important;
+    font-size: 13px !important;
+    line-height: 1.3;
+}
+
+.inventory-modal .adventure-inventory-list .quantity-badge {
+    border-color: rgba(3, 6, 8, 0.9) !important;
+    background: rgba(233, 189, 101, 0.86) !important;
+    color: #201408 !important;
+}
+
+.inventory-modal .modal-footer {
+    position: relative;
+    z-index: 1;
+    padding: 13px 18px !important;
+    border-top: 1px solid rgba(223, 190, 121, 0.16) !important;
+    background: rgba(3, 6, 8, 0.24);
+}
+
+/* Fixed item icon sizing: keep generated item art from resizing with the panel. */
+.ui-icon-xs,
+.ui-icon-sm,
+.ui-icon-md,
+.ui-icon-lg,
+.ui-icon-xl {
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.ui-icon-xs {
+    width: var(--ui-icon-xs);
+    height: var(--ui-icon-xs);
+}
+
+.ui-icon-sm {
+    width: var(--ui-icon-sm);
+    height: var(--ui-icon-sm);
+}
+
+.ui-icon-md {
+    width: var(--ui-icon-md);
+    height: var(--ui-icon-md);
+}
+
+.ui-icon-lg {
+    width: var(--ui-icon-lg);
+    height: var(--ui-icon-lg);
+}
+
+.ui-icon-xl {
+    width: var(--ui-icon-xl);
+    height: var(--ui-icon-xl);
+}
+
+.ui-icon-xs img,
+.ui-icon-sm img,
+.ui-icon-md img,
+.ui-icon-lg img,
+.ui-icon-xl img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: inherit;
+}
+
+.scene-forge .material-req .mat-icon,
+.scene-forge .material-card .mat-icon {
+    width: var(--ui-icon-sm) !important;
+    height: var(--ui-icon-sm) !important;
+    min-width: var(--ui-icon-sm) !important;
+    max-width: var(--ui-icon-sm) !important;
+    flex: 0 0 var(--ui-icon-sm) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+}
+
+.scene-forge .material-req .mat-icon img,
+.scene-forge .material-card .mat-icon img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center;
+    border-radius: 6px;
+}
+
+.scene-forge .material-card {
+    min-width: 0;
+    align-items: center;
+    gap: 8px !important;
+}
+
+.scene-forge .material-card .mat-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scene-forge .material-card .mat-count {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.inventory-modal .inventory-content {
+    width: min(900px, calc(100vw - 56px)) !important;
+}
+
+.inventory-modal .inventory-body {
+    min-height: 0;
+    overflow: hidden !important;
+}
+
+.inventory-modal .inventory-layout {
+    height: 100%;
+    min-height: 0 !important;
+    grid-template-columns: minmax(300px, 320px) minmax(0, 1fr) !important;
+    align-items: stretch;
+}
+
+.inventory-modal .equipment-panel,
+.inventory-modal .inventory-panel {
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.inventory-modal #adv-equipment-slots {
+    flex: 1 1 auto;
+    width: 100%;
+    min-height: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: repeat(3, minmax(76px, 1fr)) !important;
+    justify-items: stretch !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 76px !important;
+    justify-self: stretch;
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: var(--ui-icon-lg) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 5px 12px !important;
+    padding: 12px !important;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-label {
+    position: static !important;
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    line-height: 1.15;
+    white-space: nowrap;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: var(--ui-icon-lg) !important;
+    height: var(--ui-icon-lg) !important;
+    min-width: var(--ui-icon-lg) !important;
+    max-width: var(--ui-icon-lg) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 23px !important;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-icon img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center;
+    border-radius: inherit;
+}
+
+.inventory-modal #adv-equipment-slots .equipment-slot-name {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal !important;
+    line-height: 1.25;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.inventory-modal .adventure-inventory-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-card {
+    min-width: 0;
+    grid-template-columns: var(--ui-icon-md) minmax(0, 1fr) !important;
+}
+
+.inventory-modal .adventure-inventory-list .item-icon {
+    width: var(--ui-icon-md) !important;
+    height: var(--ui-icon-md) !important;
+    min-width: var(--ui-icon-md) !important;
+    max-width: var(--ui-icon-md) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+}
+
+.inventory-modal .adventure-inventory-list .item-icon img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center;
+    border-radius: inherit;
+}
+
+/* Traveler handbook icon sizing and generated art placement. */
+.scene-quest .quest-item-icon,
+.scene-quest .handbook-record-item .quest-item-icon {
+    width: var(--ui-icon-lg) !important;
+    height: var(--ui-icon-lg) !important;
+    min-width: var(--ui-icon-lg) !important;
+    max-width: var(--ui-icon-lg) !important;
+    flex: 0 0 var(--ui-icon-lg) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 20px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-icon {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 26px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-note-avatar,
+.scene-quest .reward-icon,
+.scene-quest .objective-icon,
+.quest-board-container .quest-note-avatar,
+.quest-board-container .reward-icon,
+.quest-board-container .objective-icon {
+    width: var(--ui-icon-sm) !important;
+    height: var(--ui-icon-sm) !important;
+    min-width: var(--ui-icon-sm) !important;
+    max-width: var(--ui-icon-sm) !important;
+    flex: 0 0 var(--ui-icon-sm) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 16px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-item-icon img,
+.scene-quest .quest-icon img,
+.scene-quest .quest-note-avatar img,
+.scene-quest .reward-icon img,
+.scene-quest .objective-icon img,
+.scene-quest .handbook-list-image,
+.scene-quest .handbook-detail-image,
+.scene-quest .handbook-avatar-image,
+.quest-board-container .quest-item-icon img,
+.quest-board-container .quest-icon img,
+.quest-board-container .quest-note-avatar img,
+.quest-board-container .reward-icon img,
+.quest-board-container .objective-icon img,
+.quest-board-container .handbook-list-image,
+.quest-board-container .handbook-detail-image,
+.quest-board-container .handbook-avatar-image {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center;
+    border-radius: inherit;
 }
