@@ -1,4 +1,5 @@
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
+import { getGeneratedCombatEffectImage } from '../data/AssetManifest.js';
 import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
 
 function normalizeBonusEntries(setInfo) {
@@ -80,8 +81,15 @@ function buildPieceChips(progress, compact = false) {
         <div class="set-piece-chips${compact ? ' is-compact' : ''}">
             ${progress.pieces.map(piece => `
                 <span class="set-piece-chip ${piece.equipped ? 'is-equipped' : ''} ${piece.owned ? 'is-owned' : 'is-missing'} ${piece.current ? 'is-current' : ''}"
-                    title="${escapeHtml(piece.item.name || piece.id)}"
+                    data-item-name="${escapeHtml(piece.item.name || piece.id)}"
                     aria-label="${escapeHtml(piece.item.name || piece.id)}">
+                    <span class="set-piece-tooltip" aria-hidden="true">
+                        <span class="set-piece-tooltip-icon">${getItemVisualHtml(piece.item, '◆')}</span>
+                        <span class="set-piece-tooltip-copy">
+                            <strong>${escapeHtml(piece.item.name || piece.id)}</strong>
+                            <small>${piece.equipped ? '已穿戴' : (piece.owned ? '已取得' : '尚未取得')}</small>
+                        </span>
+                    </span>
                     ${getItemVisualHtml(piece.item, '◇')}
                 </span>
             `).join('')}
@@ -89,22 +97,66 @@ function buildPieceChips(progress, compact = false) {
     `;
 }
 
+export function getSetBuffIconId(setId, required = null) {
+    const threshold = Number(required) || 0;
+    return threshold > 0 ? `setbonus_${setId}_${threshold}` : `set_${setId}`;
+}
+
+export function getSetBuffIconImage(setId, required = null) {
+    return getGeneratedCombatEffectImage(getSetBuffIconId(setId, required))
+        || getGeneratedCombatEffectImage(getSetBuffIconId(setId));
+}
+
+function buildSetBuffIconHtml(setId, label = '', fallback = '◆', required = null) {
+    const image = getSetBuffIconImage(setId, required);
+    if (!image) return escapeHtml(fallback);
+    return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}">`;
+}
+
 function buildBonusRows(progress, limit = Infinity) {
     return `
         <div class="set-bonus-rows">
             ${progress.bonuses.slice(0, limit).map(bonus => {
-                const status = bonus.active ? '已啟用' : `缺 ${bonus.missing} 件`;
-                const statusLabel = bonus.active ? '已啟用' : `尚未啟用，還缺 ${bonus.missing} 件`;
+                const title = bonus.name || bonus.description || '套裝效果';
+                const statusLabel = bonus.active ? `${title} 已啟用` : `${title} 尚未啟用`;
 
                 return `
                 <div class="set-bonus-row ${bonus.active ? 'is-active' : 'is-locked'}" aria-label="${escapeHtml(statusLabel)}">
-                    <span class="set-bonus-threshold">${bonus.required}件</span>
-                    <strong>${escapeHtml(bonus.name || bonus.description || '套裝效果')}</strong>
-                    <small>${escapeHtml(bonus.description || (bonus.active ? '已啟動' : `再穿 ${bonus.missing} 件啟動`))}</small>
-                    <em>${escapeHtml(status)}</em>
+                    <span class="set-bonus-mark">${buildSetBuffIconHtml(progress.set.id, title, '◆', bonus.required)}</span>
+                    <span class="set-bonus-copy">
+                        <strong>${escapeHtml(title)} <em>${bonus.required}件</em></strong>
+                        <small>${escapeHtml(bonus.description || '套裝效果已記錄。')}</small>
+                    </span>
                 </div>
             `;
             }).join('')}
+        </div>
+    `;
+}
+
+function buildSetOverviewHtml(progress, options = {}) {
+    const compact = Boolean(options.compact);
+    const bonusLimit = Number.isFinite(Number(options.bonusLimit)) ? Number(options.bonusLimit) : Infinity;
+    const activeBonuses = progress.bonuses.filter(bonus => bonus.active);
+    const displayBonus = activeBonuses[activeBonuses.length - 1] || progress.bonuses[0] || null;
+    const iconLabel = displayBonus?.name || progress.set.name || progress.set.id;
+    const activeClass = activeBonuses.length > 0 ? 'has-active-bonus' : 'is-inactive';
+
+    return `
+        <div class="set-overview ${compact ? 'is-compact' : ''} ${activeClass}">
+            ${buildPieceChips(progress, true)}
+            <div class="set-overview-card">
+                <span class="set-overview-icon">
+                    ${displayBonus ? buildSetBuffIconHtml(progress.set.id, iconLabel, progress.set.icon || '◆', displayBonus.required) : escapeHtml(progress.set.icon || '◆')}
+                </span>
+                <span class="set-overview-copy">
+                    <span class="set-overview-title">
+                        <strong>${escapeHtml(progress.set.name || progress.set.id)}</strong>
+                        <em>${progress.equippedCount}/${progress.total}穿戴</em>
+                    </span>
+                    ${buildBonusRows(progress, bonusLimit)}
+                </span>
+            </div>
         </div>
     `;
 }
@@ -117,25 +169,10 @@ export function buildItemSetInfoHtml(item, state = {}, options = {}) {
 
     const compact = Boolean(options.compact);
     const bonusLimit = compact ? 2 : Infinity;
-    const nextBonus = progress.bonuses.find(bonus => !bonus.active);
-    const activeCount = progress.bonuses.filter(bonus => bonus.active).length;
-    const status = activeCount > 0
-        ? `已啟動 ${activeCount} 個效果`
-        : nextBonus
-            ? `再穿 ${nextBonus.missing} 件啟動`
-            : '套裝效果待確認';
 
     return `
         <section class="item-set-panel ${compact ? 'is-compact' : ''}">
-            <div class="item-set-head">
-                <span class="item-set-icon">${escapeHtml(progress.set.icon || '◆')}</span>
-                <div>
-                    <strong>${escapeHtml(progress.set.name || progress.set.id)}</strong>
-                    <small>${progress.equippedCount}/${progress.total} 已穿戴 · ${escapeHtml(status)}</small>
-                </div>
-            </div>
-            ${buildPieceChips(progress, compact)}
-            ${buildBonusRows(progress, bonusLimit)}
+            ${buildSetOverviewHtml(progress, { compact, bonusLimit })}
         </section>
     `;
 }
@@ -143,7 +180,9 @@ export function buildItemSetInfoHtml(item, state = {}, options = {}) {
 export function buildEquippedSetSummaryHtml(state = {}) {
     const { equippedItems } = getStateSets(state);
     const setIds = [...new Set(equippedItems.map(item => item?.setId).filter(Boolean))];
-    if (setIds.length === 0) return '';
+    if (setIds.length === 0) {
+        return '<div class="equipment-set-empty">尚未形成套裝。穿上同系列裝備後，這裡會顯示啟用效果。</div>';
+    }
 
     return `
         <div class="equipment-set-summary">
@@ -153,15 +192,7 @@ export function buildEquippedSetSummaryHtml(state = {}) {
 
                 return `
                     <section class="equipment-set-card">
-                        <div class="equipment-set-card-head">
-                            <span>${escapeHtml(progress.set.icon || '◆')}</span>
-                            <div>
-                                <strong>${escapeHtml(progress.set.name || progress.set.id)}</strong>
-                                <small>${progress.equippedCount}/${progress.total} 已穿戴</small>
-                            </div>
-                        </div>
-                        ${buildPieceChips(progress, true)}
-                        ${buildBonusRows(progress)}
+                        ${buildSetOverviewHtml(progress, { compact: true })}
                     </section>
                 `;
             }).join('')}

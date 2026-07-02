@@ -1,7 +1,8 @@
 import { escapeHtml, getItemVisualHtml } from './ItemDisplay.js';
 import { getGeneratedCombatEffectImage, getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import { SetDatabase } from '../data/Equipment.js';
+import { calculateActiveSetBonuses } from '../data/EquipmentBalance.js';
 import audioManager from './AudioManager.js';
-import { getWeaponProfileTriggerText } from './WeaponCombatProfile.js';
 
 function find(root, selectors) {
     if (!root) return null;
@@ -31,6 +32,15 @@ function setImageOrTextIcon(root, selectors, image, label, fallback = '') {
         return;
     }
     el.textContent = fallback;
+}
+
+function isWeaponItem(item) {
+    return item && String(item.type || '').toLowerCase() === 'weapon';
+}
+
+function getItemAttackValue(item) {
+    const value = Number(item?.atk ?? item?.attack ?? item?.stats?.atk ?? item?.stats?.attack ?? 0);
+    return Number.isFinite(value) ? value : 0;
 }
 
 function playCombatDamageSound(type, damage, options = {}) {
@@ -97,6 +107,38 @@ function getCombatEffectAssetId(effect = {}) {
         dragon_burn: 'dragon_burn'
     };
     return map[raw] || raw;
+}
+
+function getActiveSetBuffEntries(character) {
+    const setData = calculateActiveSetBonuses(character, SetDatabase);
+    const latestBySet = new Map();
+
+    (setData.active || []).forEach(entry => {
+        const previous = latestBySet.get(entry.setId);
+        const required = Number(entry.required) || 0;
+        const previousRequired = Number(previous?.required) || 0;
+
+        if (!previous || required >= previousRequired) {
+            latestBySet.set(entry.setId, entry);
+        }
+    });
+
+    return [...latestBySet.values()].map(entry => ({
+        effect: {
+            id: `setbonus_${entry.setId}_${entry.required}`,
+            type: `setbonus_${entry.setId}_${entry.required}`,
+            source: 'setBonus',
+            name: entry.name || entry.setName || '套裝效果',
+            icon: '◆',
+            description: `${entry.setName || '套裝'} ${entry.required}件：${entry.description || entry.name || '已啟用'}`
+        },
+        options: {
+            key: `set:${entry.setId}:latest`,
+            passive: true,
+            polarity: 'positive',
+            durationText: ''
+        }
+    }));
 }
 
 function clampPercent(value) {
@@ -364,6 +406,38 @@ function renderMonsterStatusIndicators(root, monster) {
     })));
 }
 
+function getMonsterPoisonAccumulated(monster) {
+    const now = Date.now();
+    return (monster?.statusEffects || [])
+        .filter(effect => effect?.type === 'poison' && (!effect.expiresAt || effect.expiresAt > now))
+        .reduce((sum, effect) => sum + (Number(effect.accumulated) || 0), 0);
+}
+
+function renderMonsterPoisonAccumulator(root, monster, maxHp) {
+    const hpBar = find(root, '#battle-monster-hp-bar, #monster-hp-fill');
+    const track = hpBar?.parentElement;
+    if (!track) return;
+
+    let poisonFill = track.querySelector('.poison-execute-fill');
+    const accumulated = getMonsterPoisonAccumulated(monster);
+
+    if (accumulated <= 0 || maxHp <= 0) {
+        poisonFill?.remove();
+        return;
+    }
+
+    if (!poisonFill) {
+        poisonFill = document.createElement('div');
+        poisonFill.className = 'poison-execute-fill';
+        track.appendChild(poisonFill);
+    }
+
+    const poisonPercent = clampPercent((accumulated / maxHp) * 100);
+    poisonFill.style.width = `${poisonPercent}%`;
+    poisonFill.dataset.tooltipTitle = '累積毒素';
+    poisonFill.dataset.tooltipBody = `已累積 ${Math.floor(accumulated)}，攻擊傷害加上毒素足以覆蓋剩餘生命時會處決。`;
+}
+
 export function renderCombatMonster(root, monster, options = {}) {
     if (!root || !monster) return;
 
@@ -386,6 +460,7 @@ export function renderCombatMonster(root, monster, options = {}) {
 
     const hpBar = find(root, '#battle-monster-hp-bar, #monster-hp-fill');
     if (hpBar) hpBar.style.width = `${hpPercent}%`;
+    renderMonsterPoisonAccumulator(root, monster, maxHp);
     applyMonsterFrame(root, monster);
     renderMonsterStatusIndicators(root, monster);
 }
@@ -413,24 +488,36 @@ export function renderCombatActionDeck(root, character, options = {}) {
     if (!root || !character) return;
 
     const weapon = character.equipment?.weapon || null;
-    const triggerText = getWeaponProfileTriggerText(character);
+    const armorSlot = character.equipment?.armor || null;
+    const offhandWeapon = isWeaponItem(armorSlot) ? armorSlot : null;
     setIcon(root, '#weapon-icon', weapon, '⚔️');
+    setIcon(root, '#main-rhythm-icon', weapon, '⚔');
     setText(root, '#weapon-name', weapon?.name || options.unarmedName || '徒手攻擊');
+    setText(root, '#main-rhythm-name', weapon?.name || options.unarmedName || '徒手');
     setText(root, '#weapon-damage', getTotalAttack(character));
 
     const weaponCard = find(root, '#action-weapon, #btn-attack');
-    if (weaponCard) {
-        let triggerEl = weaponCard.querySelector('.weapon-trigger-condition');
-        if (triggerText) {
-            if (!triggerEl) {
-                triggerEl = document.createElement('div');
-                triggerEl.className = 'weapon-trigger-condition';
-                weaponCard.appendChild(triggerEl);
-            }
-            triggerEl.textContent = triggerText;
-        } else {
-            triggerEl?.remove();
-        }
+    weaponCard?.querySelector('.weapon-trigger-condition')?.remove();
+
+    const offhandCard = find(root, '#action-offhand');
+    const offhandRing = find(root, '#offhand-rhythm-ring');
+    if (offhandWeapon) {
+        setIcon(root, '#offhand-icon', offhandWeapon, '⚔');
+        setIcon(root, '#offhand-rhythm-icon', offhandWeapon, '⚔');
+        setText(root, '#offhand-name', offhandWeapon.name || '副手武器');
+        setText(root, '#offhand-rhythm-name', offhandWeapon.name || '副手');
+        setText(root, '#offhand-damage', getItemAttackValue(offhandWeapon) || '--');
+        offhandCard?.classList.remove('disabled');
+        offhandRing?.classList.remove('is-disabled');
+    } else {
+        const shieldText = armorSlot ? '護具防守中' : '未裝副手';
+        setIcon(root, '#offhand-icon', armorSlot, armorSlot ? '🛡' : '—');
+        setIcon(root, '#offhand-rhythm-icon', null, '🛡');
+        setText(root, '#offhand-name', shieldText);
+        setText(root, '#offhand-rhythm-name', '未裝副手');
+        setText(root, '#offhand-damage', '--');
+        offhandCard?.classList.add('disabled');
+        offhandRing?.classList.add('is-disabled');
     }
 
     const stack = getFirstConsumableStack(options.inventory || []);
@@ -512,6 +599,8 @@ export function renderCombatBuffIndicators(container, character) {
             }
         });
     });
+
+    getActiveSetBuffEntries(character).forEach(entry => entries.push(entry));
 
     const buffIcons = {
         atk: '⚔️',

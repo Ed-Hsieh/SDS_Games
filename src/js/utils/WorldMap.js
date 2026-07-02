@@ -113,6 +113,7 @@ export default class WorldMap {
         this.rifts = [];
         this.landmarks = [];
         this.bossSites = [];
+        this.exploredCells = new Set();
         // 記錄已解鎖的區域（玩家抵達過即視為解鎖）
         this.unlockedZones = new Set(['low']);
 
@@ -130,11 +131,16 @@ export default class WorldMap {
                 if (Array.isArray(persisted.landmarks)) {
                     this._persistedLandmarks = persisted.landmarks.slice();
                 }
+                if (Array.isArray(persisted.exploredCells)) {
+                    this.exploredCells = new Set(persisted.exploredCells);
+                }
             }
         } catch (e) {
             console.warn('無法讀取 GameManager mapState:', e);
         }
         this.mapData = this.generateMap();
+        this.revealAroundPlayer(1, { save: false });
+        this._saveMapState();
         this.updateCamera();
     }
 
@@ -463,12 +469,44 @@ export default class WorldMap {
             GameManager.state.mapState = {
                 rifts: this.rifts.slice(),
                 landmarks: this.landmarks.slice(),
-                unlockedZones: Array.from(this.unlockedZones)
+                unlockedZones: Array.from(this.unlockedZones),
+                exploredCells: Array.from(this.exploredCells)
             };
             GameManager.notify('mapState');
         } catch (e) {
             console.warn('無法儲存 mapState 到 GameManager:', e);
         }
+    }
+
+    _cellKey(x, y) {
+        return `${x},${y}`;
+    }
+
+    isCellExplored(x, y) {
+        return this.exploredCells.has(this._cellKey(x, y));
+    }
+
+    revealAroundPlayer(radius = 1, options = {}) {
+        const { save = true } = options;
+        let changed = false;
+        const centerX = this.playerPos.x;
+        const centerY = this.playerPos.y;
+        for (let dy = -radius; dy <= radius; dy += 1) {
+            for (let dx = -radius; dx <= radius; dx += 1) {
+                const x = centerX + dx;
+                const y = centerY + dy;
+                if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) continue;
+                const key = this._cellKey(x, y);
+                if (this.exploredCells.has(key)) continue;
+                this.exploredCells.add(key);
+                changed = true;
+            }
+        }
+        if (changed && save) {
+            this._saveMapState();
+            GameManager.markSaveDirty?.('map-explored-cells');
+        }
+        return changed;
     }
 
     updateCamera() {
@@ -672,6 +710,7 @@ export default class WorldMap {
         this.playerPos.x = site.x;
         this.playerPos.y = site.y;
         this.updateCamera();
+        this.revealAroundPlayer(1);
         return site;
     }
 
@@ -693,6 +732,7 @@ export default class WorldMap {
             zone: cell?.zone || 'low'
         };
         this.updateCamera();
+        this.revealAroundPlayer(1);
 
         return {
             ...site,
@@ -723,6 +763,7 @@ export default class WorldMap {
             data: site.data
         };
         this.updateCamera();
+        this.revealAroundPlayer(1);
         return site;
     }
 
@@ -849,6 +890,7 @@ export default class WorldMap {
         GameManager.state.flags['map.travelStep'] = this.travelStep;
         GameManager.markSaveDirty?.('map-travel-step');
         this.updateCamera();
+        this.revealAroundPlayer(1);
             // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
             try {
                 const arrivedZone = this.mapData[newY][newX].zone;
@@ -1008,7 +1050,13 @@ export default class WorldMap {
             const row = this.mapData[r];
             for (let c = startCol; c < endCol; c++) {
                 if (c < 0 || c >= this.cols) continue;
-                visibleCells.push({ x: c, y: r, data: row[c] });
+                visibleCells.push({
+                    x: c,
+                    y: r,
+                    data: row[c],
+                    explored: this.isCellExplored(c, r),
+                    nearPlayer: Math.abs(c - this.playerPos.x) <= 1 && Math.abs(r - this.playerPos.y) <= 1
+                });
             }
         }
         return visibleCells;

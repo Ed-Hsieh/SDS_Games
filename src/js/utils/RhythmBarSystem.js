@@ -1,203 +1,301 @@
 /**
- * RhythmBarSystem - 共用節奏條系統
- * 用於 AdventureScene 和 TowerScene 的戰鬥節奏條
+ * RhythmBarSystem
+ *
+ * Supports the original horizontal gauge and the combat-panel circular rhythm
+ * ring. Offhand rings can be configured as a timed window: the ring only runs
+ * after the main-hand attack opens it, and an expired window does not consume
+ * durability or trigger cooldown.
  */
 import audioManager from './AudioManager.js';
 import { getWeaponCombatProfile } from './WeaponCombatProfile.js';
+
+function readNumber(value, fallback = 0) {
+    const number = Number(value);
+    return Number.isFinite(number) ? number : fallback;
+}
+
+function clampRhythmPosition(value) {
+    return Math.max(0, Math.min(100, readNumber(value, 0)));
+}
+
+function normalizeRhythmPosition(value) {
+    const number = readNumber(value, 0);
+    return ((number % 100) + 100) % 100;
+}
+
+function isWeapon(item) {
+    return item && String(item.type || '').toLowerCase() === 'weapon';
+}
 
 class RhythmBarSystem {
     constructor(character, container, options = {}) {
         this.character = character;
         this.container = container;
-        
-        // 支援自定義選擇器前綴（用於不同場景）
+        this.options = options;
+        this.weaponSlot = options.weaponSlot || 'weapon';
+        this.windowMode = Boolean(options.windowMode);
+        this.windowCycles = this.windowMode
+            ? Math.max(1, Math.min(4, Math.floor(readNumber(options.windowCycles, 1))))
+            : 1;
+
         const prefix = options.prefix || '';
-        
-        this.barElement = container.querySelector(`${prefix}#rhythm-bar, ${prefix}.rhythm-bar`);
-        this.needleElement = container.querySelector(`${prefix}#rhythm-needle, ${prefix}.rhythm-needle`);
-        this.critZoneElement = container.querySelector(`${prefix}#crit-zone, ${prefix}.crit-zone`);
-        this.hitZoneElement = container.querySelector(`${prefix}#hit-zone, ${prefix}.hit-zone`);
-        this.attackBtn = container.querySelector(`${prefix}#action-weapon, ${prefix}.weapon-card, ${prefix}#btn-attack, ${prefix}.btn-attack`);
-        
-        // 節奏條總寬度（百分比）
+        this.barElement = options.barElement
+            || container.querySelector(options.barSelector || `${prefix}#rhythm-bar, ${prefix}.rhythm-bar`);
+        this.needleElement = options.needleElement
+            || container.querySelector(options.needleSelector || `${prefix}#rhythm-needle, ${prefix}.rhythm-needle`);
+        this.critZoneElement = options.critZoneElement
+            || container.querySelector(options.critZoneSelector || `${prefix}#crit-zone, ${prefix}.crit-zone`);
+        this.hitZoneElement = options.hitZoneElement
+            || container.querySelector(options.hitZoneSelector || `${prefix}#hit-zone, ${prefix}.hit-zone`);
+        this.attackBtn = options.attackButton
+            || container.querySelector(options.attackSelector || `${prefix}#action-weapon, ${prefix}.weapon-card, ${prefix}#btn-attack, ${prefix}.btn-attack`);
+
+        this.ringMode = Boolean(options.ringMode)
+            || this.barElement?.dataset?.rhythmMode === 'ring'
+            || this.barElement?.classList?.contains('rhythm-ring');
+
         this.barWidth = 100;
-        
-        // 指針狀態
-        this.needlePosition = 0;      // 當前位置 (0-100%)
-        this.needleDirection = 1;      // 移動方向 (1=右, -1=左)
-        
-        // 從角色/武器獲取數據
+        this.needlePosition = 0;
+        this.needleDirection = 1;
         this.battleAttackSpeedBonusPercent = 0;
-        this.updateEquipmentStats();
-        
-        // 動畫控制
         this.animationId = null;
         this.lastTime = 0;
         this.isRunning = false;
         this.isPaused = false;
-        
-        // 擊中標記
-        this.hitMarker = null;
-        
-        // 生成判定區域
-        this.generateZones();
-    }
-
-    /**
-     * 從角色裝備更新節奏條參數
-     */
-    updateEquipmentStats() {
-        // 取得武器速度（控制指針移動速度）
-        // weaponSpeed 越高，指針移動越快
-        this.weaponSpeed = this.character.getWeaponSpeed?.() || 1.0;
-        this.weaponProfile = getWeaponCombatProfile(this.character);
-        this.weaponSpeed *= Math.max(0.1, Number(this.weaponProfile.needleSpeedMultiplier) || 1);
-        
-        // 取得攻擊速度（控制冷卻時間）
-        // attackSpeed is stored as attacks-per-second; cooldown needs seconds-per-attack.
-        const baseAttackSpeed = this.character.getAttackInterval?.()
-            || (1 / Math.max(0.1, this.character.getAttackSpeed?.() || 1.0));
-        const profileCooldown = Math.max(0.1, Number(this.weaponProfile.cooldownMultiplier) || 1);
-        const battleMultiplier = 1 + Math.max(0, Number(this.battleAttackSpeedBonusPercent) || 0) / 100;
-        this.attackSpeed = Math.max(0.18, (baseAttackSpeed * profileCooldown) / Math.max(0.1, battleMultiplier));
-        
-        // 取得爆擊機率（決定 Crit Zone 寬度）
-        this.critChance = this.character.getCritChance?.() || 0.05;
-        
-        // 取得爆擊傷害倍率
-        this.critDamage = this.character.getCritDamage?.() || 1.5;
-        
-        // 取得攻擊力（使用 getTotalAtk 方法）
-        this.attackPower = this.character.getTotalAtk?.() || 10;
-        
-        // 取得武器稀有度（決定 Hit Zone 寬度）
-        this.weaponRarity = this._getWeaponRarity();
-        
-        // 冷卻系統
+        this.isWindowActive = !this.windowMode;
         this.isOnCooldown = false;
         this.cooldownTimer = null;
         this.cooldownFrame = null;
         this.cooldownStartedAt = 0;
         this.cooldownDurationMs = 0;
+        this.hitMarker = null;
+
+        this.updateEquipmentStats();
+        this.generateZones();
+        this._applyVisualState();
+        this._setNeedlePosition(0);
     }
 
-    /**
-     * 取得武器稀有度
-     * @returns {string} 稀有度名稱
-     */
+    _getWeapon() {
+        const item = this.character?.equipment?.[this.weaponSlot];
+        return isWeapon(item) ? item : null;
+    }
+
+    _getProfileCharacter() {
+        if (this.weaponSlot === 'weapon') return this.character;
+        const weapon = this._getWeapon();
+        return {
+            ...(this.character || {}),
+            equipment: {
+                ...(this.character?.equipment || {}),
+                weapon,
+                armor: null
+            }
+        };
+    }
+
     _getWeaponRarity() {
-        const weapon = this.character.equipment?.weapon;
-        if (weapon && weapon.rarity) {
-            return weapon.rarity;
-        }
-        return 'common';
+        return this._getWeapon()?.rarity || 'common';
     }
 
-    /**
-     * 根據稀有度計算 Hit Zone 寬度
-     * common: 20%, uncommon: 24%, rare: 28%, epic: 32%, legendary: 36%, mythic: 40%
-     */
+    _positionToAngle(position) {
+        return normalizeRhythmPosition(position) * 3.6;
+    }
+
+    _zonePositionToAngle(position) {
+        return clampRhythmPosition(position) * 3.6;
+    }
+
+    _getZoneBounds(zone) {
+        if (!zone) return { start: 0, end: 0 };
+        const start = clampRhythmPosition(zone.start);
+        const end = Math.max(start, Math.min(100, start + Math.max(0, readNumber(zone.width, 0))));
+        return { start, end };
+    }
+
+    _isWithinZone(position, zone) {
+        const pos = this.ringMode ? normalizeRhythmPosition(position) : clampRhythmPosition(position);
+        const { start, end } = this._getZoneBounds(zone);
+        return pos >= start && pos <= end;
+    }
+
+    _getHitTypeForPosition(position) {
+        if (this._isWithinZone(position, this.critZone)) return 'crit';
+        if (this._isWithinZone(position, this.hitZone)) return 'hit';
+        return 'miss';
+    }
+
+    _syncDebugState(lastJudgement = null) {
+        if (!this.barElement) return;
+        const pos = this.ringMode
+            ? normalizeRhythmPosition(this.needlePosition)
+            : clampRhythmPosition(this.needlePosition);
+        const hitBounds = this._getZoneBounds(this.hitZone);
+        const critBounds = this._getZoneBounds(this.critZone);
+
+        this.barElement.dataset.rhythmPosition = pos.toFixed(2);
+        this.barElement.dataset.rhythmAngle = this._positionToAngle(pos).toFixed(2);
+        this.barElement.dataset.rhythmHitStart = hitBounds.start.toFixed(2);
+        this.barElement.dataset.rhythmHitEnd = hitBounds.end.toFixed(2);
+        this.barElement.dataset.rhythmCritStart = critBounds.start.toFixed(2);
+        this.barElement.dataset.rhythmCritEnd = critBounds.end.toFixed(2);
+        this.barElement.dataset.rhythmPreview = this._getHitTypeForPosition(pos);
+        this.barElement.dataset.rhythmCycle = String(Math.min(
+            this.windowCycles,
+            Math.floor(Math.max(0, readNumber(this.needlePosition, 0)) / this.barWidth) + 1
+        ));
+        this.barElement.dataset.rhythmWindowCycles = String(this.windowCycles);
+        if (lastJudgement) {
+            this.barElement.dataset.rhythmJudgement = lastJudgement;
+        }
+    }
+
+    _setNeedlePosition(position) {
+        if (!this.needleElement) return;
+        if (this.ringMode) {
+            const angle = this._positionToAngle(position);
+            this.needleElement.style.transform = `rotate(${angle}deg)`;
+            this.barElement?.style?.setProperty('--needle-angle', `${angle}deg`);
+            this._syncDebugState();
+            return;
+        }
+
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+        const translateX = (position / 100) * parentWidth;
+        this.needleElement.style.transform = `translateX(${translateX}px)`;
+        this._syncDebugState();
+    }
+
+    _applyZoneStyle(element, zone) {
+        if (!element || !zone) return;
+        if (this.ringMode) {
+            const { start, end } = this._getZoneBounds(zone);
+            element.style.removeProperty('transform');
+            element.style.removeProperty('width');
+            element.style.setProperty('--zone-start', `${start}%`);
+            element.style.setProperty('--zone-end', `${end}%`);
+            element.style.setProperty('--zone-start-angle', `${this._zonePositionToAngle(start)}deg`);
+            element.style.setProperty('--zone-end-angle', `${this._zonePositionToAngle(end)}deg`);
+            element.dataset.zoneStart = start.toFixed(3);
+            element.dataset.zoneEnd = end.toFixed(3);
+            return;
+        }
+
+        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+        const translateX = (zone.start / 100) * parentWidth;
+        element.style.transform = `translateX(${translateX}px)`;
+        element.style.width = `${zone.width}%`;
+        element.style.willChange = 'transform';
+    }
+
+    _applyVisualState() {
+        if (!this.barElement) return;
+        const hasWeapon = this.weaponSlot === 'weapon' || Boolean(this._getWeapon());
+        this.barElement.classList.toggle('is-ring', this.ringMode);
+        this.barElement.classList.toggle('is-window-mode', this.windowMode);
+        this.barElement.classList.toggle('is-disabled', !hasWeapon);
+        this.barElement.classList.toggle('is-ready', this.windowMode && hasWeapon && !this.isOnCooldown && !this.isWindowActive);
+        this.barElement.classList.toggle('is-active', this.windowMode && this.isWindowActive && !this.isOnCooldown);
+        this.barElement.classList.toggle('cooldown', this.isOnCooldown);
+        this.barElement.style.setProperty('--rhythm-window-cycles', String(this.windowCycles));
+        this.attackBtn?.classList?.toggle('disabled', !hasWeapon);
+    }
+
+    updateEquipmentStats() {
+        const weapon = this._getWeapon();
+        const profileCharacter = this._getProfileCharacter();
+        this.weaponProfile = getWeaponCombatProfile(profileCharacter);
+
+        if (this.weaponSlot === 'weapon') {
+            this.weaponSpeed = this.character?.getWeaponSpeed?.() || 1.0;
+            const baseAttackSpeed = this.character?.getAttackInterval?.()
+                || (1 / Math.max(0.1, this.character?.getAttackSpeed?.() || 1.0));
+            this.attackSpeedBase = baseAttackSpeed;
+            this.critChance = this.character?.getCritChance?.() || 0.05;
+            this.critDamage = this.character?.getCritDamage?.() || 1.5;
+            this.attackPower = this.character?.getTotalAtk?.() || readNumber(weapon?.atk ?? weapon?.attack, 10);
+        } else {
+            this.weaponSpeed = readNumber(weapon?.weaponSpeed, 1.0) || 1.0;
+            const attackSpeed = Math.max(0.1, readNumber(weapon?.attackSpeed, 1.0) || 1.0);
+            this.attackSpeedBase = 1 / attackSpeed;
+            const rawCritChance = readNumber(weapon?.critChance ?? weapon?.crit_chance, 0.05);
+            this.critChance = Math.abs(rawCritChance) > 1 ? rawCritChance / 100 : rawCritChance;
+            this.critDamage = readNumber(weapon?.critDamage ?? weapon?.crit_damage, 1.5) || 1.5;
+            this.attackPower = readNumber(weapon?.atk ?? weapon?.attack, 8);
+        }
+
+        this.weaponSpeed *= Math.max(0.1, Number(this.weaponProfile.needleSpeedMultiplier) || 1);
+        const profileCooldown = Math.max(0.1, Number(this.weaponProfile.cooldownMultiplier) || 1);
+        const battleMultiplier = 1 + Math.max(0, Number(this.battleAttackSpeedBonusPercent) || 0) / 100;
+        this.attackSpeed = Math.max(0.18, (this.attackSpeedBase * profileCooldown) / Math.max(0.1, battleMultiplier));
+        this.weaponRarity = this._getWeaponRarity();
+        this._applyVisualState();
+    }
+
     _calculateHitZoneWidth() {
         const rarityWidths = {
-            'common': 14,
-            'uncommon': 16,
-            'rare': 18,
-            'epic': 20,
-            'legendary': 22,
-            'mythic': 24
+            common: 14,
+            uncommon: 16,
+            rare: 18,
+            epic: 20,
+            legendary: 22,
+            mythic: 24
         };
         const profileWidth = Math.max(0.5, Number(this.weaponProfile?.hitZoneMultiplier) || 1);
         return Math.max(8, Math.min(28, (rarityWidths[this.weaponRarity] || 14) * profileWidth));
     }
 
-    /**
-     * 生成判定區域位置
-     * Crit Zone 和 Hit Zone 隨機放置，但不可重疊
-     */
     generateZones() {
-        // ===== 計算區域寬度 =====
-        // Crit Zone 寬度 = critChance * 100%（例：12% 暴擊率 = 12% 寬度）
         const profileCritWidth = Math.max(0.4, Number(this.weaponProfile?.critZoneMultiplier) || 1);
         const critWidth = Math.max(3, Math.min(14, this.critChance * 100 * 0.55 * profileCritWidth));
-        
-        // Hit Zone 寬度根據武器稀有度（20% ~ 40%）
         const hitWidth = this._calculateHitZoneWidth();
-        
-        // 安全間距，確保區域不重疊
         const safeGap = 3;
-        
-        // 可用範圍（留出兩端邊距）
         const marginLeft = 3;
         const marginRight = 3;
         const availableWidth = 100 - marginLeft - marginRight;
-        
-        // ===== 隨機決定區域位置 =====
-        // 隨機決定哪個區域在左邊
         const critOnLeft = Math.random() > 0.5;
-        
-        let critStart, hitStart;
-        
+        let critStart;
+        let hitStart;
+
         if (critOnLeft) {
-            // Crit 在左，Hit 在右
             const maxCritStart = availableWidth - critWidth - safeGap - hitWidth;
             critStart = marginLeft + Math.random() * Math.max(0, maxCritStart);
-            
-            // Hit 區域在 Crit 區域右側
             const hitMinStart = critStart + critWidth + safeGap;
             const hitMaxStart = 100 - marginRight - hitWidth;
             hitStart = hitMinStart + Math.random() * Math.max(0, hitMaxStart - hitMinStart);
         } else {
-            // Hit 在左，Crit 在右
             const maxHitStart = availableWidth - hitWidth - safeGap - critWidth;
             hitStart = marginLeft + Math.random() * Math.max(0, maxHitStart);
-            
-            // Crit 區域在 Hit 區域右側
             const critMinStart = hitStart + hitWidth + safeGap;
             const critMaxStart = 100 - marginRight - critWidth;
             critStart = critMinStart + Math.random() * Math.max(0, critMaxStart - critMinStart);
         }
-        
-        // 保存區域資料
+
         this.critZone = { start: critStart, width: critWidth };
         this.hitZone = { start: hitStart, width: hitWidth };
-        
-        // 更新 DOM - 使用 transform 以避免觸發重排
-        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
-        if (this.critZoneElement) {
-            const critTranslate = (this.critZone.start / 100) * parentWidth;
-            this.critZoneElement.style.transform = `translateX(${critTranslate}px)`;
-            this.critZoneElement.style.width = this.critZone.width + '%';
-            this.critZoneElement.style.willChange = 'transform';
-        }
-        if (this.hitZoneElement) {
-            const hitTranslate = (this.hitZone.start / 100) * parentWidth;
-            this.hitZoneElement.style.transform = `translateX(${hitTranslate}px)`;
-            this.hitZoneElement.style.width = this.hitZone.width + '%';
-            this.hitZoneElement.style.willChange = 'transform';
-        }
-        
-        // Debug log
+        this._applyZoneStyle(this.critZoneElement, this.critZone);
+        this._applyZoneStyle(this.hitZoneElement, this.hitZone);
+        this._syncDebugState();
     }
 
-    /**
-     * 開始節奏條動畫
-     */
     start() {
         if (this.isRunning) return;
-        
-        // 更新裝備參數
         this.updateEquipmentStats();
-        
+        this.generateZones();
+        if (this.windowMode) {
+            this.isRunning = false;
+            this.isWindowActive = false;
+            this._setNeedlePosition(0);
+            this._applyVisualState();
+            return;
+        }
+
         this.isRunning = true;
         this.isPaused = false;
         this.lastTime = performance.now();
         this.animate();
-        
     }
 
-    /**
-     * 停止節奏條動畫
-     */
     stop() {
         this.isRunning = false;
         if (this.animationId) {
@@ -207,117 +305,138 @@ class RhythmBarSystem {
         this.cancelCooldown();
     }
 
-    /**
-     * 動畫循環 - 更新指針位置
-     */
+    activateWindow() {
+        if (!this.windowMode) return false;
+        if (this.isOnCooldown || !this._getWeapon()) {
+            this._applyVisualState();
+            return false;
+        }
+
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        this.updateEquipmentStats();
+        this.generateZones();
+        this.needlePosition = 0;
+        this.needleDirection = 1;
+        this.isWindowActive = true;
+        this.isRunning = true;
+        this.isPaused = false;
+        this.lastTime = performance.now();
+        this._setNeedlePosition(0);
+        this._applyVisualState();
+        this.animate();
+        return true;
+    }
+
+    expireWindow() {
+        if (!this.windowMode) return;
+        this.isRunning = false;
+        this.isWindowActive = false;
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+        this.needlePosition = 0;
+        this._setNeedlePosition(0);
+        this.barElement?.classList?.add('is-window-expired');
+        window.setTimeout(() => this.barElement?.classList?.remove('is-window-expired'), 260);
+        this._applyVisualState();
+    }
+
     animate() {
         if (!this.isRunning) return;
-        
+
         const currentTime = performance.now();
-        const deltaTime = (currentTime - this.lastTime) / 1000; // 轉換為秒
+        const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
-        
-        // 暫停或冷卻中不更新位置
+
         if (!this.isPaused && !this.isOnCooldown) {
-            // 計算指針移動速度
-            // 公式：指針速度 = (barWidth * weaponSpeed) per second
-            // weaponSpeed = 1.0 表示 1 秒走完整個條
-            // weaponSpeed = 2.0 表示 0.5 秒走完
-            // weaponSpeed = 0.5 表示 2 秒走完
-            const pixelsPerSecond = this.barWidth * this.weaponSpeed;
-            const movement = pixelsPerSecond * deltaTime;
-            
-            this.needlePosition += movement * this.needleDirection;
-            
-            // 邊界反彈
-            if (this.needlePosition >= this.barWidth) {
-                this.needlePosition = this.barWidth;
-                this.needleDirection = -1;
-            } else if (this.needlePosition <= 0) {
-                this.needlePosition = 0;
-                this.needleDirection = 1;
+            const movement = this.barWidth * this.weaponSpeed * deltaTime;
+            if (this.ringMode) {
+                this.needlePosition += movement;
+                if (this.windowMode) {
+                    if (this.needlePosition >= this.barWidth * this.windowCycles) {
+                        this.expireWindow();
+                        return;
+                    }
+                } else if (this.needlePosition >= this.barWidth) {
+                    this.needlePosition %= this.barWidth;
+                }
+            } else {
+                this.needlePosition += movement * this.needleDirection;
+                if (this.needlePosition >= this.barWidth) {
+                    this.needlePosition = this.barWidth;
+                    this.needleDirection = -1;
+                } else if (this.needlePosition <= 0) {
+                    this.needlePosition = 0;
+                    this.needleDirection = 1;
+                }
             }
-            
-            // 更新指針 DOM - 使用 transform 實現 GPU 加速（避免改動 left）
-            if (this.needleElement) {
-                const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
-                // needlePosition 是百分比（0-100）
-                const translateX = (this.needlePosition / 100) * parentWidth;
-                this.needleElement.style.transform = `translateX(${translateX}px)`;
-            }
+            this._setNeedlePosition(this.needlePosition);
         }
-        
+
         this.animationId = requestAnimationFrame(() => this.animate());
     }
 
-    /**
-     * 判定攻擊結果
-     * @returns {object} { type: 'crit'|'hit'|'miss', damage: number }
-     */
     judgeHit() {
-        // 冷卻中無法攻擊
         if (this.isOnCooldown) {
+            this._syncDebugState('cooldown');
             return { type: 'cooldown', damage: 0 };
         }
-        
-        audioManager.play('attack-swing', { throttleKey: 'rhythm-attack-swing', throttleMs: 80 });
-        const pos = this.needlePosition;
-        let hitType = 'miss';
-        let damage = 0;
-        
-        // ===== 判定邏輯（Crit 優先） =====
-        // Condition A: Crit - 游標在 Crit Zone 內
-        if (pos >= this.critZone.start && pos <= this.critZone.start + this.critZone.width) {
-            hitType = 'crit';
-            damage = Math.floor(this.attackPower * this.critDamage);
+        if (this.windowMode && !this.isWindowActive) {
+            this._syncDebugState('inactive');
+            return { type: 'inactive', damage: 0 };
         }
-        // Condition B: Hit - 游標在 Hit Zone 內（且不在 Crit 內）
-        else if (pos >= this.hitZone.start && pos <= this.hitZone.start + this.hitZone.width) {
-            hitType = 'hit';
+        if (this.weaponSlot !== 'weapon' && !this._getWeapon()) {
+            this._syncDebugState('inactive');
+            return { type: 'inactive', damage: 0 };
+        }
+
+        audioManager.play('attack-swing', { throttleKey: `rhythm-attack-swing:${this.weaponSlot}`, throttleMs: 80 });
+        const pos = this.ringMode
+            ? normalizeRhythmPosition(this.needlePosition)
+            : clampRhythmPosition(this.needlePosition);
+        const hitType = this._getHitTypeForPosition(pos);
+        let damage = 0;
+
+        if (hitType === 'crit') {
+            damage = Math.floor(this.attackPower * this.critDamage);
+        } else if (hitType === 'hit') {
             damage = this.attackPower;
         }
-        // Condition C: Miss - 其他區域
-        else {
-            hitType = 'miss';
-            damage = 0;
-        }
-        
-        // 顯示擊中標記
+
+        this._syncDebugState(hitType);
         this.showHitMarker(pos, hitType);
-        
-        // 顯示判定文字特效
         this.showJudgmentText(hitType, damage);
-        
-        // 啟動冷卻
-        this.startCooldown();
-        
-        
-        return { type: hitType, damage: damage };
-    }
-    
-    /**
-     * 顯示擊中位置標記
-     */
-    showHitMarker(position, hitType) {
-        // 移除舊標記
-        if (this.hitMarker) {
-            this.hitMarker.remove();
+        if (this.windowMode) {
+            this.isWindowActive = false;
+            this.isRunning = false;
+            if (this.animationId) {
+                cancelAnimationFrame(this.animationId);
+                this.animationId = null;
+            }
         }
-        
-        // 創建新標記
+        this.startCooldown();
+
+        return { type: hitType, damage };
+    }
+
+    showHitMarker(position, hitType) {
+        if (this.hitMarker) this.hitMarker.remove();
         this.hitMarker = document.createElement('div');
         this.hitMarker.className = `hit-marker hit-marker-${hitType}`;
-        // 使用 transform 以避免重排
-        const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
-        const translateX = (position / 100) * parentWidth;
-        this.hitMarker.style.transform = `translateX(${translateX}px)`;
-        this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
-        
-        if (this.barElement) {
-            this.barElement.appendChild(this.hitMarker);
+        if (this.ringMode) {
+            this.hitMarker.style.transform = `rotate(${this._positionToAngle(position)}deg)`;
+        } else {
+            const parentWidth = this.barElement ? this.barElement.offsetWidth : 1;
+            const translateX = (position / 100) * parentWidth;
+            this.hitMarker.style.transform = `translateX(${translateX}px)`;
         }
-        
-        // 特效播放完後移除
+        this.hitMarker.innerHTML = '<div class="marker-pulse"></div>';
+        this.barElement?.appendChild(this.hitMarker);
+
         setTimeout(() => {
             if (this.hitMarker) {
                 this.hitMarker.remove();
@@ -325,20 +444,16 @@ class RhythmBarSystem {
             }
         }, 800);
     }
-    
-    /**
-     * 顯示判定文字特效
-     */
+
     showJudgmentText(hitType, damage) {
         const textConfig = {
-            'crit': { text: '暴擊', color: '#4caf50', size: '28px' },
-            'hit': { text: '命中', color: '#ffd700', size: '22px' },
-            'miss': { text: '失誤', color: '#ff4444', size: '20px' }
+            crit: { text: '暴擊', color: '#4caf50', size: '28px' },
+            hit: { text: '命中', color: '#ffd700', size: '22px' },
+            miss: { text: '失誤', color: '#ff4444', size: '20px' }
         };
-        
         const config = textConfig[hitType];
         if (!config) return;
-        
+
         const textEl = document.createElement('div');
         textEl.className = `judgment-text judgment-${hitType}`;
         textEl.textContent = config.text;
@@ -355,35 +470,21 @@ class RhythmBarSystem {
             pointer-events: none;
             animation: judgmentPop 0.8s ease-out forwards;
         `;
-        
-        if (this.barElement) {
-            this.barElement.appendChild(textEl);
-        }
-        
-        // 動畫結束後移除
+        this.barElement?.appendChild(textEl);
         setTimeout(() => textEl.remove(), 800);
     }
 
-    /**
-     * 啟動冷卻系統
-     */
     startCooldown() {
         if (this.isOnCooldown) return;
-        
         this.isOnCooldown = true;
+        this._applyVisualState();
 
-        // 節奏條只暫停判定；冷卻視覺改由下方行動卡的小圓圈呈現。
-        if (this.barElement) {
-            this.barElement.classList.add('cooldown');
-        }
-        
-        // 冷卻時間結束後恢復
-        const cooldownDuration = this.attackSpeed * 1000; // 轉換為毫秒
+        const cooldownDuration = this.attackSpeed * 1000;
         this.cooldownStartedAt = performance.now();
         this.cooldownDurationMs = cooldownDuration;
         this.updateActionCooldown(cooldownDuration / 1000, cooldownDuration / 1000);
         this.tickActionCooldown();
-        
+
         this.cooldownTimer = setTimeout(() => {
             this.endCooldown();
         }, cooldownDuration);
@@ -447,100 +548,68 @@ class RhythmBarSystem {
             clearTimeout(this.cooldownTimer);
             this.cooldownTimer = null;
         }
-        if (this.barElement) {
-            this.barElement.classList.remove('cooldown');
-        }
         this.clearActionCooldown();
+        this._applyVisualState();
     }
 
-    /**
-     * 結束冷卻
-     */
     endCooldown() {
         this.isOnCooldown = false;
-        
-        // 移除冷卻樣式
-        if (this.barElement) {
-            this.barElement.classList.remove('cooldown');
-        }
         this.clearActionCooldown();
-        
-        // 重新隨機化區域位置
+        this.updateEquipmentStats();
         this.generateZones();
-        
-        // 取消冷卻計時器
         if (this.cooldownTimer) {
             clearTimeout(this.cooldownTimer);
             this.cooldownTimer = null;
         }
-        
+        if (this.windowMode) {
+            this.isRunning = false;
+            this.isWindowActive = false;
+            this.needlePosition = 0;
+            this._setNeedlePosition(0);
+        }
+        this._applyVisualState();
     }
-    
-    /**
-     * 暫停節奏條
-     */
+
     pause() {
         this.isPaused = true;
     }
-    
-    /**
-     * 恢復節奏條
-     */
+
     resume() {
         this.isPaused = false;
     }
-    
-    /**
-     * 重置節奏條
-     */
+
     reset() {
         this.needlePosition = 0;
         this.needleDirection = 1;
         this.isPaused = false;
+        this.isWindowActive = !this.windowMode;
         this.cancelCooldown();
-        
-        if (this.barElement) {
-            this.barElement.classList.remove('cooldown');
-        }
-        
-        if (this.needleElement) {
-            this.needleElement.style.transform = 'translateX(0)';
-        }
-        
+        this._setNeedlePosition(0);
         this.generateZones();
     }
-    
-    /**
-     * 更新角色參考（切換角色時使用）
-     */
+
     updateCharacter(character) {
         this.character = character;
         this.updateEquipmentStats();
         this.generateZones();
+        this._applyVisualState();
     }
 
     setBattleAttackSpeedBonus(percent = 0) {
         this.battleAttackSpeedBonusPercent = Math.max(0, Number(percent) || 0);
         this.updateEquipmentStats();
     }
-    
-    /**
-     * 銷毀節奏條系統
-     */
+
     destroy() {
         this.stop();
-        if (this.hitMarker) {
-            this.hitMarker.remove();
-        }
+        if (this.hitMarker) this.hitMarker.remove();
     }
 }
 
-// 導出供其他模組使用
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = RhythmBarSystem;
 }
 
-// 全域變數（供非模組化使用）
 if (typeof window !== 'undefined') {
     window.RhythmBarSystem = RhythmBarSystem;
 }

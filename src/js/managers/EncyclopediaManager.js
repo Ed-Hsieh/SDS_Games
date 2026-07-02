@@ -14,6 +14,10 @@ import { MaterialDatabase } from '../data/Materials.js';
 import { QuestRewardItems } from '../data/Quests.js';
 import { CasinoSpecialItems } from '../data/CasinoRewards.js';
 import {
+    getReadableCodexType,
+    getReadableSourceType
+} from '../data/CodexCatalogClasses.js';
+import {
     BlueprintDropDatabase,
     getBlueprintDropsForMonster,
     getBlueprintDropsForRecipe
@@ -25,7 +29,6 @@ const REVEAL_ALL_FLAG = 'encyclopedia.revealAll';
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
 const ITEM_FLAG_PREFIX = 'encyclopedia.item.';
 const BLUEPRINT_FLAG_PREFIX = 'encyclopedia.blueprint.';
-
 const MonsterRankRarity = {
     normal: 'common',
     elite: 'rare',
@@ -62,6 +65,14 @@ const ElementLabels = {
     earth: '地',
     shadow: '暗',
     holy: '聖'
+};
+
+const ReadableItemSourceLabels = {
+    equipment: '裝備資料',
+    material: '素材資料',
+    questReward: '任務獎勵',
+    casino: '賭場',
+    shop: '商店'
 };
 
 function setFlagSilently(flag, value) {
@@ -308,14 +319,77 @@ function findMonsterByBlueprintSource(sourceKey) {
     return { name: sourceKey, sourceLabel: '未知來源', entryId: sourceKey };
 }
 
+function addUniqueSourceRef(entry, sourceRef) {
+    if (!entry || !sourceRef?.id) return;
+    if (!Array.isArray(entry.sourceRefs)) entry.sourceRefs = [];
+    const existing = entry.sourceRefs.find(source => source.id === sourceRef.id && source.type === sourceRef.type);
+    if (existing) {
+        if (sourceRef.chance != null) existing.chance = sourceRef.chance;
+        if (sourceRef.quantity != null) existing.quantity = sourceRef.quantity;
+        return;
+    }
+    entry.sourceRefs.push(sourceRef);
+}
+
+function addUniqueUsageRef(entry, usageRef) {
+    if (!entry || !usageRef?.id) return;
+    if (!Array.isArray(entry.usageRefs)) entry.usageRefs = [];
+    if (entry.usageRefs.some(usage => usage.id === usageRef.id && usage.type === usageRef.type)) return;
+    entry.usageRefs.push(usageRef);
+}
+
+function collectRecipeUsageRefs(itemId) {
+    const refs = [];
+    for (const [recipeId, recipe] of Object.entries(RecipeDatabase || {})) {
+        const used = (recipe.materials || []).some(material => material.id === itemId);
+        if (!used) continue;
+        refs.push({
+            id: recipeId,
+            type: 'recipe',
+            label: recipe.name || recipe.result?.name || recipeId,
+            resultId: recipe.result?.id || recipeId,
+            resultType: recipe.result?.type || recipe.type || null,
+            result: recipe.result || null
+        });
+    }
+    return refs;
+}
+
+function collectItemDropSourceIndex() {
+    const index = new Map();
+    for (const monster of getMonsterEntries()) {
+        for (const drop of monster.itemDrops || []) {
+            const id = drop.id;
+            if (!id) continue;
+            if (!index.has(id)) index.set(id, []);
+            index.get(id).push({
+                id: monster.entryId,
+                type: 'monster',
+                label: monster.name || monster.id,
+                sourceLabel: monster.sourceLabel,
+                icon: monster.icon,
+                image: monster.image,
+                rarity: monster.rarity,
+                rank: monster.rank,
+                level: monster.level ?? null,
+                chance: drop.chance ?? null,
+                quantity: drop.quantity ?? null
+            });
+        }
+    }
+    return index;
+}
+
 function addItemEntry(index, rawItem, sourceType) {
     if (!rawItem) return;
     const id = rawItem.id;
     if (!id) return;
+    if (rawItem.codexHidden || rawItem.codexCategory === 'achievement') return;
+    if (rawItem.passiveEffectId) return;
 
     const source = {
         type: sourceType,
-        label: ItemSourceLabels[sourceType] || sourceType
+        label: ReadableItemSourceLabels[sourceType] || ItemSourceLabels[sourceType] || getReadableSourceType(sourceType)
     };
 
     const existing = index.get(id);
@@ -323,6 +397,11 @@ function addItemEntry(index, rawItem, sourceType) {
         if (!existing.sources.some(entry => entry.type === source.type)) {
             existing.sources.push(source);
         }
+        addUniqueSourceRef(existing, {
+            id: sourceType,
+            type: sourceType,
+            label: source.label
+        });
         if (sourceType === 'casino') {
             existing.item = { ...rawItem };
             existing.sourceType = sourceType;
@@ -345,10 +424,17 @@ function addItemEntry(index, rawItem, sourceType) {
         description: item.description || item.desc || '',
         stats: item.stats || {},
         specialEffects: item.specialEffects || [],
+        sourceRefs: [],
+        usageRefs: collectRecipeUsageRefs(id),
         sourceType,
         sourceLabel: source.label,
         sources: [source],
         known: isItemKnown(id)
+    });
+    addUniqueSourceRef(index.get(id), {
+        id: sourceType,
+        type: sourceType,
+        label: source.label
     });
 }
 
@@ -369,6 +455,13 @@ export function getItemEntries() {
 
     for (const [id, item] of Object.entries(CasinoSpecialItems || {})) {
         addItemEntry(index, { ...item, id: item.id || id }, 'casino');
+    }
+
+    const dropSourceIndex = collectItemDropSourceIndex();
+    for (const [itemId, sourceRefs] of dropSourceIndex.entries()) {
+        const entry = index.get(itemId);
+        if (!entry) continue;
+        sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
     }
 
     return [...index.values()];
@@ -423,7 +516,7 @@ export function unlockAllEncyclopediaEntries() {
 }
 
 export function getReadableType(type) {
-    return TypeLabels[type] || type || '未知';
+    return TypeLabels[type] || getReadableCodexType(type) || type || '未知';
 }
 
 export function getReadableElement(element) {

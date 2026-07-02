@@ -1,5 +1,6 @@
 import { getItemDescription, normalizeItemType, readEquipmentStats, readItemStat, readNumber } from '../models/ItemSchema.js';
-import { getGeneratedItemImage } from '../data/AssetManifest.js';
+import { getGeneratedCombatEffectImage, getGeneratedItemImage } from '../data/AssetManifest.js';
+import { getWeaponCombatProfile } from './WeaponCombatProfile.js';
 
 export const ITEM_TYPE_TEXT = {
     weapon: '武器',
@@ -40,7 +41,7 @@ export const STAT_LABELS = {
     fireDamage: '火焰傷害',
     iceDamage: '冰霜傷害',
     thunderDamage: '雷電傷害',
-    voidDamage: '虛空傷害',
+    void: '虛空吞噬',
     fire: '火屬性',
     ice: '冰屬性',
     thunder: '雷屬性',
@@ -74,6 +75,29 @@ export const STAT_ICONS = {
     weaponSpeed: '⏱️'
 };
 
+const EFFECT_ASSET_ALIASES = {
+    poison: 'poison',
+    fire: 'burn',
+    burn: 'burn',
+    ice: 'freeze',
+    freeze: 'freeze',
+    thunder: 'attack_speed_down',
+    stunChance: 'attack_speed_down',
+    slowChance: 'attack_speed_down',
+    armorPenetration: 'armor_break',
+    armor_break: 'armor_break',
+    damageReduction: 'defense_up',
+    lifesteal: 'lifesteal',
+    double_strike: 'double_strike',
+    damage_reflect: 'counter',
+    void: 'lifesteal',
+    light: 'attack_up',
+    attackSpeed: 'attack_up',
+    hpRegen: 'defense_up',
+    dodgeChance: 'defense_up',
+    execute: 'double_strike'
+};
+
 export const PERCENT_STATS = new Set([
     'critChance',
     'critDamage',
@@ -90,7 +114,6 @@ export const PERCENT_STATS = new Set([
     'fireDamage',
     'iceDamage',
     'thunderDamage',
-    'voidDamage',
     'fire',
     'ice',
     'thunder',
@@ -168,7 +191,7 @@ export function getStatIcon(key) {
     return STAT_ICONS[key] || (isPercentStat(key) ? '✨' : '');
 }
 
-function normalizeStatKey(key) {
+export function normalizeDisplayStatKey(key) {
     if (!key) return key;
 
     const raw = String(key);
@@ -212,12 +235,14 @@ function normalizeStatKey(key) {
         stun_chance: 'stunChance',
         bossbonus: 'bossBonus',
         boss_bonus: 'bossBonus',
-        voiddamage: 'voidDamage',
-        void_damage: 'voidDamage'
+        voiddamage: 'void',
+        void_damage: 'void'
     };
 
     return aliases[normalized] || raw;
 }
+
+const normalizeStatKey = normalizeDisplayStatKey;
 
 function statRow(key, value, options = {}) {
     if (value === undefined || value === null || value === 0) return '';
@@ -531,20 +556,290 @@ export function buildItemStatsHtml(item, options = {}) {
     if (enhancementMarks.length > 0) {
         const marks = enhancementMarks.map(mark => {
             const rarity = escapeHtml(mark.rarity || 'rare');
-            const name = escapeHtml(mark.label || `+${mark.milestone} 強化印記`);
+            const name = escapeHtml(mark.label || `+${mark.milestone} 強化能力`);
             const stats = escapeHtml(mark.stats ? formatAffixStats(mark.stats) : formatAffixStats({ [mark.stat]: mark.value }));
             return `<div class="item-affix ${rarity}"><span class="affix-name">+${mark.milestone} ${name}</span><span class="affix-stats">${stats}</span></div>`;
         }).join('');
-        html += `<div class="item-affixes-section"><div class="affixes-title">⚒️ 強化印記</div>${marks}</div>`;
+        html += `<div class="item-affixes-section"><div class="affixes-title">⚒️ 強化能力</div>${marks}</div>`;
     }
 
     return html;
+}
+
+function getEffectIconHtml(effect, fallback = '◆') {
+    const key = normalizeStatKey(effect?.type || effect?.id || '');
+    const assetId = EFFECT_ASSET_ALIASES[key] || EFFECT_ASSET_ALIASES[String(effect?.type || '').toLowerCase()] || key;
+    const image = getGeneratedCombatEffectImage(assetId);
+    const label = effect?.name || getStatLabel(key) || effect?.type || '';
+    if (image) {
+        return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}">`;
+    }
+    return escapeHtml(effect?.icon || getStatIcon(key) || fallback);
+}
+
+function formatEffectValue(effect = {}) {
+    const key = normalizeStatKey(effect.type);
+    const value = Number(effect.value ?? effect.percent ?? effect.amount ?? 0);
+    if (effect.text) return String(effect.text);
+    if (key === 'noDurabilityLoss') return '不消耗耐久';
+    if (key === 'void') return value > 0 ? `${formatPlainNumber(value)}/秒` : '虛空吞噬';
+    if (key === 'poison') return value > 0 ? `累積 ${formatPlainNumber(normalizePercentValue(value))}/秒` : '累積毒素';
+    if (key === 'hpRegen') return value > 0 ? `+${formatPlainNumber(value)}/秒` : '生命恢復';
+    if (key === 'critDamage') return value ? `+${formatPlainNumber(normalizeMultiplierPercentValue(value))}%` : '';
+    if (isPercentStat(key)) return value ? `+${formatPlainNumber(normalizePercentValue(value))}%` : '';
+    return value ? `+${formatPlainNumber(value)}` : '';
+}
+
+function describeEffectTrigger(effect = {}) {
+    const key = normalizeStatKey(effect.type);
+    if (effect.triggerText || effect.trigger || effect.conditionText) {
+        return effect.triggerText || effect.trigger || effect.conditionText;
+    }
+
+    const triggerMap = {
+        lifesteal: '造成傷害時回復生命',
+        damageReduction: '受擊時常駐減傷',
+        dodgeChance: '受擊判定時檢定',
+        armorPenetration: '攻擊命中時穿透防禦',
+        double_strike: '攻擊命中時機率追擊',
+        execute: '目標低血時強化傷害',
+        damage_reflect: '受擊後反彈傷害',
+        revive: '死亡時機率復甦',
+        fire: '攻擊命中時追加火焰',
+        ice: '攻擊命中時施加緩速',
+        thunder: '攻擊命中時檢定暈眩',
+        poison: '攻擊命中後累積毒素',
+        void: '攻擊命中後附加吞噬',
+        light: '攻擊命中後加速',
+        slowChance: '攻擊命中時檢定緩速',
+        stunChance: '攻擊命中時檢定暈眩',
+        hpRegen: '戰鬥中持續恢復',
+        noDurabilityLoss: '攻擊或受擊時保護耐久'
+    };
+
+    return triggerMap[key] || '依戰鬥判定觸發';
+}
+
+function braceValue(value) {
+    return value ? `{${value}}` : '';
+}
+
+function buildWeaponProfileDisplay(profile = {}) {
+    const id = profile.id || 'weapon';
+    if (id === 'sword') {
+        const value = `+${formatPlainNumber(profile.critTempoPercent || 0)}% 攻擊速度`;
+        return {
+            valueText: value,
+            abilityText: profile.label || 'Blade Tempo',
+            description: `暴擊時獲得 ${braceValue(value)}，可在戰鬥中堆疊。`,
+            iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
+        };
+    }
+    if (id === 'dagger') {
+        const count = formatPlainNumber(profile.comboEvery || 3);
+        const ratio = `${formatPlainNumber((profile.comboDamageRatio || 0.45) * 100)}% 傷害`;
+        return {
+            valueText: `${count} 連擊`,
+            abilityText: profile.label || 'Quick Chain',
+            description: `連續命中第 ${braceValue(count)} 下時追加 ${braceValue(ratio)}。`,
+            iconHtml: getEffectIconHtml({ type: 'double_strike', name: profile.label }, '⚔️')
+        };
+    }
+    if (id === 'heavy') {
+        const defense = formatPlainNumber(profile.armorBreakMinDefense || 0);
+        const value = `${formatPlainNumber(profile.armorBreakPercent || 0)}% 破甲`;
+        return {
+            valueText: value,
+            abilityText: profile.label || 'Guard Break',
+            description: `暴擊或命中防禦達 ${braceValue(defense)} 的目標時造成 ${braceValue(value)}。`,
+            iconHtml: getEffectIconHtml({ type: 'armorPenetration', name: profile.label }, '⚔️')
+        };
+    }
+    if (id === 'focus') {
+        const chance = `${formatPlainNumber(profile.slowChance || 0)}% 機率`;
+        const value = `${formatPlainNumber(profile.slowPercent || 0)}% 緩速`;
+        const duration = `${formatPlainNumber(profile.slowDuration || 0)} 秒`;
+        return {
+            valueText: value,
+            abilityText: profile.label || 'Focus Cast',
+            description: `暴擊時有 ${braceValue(chance)} 施加 ${braceValue(value)}，持續 ${braceValue(duration)}。`,
+            iconHtml: getEffectIconHtml({ type: 'slowChance', name: profile.label }, '⚔️')
+        };
+    }
+    if (id === 'lance') {
+        const defense = formatPlainNumber(profile.armorPenetrationMinDefense || 0);
+        const value = `${formatPlainNumber(profile.armorPenetrationBonus || 0)}% 穿甲`;
+        return {
+            valueText: value,
+            abilityText: profile.label || 'Piercing Line',
+            description: `暴擊或命中防禦達 ${braceValue(defense)} 的目標時獲得 ${braceValue(value)}。`,
+            iconHtml: getEffectIconHtml({ type: 'armorPenetration', name: profile.label }, '⚔️')
+        };
+    }
+    if (id === 'slime_sword') {
+        const value = `${formatPlainNumber(profile.lifestealMin || 0)}-${formatPlainNumber(profile.lifestealMax || profile.lifestealMin || 0)} 生命`;
+        return {
+            valueText: value,
+            abilityText: profile.label || 'Slime Drain',
+            description: `命中且自身受傷時回復 ${braceValue(value)}。`,
+            iconHtml: getEffectIconHtml({ type: 'lifesteal', name: profile.label }, '⚔️')
+        };
+    }
+    return {
+        valueText: '',
+        abilityText: profile.label || 'Weapon Art',
+        description: '武器本身的戰鬥能力會以戰鬥中的效果圖示提示。',
+        iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
+    };
+}
+
+function buildGenericEffectDescription(entry = {}) {
+    if (entry.type === 'empty') return '尚未附帶可觸發的戰鬥效果。';
+    const valueText = entry.valueText || '';
+    const sourceText = entry.description || describeEffectDisplayText(entry.type) || entry.triggerText || '戰鬥中觸發。';
+    return valueText && !sourceText.includes('{')
+        ? `${sourceText} ${braceValue(valueText)}`
+        : sourceText;
+}
+
+function describeEffectDisplayText(type) {
+    const key = normalizeStatKey(type);
+    const text = {
+        lifesteal: '造成傷害時回復生命值。',
+        damageReduction: '受到傷害時減少實際傷害。',
+        dodgeChance: '受到攻擊時有機率閃避。',
+        armorPenetration: '攻擊時忽略目標部分防禦。',
+        double_strike: '攻擊命中時有機率追加一次打擊。',
+        execute: '目標生命偏低時提高收尾能力。',
+        damage_reflect: '受到攻擊時反彈部分傷害。',
+        revive: '死亡時觸發一次保命效果。',
+        fire: '命中時附加火焰屬性傷害。',
+        ice: '命中時附加冰霜屬性傷害。',
+        thunder: '命中時附加雷霆屬性傷害。',
+        poison: '命中後累積毒素，達到生命門檻時處決。',
+        void: '每秒造成虛空屬性傷害，造成傷害時回復生命值。',
+        light: '命中時獲得光屬性戰鬥增益。',
+        slowChance: '命中時有機率降低目標節奏。',
+        stunChance: '命中時有機率使目標短暫停頓。',
+        hpRegen: '戰鬥中持續回復生命值。',
+        noDurabilityLoss: '攻擊時有機會不消耗耐久。'
+    };
+    return text[key] || '';
+}
+
+function normalizeItemEffectEntries(entries = []) {
+    const seen = new Set();
+    return entries.map(entry => {
+        const next = { ...entry };
+        if (next.type === 'weaponProfile') {
+            const id = String(next.id || '').replace('weapon-profile:', '');
+            Object.assign(next, buildWeaponProfileDisplay({ id, label: next.name, ...(next.profileData || {}) }));
+        } else {
+            next.abilityText = next.abilityText || `${next.name || ''}${next.valueText ? ` ${next.valueText}` : ''}`.trim();
+            next.description = buildGenericEffectDescription(next);
+        }
+        next.triggerText = '';
+        return next;
+    }).filter(entry => {
+        const iconHtml = String(entry.iconHtml || '');
+        const iconSrc = iconHtml.match(/\ssrc="([^"]+)"/)?.[1] || '';
+        const key = iconSrc
+            ? `icon:${iconSrc}`
+            : [
+                entry.type || '',
+                entry.abilityText || entry.name || '',
+                iconHtml
+            ].join('|');
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+export function buildItemEffectEntries(item, options = {}) {
+    if (!item) return [];
+    const entries = [];
+    const normalizedType = normalizeItemType(item.type);
+
+    if (normalizedType === 'weapon') {
+        const profile = getWeaponCombatProfile({ equipment: { weapon: item } });
+        if (profile?.triggerCondition) {
+            entries.push({
+                id: `weapon-profile:${profile.id}`,
+                type: 'weaponProfile',
+                profileData: profile,
+                name: profile.label || '武器節奏',
+                valueText: '',
+                triggerText: profile.triggerCondition,
+                description: '武器本身的節奏型特殊機制，戰鬥中會以同一個圖示提示。',
+                iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
+            });
+        }
+    }
+
+    (item.specialEffects || []).forEach((effect, index) => {
+        if (!effect) return;
+        const key = normalizeStatKey(effect.type);
+        entries.push({
+            id: effect.id || `special:${key}:${index}`,
+            type: key,
+            name: effect.name || getStatLabel(key) || effect.type || '特殊效果',
+            valueText: formatEffectValue(effect),
+            triggerText: describeEffectTrigger(effect),
+            description: effect.description || '',
+            iconHtml: getEffectIconHtml(effect)
+        });
+    });
+
+    if (entries.length === 0 && options.includeEmpty !== false && isEquipmentType(normalizedType)) {
+        entries.push({
+            id: 'empty',
+            type: 'empty',
+            name: '無特殊效果',
+            valueText: '',
+            triggerText: '只提供基礎數值',
+            description: '',
+            iconHtml: '<span class="item-effect-empty-mark">—</span>'
+        });
+    }
+
+    return normalizeItemEffectEntries(entries);
+}
+
+export function buildItemEffectsHtml(item, options = {}) {
+    const entries = buildItemEffectEntries(item, options);
+    if (entries.length === 0) return '';
+
+    return `
+        <div class="item-effect-board">
+            <div class="item-effect-board-title">效果</div>
+            <div class="item-effect-list">
+                ${entries.map(entry => `
+                    <div class="item-effect-row ${entry.type === 'empty' ? 'is-empty' : ''}">
+                        <div class="item-effect-icon">${entry.iconHtml}</div>
+                        <div class="item-effect-copy">
+                            <div class="item-effect-field">
+                                <span>能力</span>
+                                <strong>${escapeHtml(entry.abilityText || entry.name || '')}</strong>
+                            </div>
+                            <div class="item-effect-field">
+                                <span>描述</span>
+                                <small>${escapeHtml(entry.description || '')}</small>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
 }
 
 export function buildItemModalOptions(item, options = {}) {
     return {
         typeText: options.typeText ?? getItemTypeText(item?.type),
         description: options.description ?? getItemDisplayDescription(item),
-        statsHtml: options.statsHtml ?? buildItemStatsHtml(item, options)
+        stats: options.stats ?? buildItemStatEntries(item, options),
+        statsHtml: options.statsHtml,
+        effectsHtml: options.effectsHtml ?? buildItemEffectsHtml(item, options)
     };
 }

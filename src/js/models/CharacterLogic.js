@@ -29,9 +29,45 @@ function toFraction(raw) {
     return number;
 }
 
+function getFatigueWeaknessPenalty(character) {
+    const debuff = (character?.debuffs || []).find(item =>
+        item?.id === 'fatigue_weakness'
+        || item?.type === 'fatigueWeakness'
+        || item?.source === 'adventureFatigue'
+    );
+    if (!debuff) return 0;
+
+    const rawPenalty = readNumber(debuff.statPenalty ?? debuff.value, 0.2);
+    const penalty = Math.abs(rawPenalty) > 1 ? rawPenalty / 100 : rawPenalty;
+    return Math.max(0, Math.min(0.8, penalty));
+}
+
+export function getGlobalStatMultiplier(character) {
+    return Math.max(0.2, 1 - getFatigueWeaknessPenalty(character));
+}
+
+export function applyGlobalStatMultiplier(character, value, options = {}) {
+    const { integer = true, minimum = 0 } = options;
+    const scaled = readNumber(value) * getGlobalStatMultiplier(character);
+    const next = integer ? Math.floor(scaled) : scaled;
+    return Math.max(minimum, next);
+}
+
 function normalizeEquipmentSlot(item) {
     if (!item) return null;
     return normalizeItemType(item.type);
+}
+
+export function isOffhandWeaponSlot(slotType, item) {
+    return slotType === 'armor' && normalizeItemType(item?.type) === 'weapon';
+}
+
+export function getCombatStatEquipmentEntries(character, options = {}) {
+    const includeOffhandWeapon = Boolean(options.includeOffhandWeapon);
+    return Object.entries(character?.equipment || {}).filter(([slotType, item]) => {
+        if (!item) return false;
+        return includeOffhandWeapon || !isOffhandWeaponSlot(slotType, item);
+    });
 }
 
 function getPassiveBonus(character, stat) {
@@ -56,51 +92,52 @@ export function getCombatEffectTotals(character) {
 export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
     const effects = getResolvedEquipmentEffects(character);
-    Object.values(character.equipment || {}).forEach(item => {
+    getCombatStatEquipmentEntries(character).forEach(([, item]) => {
         total += readItemStat(item, 'atk', 'attack');
     });
     total += readNumber(effects.atk);
     total = Math.floor(total * (1 + toFraction(effects.atkPercent) + toFraction(effects.allStats)));
     total += getBuffValue(character, 'atk');
-    return total;
+    return applyGlobalStatMultiplier(character, total, { minimum: 1 });
 }
 
 export function getTotalDef(character) {
     let total = readNumber(character.baseDef);
     const effects = getResolvedEquipmentEffects(character);
-    Object.values(character.equipment || {}).forEach(item => {
+    getCombatStatEquipmentEntries(character).forEach(([, item]) => {
         total += readItemStat(item, 'def', 'defense');
     });
     total += readNumber(effects.def);
     total = Math.floor(total * (1 + toFraction(effects.defPercent) + toFraction(effects.allStats)));
     total += getBuffValue(character, 'def');
-    return total;
+    return applyGlobalStatMultiplier(character, total, { minimum: 0 });
 }
 
 export function getCritChance(character) {
     let totalCritChance = 0.04;
     const effects = getResolvedEquipmentEffects(character);
-    Object.values(character.equipment || {}).forEach(item => {
+    getCombatStatEquipmentEntries(character).forEach(([, item]) => {
         totalCritChance += toFraction(readItemStat(item, 'critChance', 'crit_chance'));
     });
     totalCritChance += toFraction(effects.critChance);
     totalCritChance += toFraction(getBuffValue(character, 'critChance'));
-    return Math.min(totalCritChance, 0.45);
+    return Math.min(totalCritChance * getGlobalStatMultiplier(character), 0.45);
 }
 
 export function getCritDamage(character) {
     let totalCritDamage = 1.5;
     let additionalCritDamage = 0;
     const effects = getResolvedEquipmentEffects(character);
-    Object.values(character.equipment || {}).forEach(item => {
+    getCombatStatEquipmentEntries(character).forEach(([, item]) => {
         const critDamage = readItemStat(item, 'critDamage', 'crit_damage');
         if (critDamage) additionalCritDamage += critDamage - 1.5;
     });
     additionalCritDamage += toFraction(effects.critDamage);
     additionalCritDamage += toFraction(getBuffValue(character, 'critDamage'));
     const rawCritDamage = totalCritDamage + additionalCritDamage;
-    if (rawCritDamage <= 2.0) return rawCritDamage;
-    return Math.min(2.45, 2.0 + (rawCritDamage - 2.0) * 0.45);
+    const scaledCritDamage = Math.max(1, rawCritDamage * getGlobalStatMultiplier(character));
+    if (scaledCritDamage <= 2.0) return scaledCritDamage;
+    return Math.min(2.45, 2.0 + (scaledCritDamage - 2.0) * 0.45);
 }
 
 export function getWeaponSpeed(character) {
@@ -117,7 +154,7 @@ export function getAttackSpeed(character) {
     }
     let speedBonus = toFraction(effects.attackSpeed);
     speedBonus += toFraction(getBuffValue(character, 'attackSpeed'));
-    return Math.max(0.1, baseSpeed * (1 + speedBonus));
+    return Math.max(0.1, baseSpeed * (1 + speedBonus) * getGlobalStatMultiplier(character));
 }
 
 export function getAttackInterval(character) {
@@ -217,9 +254,9 @@ export function equipPassiveCombatEffect(character, effectId, slotIndex = 0) {
     return true;
 }
 
-export function equip(character, item) {
+export function equip(character, item, slotOverride = null) {
     if (!item?.isEquipment || !item.isEquipment()) return false;
-    const slot = normalizeEquipmentSlot(item);
+    const slot = slotOverride || normalizeEquipmentSlot(item);
     if (character.equipment && Object.prototype.hasOwnProperty.call(character.equipment, slot)) {
         character.equipment[slot] = item;
         return true;
@@ -312,7 +349,7 @@ export class CharacterHelper {
     equipPassiveCombatEffect(effectId, slotIndex) { return equipPassiveCombatEffect(this.data, effectId, slotIndex); }
     unlockPassiveCombatEffect(effectId) { return unlockPassiveCombatEffect(this.data, effectId); }
 
-    equip(item) { return equip(this.data, item); }
+    equip(item, slotOverride = null) { return equip(this.data, item, slotOverride); }
     unequip(slot) { return unequip(this.data, slot); }
     useItem(item) { return useItem(this.data, item); }
 
@@ -333,6 +370,8 @@ export default {
     getLifesteal,
     getDamageReduction,
     getAffixHpBonus,
+    getGlobalStatMultiplier,
+    applyGlobalStatMultiplier,
     getCombatEffectTotals,
     getPassiveCombatBonus,
     addBuff,

@@ -568,7 +568,7 @@ class DungeonSceneClass {
 
     processSnowStep() {
         const mechanic = DungeonDatabase[this.dungeonType]?.mechanic;
-        const hasWarmth = this.hasCounterItem('warm_cloak') || this.hasCounterItem('heart_of_ice') || this.hasEquipmentSpecial('coldImmune');
+        const hasWarmth = this.hasCounterItem('warm_cloak') || this.hasCounterItem('heart_of_ice');
         const maxCold = mechanic?.effect?.maxCold ?? 100;
         const baseColdGain = hasWarmth ? 1 : (mechanic?.effect?.coldPerStep ?? 2);
         const coldGain = this.reduceByPassive(baseColdGain, 'coldGainReduction', 0.75);
@@ -1193,8 +1193,16 @@ class DungeonSceneClass {
         engine._onStatusTick = (events = []) => {
             events.forEach(event => {
                 if (event.type === 'poison') {
-                    this.addMessage(`☠️ 毒素造成 ${event.damage} 點傷害`, 'player-action');
-                    this.showMonsterDamageNumber(event.damage, false, 'dot');
+                    this.addMessage(`☠️ 毒素累積 +${event.amount}（目前 ${event.accumulated || event.afterAccumulated || 0}）`, 'player-action');
+                    this.showMonsterDamageNumber(event.amount, false, 'statusPoison', `☠️ 毒素 ${event.accumulated || event.afterAccumulated || 0}`);
+                } else if (event.type === 'void') {
+                    this.addMessage(`◈ 虛空吞噬造成 ${event.damage || event.amount || 0} 傷害，回復 ${event.healAmount || 0} 生命`, 'player-action');
+                    this.showMonsterDamageNumber(event.damage || event.amount || 0, false, 'dot', `◈ 虛空 -${event.damage || event.amount || 0}`);
+                    if ((event.healAmount || 0) > 0) {
+                        this.showMonsterDamageNumber(event.healAmount, false, 'lifesteal', `◈ 吞噬 +${event.healAmount}`);
+                    }
+                    this.updateUI();
+                    this.updateBattlePlayerDisplay();
                 } else if (event.type === 'hpRegen') {
                     this.addMessage(`💚 裝備效果恢復 ${event.amount} 生命`, 'success');
                     this.showMonsterDamageNumber(event.amount, false, 'lifesteal', `💚 回復 +${event.amount}`);
@@ -1213,15 +1221,17 @@ class DungeonSceneClass {
         const messages = {
             stun: `⚡ ${monsterName} 陷入暈眩，短時間無法行動。`,
             slow: `❄️ ${monsterName} 被冰霜拖慢，攻擊頻率降低 ${Math.round(effect.percent || 0)}%。`,
-            poison: `☠️ ${monsterName} 中毒，每秒受到 ${effect.dps || 0} 傷害。`,
+            poison: `☠️ ${monsterName} 毒素開始累積，每秒 +${effect.accumulatePerSecond || 0}。`,
+            void: `◈ ${monsterName} 被虛空吞噬，每秒受到 ${effect.damagePerSecond || 0} 傷害並轉為生命回復。`,
             attackSpeed: `✨ 你的攻擊節奏加快，目前攻速提升 ${Math.round(effect.totalPercent || effect.percent || 0)}%。`,
             hpRegen: `💚 裝備效果正在恢復生命。`
         };
-        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison', attackSpeed: 'statusBuff', hpRegen: 'lifesteal' };
+        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison', void: 'dot', attackSpeed: 'statusBuff', hpRegen: 'lifesteal' };
         const labelMap = {
             stun: '⚡ 暈眩',
             slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
-            poison: `☠️ 中毒 ${effect.dps || 0}/秒`,
+            poison: `☠️ 毒素 +${effect.accumulatePerSecond || 0}/秒`,
+            void: `◈ 虛空 ${effect.damagePerSecond || 0}/秒`,
             attackSpeed: `✨ 攻速 +${Math.round(effect.totalPercent || effect.percent || 0)}%`,
             hpRegen: '💚 回復'
         };
@@ -1307,6 +1317,9 @@ class DungeonSceneClass {
             const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage - profileStrikeDamage);
             this.addMessage(`⚔️ 造成 ${applyRes.finalDamage} 點傷害`, 'player-action');
             this.showMonsterDamageNumber(primaryDamage || applyRes.finalDamage, Boolean(res.computeRes?.isCrit));
+            if (applyRes.poisonExecuted) {
+                this.showMonsterDamageNumber(applyRes.poisonAccumulated || 0, false, 'statusPoison', '☠️ 毒素處決');
+            }
             if (profileStrikeDamage > 0) {
                 this.addMessage(`⚡ ${applyRes.profileStrike?.label || '武器追擊'} 追加 ${profileStrikeDamage} 點傷害`, 'player-action');
                 this.showMonsterDamageNumber(profileStrikeDamage, false, 'doubleStrike', `${applyRes.profileStrike?.label || '武器追擊'} -${profileStrikeDamage}`);
@@ -1428,8 +1441,7 @@ class DungeonSceneClass {
         if (this.dungeonType !== 'jungle') return;
 
         const char = GameManager.getCharacter();
-        const reduction = Math.min(0.8, this.getPassiveCombatBonus('retreatCostReduction'));
-        const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.08 * (1 - reduction)));
+        const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.08));
         this.applyDungeonDamage(damage, '毒沼撤退成本', 'warning');
         this.addMessage('毒沼地形讓撤退變得沉重。', 'warning');
     }
@@ -1617,7 +1629,17 @@ class DungeonSceneClass {
             const dungeonData = DungeonDatabase[this.dungeonType];
             
             const char = GameManager.getCharacter();
-            char.hp = Math.floor(char.maxHp * 0.3);
+            char.hp = Math.max(1, Math.floor(char.maxHp * 0.3));
+            char.currentHP = char.hp;
+            GameManager.setFlag?.('death.pendingPenalty', true);
+            GameManager.setFlag?.('death.lastReason', 'dungeon-death');
+            GameManager.requestTownNarrativeReset?.('death_return');
+            GameManager.markSaveDirty?.('dungeon-death-return');
+            GameManager.notify?.('all');
+            showGlobalToast('戰敗回城', `你倒在 ${dungeonData?.name || '副本'}，已被送回大廳。死亡懲罰規則保留待定。`, 'warning');
+            this.destroy();
+            window.location.hash = '#lobby';
+            return;
             const currentGold = GameManager.getGold?.() ?? GameManager.state?.character?.gold ?? 0;
             const penalty = Math.floor(currentGold * 0.1);
             GameManager.removeGold(penalty);

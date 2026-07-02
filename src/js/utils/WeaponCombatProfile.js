@@ -20,7 +20,7 @@ const BASE_PROFILES = {
     sword: {
         id: 'sword',
         label: 'Blade Tempo',
-        triggerCondition: '暴擊時獲得攻速節奏',
+        triggerCondition: 'critTempo',
         needleSpeedMultiplier: 1.00,
         cooldownMultiplier: 1.00,
         hitZoneMultiplier: 1.00,

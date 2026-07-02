@@ -759,7 +759,7 @@ export const RecipeDatabase = {
             },
             specialEffects: [
                 { type: AffixStat.ARMOR_PENETRATION, value: 25 },
-                { type: AffixStat.VOID_DAMAGE ?? 'VOID_DAMAGE', value: 30 }
+                { type: AffixStat.VOID, value: 30 }
             ],
             desc: '以虛空精華與世界碎片鍛造，切裂防禦。'
         }

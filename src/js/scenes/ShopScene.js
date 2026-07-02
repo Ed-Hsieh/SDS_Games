@@ -988,6 +988,12 @@ export default class ShopScene {
         const { item, quantity, price } = trade;
         const itemName = item.name || '物品';
 
+        if (item?.passiveEffectId && GameManager.hasPassiveCombatEffectAchievement?.(item.passiveEffectId)) {
+            this.closeItemModal();
+            this.showFeedback('已解鎖', `「${itemName}」已轉為戰術成就，不需要重複購買。`, 'info');
+            return;
+        }
+
         if (this.getPlayerGold() < price || !GameManager.removeGold(price)) {
             audioManager.play('toast-error', { throttleKey: 'market-buy-failed', throttleMs: 180 });
             this.showFeedback('金幣不足', `無法購買「${itemName}」，目前持有 ${this.getPlayerGold()} 金幣。`, 'error');
@@ -995,6 +1001,27 @@ export default class ShopScene {
         }
 
         const purchasedItem = cloneItemData(item);
+        if (purchasedItem?.passiveEffectId) {
+            const unlockResult = GameManager.unlockPassiveCombatEffectAchievement?.(purchasedItem.passiveEffectId, purchasedItem);
+            if (!unlockResult?.success) {
+                GameManager.addGold(price);
+                this.showFeedback('解鎖失敗', `「${itemName}」沒有對應的戰術成就。`, 'error');
+                return;
+            }
+
+            GameManager.markSaveDirty?.('market-passive-achievement');
+            this.closeItemModal();
+            audioManager.play('reward', { throttleKey: 'market-passive-unlock', throttleMs: 180 });
+            this.showFeedback(
+                unlockResult.alreadyUnlocked ? '已解鎖' : '戰術成就解鎖',
+                unlockResult.alreadyUnlocked
+                    ? `「${itemName}」已經記入戰術欄。`
+                    : `學會「${unlockResult.effect?.name || itemName}」，可在角色欄的戰術技能中查看。`,
+                'success'
+            );
+            return;
+        }
+
         const added = GameManager.addToInventory(purchasedItem, quantity);
         if (!added) {
             GameManager.addGold(price);

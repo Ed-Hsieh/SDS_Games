@@ -278,8 +278,12 @@ function runEarlyBattle(state, monsterId) {
             const effectiveDefense = Math.max(0, monster.defense * (1 - (effects.armorPenetration || 0) / 100));
             let damage = Math.max(1, attack - effectiveDefense);
             if (state.rng() < getCritChance(character)) damage *= getCritDamage(character);
-            damage *= 1 + ((effects.fire || 0) + (effects.voidDamage || 0)) / 100;
-            monsterHp -= Math.floor(damage);
+            damage *= 1 + (effects.fire || 0) / 100;
+            const directDamage = Math.floor(damage);
+            const voidTickDamage = Math.max(0, Number(effects.void) || 0) / Math.max(0.1, attackSpeed);
+            const actualVoidDamage = Math.max(0, Math.min(monsterHp - directDamage, voidTickDamage));
+            monsterHp -= directDamage + actualVoidDamage;
+            if (actualVoidDamage > 0) playerHp = Math.min(character.maxHp, playerHp + actualVoidDamage);
 
             const weapon = character.equipment.weapon;
             if (weapon && !effects.noDurabilityLoss) {
@@ -426,11 +430,11 @@ function runMatchup(playerScenario, monsterId) {
     const effectiveDefense = Math.max(0, monster.defense * (1 - (effects.armorPenetration || 0) / 100));
     let averageHit = Math.max(1, getTotalAtk(character) - effectiveDefense);
     averageHit *= 1 + getCritChance(character) * (getCritDamage(character) - 1);
-    averageHit *= 1 + ((effects.fire || 0) + (effects.voidDamage || 0)) / 100;
+    averageHit *= 1 + (effects.fire || 0) / 100;
     if (rank === 'boss') averageHit *= 1 + (effects.bossBonus || 0) / 100;
     averageHit *= 1 + ((effects.doubleStrike || 0) / 100) * 0.5;
 
-    const playerDps = averageHit * getAttackSpeed(character);
+    const playerDps = averageHit * getAttackSpeed(character) + (effects.void || 0);
     const rawMonsterDps = Math.max(1, monster.attack - getTotalDef(character)) * (monster.attackSpeed || 1);
     const monsterDps = Math.max(
         1,

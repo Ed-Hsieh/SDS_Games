@@ -173,8 +173,7 @@ export const AFFIX_STAT_KEYS = [
     AffixStat.THUNDER,
     AffixStat.LIGHT,
     AffixStat.POISON,
-    AffixStat.VOID,
-    AffixStat.VOID_DAMAGE
+    AffixStat.VOID
 ].filter(Boolean);
 
 export function normalizeEquipmentKind(type) {
@@ -300,9 +299,9 @@ function getSpecialEffectPowerScore(effects = []) {
             case AffixStat.BOSS_BONUS:
                 return score + percent * 0.80;
             case AffixStat.FIRE:
-            case AffixStat.VOID:
-            case AffixStat.VOID_DAMAGE:
                 return score + percent * 0.70;
+            case AffixStat.VOID:
+                return score + value * 1.00;
             case AffixStat.ICE:
             case AffixStat.THUNDER:
                 return score + percent * 0.60;

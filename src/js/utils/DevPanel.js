@@ -8,14 +8,16 @@ import GameManager from '../managers/GameManager.js';
 import { questManager, QuestStatus } from '../managers/QuestManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { WorldStoryChains, WorldLandmarks } from '../data/WorldStories.js';
-import { QuestDatabase, getQuestById } from '../data/Quests.js';
+import { QuestDatabase, QuestRewardItems, getQuestById } from '../data/Quests.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
+import { TowerBossEquipment } from '../data/BossEquipment.js';
+import { ShopData, SecretShopItems } from '../data/Items.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { applyMonsterCombatBalance, getMonsterCombatRank } from '../data/CombatBalance.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { TownPlaceDatabase } from '../data/TownPlaces.js';
-import { resolveItemById } from './ItemResolver.js';
+import { resolveItemById, resolveItemRecord } from './ItemResolver.js';
 import { escapeHtml, formatAffixStats } from './ItemDisplay.js';
 import { showGlobalToast } from './UIFeedback.js';
 import { isDevModeEnabled } from './DevMode.js';
@@ -30,6 +32,135 @@ import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
 const DEV_SOURCE = 'boss_test_panel';
+const DEV_PANEL_STORAGE_KEY = 'sds.devPanel.state';
+
+const ITEM_SOURCE_LABELS = {
+    material: '素材庫',
+    equipment: '裝備庫',
+    questReward: '任務物品',
+    bossEquipment: '首領裝備',
+    shop: '商店物品'
+};
+
+const ITEM_TYPE_LABELS = {
+    all: '全部',
+    material: '素材',
+    weapon: '武器',
+    armor: '防具',
+    equipment: '防具',
+    accessory: '飾品',
+    potion: '藥水',
+    blueprint: '圖紙',
+    key: '道具',
+    quest: '任務',
+    book: '書籍',
+    currency: '貨幣',
+    scroll: '卷軸',
+    item: '物品'
+};
+
+const DEV_ITEM_CATEGORY_ORDER = [
+    'all',
+    'material',
+    'weapon',
+    'armor',
+    'accessory',
+    'blueprint',
+    'potion',
+    'key',
+    'quest',
+    'book',
+    'currency',
+    'scroll',
+    'item'
+];
+
+const EQUIPMENT_SLOT_LABELS = {
+    weapon: '武器',
+    armor: '防具',
+    accessory: '飾品'
+};
+
+function readDevLevel(item) {
+    return Number(item?.level ?? item?.requiredLevel ?? 1) || 1;
+}
+
+function normalizeDevType(item) {
+    const type = String(item?.type || '').toLowerCase();
+    if (type === 'equipment') return 'armor';
+    if (item?.autoUnlockedBlueprint || type === 'blueprint') return 'blueprint';
+    return type || 'item';
+}
+
+function getDevTypeLabel(type) {
+    return ITEM_TYPE_LABELS[type] || type || '物品';
+}
+
+function getDevItemName(item) {
+    return item?.name || item?.recipeName || item?.id || '未命名物品';
+}
+
+function getDevItemLabel(entry) {
+    const item = entry.item;
+    const level = readDevLevel(item);
+    const typeLabel = getDevTypeLabel(entry.type);
+    const sourceLabel = ITEM_SOURCE_LABELS[entry.source] || entry.source;
+    const setLabel = item?.setId ? `｜${item.setId}` : '';
+    return `Lv.${level} [${typeLabel}] ${getDevItemName(item)}｜${entry.id}｜${sourceLabel}${setLabel}`;
+}
+
+function addDevCatalogEntry(map, source, item) {
+    if (!item?.id || map.has(item.id)) return;
+    const type = normalizeDevType(item);
+    map.set(item.id, {
+        id: item.id,
+        source,
+        type,
+        item,
+        label: ''
+    });
+}
+
+function getDevItemCatalog() {
+    const map = new Map();
+    Object.values(MaterialDatabase || {}).forEach(item => addDevCatalogEntry(map, 'material', item));
+    Object.values(EquipmentDatabase || {}).forEach(item => addDevCatalogEntry(map, 'equipment', item));
+    Object.values(QuestRewardItems || {}).forEach(item => addDevCatalogEntry(map, 'questReward', item));
+    Object.values(TowerBossEquipment || {}).forEach(item => addDevCatalogEntry(map, 'bossEquipment', item));
+    Object.values(ShopData || {}).forEach(shop => {
+        (shop.items || []).forEach(item => addDevCatalogEntry(map, 'shop', item));
+    });
+    (SecretShopItems || []).forEach(item => addDevCatalogEntry(map, 'shop', item));
+
+    return Array.from(map.values())
+        .map(entry => ({ ...entry, label: getDevItemLabel(entry) }))
+        .sort((a, b) =>
+            readDevLevel(a.item) - readDevLevel(b.item)
+            || getDevTypeLabel(a.type).localeCompare(getDevTypeLabel(b.type), 'zh-Hant')
+            || getDevItemName(a.item).localeCompare(getDevItemName(b.item), 'zh-Hant')
+            || a.id.localeCompare(b.id)
+        );
+}
+
+function getDevEquipmentSlot(item) {
+    const type = normalizeDevType(item);
+    if (type === 'weapon') return 'weapon';
+    if (type === 'accessory') return 'accessory';
+    if (type === 'armor') return 'armor';
+    return null;
+}
+
+function cloneDevItem(item) {
+    if (!item) return null;
+    if (typeof structuredClone === 'function') {
+        try {
+            return structuredClone(item);
+        } catch (error) {
+            // Fall through to JSON clone for plain data.
+        }
+    }
+    return JSON.parse(JSON.stringify(item));
+}
 
 const PANEL_STYLE = `
 .dev-panel { position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 96vw); z-index: 99990;
@@ -74,6 +205,7 @@ class DevPanel {
         this.tab = 'character';
         this.open = false;
         this.validationResult = null;
+        this.state = this.loadPanelState();
         this.tabs = [
             ['character', '角色'],
             ['items', '道具'],
@@ -116,6 +248,7 @@ class DevPanel {
         this.body = this.root.querySelector('.dev-panel-body');
 
         this.root.addEventListener('click', event => this.handleClick(event));
+        this.root.addEventListener('change', event => this.handleChange(event));
     }
 
     showToggleButton() {
@@ -170,12 +303,48 @@ class DevPanel {
 
     // ==================== 各分頁 ====================
 
+    loadPanelState() {
+        if (typeof localStorage === 'undefined') return {};
+        try {
+            return JSON.parse(localStorage.getItem(DEV_PANEL_STORAGE_KEY) || '{}') || {};
+        } catch (error) {
+            return {};
+        }
+    }
+
+    savePanelState(patch = {}) {
+        this.state = { ...(this.state || {}), ...patch };
+        if (typeof localStorage !== 'undefined') {
+            try {
+                localStorage.setItem(DEV_PANEL_STORAGE_KEY, JSON.stringify(this.state));
+            } catch (error) {
+                console.warn('[DevPanel] Failed to save panel state:', error);
+            }
+        }
+        return this.state;
+    }
+
+    handleChange(event) {
+        const field = event.target?.dataset?.devField;
+        if (!field) return;
+
+        this.savePanelState({ [field]: event.target.value });
+        if (field === 'itemCategory') {
+            this.render();
+        }
+    }
+
     renderCharacter() {
         const char = GameManager.getCharacter();
+        const fatigue = GameManager.getAdventureFatigueStatus?.({ recover: false });
+        const fatigueText = fatigue
+            ? `${fatigue.current}/${fatigue.max}${fatigue.depleted ? '（虛弱）' : ''}`
+            : '未啟用';
         return `
             <div class="dev-card">
                 <h4>角色狀態</h4>
                 <div class="dev-row"><small>Lv.${char.level}｜EXP ${char.exp}｜HP ${char.hp}/${char.maxHp}｜金幣 ${GameManager.getGold()}</small></div>
+                <div class="dev-row"><small>疲勞 ${fatigueText}</small></div>
                 <div class="dev-row">
                     <input id="dev-level" type="number" min="1" max="99" placeholder="等級" value="${char.level}">
                     <button class="dev-act" type="button" data-dev="set-level">設定等級</button>
@@ -188,25 +357,51 @@ class DevPanel {
                     <input id="dev-exp" type="number" placeholder="經驗" value="500">
                     <button class="dev-act" type="button" data-dev="add-exp">加經驗</button>
                 </div>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="fatigue-full">補滿疲勞</button>
+                    <button class="dev-act" type="button" data-dev="fatigue-empty">耗盡疲勞</button>
+                </div>
             </div>
         `;
     }
 
     renderItems() {
-        const ids = [...Object.keys(MaterialDatabase), ...Object.keys(EquipmentDatabase)];
+        const catalog = getDevItemCatalog();
+        const category = this.state.itemCategory || 'all';
+        const typeSet = new Set(catalog.map(entry => entry.type));
+        const categories = [
+            ...DEV_ITEM_CATEGORY_ORDER.filter(type => type === 'all' || typeSet.has(type)),
+            ...Array.from(typeSet).filter(type => !DEV_ITEM_CATEGORY_ORDER.includes(type))
+        ];
+        const filtered = category === 'all'
+            ? catalog
+            : catalog.filter(entry => entry.type === category);
+        const selectedId = filtered.some(entry => entry.id === this.state.itemId)
+            ? this.state.itemId
+            : filtered[0]?.id || '';
+        const selectedEntry = filtered.find(entry => entry.id === selectedId);
+        const qty = Math.max(1, Number(this.state.itemQty) || 1);
+
         return `
             <div class="dev-card">
-                <h4>加入道具（材料 / 裝備 / 任務道具）</h4>
+                <h4>加入物品</h4>
                 <div class="dev-row">
-                    <input id="dev-item-id" list="dev-item-ids" placeholder="輸入物品 id">
-                    <datalist id="dev-item-ids">${ids.map(id => `<option value="${escapeHtml(id)}"></option>`).join('')}</datalist>
-                    <input id="dev-item-qty" type="number" min="1" value="1" style="width:60px">
-                    <button class="dev-act" type="button" data-dev="add-item">背包</button>
-                    <button class="dev-act" type="button" data-dev="add-item-warehouse">倉庫</button>
+                    <select id="dev-item-category" data-dev-field="itemCategory">
+                        ${categories.map(type => `<option value="${escapeHtml(type)}"${type === category ? ' selected' : ''}>${escapeHtml(getDevTypeLabel(type))}</option>`).join('')}
+                    </select>
+                    <select id="dev-item-id" data-dev-field="itemId" style="min-width:260px;max-width:100%;">
+                        ${filtered.map(entry => `<option value="${escapeHtml(entry.id)}"${entry.id === selectedId ? ' selected' : ''}>${escapeHtml(entry.label)}</option>`).join('')}
+                    </select>
+                    <input id="dev-item-qty" data-dev-field="itemQty" type="number" min="1" value="${qty}" style="width:70px">
+                </div>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="add-item">加入背包</button>
+                    <button class="dev-act" type="button" data-dev="add-item-warehouse">送入倉庫</button>
+                    <small>${selectedEntry ? escapeHtml(`${getDevItemName(selectedEntry.item)}｜${getDevTypeLabel(selectedEntry.type)}｜${ITEM_SOURCE_LABELS[selectedEntry.source] || selectedEntry.source}`) : '沒有符合分類的物品'}</small>
                 </div>
             </div>
             <div class="dev-card">
-                <h4>套裝（直接給齊並裝備）</h4>
+                <h4>套裝測試</h4>
                 <div class="dev-row">
                     ${Object.values(SetDatabase).map(set => `
                         <button class="dev-act" type="button" data-dev="grant-set" data-set-id="${escapeHtml(set.id)}">${escapeHtml(set.name || set.id)}</button>
@@ -348,18 +543,19 @@ class DevPanel {
     }
 
     renderValidation() {
+        const combatState = this.getCombatValidationState();
         const monsterOptions = Object.values(MonsterDatabase)
             .sort((a, b) => (a.level || 1) - (b.level || 1))
-            .map(monster => `<option value="${escapeHtml(monster.id)}">Lv.${monster.level || 1} ${escapeHtml(monster.name || monster.id)} (${escapeHtml(monster.id)})</option>`)
+            .map(monster => `<option value="${escapeHtml(monster.id)}"${monster.id === combatState.monsterId ? ' selected' : ''}>Lv.${monster.level || 1} ${escapeHtml(monster.name || monster.id)} (${escapeHtml(monster.id)})</option>`)
             .join('');
-        const weaponOptions = Object.values(EquipmentDatabase)
-            .filter(item => String(item.type || '').toLowerCase() === 'weapon')
-            .sort((a, b) => (a.level || a.requiredLevel || 1) - (b.level || b.requiredLevel || 1))
-            .map(item => `<option value="${escapeHtml(item.id)}">Lv.${item.level || item.requiredLevel || 1} ${escapeHtml(item.name || item.id)} (${escapeHtml(item.id)})</option>`)
+        const equipmentEntries = getDevItemCatalog().filter(entry => getDevEquipmentSlot(entry.item));
+        const slotOptions = slot => equipmentEntries
+            .filter(entry => getDevEquipmentSlot(entry.item) === slot)
+            .map(entry => `<option value="${escapeHtml(entry.id)}"${combatState[slot] === entry.id ? ' selected' : ''}>${escapeHtml(entry.label)}</option>`)
             .join('');
         const result = this.validationResult
             ? `<pre class="dev-report">${escapeHtml(this.validationResult)}</pre>`
-            : '<small class="dev-muted">選擇怪物後執行一次模擬，會用目前角色與可選武器計算 TTK / TTD。</small>';
+            : '<small class="dev-muted">先選怪物。可直接用目前裝備，或指定武器 / 防具 / 飾品做假想配裝模擬。</small>';
 
         return `
             <div class="dev-card">
@@ -369,12 +565,26 @@ class DevPanel {
             <div class="dev-card">
                 <h4>戰鬥模擬</h4>
                 <div class="dev-row">
-                    <select id="dev-validation-monster">${monsterOptions}</select>
-                    <select id="dev-validation-weapon">
+                    <select id="dev-validation-monster" data-dev-field="combatMonsterId">${monsterOptions}</select>
+                    <button class="dev-act" type="button" data-dev="run-current-combat-validation">用目前裝備模擬</button>
+                </div>
+                <div class="dev-row">
+                    <select id="dev-validation-weapon" data-dev-field="combatWeaponId" style="min-width:230px;max-width:100%;">
                         <option value="">目前武器</option>
-                        ${weaponOptions}
+                        <option value="__none__"${combatState.weapon === '__none__' ? ' selected' : ''}>不裝武器</option>
+                        ${slotOptions('weapon')}
                     </select>
-                    <button class="dev-act" type="button" data-dev="run-combat-validation">模擬</button>
+                    <select id="dev-validation-armor" data-dev-field="combatArmorId" style="min-width:230px;max-width:100%;">
+                        <option value="">目前防具</option>
+                        <option value="__none__"${combatState.armor === '__none__' ? ' selected' : ''}>不裝防具</option>
+                        ${slotOptions('armor')}
+                    </select>
+                    <select id="dev-validation-accessory" data-dev-field="combatAccessoryId" style="min-width:230px;max-width:100%;">
+                        <option value="">目前飾品</option>
+                        <option value="__none__"${combatState.accessory === '__none__' ? ' selected' : ''}>不裝飾品</option>
+                        ${slotOptions('accessory')}
+                    </select>
+                    <button class="dev-act" type="button" data-dev="run-combat-validation">用指定配裝模擬</button>
                 </div>
                 ${result}
             </div>
@@ -432,8 +642,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             ice: `攻擊命中時檢定冰屬性控制或增傷。`,
             thunder: `攻擊命中時檢定雷屬性追加效果。`,
             poison: `攻擊命中時附加中毒壓力。`,
-            void: `攻擊命中時計入虛空屬性效果。`,
-            voiddamage: `攻擊命中時計入虛空增傷 ${value}%。`,
+            void: `攻擊命中時附加虛空吞噬，每秒造成傷害並回復生命。`,
             critdamage: `爆擊成立時提高爆擊傷害。`,
             hp: `裝備後提高生命上限。`
         };
@@ -508,7 +717,18 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             },
             'add-item': () => this.addItem(false),
             'add-item-warehouse': () => this.addItem(true),
-            'run-combat-validation': () => this.runCombatValidation(),
+            'run-current-combat-validation': () => this.runCombatValidation('current'),
+            'run-combat-validation': () => this.runCombatValidation('configured'),
+            'fatigue-full': () => {
+                const status = GameManager.getAdventureFatigueStatus?.({ recover: false });
+                GameManager.restoreAdventureFatigue?.(status?.max || 9999);
+                this.refresh('疲勞已補滿');
+            },
+            'fatigue-empty': () => {
+                const status = GameManager.getAdventureFatigueStatus?.({ recover: false });
+                GameManager.consumeAdventureFatigue?.(status?.max || 9999);
+                this.refresh('疲勞已耗盡，虛弱狀態已套用');
+            },
             'grant-set': () => {
                 GameManager.grantSetEquipmentForTesting([data.setId], data.setId);
                 this.refresh(`已給予並裝備套裝 ${data.setId}`);
@@ -585,14 +805,79 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         actions[action]?.();
     }
 
-    runCombatValidation() {
-        const monsterId = this.body.querySelector('#dev-validation-monster')?.value || 'slime';
-        const weaponId = this.body.querySelector('#dev-validation-weapon')?.value || '';
+    getCombatValidationState() {
+        const firstMonster = Object.values(MonsterDatabase)
+            .sort((a, b) => (a.level || 1) - (b.level || 1))[0]?.id || 'slime';
+        return {
+            monsterId: this.state.combatMonsterId || firstMonster,
+            weapon: this.state.combatWeaponId || '',
+            armor: this.state.combatArmorId || '',
+            accessory: this.state.combatAccessoryId || ''
+        };
+    }
+
+    readCombatValidationState() {
+        const fallback = this.getCombatValidationState();
+        return {
+            monsterId: this.body.querySelector('#dev-validation-monster')?.value || fallback.monsterId,
+            weapon: this.body.querySelector('#dev-validation-weapon')?.value || '',
+            armor: this.body.querySelector('#dev-validation-armor')?.value || '',
+            accessory: this.body.querySelector('#dev-validation-accessory')?.value || ''
+        };
+    }
+
+    resolveDevEquipmentItem(itemId, slot) {
+        if (!itemId || itemId === '__none__') return null;
+        const record = resolveItemRecord(itemId, { order: ['equipment', 'bossEquipment', 'questReward', 'shop'] });
+        const item = record?.item;
+        if (!item || getDevEquipmentSlot(item) !== slot) return null;
+        return cloneDevItem(item);
+    }
+
+    applyCombatEquipmentSelection(character, selection) {
+        for (const slot of ['weapon', 'armor', 'accessory']) {
+            const itemId = selection[slot];
+            if (!itemId) continue;
+            character.equipment[slot] = itemId === '__none__'
+                ? null
+                : this.resolveDevEquipmentItem(itemId, slot);
+        }
+    }
+
+    describeCombatEquipment(character) {
+        return ['weapon', 'armor', 'accessory']
+            .map(slot => `${EQUIPMENT_SLOT_LABELS[slot]}：${character.equipment?.[slot]?.name || '空'}`)
+            .join(' / ');
+    }
+
+    describeCombatEffects(effects) {
+        const parts = [
+            effects.armorPenetration ? `破甲 ${effects.armorPenetration}%` : '',
+            effects.damageReduction ? `減傷 ${effects.damageReduction}%` : '',
+            effects.lifesteal ? `吸血 ${effects.lifesteal}%` : '',
+            effects.doubleStrike ? `連擊 ${effects.doubleStrike}%` : '',
+            effects.fire ? `火傷 ${effects.fire}%` : '',
+            effects.void ? `虛空 ${effects.void}/秒` : ''
+        ].filter(Boolean);
+        return parts.length > 0 ? parts.join(' / ') : '無主要戰鬥詞條';
+    }
+
+    runCombatValidation(mode = 'configured') {
+        const selection = this.readCombatValidationState();
+        const monsterId = selection.monsterId;
+        if (mode === 'current') {
+            this.savePanelState({ combatMonsterId: monsterId });
+        } else {
+            this.savePanelState({
+                combatMonsterId: monsterId,
+                combatWeaponId: selection.weapon,
+                combatArmorId: selection.armor,
+                combatAccessoryId: selection.accessory
+            });
+        }
         const sourceChar = GameManager.getCharacter();
         const character = this.cloneCharacterForValidation(sourceChar);
-        if (weaponId && EquipmentDatabase[weaponId]) {
-            character.equipment.weapon = { ...EquipmentDatabase[weaponId] };
-        }
+        if (mode !== 'current') this.applyCombatEquipmentSelection(character, selection);
 
         const monsterData = MonsterDatabase[monsterId];
         if (!monsterData) {
@@ -608,11 +893,11 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         const effectiveDefense = Math.max(0, (monster.defense || 0) * (1 - (effects.armorPenetration || 0) / 100));
         let averageHit = Math.max(1, getTotalAtk(character) - effectiveDefense);
         averageHit *= 1 + getCritChance(character) * (getCritDamage(character) - 1);
-        averageHit *= 1 + ((effects.fire || 0) + (effects.voidDamage || 0)) / 100;
+        averageHit *= 1 + (effects.fire || 0) / 100;
         if (rank === 'boss') averageHit *= 1 + (effects.bossBonus || 0) / 100;
         averageHit *= 1 + ((effects.doubleStrike || 0) / 100) * 0.5;
 
-        const playerDps = averageHit * getAttackSpeed(character);
+        const playerDps = averageHit * getAttackSpeed(character) + (effects.void || 0);
         const rawMonsterDps = Math.max(1, (monster.attack || 0) - getTotalDef(character)) * (monster.attackSpeed || 1);
         const monsterDps = Math.max(
             1,
@@ -623,12 +908,14 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         const timeToKill = (monster.hp || 1) / playerDps;
         const timeToDie = playerHp / monsterDps;
         const ratio = timeToKill / timeToDie;
+        const modeLabel = mode === 'current' ? '目前裝備' : '指定配裝';
 
         this.validationResult = [
-            `${character.level || 1}級角色 vs ${monster.name || monster.id}（${rank}）`,
-            `武器：${character.equipment.weapon?.name || '拳頭'}`,
-            `玩家：HP ${Math.round(playerHp)} / ATK ${getTotalAtk(character)} / DEF ${getTotalDef(character)} / DPS ${playerDps.toFixed(1)}`,
-            `怪物：HP ${monster.hp} / ATK ${monster.attack} / DEF ${monster.defense} / DPS ${monsterDps.toFixed(1)}`,
+            `${modeLabel}｜${character.level || 1}級角色 vs ${monster.name || monster.id}（${rank}）`,
+            this.describeCombatEquipment(character),
+            `玩家：HP ${Math.round(playerHp)} / ATK ${getTotalAtk(character)} / DEF ${getTotalDef(character)} / AS ${getAttackSpeed(character).toFixed(2)} / DPS ${playerDps.toFixed(1)}`,
+            `怪物：HP ${monster.hp} / ATK ${monster.attack} / DEF ${monster.defense} / AS ${monster.attackSpeed || 1} / DPS ${monsterDps.toFixed(1)}`,
+            `詞條：${this.describeCombatEffects(effects)}`,
             `TTK ${timeToKill.toFixed(1)}s / TTD ${timeToDie.toFixed(1)}s / 壓力比 ${ratio.toFixed(2)}`,
             ratio < 0.75 ? '結果：玩家明顯有利'
                 : ratio < 1.15 ? '結果：接近五五波，需要注意血量與耐久'
@@ -664,6 +951,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         const itemId = String(this.body.querySelector('#dev-item-id')?.value || '').trim();
         const quantity = Math.max(1, Number(this.body.querySelector('#dev-item-qty')?.value) || 1);
         if (!itemId) return;
+        this.savePanelState({ itemId, itemQty: quantity });
 
         const item = resolveItemById(itemId, { order: ['material', 'equipment', 'shop', 'questReward', 'bossEquipment'] });
         if (!item) {

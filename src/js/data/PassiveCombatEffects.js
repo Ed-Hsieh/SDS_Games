@@ -70,8 +70,8 @@ export const PassiveCombatEffectDatabase = {
         name: '沼徑判讀',
         icon: '🧭',
         rarity: 'rare',
-        description: '降低叢林迷路機率，減少撤退代價，讓危險地形更容易被控制。',
-        bonuses: { lostChanceReduction: 0.12, markerRequirementReduction: 1, retreatCostReduction: 0.50, fleeChanceBonus: 0.08 }
+        description: '降低叢林迷路機率，讓危險地形更容易被控制。',
+        bonuses: { lostChanceReduction: 0.12, markerRequirementReduction: 1, fleeChanceBonus: 0.08 }
     },
     ruin_literacy: {
         id: 'ruin_literacy',
@@ -94,8 +94,8 @@ export const PassiveCombatEffectDatabase = {
         name: '王敵定心',
         icon: '👑',
         rarity: 'epic',
-        description: '面對 Boss 與菁英時降低承受傷害，適合挑戰流程最終戰。',
-        bonuses: { bossDamageReduction: 0.10, eliteDamageReduction: 0.06 }
+        description: '面對 Boss 時降低承受傷害，適合挑戰流程最終戰。',
+        bonuses: { bossDamageReduction: 0.10 }
     }
 };
 

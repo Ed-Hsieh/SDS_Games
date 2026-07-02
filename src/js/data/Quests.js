@@ -1769,8 +1769,7 @@ export const QuestRewardItems = {
         },
         description: '女巫交易網裡流通的綠色珠子。握著它時，毒霧像認得你一樣退開半步。',
         specialEffects: [
-            { type: 'poisonMitigation', value: 0.18 },
-            { type: 'retreatCostReduction', value: 0.2 }
+            { type: 'poisonMitigation', value: 0.18 }
         ],
         isQuestReward: true
     },
@@ -1831,7 +1830,6 @@ export const QuestRewardItems = {
         },
         description: '追上龍巢之路後留下的熱痕石。面對菁英與首領時，它會先替你穩住呼吸。',
         specialEffects: [
-            { type: 'eliteDamageReduction', value: 0.05 },
             { type: 'bossDamageReduction', value: 0.04 }
         ],
         isQuestReward: true
@@ -1902,12 +1900,10 @@ export const QuestRewardItems = {
         id: 'master_hammer',
         name: '大師之錘',
         icon: '🔨',
-        type: EquipmentType.ACCESSORY,
+        type: ItemType.KEY,
         rarity: ItemRarity.EPIC,
         description: '裝備時，強化成功率永久 +10%。',
-        specialEffects: [
-            { type: 'enhanceBonus', value: 0.1 }
-        ],
+        specialEffects: [],
         isQuestReward: true
     },
     vip_card: {
@@ -1924,7 +1920,7 @@ export const QuestRewardItems = {
         id: 'loaded_dice',
         name: '幸運骰子',
         icon: '🎲',
-        type: EquipmentType.ACCESSORY,
+        type: ItemType.KEY,
         rarity: ItemRarity.EPIC,
         description: '「這骰子好像有點重...」骰子遊戲勝率 +5%。',
         specialEffects: [
@@ -1977,8 +1973,7 @@ export const QuestRewardItems = {
         },
         description: '失蹤採藥人莉雅縫在籃底的名字。毒霧靠近時，線結會微微收緊。',
         specialEffects: [
-            { type: 'poisonMitigation', value: 0.12 },
-            { type: 'retreatCostReduction', value: 0.12 }
+            { type: 'poisonMitigation', value: 0.12 }
         ],
         isQuestReward: true
     },
@@ -2043,16 +2038,14 @@ export const QuestRewardItems = {
         id: 'craftsman_gouge',
         name: '工匠刻刀',
         icon: '🪛',
-        type: EquipmentType.ACCESSORY,
+        type: ItemType.KEY,
         rarity: ItemRarity.RARE,
         stats: {
             attack: 3,
             defense: 3
         },
         description: '帳冊名單裡一位工匠最後留下的刻刀。強化時握著它，失手的線條會少一點。',
-        specialEffects: [
-            { type: 'enhanceBonus', value: 0.05 }
-        ],
+        specialEffects: [],
         isQuestReward: true
     },
     north_letter_seal: {
@@ -2075,7 +2068,6 @@ export const QuestRewardItems = {
         rarity: ItemRarity.RARE,
         description: '一封寫到一半的回信，紙上沒有豪言壯語，只有讓人面對北境時不再發抖的句子。',
         specialEffects: [
-            { type: 'eliteDamageReduction', value: 0.04 },
             { type: 'bossDamageReduction', value: 0.03 }
         ],
         isQuestReward: true
@@ -2120,10 +2112,7 @@ export const QuestRewardItems = {
             defense: 4
         },
         description: '一面被折斷後仍被帶回來的旗。它不再指揮隊伍，只提醒你別把撤退看成失敗。',
-        specialEffects: [
-            { type: 'eliteDamageReduction', value: 0.05 },
-            { type: 'retreatCostReduction', value: 0.15 }
-        ],
+        specialEffects: [],
         isQuestReward: true
     },
     retreat_rollcall: {
@@ -2330,8 +2319,7 @@ export const QuestRewardItems = {
         },
         description: '冰霜領主的王冠，賦予冰霜之力。攻擊時有機率凍結敵人。',
         specialEffects: [
-            { type: AffixStat.ICE, value: 0.15 },
-            { type: 'coldImmune', value: true }
+            { type: AffixStat.ICE, value: 0.15 }
         ],
         isQuestReward: true
     },
@@ -2450,7 +2438,7 @@ export const QuestRewardItems = {
         id: 'dungeon_master_badge',
         name: '副本征服者徽章',
         icon: '🏆',
-        type: EquipmentType.ACCESSORY,
+        type: ItemType.KEY,
         rarity: ItemRarity.LEGENDARY,
         stats: {
             attack: 20,

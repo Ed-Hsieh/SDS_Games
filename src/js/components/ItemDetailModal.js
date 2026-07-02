@@ -2,6 +2,7 @@ import { getSellPrice } from '../models/ItemSchema.js';
 import GameManager from '../managers/GameManager.js';
 import {
     buildItemStatEntries,
+    buildItemEffectsHtml,
     formatAffixStats,
     escapeHtml,
     formatItemStatEntryValue,
@@ -36,6 +37,7 @@ class ItemDetailModal {
                     <div class="item-detail-main-grid">
                         <div class="item-detail-stats"></div>
                         <div class="item-detail-side">
+                            <div class="item-detail-effects is-hidden"></div>
                             <div class="item-detail-set is-hidden"></div>
                             <div class="item-detail-affixes is-hidden"></div>
                         </div>
@@ -56,6 +58,7 @@ class ItemDetailModal {
         this.nameEl = this.container.querySelector('.item-detail-name');
         this.typeEl = this.container.querySelector('.item-detail-type');
         this.statsEl = this.container.querySelector('.item-detail-stats');
+        this.effectsEl = this.container.querySelector('.item-detail-effects');
         this.setEl = this.container.querySelector('.item-detail-set');
         this.affixesEl = this.container.querySelector('.item-detail-affixes');
         this.priceEl = this.container.querySelector('.item-detail-price');
@@ -182,6 +185,15 @@ class ItemDetailModal {
             this.statsEl.innerHTML = '';
         }
 
+        const effectsHtml = opts.effectsHtml ?? buildItemEffectsHtml(item, { includeEmptyEquipmentPanel: true });
+        if (effectsHtml) {
+            this.effectsEl.innerHTML = effectsHtml;
+            this.effectsEl.classList.remove('is-hidden');
+        } else {
+            this.effectsEl.innerHTML = '';
+            this.effectsEl.classList.add('is-hidden');
+        }
+
         const setHtml = opts.setHtml ?? buildItemSetInfoHtml(item, GameManager.state, { compact: false });
         if (setHtml) {
             this.setEl.innerHTML = setHtml;
@@ -199,8 +211,8 @@ class ItemDetailModal {
 
             return `
                 <div class="affix-pill rarity-${rarity}">
-                    <div class="affix-pill-name">${escapeHtml(affix.name || '詞綴')}</div>
-                    <div class="affix-pill-stats">${escapeHtml(stats)}</div>
+                    <span class="affix-pill-name">${escapeHtml(affix.name || '詞綴')}</span>
+                    <strong class="affix-pill-stats">${escapeHtml(stats)}</strong>
                 </div>`;
         };
 
@@ -225,7 +237,9 @@ class ItemDetailModal {
 
         this.container.classList.toggle(
             'has-detail-side',
-            !this.setEl.classList.contains('is-hidden') || !this.affixesEl.classList.contains('is-hidden')
+            !this.effectsEl.classList.contains('is-hidden')
+                || !this.setEl.classList.contains('is-hidden')
+                || !this.affixesEl.classList.contains('is-hidden')
         );
 
         // Note: forge/affix bonuses are now merged into `opts.stats` above so there's no separate forge block.
@@ -287,6 +301,7 @@ class ItemDetailModal {
             // clear content to avoid stale handlers
             this.actionsEl.innerHTML = '';
             if (this.priceEl) this.priceEl.innerHTML = '';
+            if (this.effectsEl) this.effectsEl.innerHTML = '';
             this.container.classList.remove('has-detail-side');
         }, 240);
     }

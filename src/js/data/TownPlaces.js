@@ -84,7 +84,8 @@ export const TownPlaceDatabase = [
         ],
         actions: [
             { type: 'route', route: 'quest', label: '翻閱旅人手札', shortLabel: '手札', icon: '📔', description: '查看任務、線索與故事紀錄。', position: { x: 58, y: 60 } },
-            { type: 'route', route: 'encyclopedia', label: '查看百科', shortLabel: '百科', icon: '📖', description: '檢視怪物、圖紙與收集資訊。', position: { x: 80, y: 72 } }
+            { type: 'route', route: 'encyclopedia', label: '查看百科', shortLabel: '百科', icon: '📖', description: '檢視怪物、圖紙與收集資訊。', position: { x: 80, y: 72 } },
+            { type: 'achievement', id: 'scholar_achievements', label: '查看成就牆', shortLabel: '成就', icon: '🏆', description: '翻看書櫃旁暫存的旅人成就紀錄。', position: { x: 20, y: 36 } }
         ],
         states: [
             { flag: 'town.scholar.records_drowned_bell_rhythm', title: '沉鐘節奏入冊', text: '海岸鐘聲被寫進地脈紀錄，失眠者的耳語終於有了能對照的節奏。' },

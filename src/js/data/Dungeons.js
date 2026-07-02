@@ -249,7 +249,7 @@ export const DungeonDatabase = {
                 rarity: 'epic',
                 description: '冰龍的心臟結晶，賦予持有者抵禦寒冷的能力。',
                 stats: { attack: 5, defense: 10, hp: 30 },
-                special: { coldImmune: true, iceResist: 0.5 },  // 免疫寒冷，冰系傷害 -50%
+                special: { iceResist: 0.5 },  // 冰系傷害 -50%
                 price: 1200
             },
             random: [

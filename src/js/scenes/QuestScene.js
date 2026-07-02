@@ -3,7 +3,7 @@
  * 任務公告板場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js';
-import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml, ITEM_RARITY_TEXT, ITEM_TYPE_TEXT } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -21,6 +21,7 @@ import audioManager from '../utils/AudioManager.js';
 const HANDBOOK_TABS = {
     commissions: {
         title: '委託',
+        panelTitle: '委託清單',
         countLabel: '件委託',
         emptyIcon: '📭',
         emptyText: '目前沒有新的委託紀錄',
@@ -28,6 +29,7 @@ const HANDBOOK_TABS = {
     },
     boss: {
         title: '首領痕跡',
+        panelTitle: '追蹤中的痕跡',
         countLabel: '條痕跡線',
         emptyIcon: '🧭',
         emptyText: '還沒有足夠的首領痕跡。去現場、聽傳聞或完成委託後，筆記會自己長出下一頁。',
@@ -35,6 +37,7 @@ const HANDBOOK_TABS = {
     },
     world: {
         title: '世界見聞',
+        panelTitle: '最新紀錄',
         countLabel: '則見聞',
         emptyIcon: '🗺️',
         emptyText: '還沒有留下值得翻閱的地點紀錄。走進新的地標後，這裡會記下你親眼確認的事情。',
@@ -42,6 +45,7 @@ const HANDBOOK_TABS = {
     },
     forge: {
         title: '鍛造備忘',
+        panelTitle: '待準備配方',
         countLabel: '則備忘',
         emptyIcon: '⚒️',
         emptyText: '目前沒有需要追的鍛造備忘。取得圖紙、缺少素材或接到工坊委託時，這裡會整理成清單。',
@@ -49,6 +53,7 @@ const HANDBOOK_TABS = {
     },
     town: {
         title: '城鎮記憶',
+        panelTitle: '留下的變化',
         countLabel: '段記憶',
         emptyIcon: '🏘️',
         emptyText: '城鎮還沒有留下明顯變化。完成主線或支線後，居民與場所的改變會收在這裡。',
@@ -109,7 +114,11 @@ export default class QuestScene {
             npcAvatar: this.container.querySelector('#npc-avatar'),
             npcName: this.container.querySelector('#npc-name'),
             detailDialogue: this.container.querySelector('#detail-dialogue-text'),
+            detailObjectivesPanel: this.container.querySelector('.quest-objectives'),
+            detailObjectivesTitle: this.container.querySelector('#detail-objectives-title'),
             detailObjectives: this.container.querySelector('#detail-objectives'),
+            detailRewardsPanel: this.container.querySelector('.quest-rewards'),
+            detailRewardsTitle: this.container.querySelector('#detail-rewards-title'),
             detailRewards: this.container.querySelector('#detail-rewards'),
             detailActions: this.container.querySelector('#detail-actions'),
             
@@ -188,8 +197,8 @@ export default class QuestScene {
         const tab = HANDBOOK_TABS[this.activeTab] || HANDBOOK_TABS.commissions;
 
         this.updateHandbookCounts();
-        if (this.dom.listTitle) this.dom.listTitle.textContent = tab.title;
-        if (this.dom.questCount) this.dom.questCount.textContent = `${records.length} ${tab.countLabel}`;
+        if (this.dom.listTitle) this.dom.listTitle.textContent = tab.panelTitle || '紀錄清單';
+        if (this.dom.questCount) this.dom.questCount.textContent = records.length > 0 ? `${records.length} 筆` : '空白';
         if (this.dom.ledgerSummary) {
             this.dom.ledgerSummary.textContent = this.getLedgerSummary(this.activeTab, records);
         }
@@ -372,8 +381,9 @@ export default class QuestScene {
         if (record.key === this.selectedRecordKey) el.classList.add('selected');
         el.setAttribute('aria-pressed', record.key === this.selectedRecordKey ? 'true' : 'false');
 
-        const meta = Array.isArray(record.meta)
-            ? record.meta.filter(Boolean).slice(0, 3)
+        const listMeta = Array.isArray(record.listMeta) ? record.listMeta : record.meta;
+        const meta = Array.isArray(listMeta)
+            ? listMeta.filter(Boolean).slice(0, 3)
             : [];
         const progressHTML = record.progress
             ? `
@@ -442,6 +452,7 @@ export default class QuestScene {
                 const nextProgress = status.progressMethods?.find(method => !method.completed);
                 const lastClue = status.discoveredClues?.[status.discoveredClues.length - 1];
                 const finalLabel = status.finalTrigger?.label || '確認首領現身方式';
+                const traceType = status.archetype || status.method || '痕跡型';
                 const currentText = status.finalReady
                     ? `痕跡已足夠清楚。現在可以嘗試「${finalLabel}」。`
                     : lastClue?.lead || lastClue?.text || status.text || '痕跡還不完整，需要更多現場確認。';
@@ -451,15 +462,21 @@ export default class QuestScene {
                     kind: 'boss',
                     icon: '🧭',
                     title: status.title,
-                    typeLabel: '首領痕跡',
+                    typeLabel: traceType,
+                    hideSummaryMeta: true,
+                    summaryLabel: '首領痕跡',
+                    summaryHint: status.finalReady ? '決戰就緒' : '線索未收束',
                     statusIcon: status.finalReady ? '⚠' : '✎',
                     statusText: status.finalReady ? '決戰就緒' : `${status.discoveredClues.length} 段痕跡`,
                     statusTone: status.finalReady ? 'completed' : 'active',
-                    meta: [status.archetype || status.method, status.finalTrigger?.type, status.battleTemplateLinked ? '戰鬥已接線' : '等待接線'],
+                    listMeta: [
+                        traceType,
+                        `痕跡 ${status.discoveredClues.length}/${status.requiredClues || '?'}`,
+                        status.finalReady ? finalLabel : nextProgress?.label || '回現場確認'
+                    ],
                     cues: [
-                        status.finalReady ? '痕跡已收束' : `痕跡 ${status.discoveredClues.length}/${status.requiredClues || '?'}`,
-                        `推進 ${status.completedProgress || 0}/${status.requiredProgress || '?'}`,
-                        nextProgress ? `下一步：${nextProgress.label}` : `觸發：${finalLabel}`
+                        status.finalReady ? '痕跡已收束' : nextProgress ? `下一步：${nextProgress.label}` : '回現場確認',
+                        `行動 ${status.completedProgress || 0}/${status.requiredProgress || '?'}`
                     ],
                     current: currentText,
                     thoughtTitle: status.finalReady
@@ -468,8 +485,8 @@ export default class QuestScene {
                             ? `我現在是否該先${nextProgress.label}？`
                             : '我現在是否該再回現場確認？',
                     thoughtText: status.finalReady
-                        ? '這不是地圖上憑空冒出的紅點，而是前面痕跡一步步推到的結果。'
-                        : '線索還不夠把首領逼出來。先補上下一個可驗證的行動，避免只是亂撞。',
+                        ? '危險已經收束到一個方向；要不要踏進去，取決於你現在的裝備與狀態。'
+                        : '線索還沒有收束。先補上下一個能確認的行動，讓這條筆記不只是猜測。',
                     progress: {
                         current,
                         required,
@@ -477,22 +494,18 @@ export default class QuestScene {
                     },
                     sections: [
                         {
-                            title: '目前推論',
+                            title: `${traceType}輪廓`,
                             lines: [status.text || '這條痕跡還在整理。']
                         },
                         {
-                            title: '已掌握痕跡',
+                            title: '掌握的痕跡',
                             lines: status.discoveredClues.length > 0
-                                ? status.discoveredClues.map(clue => `線索 ${clue.notebookIndex}｜${clue.title}：${clue.lead || clue.text}`)
+                                ? status.discoveredClues.map(clue => `${clue.title}：${clue.lead || clue.text}`)
                                 : ['還沒有可靠痕跡。']
                         },
                         {
-                            title: '推進方式',
-                            lines: (status.progressMethods || []).map(method => `${method.completed ? '已確認' : '待確認'}｜${method.label}`)
-                        },
-                        {
-                            title: '最後缺口',
-                            lines: [status.finalReady ? finalLabel : `還需要補足痕跡或行動，才可能進入「${finalLabel}」。`]
+                            title: status.finalReady ? '可踏入的地方' : '下一步',
+                            lines: [status.finalReady ? finalLabel : nextProgress?.label || '回到冒險區尋找新的痕跡。']
                         }
                     ],
                     route: 'adventure',
@@ -521,32 +534,33 @@ export default class QuestScene {
                     icon: landmark.icon || '🗺️',
                     title: landmark.name,
                     typeLabel: '世界見聞',
+                    summaryMode: 'compact',
+                    hideSummaryMeta: true,
+                    summaryLabel: '地點札記',
+                    summaryHint: zones[0] || `第 ${landmark.chapter || '?'} 章`,
                     statusIcon: '✓',
                     statusText: '已造訪',
                     statusTone: 'finished',
-                    meta: [`第 ${landmark.chapter || '?'} 章`, zones.join(' / ') || '未知區域'],
-                    cues: [
+                    listMeta: [
+                        `第 ${landmark.chapter || '?'} 章`,
                         zones.join(' / ') || '未知區域',
-                        effects[0]?.name ? `地形：${effects[0].name}` : '普通地形',
-                        storyChains.length > 0 ? `關聯：${storyChains[0]}` : '暫無首領線'
+                        effects[0]?.name || storyChains[0] || '已造訪'
                     ],
                     current: landmark.repeat || landmark.arrival || landmark.mapHint || '你在這裡留下了一段地點紀錄。',
-                    thoughtTitle: '我現在是否該把這裡和其他線索連起來？',
-                    thoughtText: landmark.mapHint || '地點本身不是答案，但它會讓任務、痕跡和遭遇有了位置。',
                     sections: [
                         {
-                            title: '第一次看到',
+                            title: '地點印象',
                             lines: [landmark.arrival || landmark.mapHint || '此處仍缺少初次到達文字。']
                         },
                         {
-                            title: '地形效果',
+                            title: '環境特徵',
                             lines: effects.length > 0
                                 ? effects.map(effect => `${effect.name}：${effect.summary}`)
-                                : ['尚未標記特殊地形。']
+                                : ['沒有特別標記的地形。']
                         },
                         {
-                            title: '相關線索',
-                            lines: storyChains.length > 0 ? storyChains : ['暫時沒有連到首領痕跡。']
+                            title: '牽動的線',
+                            lines: storyChains.length > 0 ? storyChains : ['這裡暫時只是一段單純的旅途記憶。']
                         }
                     ],
                     route: 'adventure',
@@ -564,30 +578,27 @@ export default class QuestScene {
                     icon: '✦',
                     title: clue.title,
                     typeLabel: '現場紀錄',
+                    summaryMode: 'compact',
+                    hideSummaryMeta: true,
+                    summaryLabel: '現場札記',
+                    summaryHint: `線索 ${clue.notebookIndex}`,
                     statusIcon: '✎',
                     statusText: `線索 ${clue.notebookIndex}`,
                     statusTone: 'active',
-                    meta: [clue.source || '現場', chainTitle],
-                    cues: [
+                    listMeta: [
                         `線索 ${clue.notebookIndex}`,
                         clue.source || '現場',
                         chainTitle
                     ],
                     current: clue.text || clue.lead || '這段紀錄還需要補上內容。',
-                    thoughtTitle: '我現在是否該把這段紀錄放回脈絡裡？',
-                    thoughtText: clue.lead || '這是原始見聞，不一定直接等於答案；把它和地點、委託、首領線合起來才有方向。',
                     sections: [
                         {
-                            title: '原始紀錄',
+                            title: '看見的事',
                             lines: [clue.text || '沒有留下原始文字。']
                         },
                         {
-                            title: '可能導向',
-                            lines: [clue.lead || '暫時沒有明確導向。']
-                        },
-                        {
-                            title: '關聯首領',
-                            lines: [chainTitle]
+                            title: '記下的方向',
+                            lines: [clue.lead || chainTitle || '這段見聞還沒有被串回更大的脈絡。']
                         }
                     ],
                     route: 'adventure',
@@ -602,35 +613,36 @@ export default class QuestScene {
                 icon: entry.icon || '✦',
                 title: entry.title || '旅途事件',
                 typeLabel: '旅途事件',
+                summaryMode: 'compact',
+                hideSummaryMeta: true,
+                summaryLabel: '旅途片段',
+                summaryHint: entry.roleLabel || entry.zoneLabel || '已記錄',
                 statusIcon: '✎',
                 statusText: entry.count > 1 ? `${entry.roleLabel || '已記錄'} x${entry.count}` : entry.roleLabel || '已記錄',
                 statusTone: entry.role === 'pressure' ? 'active' : 'available',
-                meta: [entry.zoneLabel || '未知地帶', entry.roleLabel || '旅途事件'],
-                cues: [
+                listMeta: [
                     entry.zoneLabel || '未知地帶',
-                    `選擇：${entry.choiceText || '未記錄'}`,
+                    entry.choiceText || '未記錄選擇',
                     entry.resultSummary || '沒有明顯變化'
                 ],
                 current: entry.description || '你在旅途中遇到一段值得回頭看的小事。',
-                thoughtTitle: '我現在是否該把這次遭遇當成參考？',
-                thoughtText: entry.reflection || '事件不是任務清單，但會慢慢教你哪些選擇值得冒險。',
                 sections: [
                     {
-                        title: '當時選擇',
+                        title: '當時的選擇',
                         lines: [
                             entry.choiceText || '沒有記下選擇。',
                             entry.intent || '沒有留下選擇意圖。'
                         ]
                     },
                     {
-                        title: '結果',
+                        title: '遭遇之後',
                         lines: (entry.resultMessages || []).length > 0
                             ? entry.resultMessages
                             : [entry.resultSummary || '沒有明顯變化。']
                     },
                     {
-                        title: '手札判讀',
-                        lines: [entry.reflection || '之後遇到類似事件時，可以拿這次結果當比較。']
+                        title: '下次路過',
+                        lines: [entry.reflection || '這段經驗先放在手札裡，等到相似的路口再翻出來。']
                     }
                 ],
                 route: 'adventure',
@@ -699,8 +711,8 @@ export default class QuestScene {
                 const missing = getMissingMaterials(recipe.id, inventory, warehouse);
                 const cost = Number(recipe.cost || 0);
                 const successRate = Number(recipe.successRate || 100);
-                const recipeType = recipe.type || '裝備';
-                const recipeRarity = recipe.rarity || 'common';
+                const recipeType = ITEM_TYPE_TEXT[recipe.type] || (recipe.type === 'equipment' ? '裝備' : recipe.type) || '裝備';
+                const recipeRarity = ITEM_RARITY_TEXT[recipe.rarity] || recipe.rarity || '普通';
                 const costReady = gold >= cost;
                 const craftReady = missing.length === 0 && costReady;
                 const goldShortage = Math.max(0, cost - gold);
@@ -734,10 +746,14 @@ export default class QuestScene {
                     title: recipe.name,
                     typeLabel: '製作圖',
                     summaryMode: 'compact',
+                    hideSummaryMeta: true,
+                    summaryLabel: '鍛造備忘',
+                    summaryHint: craftReady ? '可製作' : '材料缺口',
                     statusIcon: craftReady ? '✓' : '⛏',
                     statusText,
                     statusTone: craftReady ? 'completed' : 'available',
                     meta: [recipeType, recipeRarity, statusSummary],
+                    metaLabels: ['類型', '稀有度'],
                     cues: [
                         statusSummary,
                         `成功率 ${successRate}%`
@@ -791,26 +807,23 @@ export default class QuestScene {
                     icon: place.icon || '🏘️',
                     title: state.title,
                     typeLabel: '城鎮記憶',
+                    summaryMode: 'compact',
+                    hideSummaryMeta: true,
+                    summaryLabel: '回城所感',
+                    summaryHint: place.name,
                     statusIcon: '✓',
                     statusText: place.name,
                     statusTone: 'finished',
-                    meta: [place.tag, place.name],
-                    cues: [
+                    listMeta: [
                         place.name,
                         place.tag || '城鎮',
-                        '已留下變化'
+                        '回城所見'
                     ],
-                    current: state.text,
-                    thoughtTitle: '我現在是否該回去看看城鎮變成什麼樣？',
-                    thoughtText: '這不是任務清單，而是事情做完以後留在城鎮裡的痕跡。',
+                    current: this.buildTownMemoryStory(place, state)[0],
                     sections: [
                         {
-                            title: '發生地點',
-                            lines: [place.description || place.name]
-                        },
-                        {
-                            title: '留下的變化',
-                            lines: [state.text]
+                            title: '城鎮變化',
+                            lines: this.buildTownMemoryStory(place, state).slice(1)
                         }
                     ],
                     route: 'lobby',
@@ -819,9 +832,6 @@ export default class QuestScene {
         const finale = GameManager.getFlag('world.ending.outcome');
         if (!finale?.id) return townRecords;
 
-        const factorLines = Array.isArray(finale.factors) && finale.factors.length > 0
-            ? finale.factors
-            : ['沒有留下足夠可辨認的城鎮支撐。'];
         const sceneLines = Array.isArray(finale.sceneLines) && finale.sceneLines.length > 0
             ? finale.sceneLines
             : [finale.summary].filter(Boolean);
@@ -833,29 +843,23 @@ export default class QuestScene {
                 icon: '🌅',
                 title: finale.title || '終局之後',
                 typeLabel: '終局記憶',
+                summaryMode: 'compact',
+                hideSummaryMeta: true,
+                summaryLabel: '終局回望',
+                summaryHint: '終局之後',
                 statusIcon: '✓',
                 statusText: finale.townEcho || '終戰已留下痕跡',
                 statusTone: 'finished',
-                meta: ['終局', `支撐 ${Number(finale.score || 0)} 項`],
-                cues: [
+                listMeta: [
+                    '終局之後',
                     finale.townEcho || finale.summary || '終局已被記錄',
-                    `城鎮支撐：${factorLines.length} 項`
+                    '街上仍有聲音'
                 ],
-                current: finale.summary || finale.townEcho || '終局已被記錄。',
-                thoughtTitle: finale.thoughtTitle || '我現在是否該回頭看看城鎮留下了什麼？',
-                thoughtText: finale.reflection || '終戰後的記憶會留在城鎮裡，而不是只留在戰鬥結算裡。',
+                current: this.buildFinaleTownStory(finale, sceneLines)[0],
                 sections: [
                     {
-                        title: '終局片段',
-                        lines: sceneLines
-                    },
-                    {
-                        title: '城鎮支撐',
-                        lines: factorLines
-                    },
-                    {
-                        title: '回望',
-                        lines: [finale.reflection || '你回頭看見的，是戰鬥以外真正被保住的東西。']
+                        title: '城鎮變化',
+                        lines: this.buildFinaleTownStory(finale, sceneLines)
                     }
                 ],
                 route: 'lobby',
@@ -863,6 +867,86 @@ export default class QuestScene {
             },
             ...townRecords
         ];
+    }
+
+    buildTownMemoryStory(place = {}, state = {}) {
+        const placeName = place.name || '城裡某處';
+        const tone = this.getTownMemoryTone(placeName, place);
+        const placeText = tone.trace;
+        const sceneText = this.buildTownMemoryEventText(place, state, tone);
+        return [
+            placeText,
+            sceneText
+        ].filter(Boolean);
+    }
+
+    buildTownMemoryEventText(place = {}, state = {}, tone = {}) {
+        const title = state.title ? `「${state.title}」` : '那件事';
+        const text = state.text || '街角多了一點不熟悉的痕跡。';
+        const lead = String(tone.memoryLead || '{title}之後，').replace('{title}', title);
+        return `${lead}${text}`;
+    }
+
+    getTownMemoryTone(placeName, place = {}) {
+        const key = String(place.tag || place.id || placeName || '');
+        const variants = [
+            {
+                match: ['中心', 'crossroads'],
+                trace: '廣場石板仍被腳步磨得發亮，只是公告欄前的人停得比從前久。',
+                memoryLead: '{title}貼上公告欄後，'
+            },
+            {
+                match: ['補給', 'market'],
+                trace: '帆布棚下多了湯氣與藥草味，空瓶被整齊倒扣在木架邊。',
+                memoryLead: '{title}傳到棚下後，'
+            },
+            {
+                match: ['裝備', 'forge'],
+                trace: '爐火映在門縫裡，鐵砧聲比記憶裡更沉。',
+                memoryLead: '{title}留在爐邊後，'
+            },
+            {
+                match: ['紀錄', 'handbook'],
+                trace: '小屋裡的紙頁疊得更高，頁角被翻出淡淡的毛邊。',
+                memoryLead: '{title}被寫進頁面後，'
+            },
+            {
+                match: ['暗流', 'alley'],
+                trace: '暗巷仍窄，牆邊卻多了幾道新刮痕，像有人把消息留在陰影裡。',
+                memoryLead: '{title}傳進巷尾後，'
+            },
+            {
+                match: ['金流', 'casino'],
+                trace: '賭場門縫透出暖光，桌上的笑聲短了一拍。',
+                memoryLead: '{title}在桌邊被提起後，'
+            },
+            {
+                match: ['挑戰', 'tower'],
+                trace: '塔影壓在城邊，裂縫裡的風聲仍像沒停過。',
+                memoryLead: '{title}之後，'
+            },
+            {
+                match: ['出城', 'gate'],
+                trace: '城門的鐵釘沾著灰，旗繩在風裡輕輕敲著木柱。',
+                memoryLead: '{title}掛到門邊後，'
+            }
+        ];
+
+        return variants.find(variant => variant.match.some(token => key.includes(token))) || {
+            trace: `${placeName}還保留著記憶裡的輪廓，細節卻安靜地換了位置。`,
+            memoryLead: '{title}之後，'
+        };
+    }
+
+    buildFinaleTownStory(finale = {}, sceneLines = []) {
+        const lines = Array.isArray(sceneLines) && sceneLines.length > 0
+            ? sceneLines.filter(Boolean)
+            : [finale.summary].filter(Boolean);
+        const echo = finale.townEcho || finale.summary || '城裡的人仍然照常走過街口。';
+        return [
+            ...lines,
+            echo
+        ].filter(Boolean);
     }
 
     getStoryQuestList() {
@@ -950,10 +1034,99 @@ export default class QuestScene {
         const dialogueBox = this.dom.detailDialogue?.closest('.quest-dialogue-box');
         if (dialogueBox) dialogueBox.hidden = true;
 
+        this.applyDetailSectionLabels(this.getHandbookSectionLabels(record));
         this.renderHandbookSummary(record);
         this.renderHandbookSections(record);
         this.renderHandbookRecordRewards(record);
         this.updateHandbookActions(record);
+    }
+
+    applyDetailSectionLabels(config = {}) {
+        const {
+            objectivesTitle = '📋 紀錄內容',
+            rewardsTitle = '🎁 回報',
+            showObjectives = true,
+            showRewards = true
+        } = config;
+
+        if (this.dom.detailObjectivesPanel) {
+            this.dom.detailObjectivesPanel.hidden = !showObjectives;
+        }
+        if (this.dom.detailRewardsPanel) {
+            this.dom.detailRewardsPanel.hidden = !showRewards;
+        }
+        if (this.dom.detailObjectivesTitle) {
+            this.dom.detailObjectivesTitle.textContent = objectivesTitle;
+        }
+        if (this.dom.detailRewardsTitle) {
+            this.dom.detailRewardsTitle.textContent = rewardsTitle;
+        }
+    }
+
+    getHandbookSectionLabels(record = {}) {
+        const hasRouteAction = Boolean(record.route);
+
+        switch (record.kind) {
+            case 'forge':
+                return {
+                    objectivesTitle: '🧾 配方準備',
+                    showRewards: false
+                };
+            case 'boss':
+                return {
+                    objectivesTitle: '🧭 痕跡整理',
+                    rewardsTitle: '✎ 手札註記',
+                    showRewards: !hasRouteAction
+                };
+            case 'world':
+                return {
+                    objectivesTitle: '📍 見聞整理',
+                    rewardsTitle: '✎ 手札註記',
+                    showRewards: !hasRouteAction
+                };
+            case 'town':
+                return {
+                    objectivesTitle: '🏘 城鎮變化',
+                    rewardsTitle: '✎ 手札註記',
+                    showRewards: !hasRouteAction
+                };
+            default:
+                return {
+                    objectivesTitle: '📋 紀錄內容',
+                    rewardsTitle: '✎ 手札註記',
+                    showRewards: !hasRouteAction
+                };
+        }
+    }
+
+    getQuestSectionLabels(status) {
+        switch (status) {
+            case QuestStatus.AVAILABLE:
+                return {
+                    objectivesTitle: '📋 委託內容',
+                    rewardsTitle: '🎁 預期報酬'
+                };
+            case QuestStatus.ACTIVE:
+                return {
+                    objectivesTitle: '📋 目前目標',
+                    rewardsTitle: '🎁 完成回報'
+                };
+            case QuestStatus.COMPLETED:
+                return {
+                    objectivesTitle: '📋 回報事項',
+                    rewardsTitle: '🎁 回報獎勵'
+                };
+            case QuestStatus.FINISHED:
+                return {
+                    objectivesTitle: '📚 已歸檔紀錄',
+                    rewardsTitle: '🎁 已取得報酬'
+                };
+            default:
+                return {
+                    objectivesTitle: '📋 紀錄內容',
+                    rewardsTitle: '🎁 回報'
+                };
+        }
     }
 
     renderHandbookSummary(record) {
@@ -970,19 +1143,27 @@ export default class QuestScene {
 
         const isCompact = record.summaryMode === 'compact';
         const meta = Array.isArray(record.meta) ? record.meta.filter(Boolean) : [];
+        const metaLabels = Array.isArray(record.metaLabels) ? record.metaLabels.filter(Boolean) : [];
         const cues = !isCompact && Array.isArray(record.cues) ? record.cues.filter(Boolean).slice(0, 3) : [];
         const progress = record.progress || null;
         const progressText = progress
             ? `${progress.current}/${progress.required}`
             : '已記錄';
+        const showMeta = record.hideSummaryMeta !== true
+            && !isCompact
+            && (Boolean(record.typeLabel) || Boolean(record.statusText) || meta.length > 0);
+        const summaryLabel = record.summaryLabel || record.typeLabel || '旅人手札';
+        const summaryHint = record.summaryHint || '目前紀錄';
         summary.style.setProperty('--quest-progress', `${progress?.percent || 100}%`);
 
         summary.innerHTML = `
-            <div class="quest-note-meta" aria-label="手札分類">
-                <span><b>分類</b>${escapeHtml(record.typeLabel || '手札')}</span>
-                <span><b>狀態</b>${escapeHtml(record.statusText || '已記錄')}</span>
-                ${meta.slice(0, 2).map((text, index) => `<span><b>${index === 0 ? '來源' : '關聯'}</b>${escapeHtml(text)}</span>`).join('')}
-            </div>
+            ${showMeta ? `
+                <div class="quest-note-meta" aria-label="手札分類">
+                    <span><b>分類</b>${escapeHtml(record.typeLabel || '手札')}</span>
+                    <span><b>狀態</b>${escapeHtml(record.statusText || '已記錄')}</span>
+                    ${meta.slice(0, 2).map((text, index) => `<span><b>${escapeHtml(metaLabels[index] || (index === 0 ? '來源' : '關聯'))}</b>${escapeHtml(text)}</span>`).join('')}
+                </div>
+            ` : ''}
             ${cues.length > 0 ? `
                 <div class="quest-note-cues" aria-label="手札摘要">
                     ${cues.map(text => `<span>${escapeHtml(text)}</span>`).join('')}
@@ -992,8 +1173,8 @@ export default class QuestScene {
                 <div class="quest-note-speaker">
                     <span class="quest-note-avatar">${this.renderHandbookRecordIcon(record, 'handbook-avatar-image')}</span>
                     <span>
-                        <b>${escapeHtml(record.typeLabel || '旅人手札')}</b>
-                        <small>目前紀錄</small>
+                        <b>${escapeHtml(summaryLabel)}</b>
+                        <small>${escapeHtml(summaryHint)}</small>
                     </span>
                 </div>
                 <p>${escapeHtml(record.current || '這段紀錄還需要補充。')}</p>
@@ -1050,6 +1231,10 @@ export default class QuestScene {
 
     renderHandbookRecordRewards(record) {
         this.dom.detailRewards.innerHTML = '';
+        if (this.dom.detailRewardsPanel?.hidden || record.route) {
+            return;
+        }
+
         const action = this.getHandbookRecordAction(record);
         const el = document.createElement('div');
         el.className = 'reward-item reward-empty handbook-record-footnote';
@@ -1092,7 +1277,7 @@ export default class QuestScene {
             case 'forge':
                 return '材料、圖紙與成功率都收在這裡，準備好再回工坊處理。';
             case 'town':
-                return '城鎮變化已經留下來，回去看看人物與場所是否有新的反應。';
+                return '這頁只記下一幕城裡的日常；回城時可以再路過看看。';
             default:
                 return '這段紀錄已收入手札，之後可回來重新整理脈絡。';
         }
@@ -1173,6 +1358,7 @@ export default class QuestScene {
         this.dom.detailName.textContent = questData.name;
         this.dom.detailType.textContent = this.getTypeText(questData.type);
         this.dom.detailType.className = `quest-type-badge type-${questData.type}`;
+        this.applyDetailSectionLabels(this.getQuestSectionLabels(state.status));
         this.renderDetailSummary(questData, state, progressInfo, story);
 
         // 故事敘事者
@@ -1216,22 +1402,21 @@ export default class QuestScene {
         }
 
         const safeProgressInfo = progressInfo || this.getObjectiveProgressInfo(questData.objectives, state.progress);
-        const statusText = this.getStatusText(state.status);
         const questStory = story || getQuestStory(questData, state);
         const nextStep = this.getNextStepText(state.status, safeProgressInfo, questStory);
         const thought = this.getQuestThoughtText(state.status, nextStep, questStory, safeProgressInfo, questData);
         const progressText = safeProgressInfo.required > 0
             ? `${safeProgressInfo.current}/${safeProgressInfo.required}`
             : '0/0';
+        const chapterText = questStory.arc || '';
         summary.style.setProperty('--quest-progress', `${safeProgressInfo.percent}%`);
 
         summary.innerHTML = `
-            <div class="quest-note-meta" aria-label="委託來源">
-                <span><b>來源</b>${escapeHtml(questStory.source)}</span>
-                <span><b>地點</b>${escapeHtml(questStory.location)}</span>
-                <span><b>篇章</b>${escapeHtml(questStory.arc)}</span>
-                <span><b>狀態</b>${escapeHtml(statusText)}</span>
-            </div>
+            ${chapterText ? `
+                <div class="quest-note-meta" aria-label="委託篇章">
+                    <span><b>篇章</b>${escapeHtml(chapterText)}</span>
+                </div>
+            ` : ''}
             <section class="quest-note-current" aria-label="目前紀錄">
                 <div class="quest-note-speaker">
                     <span class="quest-note-avatar">${this.renderQuestSpeakerAvatar(questData, questStory)}</span>

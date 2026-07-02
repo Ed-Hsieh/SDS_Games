@@ -13,7 +13,6 @@ function getPassiveCombatBonus(character, stat) {
 function applyMonsterDamagePassiveMitigation(monster, player, damage) {
     let mitigation = getPassiveCombatBonus(player, 'monsterDamageReduction');
     if (monster?.isBoss) mitigation += getPassiveCombatBonus(player, 'bossDamageReduction');
-    if (monster?.isElite) mitigation += getPassiveCombatBonus(player, 'eliteDamageReduction');
     const clamped = Math.min(0.75, mitigation);
     return clamped > 0 ? Math.max(1, Math.floor(damage * (1 - clamped))) : damage;
 }
@@ -80,6 +79,12 @@ function getTargetArmorBreakPercent(target, now = Date.now()) {
             .filter(effect => effect.type === 'armorBreak')
             .reduce((sum, effect) => sum + (Number(effect.percent) || 0), 0)
     );
+}
+
+function getPoisonAccumulated(target, now = Date.now()) {
+    return syncActiveStatusEffects(target, now)
+        .filter(effect => effect.type === 'poison')
+        .reduce((sum, effect) => sum + (Number(effect.accumulated) || 0), 0);
 }
 
 function rollFlatLifestealBonus(bounds) {
@@ -192,19 +197,13 @@ export function computePlayerAttack(player, hitType, target = null) {
     const thunderPercent = equipmentEffects.thunder;
     const poisonPercent = equipmentEffects.poison;
     const lightPercent = equipmentEffects.light;
-    const voidDamagePercent = equipmentEffects.voidDamage;
+    const voidPerSecond = equipmentEffects.void;
 
     // Apply only fire as extra damage; other elements produce special effects
     let elementalBonus = 0;
     if (firePercent > 0 && damage > 0) {
         elementalBonus = Math.floor(damage * (firePercent / 100));
         damage += elementalBonus;
-    }
-
-    let voidBonus = 0;
-    if (voidDamagePercent > 0 && damage > 0) {
-        voidBonus = Math.floor(damage * (voidDamagePercent / 100));
-        damage += voidBonus;
     }
 
     const profileArmorPenetrationBonus = shouldTriggerArmorPenetration(weaponProfile, hitType, target)
@@ -219,13 +218,12 @@ export function computePlayerAttack(player, hitType, target = null) {
         thunderPercent,
         poisonPercent,
         lightPercent,
-        voidDamagePercent,
+        voidPerSecond,
         elementalBonus,
         weaponProfileId: weaponProfile.id,
         weaponProfileLabel: weaponProfile.label,
         profileArmorPenetrationBonus
     };
-    if (voidBonus > 0) breakdown.voidBonus = voidBonus;
 
     return { damage, isCrit, breakdown };
 }
@@ -297,8 +295,16 @@ export function applyDamage(attacker, target, damageObj) {
         damage = Math.max(0, Math.floor(damage - effectiveDef));
     }
 
-    // Ensure at least 1 damage if original damage > 0
-    const finalDamage = damage > 0 ? Math.max(1, damage) : 0;
+    // Ensure at least 1 damage if original damage > 0.
+    const directDamage = damage > 0 ? Math.max(1, damage) : 0;
+    const poisonAccumulated = getPoisonAccumulated(target);
+    const poisonExecuteThreshold = directDamage + poisonAccumulated;
+    const poisonExecuted = beforeHP > 0
+        && directDamage > 0
+        && poisonAccumulated > 0
+        && poisonExecuteThreshold >= beforeHP;
+    const finalDamage = poisonExecuted ? beforeHP : directDamage;
+    const poisonExecutionDamage = poisonExecuted ? Math.max(0, finalDamage - directDamage) : 0;
 
     // Apply HP change
     if (typeof target.hp === 'number') {
@@ -314,12 +320,13 @@ export function applyDamage(attacker, target, damageObj) {
     let lifestealRecovered = 0;
     if (attacker) {
         const lifestealPercent = attackerEffects.lifesteal;
-        if (lifestealPercent > 0 && finalDamage > 0) {
+        const lifestealBaseDamage = poisonExecuted ? directDamage : finalDamage;
+        if (lifestealPercent > 0 && lifestealBaseDamage > 0) {
             const currentHp = getCurrentHp(attacker);
             const maxHp = getMaxHp(attacker) || Infinity;
             const missingHp = Math.max(0, maxHp - currentHp);
             const flatLifesteal = rollFlatLifestealBonus(getWeaponLifestealBounds(attacker));
-            const percentLifesteal = Math.max(1, Math.floor(finalDamage * (lifestealPercent / 100)));
+            const percentLifesteal = Math.max(1, Math.floor(lifestealBaseDamage * (lifestealPercent / 100)));
             // Small early-game hits should still visibly trigger lifesteal.
             lifestealRecovered = missingHp > 0
                 ? Math.min(missingHp, Math.max(percentLifesteal, flatLifesteal))
@@ -340,12 +347,14 @@ export function applyDamage(attacker, target, damageObj) {
     const thunderPercent = breakdown.thunderPercent || 0;
     const poisonPercent = breakdown.poisonPercent || 0;
     const lightPercent = breakdown.lightPercent || 0;
+    const voidPerSecond = breakdown.voidPerSecond || 0;
+    const canApplyTargetStatus = afterHP > 0 && directDamage > 0;
 
     const appliedEffects = [];
     const attackerStatusEffects = [];
 
     // Thunder: chance to stun on hit
-    if (thunderPercent > 0 && finalDamage > 0) {
+    if (thunderPercent > 0 && canApplyTargetStatus) {
         const roll = Math.random() * 100;
         if (roll < thunderPercent) {
             // stun duration: 1.5s (configurable later)
@@ -353,7 +362,7 @@ export function applyDamage(attacker, target, damageObj) {
         }
     }
 
-    if (attackerEffects?.stunChance > 0 && finalDamage > 0) {
+    if (attackerEffects?.stunChance > 0 && canApplyTargetStatus) {
         const chance = Math.min(100, Math.max(0, Number(attackerEffects.stunChance) || 0));
         if (Math.random() * 100 < chance) {
             appliedEffects.push({ type: 'stun', duration: 1.2, source: 'stunChance', value: chance });
@@ -361,11 +370,11 @@ export function applyDamage(attacker, target, damageObj) {
     }
 
     // Ice: apply slow to target for 3 seconds
-    if (icePercent > 0 && finalDamage > 0) {
+    if (icePercent > 0 && canApplyTargetStatus) {
         appliedEffects.push({ type: 'slow', percent: icePercent, duration: 3, source: 'ice' });
     }
 
-    if (attackerEffects?.slowChance > 0 && finalDamage > 0) {
+    if (attackerEffects?.slowChance > 0 && canApplyTargetStatus) {
         const chance = Math.min(100, Math.max(0, Number(attackerEffects.slowChance) || 0));
         if (Math.random() * 100 < chance) {
             const slowPercent = Math.max(15, Math.min(55, chance));
@@ -373,9 +382,13 @@ export function applyDamage(attacker, target, damageObj) {
         }
     }
 
-    // Poison: apply damage-over-time (DPS) for 3 seconds
-    if (poisonPercent > 0 && finalDamage > 0) {
-        appliedEffects.push({ type: 'poison', dps: poisonPercent, duration: 3, source: 'poison' });
+    // Poison accumulates pressure instead of dealing direct tick damage.
+    if (poisonPercent > 0 && canApplyTargetStatus) {
+        appliedEffects.push({ type: 'poison', accumulatePerSecond: poisonPercent, duration: 3, source: 'poison' });
+    }
+
+    if (voidPerSecond > 0 && canApplyTargetStatus) {
+        appliedEffects.push({ type: 'void', damagePerSecond: voidPerSecond, duration: 3, source: 'void' });
     }
 
     // Light: attack speed buff applied to attacker (stacking).
@@ -384,7 +397,19 @@ export function applyDamage(attacker, target, damageObj) {
         attackerStatusEffects.push({ type: 'attackSpeed', percent: lightPercent, stacking: 'infinite', source: 'light' });
     }
 
-    return { finalDamage, beforeHP, afterHP, lifestealRecovered, appliedEffects, attackerEffects: attackerStatusEffects };
+    return {
+        finalDamage,
+        directDamage,
+        beforeHP,
+        afterHP,
+        lifestealRecovered,
+        appliedEffects,
+        attackerEffects: attackerStatusEffects,
+        poisonAccumulated,
+        poisonExecuteThreshold,
+        poisonExecuted,
+        poisonExecutionDamage
+    };
 }
 
 /**
@@ -460,6 +485,11 @@ export class BattleController {
         return Math.max(0.18, base / Math.max(0.1, multiplier));
     }
 
+    _getWeaponInSlot(slotType = 'weapon') {
+        const item = this.player?.equipment?.[slotType];
+        return item && String(item.type || '').toLowerCase() === 'weapon' ? item : null;
+    }
+
     _getMonsterAttackDelayMs() {
         const attackSpeedSec = (this.monster && (this.monster.attackSpeed || this.monster.attack_speed)) || 1.5;
         const baseMs = Math.max(200, Math.floor(attackSpeedSec * 1000));
@@ -493,10 +523,24 @@ export class BattleController {
             status.percent = percent;
             status.description = `攻擊頻率降低 ${Math.round(percent)}%，持續 ${Math.ceil(duration)} 秒`;
         } else if (effect.type === 'poison') {
-            const dps = Math.max(1, Math.floor(Number(effect.dps) || 1));
-            status.dps = dps;
-            status.nextTickAt = now + 1000;
-            status.description = `每秒 ${dps} 傷害，持續 ${Math.ceil(duration)} 秒`;
+            const accumulatePerSecond = Math.max(1, Math.floor(Number(
+                effect.accumulatePerSecond ?? effect.accumulate ?? effect.dps ?? effect.value
+            ) || 1));
+            status.accumulatePerSecond = accumulatePerSecond;
+            status.accumulated = Math.max(0, Math.floor(Number(existing?.accumulated) || 0));
+            status.nextTickAt = existing?.nextTickAt && existing.nextTickAt > now
+                ? existing.nextTickAt
+                : now + 1000;
+            status.description = `每秒累積 ${accumulatePerSecond} 毒素；毒素與攻擊足以覆蓋剩餘生命時處決。`;
+        } else if (effect.type === 'void') {
+            const damagePerSecond = Math.max(1, Math.floor(Number(effect.damagePerSecond ?? effect.value) || 1));
+            status.damagePerSecond = damagePerSecond;
+            status.nextTickAt = existing?.nextTickAt && existing.nextTickAt > now
+                ? existing.nextTickAt
+                : now + 1000;
+            status.name = effect.name || '虛空吞噬';
+            status.icon = effect.icon || '◈';
+            status.description = `每秒造成 ${damagePerSecond} 點虛空傷害，造成的傷害會回復生命。`;
         } else if (effect.type === 'armorBreak') {
             const percent = Math.max(0, Number(effect.percent) || 0);
             status.percent = percent;
@@ -567,28 +611,60 @@ export class BattleController {
         const events = [];
 
         for (const effect of effects) {
-            if (effect.type !== 'poison') continue;
+            if (effect.type !== 'poison' && effect.type !== 'void') continue;
             if (!effect.nextTickAt || effect.nextTickAt > now) continue;
             if (getCurrentHp(this.monster) <= 0) continue;
 
-            const damage = Math.max(1, Math.floor(Number(effect.dps) || 1));
-            const beforeHP = getCurrentHp(this.monster);
-            setEntityHp(this.monster, beforeHP - damage);
+            if (effect.type === 'void') {
+                const damage = Math.max(1, Math.floor(Number(effect.damagePerSecond) || 1));
+                const beforeHP = getCurrentHp(this.monster);
+                setEntityHp(this.monster, beforeHP - damage);
+                const afterHP = getCurrentHp(this.monster);
+                const actualDamage = Math.max(0, beforeHP - afterHP);
+                const playerBeforeHP = getCurrentHp(this.player);
+                const playerMaxHP = getMaxHp(this.player) || Infinity;
+                if (actualDamage > 0) setEntityHp(this.player, Math.min(playerMaxHP, playerBeforeHP + actualDamage));
+                const playerAfterHP = getCurrentHp(this.player);
+                effect.nextTickAt = now + 1000;
+                effect.description = `每秒造成 ${damage} 點虛空傷害，造成的傷害會回復生命。`;
+
+                events.push({
+                    type: 'void',
+                    source: effect.source,
+                    damage: actualDamage,
+                    amount: actualDamage,
+                    healAmount: Math.max(0, playerAfterHP - playerBeforeHP),
+                    beforeHP,
+                    afterHP,
+                    playerBeforeHP,
+                    playerAfterHP,
+                    targetDefeated: afterHP <= 0
+                });
+
+                if (afterHP <= 0) {
+                    this.battleEnded = true;
+                    break;
+                }
+                continue;
+            }
+
+            const amount = Math.max(1, Math.floor(Number(effect.accumulatePerSecond ?? effect.dps) || 1));
+            const beforeAccumulated = Math.max(0, Math.floor(Number(effect.accumulated) || 0));
+            effect.accumulated = beforeAccumulated + amount;
             effect.nextTickAt = now + 1000;
+            effect.description = `每秒累積 ${amount} 毒素；已累積 ${effect.accumulated}。`;
 
             events.push({
                 type: 'poison',
                 source: effect.source,
-                damage,
-                beforeHP,
-                afterHP: getCurrentHp(this.monster),
-                targetDefeated: getCurrentHp(this.monster) <= 0
+                amount,
+                beforeAccumulated,
+                afterAccumulated: effect.accumulated,
+                accumulated: effect.accumulated,
+                targetHp: getCurrentHp(this.monster),
+                executeReady: effect.accumulated >= getCurrentHp(this.monster),
+                targetDefeated: false
             });
-
-            if (getCurrentHp(this.monster) <= 0) {
-                this.battleEnded = true;
-                break;
-            }
         }
 
         if (this._getPlayerHpRegenAmount() > 0 && (!this._nextPlayerRegenAt || this._nextPlayerRegenAt <= now)) {
@@ -767,17 +843,33 @@ export class BattleController {
      * Execute a player attack. Returns an object with computation and application results.
      * The method will schedule a monsterAttack() call after 1s if the battle hasn't ended.
      */
-    playerAttack(hitType) {
+    playerAttack(hitType, options = {}) {
         if (this.attackCooldown || this.battleEnded) return null;
+
+        const slotType = options.slotType || 'weapon';
+        const attackWeapon = this._getWeaponInSlot(slotType);
+        if (slotType !== 'weapon' && !attackWeapon) return null;
 
         // Weapon durability consumed regardless of hit
         let destroyedWeapon = null;
         try {
-            destroyedWeapon = GameManager.reduceWeaponDurability();
+            destroyedWeapon = GameManager.reduceWeaponDurability(slotType);
         } catch (e) {
             // ignore; GameManager may not expose durability in some contexts
             console.warn('reduceWeaponDurability error:', e);
         }
+
+        const equipmentAfterDurability = this.player?.equipment || {};
+        const shouldUseTemporaryWeapon = Boolean(attackWeapon);
+        if (shouldUseTemporaryWeapon) {
+            this.player.equipment = {
+                ...equipmentAfterDurability,
+                weapon: attackWeapon,
+                armor: slotType === 'armor' ? null : equipmentAfterDurability.armor
+            };
+        }
+
+        try {
 
         // Compute damage
         let computeRes = { damage: 0, isCrit: false, breakdown: {} };
@@ -868,7 +960,12 @@ export class BattleController {
         // NOTE: counter-attack scheduling removed. Monster auto-attacks are handled
         // by startAutoAttack()/stopAutoAttack() using monster.attackSpeed.
 
-        return { destroyedWeapon, computeRes, applyRes };
+        return { destroyedWeapon, computeRes, applyRes, slotType };
+        } finally {
+            if (shouldUseTemporaryWeapon) {
+                this.player.equipment = equipmentAfterDurability;
+            }
+        }
     }
 
     /**

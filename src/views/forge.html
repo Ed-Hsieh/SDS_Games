@@ -12,6 +12,7 @@
         <nav class="forge-tabs">
             <button class="tab-btn active" data-tab="craft">🔨 鍛造製作</button>
             <button class="tab-btn" data-tab="enhance">⚒️ 裝備強化</button>
+            <button class="tab-btn" data-tab="repair">🛠️ 裝備修復</button>
             <button class="tab-btn" data-tab="affix">✨ 詞綴重鑄</button>
         </nav>
 
@@ -52,7 +53,7 @@
                         
                         <div class="materials-required">
                             <h4>所需材料</h4>
-                            <div id="materials-list" class="materials-grid"></div>
+                            <div id="materials-list" class="forge-material-list"></div>
                         </div>
 
                         <div id="forge-craft-guidance" class="forge-craft-guidance" aria-live="polite"></div>
@@ -105,7 +106,7 @@
                                 <span id="enhance-level" class="rate-value">+0 → +1</span>
                             </div>
                             <div class="detail-row">
-                                <span>穩定度:</span>
+                                <span>失敗保護:</span>
                                 <span id="enhance-stability" class="rate-value">0/0</span>
                             </div>
                             <div class="detail-row">
@@ -119,10 +120,10 @@
                         </div>
 
                         <div class="enhance-milestone">
-                            <h4>強化印記</h4>
-                            <div id="enhance-next-milestone" class="milestone-note">下一個印記：+3</div>
+                            <h4>強化能力</h4>
+                            <div id="enhance-next-milestone" class="milestone-note">+3 時可能獲得額外能力</div>
                             <div id="enhance-marks-display" class="affixes-display">
-                                <!-- 動態顯示印記 -->
+                                <!-- 動態顯示強化提示 -->
                             </div>
                         </div>
 
@@ -140,6 +141,60 @@
                     <h4>📜 強化紀錄</h4>
                     <div class="history-list" id="enhance-history">
                         <!-- 動態生成 -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- ========== 裝備修復面板 ========== -->
+            <div id="repair-panel" class="tab-content">
+                <section class="equipment-panel repair-equipment-panel">
+                    <h3>🧰 待修復裝備</h3>
+                    <div class="equipment-list" id="repair-equipment-list">
+                        <!-- 動態生成 -->
+                    </div>
+                </section>
+
+                <section class="repair-area forge-action-area">
+                    <div class="selected-equipment" id="selected-repair-equipment">
+                        <div class="empty-slot">
+                            <span class="empty-icon">🛠️</span>
+                            <span class="empty-text">選擇需要修復的裝備</span>
+                        </div>
+                    </div>
+
+                    <div class="repair-info forge-info-panel" id="repair-info" style="display: none;">
+                        <div class="repair-summary">
+                            <div class="detail-row">
+                                <span>耐久</span>
+                                <span id="repair-durability" class="rate-value">0/0</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>缺損</span>
+                                <span id="repair-missing" class="rate-value">0</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>費用</span>
+                                <span id="repair-cost" class="cost-value">0 金幣</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>素材</span>
+                                <div id="repair-material-cost" class="cost-value">無</div>
+                            </div>
+                        </div>
+
+                        <button id="btn-repair-equipment" class="action-btn repair-btn">修復裝備</button>
+                    </div>
+
+                    <div class="repair-result" id="repair-result" style="display: none;">
+                        <div class="result-icon"></div>
+                        <div class="result-text"></div>
+                    </div>
+                </section>
+
+                <section class="repair-support-panel">
+                    <h4>🧱 修復素材</h4>
+                    <div class="repair-material-hints" id="repair-material-hints">
+                        選擇裝備後會顯示需要的材料與庫存。
                     </div>
                 </section>
             </div>
@@ -174,7 +229,7 @@
                         
                         <div class="affix-slots-info">
                             <h4>詞綴槽位</h4>
-                            <div id="affix-slots-display" class="slots-display">
+                            <div id="affix-slots-display" class="forge-slot-list">
                                 <!-- 顯示前綴/後綴槽位數量 -->
                             </div>
                         </div>
@@ -186,7 +241,7 @@
                             </div>
                             <div class="detail-row">
                                 <span>素材需求:</span>
-                                <span id="reroll-material-cost" class="cost-value">無</span>
+                                <div id="reroll-material-cost" class="cost-value">無</div>
                             </div>
                             <div class="detail-row warning-text">
                                 ⚠️ 重鑄將隨機更換所有詞綴

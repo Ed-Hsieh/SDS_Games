@@ -2,9 +2,9 @@ import { SetDatabase } from '../data/Equipment.js';
 import { calculateActiveSetBonuses } from '../data/EquipmentBalance.js';
 import { getPassiveCombatEffects } from '../data/PassiveCombatEffects.js';
 import { AffixStat } from '../models/Enums.js';
-import { readItemStat, readNumber } from '../models/ItemSchema.js';
+import { normalizeItemType, readItemStat, readNumber } from '../models/ItemSchema.js';
 
-const FLAT_KEYS = new Set(['atk', 'def', 'hp']);
+const FLAT_KEYS = new Set(['atk', 'def', 'hp', 'void']);
 
 const FRACTION_KEYS = new Set([
     'atkPercent',
@@ -36,9 +36,7 @@ const PERCENT_INT_KEYS = new Set([
     'ice',
     'thunder',
     'light',
-    'poison',
-    'void',
-    'voidDamage'
+    'poison'
 ]);
 
 const STAT_ALIASES = {
@@ -107,8 +105,8 @@ const STAT_ALIASES = {
     stun_chance: 'stunChance',
     bossbonus: 'bossBonus',
     boss_bonus: 'bossBonus',
-    voiddamage: 'voidDamage',
-    void_damage: 'voidDamage',
+    voiddamage: 'void',
+    void_damage: 'void',
     fire: 'fire',
     ice: 'ice',
     thunder: 'thunder',
@@ -176,7 +174,6 @@ export function createEmptyEquipmentEffectTotals() {
         light: 0,
         poison: 0,
         void: 0,
-        voidDamage: 0,
         noDurabilityLoss: false,
         passiveBonuses: {},
         extra: {},
@@ -335,7 +332,12 @@ function collectPassiveEffects(totals, character) {
 }
 
 export function getEquippedItems(character) {
-    return Object.values(character?.equipment || {}).filter(Boolean);
+    return Object.entries(character?.equipment || {})
+        .filter(([slotType, item]) => {
+            if (!item) return false;
+            return !(slotType === 'armor' && normalizeItemType(item.type) === 'weapon');
+        })
+        .map(([, item]) => item);
 }
 
 export function getEquipmentEffectTotals(character, options = {}) {

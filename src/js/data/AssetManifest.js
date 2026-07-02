@@ -160,7 +160,16 @@ const sets = {
     'combat-effects': new Set([
         'armor_break', 'attack_speed_down', 'attack_up', 'bleed', 'block', 'boss_warning',
         'burn', 'cold_resist', 'counter', 'critical', 'defense_up', 'dodge', 'double_strike',
-        'dragon_burn', 'freeze', 'hit', 'kill_freeze', 'lifesteal', 'poison', 'poison_resist'
+        'dragon_burn', 'freeze', 'hit', 'kill_freeze', 'lifesteal', 'poison', 'poison_resist',
+        'set_wolf_hunter', 'set_forest_guardian', 'set_undead_slayer', 'set_shadow_legion',
+        'set_ancient_relic', 'set_titan', 'set_elemental_master', 'set_dragon_slayer',
+        'set_demon_lord', 'set_void_king',
+        'setbonus_wolf_hunter_2', 'setbonus_forest_guardian_2', 'setbonus_undead_slayer_2',
+        'setbonus_shadow_legion_2', 'setbonus_shadow_legion_3',
+        'setbonus_ancient_relic_2', 'setbonus_ancient_relic_3',
+        'setbonus_titan_2', 'setbonus_elemental_master_2', 'setbonus_elemental_master_3',
+        'setbonus_dragon_slayer_2', 'setbonus_dragon_slayer_3',
+        'setbonus_demon_lord_2', 'setbonus_demon_lord_3', 'setbonus_void_king_2'
     ]),
     backgrounds: new Set([
         'town-overview', 'adventure-world-map', 'casino-hall', 'casino-game-table', 'casino-prize-wall'

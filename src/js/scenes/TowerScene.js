@@ -505,7 +505,8 @@ class TowerScene {
                 const labels = {
                     stun: '⚡ 暈眩',
                     slow: `❄️ 緩速 ${Math.round(event.percent || 0)}%`,
-                    poison: `☠️ 中毒 ${event.dps || 0}/秒`,
+                    poison: `☠️ 毒素 +${event.accumulatePerSecond || 0}/秒`,
+                    void: `◈ 虛空 ${event.damagePerSecond || 0}/秒`,
                     attackSpeed: `✨ 攻速 +${Math.round(event.totalPercent || event.percent || 0)}%`,
                     hpRegen: '💚 回復'
                 };
@@ -513,6 +514,7 @@ class TowerScene {
                     stun: 'statusStun',
                     slow: 'statusSlow',
                     poison: 'statusPoison',
+                    void: 'dot',
                     attackSpeed: 'statusBuff',
                     hpRegen: 'lifesteal'
                 };
@@ -527,10 +529,21 @@ class TowerScene {
             if (this.finishingBattle) return;
             events.forEach(event => {
                 if (event.type === 'poison') {
-                    showCombatDamageNumber(this.battleStateEl, event.damage || 0, {
-                        type: 'dot',
-                        label: `☠️ -${event.damage || 0}`
+                    showCombatDamageNumber(this.battleStateEl, event.amount || 0, {
+                        type: 'statusPoison',
+                        label: `☠️ 毒素 ${event.accumulated || event.afterAccumulated || 0}`
                     });
+                } else if (event.type === 'void') {
+                    showCombatDamageNumber(this.battleStateEl, event.damage || event.amount || 0, {
+                        type: 'dot',
+                        label: `◈ 虛空 -${event.damage || event.amount || 0}`
+                    });
+                    if ((event.healAmount || 0) > 0) {
+                        showCombatDamageNumber(this.battleStateEl, event.healAmount || 0, {
+                            type: 'lifesteal',
+                            label: `◈ 吞噬 +${event.healAmount || 0}`
+                        });
+                    }
                 } else if (event.type === 'hpRegen') {
                     showCombatDamageNumber(this.battleStateEl, event.amount || 0, {
                         type: 'lifesteal',
@@ -611,6 +624,12 @@ class TowerScene {
             isCrit: Boolean(res.computeRes?.isCrit),
             isMiss: hitType === 'miss'
         });
+        if (applyRes.poisonExecuted) {
+            showCombatDamageNumber(this.battleStateEl, applyRes.poisonAccumulated || 0, {
+                type: 'statusPoison',
+                label: '☠️ 毒素處決'
+            });
+        }
         if (profileStrikeDamage > 0) {
             showCombatDamageNumber(this.battleStateEl, profileStrikeDamage, {
                 type: 'doubleStrike',
@@ -814,7 +833,19 @@ class TowerScene {
         this.destroyBattleEngine();
         audioManager.play('defeat', { throttleKey: 'tower-defeat', throttleMs: 600 });
         audioManager.restoreSceneBgm();
+        const char = GameManager.getCharacter();
+        if (char) {
+            char.hp = Math.max(1, Math.floor((char.maxHp || 100) * 0.3));
+            char.currentHP = char.hp;
+        }
+        GameManager.setFlag?.('death.pendingPenalty', true);
+        GameManager.setFlag?.('death.lastReason', 'tower-death');
+        GameManager.requestTownNarrativeReset?.('death_return');
+        GameManager.markSaveDirty?.('tower-death-return');
+        GameManager.notify?.('all');
         this.showResultState(false, data);
+        showGlobalToast('戰敗回城', '你被送回大廳。死亡懲罰規則保留待定。', 'warning');
+        setTimeout(() => this.exitTower(), 900);
     }
 
     onFloorAdvance(data) {

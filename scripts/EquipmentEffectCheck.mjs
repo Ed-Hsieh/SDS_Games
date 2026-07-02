@@ -111,7 +111,7 @@ const custom = {
         id: 'test_void_blade',
         name: '測試虛空刃',
         type: 'weapon',
-        specialEffects: [{ type: 'voidDamage', value: 25 }]
+        specialEffects: [{ type: 'void', value: 25 }]
     }
 };
 
@@ -136,9 +136,16 @@ const bossPlayer = makePlayer({ accessory: custom.bossCharm }, { atk: 20 });
 const bossRes = applyDamage(bossPlayer, makeMonster({ hp: 100, isBoss: true }), { damage: 20, isCrit: false, breakdown: {} });
 assert(bossRes.finalDamage > 20, 'Boss 傷害加成應提高對首領造成的傷害。');
 
-const voidPlayer = makePlayer({ weapon: custom.voidBlade }, { atk: 20 });
-const voidAttack = computePlayerAttack(voidPlayer, 'hit');
-assert(voidAttack.breakdown.voidBonus > 0 && voidAttack.damage > 20, '虛空傷害應在玩家攻擊計算中追加傷害。');
+const voidPlayer = makePlayer({ weapon: custom.voidBlade }, { hp: 40, maxHp: 120, atk: 20 });
+const voidController = new BattleController(voidPlayer, makeMonster({ hp: 100 }));
+const voidAttack = voidController.playerAttack('hit');
+assert(voidAttack?.applyRes?.statusEvents?.some(effect => effect.type === 'void'), '虛空屬性應能套用虛空吞噬狀態。');
+const voidHpBeforeTick = voidController.monster.hp;
+const voidPlayerHpBeforeTick = voidPlayer.hp;
+const voidTicks = voidController.tickStatusEffects(Date.now() + 1500);
+const voidTick = voidTicks.find(event => event.type === 'void');
+assert(voidTick?.damage > 0 && voidController.monster.hp < voidHpBeforeTick, '虛空吞噬 tick 應造成虛空傷害。');
+assert(voidTick?.healAmount > 0 && voidPlayer.hp > voidPlayerHpBeforeTick, '虛空吞噬造成傷害時應回復生命。');
 
 withFixedRandom(0, () => {
     const player = makePlayer({ accessory: custom.dodgeCharm }, { hp: 80 });
@@ -178,9 +185,17 @@ assert(iceRes.appliedEffects.some(effect => effect.type === 'slow'), '冰屬性�
 const poisonPlayer = makePlayer({ weapon: custom.poisonBlade }, { atk: 20 });
 const poisonController = new BattleController(poisonPlayer, makeMonster({ hp: 100 }));
 const poisonAttack = poisonController.playerAttack('hit');
-assert(poisonAttack?.applyRes?.statusEvents?.some(effect => effect.type === 'poison'), '毒屬性應能套用持續傷害狀態。');
+const poisonHpBeforeTick = poisonController.monster.hp;
+assert(poisonAttack?.applyRes?.statusEvents?.some(effect => effect.type === 'poison'), '毒屬性應能套用毒素累積狀態。');
 const poisonTicks = poisonController.tickStatusEffects(Date.now() + 1500);
-assert(poisonTicks.some(event => event.type === 'poison'), '毒屬性持續傷害應在戰鬥 tick 中扣血。');
+const poisonTick = poisonTicks.find(event => event.type === 'poison');
+assert(poisonTick?.accumulated > 0 && poisonController.monster.hp === poisonHpBeforeTick, '毒素 tick 應只累積處決壓力，不應直接扣血。');
+assert(poisonTicks.some(event => event.type === 'poison'), '毒屬性應在戰鬥 tick 中累積毒素。');
+
+const poisonExecuteTarget = makeMonster({ hp: 25, maxHp: 100 });
+poisonExecuteTarget.statusEffects = [{ type: 'poison', source: 'poison', accumulated: 10 }];
+const poisonExecuteRes = applyDamage(makePlayer({}, { atk: 20 }), poisonExecuteTarget, { damage: 15, isCrit: false, breakdown: {} });
+assert(poisonExecuteRes.poisonExecuted && poisonExecuteTarget.hp === 0, '攻擊傷害加上累積毒素達到剩餘生命時應直接處決。');
 
 const rewardEffects = getRewardEffectTotals(makePlayer({ accessory: custom.rewardCharm }));
 assert(rewardEffects.goldBonus === 20 && rewardEffects.expBonus === 15 && rewardEffects.dropBonus === 10, '金幣、經驗、掉落加成應由共用解析器回傳。');

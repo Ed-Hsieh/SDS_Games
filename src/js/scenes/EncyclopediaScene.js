@@ -1,21 +1,15 @@
 /**
  * EncyclopediaScene.js
- * Player-facing monster and blueprint encyclopedia.
+ * Four-category player codex with category-specific presentation rules.
  */
 
 import GameManager from '../managers/GameManager.js';
-import {
-    getMonsterSkillRows,
-    normalizeMonsterSkill
-} from '../data/MonsterSkills.js';
 import {
     formatChance,
     formatQuantity,
     getBlueprintEntries,
     getItemEntries,
     getMonsterEntries,
-    getReadableElement,
-    getReadableType,
     isBlueprintKnownInEncyclopedia,
     isEncyclopediaRevealAll,
     isItemKnown,
@@ -23,68 +17,123 @@ import {
     setEncyclopediaRevealAll,
     unlockAllEncyclopediaEntries
 } from '../managers/EncyclopediaManager.js';
-import { resolveItemById } from '../utils/ItemResolver.js';
-import { buildItemStatChipsHtml, escapeHtml, formatAffixStats, getItemVisualHtml } from '../utils/ItemDisplay.js';
+import {
+    CodexCategoryId,
+    applyCodexClass,
+    compareCodexEntries,
+    getCodexClass,
+    getCodexItemCategory,
+    getReadableCodexRarity,
+    getReadableCodexType,
+    getReadableSourceType
+} from '../data/CodexCatalogClasses.js';
+import {
+    buildItemStatChipsHtml,
+    escapeHtml,
+    getItemVisualHtml
+} from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 
-const silhouetteByType = {
-    weapon: '⚔',
-    armor: '⬟',
-    equipment: '⬟',
-    accessory: '◌',
-    potion: '✚',
-    material: '◆',
-    key: '◇',
-    blueprint: '▧'
+const ItemTabs = new Set([
+    CodexCategoryId.EQUIPMENT,
+    CodexCategoryId.MATERIALS,
+    CodexCategoryId.ITEMS
+]);
+
+const UnknownIcon = {
+    equipment: '?',
+    materials: '?',
+    blueprints: '?',
+    items: '?',
+    monsters: '?',
+    monster: '?'
 };
 
-function getSilhouette(type, fallback = '◆') {
-    return silhouetteByType[type] || fallback;
+function getEntryId(entry = {}) {
+    return entry.id || entry.entryId || entry.recipeId || '';
 }
 
-function formatGold(gold) {
-    if (Array.isArray(gold)) return `${gold[0]}-${gold[1]}`;
-    return String(gold ?? 0);
+function getItemFromEntry(entry = {}) {
+    return entry.item || entry.result || entry;
 }
 
-function formatStats(stats = {}) {
-    const filtered = {};
-    for (const [key, value] of Object.entries(stats)) {
-        if (value !== 0 && value != null) filtered[key] = value;
-    }
-    return formatAffixStats(filtered);
+function getSourceLabel(entry = {}) {
+    return (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
 }
 
-const RaritySortRank = {
-    common: 1,
-    uncommon: 2,
-    rare: 3,
-    epic: 4,
-    legendary: 5
-};
+function hasFilterMatch(entry = {}, filterValue) {
+    if (!filterValue || filterValue === 'all') return true;
+    return entry.rarity === filterValue
+        || entry.type === filterValue
+        || entry.sourceType === filterValue
+        || entry.result?.type === filterValue
+        || (entry.sources || []).some(source => source.type === filterValue)
+        || (entry.sourceRefs || []).some(source => source.type === filterValue);
+}
 
-function buildTooltipStatsHtml(rows = []) {
-    return rows
-        .filter(([, value]) => value !== undefined && value !== null && value !== '')
-        .map(([label, value]) => `
-            <div class="item-detail-stat">
-                <span>${escapeHtml(label)}</span>
-                <span class="value">${escapeHtml(value)}</span>
-            </div>
-        `)
-        .join('');
+function getSearchText(entry = {}) {
+    return [
+        entry.id,
+        entry.entryId,
+        entry.name,
+        entry.catalogNo,
+        entry.type,
+        entry.rarity,
+        entry.sourceLabel,
+        entry.rank,
+        entry.element,
+        entry.attack,
+        entry.defense,
+        entry.maxHp,
+        entry.result?.name,
+        entry.result?.id,
+        ...(entry.sources || []).flatMap(source => [source.type, source.label]),
+        ...(entry.sourceRefs || []).flatMap(source => [source.type, source.label, source.sourceLabel]),
+        ...(entry.usageRefs || []).flatMap(usage => [usage.type, usage.label, usage.id])
+    ].join(' ').toLowerCase();
+}
+
+function formatPrice(value) {
+    return value == null ? '-' : `${value}G`;
+}
+
+function formatChapter(value) {
+    return value == null ? '-' : `第 ${value} 章`;
+}
+
+function safePercent(value) {
+    return value == null ? '-' : formatChance(value);
+}
+
+function readItemDescription(item = {}, fallback = '尚未記錄更多說明。') {
+    return item.description || item.desc || fallback;
+}
+
+function renderStat(label, value) {
+    return `
+        <div class="codex-stat">
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(value)}</strong>
+        </div>
+    `;
+}
+
+function renderEmpty(text = '尚無資料') {
+    return `<div class="codex-empty compact">${escapeHtml(text)}</div>`;
 }
 
 export default class EncyclopediaScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
-        this.activeTab = 'monsters';
+        this.activeTab = CodexCategoryId.EQUIPMENT;
         this.searchText = '';
         this.filterValue = 'all';
-        this.sortValue = 'level-asc';
+        this.sortKey = getCodexClass(this.activeTab).defaultSort;
+        this.sortDirection = 'asc';
         this.selectedId = null;
         this.updateFromFlags = this.updateFromFlags.bind(this);
     }
@@ -109,6 +158,7 @@ export default class EncyclopediaScene {
             search: this.container.querySelector('#codex-search'),
             filter: this.container.querySelector('#codex-filter'),
             sort: this.container.querySelector('#codex-sort'),
+            sortDirection: this.container.querySelector('#codex-sort-direction'),
             list: this.container.querySelector('#codex-list'),
             detail: this.container.querySelector('#codex-detail'),
             summary: this.container.querySelector('#codex-summary')
@@ -117,13 +167,8 @@ export default class EncyclopediaScene {
 
     bindEvents() {
         this.dom.backButton?.addEventListener('click', () => {
-            if (typeof this.app?.navigateTo === 'function') {
-                this.app.navigateTo('lobby');
-            } else if (window.location.hash.slice(1) === 'lobby') {
-                this.app?.loadScene?.('lobby');
-            } else {
-                window.location.hash = 'lobby';
-            }
+            if (typeof this.app?.navigateTo === 'function') this.app.navigateTo('lobby');
+            else this.app?.loadScene?.('lobby');
         });
 
         this.dom.revealButton?.addEventListener('click', () => {
@@ -133,7 +178,7 @@ export default class EncyclopediaScene {
 
         this.dom.unlockAllButton?.addEventListener('click', () => {
             unlockAllEncyclopediaEntries();
-            showGlobalToast('百科已解鎖', '所有百科資訊已標記為已知。', 'success');
+            showGlobalToast('百科已更新', '目前分類的條目已解鎖。', 'success');
             this.render();
         });
 
@@ -142,9 +187,8 @@ export default class EncyclopediaScene {
                 this.activeTab = tab.dataset.codexTab;
                 this.selectedId = null;
                 this.filterValue = 'all';
-                this.sortValue = this.getDefaultSortValue();
-                if (this.dom.filter) this.dom.filter.value = 'all';
-                if (this.dom.sort) this.dom.sort.value = this.sortValue;
+                this.sortKey = getCodexClass(this.activeTab).defaultSort;
+                this.sortDirection = 'asc';
                 this.render();
             });
         });
@@ -160,7 +204,12 @@ export default class EncyclopediaScene {
         });
 
         this.dom.sort?.addEventListener('change', event => {
-            this.sortValue = event.target.value;
+            this.sortKey = event.target.value;
+            this.render();
+        });
+
+        this.dom.sortDirection?.addEventListener('click', () => {
+            this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
             this.render();
         });
 
@@ -170,110 +219,98 @@ export default class EncyclopediaScene {
             this.selectedId = row.dataset.entryId;
             this.render();
         });
+
+        this.dom.detail?.addEventListener('click', event => {
+            const link = event.target.closest('[data-codex-link-category][data-codex-link-id]');
+            if (!link) return;
+            this.navigateToCodexEntry(link.dataset.codexLinkCategory, link.dataset.codexLinkId);
+        });
     }
 
     updateFromFlags(_state, type) {
         if (type === 'flags' || type === 'all') this.render();
     }
 
-    getEntries() {
-        if (this.activeTab === 'monsters') return getMonsterEntries();
-        if (this.activeTab === 'items') return getItemEntries();
-        return getBlueprintEntries();
+    getEntriesForCategory(categoryId = this.activeTab) {
+        if (categoryId === CodexCategoryId.BLUEPRINTS) {
+            return applyCodexClass(categoryId, getBlueprintEntries());
+        }
+
+        if (categoryId === CodexCategoryId.MONSTERS) {
+            return applyCodexClass(categoryId, getMonsterEntries());
+        }
+
+        if (ItemTabs.has(categoryId)) {
+            const entries = getItemEntries().filter(entry => getCodexItemCategory(entry) === categoryId);
+            return applyCodexClass(categoryId, entries);
+        }
+
+        return [];
     }
 
-    getDefaultSortValue(tab = this.activeTab) {
-        return tab === 'monsters' ? 'level-asc' : 'rarity-asc';
+    getEntries() {
+        return this.getEntriesForCategory(this.activeTab);
+    }
+
+    navigateToCodexEntry(category, id) {
+        if (!category || !id) return;
+        const targetEntries = this.getEntriesForCategory(category);
+        if (!targetEntries.some(entry => getEntryId(entry) === id)) {
+            showGlobalToast('百科尚未收錄', '這個目標目前沒有可跳轉的百科條目。', 'warning');
+            return;
+        }
+
+        this.activeTab = category;
+        this.selectedId = id;
+        this.filterValue = 'all';
+        this.searchText = '';
+        this.sortKey = getCodexClass(this.activeTab).defaultSort;
+        this.sortDirection = 'asc';
+        if (this.dom.search) this.dom.search.value = '';
+        this.render();
+    }
+
+    getCategoryForItem(item = {}) {
+        if (!item?.id) return CodexCategoryId.ITEMS;
+        const entry = getItemEntries().find(candidate => candidate.id === item.id);
+        return entry ? getCodexItemCategory(entry) : getCodexItemCategory(item);
     }
 
     getFilteredEntries(entries = this.getEntries()) {
         const query = this.searchText;
-
         return entries.filter(entry => {
-            const matchesFilter = this.filterValue === 'all'
-                || entry.rank === this.filterValue
-                || entry.rarity === this.filterValue
-                || entry.sourceType === this.filterValue
-                || (entry.sources || []).some(source => source.type === this.filterValue)
-                || entry.type === this.filterValue;
-
-            if (!matchesFilter) return false;
-            if (!query) return true;
-
-            return [
-                entry.id,
-                entry.name,
-                entry.sourceLabel,
-                ...(entry.sources || []).map(source => source.label),
-                entry.rarity,
-                entry.rank,
-                entry.type
-            ].some(value => String(value || '').toLowerCase().includes(query));
+            if (!hasFilterMatch(entry, this.filterValue)) return false;
+            return !query || getSearchText(entry).includes(query);
         });
     }
 
     getSortedEntries(entries) {
-        const sorted = [...entries];
-        const getRarityRank = entry => RaritySortRank[entry.rarity] || 0;
-        const getLevel = entry => Number.isFinite(Number(entry.level)) ? Number(entry.level) : null;
-        const getLevelMissingRank = entry => getLevel(entry) === null ? 1 : 0;
-        const getSourceCount = entry => entry.drops?.length || entry.sources?.length || (entry.discovery?.interactionId ? 1 : 0);
-        const getName = entry => entry.name || entry.id || entry.entryId || '';
-
-        sorted.sort((a, b) => {
-            switch (this.sortValue) {
-                case 'level-desc':
-                    return getLevelMissingRank(a) - getLevelMissingRank(b)
-                        || (getLevel(b) || 0) - (getLevel(a) || 0)
-                        || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'rarity-asc':
-                    return getRarityRank(a) - getRarityRank(b) || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'rarity-desc':
-                    return getRarityRank(b) - getRarityRank(a) || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'source-desc':
-                    return getSourceCount(b) - getSourceCount(a) || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'source-asc':
-                    return getSourceCount(a) - getSourceCount(b) || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'type-asc':
-                    return getReadableType(a.type || a.rank).localeCompare(getReadableType(b.type || b.rank), 'zh-Hant')
-                        || getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'name-asc':
-                    return getName(a).localeCompare(getName(b), 'zh-Hant');
-                case 'level-asc':
-                default:
-                    return getLevelMissingRank(a) - getLevelMissingRank(b)
-                        || (getLevel(a) || 0) - (getLevel(b) || 0)
-                        || getName(a).localeCompare(getName(b), 'zh-Hant');
-            }
-        });
-
-        return sorted;
+        const direction = this.sortDirection === 'desc' ? -1 : 1;
+        return [...entries].sort((a, b) => compareCodexEntries(this.activeTab, this.sortKey, direction, a, b));
     }
 
     render() {
         const allEntries = this.getEntries();
         const entries = this.getSortedEntries(this.getFilteredEntries(allEntries));
-        const selectedInFilteredEntries = entries.some(entry => this.getEntryId(entry) === this.selectedId);
+        const selectedExists = entries.some(entry => getEntryId(entry) === this.selectedId);
 
-        if (entries.length > 0 && (!this.selectedId || !selectedInFilteredEntries)) {
-            this.selectedId = entries[0] ? this.getEntryId(entries[0]) : null;
-        } else if (!this.selectedId && allEntries.length > 0) {
-            this.selectedId = this.getEntryId(allEntries[0]);
+        if (entries.length > 0 && (!this.selectedId || !selectedExists)) {
+            this.selectedId = getEntryId(entries[0]);
+        } else if (entries.length === 0) {
+            this.selectedId = null;
         }
 
         this.renderHeader(entries, allEntries);
-        this.renderFilters();
+        this.renderControls();
         this.renderList(entries);
-        this.attachListTooltips(entries);
 
-        const selectedEntry = entries.find(entry => this.getEntryId(entry) === this.selectedId)
-            || allEntries.find(entry => this.getEntryId(entry) === this.selectedId)
-            || null;
+        const selectedEntry = entries.find(entry => getEntryId(entry) === this.selectedId) || null;
         this.renderDetail(selectedEntry);
-        this.attachDetailTooltips(selectedEntry);
+        this.attachTooltips(selectedEntry);
     }
 
-    renderHeader(entries, allEntries = entries) {
+    renderHeader(entries, allEntries) {
+        const CodexClass = getCodexClass(this.activeTab);
         this.dom.tabs.forEach(tab => {
             tab.classList.toggle('active', tab.dataset.codexTab === this.activeTab);
         });
@@ -286,176 +323,70 @@ export default class EncyclopediaScene {
 
         if (this.dom.summary) {
             const knownCount = entries.filter(entry => entry.known).length;
-            const labels = {
-                monsters: '怪物',
-                blueprints: '圖紙',
-                items: '物品'
-            };
-            const label = labels[this.activeTab] || '項目';
-            this.dom.summary.textContent = `${label} ${knownCount}/${allEntries.length}`;
+            this.dom.summary.textContent = `${CodexClass.label} ${knownCount}/${allEntries.length}`;
         }
     }
 
-    renderFilters() {
+    renderControls() {
+        const CodexClass = getCodexClass(this.activeTab);
+
         if (this.dom.filter) {
-            if (this.dom.filter.dataset.codexFilterMode !== this.activeTab) {
-                if (this.activeTab === 'monsters') {
-                    this.dom.filter.innerHTML = `
-                        <option value="all">全部</option>
-                        <option value="world">野外</option>
-                        <option value="dungeon">副本</option>
-                        <option value="tower">塔</option>
-                        <option value="normal">普通</option>
-                        <option value="elite">菁英</option>
-                        <option value="boss">BOSS</option>
-                        <option value="world_boss">世界 BOSS</option>
-                    `;
-                } else if (this.activeTab === 'items') {
-                    this.dom.filter.innerHTML = `
-                        <option value="all">全部</option>
-                        <option value="casino">賭場獎池</option>
-                        <option value="questReward">任務獎勵</option>
-                        <option value="equipment">裝備資料</option>
-                        <option value="material">素材資料</option>
-                        <option value="weapon">武器</option>
-                        <option value="armor">防具</option>
-                        <option value="accessory">飾品</option>
-                        <option value="key">關鍵物品</option>
-                        <option value="common">Common</option>
-                        <option value="uncommon">Uncommon</option>
-                        <option value="rare">Rare</option>
-                        <option value="epic">Epic</option>
-                        <option value="legendary">Legendary</option>
-                    `;
-                } else {
-                    this.dom.filter.innerHTML = `
-                        <option value="all">全部</option>
-                        <option value="weapon">武器</option>
-                        <option value="armor">防具</option>
-                        <option value="equipment">裝備</option>
-                        <option value="accessory">飾品</option>
-                        <option value="potion">消耗品</option>
-                        <option value="uncommon">Uncommon</option>
-                        <option value="rare">Rare</option>
-                        <option value="epic">Epic</option>
-                        <option value="legendary">Legendary</option>
-                    `;
-                }
-
-                this.dom.filter.dataset.codexFilterMode = this.activeTab;
-            }
-
+            this.dom.filter.innerHTML = CodexClass.filters
+                .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
+                .join('');
             this.dom.filter.value = this.filterValue;
         }
 
-        if (!this.dom.sort) return;
-
-        const sortOptions = this.activeTab === 'monsters'
-            ? [
-                ['level-asc', '等級低到高'],
-                ['level-desc', '等級高到低'],
-                ['rarity-desc', '稀有度高到低'],
-                ['rarity-asc', '稀有度低到高'],
-                ['name-asc', '名稱排序']
-            ]
-            : [
-                ['rarity-asc', '稀有度低到高'],
-                ['rarity-desc', '稀有度高到低'],
-                ['source-desc', '來源多到少'],
-                ['source-asc', '來源少到多'],
-                ['type-asc', '類型排序'],
-                ['name-asc', '名稱排序']
-            ];
-
-        if (!sortOptions.some(([value]) => value === this.sortValue)) {
-            this.sortValue = this.getDefaultSortValue();
-        }
-
-        if (this.dom.sort.dataset.codexSortMode !== this.activeTab) {
-            this.dom.sort.innerHTML = sortOptions
+        if (this.dom.sort) {
+            if (!CodexClass.sorts.some(([value]) => value === this.sortKey)) {
+                this.sortKey = CodexClass.defaultSort;
+            }
+            this.dom.sort.innerHTML = CodexClass.sorts
                 .map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`)
                 .join('');
-            this.dom.sort.dataset.codexSortMode = this.activeTab;
+            this.dom.sort.value = this.sortKey;
         }
 
-        this.dom.sort.value = this.sortValue;
+        if (this.dom.sortDirection) {
+            this.dom.sortDirection.textContent = this.sortDirection === 'asc' ? '↑' : '↓';
+            this.dom.sortDirection.setAttribute('aria-label', this.sortDirection === 'asc' ? '正序' : '倒序');
+        }
     }
 
     renderList(entries) {
         if (!this.dom.list) return;
-
         if (entries.length === 0) {
             this.dom.list.innerHTML = '<div class="codex-empty codex-list-empty">沒有符合條件的資料</div>';
             return;
         }
 
+        const CodexClass = getCodexClass(this.activeTab);
         this.dom.list.innerHTML = entries.map(entry => {
-            const id = this.getEntryId(entry);
-            const isSelected = id === this.selectedId;
-            if (this.activeTab === 'monsters') return this.renderMonsterRow(entry, isSelected);
-            if (this.activeTab === 'items') return this.renderItemRow(entry, isSelected);
-            return this.renderBlueprintRow(entry, isSelected);
+            const known = entry.known;
+            const id = getEntryId(entry);
+            const item = getItemFromEntry(entry);
+            const icon = known && this.activeTab === CodexCategoryId.MONSTERS
+                ? this.renderMonsterVisual(entry)
+                : known
+                    ? getItemVisualHtml(item, UnknownIcon[this.activeTab], this.activeTab === CodexCategoryId.BLUEPRINTS ? 'codex-blueprint-image' : 'codex-item-image')
+                    : escapeHtml(UnknownIcon[this.activeTab]);
+            const name = known ? entry.name : '未解鎖';
+            const subtitle = known ? CodexClass.getSubtitle(entry) : '尚未取得資料';
+            const meta = known ? CodexClass.getListMeta(entry) : '';
+
+            return `
+                <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity || 'common')} ${id === this.selectedId ? 'active' : ''} ${known ? '' : 'is-locked'}"
+                    data-entry-id="${escapeHtml(id)}"
+                    type="button">
+                    <span class="codex-row-icon">${icon}</span>
+                    <span class="codex-row-main">
+                        <strong>${escapeHtml(name)}</strong>
+                        <small>${escapeHtml(subtitle)}</small>
+                    </span>
+                    <span class="codex-row-meta">${escapeHtml(meta)}</span>
+                </button>
+            `;
         }).join('');
-    }
-
-    renderMonsterRow(entry, isSelected) {
-        const known = entry.known;
-        const name = known ? entry.name : '未知怪物';
-        const icon = known ? this.renderMonsterVisual(entry) : escapeHtml(getSilhouette('material', '◆'));
-        const subtitle = known
-            ? `${entry.sourceLabel} / ${getReadableType(entry.rank)}`
-            : `${entry.sourceLabel} / 未解鎖`;
-
-        return `
-            <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.entryId)}" type="button">
-                <span class="codex-row-icon">${icon}</span>
-                <span class="codex-row-main">
-                    <strong>${escapeHtml(name)}</strong>
-                    <small>${escapeHtml(subtitle)}</small>
-                </span>
-                <span class="codex-row-meta">Lv.${known ? escapeHtml(entry.level || '-') : '??'}</span>
-            </button>
-        `;
-    }
-
-    renderBlueprintRow(entry, isSelected) {
-        const known = entry.known;
-        const icon = known
-            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧', 'codex-blueprint-image')
-            : escapeHtml(getSilhouette('blueprint', '▧'));
-        const sourceCount = entry.drops.length || (entry.discovery?.interactionId ? 1 : 0);
-
-        return `
-            <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.id)}" type="button">
-                <span class="codex-row-icon">${icon}</span>
-                <span class="codex-row-main">
-                    <strong>${escapeHtml(known ? entry.name : '未知圖紙')}</strong>
-                    <small>${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</small>
-                </span>
-                <span class="codex-row-meta">${sourceCount} 源</span>
-            </button>
-        `;
-    }
-
-    renderItemRow(entry, isSelected) {
-        const known = entry.known;
-        const item = entry.item || entry;
-        const icon = known
-            ? getItemVisualHtml(item, '◆', 'codex-item-image')
-            : escapeHtml(getSilhouette(entry.type, '◆'));
-        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
-        const meta = entry.level ? `Lv.${entry.level}` : entry.rarity;
-
-        return `
-            <button class="codex-list-row rarity-frame rarity-${escapeHtml(entry.rarity)} ${isSelected ? 'active' : ''} ${known ? '' : 'is-locked'}" data-entry-id="${escapeHtml(entry.id)}" type="button">
-                <span class="codex-row-icon">${icon}</span>
-                <span class="codex-row-main">
-                    <strong>${escapeHtml(known ? entry.name : '未知物品')}</strong>
-                    <small>${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(sourceLabel)}</small>
-                </span>
-                <span class="codex-row-meta">${escapeHtml(meta)}</span>
-            </button>
-        `;
     }
 
     renderDetail(entry) {
@@ -465,141 +396,309 @@ export default class EncyclopediaScene {
             return;
         }
 
-        if (this.activeTab === 'monsters') {
-            this.dom.detail.innerHTML = this.renderMonsterDetail(entry);
-        } else if (this.activeTab === 'items') {
-            this.dom.detail.innerHTML = this.renderItemDetail(entry);
-        } else {
+        if (this.activeTab === CodexCategoryId.EQUIPMENT) {
+            this.dom.detail.innerHTML = this.renderEquipmentDetail(entry);
+        } else if (this.activeTab === CodexCategoryId.MATERIALS) {
+            this.dom.detail.innerHTML = this.renderMaterialDetail(entry);
+        } else if (this.activeTab === CodexCategoryId.BLUEPRINTS) {
             this.dom.detail.innerHTML = this.renderBlueprintDetail(entry);
+        } else if (this.activeTab === CodexCategoryId.MONSTERS) {
+            this.dom.detail.innerHTML = this.renderMonsterDetail(entry);
+        } else {
+            this.dom.detail.innerHTML = this.renderItemDetail(entry);
         }
+    }
+
+    renderDetailHead(entry, options = {}) {
+        const known = entry.known;
+        const item = options.item || getItemFromEntry(entry);
+        const icon = known
+            ? getItemVisualHtml(item, options.fallbackIcon || UnknownIcon[this.activeTab], options.imageClass || 'codex-item-image')
+            : escapeHtml(options.lockedIcon || UnknownIcon[this.activeTab]);
+        const title = known ? (options.title || entry.name) : '未解鎖';
+        const kicker = known ? (options.kicker || '') : '尚未取得資料';
+        const description = known ? options.description : '取得、擊敗或發現後，百科會補上完整內容。';
+
+        return `
+            <section class="codex-detail-head">
+                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity || 'common')} ${known ? '' : 'is-locked'}">${icon}</div>
+                <div>
+                    <div class="codex-kicker">${escapeHtml(kicker)}</div>
+                    <h2>${escapeHtml(title)}</h2>
+                    <p>${escapeHtml(description || '尚未記錄更多說明。')}</p>
+                </div>
+            </section>
+        `;
+    }
+
+    renderMonsterVisual(entry = {}, imageClass = 'codex-item-image') {
+        const image = entry.image || getGeneratedMonsterImage(String(entry.id || entry.entryId || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, ''));
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(entry.name || '')}" class="${escapeHtml(imageClass)}">`;
+        }
+        return escapeHtml(entry.icon || UnknownIcon.monster);
     }
 
     renderMonsterDetail(entry) {
         const known = entry.known;
-        const icon = known ? this.renderMonsterVisual(entry) : escapeHtml(getSilhouette('material', '◆'));
-        const title = known ? entry.name : '未知怪物';
-        const description = known ? (entry.description || '尚無描述') : '資料尚未解鎖';
+        const icon = known ? this.renderMonsterVisual(entry, 'codex-monster-image') : escapeHtml(UnknownIcon.monsters);
+        const title = known ? entry.name : '未解鎖';
+        const description = known
+            ? (entry.description || '已記錄的敵人。')
+            : '遭遇或擊敗後，百科會補上完整怪物資料。';
 
         return `
             <section class="codex-detail-head">
-                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
+                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity || 'common')} ${known ? '' : 'is-locked'}">${icon}</div>
                 <div>
-                    <div class="codex-kicker">${escapeHtml(entry.sourceLabel)} / ${escapeHtml(getReadableType(entry.rank))}</div>
+                    <div class="codex-kicker">${escapeHtml(known ? `${getReadableCodexType(entry.rank || entry.type)} / ${entry.sourceLabel || '未知地點'}` : '尚未取得資料')}</div>
                     <h2>${escapeHtml(title)}</h2>
                     <p>${escapeHtml(description)}</p>
                 </div>
             </section>
-
             <section class="codex-stat-grid">
-                ${this.renderStat('等級', known ? entry.level : '??')}
-                ${this.renderStat('HP', known ? entry.maxHp : '???')}
-                ${this.renderStat('攻擊', known ? entry.attack : '???')}
-                ${this.renderStat('防禦', known ? entry.defense : '???')}
-                ${this.renderStat('攻擊頻率', known ? `${entry.attackSpeed}s` : '???')}
-                ${this.renderStat('屬性', known ? getReadableElement(entry.element) : '???')}
-                ${this.renderStat('經驗', known ? entry.exp : '???')}
-                ${this.renderStat('金幣', known ? formatGold(entry.gold) : '???')}
+                ${renderStat('等級', known ? (entry.level ?? '-') : '???')}
+                ${renderStat('生命', known ? (entry.maxHp ?? '-') : '???')}
+                ${renderStat('攻擊', known ? (entry.attack ?? '-') : '???')}
+                ${renderStat('防禦', known ? (entry.defense ?? '-') : '???')}
+                ${renderStat('元素', known ? getReadableCodexType(entry.element || 'none') : '???')}
+                ${renderStat('出沒', known ? (entry.sourceLabel || '-') : '???')}
             </section>
+            ${this.renderMonsterDropSection(entry)}
+        `;
+    }
 
-            ${this.renderDropSection('掉落物品', entry.itemDrops, 'item')}
-            ${this.renderDropSection('圖紙', entry.blueprintDrops, 'blueprint')}
-            ${this.renderSkillSection(entry)}
+    renderMonsterDropSection(entry) {
+        if (!entry.known) return '';
+        const itemDrops = (entry.itemDrops || []).map(drop => this.renderMonsterItemDrop(drop)).join('');
+        const blueprintDrops = (entry.blueprintDrops || []).map(drop => this.renderMonsterBlueprintDrop(drop)).join('');
+        return `
+            <section class="codex-section">
+                <h3>掉落物</h3>
+                <div class="codex-drop-grid">
+                    ${itemDrops || renderEmpty('尚未整理物品掉落')}
+                </div>
+            </section>
+            <section class="codex-section">
+                <h3>圖紙掉落</h3>
+                <div class="codex-drop-grid">
+                    ${blueprintDrops || renderEmpty('尚未整理圖紙掉落')}
+                </div>
+            </section>
+        `;
+    }
+
+    renderMonsterItemDrop(drop = {}) {
+        const item = resolveItemById(drop.id, { order: ['equipment', 'material', 'shop', 'questReward'] }) || drop;
+        const itemKnown = Boolean(drop.id && isItemKnown(drop.id));
+        const category = this.getCategoryForItem({ ...item, id: drop.id || item.id });
+        return `
+            <button class="codex-drop-token rarity-frame rarity-${escapeHtml(item.rarity || 'common')}"
+                type="button"
+                data-codex-link-category="${escapeHtml(category)}"
+                data-codex-link-id="${escapeHtml(drop.id || item.id || '')}">
+                <div class="codex-drop-icon">${itemKnown ? getItemVisualHtml(item, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.items)}</div>
+                <div class="codex-drop-info">
+                    <strong>${escapeHtml(itemKnown ? (item.name || drop.id || '未知物品') : '未解鎖物品')}</strong>
+                    <span>${escapeHtml(formatChance(drop.chance))}</span>
+                </div>
+            </button>
+        `;
+    }
+
+    renderMonsterBlueprintDrop(drop = {}) {
+        const blueprint = getBlueprintEntries().find(entry => entry.recipeId === drop.recipeId || entry.id === drop.recipeId);
+        const known = Boolean(drop.recipeId && isBlueprintKnownInEncyclopedia(drop.recipeId));
+        return `
+            <button class="codex-drop-token rarity-frame rarity-${escapeHtml(blueprint?.rarity || 'rare')}"
+                type="button"
+                data-codex-link-category="${escapeHtml(CodexCategoryId.BLUEPRINTS)}"
+                data-codex-link-id="${escapeHtml(drop.recipeId || '')}">
+                <div class="codex-drop-icon">${known ? getItemVisualHtml({ ...blueprint, type: 'blueprint' }, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.blueprints)}</div>
+                <div class="codex-drop-info">
+                    <strong>${escapeHtml(known ? (blueprint?.name || drop.recipeId || '未知圖紙') : '未解鎖圖紙')}</strong>
+                    <span>${escapeHtml(formatChance(drop.chance))}</span>
+                </div>
+            </button>
+        `;
+    }
+
+    renderEquipmentDetail(entry) {
+        const item = entry.item || entry;
+        const known = entry.known;
+        const statChips = known
+            ? buildItemStatChipsHtml(item, { chipClass: 'codex-pill', emptyText: '沒有戰鬥數值', showMore: false })
+            : '<span class="codex-pill muted">尚未解鎖</span>';
+
+        return `
+            ${this.renderDetailHead(entry, {
+                item,
+                kicker: `${getReadableCodexType(entry.type)} / ${getReadableCodexRarity(entry.rarity)}`,
+                description: readItemDescription(item)
+            })}
+            <section class="codex-stat-grid">
+                ${renderStat('等級', known ? (entry.level ?? '-') : '???')}
+                ${renderStat('稀有度', known ? getReadableCodexRarity(entry.rarity) : '???')}
+                ${renderStat('來源', known ? getSourceLabel(entry) : '???')}
+            </section>
+            <section class="codex-section">
+                <h3>裝備數值</h3>
+                <div class="codex-pill-row">${statChips}</div>
+            </section>
+            ${this.renderSourceSection(entry, '取得來源')}
+        `;
+    }
+
+    renderMaterialDetail(entry) {
+        const item = entry.item || entry;
+        const known = entry.known;
+
+        return `
+            ${this.renderDetailHead(entry, {
+                item,
+                kicker: getReadableCodexRarity(entry.rarity),
+                description: readItemDescription(item)
+            })}
+            <section class="codex-stat-grid">
+                ${renderStat('稀有度', known ? getReadableCodexRarity(entry.rarity) : '???')}
+                ${renderStat('價格', known ? formatPrice(entry.price) : '???')}
+                ${renderStat('用途數', known ? `${entry.usageRefs?.length || 0}` : '???')}
+            </section>
+            ${this.renderSourceSection(entry, '素材來源')}
+            ${this.renderUsageSection(entry)}
         `;
     }
 
     renderBlueprintDetail(entry) {
         const known = entry.known;
-        const icon = known
-            ? getItemVisualHtml({ id: entry.id, name: entry.name, type: 'blueprint', rarity: entry.rarity }, '▧', 'codex-blueprint-image')
-            : escapeHtml(getSilhouette('blueprint', '▧'));
-        const resultStats = formatStats(entry.result?.stats || {});
+        const result = entry.result || {};
+        const resultItem = {
+            ...result,
+            id: result.id || entry.id,
+            name: result.name || entry.name,
+            rarity: result.rarity || entry.rarity,
+            type: result.type || entry.type
+        };
 
         return `
-            <section class="codex-detail-head">
-                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
-                <div>
-                    <div class="codex-kicker">${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</div>
-                    <h2>${escapeHtml(known ? entry.name : '未知圖紙')}</h2>
-                    <p>${escapeHtml(known ? (entry.result?.desc || entry.discovery?.hint || '可透過探索、戰鬥或任務取得。') : '資料尚未解鎖')}</p>
-                </div>
-            </section>
-
+            ${this.renderDetailHead(entry, {
+                item: { ...entry, type: 'blueprint' },
+                imageClass: 'codex-blueprint-image',
+                fallbackIcon: UnknownIcon.blueprints,
+                kicker: `圖紙 / ${getReadableCodexRarity(entry.rarity)}`,
+                description: entry.discovery?.hint || readItemDescription(resultItem, '記錄一件可鍛造物的製作方式。')
+            })}
             <section class="codex-stat-grid">
-                ${this.renderStat('製作費', known ? `${entry.cost}G` : '???')}
-                ${this.renderStat('成功率', known && entry.successRate != null ? `${entry.successRate}%` : '???')}
-                ${this.renderStat('成品類型', known ? getReadableType(entry.result?.type || entry.type) : '???')}
-                ${this.renderStat('成品數值', known ? (resultStats || '-') : '???')}
+                ${renderStat('製作費', known ? formatPrice(entry.cost) : '???')}
+                ${renderStat('成功率', known ? (entry.successRate != null ? `${entry.successRate}%` : '-') : '???')}
+                ${renderStat('成品類型', known ? getReadableCodexType(resultItem.type) : '???')}
+                ${renderStat('來源數', known ? `${entry.drops?.length || (entry.discovery ? 1 : 0)}` : '???')}
             </section>
-
-            ${this.renderMaterials(entry, known)}
+            ${this.renderBlueprintResult(entry, resultItem)}
+            ${this.renderMaterialCostSection(entry)}
             ${this.renderBlueprintSources(entry)}
         `;
     }
 
     renderItemDetail(entry) {
-        const known = entry.known;
         const item = entry.item || entry;
-        const icon = known
-            ? getItemVisualHtml(item, '◆', 'codex-item-image')
-            : escapeHtml(getSilhouette(entry.type, '◆'));
-        const title = known ? entry.name : '未知物品';
-        const description = known ? (entry.description || item.description || '暫無描述。') : '尚未解鎖此物品紀錄。';
-        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
-        const statText = known ? formatStats(entry.stats || item.stats || {}) : '';
-        const specialText = known && Array.isArray(entry.specialEffects) && entry.specialEffects.length > 0
-            ? formatStats(Object.fromEntries(entry.specialEffects.map(effect => [effect.type, effect.value])))
-            : '';
-        const statChips = known
-            ? buildItemStatChipsHtml(item, { chipClass: 'codex-pill', emptyText: '無戰鬥能力', showMore: false })
-            : '<span class="codex-pill muted">尚未解鎖</span>';
+        const known = entry.known;
+        const effectText = this.getItemUsageText(item);
 
         return `
-            <section class="codex-detail-head">
-                <div class="codex-portrait rarity-frame rarity-${escapeHtml(entry.rarity)} ${known ? '' : 'is-locked'}">${icon}</div>
-                <div>
-                    <div class="codex-kicker">${escapeHtml(getReadableType(entry.type))} / ${escapeHtml(entry.rarity)}</div>
-                    <h2>${escapeHtml(title)}</h2>
-                    <p>${escapeHtml(description)}</p>
-                </div>
-            </section>
-
+            ${this.renderDetailHead(entry, {
+                item,
+                kicker: getReadableCodexType(entry.type),
+                description: readItemDescription(item)
+            })}
             <section class="codex-stat-grid">
-                ${this.renderStat('來源', known ? sourceLabel : '???')}
-                ${this.renderStat('等級', known ? (entry.level ?? '-') : '???')}
-                ${this.renderStat('價格', known ? (entry.price != null ? `${entry.price}G` : '-') : '???')}
-                ${this.renderStat('稀有度', known ? entry.rarity : '???')}
+                ${renderStat('類型', known ? getReadableCodexType(entry.type) : '???')}
+                ${renderStat('稀有度', known ? getReadableCodexRarity(entry.rarity) : '???')}
+                ${renderStat('來源', known ? getSourceLabel(entry) : '???')}
             </section>
-
             <section class="codex-section">
-                <h3>能力</h3>
-                <div class="codex-pill-row">${statChips}</div>
-            </section>
-
-            <section class="codex-section">
-                <h3>資料摘要</h3>
+                <h3>用途</h3>
                 <div class="codex-source-list">
-                    <div class="codex-source-row"><span>基礎數值</span><strong>${escapeHtml(statText || '-')}</strong></div>
-                    <div class="codex-source-row"><span>特殊詞條</span><strong>${escapeHtml(specialText || '-')}</strong></div>
+                    <div class="codex-source-row">
+                        <span>${escapeHtml(effectText.label)}</span>
+                        <strong>${escapeHtml(effectText.value)}</strong>
+                    </div>
+                </div>
+            </section>
+            ${this.renderSourceSection(entry, '取得來源')}
+        `;
+    }
+
+    getItemUsageText(item = {}) {
+        if (item.hp != null) return { label: '使用效果', value: `恢復生命 ${item.hp}` };
+        if (item.buff?.type) return { label: '使用效果', value: '暫時增益' };
+        if (item.isSecretKey) return { label: '持有用途', value: '開啟特殊交易或劇情入口' };
+        if (item.type === 'currency') return { label: '持有用途', value: '可在特定系統中兌換' };
+        if (item.type === 'key' || item.type === 'quest') return { label: '持有用途', value: '推進任務、地點或特殊互動' };
+        if (item.type === 'book') return { label: '閱讀用途', value: '閱讀後解鎖紀錄或能力' };
+        return { label: '持有用途', value: '特殊物品' };
+    }
+
+    renderBlueprintResult(entry, resultItem) {
+        if (!entry.known) return '';
+        return `
+            <section class="codex-section">
+                <h3>成品</h3>
+                <div class="codex-drop-grid">
+                    <button class="codex-drop-token rarity-frame rarity-${escapeHtml(resultItem.rarity || 'common')}"
+                        type="button"
+                        data-result-item
+                        data-codex-link-category="${escapeHtml(this.getCategoryForItem(resultItem))}"
+                        data-codex-link-id="${escapeHtml(resultItem.id || '')}">
+                        <div class="codex-drop-icon">${getItemVisualHtml(resultItem, '?', 'codex-drop-image')}</div>
+                        <div class="codex-drop-info">
+                            <strong>${escapeHtml(resultItem.name || entry.name)}</strong>
+                            <span>${escapeHtml(getReadableCodexType(resultItem.type))}</span>
+                        </div>
+                    </button>
                 </div>
             </section>
         `;
     }
 
-    renderStat(label, value) {
+    renderMaterialCostSection(entry) {
+        if (!entry.known) return '';
+        const rows = (entry.materials || []).map(material => {
+            const item = resolveItemById(material.id, { order: ['material', 'shop', 'questReward'] });
+            const itemKnown = Boolean(item && isItemKnown(material.id));
+            const rarity = item?.rarity || 'common';
+            const category = item ? this.getCategoryForItem({ ...item, id: material.id }) : CodexCategoryId.MATERIALS;
+            return `
+                <button class="codex-drop-token rarity-frame rarity-${escapeHtml(rarity)}"
+                    type="button"
+                    data-material-id="${escapeHtml(material.id)}"
+                    data-codex-link-category="${escapeHtml(category)}"
+                    data-codex-link-id="${escapeHtml(material.id)}">
+                    <div class="codex-drop-icon">${itemKnown ? getItemVisualHtml(item, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.materials)}</div>
+                    <div class="codex-drop-info">
+                        <strong>${escapeHtml(itemKnown ? item.name : '未解鎖素材')}</strong>
+                        <span>x${escapeHtml(material.quantity)}</span>
+                    </div>
+                </button>
+            `;
+        }).join('');
+
         return `
-            <div class="codex-stat">
-                <span>${escapeHtml(label)}</span>
-                <strong>${escapeHtml(value)}</strong>
-            </div>
+            <section class="codex-section">
+                <h3>所需素材</h3>
+                <div class="codex-drop-grid">${rows || renderEmpty('不需要素材')}</div>
+            </section>
         `;
     }
 
-    renderDropSection(title, drops, kind) {
-        if (!drops || drops.length === 0) {
+    renderSourceSection(entry, title) {
+        if (!entry.known) return '';
+        const refs = entry.sourceRefs || [];
+        if (refs.length === 0) {
             return `
                 <section class="codex-section">
                     <h3>${escapeHtml(title)}</h3>
-                    <div class="codex-empty compact">無資料</div>
+                    ${renderEmpty('尚未整理來源')}
                 </section>
             `;
         }
@@ -607,385 +706,179 @@ export default class EncyclopediaScene {
         return `
             <section class="codex-section">
                 <h3>${escapeHtml(title)}</h3>
-                <div class="codex-drop-grid">
-                    ${drops.map(drop => this.renderDropToken(drop, kind)).join('')}
+                <div class="codex-source-card-grid">
+                    ${refs.map(ref => this.renderSourceCard(ref)).join('')}
                 </div>
             </section>
         `;
     }
 
-    renderDropToken(drop, kind) {
-        const known = kind === 'blueprint'
-            ? isBlueprintKnownInEncyclopedia(drop.recipeId)
-            : isItemKnown(drop.id);
-        const imageClass = kind === 'blueprint'
-            ? 'codex-drop-image codex-blueprint-image'
-            : 'codex-drop-image';
-        const icon = known
-            ? getItemVisualHtml(
-                {
-                    id: kind === 'blueprint' ? drop.recipeId : drop.id,
-                    name: drop.name,
-                    icon: drop.icon,
-                    type: kind === 'blueprint' ? 'blueprint' : drop.type,
-                    rarity: drop.rarity
-                },
-                kind === 'blueprint' ? '▧' : '◆',
-                imageClass
-            )
-            : escapeHtml(getSilhouette(drop.type, kind === 'blueprint' ? '▧' : '◆'));
-        const name = known ? drop.name : '未解鎖';
-        const quantity = kind === 'blueprint' ? '' : `x${formatQuantity(drop.quantity)}`;
-        const dropId = kind === 'blueprint' ? drop.recipeId : drop.id;
+    renderSourceCard(ref = {}) {
+        const isMonster = ref.type === 'monster';
+        const sourceKnown = !isMonster || isMonsterKnown(ref.id);
+        const icon = isMonster && sourceKnown
+            ? this.renderMonsterSourceVisual(ref)
+            : escapeHtml(isMonster ? UnknownIcon.monster : (ref.icon || UnknownIcon.items));
+        const meta = isMonster
+            ? `${sourceKnown ? (ref.sourceLabel || '怪物') : '未知來源'} / ${safePercent(ref.chance)}`
+            : getReadableSourceType(ref.type);
 
         return `
-            <div class="codex-drop-token rarity-frame rarity-${escapeHtml(drop.rarity)} ${known ? '' : 'is-locked'}" data-codex-kind="${escapeHtml(kind)}" data-drop-id="${escapeHtml(dropId)}">
-                <div class="codex-drop-icon">${icon}</div>
+            <button class="codex-source-card ${isMonster ? 'is-monster-source' : ''} rarity-frame rarity-${escapeHtml(ref.rarity || 'common')}"
+                type="button"
+                data-source-entry-id="${escapeHtml(ref.id || '')}"
+                ${isMonster ? `data-codex-link-category="${escapeHtml(CodexCategoryId.MONSTERS)}" data-codex-link-id="${escapeHtml(ref.id || '')}"` : ''}>
+                <span class="codex-source-icon">${icon}</span>
+                <span class="codex-source-copy">
+                    <strong>${escapeHtml(sourceKnown ? (ref.label || ref.id || '未知來源') : '未知敵人')}</strong>
+                    <small>${escapeHtml(meta)}</small>
+                </span>
+            </button>
+        `;
+    }
+
+    renderMonsterSourceVisual(ref = {}) {
+        const image = ref.image || getGeneratedMonsterImage(String(ref.id || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, ''));
+        if (image) return `<img src="${escapeHtml(image)}" alt="${escapeHtml(ref.label || '')}">`;
+        return escapeHtml(ref.icon || UnknownIcon.monster);
+    }
+
+    renderUsageSection(entry) {
+        if (!entry.known) return '';
+        const refs = entry.usageRefs || [];
+        return `
+            <section class="codex-section">
+                <h3>用於製作</h3>
+                <div class="codex-drop-grid">
+                    ${refs.map(ref => this.renderUsageCard(ref)).join('') || renderEmpty('尚未接到鍛造配方')}
+                </div>
+            </section>
+        `;
+    }
+
+    renderUsageCard(ref = {}) {
+        const result = ref.result || {};
+        const item = {
+            ...result,
+            id: result.id || ref.resultId || ref.id,
+            name: result.name || ref.label,
+            type: result.type || ref.resultType || 'blueprint',
+            rarity: result.rarity || 'common'
+        };
+        const isRecipeLink = ref.type === 'recipe';
+        const linkCategory = isRecipeLink ? CodexCategoryId.BLUEPRINTS : this.getCategoryForItem(item);
+        const linkId = isRecipeLink ? ref.id : item.id;
+        const resultKnown = isRecipeLink
+            ? isBlueprintKnownInEncyclopedia(ref.id)
+            : Boolean(item.id && isItemKnown(item.id));
+
+        return `
+            <button class="codex-drop-token rarity-frame rarity-${escapeHtml(item.rarity || 'common')}"
+                type="button"
+                data-usage-result-id="${escapeHtml(item.id)}"
+                data-codex-link-category="${escapeHtml(linkCategory)}"
+                data-codex-link-id="${escapeHtml(linkId)}">
+                <div class="codex-drop-icon">${resultKnown ? getItemVisualHtml(item, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.items)}</div>
                 <div class="codex-drop-info">
-                    <strong>${escapeHtml(name)}</strong>
-                    <span>${escapeHtml(formatChance(drop.chance))} ${escapeHtml(quantity)}</span>
+                    <strong>${escapeHtml(resultKnown ? (item.name || ref.label || ref.id) : '未解鎖成品')}</strong>
+                    <span>${escapeHtml(resultKnown ? (isRecipeLink ? '圖紙' : getReadableCodexType(item.type)) : '尚未取得資料')}</span>
                 </div>
-            </div>
-        `;
-    }
-
-    renderSkillSection(entry) {
-        const skills = this.getNormalizedSkills(entry);
-        return `
-            <section class="codex-section">
-                <h3>技能</h3>
-                <div class="codex-pill-row">
-                    ${skills.length > 0
-                        ? skills.map((skill, index) => `<span class="codex-pill codex-skill-pill" data-skill-index="${index}">${escapeHtml(skill.icon)} ${escapeHtml(skill.category || '特殊')}｜${escapeHtml(skill.name)}</span>`).join('')
-                        : '<span class="codex-pill muted">無資料</span>'}
-                </div>
-            </section>
-        `;
-    }
-
-    renderMonsterVisual(entry) {
-        const image = entry.image || getGeneratedMonsterImage(entry.id || entry.entryId);
-        if (image) {
-            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(entry.name || '')}">`;
-        }
-        return escapeHtml(entry.icon || '◆');
-    }
-
-    renderMaterials(entry, known) {
-        return `
-            <section class="codex-section">
-                <h3>材料</h3>
-                <div class="codex-drop-grid">
-                    ${(entry.materials || []).map(material => {
-                        const item = resolveItemById(material.id, { order: ['material', 'shop', 'questReward'] });
-                        const rarity = item?.rarity || 'common';
-                        return `
-                            <div class="codex-drop-token rarity-frame rarity-${escapeHtml(rarity)} ${known ? '' : 'is-locked'}" data-codex-kind="material" data-drop-id="${escapeHtml(material.id)}">
-                                <div class="codex-drop-icon">${known && item ? getItemVisualHtml(item, '◆', 'codex-drop-image') : escapeHtml(getSilhouette('material'))}</div>
-                                <div class="codex-drop-info">
-                                    <strong>${escapeHtml(known ? (item?.name || material.id) : '未解鎖')}</strong>
-                                    <span>x${escapeHtml(material.quantity)}</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('') || '<div class="codex-empty compact">無材料資料</div>'}
-                </div>
-            </section>
+            </button>
         `;
     }
 
     renderBlueprintSources(entry) {
+        if (!entry.known) return '';
         const sources = entry.drops || [];
+        const rows = sources.map(source => {
+            const monster = source.monster || {};
+            const known = isMonsterKnown(monster.entryId);
+            const image = known ? getGeneratedMonsterImage(String(monster.entryId || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, '')) : '';
+            const icon = image
+                ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(monster.name || '')}">`
+                : escapeHtml(UnknownIcon.monster);
+            return `
+                <button class="codex-source-card is-monster-source rarity-frame rarity-common"
+                    type="button"
+                    data-source-entry-id="${escapeHtml(monster.entryId || '')}"
+                    data-codex-link-category="${escapeHtml(CodexCategoryId.MONSTERS)}"
+                    data-codex-link-id="${escapeHtml(monster.entryId || '')}">
+                    <span class="codex-source-icon">${icon}</span>
+                    <span class="codex-source-copy">
+                        <strong>${escapeHtml(known ? monster.name : '未知敵人')}</strong>
+                        <small>${escapeHtml(monster.sourceLabel || '-')} / ${escapeHtml(formatChance(source.chance))}</small>
+                    </span>
+                </button>
+            `;
+        }).join('');
+
         return `
             <section class="codex-section">
-                <h3>來源</h3>
-                <div class="codex-source-list">
-                    ${sources.length > 0 ? sources.map(source => {
-                        const monsterKnown = isMonsterKnown(source.monster.entryId);
-                        return `
-                            <div class="codex-source-row" data-source-entry-id="${escapeHtml(source.monster.entryId)}">
-                                <span>${escapeHtml(monsterKnown ? source.monster.name : '未知敵人')}</span>
-                                <strong>${escapeHtml(source.monster.sourceLabel)} / ${escapeHtml(formatChance(source.chance))}</strong>
-                            </div>
-                        `;
-                    }).join('') : `<div class="codex-source-row"><span>${escapeHtml(entry.discovery?.sourceName || '特殊互動')}</span><strong>${escapeHtml(entry.discovery?.interactionId || '-')}</strong></div>`}
+                <h3>圖紙來源</h3>
+                <div class="codex-source-card-grid">
+                    ${rows || this.renderDiscoverySource(entry)}
                 </div>
             </section>
         `;
     }
 
-    attachListTooltips(entries) {
-        if (!this.dom.list) return;
-
-        this.dom.list.querySelectorAll('.codex-list-row').forEach(row => {
-            const entry = entries.find(candidate => this.getEntryId(candidate) === row.dataset.entryId);
-            if (entry) this.attachEntryTooltip(row, entry, this.activeTab);
-        });
+    renderDiscoverySource(entry) {
+        const discovery = entry.discovery || {};
+        return `
+            <div class="codex-source-card">
+                <span class="codex-source-icon">?</span>
+                <span class="codex-source-copy">
+                    <strong>${escapeHtml(discovery.sourceName || '特殊互動')}</strong>
+                    <small>${escapeHtml(discovery.hint || discovery.interactionId || '尚未整理來源')}</small>
+                </span>
+            </div>
+        `;
     }
 
-    attachDetailTooltips(entry) {
-        if (!entry || !this.dom.detail) return;
+    attachTooltips(selectedEntry) {
+        if (!selectedEntry || !this.dom.detail) return;
 
-        const portrait = this.dom.detail.querySelector('.codex-portrait');
-        this.attachEntryTooltip(portrait, entry, this.activeTab);
+        this.dom.detail.querySelectorAll('[data-source-entry-id]').forEach(element => {
+            const monster = getMonsterEntries().find(entry => entry.entryId === element.dataset.sourceEntryId);
+            if (!monster) return;
+            attachItemTooltip(element, this.getMonsterTooltipItem(monster), this.getMonsterTooltipOptions(monster));
+        });
 
-        if (this.activeTab === 'monsters') {
-            this.attachMonsterDropTooltips(entry);
-            this.attachSkillTooltips(entry);
-        } else if (this.activeTab === 'blueprints') {
-            this.attachBlueprintDetailTooltips(entry);
+        this.dom.detail.querySelectorAll('[data-material-id]').forEach(element => {
+            const item = resolveItemById(element.dataset.materialId, { order: ['material', 'shop', 'questReward'] });
+            if (item && isItemKnown(element.dataset.materialId)) attachItemTooltip(element, item, { hint: '所需素材' });
+        });
+
+        const resultCard = this.dom.detail.querySelector('[data-result-item]');
+        if (resultCard && selectedEntry?.result) {
+            attachItemTooltip(resultCard, selectedEntry.result, { hint: '成品詳情' });
         }
-    }
-
-    attachEntryTooltip(element, entry, entryType) {
-        if (!element || !entry) return;
-
-        if (entryType === 'monsters') {
-            attachItemTooltip(element, this.getMonsterTooltipItem(entry), this.getMonsterTooltipOptions(entry));
-            return;
-        }
-
-        if (entryType === 'items') {
-            attachItemTooltip(element, this.getItemTooltipItem(entry), this.getItemTooltipOptions(entry));
-            return;
-        }
-
-        attachItemTooltip(element, this.getBlueprintTooltipItem(entry), this.getBlueprintTooltipOptions(entry));
-    }
-
-    attachMonsterDropTooltips(entry) {
-        const itemDrops = new Map((entry.itemDrops || []).map(drop => [drop.id, drop]));
-        const blueprintDrops = new Map((entry.blueprintDrops || []).map(drop => [drop.recipeId, drop]));
-        const blueprintEntries = new Map(getBlueprintEntries().map(blueprint => [blueprint.id, blueprint]));
-
-        this.dom.detail.querySelectorAll('.codex-drop-token[data-codex-kind]').forEach(token => {
-            const kind = token.dataset.codexKind;
-            const dropId = token.dataset.dropId;
-
-            if (kind === 'blueprint') {
-                const drop = blueprintDrops.get(dropId);
-                const blueprint = blueprintEntries.get(dropId) || drop;
-                if (!blueprint) return;
-
-                const known = isBlueprintKnownInEncyclopedia(dropId);
-                attachItemTooltip(
-                    token,
-                    this.getBlueprintTooltipItem(blueprint, known),
-                    this.getBlueprintTooltipOptions(blueprint, known, [['掉落率', formatChance(drop?.chance)]])
-                );
-                return;
-            }
-
-            const drop = itemDrops.get(dropId);
-            if (drop) this.attachItemDropTooltip(token, drop);
-        });
-    }
-
-    attachBlueprintDetailTooltips(entry) {
-        const materialMap = new Map((entry.materials || []).map(material => [material.id, material]));
-        const monsterEntries = new Map(getMonsterEntries().map(monster => [monster.entryId, monster]));
-
-        this.dom.detail.querySelectorAll('.codex-drop-token[data-codex-kind="material"]').forEach(token => {
-            const material = materialMap.get(token.dataset.dropId);
-            if (material) this.attachMaterialTooltip(token, material, entry.known);
-        });
-
-        this.dom.detail.querySelectorAll('.codex-source-row[data-source-entry-id]').forEach(row => {
-            const monster = monsterEntries.get(row.dataset.sourceEntryId);
-            if (monster) this.attachEntryTooltip(row, monster, 'monsters');
-        });
-    }
-
-    attachItemDropTooltip(element, drop) {
-        const known = isItemKnown(drop.id);
-        const item = known
-            ? {
-                ...(resolveItemById(drop.id, { order: ['material', 'equipment', 'bossEquipment', 'shop', 'questReward'] }) || {}),
-                id: drop.id,
-                name: drop.name,
-                icon: drop.icon,
-                type: drop.type,
-                rarity: drop.rarity
-            }
-            : {
-                name: '未知掉落物',
-                icon: getSilhouette(drop.type),
-                type: drop.type,
-                rarity: drop.rarity,
-                description: '尚未解鎖的掉落資訊。'
-            };
-
-        attachItemTooltip(element, item, {
-            description: known ? undefined : '尚未解鎖的掉落資訊。',
-            footerRows: [
-                ['掉落率', formatChance(drop.chance)],
-                ['數量', formatQuantity(drop.quantity)]
-            ],
-            hint: known ? '百科掉落資料' : '取得或發現後解鎖'
-        });
-    }
-
-    attachMaterialTooltip(element, material, recipeKnown) {
-        const resolved = resolveItemById(material.id, { order: ['material', 'shop', 'questReward'] });
-        const known = recipeKnown && resolved;
-        const item = known
-            ? resolved
-            : {
-                name: '未知材料',
-                icon: getSilhouette('material'),
-                type: 'material',
-                rarity: resolved?.rarity || 'common',
-                description: '圖紙解鎖後會顯示材料資訊。'
-            };
-
-        attachItemTooltip(element, item, {
-            quantity: known ? material.quantity : undefined,
-            description: known ? undefined : '圖紙解鎖後會顯示材料資訊。',
-            hint: known ? '製作材料' : '圖紙解鎖後顯示'
-        });
-    }
-
-    getNormalizedSkills(entry) {
-        if (!entry?.known) return [];
-        return (entry.skills || []).map(skill => normalizeMonsterSkill(skill));
-    }
-
-    attachSkillTooltips(entry) {
-        const skills = this.getNormalizedSkills(entry);
-        this.dom.detail.querySelectorAll('.codex-skill-pill[data-skill-index]').forEach(pill => {
-            const skill = skills[Number(pill.dataset.skillIndex)];
-            if (!skill) return;
-            attachItemTooltip(pill, this.getSkillTooltipItem(skill), this.getSkillTooltipOptions(skill));
-        });
-    }
-
-    getSkillTooltipItem(skill) {
-        return {
-            id: skill.id,
-            name: skill.name,
-            icon: skill.icon,
-            type: 'skill',
-            rarity: skill.rarity || 'rare',
-            description: skill.description
-        };
-    }
-
-    getSkillTooltipOptions(skill) {
-        return {
-            typeText: '怪物技能',
-            rarityText: skill.category || '特殊',
-            description: skill.description,
-            statsHtml: buildTooltipStatsHtml(getMonsterSkillRows(skill)),
-            hint: '滑過技能可查看效果'
-        };
     }
 
     getMonsterTooltipItem(entry) {
         const known = entry.known;
         return {
             id: entry.entryId,
-            name: known ? entry.name : '未知怪物',
-            icon: known ? entry.icon : getSilhouette('material'),
+            name: known ? entry.name : '未知敵人',
+            icon: known ? entry.icon : UnknownIcon.monster,
             image: known ? (entry.image || getGeneratedMonsterImage(entry.id || entry.entryId)) : '',
             type: 'monster',
             rarity: entry.rarity,
-            description: known ? (entry.description || '百科中的怪物資料。') : '尚未解鎖的怪物資料。'
+            description: known ? (entry.description || '已記錄的敵人。') : '擊敗或遭遇後顯示資料。'
         };
     }
 
     getMonsterTooltipOptions(entry) {
         const known = entry.known;
         return {
-            typeText: entry.sourceLabel,
-            rarityText: known ? getReadableType(entry.rank) : '未解鎖',
-            description: known ? (entry.description || '百科中的怪物資料。') : '尚未解鎖的怪物資料。',
-            statsHtml: known ? buildTooltipStatsHtml([
+            typeText: entry.sourceLabel || '怪物',
+            rarityText: known ? getReadableCodexType(entry.rank) : '未解鎖',
+            footerRows: known ? [
                 ['等級', entry.level || '-'],
-                ['HP', entry.maxHp],
-                ['攻擊', entry.attack],
-                ['防禦', entry.defense],
-                ['攻擊頻率', `${entry.attackSpeed}s`],
-                ['屬性', getReadableElement(entry.element)]
-            ]) : '',
-            footerRows: known ? [
-                ['經驗', entry.exp],
-                ['金幣', formatGold(entry.gold)]
-            ] : [],
-            hint: known ? '百科怪物資料' : '擊敗或發現後解鎖'
+                ['生命', entry.maxHp || '-'],
+                ['攻擊', entry.attack || '-'],
+                ['防禦', entry.defense || '-']
+            ] : []
         };
-    }
-
-    getBlueprintTooltipItem(entry, forcedKnown = null) {
-        const known = forcedKnown ?? entry.known;
-        return {
-            id: entry.id || entry.recipeId,
-            name: known ? entry.name : '未知圖紙',
-            icon: known ? entry.icon : getSilhouette('blueprint'),
-            type: 'blueprint',
-            rarity: entry.rarity || 'rare',
-            description: known
-                ? (entry.result?.desc || entry.discovery?.hint || '可透過鍛造製作的圖紙。')
-                : '尚未解鎖的圖紙資料。'
-        };
-    }
-
-    getBlueprintTooltipOptions(entry, forcedKnown = null, extraFooterRows = []) {
-        const known = forcedKnown ?? entry.known;
-        const resultStats = formatStats(entry.result?.stats || {});
-        const sourceCount = entry.drops?.length || (entry.discovery?.interactionId ? 1 : 0);
-
-        return {
-            typeText: '圖紙',
-            rarityText: entry.rarity || 'rare',
-            description: known
-                ? (entry.result?.desc || entry.discovery?.hint || '可透過鍛造製作的圖紙。')
-                : '尚未解鎖的圖紙資料。',
-            statsHtml: known ? buildTooltipStatsHtml([
-                ['成品', entry.result?.name || entry.name || '-'],
-                ['類型', getReadableType(entry.result?.type || entry.type)],
-                ['製作費', `${entry.cost || 0}G`],
-                ['成功率', entry.successRate != null ? `${entry.successRate}%` : '-'],
-                ['能力', resultStats || '-']
-            ]) : '',
-            footerRows: [
-                ...(known ? [['來源數', `${sourceCount}`]] : []),
-                ...extraFooterRows.filter(([, value]) => value !== undefined && value !== null)
-            ],
-            hint: known ? '百科圖紙資料' : '取得圖紙後解鎖'
-        };
-    }
-
-    getItemTooltipItem(entry) {
-        const known = entry.known;
-        const item = entry.item || entry;
-        return known
-            ? item
-            : {
-                id: entry.id,
-                name: '未知物品',
-                icon: getSilhouette(entry.type),
-                type: entry.type,
-                rarity: entry.rarity,
-                description: '尚未解鎖此物品紀錄。'
-            };
-    }
-
-    getItemTooltipOptions(entry) {
-        const known = entry.known;
-        const sourceLabel = (entry.sources || []).map(source => source.label).join(' / ') || entry.sourceLabel || '-';
-        return {
-            typeText: known ? getReadableType(entry.type) : '未知物品',
-            rarityText: entry.rarity || 'common',
-            description: known ? undefined : '尚未解鎖此物品紀錄。',
-            footerRows: known ? [
-                ['來源', sourceLabel],
-                ['等級', entry.level ?? '-']
-            ] : [],
-            hint: known ? '百科物品資料' : '取得或解鎖後顯示完整資訊'
-        };
-    }
-
-    getEntryId(entry) {
-        return this.activeTab === 'monsters' ? entry.entryId : entry.id;
     }
 }

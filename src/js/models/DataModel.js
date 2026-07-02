@@ -148,7 +148,7 @@ export class CharacterManager {
 
     get maxHp() {
         const baseMaxHp = Number.isFinite(this._maxHp) ? this._maxHp : this.calculateMaxHp();
-        return baseMaxHp + this.getAffixHpBonus();
+        return CharacterLogic.applyGlobalStatMultiplier(this, baseMaxHp + this.getAffixHpBonus(), { minimum: 1 });
     }
     set maxHp(v) { this._maxHp = Math.max(1, Number(v) || 1); }
 
@@ -192,7 +192,7 @@ export class CharacterManager {
     equipPassiveCombatEffect(effectId, slotIndex) { return CharacterLogic.equipPassiveCombatEffect(this, effectId, slotIndex); }
 
     // 裝備管理
-    equip(item) { return CharacterLogic.equip(this, item); }
+    equip(item, slotOverride = null) { return CharacterLogic.equip(this, item, slotOverride); }
     unequip(slot) { return CharacterLogic.unequip(this, slot); }
     
     // 物品使用

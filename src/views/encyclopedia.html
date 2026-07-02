@@ -14,9 +14,11 @@
     <main class="codex-shell">
         <aside class="codex-browser">
             <div class="codex-tabs" role="tablist" aria-label="百科分類">
-                <button class="codex-tab active" data-codex-tab="monsters" type="button">怪物</button>
+                <button class="codex-tab active" data-codex-tab="equipment" type="button">裝備</button>
+                <button class="codex-tab" data-codex-tab="materials" type="button">素材</button>
                 <button class="codex-tab" data-codex-tab="blueprints" type="button">圖紙</button>
                 <button class="codex-tab" data-codex-tab="items" type="button">物品</button>
+                <button class="codex-tab" data-codex-tab="monsters" type="button">怪物</button>
             </div>
 
             <div class="codex-tools">
@@ -25,11 +27,12 @@
                     <option value="all">全部</option>
                 </select>
                 <select id="codex-sort" aria-label="排序">
-                    <option value="level-asc">等級低到高</option>
+                    <option value="catalog">預設</option>
                 </select>
+                <button class="codex-sort-direction" id="codex-sort-direction" type="button" aria-label="正序">↑</button>
             </div>
 
-            <div class="codex-summary" id="codex-summary">怪物 0/0</div>
+            <div class="codex-summary" id="codex-summary">裝備 0/0</div>
             <div class="codex-list" id="codex-list"></div>
         </aside>
 

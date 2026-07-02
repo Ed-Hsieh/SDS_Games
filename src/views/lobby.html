@@ -125,6 +125,21 @@
                     </div>
                 </div>
             </div>
+
+            <div class="achievement-modal" id="achievement-modal" hidden>
+                <div class="achievement-dialog" role="dialog" aria-modal="true" aria-labelledby="achievement-title" tabindex="-1">
+                    <button class="achievement-close" id="achievement-close" type="button" aria-label="關閉成就">×</button>
+                    <header class="achievement-head">
+                        <span class="achievement-head-icon" aria-hidden="true">🏆</span>
+                        <span>
+                            <small>書櫃紀錄</small>
+                            <strong id="achievement-title">成就牆</strong>
+                        </span>
+                    </header>
+                    <p class="achievement-note">正式成就系統尚未啟用。這裡先保留獎牌位置與解鎖狀態。</p>
+                    <div class="achievement-list" id="achievement-list"></div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -170,6 +185,13 @@
                                     <div class="equipment-slot-name">未裝備</div>
                                 </div>
                             </div>
+                        </section>
+
+                        <section class="character-set-panel" aria-label="套裝狀態">
+                            <div class="character-set-head">
+                                <span>套裝</span>
+                                <strong>穿戴狀態</strong>
+                            </div>
                             <div id="active-set-bonuses" class="set-bonuses" aria-live="polite"></div>
                         </section>
 
@@ -195,8 +217,8 @@
 
                     <section class="lobby-prep-pane is-active" data-prep-pane="inventory" role="tabpanel">
                         <div class="storage-section inventory-section" aria-label="背包">
-                            <div class="storage-section-head">
-                                <span>背包</span>
+                            <div class="storage-section-head storage-section-meta">
+                                <span>容量</span>
                                 <strong><span id="inventory-used">0</span> / <span id="inventory-max">10</span></strong>
                             </div>
                             <div class="inventory-list" id="inventory-list"></div>
@@ -206,8 +228,8 @@
                     <section class="lobby-prep-pane warehouse-prep-pane" data-prep-pane="warehouse" role="tabpanel" hidden>
                         <div class="storage-section warehouse-info" aria-label="倉庫">
                             <div class="storage-section-head warehouse-heading">
-                                <span>倉庫</span>
-                                <strong>戰利品整理</strong>
+                                <span>存放</span>
+                                <strong id="warehouse-count">0 件</strong>
                             </div>
                             <div class="warehouse-controls">
                                 <select class="warehouse-sort" id="warehouse-sort">
@@ -230,12 +252,55 @@
                     </section>
 
                     <section class="lobby-prep-pane" data-prep-pane="system" role="tabpanel" hidden>
-                        <div class="save-controls" aria-label="存檔操作">
-                            <button class="save-action" id="btn-save-export" type="button" title="匯出 JSON 存檔">存檔</button>
-                            <button class="save-action" id="btn-save-import" type="button" title="讀取 JSON 存檔">讀取</button>
-                            <button class="save-action" id="btn-grant-test-sets" type="button" title="加入兩套套裝測試裝備" hidden>測試套裝</button>
-                            <button class="save-action save-action-danger" id="btn-save-reset" type="button" title="重置目前進度">重置</button>
-                            <input id="save-file-input" type="file" accept="application/json,.json" hidden>
+                        <div class="prep-system-layer is-active" data-system-layer="main">
+                            <section class="prep-system-section prep-audio-section" aria-label="音量設定">
+                                <button class="prep-system-option prep-audio-launch" id="btn-prep-audio-settings" type="button">
+                                    <span class="prep-system-option-main">
+                                        <small>音效設定</small>
+                                        <strong>音效 / BGM</strong>
+                                    </span>
+                                    <span class="prep-system-option-meta" aria-label="目前音量">
+                                        <span>音效 <b id="prep-sfx-value">50</b></span>
+                                        <span>BGM <b id="prep-music-value">50</b> <b id="prep-music-state">開</b></span>
+                                    </span>
+                                </button>
+                            </section>
+                            <div class="save-controls" aria-label="存檔操作">
+                                <button class="save-action" id="btn-save-export" type="button" title="匯出 JSON 存檔">存檔</button>
+                                <button class="save-action" id="btn-save-import" type="button" title="讀取 JSON 存檔">讀取</button>
+                                <button class="save-action" id="btn-grant-test-sets" type="button" title="加入兩套套裝測試裝備" hidden>測試套裝</button>
+                                <button class="save-action save-action-danger" id="btn-save-reset" type="button" title="重置目前進度">重置</button>
+                                <input id="save-file-input" type="file" accept="application/json,.json" hidden>
+                            </div>
+                        </div>
+                        <div class="prep-system-layer prep-audio-detail" data-system-layer="audio" hidden>
+                            <header class="prep-system-detail-head">
+                                <button class="prep-system-back" id="btn-prep-system-back" type="button">返回</button>
+                                <div>
+                                    <span>音效設定</span>
+                                    <strong>音效 / BGM</strong>
+                                </div>
+                            </header>
+                            <section class="prep-system-section prep-audio-controls" aria-label="音效細部設定">
+                                <label class="prep-audio-row">
+                                    <span>音效</span>
+                                    <input id="prep-sfx-volume" type="range" min="0" max="100" step="1" value="50">
+                                    <output id="prep-sfx-output" for="prep-sfx-volume">50</output>
+                                </label>
+                                <label class="prep-audio-row">
+                                    <span>BGM</span>
+                                    <input id="prep-music-volume" type="range" min="0" max="100" step="1" value="50">
+                                    <output id="prep-music-output" for="prep-music-volume">50</output>
+                                </label>
+                                <div class="prep-audio-actions">
+                                    <label class="prep-audio-toggle">
+                                        <input id="prep-music-enabled" type="checkbox" checked>
+                                        <span>BGM 播放</span>
+                                    </label>
+                                    <button class="save-action" id="btn-prep-sfx-preview" type="button">試聽音效</button>
+                                    <button class="save-action" id="btn-prep-music-preview" type="button">試聽BGM</button>
+                                </div>
+                            </section>
                         </div>
                     </section>
                 </section>

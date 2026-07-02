@@ -18,6 +18,15 @@ import { getTownNPC } from '../data/NPCDialogues.js';
 import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
 
+const AchievementPlaceholders = [
+    { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
+    { id: 'slime-notes', icon: '🥉', title: '黏液筆記', text: '把史萊姆異常記入手札。', unlocked: false },
+    { id: 'craftsman-path', icon: '🔨', title: '鍛造起步', text: '打造第一件可用裝備。', unlocked: false },
+    { id: 'boss-trace', icon: '🏆', title: '首領痕跡', text: '追蹤並擊敗第一個首領。', unlocked: false },
+    { id: 'set-awakening', icon: '🎖️', title: '套裝啟動', text: '穿戴並啟用第一個套裝效果。', unlocked: false },
+    { id: 'living-index', icon: '🏵️', title: '活人索引', text: '讓書記完成最後索引。', unlocked: false }
+];
+
 export default class LobbyScene {
     constructor(container, app) {
         this.container = container;
@@ -30,6 +39,8 @@ export default class LobbyScene {
         this.handleTownTopicClick = this.handleTownTopicClick.bind(this);
         this.handleTownDialogueAdvance = this.handleTownDialogueAdvance.bind(this);
         this.closeTownDialogue = this.closeTownDialogue.bind(this);
+        this.openAchievementModal = this.openAchievementModal.bind(this);
+        this.closeAchievementModal = this.closeAchievementModal.bind(this);
         this.handleSaveExport = this.handleSaveExport.bind(this);
         this.handleSaveImport = this.handleSaveImport.bind(this);
         this.handleSaveFileSelected = this.handleSaveFileSelected.bind(this);
@@ -110,11 +121,27 @@ export default class LobbyScene {
             townDialogueTopics: this.container.querySelector('#town-dialogue-topics'),
             townDialogueLines: this.container.querySelector('#town-dialogue-lines'),
             townDialogueEffects: this.container.querySelector('#town-dialogue-effects'),
+            achievementModal: this.container.querySelector('#achievement-modal'),
+            achievementClose: this.container.querySelector('#achievement-close'),
+            achievementList: this.container.querySelector('#achievement-list'),
             saveExport: this.container.querySelector('#btn-save-export'),
             saveImport: this.container.querySelector('#btn-save-import'),
             saveReset: this.container.querySelector('#btn-save-reset'),
             grantTestSets: this.container.querySelector('#btn-grant-test-sets'),
             saveFileInput: this.container.querySelector('#save-file-input'),
+            prepAudioSettings: this.container.querySelector('#btn-prep-audio-settings'),
+            prepSystemBack: this.container.querySelector('#btn-prep-system-back'),
+            prepSystemLayers: this.container.querySelectorAll('[data-system-layer]'),
+            prepSfxVolume: this.container.querySelector('#prep-sfx-volume'),
+            prepSfxValue: this.container.querySelector('#prep-sfx-value'),
+            prepSfxOutput: this.container.querySelector('#prep-sfx-output'),
+            prepMusicVolume: this.container.querySelector('#prep-music-volume'),
+            prepMusicValue: this.container.querySelector('#prep-music-value'),
+            prepMusicOutput: this.container.querySelector('#prep-music-output'),
+            prepMusicEnabled: this.container.querySelector('#prep-music-enabled'),
+            prepMusicState: this.container.querySelector('#prep-music-state'),
+            prepSfxPreview: this.container.querySelector('#btn-prep-sfx-preview'),
+            prepMusicPreview: this.container.querySelector('#btn-prep-music-preview'),
             prepModal: this.container.querySelector('#lobby-prep-modal'),
             prepDialog: this.container.querySelector('.lobby-prep-dialog'),
             prepClose: this.container.querySelector('#lobby-prep-close'),
@@ -133,6 +160,7 @@ export default class LobbyScene {
             fatigueText: this.container.querySelector('#fatigue-text'),
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
+            warehouseCount: this.container.querySelector('#warehouse-count'),
             inventoryList: this.container.querySelector('#inventory-list'),
             inventoryUsed: this.container.querySelector('#inventory-used'),
             inventoryMax: this.container.querySelector('#inventory-max'),
@@ -175,12 +203,48 @@ export default class LobbyScene {
         this.dom.townDialogueModal?.addEventListener('click', event => {
             if (event.target === this.dom.townDialogueModal) this.closeTownDialogue();
         });
+        this.dom.achievementClose?.addEventListener('click', this.closeAchievementModal);
+        this.dom.achievementModal?.addEventListener('click', event => {
+            if (event.target === this.dom.achievementModal) this.closeAchievementModal();
+        });
 
         this.dom.saveExport?.addEventListener('click', this.handleSaveExport);
         this.dom.saveImport?.addEventListener('click', this.handleSaveImport);
         this.dom.saveReset?.addEventListener('click', this.handleSaveReset);
         if (this.devMode) this.dom.grantTestSets?.addEventListener('click', this.handleGrantTestSets);
         this.dom.saveFileInput?.addEventListener('change', this.handleSaveFileSelected);
+        this.dom.prepAudioSettings?.addEventListener('click', () => {
+            audioManager.unlock?.();
+            this.showPrepSystemLayer('audio');
+            this.syncPrepAudioControls();
+        });
+        this.dom.prepSystemBack?.addEventListener('click', () => {
+            this.showPrepSystemLayer('main');
+            this.syncPrepAudioControls();
+        });
+        this.dom.prepSfxVolume?.addEventListener('input', event => {
+            audioManager.setSfxVolume(event.target.value);
+            this.syncPrepAudioControls();
+        });
+        this.dom.prepMusicVolume?.addEventListener('input', event => {
+            audioManager.setMusicVolume(event.target.value);
+            this.syncPrepAudioControls();
+        });
+        this.dom.prepMusicEnabled?.addEventListener('change', event => {
+            audioManager.unlock?.();
+            audioManager.setMusicEnabled(event.target.checked);
+            this.syncPrepAudioControls();
+        });
+        this.dom.prepSfxPreview?.addEventListener('click', () => {
+            audioManager.unlock?.();
+            audioManager.play('reward', { throttleKey: 'prep-sfx-preview', throttleMs: 180 });
+        });
+        this.dom.prepMusicPreview?.addEventListener('click', () => {
+            audioManager.unlock?.();
+            if (!audioManager.settings?.musicEnabled) audioManager.setMusicEnabled(true);
+            audioManager.playMusicPreview?.();
+            this.syncPrepAudioControls();
+        });
         this.container.querySelectorAll('[data-prep-tab]').forEach(tabButton => {
             tabButton.addEventListener('click', this.handlePrepTabClick);
         });
@@ -201,6 +265,16 @@ export default class LobbyScene {
             const effectEl = event.target.closest?.('[data-passive-effect-id]');
             if (!effectEl) return;
             this.equipPassiveCombatEffect(effectEl.dataset.passiveEffectId);
+        });
+        this.dom.passiveEffectLibrary?.addEventListener('mouseover', (event) => {
+            const effectEl = event.target.closest?.('[data-passive-effect-id]');
+            if (!effectEl) return;
+            GameManager.clearPassiveCombatEffectNotice?.(effectEl.dataset.passiveEffectId);
+        });
+        this.dom.passiveEffectLibrary?.addEventListener('focusin', (event) => {
+            const effectEl = event.target.closest?.('[data-passive-effect-id]');
+            if (!effectEl) return;
+            GameManager.clearPassiveCombatEffectNotice?.(effectEl.dataset.passiveEffectId);
         });
         this.dom.passiveEffectClose?.addEventListener('click', () => this.closePassiveEffectModal());
         this.dom.passiveEffectModal?.addEventListener('click', (event) => {
@@ -285,27 +359,33 @@ export default class LobbyScene {
         // Add source-specific actions
         if (source === 'warehouse') {
             if (isEquipment) {
-                buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                if (this.canRepairItem(item)) buttons.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
-                buttons.push(this.createButton('🎒 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                if (item.type === 'weapon') {
+                    buttons.push(this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon')));
+                    buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                } else {
+                    buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                }
+                buttons.push(this.createButton('🎒 放入背包', 'btn-info', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-info', () => this.sellItem(stack.instanceId, source)));
             } else {
                 if (isConsumable) buttons.push(this.createButton('🧪 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                buttons.push(this.createButton('🎒 放入背包', 'btn-success', () => this.moveToInventory(stack.instanceId)));
-                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🎒 放入背包', 'btn-info', () => this.moveToInventory(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-info', () => this.sellItem(stack.instanceId, source)));
             }
         } else if (source === 'inventory') {
             if (isEquipment) {
-                buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
-                if (this.canRepairItem(item)) buttons.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
-                buttons.push(this.createButton('🏦 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('🗑️ 回收', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+                if (item.type === 'weapon') {
+                    buttons.push(this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon')));
+                    buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                } else {
+                    buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                }
+                buttons.push(this.createButton('🏦 放入倉庫', 'btn-info', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-info', () => this.sellItem(stack.instanceId, source)));
             } else {
                 if (isConsumable) buttons.push(this.createButton('🧪 使用', 'btn-info', () => this.useItem(stack.instanceId, source)));
-                buttons.push(this.createButton('🏦 放入倉庫', 'btn-success', () => this.moveToWarehouse(stack.instanceId)));
-                buttons.push(this.createButton('💰 販售', 'btn-warning', () => this.sellItem(stack.instanceId, source)));
-                buttons.push(this.createButton('🗑️ 回收', 'btn-danger', () => this.discardItem(stack.instanceId, source)));
+                buttons.push(this.createButton('🏦 放入倉庫', 'btn-info', () => this.moveToWarehouse(stack.instanceId)));
+                buttons.push(this.createButton('💰 販售', 'btn-info', () => this.sellItem(stack.instanceId, source)));
             }
         }
 
@@ -438,6 +518,12 @@ export default class LobbyScene {
         const interactionButton = event.target?.closest?.('[data-interaction-id]');
         if (interactionButton && this.dom.worldStage?.contains(interactionButton)) {
             this.triggerTownInteraction(interactionButton.dataset.interactionId);
+            return;
+        }
+
+        const achievementButton = event.target?.closest?.('[data-achievements-open]');
+        if (achievementButton && this.dom.worldStage?.contains(achievementButton)) {
+            this.openAchievementModal();
             return;
         }
 
@@ -1539,12 +1625,14 @@ export default class LobbyScene {
             const button = document.createElement('button');
             button.type = 'button';
             const isInteraction = action.type === 'interaction';
+            const isAchievement = action.type === 'achievement';
             const isResolved = isInteraction && worldInteractionManager.hasResolved(action.id);
             const label = action.shortLabel || action.label || '行動';
             const description = action.description || '';
-            button.className = `town-place-entry town-place-action${isResolved ? ' is-resolved' : ''}`;
+            button.className = `town-place-entry town-place-action${isAchievement ? ' town-achievement-action' : ''}${isResolved ? ' is-resolved' : ''}`;
             if (action.type === 'route') button.dataset.route = action.route;
             if (isInteraction) button.dataset.interactionId = action.id;
+            if (isAchievement) button.dataset.achievementsOpen = action.id || 'achievements';
             button.setAttribute('aria-label', description ? `${label}，${description}` : label);
             this.applyTownPlaceEntryPosition(button, action, index, 'action');
             const actionIcon = this.renderTownActionIcon(action);
@@ -1553,7 +1641,7 @@ export default class LobbyScene {
                 <span class="town-place-entry-copy">
                     <strong>${escapeHtml(label)}</strong>
                 </span>
-                <span class="town-place-entry-mark">${isResolved ? '✓' : '→'}</span>
+                <span class="town-place-entry-mark">${isAchievement ? '☆' : (isResolved ? '✓' : '→')}</span>
             `;
             list.appendChild(button);
         });
@@ -1671,7 +1759,7 @@ export default class LobbyScene {
             this.fatigueTimer = null;
         }
 
-        GameManager.recoverAdventureFatigue?.();
+        GameManager.resetAdventureFatigueRecoveryClock?.();
         this.fatigueTimer = setInterval(() => {
             const result = GameManager.recoverAdventureFatigue?.();
             if (result?.recovered > 0) {
@@ -1699,7 +1787,39 @@ export default class LobbyScene {
         document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
     }
 
+    renderAchievementPlaceholders() {
+        if (!this.dom?.achievementList) return;
+
+        this.dom.achievementList.innerHTML = AchievementPlaceholders.map(achievement => `
+            <article class="achievement-card ${achievement.unlocked ? 'is-unlocked' : 'is-locked'}">
+                <span class="achievement-medal" aria-hidden="true">${escapeHtml(achievement.icon)}</span>
+                <span class="achievement-copy">
+                    <strong>${escapeHtml(achievement.title)}</strong>
+                    <small>${escapeHtml(achievement.unlocked ? achievement.text : `尚未解鎖 · ${achievement.text}`)}</small>
+                </span>
+            </article>
+        `).join('');
+    }
+
+    openAchievementModal() {
+        if (!this.dom?.achievementModal) return;
+        this.renderAchievementPlaceholders();
+        this.dom.achievementModal.hidden = false;
+        this.dom.achievementModal.classList.add('active');
+        this.dom.achievementClose?.focus?.();
+    }
+
+    closeAchievementModal() {
+        if (!this.dom?.achievementModal) return;
+        this.dom.achievementModal.classList.remove('active');
+        this.dom.achievementModal.hidden = true;
+    }
+
     handlePassiveEffectKeydown(event) {
+        if (event.key === 'Escape' && this.dom?.achievementModal && !this.dom.achievementModal.hidden) {
+            this.closeAchievementModal();
+            return;
+        }
         if (event.key === 'Escape' && this.dom?.townDialogueModal && !this.dom.townDialogueModal.hidden) {
             this.closeTownDialogue();
             return;
@@ -1747,7 +1867,7 @@ export default class LobbyScene {
             character: '冒險者管理',
             inventory: '背包整理',
             warehouse: '倉庫整理',
-            system: '存檔管理'
+            system: '系統設定'
         };
 
         this.container.querySelectorAll('[data-prep-tab]').forEach(button => {
@@ -1767,6 +1887,34 @@ export default class LobbyScene {
         if (this.dom?.prepTitle) {
             this.dom.prepTitle.textContent = titleMap[targetTab] || titleMap.character;
         }
+
+        if (targetTab === 'system') {
+            this.showPrepSystemLayer('main');
+            this.syncPrepAudioControls();
+        }
+    }
+
+    showPrepSystemLayer(layer = 'main') {
+        const targetLayer = layer === 'audio' ? 'audio' : 'main';
+        this.dom?.prepSystemLayers?.forEach(layerEl => {
+            const active = layerEl.dataset.systemLayer === targetLayer;
+            layerEl.classList.toggle('is-active', active);
+            layerEl.hidden = !active;
+        });
+    }
+
+    syncPrepAudioControls() {
+        const settings = audioManager.settings || {};
+        const sfxVolume = Math.round(Number(settings.sfxVolume ?? 50));
+        const musicVolume = Math.round(Number(settings.musicVolume ?? 50));
+        if (this.dom.prepSfxVolume) this.dom.prepSfxVolume.value = String(sfxVolume);
+        if (this.dom.prepSfxValue) this.dom.prepSfxValue.textContent = String(sfxVolume);
+        if (this.dom.prepSfxOutput) this.dom.prepSfxOutput.textContent = String(sfxVolume);
+        if (this.dom.prepMusicVolume) this.dom.prepMusicVolume.value = String(musicVolume);
+        if (this.dom.prepMusicValue) this.dom.prepMusicValue.textContent = String(musicVolume);
+        if (this.dom.prepMusicOutput) this.dom.prepMusicOutput.textContent = String(musicVolume);
+        if (this.dom.prepMusicEnabled) this.dom.prepMusicEnabled.checked = settings.musicEnabled !== false;
+        if (this.dom.prepMusicState) this.dom.prepMusicState.textContent = settings.musicEnabled !== false ? '開' : '關';
     }
 
     openPassiveEffectModal() {
@@ -1802,13 +1950,11 @@ export default class LobbyScene {
         if (bonuses.durabilityLossReduction) rows.push(`耐久磨耗 ${reduction(bonuses.durabilityLossReduction)}`);
         if (bonuses.lostChanceReduction) rows.push(`迷路機率 ${reduction(bonuses.lostChanceReduction)}`);
         if (bonuses.markerRequirementReduction) rows.push(`路標需求 -${bonuses.markerRequirementReduction}`);
-        if (bonuses.retreatCostReduction) rows.push(`撤退代價 ${reduction(bonuses.retreatCostReduction)}`);
         if (bonuses.fleeChanceBonus) rows.push(`撤退成功 ${percent(bonuses.fleeChanceBonus)}`);
         if (bonuses.puzzleClueBonus) rows.push(`石碑判讀 +${bonuses.puzzleClueBonus}`);
         if (bonuses.trapDamageReduction) rows.push(`陷阱傷害 ${reduction(bonuses.trapDamageReduction)}`);
         if (bonuses.healingReceived) rows.push(`恢復量 ${percent(bonuses.healingReceived)}`);
         if (bonuses.bossDamageReduction) rows.push(`Boss 傷害 ${reduction(bonuses.bossDamageReduction)}`);
-        if (bonuses.eliteDamageReduction) rows.push(`菁英傷害 ${reduction(bonuses.eliteDamageReduction)}`);
         return rows.join(' / ') || '無效果';
     }
 
@@ -1825,6 +1971,8 @@ export default class LobbyScene {
             : (character.getActivePassiveCombatEffects?.() || []).map(effect => effect.id);
         const unlockedIds = new Set(Array.isArray(character.unlockedPassiveEffectIds) ? character.unlockedPassiveEffectIds : []);
         const effects = getAllPassiveCombatEffects();
+        const hasUnreadPassive = Boolean(GameManager.hasUnreadPassiveCombatEffects?.());
+        this.dom.passiveEffectSlots.closest?.('.passive-effect-panel')?.classList.toggle('has-unread-passive', hasUnreadPassive);
 
         this.dom.passiveEffectSlots.innerHTML = Array.from({ length: slotCount }, (_, index) => {
             const effectId = equippedIds[index];
@@ -1864,8 +2012,9 @@ export default class LobbyScene {
                 : (source.sourceText || '透過主線、支線、副本或特殊道具解鎖');
             const disabledClass = unlocked ? '' : ' is-locked';
             const equippedClass = equipped ? ' is-equipped' : '';
+            const newClass = GameManager.hasUnreadPassiveCombatEffect?.(effect.id) ? ' is-new' : '';
             return `
-                <button class="passive-effect-choice rarity-frame rarity-${escapeHtml(effect.rarity || 'common')}${disabledClass}${equippedClass}"
+                <button class="passive-effect-choice rarity-frame rarity-${escapeHtml(effect.rarity || 'common')}${disabledClass}${equippedClass}${newClass}"
                     type="button"
                     data-passive-effect-id="${escapeHtml(effect.id)}"
                     ${unlocked ? '' : 'disabled'}>
@@ -1874,6 +2023,7 @@ export default class LobbyScene {
                         <strong>${escapeHtml(effect.name)}</strong>
                         <small>${escapeHtml(detailText)}</small>
                     </span>
+                    ${newClass ? '<span class="passive-effect-new">NEW</span>' : ''}
                     <span class="passive-effect-state">${equipped ? '已裝備' : (unlocked ? '可替換' : '未解鎖')}</span>
                 </button>
             `;
@@ -1991,6 +2141,7 @@ export default class LobbyScene {
         const state = GameManager.state;
         if (!this.dom.warehouseList || !state.warehouse) return;
         let filteredItems = [...state.warehouse];
+        const totalItems = filteredItems.length;
 
         // Apply filter
         if (this.currentWarehouseFilter !== 'all') {
@@ -2008,6 +2159,12 @@ export default class LobbyScene {
                 default: return 0;
             }
         });
+
+        if (this.dom.warehouseCount) {
+            this.dom.warehouseCount.textContent = filteredItems.length === totalItems
+                ? `${totalItems} 件`
+                : `${filteredItems.length} / ${totalItems} 件`;
+        }
 
         // Chunked rendering using PerformanceUtils
         const container = this.dom.warehouseList;
@@ -2072,8 +2229,7 @@ export default class LobbyScene {
     
     showEquipmentModal(item, slotType) {
         const actions = [];
-        if (this.canRepairItem(item)) actions.push(this.createButton('🔧 修復', 'btn-info', () => this.repairItem(item)));
-        actions.push(this.createButton('🔓 卸下裝備', 'btn-warning', () => this.unequipItem(slotType)));
+        actions.push(this.createButton('🔓 卸下裝備', 'btn-info', () => this.unequipItem(slotType)));
 
         if (window.ItemDetailModal) {
             window.ItemDetailModal.open(item, {
@@ -2132,8 +2288,10 @@ export default class LobbyScene {
     
     // ===== Item Actions =====
     
-    equipItem(instanceId, source) {
-        const success = GameManager.equipItem(instanceId, source === 'warehouse');
+    equipItem(instanceId, source, slotType = null) {
+        const success = slotType
+            ? GameManager.equipItemToSlot(instanceId, slotType, source === 'warehouse')
+            : GameManager.equipItem(instanceId, source === 'warehouse');
         if (success) {
             this.closeItemModal();
             if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') window.ItemDetailModal.close();

@@ -67,7 +67,6 @@ export const AffixStat = {
     LIGHT: 'light',
     POISON: 'poison',
     VOID: 'void',
-    VOID_DAMAGE: 'voidDamage',
 };
 
 export const SpecialEffectDescriptions = {
@@ -92,8 +91,9 @@ export const SpecialEffectDescriptions = {
     thunder: (value) => `命中敵人時有 ${value}% 機率使敵人暈眩`,
     // 光：提高攻速
     light: (value) => `每次攻擊命中時攻速提高 ${value}%，此增益可無限疊加`,
-    // 毒：持續傷害
-    poison: (value) => `造成傷害時使敵人中毒，每秒造成 ${value} 點持續傷害，持續 3 秒（總持續時間依武器攻擊次數分配，示例：每次持續時間 = 3 / 武器攻擊次數 秒）`,
+    // 毒：累積處決壓力
+    poison: (value) => `造成傷害時使敵人中毒，每秒累積 ${value} 點毒素；攻擊傷害加上累積毒素足以覆蓋剩餘生命時處決。`,
+    void: (value) => `攻擊命中時使敵人受到虛空吞噬，每秒造成 ${value} 點虛空傷害；造成的虛空傷害會回復生命。`,
 };
 
 // ===== 物品分類 =====

@@ -46,7 +46,7 @@ function normalizeStatKey(stat) {
         fire: AffixStat.FIRE || AffixStat.FIRE,
         ice: AffixStat.ICE || AffixStat.ICE,
         thunder: AffixStat.THUNDER || AffixStat.THUNDER,
-        void: AffixStat.VOID || AffixStat.VOID_DAMAGE || AffixStat.VOID_DAMAGE
+        void: AffixStat.VOID
     };
 
     return map[key] || stat;

@@ -7,7 +7,7 @@ import { CharacterManager, Item, Equipment, Weapon, Armor, Accessory, Consumable
 import { ItemType, ItemRarity } from '../models/Enums.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
-import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem } from '../models/ItemSchema.js';
+import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem, normalizeItemType } from '../models/ItemSchema.js';
 import {
     DefaultUnlockedPassiveCombatEffectIds,
     getAllPassiveCombatEffects,
@@ -67,6 +67,8 @@ export const INVENTORY_UPGRADE_TIERS = [
 export const ADVENTURE_FATIGUE_BASE_MAX = 20;
 export const ADVENTURE_FATIGUE_PER_LEVEL = 10;
 export const ADVENTURE_FATIGUE_REGEN_MS = 1000;
+export const ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID = 'fatigue_weakness';
+export const ADVENTURE_FATIGUE_WEAKNESS_PENALTY = 0.2;
 
 class GameManager {
     constructor() {
@@ -287,6 +289,29 @@ class GameManager {
         return itemIds;
     }
 
+    migratePassiveEffectItemsToAchievements() {
+        let changed = false;
+        const migrateContainer = container => {
+            if (!Array.isArray(container)) return;
+            for (let index = container.length - 1; index >= 0; index -= 1) {
+                const stack = container[index];
+                const item = stack?.item || stack;
+                if (!item?.passiveEffectId) continue;
+
+                const result = this.unlockPassiveCombatEffectAchievement(item.passiveEffectId, item, { notify: false, sync: false });
+                if (result?.success) {
+                    container.splice(index, 1);
+                    changed = true;
+                }
+            }
+        };
+
+        migrateContainer(this.state.inventory);
+        migrateContainer(this.state.warehouse);
+        if (changed) this.markSaveDirty?.('passive-items-migrated');
+        return changed;
+    }
+
     resolvePassiveCombatEffectUnlockIds() {
         const ownedItemIds = this.getPassiveEffectSourceItemIds();
         const unlocked = new Set(DefaultUnlockedPassiveCombatEffectIds);
@@ -295,7 +320,8 @@ class GameManager {
             const source = getPassiveCombatEffectUnlockSource(effect.id);
             const itemMatched = (source.itemIds || []).some(itemId => ownedItemIds.has(itemId));
             const questMatched = (source.questIds || []).some(questId => this.getFlag(`quest.${questId}.finished`));
-            const flagMatched = (source.flags || []).some(flag => this.getFlag(flag));
+            const achievementMatched = this.getFlag(`passiveEffects.achievement.${effect.id}`);
+            const flagMatched = achievementMatched || (source.flags || []).some(flag => this.getFlag(flag));
 
             if (source.defaultUnlocked || itemMatched || questMatched || flagMatched) {
                 unlocked.add(effect.id);
@@ -310,6 +336,7 @@ class GameManager {
         if (!character) return { changed: false, unlockedIds: [] };
 
         const allEffectIds = getAllPassiveCombatEffects().map(effect => effect.id);
+        const migratedPassiveItems = this.migratePassiveEffectItemsToAchievements();
         const sourceUnlockedIds = this.resolvePassiveCombatEffectUnlockIds();
         const previousUnlockedIds = Array.isArray(character.unlockedPassiveEffectIds)
             ? character.unlockedPassiveEffectIds.filter(effectId => allEffectIds.includes(effectId))
@@ -345,7 +372,7 @@ class GameManager {
         character.passiveEffectSlots = slotCount;
         this.state.flags['passiveEffects.sourceLocked'] = true;
 
-        const changed = unlockedChanged || equippedChanged || hadBetaFullUnlock;
+        const changed = unlockedChanged || equippedChanged || hadBetaFullUnlock || migratedPassiveItems;
         if (changed) {
             this.markSaveDirty?.(`passive-effects-${reason}`);
         }
@@ -372,6 +399,83 @@ class GameManager {
         return ids
             .map(effectId => getPassiveCombatEffect(effectId))
             .filter(Boolean);
+    }
+
+    hasPassiveCombatEffectAchievement(effectId) {
+        if (!effectId) return false;
+        const character = this.state.character;
+        return Boolean(this.getFlag(`passiveEffects.achievement.${effectId}`))
+            || Boolean(character?.unlockedPassiveEffectIds?.includes(effectId));
+    }
+
+    hasUnreadPassiveCombatEffects() {
+        return getAllPassiveCombatEffects()
+            .some(effect => this.getFlag(`passiveEffects.unread.${effect.id}`));
+    }
+
+    hasUnreadPassiveCombatEffect(effectId) {
+        return Boolean(effectId && this.getFlag(`passiveEffects.unread.${effectId}`));
+    }
+
+    clearPassiveCombatEffectNotice(effectId) {
+        if (!effectId) return false;
+        const key = `passiveEffects.unread.${effectId}`;
+        if (!this.getFlag(key)) return false;
+        this.state.flags[key] = false;
+        this.markSaveDirty?.('passive-effect-read');
+        this.notify('flags');
+        return true;
+    }
+
+    clearPassiveCombatEffectNotices() {
+        let changed = false;
+        for (const effect of getAllPassiveCombatEffects()) {
+            const key = `passiveEffects.unread.${effect.id}`;
+            if (this.getFlag(key)) {
+                this.state.flags[key] = false;
+                changed = true;
+            }
+        }
+        if (changed) {
+            this.markSaveDirty?.('passive-effects-read');
+            this.notify('flags');
+        }
+    }
+
+    unlockPassiveCombatEffectAchievement(effectId, sourceItem = null, options = {}) {
+        const effect = getPassiveCombatEffect(effectId);
+        const character = this.state.character;
+        if (!effect || !character) return { success: false, alreadyUnlocked: false, effect: null };
+
+        const wasUnlocked = this.hasPassiveCombatEffectAchievement(effectId);
+        this.state.flags[`passiveEffects.achievement.${effectId}`] = true;
+        this.state.flags[`passiveEffects.unread.${effectId}`] = true;
+        if (sourceItem?.id) this.state.flags[`passiveEffects.sourceItem.${sourceItem.id}`] = true;
+
+        if (typeof character.unlockPassiveCombatEffect === 'function') {
+            character.unlockPassiveCombatEffect(effectId);
+        } else if (Array.isArray(character.unlockedPassiveEffectIds) && !character.unlockedPassiveEffectIds.includes(effectId)) {
+            character.unlockedPassiveEffectIds.push(effectId);
+        }
+
+        const syncResult = options.sync === false
+            ? { changed: false, unlockedIds: character.unlockedPassiveEffectIds || [] }
+            : this.syncPassiveCombatEffectUnlocks('passive-achievement');
+        if (!wasUnlocked) {
+            const recent = Array.isArray(this._recentPassiveCombatUnlocks)
+                ? this._recentPassiveCombatUnlocks
+                : [];
+            this._recentPassiveCombatUnlocks = Array.from(new Set([...recent, effectId]));
+        }
+        this.markSaveDirty?.('passive-achievement');
+        if (options.notify !== false) this.notify('all');
+
+        return {
+            success: true,
+            alreadyUnlocked: wasUnlocked,
+            effect,
+            syncResult
+        };
     }
 
     subscribe(callback) {
@@ -465,50 +569,125 @@ class GameManager {
         return this.state.adventureFatigue;
     }
 
+    syncAdventureFatigueWeakness(options = {}) {
+        const { notify = true, reason = 'adventure-fatigue-weakness' } = options;
+        const character = this.state.character;
+        if (!character) return false;
+        if (!Array.isArray(character.debuffs)) character.debuffs = [];
+
+        const fatigue = this.normalizeAdventureFatigue();
+        const existingIndex = character.debuffs.findIndex(debuff =>
+            debuff?.id === ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID
+            || debuff?.type === 'fatigueWeakness'
+        );
+        const shouldApply = fatigue.current <= 0;
+        let changed = false;
+
+        if (shouldApply) {
+            const nextDebuff = {
+                id: ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID,
+                type: 'fatigueWeakness',
+                name: '虛弱',
+                icon: '疲',
+                value: ADVENTURE_FATIGUE_WEAKNESS_PENALTY,
+                statPenalty: ADVENTURE_FATIGUE_WEAKNESS_PENALTY,
+                description: '疲勞耗盡，全屬性 -20%。',
+                source: 'adventureFatigue',
+                persistent: true
+            };
+
+            if (existingIndex >= 0) {
+                const current = character.debuffs[existingIndex];
+                const merged = { ...current, ...nextDebuff };
+                changed = JSON.stringify(current) !== JSON.stringify(merged);
+                character.debuffs[existingIndex] = merged;
+            } else {
+                character.debuffs.push(nextDebuff);
+                changed = true;
+            }
+
+            if (character.hp > character.maxHp) {
+                character.hp = character.maxHp;
+                changed = true;
+            }
+        } else if (existingIndex >= 0) {
+            character.debuffs.splice(existingIndex, 1);
+            changed = true;
+        }
+
+        if (changed) {
+            this.markSaveDirty(reason);
+            if (notify) this.notify('all');
+        }
+        return changed;
+    }
+
     recoverAdventureFatigue(now = Date.now()) {
         const fatigue = this.normalizeAdventureFatigue();
         const max = this.getAdventureFatigueMax();
         if (fatigue.current >= max) {
             fatigue.current = max;
             fatigue.lastRecoveredAt = now;
+            this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-full' });
             return { current: fatigue.current, max, recovered: 0 };
         }
 
         const elapsed = Math.max(0, now - Number(fatigue.lastRecoveredAt || now));
         const recovered = Math.floor(elapsed / ADVENTURE_FATIGUE_REGEN_MS);
-        if (recovered <= 0) return { current: fatigue.current, max, recovered: 0 };
+        if (recovered <= 0) {
+            this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-check' });
+            return { current: fatigue.current, max, recovered: 0 };
+        }
 
         fatigue.current = Math.min(max, fatigue.current + recovered);
         fatigue.lastRecoveredAt = fatigue.current >= max
             ? now
             : Number(fatigue.lastRecoveredAt) + recovered * ADVENTURE_FATIGUE_REGEN_MS;
+        const weaknessChanged = this.syncAdventureFatigueWeakness({
+            notify: false,
+            reason: 'adventure-fatigue-recover-weakness'
+        });
         this.markSaveDirty('adventure-fatigue-recover');
-        this.notify('fatigue');
+        this.notify(weaknessChanged ? 'all' : 'fatigue');
         return { current: fatigue.current, max, recovered };
     }
 
-    getAdventureFatigueStatus() {
-        this.recoverAdventureFatigue();
+    resetAdventureFatigueRecoveryClock(now = Date.now()) {
+        const fatigue = this.normalizeAdventureFatigue();
+        fatigue.lastRecoveredAt = now;
+        this.markSaveDirty('adventure-fatigue-recovery-clock');
+        this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-recovery-clock' });
+        return this.getAdventureFatigueStatus({ recover: false });
+    }
+
+    getAdventureFatigueStatus(options = {}) {
+        const { recover = true } = options;
+        if (recover) this.recoverAdventureFatigue();
         const fatigue = this.normalizeAdventureFatigue();
         const max = this.getAdventureFatigueMax();
+        this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-status' });
         return {
             current: fatigue.current,
             max,
-            percent: max > 0 ? (fatigue.current / max) * 100 : 0
+            percent: max > 0 ? (fatigue.current / max) * 100 : 0,
+            depleted: fatigue.current <= 0,
+            weaknessPenalty: ADVENTURE_FATIGUE_WEAKNESS_PENALTY
         };
     }
 
     consumeAdventureFatigue(amount = 1) {
         const cost = Math.max(0, Math.ceil(Number(amount) || 0));
         if (cost <= 0) return true;
-        this.recoverAdventureFatigue();
         const fatigue = this.normalizeAdventureFatigue();
-        if (fatigue.current < cost) return false;
 
         fatigue.current = Math.max(0, fatigue.current - cost);
         fatigue.lastRecoveredAt = Date.now();
+        const weaknessChanged = this.syncAdventureFatigueWeakness({
+            notify: false,
+            reason: 'adventure-fatigue-consume-weakness'
+        });
         this.markSaveDirty('adventure-fatigue-consume');
-        this.notify('fatigue');
+        this.notify(weaknessChanged ? 'all' : 'fatigue');
         return true;
     }
 
@@ -518,8 +697,12 @@ class GameManager {
         const fatigue = this.normalizeAdventureFatigue();
         fatigue.current = Math.min(this.getAdventureFatigueMax(), fatigue.current + value);
         fatigue.lastRecoveredAt = Date.now();
+        const weaknessChanged = this.syncAdventureFatigueWeakness({
+            notify: false,
+            reason: 'adventure-fatigue-restore-weakness'
+        });
         this.markSaveDirty('adventure-fatigue-restore');
-        this.notify('fatigue');
+        this.notify(weaknessChanged ? 'all' : 'fatigue');
         return this.getAdventureFatigueStatus();
     }
 
@@ -634,6 +817,11 @@ class GameManager {
     }
 
     addToInventory(itemData, quantity = 1) {
+        const sourceItem = itemData?.item || itemData;
+        if (sourceItem?.passiveEffectId) {
+            return this.unlockPassiveCombatEffectAchievement(sourceItem.passiveEffectId, sourceItem).success;
+        }
+
         const item = createRuntimeItem(itemData);
         const safeQuantity = Math.max(1, Number(quantity) || 1);
         const stackable = this.isStackable(item);
@@ -666,6 +854,11 @@ class GameManager {
     }
 
     addToWarehouse(itemData, quantity = 1) {
+        const sourceItem = itemData?.item || itemData;
+        if (sourceItem?.passiveEffectId) {
+            return this.unlockPassiveCombatEffectAchievement(sourceItem.passiveEffectId, sourceItem).success;
+        }
+
         const item = createRuntimeItem(itemData);
         const safeQuantity = Math.max(1, Number(quantity) || 1);
         const stackable = this.isStackable(item);
@@ -994,19 +1187,28 @@ class GameManager {
         return true;
     }
     
-    equipItem(instanceId, fromWarehouse = false) {
+    canEquipItemToSlot(item, slotType = null) {
+        if (!item || typeof item.isEquipment !== 'function' || !item.isEquipment()) return false;
+        const itemType = normalizeItemType(item.type);
+        if (!slotType) return ['weapon', 'armor', 'accessory'].includes(itemType);
+        if (slotType === itemType) return true;
+        return slotType === 'armor' && itemType === 'weapon';
+    }
+
+    equipItemToSlot(instanceId, slotType = null, fromWarehouse = false) {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
         const stack = source.find(s => s.instanceId === instanceId);
         
-        if (!stack || !stack.item.isEquipment()) return false;
+        if (!stack || !this.canEquipItemToSlot(stack.item, slotType)) return false;
         
         const item = stack.item;
+        const targetSlot = slotType || normalizeItemType(item.type);
         const previousEquipment = { ...(this.state.character.equipment || {}) };
-        const equipped = this.state.character.equip(item);
+        const equipped = this.state.character.equip(item, targetSlot);
         if (!equipped) return false;
 
         const equippedSlot = Object.keys(this.state.character.equipment || {})
-            .find(slotType => this.state.character.equipment[slotType] === item);
+            .find(slotName => this.state.character.equipment[slotName] === item);
         if (!equippedSlot) {
             this.state.character.equipment = previousEquipment;
             return false;
@@ -1033,6 +1235,10 @@ class GameManager {
         
         this.notify('all');
         return true;
+    }
+
+    equipItem(instanceId, fromWarehouse = false) {
+        return this.equipItemToSlot(instanceId, null, fromWarehouse);
     }
     
     /**
@@ -1098,9 +1304,10 @@ class GameManager {
      * 減少武器耐久度（攻擊時調用）
      * @returns {Object|null} 如果裝備損壞返回裝備資訊，否則返回 null
      */
-    reduceWeaponDurability() {
-        const weapon = this.state.character.equipment.weapon;
-        if (!weapon) return null;
+    reduceWeaponDurability(slotType = 'weapon') {
+        const normalizedSlot = slotType || 'weapon';
+        const weapon = this.state.character.equipment?.[normalizedSlot];
+        if (!weapon || normalizeItemType(weapon.type) !== 'weapon') return null;
         
         // 檢查是否有「完美無瑕」詞綴
         if (this.hasNoDurabilityLossAffix(weapon)) {
@@ -1118,7 +1325,7 @@ class GameManager {
         // 耐久度歸零，裝備消失
         if (weapon.durability <= 0) {
             const destroyedWeapon = { ...weapon };
-            this.state.character.equipment.weapon = null;
+            this.state.character.equipment[normalizedSlot] = null;
             this.notify('equipment');
             return destroyedWeapon;
         }
@@ -1133,6 +1340,7 @@ class GameManager {
     reduceArmorDurability() {
         const armor = this.state.character.equipment.armor;
         if (!armor) return null;
+        if (normalizeItemType(armor.type) === 'weapon') return null;
         
         // 檢查是否有「完美無瑕」詞綴
         if (this.hasNoDurabilityLossAffix(armor)) {

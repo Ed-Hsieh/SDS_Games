@@ -146,8 +146,10 @@
         <!-- 精準計時系統 - THE CORE MECHANIC -->
         <div class="battle-body">
             <!-- 節奏條 - PRECISION GAUGE -->
-            <div class="rhythm-bar-container">
-                <div class="rhythm-bar" id="rhythm-bar">
+            <div class="rhythm-ring-stage">
+                <div class="rhythm-ring-panel rhythm-ring-panel-main">
+                    <div class="rhythm-ring-label"><span>主手</span><kbd>A</kbd></div>
+                <div class="rhythm-bar rhythm-ring" id="rhythm-bar" data-rhythm-mode="ring">
                     <!-- MISS 區域（背景填滿整個軌道） -->
                     <div class="zone-miss">
                         <span class="zone-label">失誤</span>
@@ -166,6 +168,33 @@
                     <div class="rhythm-needle" id="rhythm-needle">
                         <div class="needle-beam"></div>
                         <div class="needle-tip"></div>
+                    </div>
+                    <div class="rhythm-ring-core">
+                        <div class="rhythm-ring-icon" id="main-rhythm-icon">⚔</div>
+                        <div class="rhythm-ring-name" id="main-rhythm-name">主手</div>
+                    </div>
+                </div>
+                </div>
+                <div class="rhythm-ring-panel rhythm-ring-panel-offhand">
+                    <div class="rhythm-ring-label"><span>副手</span><kbd>S</kbd></div>
+                    <div class="rhythm-bar rhythm-ring offhand-rhythm-ring" id="offhand-rhythm-ring" data-rhythm-mode="ring">
+                        <div class="zone-miss"><span class="zone-label">待命</span></div>
+                        <div class="hit-zone" id="offhand-hit-zone">
+                            <div class="zone-glow zone-glow-hit"></div>
+                            <span class="zone-label">命中</span>
+                        </div>
+                        <div class="crit-zone" id="offhand-crit-zone">
+                            <div class="zone-glow zone-glow-crit"></div>
+                            <span class="zone-label">暴擊</span>
+                        </div>
+                        <div class="rhythm-needle" id="offhand-rhythm-needle">
+                            <div class="needle-beam"></div>
+                            <div class="needle-tip"></div>
+                        </div>
+                        <div class="rhythm-ring-core">
+                            <div class="rhythm-ring-icon" id="offhand-rhythm-icon">🛡</div>
+                            <div class="rhythm-ring-name" id="offhand-rhythm-name">未裝副手</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -210,6 +239,24 @@
                             <div>
                                 <span class="stat-label">攻擊</span>
                                 <span class="stat-value" id="weapon-damage">15</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-card offhand-card disabled" id="action-offhand">
+                        <div class="card-header">
+                            <span class="card-key">[S]</span>
+                            <span class="card-title">副手</span>
+                        </div>
+                        <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
+                        <div class="card-body-row">
+                            <div>
+                                <div class="card-icon" id="offhand-icon">🛡</div>
+                                <div class="card-name" id="offhand-name">未裝副手</div>
+                            </div>
+                            <div>
+                                <span class="stat-label">攻擊</span>
+                                <span class="stat-value" id="offhand-damage">--</span>
                             </div>
                         </div>
                     </div>

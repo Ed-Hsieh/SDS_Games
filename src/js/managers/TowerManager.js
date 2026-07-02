@@ -249,7 +249,6 @@ export default class TowerManager {
                     damage += Math.floor(damage * (effects.execute / 100));
                 }
                 if (effects.fire > 0) damage += Math.floor(damage * (effects.fire / 100));
-                if (effects.voidDamage > 0) damage += Math.floor(damage * (effects.voidDamage / 100));
                 if (effects.doubleStrike > 0 && Math.random() * 100 < effects.doubleStrike) {
                     const extraDamage = Math.max(1, Math.floor(damage * 0.5));
                     damage += extraDamage;
@@ -323,7 +322,6 @@ export default class TowerManager {
 
         const passiveReduction = typeof character.getPassiveCombatBonus === 'function'
             ? (monster.isBoss ? Number(character.getPassiveCombatBonus('bossDamageReduction')) || 0 : 0)
-                + (monster.isElite ? Number(character.getPassiveCombatBonus('eliteDamageReduction')) || 0 : 0)
                 + (Number(character.getPassiveCombatBonus('monsterDamageReduction')) || 0)
             : 0;
         if (passiveReduction > 0) {
