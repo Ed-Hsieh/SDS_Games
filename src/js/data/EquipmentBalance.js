@@ -66,7 +66,7 @@ export const EQUIPMENT_LEVEL_BANDS = [
         id: 'novice',
         label: '入門',
         min: 1,
-        max: 4,
+        max: 7,
         expectedRarities: [ItemRarity.COMMON, ItemRarity.UNCOMMON],
         weaponAttack: [4, 13],
         armorDefense: [4, 13]
@@ -74,8 +74,8 @@ export const EQUIPMENT_LEVEL_BANDS = [
     {
         id: 'apprentice',
         label: '成長',
-        min: 5,
-        max: 9,
+        min: 8,
+        max: 16,
         expectedRarities: [ItemRarity.UNCOMMON, ItemRarity.RARE],
         weaponAttack: [12, 24],
         armorDefense: [10, 22]
@@ -83,29 +83,38 @@ export const EQUIPMENT_LEVEL_BANDS = [
     {
         id: 'veteran',
         label: '熟練',
-        min: 10,
-        max: 14,
+        min: 17,
+        max: 29,
         expectedRarities: [ItemRarity.RARE, ItemRarity.EPIC],
-        weaponAttack: [22, 36],
-        armorDefense: [20, 36]
+        weaponAttack: [22, 38],
+        armorDefense: [20, 38]
     },
     {
         id: 'heroic',
         label: '英雄',
-        min: 15,
-        max: 22,
-        expectedRarities: [ItemRarity.EPIC, ItemRarity.LEGENDARY],
-        weaponAttack: [34, 58],
-        armorDefense: [32, 54]
+        min: 30,
+        max: 44,
+        expectedRarities: [ItemRarity.RARE, ItemRarity.EPIC],
+        weaponAttack: [36, 58],
+        armorDefense: [34, 56]
     },
     {
         id: 'mythic',
         label: '終局',
-        min: 23,
-        max: 30,
+        min: 45,
+        max: 59,
         expectedRarities: [ItemRarity.EPIC, ItemRarity.LEGENDARY],
-        weaponAttack: [54, 82],
-        armorDefense: [50, 78]
+        weaponAttack: [56, 82],
+        armorDefense: [52, 78]
+    },
+    {
+        id: 'legend',
+        label: '傳承',
+        min: 60,
+        max: 70,
+        expectedRarities: [ItemRarity.EPIC, ItemRarity.LEGENDARY],
+        weaponAttack: [78, 108],
+        armorDefense: [74, 102]
     }
 ];
 

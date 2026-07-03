@@ -6,13 +6,21 @@
  * Use "dungeonId:monsterId" when a dungeon monster id needs dungeon-specific drops.
  */
 
+import { getSeriesRecipeIds } from './RecipeSeries.js';
+
 export const BlueprintDropDatabase = {
     // Normal monster blueprints
     skeleton: [
-        { recipeId: 'bone_blade', chance: 0.08 }
+        { seriesId: 'bone_series', chance: 0.08 },
+        { recipeId: 'bone_blade', chance: 0.04 }
     ],
     skeleton_warrior: [
-        { recipeId: 'bone_blade', chance: 0.12 }
+        { seriesId: 'bone_series', chance: 0.12 },
+        { recipeId: 'bone_blade', chance: 0.06 }
+    ],
+    tower_skeleton_captain: [
+        { seriesId: 'bone_series', chance: 0.16 },
+        { recipeId: 'bone_blade', chance: 0.08 }
     ],
     wild_wolf: [
         { recipeId: 'wolf_cloak', chance: 0.08 },
@@ -200,6 +208,10 @@ export function getBlueprintDropsForRecipe(recipeId) {
         for (const entry of entries || []) {
             if (entry.recipeId === recipeId) {
                 drops.push({ ...entry, sourceKey });
+                continue;
+            }
+            if (entry.seriesId && getSeriesRecipeIds(entry.seriesId).includes(recipeId)) {
+                drops.push({ ...entry, recipeId, sourceKey });
             }
         }
     }

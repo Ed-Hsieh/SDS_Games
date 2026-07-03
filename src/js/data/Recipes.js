@@ -18,6 +18,8 @@
  */
 import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
+import { applyLegacyLevelProgressionToRecipeDatabase } from './ProgressionLevels.js';
+import { SeriesRecipeDatabase } from './RecipeSeries.js';
 
 
 export const RecipeDatabase = {
@@ -52,7 +54,7 @@ export const RecipeDatabase = {
 
     bone_blade: {
         id: 'bone_blade',
-        name: '骨刃',
+        name: '白骨刃',
         icon: '🦴',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -64,7 +66,7 @@ export const RecipeDatabase = {
         successRate: 95,
         result: {
             id: 'crafted_bone_blade',
-            name: '骨刃',
+            name: '白骨刃',
             icon: '🦴',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.UNCOMMON,
@@ -81,7 +83,7 @@ export const RecipeDatabase = {
 
     poison_dagger: {
         id: 'poison_dagger',
-        name: '毒刃匕首',
+        name: '毒牙匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -94,7 +96,7 @@ export const RecipeDatabase = {
         successRate: 90,
         result: {
             id: 'crafted_poison_dagger',
-            name: '毒刃匕首',
+            name: '毒牙匕首',
             icon: '🗡️',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.UNCOMMON,
@@ -111,7 +113,7 @@ export const RecipeDatabase = {
 
     shadow_blade: {
         id: 'shadow_blade',
-        name: '暗影之劍',
+        name: '影縫劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -124,7 +126,7 @@ export const RecipeDatabase = {
         successRate: 80,
         result: {
             id: 'crafted_shadow_blade',
-            name: '暗影之劍',
+            name: '影縫劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.RARE,
@@ -170,7 +172,7 @@ export const RecipeDatabase = {
 
     fire_sword: {
         id: 'fire_sword',
-        name: '烈焰之劍',
+        name: '燼火劍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -183,7 +185,7 @@ export const RecipeDatabase = {
         successRate: 70,
         result: {
             id: 'crafted_fire_sword',
-            name: '烈焰之劍',
+            name: '燼火劍',
             icon: '🔥',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.RARE,
@@ -200,7 +202,7 @@ export const RecipeDatabase = {
 
     ice_sword: {
         id: 'ice_sword',
-        name: '霜寒之劍',
+        name: '霜線劍',
         icon: '❄️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -213,7 +215,7 @@ export const RecipeDatabase = {
         successRate: 70,
         result: {
             id: 'crafted_ice_sword',
-            name: '霜寒之劍',
+            name: '霜線劍',
             icon: '❄️',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.RARE,
@@ -230,7 +232,7 @@ export const RecipeDatabase = {
 
     dragon_slayer: {
         id: 'dragon_slayer',
-        name: '龍心',
+        name: '龍心餘燼',
         icon: '🐉',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -244,7 +246,7 @@ export const RecipeDatabase = {
         successRate: 50,
         result: {
             id: 'crafted_dragon_slayer',
-            name: '屠龍劍',
+            name: '龍心餘燼',
             icon: '🐉',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.LEGENDARY,
@@ -261,7 +263,7 @@ export const RecipeDatabase = {
 
     titan_blade: {
         id: 'titan_blade',
-        name: '泰坦之劍',
+        name: '巨神遺刃',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
@@ -275,7 +277,7 @@ export const RecipeDatabase = {
         successRate: 30,
         result: {
             id: 'crafted_titan_blade',
-            name: '泰坦之劍',
+            name: '巨神遺刃',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.LEGENDARY,
@@ -351,7 +353,7 @@ export const RecipeDatabase = {
 
     guardian_armor: {
         id: 'guardian_armor',
-        name: '守護者之甲',
+        name: '森衛甲',
         icon: '🛡️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -364,7 +366,7 @@ export const RecipeDatabase = {
         successRate: 70,
         result: {
             id: 'crafted_guardian_armor',
-            name: '守護者之甲',
+            name: '森衛甲',
             icon: '🛡️',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.RARE,
@@ -381,7 +383,7 @@ export const RecipeDatabase = {
 
     shadow_armor: {
         id: 'shadow_armor',
-        name: '暗影鎧甲',
+        name: '影縫甲',
         icon: '⚫',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -394,7 +396,7 @@ export const RecipeDatabase = {
         successRate: 65,
         result: {
             id: 'crafted_shadow_armor',
-            name: '暗影鎧甲',
+            name: '影縫甲',
             icon: '⚫',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.RARE,
@@ -411,7 +413,7 @@ export const RecipeDatabase = {
 
     dragon_scale_armor: {
         id: 'dragon_scale_armor',
-        name: '龍鱗鎧甲',
+        name: '龍鱗戰鎧',
         icon: '🐲',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -424,7 +426,7 @@ export const RecipeDatabase = {
         successRate: 50,
         result: {
             id: 'crafted_dragon_scale_armor',
-            name: '龍鱗鎧甲',
+            name: '龍鱗戰鎧',
             icon: '🐲',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.EPIC,
@@ -441,7 +443,7 @@ export const RecipeDatabase = {
 
     titan_armor: {
         id: 'titan_armor',
-        name: '泰坦之鎧',
+        name: '巨神遺甲',
         icon: '🛡️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
@@ -455,7 +457,7 @@ export const RecipeDatabase = {
         successRate: 30,
         result: {
             id: 'crafted_titan_armor',
-            name: '泰坦之鎧',
+            name: '巨神遺甲',
             icon: '🛡️',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.LEGENDARY,
@@ -532,7 +534,7 @@ export const RecipeDatabase = {
 
     nature_amulet: {
         id: 'nature_amulet',
-        name: '自然護符',
+        name: '森息護符',
         icon: '🌿',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -545,7 +547,7 @@ export const RecipeDatabase = {
         successRate: 75,
         result: {
             id: 'crafted_nature_amulet',
-            name: '自然護符',
+            name: '森息護符',
             icon: '🌿',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.RARE,
@@ -592,7 +594,7 @@ export const RecipeDatabase = {
 
     shadow_ring: {
         id: 'shadow_ring',
-        name: '暗影戒指',
+        name: '影縫戒',
         icon: '💍',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -605,7 +607,7 @@ export const RecipeDatabase = {
         successRate: 65,
         result: {
             id: 'crafted_shadow_ring',
-            name: '暗影戒指',
+            name: '影縫戒',
             icon: '💍',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.RARE,
@@ -622,7 +624,7 @@ export const RecipeDatabase = {
 
     dragon_amulet: {
         id: 'dragon_amulet',
-        name: '龍之護符',
+        name: '龍息護符',
         icon: '🐉',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -635,7 +637,7 @@ export const RecipeDatabase = {
         successRate: 55,
         result: {
             id: 'crafted_dragon_amulet',
-            name: '龍之護符',
+            name: '龍息護符',
             icon: '🐉',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.EPIC,
@@ -652,7 +654,7 @@ export const RecipeDatabase = {
 
     titan_ring: {
         id: 'titan_ring',
-        name: '泰坦之戒',
+        name: '巨神遺戒',
         icon: '💍',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -665,7 +667,7 @@ export const RecipeDatabase = {
         successRate: 35,
         result: {
             id: 'crafted_titan_ring',
-            name: '泰坦之戒',
+            name: '巨神遺戒',
             icon: '💍',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.LEGENDARY,
@@ -730,7 +732,7 @@ export const RecipeDatabase = {
     // ==================== 高階/新材料裝備 ====================
     void_reaver: {
         id: 'void_reaver',
-        name: '虛空裂刃',
+        name: '幽光裂刃',
         icon: '🌑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
@@ -745,7 +747,7 @@ export const RecipeDatabase = {
         successRate: 45,
         result: {
             id: 'crafted_void_reaver',
-            name: '虛空裂刃',
+            name: '幽光裂刃',
             icon: '🌑',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.LEGENDARY,
@@ -767,7 +769,7 @@ export const RecipeDatabase = {
 
     storm_spear: {
         id: 'storm_spear',
-        name: '雷霆長矛',
+        name: '鳴雷長矛',
         icon: '⚡',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -782,7 +784,7 @@ export const RecipeDatabase = {
         successRate: 55,
         result: {
             id: 'crafted_storm_spear',
-            name: '雷霆長矛',
+            name: '鳴雷長矛',
             icon: '⚡',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.EPIC,
@@ -833,7 +835,7 @@ export const RecipeDatabase = {
 
     hydra_fang_dagger: {
         id: 'hydra_fang_dagger',
-        name: '九頭毒牙匕首',
+        name: '九頭毒牙',
         icon: '🦂',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -847,7 +849,7 @@ export const RecipeDatabase = {
         successRate: 60,
         result: {
             id: 'crafted_hydra_fang_dagger',
-            name: '九頭毒牙匕首',
+            name: '九頭毒牙',
             icon: '🦂',
             type: EquipmentType.WEAPON,
             rarity: ItemRarity.EPIC,
@@ -900,7 +902,7 @@ export const RecipeDatabase = {
 
     gargoyle_bulwark: {
         id: 'gargoyle_bulwark',
-        name: '石像鬼壁壘',
+        name: '灰翼壁壘',
         icon: '🪨',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -914,7 +916,7 @@ export const RecipeDatabase = {
         successRate: 70,
         result: {
             id: 'crafted_gargoyle_bulwark',
-            name: '石像鬼壁壘',
+            name: '灰翼壁壘',
             icon: '🪨',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.RARE,
@@ -931,7 +933,7 @@ export const RecipeDatabase = {
 
     goblin_trickster_charm: {
         id: 'goblin_trickster_charm',
-        name: '哥布林詭計護符',
+        name: '哥布林詭符',
         icon: '🪙',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.UNCOMMON,
@@ -946,7 +948,7 @@ export const RecipeDatabase = {
         successRate: 90,
         result: {
             id: 'crafted_goblin_trickster_charm',
-            name: '哥布林詭計護符',
+            name: '哥布林詭符',
             icon: '🪙',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.UNCOMMON,
@@ -963,7 +965,7 @@ export const RecipeDatabase = {
 
     demonwar_helm: {
         id: 'demonwar_helm',
-        name: '魔戰指揮盔',
+        name: '黑焰令盔',
         icon: '👹',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -979,7 +981,7 @@ export const RecipeDatabase = {
         successRate: 50,
         result: {
             id: 'crafted_demonwar_helm',
-            name: '魔戰指揮盔',
+            name: '黑焰令盔',
             icon: '👹',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.EPIC,
@@ -996,7 +998,7 @@ export const RecipeDatabase = {
 
     dragon_overlord_crown: {
         id: 'dragon_overlord_crown',
-        name: '龍王霸主冠',
+        name: '黑鱗餘冕',
         icon: '👑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -1010,7 +1012,7 @@ export const RecipeDatabase = {
         successRate: 40,
         result: {
             id: 'crafted_dragon_overlord_crown',
-            name: '龍王霸主冠',
+            name: '黑鱗餘冕',
             icon: '👑',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.LEGENDARY,
@@ -1027,7 +1029,7 @@ export const RecipeDatabase = {
 
     primal_focus: {
         id: 'primal_focus',
-        name: '原初聚能器',
+        name: '原初聚心',
         icon: '✨',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -1042,7 +1044,7 @@ export const RecipeDatabase = {
         successRate: 45,
         result: {
             id: 'crafted_primal_focus',
-            name: '原初聚能器',
+            name: '原初聚心',
             icon: '✨',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.LEGENDARY,
@@ -1059,7 +1061,7 @@ export const RecipeDatabase = {
 
     slime_crown_ring: {
         id: 'slime_crown_ring',
-        name: '史萊姆之冠戒',
+        name: '青凝冠戒',
         icon: '👑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -1072,7 +1074,7 @@ export const RecipeDatabase = {
         successRate: 80,
         result: {
             id: 'crafted_slime_crown_ring',
-            name: '史萊姆之冠戒',
+            name: '青凝冠戒',
             icon: '👑',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.RARE,
@@ -1089,7 +1091,7 @@ export const RecipeDatabase = {
 
     assassin_shadow_veil: {
         id: 'assassin_shadow_veil',
-        name: '刺客影幕',
+        name: '無聲影幕',
         icon: '🗡️',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -1103,7 +1105,7 @@ export const RecipeDatabase = {
         successRate: 60,
         result: {
             id: 'crafted_assassin_shadow_veil',
-            name: '刺客影幕',
+            name: '無聲影幕',
             icon: '🗡️',
             type: EquipmentType.ACCESSORY,
             rarity: ItemRarity.EPIC,
@@ -1120,7 +1122,7 @@ export const RecipeDatabase = {
 
     earthwarden_aegis: {
         id: 'earthwarden_aegis',
-        name: '大地守衛盾',
+        name: '地脈守盾',
         icon: '🌍',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -1134,7 +1136,7 @@ export const RecipeDatabase = {
         successRate: 70,
         result: {
             id: 'crafted_earthwarden_aegis',
-            name: '大地守衛盾',
+            name: '地脈守盾',
             icon: '🌍',
             type: EquipmentType.EQUIPMENT,
             rarity: ItemRarity.RARE,
@@ -1182,6 +1184,8 @@ export const RecipeDatabase = {
     }
 
 };
+
+Object.assign(RecipeDatabase, SeriesRecipeDatabase);
 
 const RECIPE_RESULT_LEVELS = Object.freeze({
     iron_sword: 1,
@@ -1232,6 +1236,8 @@ Object.entries(RecipeDatabase).forEach(([recipeId, recipe]) => {
     recipe.result.level ??= level;
     recipe.result.requiredLevel ??= level;
 });
+
+applyLegacyLevelProgressionToRecipeDatabase(RecipeDatabase, { skipSeries: true });
 
 /**
  * 根據ID獲取配方

@@ -1,6 +1,6 @@
 /**
  * EncyclopediaScene.js
- * Four-category player codex with category-specific presentation rules.
+ * Five-category player codex with category-specific presentation rules.
  */
 
 import GameManager from '../managers/GameManager.js';
@@ -11,6 +11,7 @@ import {
     getItemEntries,
     getMonsterEntries,
     isBlueprintKnownInEncyclopedia,
+    isBlueprintSeriesKnownInEncyclopedia,
     isEncyclopediaRevealAll,
     isItemKnown,
     isMonsterKnown,
@@ -36,6 +37,10 @@ import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
+import {
+    getMonsterSkillRows,
+    normalizeMonsterSkill
+} from '../data/MonsterSkills.js';
 
 const ItemTabs = new Set([
     CodexCategoryId.EQUIPMENT,
@@ -88,10 +93,17 @@ function getSearchText(entry = {}) {
         entry.attack,
         entry.defense,
         entry.maxHp,
+        ...(entry.skills || []).map(skill => typeof skill === 'string' ? skill : skill?.name || skill?.id),
         entry.result?.name,
         entry.result?.id,
         ...(entry.sources || []).flatMap(source => [source.type, source.label]),
-        ...(entry.sourceRefs || []).flatMap(source => [source.type, source.label, source.sourceLabel]),
+        ...(entry.sourceRefs || []).flatMap(source => [
+            source.type,
+            source.label,
+            source.sourceLabel,
+            source.npcName,
+            source.description
+        ]),
         ...(entry.usageRefs || []).flatMap(usage => [usage.type, usage.label, usage.id])
     ].join(' ').toLowerCase();
 }
@@ -464,7 +476,44 @@ export default class EncyclopediaScene {
                 ${renderStat('元素', known ? getReadableCodexType(entry.element || 'none') : '???')}
                 ${renderStat('出沒', known ? (entry.sourceLabel || '-') : '???')}
             </section>
+            ${this.renderMonsterSkillSection(entry)}
             ${this.renderMonsterDropSection(entry)}
+        `;
+    }
+
+    renderMonsterSkillSection(entry) {
+        if (!entry.known) return '';
+        const skills = (entry.skills || []).map(skill => normalizeMonsterSkill(skill));
+        return `
+            <section class="codex-section">
+                <h3>狀態與技能</h3>
+                <div class="codex-skill-grid">
+                    ${skills.map(skill => this.renderMonsterSkillCard(skill)).join('') || renderEmpty('沒有已知特殊狀態')}
+                </div>
+            </section>
+        `;
+    }
+
+    renderMonsterSkillCard(skill = {}) {
+        const rows = getMonsterSkillRows(skill)
+            .filter(([label]) => label !== '分類')
+            .slice(0, 4);
+        return `
+            <article class="codex-skill-card rarity-frame rarity-${escapeHtml(skill.rarity || 'rare')}">
+                <div class="codex-skill-head">
+                    <span class="codex-skill-icon">${escapeHtml(skill.icon || '✦')}</span>
+                    <span class="codex-skill-copy">
+                        <strong>${escapeHtml(skill.name || skill.id || '特殊技能')}</strong>
+                        <small>${escapeHtml(skill.category || '特殊')}</small>
+                    </span>
+                </div>
+                <p>${escapeHtml(skill.description || '怪物使用的特殊能力。')}</p>
+                <div class="codex-skill-rows">
+                    ${rows.map(([label, value]) => `
+                        <span><b>${escapeHtml(label)}</b>${escapeHtml(value)}</span>
+                    `).join('')}
+                </div>
+            </article>
         `;
     }
 
@@ -507,13 +556,20 @@ export default class EncyclopediaScene {
     }
 
     renderMonsterBlueprintDrop(drop = {}) {
-        const blueprint = getBlueprintEntries().find(entry => entry.recipeId === drop.recipeId || entry.id === drop.recipeId);
-        const known = Boolean(drop.recipeId && isBlueprintKnownInEncyclopedia(drop.recipeId));
+        const blueprintId = drop.seriesId || drop.recipeId || drop.id;
+        const blueprint = getBlueprintEntries().find(entry =>
+            entry.seriesId === blueprintId ||
+            entry.recipeId === blueprintId ||
+            entry.id === blueprintId
+        ) || drop;
+        const known = drop.seriesId
+            ? isBlueprintSeriesKnownInEncyclopedia(drop.seriesId)
+            : Boolean(drop.recipeId && isBlueprintKnownInEncyclopedia(drop.recipeId));
         return `
             <button class="codex-drop-token rarity-frame rarity-${escapeHtml(blueprint?.rarity || 'rare')}"
                 type="button"
                 data-codex-link-category="${escapeHtml(CodexCategoryId.BLUEPRINTS)}"
-                data-codex-link-id="${escapeHtml(drop.recipeId || '')}">
+                data-codex-link-id="${escapeHtml(blueprintId || '')}">
                 <div class="codex-drop-icon">${known ? getItemVisualHtml({ ...blueprint, type: 'blueprint' }, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.blueprints)}</div>
                 <div class="codex-drop-info">
                     <strong>${escapeHtml(known ? (blueprint?.name || drop.recipeId || '未知圖紙') : '未解鎖圖紙')}</strong>
@@ -631,6 +687,8 @@ export default class EncyclopediaScene {
 
     getItemUsageText(item = {}) {
         if (item.hp != null) return { label: '使用效果', value: `恢復生命 ${item.hp}` };
+        if (item.effect?.hp != null) return { label: '使用效果', value: `恢復生命 ${item.effect.hp}` };
+        if (item.effect?.cure) return { label: '使用效果', value: `解除 ${item.effect.cure}` };
         if (item.buff?.type) return { label: '使用效果', value: '暫時增益' };
         if (item.isSecretKey) return { label: '持有用途', value: '開啟特殊交易或劇情入口' };
         if (item.type === 'currency') return { label: '持有用途', value: '可在特定系統中兌換' };
@@ -641,21 +699,27 @@ export default class EncyclopediaScene {
 
     renderBlueprintResult(entry, resultItem) {
         if (!entry.known) return '';
+        const resultItems = Array.isArray(entry.results) && entry.results.length > 0
+            ? entry.results
+            : [resultItem];
+        const cards = resultItems.map(item => `
+            <button class="codex-drop-token rarity-frame rarity-${escapeHtml(item.rarity || 'common')}"
+                type="button"
+                data-result-item
+                data-codex-link-category="${escapeHtml(this.getCategoryForItem(item))}"
+                data-codex-link-id="${escapeHtml(item.id || '')}">
+                <div class="codex-drop-icon">${getItemVisualHtml(item, '?', 'codex-drop-image')}</div>
+                <div class="codex-drop-info">
+                    <strong>${escapeHtml(item.name || entry.name)}</strong>
+                    <span>${escapeHtml(getReadableCodexType(item.type))}</span>
+                </div>
+            </button>
+        `).join('');
         return `
             <section class="codex-section">
                 <h3>成品</h3>
                 <div class="codex-drop-grid">
-                    <button class="codex-drop-token rarity-frame rarity-${escapeHtml(resultItem.rarity || 'common')}"
-                        type="button"
-                        data-result-item
-                        data-codex-link-category="${escapeHtml(this.getCategoryForItem(resultItem))}"
-                        data-codex-link-id="${escapeHtml(resultItem.id || '')}">
-                        <div class="codex-drop-icon">${getItemVisualHtml(resultItem, '?', 'codex-drop-image')}</div>
-                        <div class="codex-drop-info">
-                            <strong>${escapeHtml(resultItem.name || entry.name)}</strong>
-                            <span>${escapeHtml(getReadableCodexType(resultItem.type))}</span>
-                        </div>
-                    </button>
+                    ${cards}
                 </div>
             </section>
         `;
@@ -715,25 +779,41 @@ export default class EncyclopediaScene {
 
     renderSourceCard(ref = {}) {
         const isMonster = ref.type === 'monster';
+        const isQuest = ref.type === 'quest';
         const sourceKnown = !isMonster || isMonsterKnown(ref.id);
         const icon = isMonster && sourceKnown
             ? this.renderMonsterSourceVisual(ref)
-            : escapeHtml(isMonster ? UnknownIcon.monster : (ref.icon || UnknownIcon.items));
+            : this.renderGenericSourceVisual(ref);
+        const questMeta = [
+            ref.chapter != null ? `第 ${ref.chapter} 章` : null,
+            ref.npcName
+        ].filter(Boolean).join(' / ');
+        const sourceMeta = [
+            ref.sourceLabel || getReadableSourceType(ref.type),
+            ref.npcName
+        ].filter(Boolean).join(' / ');
         const meta = isMonster
             ? `${sourceKnown ? (ref.sourceLabel || '怪物') : '未知來源'} / ${safePercent(ref.chance)}`
-            : getReadableSourceType(ref.type);
+            : isQuest
+                ? questMeta
+                : sourceMeta;
+        const cardTag = isMonster ? 'button' : 'article';
+        const cardType = isMonster ? 'type="button"' : '';
+        const cardLink = isMonster
+            ? `data-codex-link-category="${escapeHtml(CodexCategoryId.MONSTERS)}" data-codex-link-id="${escapeHtml(ref.id || '')}"`
+            : '';
 
         return `
-            <button class="codex-source-card ${isMonster ? 'is-monster-source' : ''} rarity-frame rarity-${escapeHtml(ref.rarity || 'common')}"
-                type="button"
+            <${cardTag} class="codex-source-card ${isMonster ? 'is-monster-source' : ''} ${isQuest ? 'is-quest-source' : ''} rarity-frame rarity-${escapeHtml(ref.rarity || 'common')}"
+                ${cardType}
                 data-source-entry-id="${escapeHtml(ref.id || '')}"
-                ${isMonster ? `data-codex-link-category="${escapeHtml(CodexCategoryId.MONSTERS)}" data-codex-link-id="${escapeHtml(ref.id || '')}"` : ''}>
+                ${cardLink}>
                 <span class="codex-source-icon">${icon}</span>
                 <span class="codex-source-copy">
                     <strong>${escapeHtml(sourceKnown ? (ref.label || ref.id || '未知來源') : '未知敵人')}</strong>
                     <small>${escapeHtml(meta)}</small>
                 </span>
-            </button>
+            </${cardTag}>
         `;
     }
 
@@ -741,6 +821,16 @@ export default class EncyclopediaScene {
         const image = ref.image || getGeneratedMonsterImage(String(ref.id || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, ''));
         if (image) return `<img src="${escapeHtml(image)}" alt="${escapeHtml(ref.label || '')}">`;
         return escapeHtml(ref.icon || UnknownIcon.monster);
+    }
+
+    renderGenericSourceVisual(ref = {}) {
+        if (ref.portrait) return `<img src="${escapeHtml(ref.portrait)}" alt="${escapeHtml(ref.npcName || ref.label || '')}">`;
+        const iconByType = {
+            quest: '📜',
+            casino: '🎰',
+            shop: '🛒'
+        };
+        return escapeHtml(ref.icon || iconByType[ref.type] || UnknownIcon.items);
     }
 
     renderUsageSection(entry) {
@@ -771,6 +861,9 @@ export default class EncyclopediaScene {
         const resultKnown = isRecipeLink
             ? isBlueprintKnownInEncyclopedia(ref.id)
             : Boolean(item.id && isItemKnown(item.id));
+        const usageTypeLabel = isRecipeLink
+            ? (item.type === 'potion' ? '藥水配方' : '圖紙')
+            : getReadableCodexType(item.type);
 
         return `
             <button class="codex-drop-token rarity-frame rarity-${escapeHtml(item.rarity || 'common')}"
@@ -781,7 +874,7 @@ export default class EncyclopediaScene {
                 <div class="codex-drop-icon">${resultKnown ? getItemVisualHtml(item, '?', 'codex-drop-image') : escapeHtml(UnknownIcon.items)}</div>
                 <div class="codex-drop-info">
                     <strong>${escapeHtml(resultKnown ? (item.name || ref.label || ref.id) : '未解鎖成品')}</strong>
-                    <span>${escapeHtml(resultKnown ? (isRecipeLink ? '圖紙' : getReadableCodexType(item.type)) : '尚未取得資料')}</span>
+                    <span>${escapeHtml(resultKnown ? usageTypeLabel : '尚未取得資料')}</span>
                 </div>
             </button>
         `;

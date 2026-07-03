@@ -22,7 +22,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.COMMON,
         price: 5,
         description: '史萊姆的身體凝膠，可用於製作基礎藥水。',
-        craftUse: ['health_potion_s', 'antidote']
+        craftUse: ['health_potion_basic', 'greater_health_potion']
     },
     
     beast_hide: {

@@ -5,6 +5,7 @@
  */
 
 import { ItemType, ItemRarity } from '../models/Enums.js';
+import { applyLegacyLevelProgressionToDatabase } from './ProgressionLevels.js';
 
 /**
  * 無盡塔 BOSS 裝備
@@ -13,7 +14,7 @@ export const TowerBossEquipment = {
     // ===== 第5層 BOSS - 哥布林首領 =====
     goblin_dagger: {
         id: 'boss_goblin_dagger',
-        name: '哥布林首領匕首',
+        name: '哥布林頭目匕首',
         icon: '🗡️',
         type: ItemType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -34,7 +35,7 @@ export const TowerBossEquipment = {
     // ===== 第10層 BOSS - 地獄騎士 =====
     hell_knight_armor: {
         id: 'hell_knight_armor',
-        name: '地獄騎士鎧甲',
+        name: '獄火騎甲',
         icon: '🛡️',
         type: ItemType.ARMOR,
         rarity: ItemRarity.RARE,
@@ -55,7 +56,7 @@ export const TowerBossEquipment = {
     // ===== 第15層 BOSS - 深淵魔將 =====
     abyss_blade: {
         id: 'abyss_blade',
-        name: '深淵之刃',
+        name: '沉淵刃',
         icon: '⚔️',
         type: ItemType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -77,7 +78,7 @@ export const TowerBossEquipment = {
     // ===== 第20層 BOSS - 虛空之王 =====
     void_crown: {
         id: 'boss_void_crown',
-        name: '虛空王冠',
+        name: '無光餘冠',
         icon: '👑',
         type: ItemType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -95,6 +96,8 @@ export const TowerBossEquipment = {
         dropSource: 'tower_void_king'
     }
 };
+
+applyLegacyLevelProgressionToDatabase(TowerBossEquipment);
 
 /**
  * 套裝效果

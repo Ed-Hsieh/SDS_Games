@@ -11,19 +11,28 @@ export const MonsterLevelBandCombatScale = {
         { maxLevel: 5, hp: 1.08, attack: 0.58, defense: 0.85 },
         { maxLevel: 12, hp: 1.28, attack: 0.98, defense: 1.08 },
         { maxLevel: 20, hp: 1.48, attack: 1.12, defense: 1.15 },
-        { maxLevel: Infinity, hp: 1.62, attack: 1.25, defense: 1.22 }
+        { maxLevel: 35, hp: 1.85, attack: 1.35, defense: 1.32 },
+        { maxLevel: 50, hp: 2.25, attack: 1.58, defense: 1.48 },
+        { maxLevel: 70, hp: 2.75, attack: 1.82, defense: 1.68 },
+        { maxLevel: Infinity, hp: 3.05, attack: 1.95, defense: 1.8 }
     ],
     elite: [
         { maxLevel: 5, hp: 1.28, attack: 0.95, defense: 1.02 },
         { maxLevel: 12, hp: 1.58, attack: 1.18, defense: 1.18 },
         { maxLevel: 20, hp: 1.82, attack: 1.34, defense: 1.28 },
-        { maxLevel: Infinity, hp: 2.02, attack: 1.48, defense: 1.36 }
+        { maxLevel: 35, hp: 2.35, attack: 1.62, defense: 1.48 },
+        { maxLevel: 50, hp: 2.85, attack: 1.9, defense: 1.68 },
+        { maxLevel: 70, hp: 3.45, attack: 2.18, defense: 1.92 },
+        { maxLevel: Infinity, hp: 3.75, attack: 2.32, defense: 2.05 }
     ],
     boss: [
         { maxLevel: 5, hp: 1.48, attack: 1.08, defense: 1.08 },
         { maxLevel: 12, hp: 1.90, attack: 1.34, defense: 1.25 },
         { maxLevel: 20, hp: 2.20, attack: 1.54, defense: 1.36 },
-        { maxLevel: Infinity, hp: 2.50, attack: 1.72, defense: 1.46 }
+        { maxLevel: 35, hp: 3.00, attack: 1.95, defense: 1.65 },
+        { maxLevel: 50, hp: 3.90, attack: 2.35, defense: 1.90 },
+        { maxLevel: 70, hp: 5.00, attack: 2.85, defense: 2.25 },
+        { maxLevel: Infinity, hp: 5.45, attack: 3.05, defense: 2.42 }
     ]
 };
 

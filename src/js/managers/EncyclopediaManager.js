@@ -11,8 +11,15 @@ import { RecipeDatabase } from '../data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../data/RecipeDiscoveries.js';
 import { EquipmentDatabase } from '../data/Equipment.js';
 import { MaterialDatabase } from '../data/Materials.js';
-import { QuestRewardItems } from '../data/Quests.js';
-import { CasinoSpecialItems } from '../data/CasinoRewards.js';
+import { QuestDatabase, QuestRewardItems } from '../data/Quests.js';
+import {
+    CasinoPrizePools,
+    CasinoShowcaseItems,
+    CasinoSpecialItems
+} from '../data/CasinoRewards.js';
+import { MarketItemCatalog, MarketVendors } from '../data/MarketSupply.js';
+import { getCharacterProfile } from '../data/CharacterProfiles.js';
+import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
 import {
     getReadableCodexType,
     getReadableSourceType
@@ -22,8 +29,13 @@ import {
     getBlueprintDropsForMonster,
     getBlueprintDropsForRecipe
 } from '../data/BlueprintDrops.js';
+import {
+    RecipeSeriesDatabase,
+    getRecipeSeries,
+    getSeriesRecipeIds
+} from '../data/RecipeSeries.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { isRecipeBlueprintKnown } from './BlueprintManager.js';
+import { isRecipeBlueprintKnown, isRecipeSeriesKnown } from './BlueprintManager.js';
 
 const REVEAL_ALL_FLAG = 'encyclopedia.revealAll';
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
@@ -72,7 +84,14 @@ const ReadableItemSourceLabels = {
     material: '素材資料',
     questReward: '任務獎勵',
     casino: '賭場',
-    shop: '商店'
+    shop: '市集'
+};
+
+const SourceTypeIcons = {
+    questReward: '📜',
+    casino: '🎰',
+    shop: '🛒',
+    market: '🛒'
 };
 
 function setFlagSilently(flag, value) {
@@ -182,6 +201,24 @@ function getItemDropRecord(itemId, rawDrop, sourceLabel) {
     };
 }
 
+function getRecipeResultRarity(recipe = {}) {
+    const resultId = recipe?.result?.id || recipe?.id;
+    const resolvedResult = resultId
+        ? resolveItemById(resultId, {
+            order: ['equipment', 'bossEquipment', 'material', 'shop', 'questReward']
+        })
+        : null;
+    return resolvedResult?.rarity || recipe?.result?.rarity || recipe?.rarity || 'rare';
+}
+
+function getRecipeResultForCodex(recipe = {}) {
+    const result = recipe?.result || {};
+    return {
+        ...result,
+        rarity: getRecipeResultRarity(recipe)
+    };
+}
+
 function collectMonsterItemDrops(monster) {
     const drops = [];
 
@@ -204,6 +241,20 @@ function collectMonsterBlueprintDrops(monster) {
     return getBlueprintDropsForMonster(monster?.id, {
         dungeonId: monster?.dungeonId || null
     }).map(drop => {
+        if (drop.seriesId) {
+            const series = getRecipeSeries(drop.seriesId);
+            return {
+                id: drop.seriesId,
+                seriesId: drop.seriesId,
+                name: series?.name || drop.seriesId,
+                icon: '📜',
+                type: 'blueprint',
+                rarity: series?.rarity || 'uncommon',
+                chance: drop.chance,
+                sourceLabel: '系列圖紙'
+            };
+        }
+
         const recipe = RecipeDatabase[drop.recipeId];
         return {
             id: drop.recipeId,
@@ -211,7 +262,7 @@ function collectMonsterBlueprintDrops(monster) {
             name: recipe?.name || drop.recipeId,
             icon: recipe?.icon || recipe?.result?.icon || '▧',
             type: recipe?.type || recipe?.result?.type || 'blueprint',
-            rarity: recipe?.rarity || recipe?.result?.rarity || 'rare',
+            rarity: getRecipeResultRarity(recipe),
             chance: drop.chance,
             sourceLabel: '圖紙掉落'
         };
@@ -238,6 +289,12 @@ export function isBlueprintKnownInEncyclopedia(recipeId) {
     return isEncyclopediaRevealAll()
         || isRecipeBlueprintKnown(recipeId)
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`));
+}
+
+export function isBlueprintSeriesKnownInEncyclopedia(seriesId) {
+    return isEncyclopediaRevealAll()
+        || isRecipeSeriesKnown(seriesId)
+        || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${seriesId}`));
 }
 
 export function markMonsterKnown(monster, context = {}) {
@@ -324,8 +381,22 @@ function addUniqueSourceRef(entry, sourceRef) {
     if (!Array.isArray(entry.sourceRefs)) entry.sourceRefs = [];
     const existing = entry.sourceRefs.find(source => source.id === sourceRef.id && source.type === sourceRef.type);
     if (existing) {
-        if (sourceRef.chance != null) existing.chance = sourceRef.chance;
-        if (sourceRef.quantity != null) existing.quantity = sourceRef.quantity;
+        for (const key of [
+            'chance',
+            'quantity',
+            'sourceLabel',
+            'icon',
+            'image',
+            'npcId',
+            'npcName',
+            'portrait',
+            'chapter',
+            'price',
+            'weight',
+            'rarity'
+        ]) {
+            if (sourceRef[key] != null) existing[key] = sourceRef[key];
+        }
         return;
     }
     entry.sourceRefs.push(sourceRef);
@@ -343,12 +414,14 @@ function collectRecipeUsageRefs(itemId) {
     for (const [recipeId, recipe] of Object.entries(RecipeDatabase || {})) {
         const used = (recipe.materials || []).some(material => material.id === itemId);
         if (!used) continue;
+        const resultType = recipe.result?.type || recipe.type || null;
+        if (resultType === 'potion') continue;
         refs.push({
             id: recipeId,
             type: 'recipe',
             label: recipe.name || recipe.result?.name || recipeId,
             resultId: recipe.result?.id || recipeId,
-            resultType: recipe.result?.type || recipe.type || null,
+            resultType,
             result: recipe.result || null
         });
     }
@@ -380,12 +453,242 @@ function collectItemDropSourceIndex() {
     return index;
 }
 
+const QuestGiverOverrides = {
+    main_001: 'village_elder',
+    main_002: 'town_scholar',
+    main_003: 'blacksmith'
+};
+
+const QuestNpcKeywords = [
+    { pattern: /書記|學者|手札|資料|見聞/, npcId: 'town_scholar' },
+    { pattern: /鍛造|鐵匠|修復|強化/, npcId: 'blacksmith' },
+    { pattern: /藥師|藥水|草藥|瓶/, npcId: 'herbalist' },
+    { pattern: /賭場|骰|籌碼|瑪洛|帳本/, npcId: 'malo_bookkeeper' },
+    { pattern: /暗巷|黑市|流浪|乞丐/, npcId: 'street_beggar' },
+    { pattern: /村長|守衛|南門|村莊/, npcId: 'village_elder' }
+];
+
+function getQuestTextBlob(quest = {}) {
+    return [
+        quest.name,
+        quest.description,
+        quest.dialogue?.start,
+        quest.dialogue?.complete,
+        quest.trigger?.reason,
+        ...(quest.objectives || []).map(objective => objective.description)
+    ].filter(Boolean).join(' ');
+}
+
+function findQuestTalkTarget(quest = {}) {
+    return (quest.objectives || []).find(objective => objective.type === 'talk')?.target || null;
+}
+
+function getQuestGiverId(quest = {}) {
+    if (QuestGiverOverrides[quest.id]) return QuestGiverOverrides[quest.id];
+    if (quest.npc || quest.client || quest.giver || quest.npcId) {
+        return quest.npc || quest.client || quest.giver || quest.npcId;
+    }
+
+    const text = getQuestTextBlob(quest);
+    const keywordMatch = QuestNpcKeywords.find(entry => entry.pattern.test(text));
+    if (keywordMatch) return keywordMatch.npcId;
+
+    return findQuestTalkTarget(quest) || 'village_elder';
+}
+
+function getQuestGiverPresentation(quest = {}) {
+    const npcId = getQuestGiverId(quest);
+    const profile = getCharacterProfile(npcId);
+    return {
+        npcId,
+        npcName: profile?.name || npcId || '委託人',
+        portrait: profile?.portrait || getGeneratedPortraitImage(npcId) || ''
+    };
+}
+
+function getReadableQuestSourceType(type) {
+    const labels = {
+        main: '主線任務',
+        bounty: '懸賞',
+        commission: '委託',
+        hidden: '隱藏任務'
+    };
+    return labels[type] || '任務獎勵';
+}
+
+function normalizeQuestReward(reward, rewardType) {
+    if (!reward) return null;
+    if (typeof reward === 'string') {
+        return { id: reward, quantity: 1, rewardType };
+    }
+
+    const id = reward.id || reward.itemId || reward.equipmentId || reward.materialId;
+    if (!id) return null;
+
+    return {
+        id,
+        quantity: reward.quantity ?? reward.count ?? 1,
+        rewardType
+    };
+}
+
+function collectQuestRewards(quest = {}) {
+    const rewards = quest.rewards || {};
+    return [
+        ...(rewards.items || []).map(reward => normalizeQuestReward(reward, 'item')),
+        ...(rewards.materials || []).map(reward => normalizeQuestReward(reward, 'material')),
+        ...(rewards.equipment || []).map(reward => normalizeQuestReward(reward, 'equipment'))
+    ].filter(Boolean);
+}
+
+function getAllQuestRecords() {
+    const quests = [];
+    const walk = node => {
+        if (Array.isArray(node)) {
+            for (const quest of node) {
+                if (quest?.id && quest?.rewards) quests.push(quest);
+            }
+            return;
+        }
+        if (!node || typeof node !== 'object') return;
+        for (const value of Object.values(node)) walk(value);
+    };
+    walk(QuestDatabase);
+    return quests;
+}
+
+function collectQuestRewardSourceIndex() {
+    const index = new Map();
+    for (const quest of getAllQuestRecords()) {
+        const rewardEntries = collectQuestRewards(quest);
+        if (rewardEntries.length === 0) continue;
+
+        const giver = getQuestGiverPresentation(quest);
+        for (const reward of rewardEntries) {
+            if (!index.has(reward.id)) index.set(reward.id, []);
+            index.get(reward.id).push({
+                id: quest.id,
+                type: 'quest',
+                label: quest.name || quest.id,
+                sourceLabel: '任務獎勵',
+                questType: quest.type || null,
+                questTypeLabel: getReadableQuestSourceType(quest.type),
+                chapter: quest.chapter ?? null,
+                icon: quest.icon || '📜',
+                description: quest.description || quest.dialogue?.complete || quest.dialogue?.start || '',
+                quantity: reward.quantity,
+                rewardType: reward.rewardType,
+                ...giver
+            });
+        }
+    }
+    return index;
+}
+
+function addSourceIndexRef(index, itemId, sourceRef) {
+    if (!itemId || !sourceRef?.id) return;
+    if (!index.has(itemId)) index.set(itemId, []);
+    index.get(itemId).push(sourceRef);
+}
+
+function collectRewardItems(rewards = {}, rewardType = 'item') {
+    return [
+        ...(rewards.items || []).map(reward => normalizeQuestReward(reward, rewardType)),
+        ...(rewards.materials || []).map(reward => normalizeQuestReward(reward, 'material')),
+        ...(rewards.equipment || []).map(reward => normalizeQuestReward(reward, 'equipment'))
+    ].filter(Boolean);
+}
+
+function collectMarketSourceIndex() {
+    const index = new Map();
+    for (const vendor of MarketVendors || []) {
+        const vendorIcon = vendor.icon || SourceTypeIcons.shop;
+        const portrait = vendor.portrait || getGeneratedPortraitImage(vendor.id) || '';
+        const vendorBase = {
+            type: 'shop',
+            icon: vendorIcon,
+            npcId: vendor.id,
+            npcName: vendor.name || vendor.id,
+            portrait
+        };
+
+        for (const shelf of vendor.shelves || []) {
+            addSourceIndexRef(index, shelf.itemId, {
+                ...vendorBase,
+                id: `market:shelf:${shelf.id || shelf.itemId}`,
+                label: shelf.stock || vendor.place || vendor.name || '市集貨架',
+                sourceLabel: '市集購買',
+                price: shelf.price ?? null
+            });
+        }
+
+        for (const order of vendor.orders || []) {
+            for (const reward of collectRewardItems(order.rewards || {})) {
+                addSourceIndexRef(index, reward.id, {
+                    ...vendorBase,
+                    id: `market:order:${order.id}`,
+                    label: order.title || vendor.name || '市集訂單',
+                    sourceLabel: '市集訂單',
+                    quantity: reward.quantity
+                });
+            }
+        }
+
+        for (const exchange of vendor.exchanges || []) {
+            for (const reward of collectRewardItems(exchange.rewards || {})) {
+                addSourceIndexRef(index, reward.id, {
+                    ...vendorBase,
+                    id: `market:exchange:${exchange.id}`,
+                    label: exchange.title || vendor.name || '市集交換',
+                    sourceLabel: '市集交換',
+                    quantity: reward.quantity
+                });
+            }
+        }
+    }
+    return index;
+}
+
+function collectCasinoSourceIndex() {
+    const index = new Map();
+
+    for (const pool of Object.values(CasinoPrizePools || {})) {
+        for (const reward of pool.rewards || []) {
+            if (reward.kind !== 'item' || !reward.itemId) continue;
+            addSourceIndexRef(index, reward.itemId, {
+                id: `casino:pool:${pool.id}`,
+                type: 'casino',
+                label: pool.name || '賭場獎池',
+                sourceLabel: '賭場獎池',
+                icon: SourceTypeIcons.casino,
+                quantity: reward.quantity ?? 1,
+                weight: reward.weight ?? null,
+                rarity: reward.rarity || 'common'
+            });
+        }
+    }
+
+    for (const showcase of CasinoShowcaseItems || []) {
+        addSourceIndexRef(index, showcase.itemId, {
+            id: `casino:showcase:${showcase.id}`,
+            type: 'casino',
+            label: showcase.cabinetTitle || showcase.displayTag || '賭場展示櫃',
+            sourceLabel: '賭場展示櫃',
+            icon: SourceTypeIcons.casino,
+            rarity: showcase.rarity || 'legendary'
+        });
+    }
+
+    return index;
+}
+
 function addItemEntry(index, rawItem, sourceType) {
     if (!rawItem) return;
     const id = rawItem.id;
     if (!id) return;
     if (rawItem.codexHidden || rawItem.codexCategory === 'achievement') return;
     if (rawItem.passiveEffectId) return;
+    const exposeSourceCard = !['equipment', 'material', 'shop'].includes(sourceType);
 
     const source = {
         type: sourceType,
@@ -397,11 +700,15 @@ function addItemEntry(index, rawItem, sourceType) {
         if (!existing.sources.some(entry => entry.type === source.type)) {
             existing.sources.push(source);
         }
-        addUniqueSourceRef(existing, {
-            id: sourceType,
-            type: sourceType,
-            label: source.label
-        });
+        if (exposeSourceCard) {
+            addUniqueSourceRef(existing, {
+                id: sourceType,
+                type: sourceType,
+                label: source.label,
+                sourceLabel: source.label,
+                icon: SourceTypeIcons[sourceType] || '◆'
+            });
+        }
         if (sourceType === 'casino') {
             existing.item = { ...rawItem };
             existing.sourceType = sourceType;
@@ -431,11 +738,15 @@ function addItemEntry(index, rawItem, sourceType) {
         sources: [source],
         known: isItemKnown(id)
     });
-    addUniqueSourceRef(index.get(id), {
-        id: sourceType,
-        type: sourceType,
-        label: source.label
-    });
+    if (exposeSourceCard) {
+        addUniqueSourceRef(index.get(id), {
+            id: sourceType,
+            type: sourceType,
+            label: source.label,
+            sourceLabel: source.label,
+            icon: SourceTypeIcons[sourceType] || '◆'
+        });
+    }
 }
 
 export function getItemEntries() {
@@ -447,6 +758,10 @@ export function getItemEntries() {
 
     for (const [id, item] of Object.entries(MaterialDatabase || {})) {
         addItemEntry(index, { ...item, id: item.id || id }, 'material');
+    }
+
+    for (const [id, item] of Object.entries(MarketItemCatalog || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'shop');
     }
 
     for (const [id, item] of Object.entries(QuestRewardItems || {})) {
@@ -464,12 +779,34 @@ export function getItemEntries() {
         sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
     }
 
+    const questRewardSourceIndex = collectQuestRewardSourceIndex();
+    for (const [itemId, sourceRefs] of questRewardSourceIndex.entries()) {
+        const entry = index.get(itemId);
+        if (!entry) continue;
+        sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
+    }
+
+    const marketSourceIndex = collectMarketSourceIndex();
+    for (const [itemId, sourceRefs] of marketSourceIndex.entries()) {
+        const entry = index.get(itemId);
+        if (!entry) continue;
+        sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
+    }
+
+    const casinoSourceIndex = collectCasinoSourceIndex();
+    for (const [itemId, sourceRefs] of casinoSourceIndex.entries()) {
+        const entry = index.get(itemId);
+        if (!entry) continue;
+        sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
+    }
+
     return [...index.values()];
 }
 
 export function getBlueprintEntries() {
-    return Object.entries(RecipeDiscoveryDatabase).map(([recipeId, discovery]) => {
+    const recipeEntries = Object.entries(RecipeDiscoveryDatabase).map(([recipeId, discovery]) => {
         const recipe = RecipeDatabase[recipeId];
+        const result = getRecipeResultForCodex(recipe);
         const drops = getBlueprintDropsForRecipe(recipeId).map(drop => ({
             ...drop,
             monster: findMonsterByBlueprintSource(drop.sourceKey)
@@ -481,27 +818,70 @@ export function getBlueprintEntries() {
             name: recipe?.name || recipeId,
             icon: recipe?.icon || recipe?.result?.icon || '▧',
             type: recipe?.type || recipe?.result?.type || 'blueprint',
-            rarity: recipe?.rarity || recipe?.result?.rarity || 'rare',
+            rarity: getRecipeResultRarity(recipe),
             cost: recipe?.cost || 0,
             successRate: recipe?.successRate ?? null,
-            result: recipe?.result || null,
+            result,
             materials: recipe?.materials || [],
             discovery,
             drops,
             known: isBlueprintKnownInEncyclopedia(recipeId)
         };
     });
+
+    const seriesEntries = Object.values(RecipeSeriesDatabase).map(series => {
+        const recipeIds = getSeriesRecipeIds(series.id);
+        const recipes = recipeIds.map(recipeId => RecipeDatabase[recipeId]).filter(Boolean);
+        const results = recipes.map(recipe => getRecipeResultForCodex(recipe));
+        const seenDropKeys = new Set();
+        const drops = recipeIds
+            .flatMap(recipeId => getBlueprintDropsForRecipe(recipeId))
+            .filter(drop => {
+                const key = `${drop.sourceKey || ''}:${drop.seriesId || drop.recipeId || ''}`;
+                if (seenDropKeys.has(key)) return false;
+                seenDropKeys.add(key);
+                return true;
+            })
+            .map(drop => ({
+                ...drop,
+                monster: findMonsterByBlueprintSource(drop.sourceKey)
+            }));
+
+        return {
+            id: series.id,
+            seriesId: series.id,
+            recipeIds,
+            name: series.name,
+            icon: '📜',
+            type: 'blueprint',
+            rarity: series.rarity || results[0]?.rarity || 'uncommon',
+            cost: 0,
+            successRate: null,
+            result: results[0] || {},
+            results,
+            materials: [],
+            discovery: series.discovery,
+            drops,
+            known: isBlueprintSeriesKnownInEncyclopedia(series.id)
+        };
+    });
+
+    return [...recipeEntries, ...seriesEntries];
 }
 
 export function unlockAllEncyclopediaEntries() {
     for (const monster of getMonsterEntries()) {
         setFlagSilently(`${MONSTER_FLAG_PREFIX}${monster.entryId}`, true);
         for (const drop of monster.itemDrops || []) setFlagSilently(`${ITEM_FLAG_PREFIX}${drop.id}`, true);
-        for (const drop of monster.blueprintDrops || []) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId}`, true);
+        for (const drop of monster.blueprintDrops || []) {
+            setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId || drop.seriesId || drop.id}`, true);
+        }
     }
 
     for (const sourceEntries of Object.values(BlueprintDropDatabase)) {
-        for (const drop of sourceEntries || []) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId}`, true);
+        for (const drop of sourceEntries || []) {
+            setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId || drop.seriesId}`, true);
+        }
     }
 
     for (const recipeId of Object.keys(RecipeDiscoveryDatabase)) {

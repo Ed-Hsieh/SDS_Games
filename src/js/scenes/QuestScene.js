@@ -712,7 +712,8 @@ export default class QuestScene {
                 const cost = Number(recipe.cost || 0);
                 const successRate = Number(recipe.successRate || 100);
                 const recipeType = ITEM_TYPE_TEXT[recipe.type] || (recipe.type === 'equipment' ? '裝備' : recipe.type) || '裝備';
-                const recipeRarity = ITEM_RARITY_TEXT[recipe.rarity] || recipe.rarity || '普通';
+                const resultRarity = recipe.result?.rarity || recipe.rarity;
+                const recipeRarity = ITEM_RARITY_TEXT[resultRarity] || resultRarity || '普通';
                 const costReady = gold >= cost;
                 const craftReady = missing.length === 0 && costReady;
                 const goldShortage = Math.max(0, cost - gold);
@@ -723,7 +724,7 @@ export default class QuestScene {
                         name: recipe.name,
                         icon: recipe.icon,
                         type: recipe.type,
-                        rarity: recipe.rarity
+                        rarity: resultRarity
                     };
                 const missingLines = missing.map(entry => {
                     const material = getMaterial(entry.id);

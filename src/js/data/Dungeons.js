@@ -5,6 +5,7 @@
 
 import { DungeonStoryDatabase } from './DungeonStories.js';
 import { applyMonsterCombatBalance } from './CombatBalance.js';
+import { applyLegacyLevelProgressionToDungeonDatabase } from './ProgressionLevels.js';
 
 // ==================== 副本類型 ====================
 export const DungeonType = {
@@ -619,6 +620,8 @@ export const DungeonSpawnConfig = {
 /**
  * 根據類型獲取副本資料
  */
+applyLegacyLevelProgressionToDungeonDatabase(DungeonDatabase);
+
 export function getDungeonByType(type) {
     return DungeonDatabase[type] || null;
 }
@@ -660,9 +663,11 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
     const floorMultiplier = 1 + (floor - 1) * 0.15;
     const attack = Math.floor((monster.attack ?? monster.atk ?? 0) * floorMultiplier);
     const defense = Math.floor((monster.defense ?? monster.def ?? 0) * floorMultiplier);
+    const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + floor - 1 + (isElite ? 2 : 0));
     
     return applyMonsterCombatBalance({
         ...monster,
+        level,
         hp: Math.floor(monster.hp * floorMultiplier),
         maxHp: Math.floor(monster.hp * floorMultiplier),
         attack,
@@ -683,9 +688,11 @@ export function generateDungeonBoss(dungeonType) {
     const boss = dungeon.monsters.boss;
     const attack = boss.attack ?? boss.atk ?? 0;
     const defense = boss.defense ?? boss.def ?? 0;
+    const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + 3);
     
     return applyMonsterCombatBalance({
         ...boss,
+        level,
         maxHp: boss.hp,
         attack,
         defense,

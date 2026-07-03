@@ -1517,12 +1517,12 @@ class DungeonSceneClass {
                 monster: m,
                 dungeonId: this.dungeonType
             });
-            blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.recipeId));
+            blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
             if (blueprintUnlocks.length > 0) {
                 for (const unlock of blueprintUnlocks) {
-                    this.addMessage(`📜 取得製作圖：${unlock.recipe.name}`, 'reward');
+                    this.addMessage(`📜 取得製作圖：${unlock.series?.name || unlock.recipe.name}`, 'reward');
                 }
-                showGlobalToast('取得製作圖', blueprintUnlocks.map(unlock => unlock.recipe.name).join('、'), 'success');
+                showGlobalToast('取得製作圖', blueprintUnlocks.map(unlock => unlock.series?.name || unlock.recipe.name).join('、'), 'success');
             }
 
             GameManager.markSaveDirty?.('dungeon-battle-victory');

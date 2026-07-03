@@ -117,7 +117,7 @@ export const CasinoShowcaseItems = [
         id: 'demon_slayer_case',
         itemId: 'demon_slayer',
         rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '弒魔者陳列台',
+        cabinetTitle: '斷焰刃陳列台',
         displayTag: '終局武器',
         hookFlag: 'town.casino.showcase.demon_slayer_case.seen',
         ownerLine: '劍刃被鎖在三層黑鐵架上，架底刻著一排很小的名字。這不像拍賣品，更像戰利品清單。',

@@ -2,6 +2,7 @@
 // 特殊效果類型
 import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
 import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
+import { applyLegacyLevelProgressionToDatabase } from './ProgressionLevels.js';
 
 
 /**
@@ -49,7 +50,7 @@ export const EquipmentDatabase = {
 
     slime_sword: {
         id: 'slime_sword',
-        name: '史萊姆之劍',
+        name: '青凝刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -161,7 +162,7 @@ export const EquipmentDatabase = {
 
     forest_guardian_staff: {
         id: 'forest_guardian_staff',
-        name: '森林守護者之杖',
+        name: '森衛枝杖',
         icon: '🌿',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -184,7 +185,7 @@ export const EquipmentDatabase = {
 
     forest_guardian_crown: {
         id: 'forest_guardian_crown',
-        name: '森林守護者之冠',
+        name: '森衛枝冠',
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -206,7 +207,7 @@ export const EquipmentDatabase = {
     // ==================== 第三章掉落裝備 ====================
     bone_sword: {
         id: 'bone_sword',
-        name: '骷髏戰士之劍',
+        name: '白骨短劍',
         icon: '💀',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -229,7 +230,7 @@ export const EquipmentDatabase = {
 
     ghost_cloak: {
         id: 'ghost_cloak',
-        name: '幽靈斗篷',
+        name: '薄霧斗篷',
         icon: '👻',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -250,7 +251,7 @@ export const EquipmentDatabase = {
 
     lich_staff: {
         id: 'lich_staff',
-        name: '巫妖法杖',
+        name: '枯魂法杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -276,7 +277,7 @@ export const EquipmentDatabase = {
     // ==================== 第四章掉落裝備 ====================
     shadow_blade_drop: {
         id: 'shadow_blade_drop',
-        name: '暗影之刃',
+        name: '影縫刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -299,7 +300,7 @@ export const EquipmentDatabase = {
 
     shadow_armor_drop: {
         id: 'shadow_armor_drop',
-        name: '暗影護甲',
+        name: '影縫護甲',
         icon: '⚫',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -320,7 +321,7 @@ export const EquipmentDatabase = {
 
     shadow_badge: {
         id: 'shadow_badge',
-        name: '暗影徽章',
+        name: '影徽',
         icon: '🛑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -341,7 +342,7 @@ export const EquipmentDatabase = {
 
     shadow_commander_blade: {
         id: 'shadow_commander_blade',
-        name: '暗影指揮官之劍',
+        name: '暮影令劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -366,7 +367,7 @@ export const EquipmentDatabase = {
     // ==================== 第五章掉落裝備 ====================
     ancient_sword: {
         id: 'ancient_sword',
-        name: '遠古之劍',
+        name: '古刻長劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -389,7 +390,7 @@ export const EquipmentDatabase = {
 
     crystal_shield: {
         id: 'crystal_shield',
-        name: '水晶護盾',
+        name: '澄晶護盾',
         icon: '💎',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
@@ -411,7 +412,7 @@ export const EquipmentDatabase = {
 
     rune_badge: {
         id: 'rune_badge',
-        name: '符文勳章',
+        name: '刻符徽章',
         icon: '🧤',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -432,7 +433,7 @@ export const EquipmentDatabase = {
 
     titan_hammer: {
         id: 'titan_hammer',
-        name: '泰坦之錘',
+        name: '巨神遺錘',
         icon: '🔨',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -458,7 +459,7 @@ export const EquipmentDatabase = {
     // ==================== 第六章掉落裝備 ====================
     flame_sword: {
         id: 'flame_sword',
-        name: '烈焰劍',
+        name: '燼火劍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -481,7 +482,7 @@ export const EquipmentDatabase = {
 
     frost_blade: {
         id: 'frost_blade',
-        name: '霜寒之刃',
+        name: '霜線刃',
         icon: '❄️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -504,7 +505,7 @@ export const EquipmentDatabase = {
 
     thunder_axe: {
         id: 'thunder_axe',
-        name: '雷霆戰斧',
+        name: '鳴雷斧',
         icon: '⚡',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -527,7 +528,7 @@ export const EquipmentDatabase = {
 
     elemental_badge: {
     id: 'elemental_badge',
-    name: '元素護符',
+    name: '四象徽心',
     icon: '👑',
     type: EquipmentType.ACCESSORY,
     rarity: ItemRarity.EPIC,
@@ -551,7 +552,7 @@ export const EquipmentDatabase = {
 
     elemental_crown: {
         id: 'elemental_crown',
-        name: '元素之冠',
+        name: '四象靜冠',
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
@@ -576,7 +577,7 @@ export const EquipmentDatabase = {
     // ==================== 第七章掉落裝備 ====================
     wyvern_lance: {
         id: 'wyvern_lance',
-        name: '翼龍之槍',
+        name: '翼龍長槍',
         icon: '🔱',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -600,7 +601,7 @@ export const EquipmentDatabase = {
 
     dragon_knight_helm: {
         id: 'dragon_knight_helm',
-        name: '龍騎士頭盔',
+        name: '龍騎灰盔',
         icon: '⛑️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -622,7 +623,7 @@ export const EquipmentDatabase = {
 
     elder_dragon_fang_badge: {
         id: 'elder_dragon_fang_badge',
-        name: '龍牙項鍊',
+        name: '古龍牙墜',
         icon: '🐲',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -649,7 +650,7 @@ export const EquipmentDatabase = {
     // ==================== 第八章掉落裝備 ====================
     assassin_blade: {
         id: 'assassin_blade',
-        name: '刺客之刃',
+        name: '無聲刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -674,7 +675,7 @@ export const EquipmentDatabase = {
 
     shadow_overlord_armor: {
         id: 'shadow_overlord_armor',
-        name: '暗影霸主鎧甲',
+        name: '夜影殘甲',
         icon: '👹',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
@@ -698,7 +699,7 @@ export const EquipmentDatabase = {
     // ==================== 第九章掉落裝備 ====================
     demon_blade: {
         id: 'demon_blade',
-        name: '魔族戰刃',
+        name: '黑焰戰刃',
         icon: '😈',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -723,7 +724,7 @@ export const EquipmentDatabase = {
 
     demon_general_armor: {
         id: 'demon_general_armor',
-        name: '魔將鎧甲',
+        name: '黑焰將甲',
         icon: '👿',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -746,7 +747,7 @@ export const EquipmentDatabase = {
 
     demon_lord_sword: {
         id: 'demon_lord_sword',
-        name: '魔王之劍',
+        name: '末焰刃',
         icon: '👑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
@@ -772,7 +773,7 @@ export const EquipmentDatabase = {
 
     demon_lord_crown: {
         id: 'demon_lord_crown',
-        name: '魔王之心',
+        name: '末焰心核',
         icon: '👑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -796,7 +797,7 @@ export const EquipmentDatabase = {
     // ==================== 無盡塔特殊掉落 ====================
     tower_void_blade: {
         id: 'tower_void_blade',
-        name: '虛空之刃',
+        name: '幽光裂刃',
         icon: '🌑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
@@ -821,7 +822,7 @@ export const EquipmentDatabase = {
 
     tower_void_crown: {
         id: 'tower_void_crown',
-        name: '虛空之冠',
+        name: '無光冠',
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
@@ -843,7 +844,7 @@ export const EquipmentDatabase = {
 
     tower_abyss_armor: {
         id: 'tower_abyss_armor',
-        name: '深淵鎧甲',
+        name: '沉淵甲',
         icon: '🖤',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -865,7 +866,7 @@ export const EquipmentDatabase = {
 
     tower_hell_knight_lance: {
         id: 'tower_hell_knight_lance',
-        name: '地獄騎士之槍',
+        name: '獄火長槍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -890,7 +891,7 @@ export const EquipmentDatabase = {
     // ===== 第一章 BOSS - 古樹守衛 =====
     tower_guardian_staff: {
         id: 'tower_guardian_staff',
-        name: '守護者之杖',
+        name: '守衛短杖',
         icon: '🪄',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -914,7 +915,7 @@ export const EquipmentDatabase = {
     // ===== 第3章 BOSS - 巫妖 =====
     tower_lich_staff: {
         id: 'tower_lich_staff',
-        name: '巫妖法杖',
+        name: '枯魂法杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -940,7 +941,7 @@ export const EquipmentDatabase = {
     // ===== 第4章 BOSS - 暗影指揮官 =====
     shadow_commander_sword: {
         id: 'shadow_commander_sword',
-        name: '暗影指揮官之劍',
+        name: '影令劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
@@ -963,7 +964,7 @@ export const EquipmentDatabase = {
     // ===== 第5章 BOSS - 遠古泰坦 =====
     titan_gauntlet: {
         id: 'titan_gauntlet',
-        name: '泰坦護手',
+        name: '巨神護手',
         icon: '🧤',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -985,7 +986,7 @@ export const EquipmentDatabase = {
     // ===== 第6章 BOSS - 元素之主 =====
     elemental_orb: {
         id: 'elemental_orb',
-        name: '元素寶珠',
+        name: '四象珠',
         icon: '🔮',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -1012,7 +1013,7 @@ export const EquipmentDatabase = {
     // ===== 第7章 BOSS - 古龍 =====
     elder_dragon_fang: {
         id: 'elder_dragon_fang',
-        name: '古龍牙劍',
+        name: '古龍牙刃',
         icon: '🐲',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -1036,7 +1037,7 @@ export const EquipmentDatabase = {
     // ===== 第8章 BOSS - 暗影霸主 =====
     overlord_armor: {
         id: 'overlord_armor',
-        name: '霸主戰甲',
+        name: '黑影重甲',
         icon: '🛡️',
         type: EquipmentType.ARMOR,
         rarity: ItemRarity.EPIC,
@@ -1058,7 +1059,7 @@ export const EquipmentDatabase = {
     
     demon_lord_armor: {
         id: 'demon_lord_armor',
-        name: '魔王戰甲',
+        name: '末焰甲',
         icon: '😈',
         type: EquipmentType.ARMOR,
         rarity: ItemRarity.LEGENDARY,
@@ -1086,6 +1087,8 @@ export const EquipmentDatabase = {
 };
 
 // 逐筆補齊耐久度，避免落入共用預設值
+applyLegacyLevelProgressionToDatabase(EquipmentDatabase);
+
 Object.values(EquipmentDatabase).forEach((item, index) => {
     // 稀有度欄位名稱統一，避免 UI 顯示遺失
     const level = Number(item.level) || 1;

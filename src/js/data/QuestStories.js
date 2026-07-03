@@ -180,7 +180,7 @@ export const QuestStoryDatabase = {
         source: '被掘開的古墓',
         location: '遠古墓道',
         speaker: { name: '亡靈火種', avatar: '💀' },
-        discovery: '古墓不是自然開裂。墓門像被外力挖開，巫妖法杖留下的凹痕還帶著冷光。',
+        discovery: '古墓不是自然開裂。墓門像被外力挖開，枯魂法杖留下的凹痕還帶著冷光。',
         available: '失去法杖的巫妖正在用最糟糕的方式尋物：把所有死者叫醒一起找。',
         active: '擊退被喚醒的骷髏兵，找出巫妖真正藏身的封印缺口。',
         completed: '巫妖被擊敗後，墓道深處留下灰燼帳冊的一角。',

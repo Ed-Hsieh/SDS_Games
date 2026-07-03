@@ -3,10 +3,13 @@
  * Story gates for forge recipes. Recipe stats/costs stay in Recipes.js.
  */
 
+import { getDefaultKnownSeriesRecipeIds, getRecipeSeriesForRecipe } from './RecipeSeries.js';
+
 export const DefaultKnownRecipeIds = [
     'iron_sword',
     'leather_armor',
-    'health_potion_basic'
+    'health_potion_basic',
+    ...getDefaultKnownSeriesRecipeIds()
 ];
 
 export const RecipeDiscoveryDatabase = {
@@ -70,27 +73,27 @@ export const RecipeDiscoveryDatabase = {
 
     shadow_blade: {
         source: '副本、菁英或首領掉落',
-        clue: '暗影之劍圖紙會從副本或高階敵人手上掉落。',
+        clue: '影縫劍圖紙會從副本或高階敵人手上掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     shadow_armor: {
         source: '副本、菁英或首領掉落',
-        clue: '暗影鎧甲圖紙需要挑戰副本、菁英或首領取得。',
+        clue: '影縫甲圖紙需要挑戰副本、菁英或首領取得。',
         interactionId: 'strong_blueprint_drop'
     },
     shadow_ring: {
         source: '副本、菁英或首領掉落',
-        clue: '暗影戒指圖紙藏在高階戰鬥戰利品裡。',
+        clue: '影縫戒圖紙藏在高階戰鬥戰利品裡。',
         interactionId: 'strong_blueprint_drop'
     },
     assassin_shadow_veil: {
         source: '副本、菁英或首領掉落',
-        clue: '刺客影幕圖紙需要從副本或精銳敵人手中取得。',
+        clue: '無聲影幕圖紙需要從副本或精銳敵人手中取得。',
         interactionId: 'strong_blueprint_drop'
     },
     void_reaver: {
         source: '副本、菁英或首領掉落',
-        clue: '虛空裂刃圖紙只會在強力戰鬥掉落。',
+        clue: '幽光裂刃圖紙只會在強力戰鬥掉落。',
         interactionId: 'strong_blueprint_drop'
     },
 
@@ -101,7 +104,7 @@ export const RecipeDiscoveryDatabase = {
     },
     fire_sword: {
         source: '地獄副本：絕望的火種',
-        clue: '在終焉之戰擊倒炎獄後，先遣隊日記裡的鍛造觀測能解出烈焰之劍圖紙。',
+        clue: '在終焉之戰擊倒炎獄後，先遣隊日記裡的鍛造觀測能解出燼火劍圖紙。',
         interactionId: 'dungeon_hell_002'
     },
     ice_sword: {
@@ -116,7 +119,7 @@ export const RecipeDiscoveryDatabase = {
     },
     nature_amulet: {
         source: '副本、菁英或首領掉落',
-        clue: '自然護符圖紙需要從副本或精銳敵人身上取得。',
+        clue: '森息護符圖紙需要從副本或精銳敵人身上取得。',
         interactionId: 'strong_blueprint_drop'
     },
     blood_moon_pendant: {
@@ -126,53 +129,53 @@ export const RecipeDiscoveryDatabase = {
     },
     primal_focus: {
         source: '副本、菁英或首領掉落',
-        clue: '原初聚能器圖紙只會在高階戰鬥後掉落。',
+        clue: '原初聚心圖紙只會在高階戰鬥後掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     earthwarden_aegis: {
         source: '遺跡副本：盲目的秩序',
-        clue: '遠古守衛者停機後，神殿防禦網絡的核心構造能拼出大地守衛盾圖紙。',
+        clue: '遠古守衛者停機後，神殿防禦網絡的核心構造能拼出地脈守盾圖紙。',
         interactionId: 'dungeon_ruins_002'
     },
     storm_spear: {
         source: '副本、菁英或首領掉落',
-        clue: '雷霆長矛圖紙需要挑戰強敵取得。',
+        clue: '鳴雷長矛圖紙需要挑戰強敵取得。',
         interactionId: 'strong_blueprint_drop'
     },
     titan_blade: {
         source: '副本、菁英或首領掉落',
-        clue: '泰坦之劍圖紙只會從高階首領或副本戰利品中掉落。',
+        clue: '巨神遺刃圖紙只會從高階首領或副本戰利品中掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     titan_armor: {
         source: '副本、菁英或首領掉落',
-        clue: '泰坦之鎧圖紙只會從高階首領或副本戰利品中掉落。',
+        clue: '巨神遺甲圖紙只會從高階首領或副本戰利品中掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     titan_ring: {
         source: '副本、菁英或首領掉落',
-        clue: '泰坦之戒圖紙只會從高階首領或副本戰利品中掉落。',
+        clue: '巨神遺戒圖紙只會從高階首領或副本戰利品中掉落。',
         interactionId: 'strong_blueprint_drop'
     },
 
     dragon_slayer: {
         source: '副本、菁英或首領掉落',
-        clue: '屠龍劍圖紙需要從強力龍系戰鬥或首領戰利品中取得。',
+        clue: '龍心餘燼圖紙需要從強力龍系戰鬥或首領戰利品中取得。',
         interactionId: 'strong_blueprint_drop'
     },
     dragon_scale_armor: {
         source: '副本、菁英或首領掉落',
-        clue: '龍鱗鎧甲圖紙需要從高威脅戰鬥中取得。',
+        clue: '龍鱗戰鎧圖紙需要從高威脅戰鬥中取得。',
         interactionId: 'strong_blueprint_drop'
     },
     dragon_amulet: {
         source: '副本、菁英或首領掉落',
-        clue: '龍之護符圖紙會在強力戰鬥後掉落。',
+        clue: '龍息護符圖紙會在強力戰鬥後掉落。',
         interactionId: 'strong_blueprint_drop'
     },
     dragon_overlord_crown: {
         source: '副本、菁英或首領掉落',
-        clue: '龍王霸主冠圖紙只會從首領級戰利品中取得。',
+        clue: '黑鱗餘冕圖紙只會從首領級戰利品中取得。',
         interactionId: 'strong_blueprint_drop'
     },
     wyvern_scale_mail: {
@@ -187,13 +190,13 @@ export const RecipeDiscoveryDatabase = {
     },
     slime_crown_ring: {
         source: '副本、菁英或首領掉落',
-        clue: '史萊姆之冠戒圖紙需要從特殊強敵身上掉落。',
+        clue: '青凝冠戒圖紙需要從特殊強敵身上掉落。',
         interactionId: 'strong_blueprint_drop'
     }
 };
 
 export function getRecipeDiscovery(recipeId) {
-    return RecipeDiscoveryDatabase[recipeId] || null;
+    return RecipeDiscoveryDatabase[recipeId] || getRecipeSeriesForRecipe(recipeId)?.discovery || null;
 }
 
 export function getRecipeIdsForInteraction(interactionId) {

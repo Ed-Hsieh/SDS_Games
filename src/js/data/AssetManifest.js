@@ -52,7 +52,12 @@ const sets = {
         'greater_health_potion', 'void_reaver', 'storm_spear', 'wyvern_scale_mail',
         'hydra_fang_dagger', 'bone_soul_staff', 'gargoyle_bulwark', 'goblin_trickster_charm',
         'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
-        'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter'
+        'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter',
+        'slime_series', 'bone_series',
+        'slime_series_sword', 'slime_series_dagger', 'slime_series_hammer',
+        'slime_series_staff', 'slime_series_spear', 'bone_series_sword',
+        'bone_series_dagger', 'bone_series_hammer', 'bone_series_staff',
+        'bone_series_spear'
     ]),
     shopItems: new Set([
         'steel_armor', 'mithril_blade', 'health_potion', 'first_aid_potion', 'elixir',
@@ -71,7 +76,11 @@ const sets = {
         'greater_health_potion', 'void_reaver', 'storm_spear', 'wyvern_scale_mail',
         'hydra_fang_dagger', 'bone_soul_staff', 'gargoyle_bulwark', 'goblin_trickster_charm',
         'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
-        'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter'
+        'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter',
+        'slime_series_sword', 'slime_series_dagger', 'slime_series_hammer',
+        'slime_series_staff', 'slime_series_spear', 'bone_series_sword',
+        'bone_series_dagger', 'bone_series_hammer', 'bone_series_staff',
+        'bone_series_spear'
     ]),
     clues: new Set([
         'bloodied_arrow_pouch', 'wolf_fang_marks', 'mist_tablet_rubbing', 'black_bark_sample',
@@ -323,7 +332,7 @@ export function getGeneratedBackgroundImage(backgroundId) {
 export function getGeneratedItemImage(item = {}, options = {}) {
     item = item || {};
     options = options || {};
-    const rawId = normalizeId(options.id || item.id || item.recipeId);
+    const rawId = normalizeId(options.id || item.assetId || item.id || item.recipeId);
     if (!rawId) return '';
 
     const id = rawId.replace(/^crafted_/, '');

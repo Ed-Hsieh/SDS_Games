@@ -4153,7 +4153,7 @@ class AdventureBattleViewController {
             zoneId
         });
         const blueprintItems = createRecipeBlueprintDisplayItems(blueprintUnlocks);
-        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.recipeId));
+        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
         if (blueprintItems.length > 0) {
             droppedItems.push(...blueprintItems);
             showGlobalToast('取得製作圖', blueprintItems.map(item => item.recipeName).join('、'), 'success');

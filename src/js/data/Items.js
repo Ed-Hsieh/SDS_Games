@@ -68,11 +68,11 @@ export const ShopData = {
 
 export const SecretShopItems = [
     // 傳說武器：最高屬性的武器
-    { id: 'dragon_blade', name: '龍之劍', icon: '🐉', type: 'weapon', rarity: 'legendary', attack: 50, defense: 0, critChance: 0.25, critDamage: 2.5, weaponSpeed: 1.5, attackSpeed: 1.8, price: 5000, desc: '傳說中屠龍勇士使用的劍。' },
+    { id: 'dragon_blade', name: '龍息長刃', icon: '🐉', type: 'weapon', rarity: 'legendary', attack: 50, defense: 0, critChance: 0.25, critDamage: 2.5, weaponSpeed: 1.5, attackSpeed: 1.8, price: 5000, desc: '傳說中屠龍勇士使用的劍。' },
     // 傳說防具：最高防禦
-    { id: 'phoenix_armor', name: '鳳凰鎧', icon: '🔥', type: 'armor', rarity: 'legendary', attack: 0, defense: 40, critChance: 0.08, critDamage: 1.5, price: 4500, desc: '浴火重生的鳳凰羽毛編織而成的鎧甲。' },
+    { id: 'phoenix_armor', name: '不熄羽甲', icon: '🔥', type: 'armor', rarity: 'legendary', attack: 0, defense: 40, critChance: 0.08, critDamage: 1.5, price: 4500, desc: '浴火重生的鳳凰羽毛編織而成的鎧甲。' },
     // 傳說飾品：高爆擊
-    { id: 'time_amulet', name: '時間護符', icon: '⏰', type: 'accessory', rarity: 'legendary', attack: 5, defense: 5, critChance: 0.3, critDamage: 2.0, price: 6000, desc: '可以操控時間的神秘護符。' },
+    { id: 'time_amulet', name: '停鐘護符', icon: '⏰', type: 'accessory', rarity: 'legendary', attack: 5, defense: 5, critChance: 0.3, critDamage: 2.0, price: 6000, desc: '可以操控時間的神秘護符。' },
     // 新增：傳說藥水
     { id: 'immortal_elixir', name: '不死藥劑', icon: '⭐', type: 'potion', rarity: 'legendary', hp: 999, price: 3000, desc: '傳說中的不死藥劑，完全恢復生命。' },
     { id: 'berserker_potion', name: '狂戰士藥劑', icon: '😈', type: 'potion', rarity: 'legendary', buff: { type: 'atk', value: 50, duration: 3 }, price: 2000, desc: '使你暫時化身為狂戰士，攻擊力短時間大幅提升！' },

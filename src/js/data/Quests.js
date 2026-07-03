@@ -1633,7 +1633,7 @@ export const QuestRewardItems = {
     // 主線獎勵
     starter_sword: {
         id: 'starter_sword',
-        name: '冒險者之劍',
+        name: '行路者短劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
@@ -1654,7 +1654,7 @@ export const QuestRewardItems = {
     },
     lucky_coin: {
         id: 'lucky_coin',
-        name: '幸運金幣',
+        name: '磨亮幸運幣',
         icon: '🪙',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -1677,7 +1677,7 @@ export const QuestRewardItems = {
     },
     fate_crystal: {
         id: 'fate_crystal',
-        name: '命運水晶',
+        name: '岔路水晶',
         icon: '🔮',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -1799,7 +1799,7 @@ export const QuestRewardItems = {
             attack: 8,
             critDamage: 0.18
         },
-        description: '巫妖法杖裡折出的杖芯。它仍會記得古墓裡那些錯誤命令的節奏。',
+        description: '枯魂法杖裡折出的杖芯。它仍會記得古墓裡那些錯誤命令的節奏。',
         specialEffects: [
             { type: 'undeadBonus', value: 0.18 }
         ],
@@ -1836,7 +1836,7 @@ export const QuestRewardItems = {
     },
     abyss_vanguard_oath: {
         id: 'abyss_vanguard_oath',
-        name: '深淵先鋒誓痕',
+        name: '深淵先鋒印',
         icon: '😈',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -1868,7 +1868,7 @@ export const QuestRewardItems = {
     },
     assassin_dagger: {
         id: 'assassin_dagger',
-        name: '刺客匕首',
+        name: '無聲匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
@@ -2183,7 +2183,7 @@ export const QuestRewardItems = {
     // 隱藏任務獎勵
     beggars_wisdom: {
         id: 'beggars_wisdom',
-        name: '乞丐的智慧',
+        name: '街角慧眼',
         icon: '📿',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
@@ -2195,7 +2195,7 @@ export const QuestRewardItems = {
     },
     phoenix_feather: {
         id: 'phoenix_feather',
-        name: '鳳凰羽毛',
+        name: '不熄羽',
         icon: '🪶',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -2220,7 +2220,7 @@ export const QuestRewardItems = {
     },
     demon_contract: {
         id: 'demon_contract',
-        name: '惡魔契約',
+        name: '黑焰契卷',
         icon: '📋',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
@@ -2309,7 +2309,7 @@ export const QuestRewardItems = {
     },
     frost_crown: {
         id: 'frost_crown',
-        name: '冰霜王冠',
+        name: '霜息冠',
         icon: '👑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -2339,7 +2339,7 @@ export const QuestRewardItems = {
     },
     guardian_shield: {
         id: 'guardian_shield',
-        name: '守護者之盾',
+        name: '守衛舊盾',
         icon: '🛡️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
@@ -2369,7 +2369,7 @@ export const QuestRewardItems = {
     },
     jungle_heart: {
         id: 'jungle_heart',
-        name: '叢林之心',
+        name: '藤心墜',
         icon: '💚',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
@@ -2402,7 +2402,7 @@ export const QuestRewardItems = {
     },
     demon_slayer: {
         id: 'demon_slayer',
-        name: '弒魔者',
+        name: '斷焰刃',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,

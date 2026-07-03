@@ -5,6 +5,7 @@ import { QuestDatabase, QuestRewardItems } from '../src/js/data/Quests.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../src/js/data/RecipeDiscoveries.js';
 import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
+import { getRecipeSeries, getSeriesRecipeIds } from '../src/js/data/RecipeSeries.js';
 import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../src/js/data/DropPools.js';
 import { DungeonDatabase, DungeonEntranceConfig } from '../src/js/data/Dungeons.js';
 import { ShopData, SecretShopItems } from '../src/js/data/Items.js';
@@ -262,15 +263,32 @@ for (const [sourceKey, entries] of objectEntries(BlueprintDropDatabase)) {
     }
 
     entries.forEach((entry, index) => {
-        if (!knownRecipeIds.has(entry.recipeId)) {
-            push('blueprint-drop-recipe', `${sourceKey}[${index}] references missing recipe ${entry.recipeId}`);
+        const referencedRecipeIds = entry.seriesId
+            ? getSeriesRecipeIds(entry.seriesId)
+            : [entry.recipeId].filter(Boolean);
+
+        if (!entry.recipeId && !entry.seriesId) {
+            push('blueprint-drop-recipe', `${sourceKey}[${index}] has no recipeId or seriesId`);
+        }
+
+        if (entry.seriesId && !getRecipeSeries(entry.seriesId)) {
+            push('blueprint-drop-series', `${sourceKey}[${index}] references missing series ${entry.seriesId}`);
+        }
+
+        if (entry.seriesId && referencedRecipeIds.length === 0) {
+            push('blueprint-drop-series', `${sourceKey}[${index}] series ${entry.seriesId} has no recipes`);
+        }
+
+        for (const recipeId of referencedRecipeIds) {
+            if (!knownRecipeIds.has(recipeId)) {
+                push('blueprint-drop-recipe', `${sourceKey}[${index}] references missing recipe ${recipeId}`);
+            }
+            blueprintDropRecipeIds.add(recipeId);
         }
 
         if (!Number.isFinite(entry.chance) || entry.chance <= 0 || entry.chance > 1) {
             push('blueprint-drop-chance', `${sourceKey}[${index}] has invalid chance ${entry.chance}`);
         }
-
-        if (entry.recipeId) blueprintDropRecipeIds.add(entry.recipeId);
     });
 }
 

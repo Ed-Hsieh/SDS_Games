@@ -62,7 +62,7 @@ const SOURCE_TEXT = {
     material: '素材資料',
     questReward: '任務獎勵',
     casino: '賭場',
-    shop: '商店',
+    shop: '市集',
     monster: '怪物掉落',
     recipe: '鍛造圖紙'
 };
@@ -323,16 +323,11 @@ export class MonsterCodexClass extends BaseCodexClass {
         ['normal', '普通'],
         ['elite', '菁英'],
         ['boss', '首領'],
-        ['world_boss', '世界首領'],
-        ['common', '普通'],
-        ['rare', '稀有'],
-        ['epic', '史詩'],
-        ['legendary', '傳說']
+        ['world_boss', '世界首領']
     ];
     static sorts = [
         ['catalog', '預設'],
         ['level', '等級'],
-        ['rarity', '稀有度'],
         ['type', '類型']
     ];
 

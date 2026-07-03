@@ -6,6 +6,7 @@
 
 // 導入裝備資料庫（用於掉落判定）
 // import { getEquipment } from './Equipment.js';
+import { applyLegacyLevelProgressionToDatabase } from './ProgressionLevels.js';
 
 // 怪物類型
 export const MonsterType = {
@@ -55,7 +56,7 @@ export const MonsterDatabase = {
             { itemId: 'health_potion_s', chance: 0.1, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'slime_sword', chance: 0.02 }  // 2% 掉落史萊姆之劍
+            { equipmentId: 'slime_sword', chance: 0.02 }  // 2% 掉落青凝刃
         ],
         skills: [],
         description: '最基礎的怪物，適合新手練習。'
@@ -1642,15 +1643,18 @@ export const TowerMonsterData = {
     }
 };
 
+applyLegacyLevelProgressionToDatabase(MonsterDatabase);
+applyLegacyLevelProgressionToDatabase(TowerMonsterData);
+
 // Level groups: split into four logical groups used by map/manager code.
-// - LowLevelMonster: levels 1-5 (excluding BOSS and WORLD_BOSS)
-// - MediumLevelMonster: levels 6-12 (excluding BOSS and WORLD_BOSS)
-// - HighLevelMonster: levels 13-20 (excluding BOSS and WORLD_BOSS)
-// - DeathLevelMonster: levels 21-30 (excluding BOSS and WORLD_BOSS)
-export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 5 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
-export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 6 && m.level <= 12 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
-export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 13 && m.level <= 20 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
-export const DeathLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 21 && m.level <= 30 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+// - LowLevelMonster: levels 1-15 (excluding BOSS and WORLD_BOSS)
+// - MediumLevelMonster: levels 16-35 (excluding BOSS and WORLD_BOSS)
+// - HighLevelMonster: levels 36-55 (excluding BOSS and WORLD_BOSS)
+// - DeathLevelMonster: levels 56-70 (excluding BOSS and WORLD_BOSS)
+export const LowLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 1 && m.level <= 15 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const MediumLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 16 && m.level <= 35 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const HighLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 36 && m.level <= 55 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
+export const DeathLevelMonster = Object.values(MonsterDatabase).filter(m => typeof m.level === 'number' && m.level >= 56 && m.level <= 70 && m.type !== MonsterType.BOSS && m.type !== MonsterType.WORLD_BOSS);
 
 // 所有 BOSS 與 WORLD_BOSS 的 ID
 export const BossMonsterIds = Object.values(MonsterDatabase)

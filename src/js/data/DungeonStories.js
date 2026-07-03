@@ -52,7 +52,7 @@ export const DungeonStoryDatabase = {
         mechanicUnlock: {
             title: '古老織機的重燃',
             status: 'implemented',
-            description: '完成「叢林之心」擊敗九頭蛇後，從艾拉拉的染血織機殘卷解出九頭蛇毒牙匕首圖紙；通關同時推進荊棘女巫的交易線。',
+            description: '完成「叢林之心」擊敗九頭蛇後，從艾拉拉的染血織機殘卷解出九頭毒牙圖紙；通關同時推進荊棘女巫的交易線。',
             options: ['九頭蛇毒牙匕首（dungeon_jungle_002）', '荊棘女巫線：交付草藥推進']
         },
         paragraphs: [
@@ -76,12 +76,12 @@ export const DungeonStoryDatabase = {
         },
         synopsis: '失落文明的地脈監測神殿誤判地脈崩毀為外敵入侵，遠古守衛者依照舊協定清除所有活體。',
         worldLink: '遺跡證明地脈不是單純能源，而是曾被古文明監測與防衛的世界級系統。',
-        rewardFocus: '中後期破防與守護路線：秘銀武器與大地守衛盾在這裡定錨；通關同時推進巫妖石碑與沉鐘水序兩條解謎線。',
+        rewardFocus: '中後期破防與守護路線：秘銀武器與地脈守盾在這裡定錨；通關同時推進巫妖石碑與沉鐘水序兩條解謎線。',
         mechanicUnlock: {
             title: '朱利安的防衛紀錄',
             status: 'implemented',
-            description: '完成「守護者的考驗」後，從神殿防禦網絡的核心構造解出秘銀長劍與大地守衛盾圖紙。',
-            options: ['秘銀長劍、大地守衛盾（dungeon_ruins_002）', '巫妖／沉鐘神諭解謎線推進']
+            description: '完成「守護者的考驗」後，從神殿防禦網絡的核心構造解出秘銀長劍與地脈守盾圖紙。',
+            options: ['秘銀長劍、地脈守盾（dungeon_ruins_002）', '巫妖／沉鐘神諭解謎線推進']
         },
         paragraphs: [
             '這座失落文明留下的黃金地宮，曾是千年前用來監測全大陸地脈運行的至高神殿。',
