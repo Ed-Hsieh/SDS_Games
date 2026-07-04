@@ -1,6 +1,71 @@
-const GENERATED_ASSET_BASE = 'src/assets/images/art-v2';
-const GENERATED_BACKGROUND_BASE = 'src/assets/images/art-v2/backgrounds';
+const GENERATED_ASSET_BASE = 'src/assets/images/art';
+const GENERATED_BACKGROUND_BASE = 'src/assets/images/art/scenes/backgrounds';
+const LEGACY_ASSET_BASE = 'src/assets/images/art-v2';
+const LEGACY_BACKGROUND_BASE = 'src/assets/images/art-v2/backgrounds';
 const GENERATED_ASSET_EXTENSION = 'webp';
+
+const ART_CATEGORY_PATHS = {
+    equipment: 'items/equipment',
+    materials: 'items/materials',
+    blueprints: 'items/blueprints',
+    shopItems: 'items/shop-items',
+    'shop-items': 'items/shop-items',
+    craftedItems: 'items/crafted-items',
+    'crafted-items': 'items/crafted-items',
+    clues: 'items/clues',
+    'town-places': 'scenes/town/places',
+    portraits: 'characters/portraits',
+    monsters: 'entities/monsters',
+    'dungeon-zone-scenes': 'scenes/dungeons/cards',
+    'dungeon-zone-scenes-full': 'scenes/dungeons/full',
+    'world-landmarks': 'scenes/world/landmarks',
+    'world-landmarks-full': 'scenes/world/landmarks-full',
+    'map-props': 'scenes/world/props',
+    'story-relics': 'items/story-relics',
+    'combat-effects': 'effects/combat',
+    backgrounds: 'scenes/backgrounds'
+};
+
+const ART_READY = {
+    equipment: new Set([]),
+    materials: new Set([
+        'slime_jelly', 'beast_hide', 'raw_meat', 'goblin_ear', 'iron_ore',
+        'wolf_pelt', 'wolf_fang', 'spider_silk', 'poison_gland', 'ancient_bark',
+        'life_seed', 'guardian_branch', 'forest_essence', 'bone_fragment', 'ectoplasm',
+        'spirit_essence', 'golem_core', 'stone_fragment', 'lich_phylactery', 'goblin_coin',
+        'orc_fang', 'rat_tail', 'bat_wing', 'iron_shard', 'high_ore',
+        'rare_metal', 'forge_core', 'dark_crystal', 'shadow_shard', 'soul_fragment',
+        'cursed_shard', 'dark_steel', 'shadow_arrow', 'shadow_essence', 'magic_crystal',
+        'commander_blade', 'shadow_core', 'ancient_gear', 'mithril_ore', 'crystal_shard',
+        'pure_crystal', 'ancient_rune', 'glimmer_shard', 'rune_stone', 'titan_heart'
+    ]),
+    blueprints: new Set([]),
+    shopItems: new Set([]),
+    'shop-items': new Set([]),
+    craftedItems: new Set([]),
+    'crafted-items': new Set([]),
+    clues: new Set([]),
+    'town-places': new Set([]),
+    portraits: new Set([]),
+    monsters: new Set([]),
+    'dungeon-zone-scenes': new Set([]),
+    'dungeon-zone-scenes-full': new Set([]),
+    'world-landmarks': new Set([]),
+    'world-landmarks-full': new Set([]),
+    'map-props': new Set([]),
+    'story-relics': new Set([]),
+    'combat-effects': new Set([]),
+    backgrounds: new Set([])
+};
+
+const ART_PATH_OVERRIDES = {
+    monsters: {}
+};
+
+const LEGACY_CATEGORY_PATHS = {
+    shopItems: 'shop-items',
+    craftedItems: 'crafted-items'
+};
 
 const sets = {
     equipment: new Set([
@@ -30,6 +95,7 @@ const sets = {
         'dark_crystal', 'shadow_shard', 'soul_fragment', 'cursed_shard', 'dark_steel',
         'shadow_arrow', 'shadow_essence', 'magic_crystal', 'commander_blade', 'shadow_core',
         'ancient_gear', 'mithril_ore', 'crystal_shard', 'pure_crystal', 'ancient_rune',
+        'glimmer_shard',
         'rune_stone', 'titan_heart', 'ancient_artifact', 'fire_essence', 'ember_stone',
         'ice_essence', 'frost_crystal', 'frost_core', 'thunder_essence', 'storm_crystal',
         'storm_essence', 'earth_essence', 'geo_crystal', 'elemental_core', 'primal_essence',
@@ -51,7 +117,7 @@ const sets = {
         'shadow_ring', 'dragon_amulet', 'titan_ring', 'health_potion_basic',
         'greater_health_potion', 'void_reaver', 'storm_spear', 'wyvern_scale_mail',
         'hydra_fang_dagger', 'bone_soul_staff', 'gargoyle_bulwark', 'goblin_trickster_charm',
-        'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
+        'glimmer_focus', 'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
         'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter',
         'slime_series', 'bone_series',
         'slime_series_sword', 'slime_series_dagger', 'slime_series_hammer',
@@ -75,7 +141,7 @@ const sets = {
         'shadow_ring', 'dragon_amulet', 'titan_ring', 'health_potion_basic',
         'greater_health_potion', 'void_reaver', 'storm_spear', 'wyvern_scale_mail',
         'hydra_fang_dagger', 'bone_soul_staff', 'gargoyle_bulwark', 'goblin_trickster_charm',
-        'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
+        'glimmer_focus', 'demonwar_helm', 'dragon_overlord_crown', 'primal_focus', 'slime_crown_ring',
         'assassin_shadow_veil', 'earthwarden_aegis', 'frostbound_scepter',
         'slime_series_sword', 'slime_series_dagger', 'slime_series_hammer',
         'slime_series_staff', 'slime_series_spear', 'bone_series_sword',
@@ -260,11 +326,33 @@ function normalizeId(id = '') {
     return String(id || '').trim();
 }
 
-function assetPath(category, id) {
+function getCategoryBase(category, legacy = false) {
+    if (legacy) {
+        return category === 'backgrounds'
+            ? LEGACY_BACKGROUND_BASE
+            : `${LEGACY_ASSET_BASE}/${LEGACY_CATEGORY_PATHS[category] || category}`;
+    }
+    return category === 'backgrounds'
+        ? GENERATED_BACKGROUND_BASE
+        : `${GENERATED_ASSET_BASE}/${ART_CATEGORY_PATHS[category] || category}`;
+}
+
+function assetPath(category, id, options = {}) {
     const normalizedId = normalizeId(id);
     if (!normalizedId) return '';
-    const base = category === 'backgrounds' ? GENERATED_BACKGROUND_BASE : `${GENERATED_ASSET_BASE}/${category}`;
+    const overridePath = !options.legacy ? ART_PATH_OVERRIDES[category]?.[normalizedId] : '';
+    const base = overridePath
+        ? `${GENERATED_ASSET_BASE}/${overridePath}`
+        : getCategoryBase(category, Boolean(options.legacy));
     return `${base}/${normalizedId}.${GENERATED_ASSET_EXTENSION}`;
+}
+
+function preferredAssetPath(category, id) {
+    const normalizedId = normalizeId(id);
+    if (!normalizedId) return '';
+    return ART_READY[category]?.has(normalizedId)
+        ? assetPath(category, normalizedId)
+        : assetPath(category, normalizedId, { legacy: true });
 }
 
 function knownAssetPath(category, id) {
@@ -273,11 +361,11 @@ function knownAssetPath(category, id) {
     const resolvedId = sets[category]?.has(normalizedId)
         ? normalizedId
         : ASSET_ALIASES[category]?.[normalizedId];
-    return resolvedId && sets[category]?.has(resolvedId) ? assetPath(category, resolvedId) : '';
+    return resolvedId && sets[category]?.has(resolvedId) ? preferredAssetPath(category, resolvedId) : '';
 }
 
 export function getGeneratedAssetPath(category, id) {
-    return assetPath(category, id);
+    return knownAssetPath(category, id) || assetPath(category, id);
 }
 
 export function getGeneratedTownPlaceImage(placeId) {
@@ -336,9 +424,9 @@ export function getGeneratedItemImage(item = {}, options = {}) {
     if (!rawId) return '';
 
     const id = rawId.replace(/^crafted_/, '');
-    if (options.category) return assetPath(options.category, id);
+    if (options.category) return knownAssetPath(options.category, id) || assetPath(options.category, id);
     if (options.blueprint || item.type === 'blueprint' || item.autoUnlockedBlueprint) {
-        return sets.blueprints.has(id) ? assetPath('blueprints', id) : '';
+        return sets.blueprints.has(id) ? knownAssetPath('blueprints', id) : '';
     }
 
     const type = String(item.type || '').toLowerCase();
@@ -346,20 +434,20 @@ export function getGeneratedItemImage(item = {}, options = {}) {
         sets.craftedItems.has(id)
         && ['weapon', 'armor', 'equipment', 'accessory', 'potion', 'consumable'].includes(type)
     ) {
-        return assetPath('crafted-items', id);
+        return knownAssetPath('craftedItems', id);
     }
 
     const preferredCategory = ITEM_TYPE_CATEGORY[type];
     if (preferredCategory && sets[preferredCategory]?.has(id)) {
-        return assetPath(preferredCategory, id);
+        return knownAssetPath(preferredCategory, id);
     }
 
-    if (sets.equipment.has(id)) return assetPath('equipment', id);
-    if (sets.materials.has(id)) return assetPath('materials', id);
-    if (sets.shopItems.has(id)) return assetPath('shop-items', id);
-    if (sets.craftedItems.has(id)) return assetPath('crafted-items', id);
-    if (sets.clues.has(id)) return assetPath('clues', id);
-    if (sets.blueprints.has(id)) return assetPath('blueprints', id);
+    if (sets.equipment.has(id)) return knownAssetPath('equipment', id);
+    if (sets.materials.has(id)) return knownAssetPath('materials', id);
+    if (sets.shopItems.has(id)) return knownAssetPath('shopItems', id);
+    if (sets.craftedItems.has(id)) return knownAssetPath('craftedItems', id);
+    if (sets.clues.has(id)) return knownAssetPath('clues', id);
+    if (sets.blueprints.has(id)) return knownAssetPath('blueprints', id);
 
     for (const category of ['equipment', 'materials', 'shopItems', 'craftedItems', 'clues', 'blueprints']) {
         const aliasedPath = knownAssetPath(category, id);

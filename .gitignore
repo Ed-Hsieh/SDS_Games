@@ -1,2 +1,7 @@
 # Local prototypes, screenshots, and verification artifacts.
 /tmp/
+
+# Local high-resolution source images copied from Codex image generation.
+# These are kept in the workspace for local re-export workflows, but should not
+# be committed; generated runtime WebP files live under src/assets/images/art/.
+/src/assets/images/art-source/originals/
