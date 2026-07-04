@@ -46,7 +46,7 @@ agent sessions should read this file before editing content or asset systems.
 The new `art` folder is active through `AssetManifest.js`, with fallback to
 `art-v2` for unfinished assets.
 
-Completed new material WebP assets: 45 / 95.
+Completed new material WebP assets: 50 / 95.
 
 Ready material IDs:
 
@@ -59,13 +59,14 @@ orc_fang, rat_tail, bat_wing, iron_shard, high_ore,
 rare_metal, forge_core, dark_crystal, shadow_shard, soul_fragment,
 cursed_shard, dark_steel, shadow_arrow, shadow_essence, magic_crystal,
 commander_blade, shadow_core, ancient_gear, mithril_ore, crystal_shard,
-pure_crystal, ancient_rune, glimmer_shard, rune_stone, titan_heart
+pure_crystal, ancient_rune, glimmer_shard, rune_stone, titan_heart,
+ancient_artifact, fire_essence, ember_stone, ice_essence, frost_crystal
 ```
 
 Suggested next material batch:
 
 ```text
-ancient_artifact, fire_essence, ember_stone, ice_essence, frost_crystal
+frost_core, thunder_essence, storm_crystal, storm_essence, earth_essence
 ```
 
 ## Verification

@@ -37,7 +37,8 @@ const ART_READY = {
         'rare_metal', 'forge_core', 'dark_crystal', 'shadow_shard', 'soul_fragment',
         'cursed_shard', 'dark_steel', 'shadow_arrow', 'shadow_essence', 'magic_crystal',
         'commander_blade', 'shadow_core', 'ancient_gear', 'mithril_ore', 'crystal_shard',
-        'pure_crystal', 'ancient_rune', 'glimmer_shard', 'rune_stone', 'titan_heart'
+        'pure_crystal', 'ancient_rune', 'glimmer_shard', 'rune_stone', 'titan_heart',
+        'ancient_artifact', 'fire_essence', 'ember_stone', 'ice_essence', 'frost_crystal'
     ]),
     blueprints: new Set([]),
     shopItems: new Set([]),
