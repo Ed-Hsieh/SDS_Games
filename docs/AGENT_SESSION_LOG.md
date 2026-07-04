@@ -79,7 +79,7 @@ The current asset resolver uses:
 - `src/assets/images/art-v2/` as fallback.
 - `src/assets/images/art-source/originals/` as local ignored original PNG store.
 
-Completed new material WebP assets: 50 / 95.
+Completed new material WebP assets: 55 / 95.
 
 ```text
 slime_jelly, beast_hide, raw_meat, goblin_ear, iron_ore,
@@ -91,10 +91,11 @@ rare_metal, forge_core, dark_crystal, shadow_shard, soul_fragment,
 cursed_shard, dark_steel, shadow_arrow, shadow_essence, magic_crystal,
 commander_blade, shadow_core, ancient_gear, mithril_ore, crystal_shard,
 pure_crystal, ancient_rune, glimmer_shard, rune_stone, titan_heart,
-ancient_artifact, fire_essence, ember_stone, ice_essence, frost_crystal
+ancient_artifact, fire_essence, ember_stone, ice_essence, frost_crystal,
+frost_core, thunder_essence, storm_crystal, storm_essence, earth_essence
 ```
 
-Original PNGs for these 50 materials were copied to:
+Original PNGs for these 55 materials were copied to:
 
 ```text
 src/assets/images/art-source/originals/materials/
@@ -107,7 +108,7 @@ This folder is intentionally ignored by Git.
 Continue material generation from:
 
 ```text
-frost_core, thunder_essence, storm_crystal, storm_essence, earth_essence
+geo_crystal, elemental_core, primal_essence, wyvern_scale, wyvern_wing
 ```
 
 After that, continue through the remaining material queue from
