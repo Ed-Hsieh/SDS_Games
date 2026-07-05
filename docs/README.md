@@ -1,29 +1,43 @@
-# SDS Games Docs
+# SDS Games Development Docs
 
-更新日期：2026-07-03
+Last updated: 2026-07-05
 
-這個目錄只保留後續開發會使用的 source of truth。過期方案與流水帳不放在這裡，避免新設計疊在舊設計上。
+This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
+data files remain the source of truth for shipped behavior; these documents keep
+the design direction readable for future Codex sessions.
 
-## 文件入口
+## Authoritative Documents
 
-| 檔案 | 用途 |
-| --- | --- |
-| `OPEN_TASKS.md` | 目前仍要處理的待辦、優先順序與驗收基準。 |
-| `GAME_DESIGN_GUIDE.md` | 核心循環、平衡方向、戰鬥、裝備、探索、鍛造與副本定位。 |
-| `STORY_BIBLE.md` | 主線、支線、副本、城鎮變化與角色敘事的現行正史。 |
-| `UI_ART_GUIDE.md` | UI 精修原則、桌面驗收尺寸、美術資產規格與場景互動方向。 |
+- `TOWN_REBUILD_CONVERGENCE.md` - broken-town rebuild scope, phases, feature gates,
+  and current wiring status.
+- `CHAPTER_QUEST_FRAMEWORK.md` - chapter titles, level bands, quest placement, and
+  reward direction from Lv1 to Lv70.
+- `CASINO_ROUTE_FRAMEWORK.md` - casino showcase route, owner quest hook, ticket
+  reward loop, and future integration points.
+- `ART_STYLE_GUIDE.md` - current image style rules and reference assets already in
+  the project.
+- `AGENT_SESSION_LOG.md` - latest checkpoint for continuing development.
+- `generated/art-asset-queue.md` - generated asset queue reference. Do not treat it
+  as design authority when it conflicts with the active docs above.
 
-## 使用規則
+## Paused This Cycle
 
-- 新功能先確認這些文件是否需要更新，再進行實作。
-- 完成紀錄不要長期堆在 docs；需要追溯時看 git history、commit 或 PR。
-- 如果舊想法與現行文件衝突，以這份索引列出的文件為準。
-- UI 或系統重構時，優先移除不好的舊設計，再建立新的結構；不要只在舊 CSS 或舊元件上繼續堆疊。
-- 任何新物品、素材、圖紙、裝備都要先符合資料分類規格，再接 UI、百科與掉落。
+- Combat redesign is paused.
+- Tower rewrite is paused.
+- Image generation is paused. Missing art can be listed, but should not be filled
+  during this town-rebuild documentation pass.
 
-## 文件分工
+## Data Sources Added For This Pass
 
-- 需求還沒確定：放進 `OPEN_TASKS.md`。
-- 遊戲規則或平衡方向已確定：寫入 `GAME_DESIGN_GUIDE.md`。
-- 故事、人物、地點或文本風格已確定：寫入 `STORY_BIBLE.md`。
-- UI、Icon、圖片、場景、驗收尺寸已確定：寫入 `UI_ART_GUIDE.md`。
+- `src/js/data/TownRebuildPlan.js`
+- `src/js/data/ChapterQuestFramework.js`
+- `src/js/data/CasinoRouteFramework.js`
+
+## Working Rules
+
+- Build desktop first.
+- If an old system is structurally wrong, replace the core flow instead of adding
+  compatibility padding.
+- Keep town map, shop, market, casino, and NPC story recovery moving as one network.
+- Backpack and commission-helper systems are stable and outside the first town
+  rebuild unless explicitly pulled in later.

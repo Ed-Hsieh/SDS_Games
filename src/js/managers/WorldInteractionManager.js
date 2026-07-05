@@ -1,6 +1,7 @@
 /**
  * WorldInteractionManager.js
- * Applies world discoveries from map events, objects, vendors, tower floors, and dungeons.
+ * Applies world discoveries from town objects, map events, vendors, dungeons,
+ * and future story hooks.
  */
 
 import GameManager from './GameManager.js';
@@ -73,7 +74,7 @@ class WorldInteractionManager {
             return {
                 success: false,
                 interaction,
-                messages: [interaction.repeatMessage || '這裡已經沒有新的紀錄。']
+                messages: [interaction.repeatMessage || '這個互動已經完成。']
             };
         }
 
@@ -86,7 +87,7 @@ class WorldInteractionManager {
                 success: false,
                 interaction,
                 missingItems,
-                messages: [interaction.missingMessage || `缺少特殊道具：${missingText}`]
+                messages: [interaction.missingMessage || `缺少必要物品：${missingText}`]
             };
         }
 
@@ -99,7 +100,7 @@ class WorldInteractionManager {
             return {
                 success: false,
                 interaction,
-                messages: ['特殊道具交付失敗，請確認物品仍在背包或倉庫中。']
+                messages: ['必要物品消耗失敗，互動未完成。']
             };
         }
 
@@ -116,13 +117,13 @@ class WorldInteractionManager {
             questManager.unlockQuest(questId);
             const after = questManager.getQuestState(questId);
 
-            if (before.status === QuestStatus.LOCKED && after.status !== QuestStatus.LOCKED) {
+            if ((before?.status || QuestStatus.LOCKED) === QuestStatus.LOCKED && after?.status !== QuestStatus.LOCKED) {
                 const quest = getQuestById(questId);
                 unlockedQuests.push(quest || { id: questId, name: questId });
             }
 
             const latest = questManager.getQuestState(questId);
-            if (interaction.autoAcceptQuests === true && latest.status === QuestStatus.AVAILABLE) {
+            if (interaction.autoAcceptQuests === true && latest?.status === QuestStatus.AVAILABLE) {
                 const accepted = questManager.acceptQuest(questId);
                 if (accepted.success) {
                     acceptedQuests.push(accepted.quest || getQuestById(questId) || { id: questId, name: questId });
@@ -133,11 +134,11 @@ class WorldInteractionManager {
         if (interaction.message) messages.push(interaction.message);
         if (interaction.showQuestUnlockMessages !== false) {
             for (const quest of unlockedQuests) {
-                messages.push(`新的委託紀錄已寫入：${quest.name}`);
+                messages.push(`解鎖任務：${quest.name || quest.id}`);
             }
         }
         for (const unlock of recipeUnlocks) {
-            if (unlock.newlyUnlocked) messages.push(`取得製作圖：${unlock.recipe.name}`);
+            if (unlock.newlyUnlocked) messages.push(`解鎖藍圖：${unlock.recipe.name}`);
         }
         for (const progress of interaction.progressObjectives || []) {
             if (!progress?.type || !progress?.target) continue;
@@ -165,7 +166,7 @@ class WorldInteractionManager {
         this.journal.unshift(entry);
 
         if (context.toast !== false && typeof document !== 'undefined') {
-            showGlobalToast('發現聽聞', interaction.title, 'info');
+            showGlobalToast('發現', interaction.title, 'info');
         }
 
         return {

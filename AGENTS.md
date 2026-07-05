@@ -8,17 +8,40 @@ agent sessions should read this file before editing content or asset systems.
 - Build for desktop only. Do not spend time on mobile UI unless the user asks.
 - When a system or interface is wrong at its core, fix the core logic instead
   of piling workaround layers on top.
+- Do not add legacy soft-compatibility layers for obsolete town, shop, market,
+  casino, or dialogue systems. If the old code/data is stale, remove it and
+  write the new core flow directly.
+- The broken-town script, NPC dialogue, town map interactions, shop/market
+  recovery, casino temptation loop, and later added town modules must progress
+  together as one recovery network.
+- Backpack and commission-helper systems are not part of the first town
+  rebuild unless the user explicitly asks.
 - Preserve the current dark realistic fantasy image style that was generated
   for materials and equipment.
 - Do not make every special weapon a sword. Spread special drops across weapon
   types, armor, accessories, materials, and systems.
 
+## Current Documentation Authority
+
+Read these documents before continuing town, quest, casino, or asset-direction
+work:
+
+- `docs/TOWN_REBUILD_CONVERGENCE.md`
+- `docs/CHAPTER_QUEST_FRAMEWORK.md`
+- `docs/CASINO_ROUTE_FRAMEWORK.md`
+- `docs/ART_STYLE_GUIDE.md`
+- `docs/AGENT_SESSION_LOG.md`
+
+Older broad planning docs were removed on 2026-07-05 so future sessions do not
+inherit conflicting design directions. Runtime data remains the source of truth
+when an MD file and JS data disagree.
+
 ## Asset Structure
 
 - Primary generated asset folder: `src/assets/images/art/`
-- Temporary legacy fallback folder: `src/assets/images/art-v2/`
-- Do not delete `art-v2` until every referenced asset has been regenerated and
-  marked ready in `src/js/data/AssetManifest.js`.
+- Legacy fallback folders should not be kept as a design strategy. Once a
+  system or asset path is replaced, point data at `src/assets/images/art/` and
+  remove obsolete references instead of layering fallbacks.
 - Local original PNG sources copied from Codex image generation live under:
   `src/assets/images/art-source/originals/`
 - The original PNG source folder is intentionally gitignored. Runtime WebP
@@ -44,48 +67,16 @@ agent sessions should read this file before editing content or asset systems.
   - `glimmer` is the weak precursor to `light`.
   - Shadow materials should begin around Lv24-30, not Lv1-10.
 
-## Current Art Progress
+## Current Art Status
 
-The new `art` folder is active through `AssetManifest.js`, with fallback to
-`art-v2` for unfinished assets.
+The new `art` folder is the active runtime asset source through
+`AssetManifest.js`. Do not reintroduce `art-v2` fallback behavior; unfinished
+assets should be listed as gaps and regenerated into `art`.
 
-Current runtime WebP progress as of 2026-07-05:
-
-- Materials: 101 / 101 database materials ready in `ART_READY.materials`.
-  `src/assets/images/art/items/materials/` currently has 104 WebP files because
-  `cold_resist_potion`, `enhance_stone`, and `fire_resist_potion` exist as
-  extra runtime item art outside `MaterialDatabase`.
-- New content-rebuild equipment: 16 / 16 ready in `ART_READY.equipment`:
-  `miners_pickhammer`, `cave_ward_shield`, `glimmer_lampstaff`,
-  `rune_scriber_focus`, `frostbite_dueling_blade`,
-  `frostbound_scepter_drop`, `shadowneedle_dagger`, `umbral_pike`,
-  `shade_focus`, `thornhook_claws`, `hydra_spine_spear`,
-  `abyssal_needle`, `seraph_void_focus`, `dawnbrand_sword`,
-  `prism_focus`, `aurora_ward_plate`.
-- New content-rebuild monsters: 10 / 10 ready in `ART_READY.monsters`:
-  `glimmer_sprite`, `rune_wisp`, `prism_wisp`, `starvein_lurker`,
-  `void_walker`, `abyssal_seraph`, `dawn_sentinel`, `radiant_keeper`,
-  `mirror_seraph`, `aurora_archon`.
-- Legacy/live equipment replacement started. Additional ready equipment:
-  `old_sword`, `old_armor`, `slime_sword`, `goblin_dagger`,
-  `wolf_fang_blade`, `wolf_pelt_armor`, `spider_silk_gloves`,
-  `forest_guardian_staff`, `forest_guardian_crown`, `bone_sword`.
-- Legacy/live monster replacement started. Additional ready monsters:
-  `slime`, `goblin`, `wild_wolf`, `skeleton`, `giant_rat`,
-  `orc_warrior`, `shadow_bat`, `poison_spider`, `stone_golem_mini`,
-  `treant`.
-- Legacy/live replacement pass 2 ready equipment:
-  `ghost_cloak`, `lich_staff`, `shadow_blade_drop`, `shadow_armor_drop`,
-  `shadow_badge`. `wolf_fang_blade` was regenerated so it reads as a real
-  cutting blade rather than a tooth mounted to a handle.
-- Legacy/live replacement pass 2 ready monsters:
-  `forest_guardian`, `skeleton_warrior`, `ghost`, `stone_golem`, `lich`.
-
-Remaining new `art` gaps:
-
-- Equipment still missing new WebP art: 31 legacy/live entries.
-- Monsters still missing new WebP art: 28 legacy/live entries.
-- The radiant dungeon scene/card art is still not regenerated.
+Image generation is paused during the current town-rebuild documentation pass.
+Use `docs/ART_STYLE_GUIDE.md` for style direction and current example paths.
+Use `docs/generated/art-asset-queue.md` only as a generated queue reference, not
+as higher authority than the active framework docs.
 
 ## Verification
 

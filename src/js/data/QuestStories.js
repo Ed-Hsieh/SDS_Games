@@ -1,10 +1,9 @@
 /**
  * QuestStories.js
- * Story-facing overlay for existing quest data. Objectives remain in Quests.js.
+ * Story-facing quest text for the rebuilt town and chapter flow.
+ * Objective logic remains in Quests.js; runtime copy should live here directly,
+ * not in a legacy overlay layer.
  */
-
-import { getQuestStoryRevision } from './StoryScriptRevisions.js';
-import { getSideStoryNarrativeMeta } from './SideStoryNarrativeTaxonomy.js';
 
 export const QuestStoryDatabase = {
     main_001: {
@@ -279,6 +278,57 @@ export const QuestStoryDatabase = {
         },
         objectives: [
             '書記說最近城外史萊姆變多了，請我消滅 5 個靠近農田的史萊姆。'
+        ]
+    },
+    bounty_002: {
+        arc: '城鎮委託',
+        source: '哥布林威脅',
+        location: '南門外營火痕',
+        speaker: { name: '南門守衛', avatar: '🛡️' },
+        discovery: '巡路的人在南門外找到被翻過的補給袋，袋口綁法像哥布林常用的陷阱結。',
+        available: '哥布林開始靠近舊路標，牠們不是單純偷東西，而是在試探城鎮巡線有沒有斷。',
+        active: '清除南門外的哥布林，確認牠們是否只是散兵，還是有人把牠們往城鎮趕。',
+        completed: '哥布林營火被踩滅後，守衛在灰裡找到一枚刻錯方向的木牌。',
+        finished: '南門巡線暫時穩住，但木牌證明有東西正在學著使用路標。',
+        nextLead: '前往南門外，擊退靠近路標的哥布林。',
+        route: 'adventure',
+        reportTo: { npcId: 'village_elder', name: '村長', route: 'lobby', label: '回去找村長' },
+        objectives: [
+            '南門守衛需要清除靠近路標的哥布林，避免巡線再次中斷。'
+        ]
+    },
+    bounty_003: {
+        arc: '城鎮委託',
+        source: '狼群狩獵',
+        location: '獵人棧道',
+        speaker: { name: '獵人留下的哨笛', avatar: '🐺' },
+        discovery: '獵人棧道上的哨笛被咬裂，裂口附近卻沒有血，只有狼群反覆繞行的足跡。',
+        available: '狼群正在切斷棧道。牠們不像被飢餓驅使，更像被森林深處的壓力趕出來。',
+        active: '追上棧道附近的狼群，找出牠們避開某片森林的原因。',
+        completed: '狼群退開後，棧道深處傳來樹皮裂開的聲音。',
+        finished: '狼群不是最深處的危險，只是黑樹異常往外推時先跑出來的影子。',
+        nextLead: '前往獵人棧道，擊退狼群。',
+        route: 'adventure',
+        reportTo: { npcId: 'town_scholar', name: '書記', route: 'lobby', label: '回去找書記' },
+        objectives: [
+            '擊退獵人棧道附近的狼群，確認牠們逃離森林的方向。'
+        ]
+    },
+    bounty_elite_001: {
+        arc: '精英懸賞',
+        source: '暗影刺客',
+        location: '黑鐵倉道',
+        speaker: { name: '黑市密報', avatar: '🗡️' },
+        discovery: '黑市有人出高價買一個名字：暗影刺客。問題是，這名字通常只會在目標死後才出現在帳上。',
+        available: '暗影刺客不亞於小型首領。牠的掉落應該比普通怪物更好，但也必須要求玩家做好裝備與補給準備。',
+        active: '追蹤黑鐵倉道的無聲殺痕，擊敗暗影刺客。',
+        completed: '暗影刺客倒下後，刀柄裡藏著一枚尚未完全變成虛空的暗影碎片。',
+        finished: '這次懸賞把暗影前置線正式放上檯面：它不是虛空，卻已經懂得模仿虛空的空洞。',
+        nextLead: '準備足夠補給後，前往黑鐵倉道挑戰暗影刺客。',
+        route: 'adventure',
+        reportTo: { npcId: 'black_market', name: '黑市聯絡人', route: 'lobby', label: '回到暗巷入口' },
+        objectives: [
+            '暗影刺客屬於高威脅精英，擊敗前應先整理裝備與藥品。'
         ]
     },
     commission_forge_001: {
@@ -931,19 +981,134 @@ export const QuestStoryDatabase = {
         finished: '洞窟的回聲消失，新的寒意卻從北方靠近。',
         nextLead: '通關幽暗洞窟，擊敗暗影蝙蝠王。',
         route: 'dungeon-cave'
+    },
+    dungeon_snow_001: {
+        arc: '雪線試煉',
+        source: '冰封雪峰入口',
+        location: '冰封雪峰',
+        speaker: { name: '凍裂路碑', avatar: '❄️' },
+        discovery: '洞窟深處吹出的冷風指向雪線，路碑上的舊字被冰覆住，只剩「準備火源」還看得清楚。',
+        available: '雪峰不是單純寒冷地圖。抗寒、火源與路線辨識會決定玩家能不能走到王座前。',
+        active: '進入冰封雪峰，確認寒風從哪條裂縫灌入地脈。',
+        completed: '雪峰第一段路線被標記，冰霜核心的方向開始浮現。',
+        finished: '雪峰試煉打開，玩家需要真正準備抗寒與穩定補給。',
+        nextLead: '前往冰封雪峰，完成初段試煉。',
+        route: 'dungeon-snow'
+    },
+    dungeon_snow_002: {
+        arc: '雪線試煉',
+        source: '冰霜王座',
+        location: '冰封雪峰',
+        speaker: { name: '王座寒光', avatar: '👑' },
+        discovery: '雪峰深處的王座沒有主人坐著，卻一直在替寒風下命令。',
+        available: '冰霜王座是雪峰副本的收束點，應掉落抗寒、冰屬或高階素材，讓玩家理解副本不是單純刷場。',
+        active: '通關冰封雪峰，擊敗王座守護者。',
+        completed: '王座裂開後，一枚霜息核心從冰層裡滾出來。',
+        finished: '雪峰的寒風被壓回裂縫，但北方龍巢的熱痕反而變得更明顯。',
+        nextLead: '通關冰封雪峰，擊敗冰霜王座守護者。',
+        route: 'dungeon-snow'
+    },
+    dungeon_ruins_001: {
+        arc: '遺跡齒輪',
+        source: '遠古遺跡探索',
+        location: '遠古遺跡',
+        speaker: { name: '殘破機關', avatar: '⚙️' },
+        discovery: '朱利安邊註提到的符號在遺跡門上重新亮起，像有人把一座古老機器從睡夢裡推醒。',
+        available: '遠古遺跡應考驗解謎、陷阱與構裝敵人，獎勵以符文、鑰匙與機關裝備為主。',
+        active: '進入遠古遺跡，記錄第一批齒輪與陷阱規律。',
+        completed: '遺跡門廳被安全標記，深處守護者的能量軌跡開始可追。',
+        finished: '遺跡不是死物，它只是照著沒有人敢停下的規則繼續運轉。',
+        nextLead: '前往遠古遺跡，完成初段探索。',
+        route: 'dungeon-ruins'
+    },
+    dungeon_ruins_002: {
+        arc: '遺跡齒輪',
+        source: '守護者的考驗',
+        location: '遠古遺跡',
+        speaker: { name: '古代守護者', avatar: '🛡️' },
+        discovery: '守護者沒有憤怒，也沒有慈悲。它只是檢查闖入者是否符合古代規則。',
+        available: '守護者戰應要求玩家理解陷阱與節奏，掉落防具、盾牌或解謎型獎品。',
+        active: '通關遠古遺跡，擊敗古代守護者。',
+        completed: '守護者停下後，遺跡鑰匙從胸甲內側掉出來。',
+        finished: '遺跡仍然危險，但至少它的規則被寫進旅人手札。',
+        nextLead: '通關遠古遺跡，擊敗古代守護者。',
+        route: 'dungeon-ruins'
+    },
+    dungeon_jungle_001: {
+        arc: '迷霧叢林',
+        source: '叢林迷途',
+        location: '迷霧叢林',
+        speaker: { name: '濕葉羅盤', avatar: '🧭' },
+        discovery: '採藥籃線索指向叢林，羅盤卻在入口不停打轉，像它也不想承認前方有路。',
+        available: '叢林副本應以迷路、毒霧與藤蔓伏擊建立難度，獎勵偏自然、毒抗與恢復。',
+        active: '進入迷霧叢林，找到能穩定回頭的第一條路。',
+        completed: '叢林外圈被標記，藤心的脈動從更深處傳來。',
+        finished: '迷霧仍在，但羅盤至少不再假裝自己壞了。',
+        nextLead: '前往迷霧叢林，完成初段探索。',
+        route: 'dungeon-jungle'
+    },
+    dungeon_jungle_002: {
+        arc: '迷霧叢林',
+        source: '叢林之心',
+        location: '迷霧叢林',
+        speaker: { name: '藤心脈動', avatar: '🌿' },
+        discovery: '叢林中心的藤蔓不是亂長，而是在替某顆心臟守住呼吸。',
+        available: '叢林之心應是自然與毒霧線的副本收束，掉落藤心飾品或高階草藥素材。',
+        active: '通關迷霧叢林，擊敗叢林之心守護者。',
+        completed: '藤心被安撫後，毒霧退到樹根之下。',
+        finished: '叢林不再把每個闖入者都當成獻祭品，藥師會很高興，雖然她一定會假裝只是少洗幾個瓶子。',
+        nextLead: '通關迷霧叢林，擊敗叢林之心守護者。',
+        route: 'dungeon-jungle'
+    },
+    dungeon_hell_001: {
+        arc: '煉獄邊境',
+        source: '地獄之門',
+        location: '煉獄深淵',
+        speaker: { name: '黑焰裂口', avatar: '🔥' },
+        discovery: '灰燼男爵地宮裂開後，黑焰邊境露出一扇像門的裂縫。',
+        available: '煉獄深淵是終局前的高壓副本，應要求火抗、續戰與裝備強化。',
+        active: '進入煉獄深淵，確認黑焰裂口是否能被封回地脈。',
+        completed: '地獄之門第一層被壓制，火焰背後傳來魔族軍隊的回聲。',
+        finished: '深淵不是單一地點，而是一整條正在靠近城鎮的戰線。',
+        nextLead: '前往煉獄深淵，完成地獄之門初段試煉。',
+        route: 'dungeon-hell'
+    },
+    dungeon_hell_002: {
+        arc: '煉獄邊境',
+        source: '終焉之戰前哨',
+        location: '煉獄深淵',
+        speaker: { name: '深淵前鋒', avatar: '👹' },
+        discovery: '深淵前鋒把裂縫當成軍門。牠們不是來偵查，是來確認城鎮還剩多少時間。',
+        available: '這場副本應接近章節終局強度，掉落火抗、惡魔對策與高階素材。',
+        active: '通關煉獄深淵，擊敗深淵前鋒。',
+        completed: '前鋒倒下後，裂縫短暫閉合，卻把阿薩謝爾的名字留在火裡。',
+        finished: '煉獄副本收束後，終局戰線不再只是預感。',
+        nextLead: '通關煉獄深淵，擊敗深淵前鋒。',
+        route: 'dungeon-hell'
+    },
+    dungeon_weekly_challenge: {
+        arc: '副本輪替',
+        source: '每週副本挑戰',
+        location: '旅人手札',
+        speaker: { name: '手札輪替頁', avatar: '📜' },
+        discovery: '手札每週會把一處裂縫標成重點，像在提醒你：世界不會因為主線推進就乖乖等著。',
+        available: '輪替挑戰應給玩家額外素材、代幣與特殊獎池入口，但不能取代主線副本定位。',
+        active: '完成本週指定副本，取得輪替獎勵。',
+        completed: '本週裂縫被壓制，手札把獎勵與下一次輪替時間記在頁角。',
+        finished: '輪替挑戰完成。世界暫時安靜一點，但手札頁角已經在發熱。',
+        nextLead: '查看本週副本輪替目標，完成指定挑戰。',
+        route: 'adventure'
     }
 };
 
 export function getQuestStory(questData, state = null) {
     const baseStory = QuestStoryDatabase[questData?.id] || {};
-    const story = {
-        ...baseStory,
-        ...(getQuestStoryRevision(questData?.id) || {})
-    };
+    const story = baseStory;
     const status = state?.status || 'available';
     const statusText = story[status] || story.available || questData?.dialogue?.start || questData?.description || '';
 
     return {
+        title: story.title || story.source || getFallbackTitle(questData),
         arc: story.arc || getFallbackArc(questData),
         source: story.source || '任務紀錄',
         location: story.location || getFallbackLocation(questData),
@@ -960,8 +1125,18 @@ export function getQuestStory(questData, state = null) {
         objectives: Array.isArray(story.objectives) ? story.objectives : null,
         triggerGate: story.triggerGate || questData?.trigger || null,
         characterProfile: story.characterProfile || null,
-        narrativeMeta: getSideStoryNarrativeMeta(questData?.id)
+        narrativeMeta: story.narrativeMeta || null
     };
+}
+
+function getFallbackTitle(questData) {
+    const id = String(questData?.id || '');
+    if (id.startsWith('main_')) return `主線 ${id.replace('main_', '')}`;
+    if (id.startsWith('bounty_')) return '公告欄委託';
+    if (id.startsWith('commission_')) return '人物委託';
+    if (id.startsWith('dungeon_')) return '副本紀錄';
+    if (id.startsWith('hidden_')) return '隱藏線索';
+    return '任務紀錄';
 }
 
 function getFallbackReportTo(questData = {}) {

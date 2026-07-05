@@ -3,6 +3,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CasinoPrizePools, getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/CasinoRewards.js';
+import { CasinoRouteFramework, CasinoShowcaseQuestFrame } from '../src/js/data/CasinoRouteFramework.js';
+import {
+    ChapterQuestFramework,
+    ChapterQuestPausedSystems,
+    LevelBandQuestFramework
+} from '../src/js/data/ChapterQuestFramework.js';
 import { CrossChapterStoryArcs } from '../src/js/data/CrossChapterStoryArcs.js';
 import { DungeonDatabase } from '../src/js/data/Dungeons.js';
 import { EventDatabase, EventRole } from '../src/js/data/Events.js';
@@ -54,6 +60,15 @@ function assertFiles(section, files) {
     for (const file of files) {
         if (!fs.existsSync(rel(file))) {
             addIssue(section, 'Required convergence file is missing.', { file });
+        }
+    }
+}
+
+function assertDocContains(section, file, terms) {
+    const text = readText(file);
+    for (const term of terms) {
+        if (!text.includes(term)) {
+            addIssue(section, 'Convergence document is missing required direction text.', { file, term });
         }
     }
 }
@@ -324,16 +339,124 @@ function auditTownAndPlaces() {
     summary.townPlaces = places.length;
 }
 
-function auditDocsAndBacklog() {
+function auditFrameworkDocs() {
     const docs = [
-        'docs/GAME_CONVERGENCE_PLAN.md',
-        'docs/BETA_CONVERGENCE_AUDIT.md',
-        'docs/RELATIONSHIP_ARCS_BACKLOG.md',
-        'docs/CROSS_CHAPTER_STORY_ARCS.md',
-        'docs/SIDE_STORY_NARRATIVE_TAXONOMY.md'
+        'docs/README.md',
+        'docs/TOWN_REBUILD_CONVERGENCE.md',
+        'docs/CHAPTER_QUEST_FRAMEWORK.md',
+        'docs/CASINO_ROUTE_FRAMEWORK.md',
+        'docs/ART_STYLE_GUIDE.md',
+        'docs/AGENT_SESSION_LOG.md'
     ];
-    assertFiles('docs-backlog', docs);
-    summary.convergenceDocs = docs.length;
+    assertFiles('framework-docs', docs);
+
+    assertDocContains('framework-docs', 'docs/TOWN_REBUILD_CONVERGENCE.md', [
+        'Direct-Rewrite Policy',
+        'TownRebuildPlan.js',
+        'Combat redesign',
+        'tower content'
+    ]);
+    assertDocContains('framework-docs', 'docs/CHAPTER_QUEST_FRAMEWORK.md', [
+        'Lv1-Lv70',
+        'Shadow is a weak precursor to void',
+        'Glimmer is a weak precursor to light',
+        'Tower content is paused'
+    ]);
+    assertDocContains('framework-docs', 'docs/CASINO_ROUTE_FRAMEWORK.md', [
+        'commission_casino_showcase_001',
+        'Final choice',
+        'display-case prizes'
+    ]);
+    assertDocContains('framework-docs', 'docs/ART_STYLE_GUIDE.md', [
+        'Dark realistic fantasy',
+        'Boss-dropped equipment',
+        'src/assets/images/art/scenes/town/places-full/casino.webp'
+    ]);
+
+    summary.frameworkDocs = docs.length;
+}
+
+function auditChapterQuestFramework() {
+    if (!Array.isArray(ChapterQuestFramework) || ChapterQuestFramework.length !== 7) {
+        addIssue('chapter-framework', 'Chapter quest framework must cover seven Lv1-Lv70 chapters.', {
+            chapters: ChapterQuestFramework.length
+        });
+    }
+
+    if (!Array.isArray(LevelBandQuestFramework) || LevelBandQuestFramework.length !== 7) {
+        addIssue('chapter-framework', 'Level band framework must cover seven 10-level bands.', {
+            levelBands: LevelBandQuestFramework.length
+        });
+    }
+
+    const sorted = [...ChapterQuestFramework].sort((a, b) => a.levelRange[0] - b.levelRange[0]);
+    if (sorted[0]?.levelRange?.[0] !== 1 || sorted.at(-1)?.levelRange?.[1] !== 70) {
+        addIssue('chapter-framework', 'Chapter quest framework does not cover Lv1-Lv70 cleanly.', {
+            first: sorted[0]?.levelRange,
+            last: sorted.at(-1)?.levelRange
+        });
+    }
+
+    for (let index = 1; index < sorted.length; index += 1) {
+        const previous = sorted[index - 1];
+        const current = sorted[index];
+        if (previous.levelRange[1] + 1 !== current.levelRange[0]) {
+            addIssue('chapter-framework', 'Chapter level ranges have a gap or overlap.', {
+                previous: previous.id,
+                previousRange: previous.levelRange,
+                current: current.id,
+                currentRange: current.levelRange
+            });
+        }
+    }
+
+    if (ChapterQuestPausedSystems.combat?.status !== 'paused') {
+        addIssue('chapter-framework', 'Combat must remain paused during the town rebuild framework pass.');
+    }
+    if (ChapterQuestPausedSystems.tower?.status !== 'paused') {
+        addIssue('chapter-framework', 'Tower must remain paused during the town rebuild framework pass.');
+    }
+
+    summary.chapterFrameworks = ChapterQuestFramework.length;
+    summary.levelBandFrameworks = LevelBandQuestFramework.length;
+}
+
+function auditCasinoRouteFramework() {
+    if (!Array.isArray(CasinoRouteFramework) || CasinoRouteFramework.length < 6) {
+        addIssue('casino-framework', 'Casino route framework must include the full showcase-owner route.', {
+            stages: CasinoRouteFramework.length
+        });
+    }
+
+    const stageIds = new Set(CasinoRouteFramework.map(stage => stage.id));
+    for (const stageId of ['showcase_inspection', 'owner_contract', 'final_showcase_choice']) {
+        if (!stageIds.has(stageId)) {
+            addIssue('casino-framework', 'Casino route framework is missing a required stage.', { stageId });
+        }
+    }
+
+    if (CasinoShowcaseQuestFrame.questId !== 'commission_casino_showcase_001') {
+        addIssue('casino-framework', 'Casino showcase quest frame must keep the planned quest id.', {
+            questId: CasinoShowcaseQuestFrame.questId
+        });
+    }
+
+    summary.casinoRouteStages = CasinoRouteFramework.length;
+}
+
+function auditDataBacklog() {
+    const dataFiles = [
+        'AGENTS.md',
+        'src/js/data/TownRebuildPlan.js',
+        'src/js/data/ChapterQuestFramework.js',
+        'src/js/data/CasinoRouteFramework.js',
+        'src/js/data/QuestStories.js',
+        'src/js/data/SideStoryNarrativeTaxonomy.js',
+        'src/js/data/CrossChapterStoryArcs.js',
+        'src/js/data/DungeonStories.js'
+    ];
+    assertFiles('data-backlog', dataFiles);
+    summary.convergenceDataFiles = dataFiles.length;
 }
 
 auditValidationGates();
@@ -344,7 +467,10 @@ auditWorldEvents();
 auditDungeonsAndCasino();
 auditPassiveCombatEffects();
 auditTownAndPlaces();
-auditDocsAndBacklog();
+auditFrameworkDocs();
+auditChapterQuestFramework();
+auditCasinoRouteFramework();
+auditDataBacklog();
 
 const result = {
     ok: issues.length === 0,

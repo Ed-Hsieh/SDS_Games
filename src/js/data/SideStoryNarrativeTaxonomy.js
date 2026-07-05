@@ -1,9 +1,10 @@
 /**
  * SideStoryNarrativeTaxonomy.js
- * Classification and expansion notes for side stories.
+ * Direct planning metadata for chapter 1-3 commission quests.
  *
- * This layer is intentionally story-facing. Quest objectives still live in
- * Quests.js and playable story text still lives in QuestStories.js.
+ * This file is used by convergence checks, not as a runtime script overlay.
+ * Keep it aligned with QuestStories.js and Quests.js when town or side-story
+ * structure changes.
  */
 
 export const SideStoryTone = {
@@ -38,384 +39,353 @@ export const SideBossPotential = {
     SIDE_BOSS: 'side_boss'
 };
 
+function meta(chapter, primaryTone, secondaryTones, narrativeRole, emotionalCore, playPromise, expansionBeats, sideBossPotential = SideBossPotential.NONE, sideBossSeed = '') {
+    return {
+        chapter,
+        primaryTone,
+        secondaryTones,
+        narrativeRole,
+        emotionalCore,
+        playPromise,
+        expansionBeats,
+        sideBossPotential,
+        sideBossSeed
+    };
+}
+
 export const SideStoryNarrativeTaxonomy = {
-    commission_blacksmith_chimney: {
-        chapter: 1,
-        primaryTone: SideStoryTone.CRAFT,
-        secondaryTones: [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
-        narrativeRole: '把鍛造鋪從功能按鈕變成城鎮夜裡仍在運作的爐火，為後續妮露、秘銀與終局裝備線打底。',
-        emotionalCore: '鍛造師嘴上說只是煙囪倒灌，實際上她知道爐火一停，城鎮會先在心裡熄掉。',
-        playPromise: '替鍛造鋪找回穩定爐火，讓玩家知道裝備成長會和城鎮生存綁在一起。',
-        expansionBeats: [
-            '鍛造師不承認自己擔心，只把煙道問題說成「爐子耍脾氣」。',
-            '鐵礦石不是單純缺料，而是讓鍛造鋪能繼續修武器、修門栓、修人心的基本供應。',
-            '完成後鍛造鋪可成為跨章節裝備線起點，後面接妮露圖紙、秘銀與終局反擊。'
+    commission_blacksmith_chimney: meta(
+        1,
+        SideStoryTone.CRAFT,
+        [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
+        '讓破碎城鎮第一個重要功能點回到運作，鍛造鋪不是商店裝飾，而是玩家準備面對首領線的火口。',
+        '鍛造師用冷硬語氣掩飾對失蹤獵人的愧疚，幽默來自他的笨拙嘴硬。',
+        '修好煙囪後開啟穩定鍛造流程，讓玩家感覺自己修復了一座城鎮的夜燈。',
+        [
+            '玩家發現爐煙倒灌，鍛造師把擔心包成抱怨。',
+            '收集鐵礦石校準爐口，順手補上獵人鉤索的危險線索。',
+            '完成後鍛造鋪可作為裝備成長節點，也把銀絲伏獵者線推向準備階段。'
+        ]
+    ),
+    commission_apothecary_bottles: meta(
+        1,
+        SideStoryTone.SUSPENSE,
+        [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
+        '用史萊姆凝膠的異常甜味說明地脈污染已經貼近農田與水源。',
+        '藥師習慣用輕鬆話術安撫傷者，但她越輕描淡寫，污染越顯得不對勁。',
+        '完成後恢復基礎藥品供應，並為後續草藥籃支線建立信任。',
+        [
+            '藥師發現空瓶被凝膠腐蝕，懷疑不是單純魔物增生。',
+            '玩家採集樣本，確認污染尚未失控但已進入補給線。',
+            '藥棚重新供應基礎藥水，城鎮生存感變得可見。'
+        ]
+    ),
+    commission_guard_boots: meta(
+        1,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.ADVENTURE, SideStoryTone.SURVIVAL],
+        '用守衛靴底把地圖互動落回日常巡查，讓城鎮防線不是抽象數值。',
+        '村長知道大事常從小物件斷裂開始，靴底是他維持秩序的笨重方式。',
+        '完成後南門巡線更可信，後續防線與旗手支線有生活根基。',
+        [
+            '南門守衛每天踩出的路被破靴記住，村長要求補皮。',
+            '獸皮修補讓巡線能持續，也讓玩家理解地圖不是自動存在。',
+            '完成後南門狀態更新，為後續城門防衛與撤退線支線鋪路。'
+        ]
+    ),
+    commission_forge_001: meta(
+        2,
+        SideStoryTone.CRAFT,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.WORLD_LORE],
+        '妮露圖紙把工藝裝備線從功能升級推向人物失蹤與地脈實驗。',
+        '鍛造師把學徒名字藏在技術問題裡，因為承認她失蹤比承認配方失敗更痛。',
+        '完成後取得中階工藝線索，讓玩家願意用鍛造挑戰更難區域。',
+        [
+            '玩家帶回圖紙邊角名字，鍛造師第一次停下手。',
+            '補齊礦材比例，確認妮露不是亂跑，而是在測試地脈吸收。',
+            '圖紙入庫後開啟更高階工藝方向，並記錄妮露相關素材需求。'
         ],
-        sideBossPotential: SideBossPotential.NONE,
-        sideBossSeed: '',
-        placeholderIcon: 'iron_ore'
-    },
-    commission_apothecary_bottles: {
-        chapter: 1,
-        primaryTone: SideStoryTone.SUSPENSE,
-        secondaryTones: [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
-        narrativeRole: '把史萊姆任務從新手擊殺轉成地脈異常的第一個可觀察症狀，並建立藥師蓮娜的照護線。',
-        emotionalCore: '蓮娜不是要補貨，她是在確認農田、草藥與水源是不是已經開始被污染。',
-        playPromise: '收集凝膠樣本，讓玩家第一次感覺怪物掉落物也能成為故事證據。',
-        expansionBeats: [
-            '史萊姆凝膠的甜味成為第一章最早的異常細節。',
-            '蓮娜用空瓶建立基礎補給，後續才能自然接上毒霧、避難者與最後一鍋湯。',
-            '完成後藥棚不只是商店或補給點，而是城鎮判讀災害的地方。'
+        SideBossPotential.ELITE,
+        '可以加入守圖紙的礦坑精英，掉落妮露試驗殘片。'
+    ),
+    commission_forge_002: meta(
+        3,
+        SideStoryTone.CRAFT,
+        [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
+        '秘銀線把鍛造推向終局準備，說明高階裝備不是單純數值，而是城鎮把倖存者筆記接起來。',
+        '鍛造師承認自己不是只修武器，而是在替失蹤者把未完成的路走下去。',
+        '完成後讓秘銀與強化系統具備故事重量，支撐後續終局戰裝備準備。',
+        [
+            '逃匠筆記指出秘銀會篩掉僥倖，要求玩家累計強化紀錄。',
+            '玩家帶回秘銀礦石，驗證妮露圖紙能否跨到北境階段。',
+            '完成後鍛造鋪新增終局冊頁，對應高階製作與強化需求。'
         ],
-        sideBossPotential: SideBossPotential.NONE,
-        sideBossSeed: '',
-        placeholderIcon: 'slime_jelly'
-    },
-    commission_guard_boots: {
-        chapter: 1,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.ADVENTURE, SideStoryTone.SURVIVAL],
-        narrativeRole: '把玩家探索過的路線轉成城鎮每天要巡查的生活路線，建立地圖與城鎮狀態的連動。',
-        emotionalCore: '守衛不是英雄，但他每天最早踩上城外路線；靴底破了，代表城鎮的邊界也開始破。',
-        playPromise: '用獸皮修補靴底，讓玩家理解地圖不是只給玩家走，也是城鎮賴以生存的外緣。',
-        expansionBeats: [
-            '村長把靴底問題講得很小，卻讓玩家意識到南門外路線需要有人每天確認。',
-            '獸皮來源讓玩家自然接觸野外基礎怪物與材料。',
-            '完成後南門防線、巡守路線與後續難民/撤退線能有同一個起點。'
+        SideBossPotential.ELITE,
+        '北境秘銀路線可配置守脈精英，掉落高純秘銀與鍛造藍圖碎片。'
+    ),
+    commission_herb_basket: meta(
+        2,
+        SideStoryTone.SUSPENSE,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.WORLD_LORE],
+        '採藥籃把荊棘女巫線拉回普通採藥人的失蹤。',
+        '藥師的玩笑變少，因為籃子不會說謊，只會把失蹤者留下的位置暴露出來。',
+        '完成後給玩家毒霧與草藥交易線索，連到荊棘交換珠。',
+        [
+            '玩家找到採藥籃，藥師辨認籃底磨痕。',
+            '追查毒霧與藥草缺口，確認採藥人被迫靠近女巫溫室。',
+            '完成後開啟荊棘交易線，為女巫支線或副本敵人補怪物需求。'
         ],
-        sideBossPotential: SideBossPotential.NONE,
-        sideBossSeed: '',
-        placeholderIcon: 'beast_hide'
-    },
-    commission_forge_001: {
-        chapter: 2,
-        primaryTone: SideStoryTone.CRAFT,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.WORLD_LORE],
-        narrativeRole: '把妮露從「失蹤學徒」推成鍛造線的核心缺席者，讓裝備成長不只是數值。',
-        emotionalCore: '鍛造師不願承認自己在等學徒回來，只能先把她留下的字當作配方校準。',
-        playPromise: '找礦、補圖、確認妮露的研究方向。',
-        expansionBeats: [
-            '鍛造師第一次看見妮露署名時刻意罵她字醜，掩飾自己手抖。',
-            '殘圖邊角能指出丘陵礦材比例，玩家不是交材料，而是在替失蹤者接一句沒說完的話。',
-            '完成後鍛造鋪多出妮露的小工具，城鎮狀態顯示有人開始把她當成仍在參與反擊的人。'
+        SideBossPotential.SIDE_BOSS,
+        '可設計荊棘溫室守衛作為支線 Boss，掉落藤心素材。'
+    ),
+    commission_herb_basket_002: meta(
+        2,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.SUSPENSE, SideStoryTone.MORAL_CHOICE],
+        '籃底縫名讓失蹤者從匿名事件變成具體人物。',
+        '藥師一邊嫌線縫得醜，一邊不敢太快念出名字。',
+        '完成後取得抗毒或治療相關獎勵，讓故事回到實際戰鬥準備。',
+        [
+            '玩家發現籃底縫名，確認失蹤採藥人的身份。',
+            '追查毒腺與生命種子，判斷她曾試圖替自己留生路。',
+            '完成後藥師補上人物紀錄，城鎮多一條不只是懸案的支線收束。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '失控試作甲：妮露早期留下的自動護具，被地脈震動喚醒，可作為鍛造線小高潮。',
-        placeholderIcon: 'blueprint'
-    },
-    commission_forge_002: {
-        chapter: 3,
-        primaryTone: SideStoryTone.CRAFT,
-        secondaryTones: [SideStoryTone.SURVIVAL, SideStoryTone.EMOTIONAL],
-        narrativeRole: '把妮露研究、奧倫筆記與終局裝備壓力收束在同一條鍛造線。',
-        emotionalCore: '鍛造師終於承認鍛造不是修東西，而是在替還活著的人安排下一次反擊。',
-        playPromise: '取得秘銀、完成強化，解釋終局裝備為什麼必要。',
-        expansionBeats: [
-            '鍛造師不再把秘銀叫傳說，而叫「夠晚才出現的麻煩」。',
-            '奧倫筆記可以補出北境鍛造法，讓玩家知道高階裝備與古龍壓力直接相關。',
-            '完成後鍛造鋪的語氣變得更像戰備室，爐火旁會出現反擊順序的暗示。'
+        SideBossPotential.SIDE_BOSS,
+        '可安排被藤蔓寄生的採藥影作為情感型支線 Boss。'
+    ),
+    commission_grave_bookmark: meta(
+        2,
+        SideStoryTone.WORLD_LORE,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.SUSPENSE],
+        '墓園書籤把巫妖從單純亡靈怪物改回曾有名字的古代學者。',
+        '書記不是替怪物辯解，而是不願讓恐懼抹掉曾經存在的人。',
+        '完成後提供遺跡判讀或解謎輔助獎勵，支撐古墓路線。',
+        [
+            '玩家找到書籤，書記辨認上面的舊學院符號。',
+            '追查骨片與符文，確認巫妖生前研究方向。',
+            '完成後書記補上名字，後續巫妖道具與掉落更有一致性。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '裂銀熔傀：秘銀測試失敗後生成的防衛傀儡，用來驗證終局裝備抗性。',
-        placeholderIcon: 'mithril_ore'
-    },
-    commission_herb_basket: {
-        chapter: 2,
-        primaryTone: SideStoryTone.SUSPENSE,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.WORLD_LORE],
-        narrativeRole: '把荊棘女巫的交易規則從森林推到城鎮門口。',
-        emotionalCore: '藥師蓮娜不是在研究怪談，她在判斷一個人是不是已經回不來了。',
-        playPromise: '跟著採藥籃與毒蛛痕跡，理解女巫如何迫使普通人付出代價。',
-        expansionBeats: [
-            '採藥籃自己回到市集，蓮娜先檢查泥土方向，再檢查血跡。',
-            '毒蛛不是單純怪物，而是被荊棘交易規則吸引到路線上的守門者。',
-            '完成後藥棚開始掛起空籃，提醒玩家失蹤者並非只有一人。'
+        SideBossPotential.ELITE,
+        '可配置墓園守頁者作為精英，掉落古代書頁與符文粉。'
+    ),
+    commission_grave_bookmark_002: meta(
+        2,
+        SideStoryTone.WORLD_LORE,
+        [SideStoryTone.MORAL_CHOICE, SideStoryTone.SUSPENSE],
+        '朱利安邊註讓遺跡線呈現古代學者的盲目秩序。',
+        '書記害怕自己和朱利安一樣，把活人寫成分類標籤。',
+        '完成後給予陷阱減傷或謎題提示，讓知識成為實際能力。',
+        [
+            '玩家找到朱利安邊註，內容比墓碑更冷靜。',
+            '進一步追查石魔核心與古代符文，確認遺跡仍在照規則運作。',
+            '完成後書記修正旅人手札索引，避免玩家只用怪物名理解世界。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '織籃毒蛛母：守在採藥人最後路線上的蛛母，能把荊棘和蛛絲編成陷阱。',
-        placeholderIcon: 'herb_basket'
-    },
-    commission_herb_basket_002: {
-        chapter: 2,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.SUSPENSE, SideStoryTone.MORAL_CHOICE],
-        narrativeRole: '把採藥籃從線索變成失蹤者留下的求救。',
-        emotionalCore: '失蹤採藥人沒有英雄台詞，只把名字縫進籃底，讓警告比自己先回家。',
-        playPromise: '穩住縫線氣息，清出失蹤者留下的最後路線。',
-        expansionBeats: [
-            '蓮娜拆線時不說話，因為她已經認出縫線手法。',
-            '森林精華不是材料清單，而是讓籃底氣息多留一晚的辦法。',
-            '完成後玩家能理解女巫線不是只在打 BOSS，而是在回收被規則吞掉的人。'
+        SideBossPotential.SIDE_BOSS,
+        '可安排邊註守護構裝作為支線 Boss，掉落索引核心。'
+    ),
+    commission_drowned_bell_insomnia: meta(
+        2,
+        SideStoryTone.SUSPENSE,
+        [SideStoryTone.WORLD_LORE, SideStoryTone.EMOTIONAL],
+        '沉鐘失眠線把海岸神諭的聲波災害帶回城鎮居民。',
+        '書記把失眠者的節奏記成譜，因為他不想讓痛苦被說成只是多想。',
+        '完成後提供抗寒、抗恐懼或節奏提示獎勵，連到沉鐘神諭。',
+        [
+            '居民在同一段鐘聲裡失眠，書記要求記錄節拍。',
+            '玩家取得寒晶與符文，對照海岸濕拓片。',
+            '完成後沉鐘節奏成為可追蹤線索，導向海岸副本與守燈人。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '失名採藥人的影：可作為非殺戮式遭遇，玩家擊退纏身毒霧並保存他的名字。',
-        placeholderIcon: 'threaded_basket'
-    },
-    commission_grave_bookmark: {
-        chapter: 2,
-        primaryTone: SideStoryTone.WORLD_LORE,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.SUSPENSE],
-        narrativeRole: '讓巫妖不只是亡靈怪物，而是曾害怕靈魂消散的古代學者。',
-        emotionalCore: '書記害怕有一天自己也只會把人寫成分類，忘了名字。',
-        playPromise: '找回骨片與書籤，還原巫妖生前名字。',
-        expansionBeats: [
-            '書籤文字像學者寫給未來自己的便條，不像遺言。',
-            '骨片與骷髏兵記錄能讓書記判斷墓群不是亂醒，而是在尋找失物。',
-            '完成後百科與手札可以把巫妖條目從「怪物」轉成「曾經的學者」。'
+        SideBossPotential.ELITE,
+        '海岸可加入鐘潮殘響精英，掉落回聲貝與寒晶。'
+    ),
+    commission_coast_lamplighter: meta(
+        2,
+        SideStoryTone.ADVENTURE,
+        [SideStoryTone.SUSPENSE, SideStoryTone.EMOTIONAL],
+        '守燈人油壺把海岸擴張成可前往的實地路線。',
+        '塔維用過度樂觀的語氣談燈塔，像每句玩笑都在替海裡的人留方向。',
+        '完成後提供黑暗視野或地圖偵查，讓玩家感覺真的開了一段路。',
+        [
+            '玩家發現燈油不足，塔維仍假裝只是燈芯挑食。',
+            '追查海岸殘響與寒晶，確認燈號被沉鐘節奏干擾。',
+            '完成後燈塔路線穩定，海岸地點與後續圖片資產需求被記錄。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '守頁骸骨：守著書籤與墓道索引的菁英亡靈。',
-        placeholderIcon: 'grave_bookmark'
-    },
-    commission_grave_bookmark_002: {
-        chapter: 2,
-        primaryTone: SideStoryTone.WORLD_LORE,
-        secondaryTones: [SideStoryTone.MORAL_CHOICE, SideStoryTone.SUSPENSE],
-        narrativeRole: '把巫妖支線接到朱利安與遠古遺跡，補出「盲目秩序」的因果。',
-        emotionalCore: '朱利安不是壞人，但他留下的秩序仍在殺人。',
-        playPromise: '解讀邊註，理解遠古守衛為什麼把活人當污染源。',
-        expansionBeats: [
-            '邊註不是謎語，而是朱利安對自己防衛系統的遲來恐懼。',
-            '遠古守衛不需要仇恨就能殺人，這讓書記第一次害怕「正確紀錄」。',
-            '完成後遠古遺跡入口提示可以改成帶有警告，而不是單純副本解鎖。'
+        SideBossPotential.SIDE_BOSS,
+        '可設計潮燈怨影作為海岸支線 Boss，掉落守燈油與回聲素材。'
+    ),
+    commission_ash_ledger_names: meta(
+        2,
+        SideStoryTone.INTRIGUE,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.MORAL_CHOICE],
+        '灰燼帳冊讓失蹤工匠從背景數字變成村長不能再藏的名單。',
+        '村長習慣把壞消息折好放回抽屜，這次他必須把它釘上公告欄。',
+        '完成後解鎖黑市價格或金幣情報，將男爵黑錢與城鎮經濟接上。',
+        [
+            '玩家帶回帳冊線索，村長承認失蹤名單早已存在。',
+            '追查影徽與黑鐵貨號，確認男爵強徵工匠。',
+            '完成後公告欄更新，家屬線與黑市線開始互相咬合。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '朱利安防衛裁定者：人形機械審判體，透過石碑順序與戰鬥打開。',
-        placeholderIcon: 'ancient_rune'
-    },
-    commission_drowned_bell_insomnia: {
-        chapter: 2,
-        primaryTone: SideStoryTone.SUSPENSE,
-        secondaryTones: [SideStoryTone.WORLD_LORE, SideStoryTone.EMOTIONAL],
-        narrativeRole: '讓沉鐘神諭的影響先以失眠、聲音與節奏滲進城鎮。',
-        emotionalCore: '那名居民不是瘋了，他只是比別人先聽見海底祭壇浮起來。',
-        playPromise: '收集回聲殘留，比對鐘聲節奏。',
-        expansionBeats: [
-            '居民把鐘聲敲在書記桌上，讓看不見的海嘯變成聽得見的規律。',
-            '幽魂不是路邊遭遇，而是被錯誤節奏拉回來的東西。',
-            '完成後城鎮夜晚文字可出現遠方低鐘，提示沉鐘線仍在推進。'
+        SideBossPotential.SIDE_BOSS,
+        '可安排男爵收債官作為支線 Boss，掉落灰燼名牌。'
+    ),
+    commission_ash_ledger_names_002: meta(
+        2,
+        SideStoryTone.INTRIGUE,
+        [SideStoryTone.ADVENTURE, SideStoryTone.EMOTIONAL],
+        '工匠刻痕把男爵地宮的運料路線刻回城鎮。',
+        '村長不再只宣布名單，他開始替那些名字找到曾經抵抗過的證據。',
+        '完成後給予工藝或黑市相關獎勵，讓失蹤者留下實際推進力。',
+        [
+            '家屬交出刻痕工具，玩家辨認它像路線圖。',
+            '追查暗鋼與影兵，確認黑鐵倉道存在。',
+            '完成後工匠刻刀成為獎勵，也成為鍛造與黑市的共同線索。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '回聲縫合者：由多段錯誤鐘聲拼出的幽魂菁英。',
-        placeholderIcon: 'echo_shell'
-    },
-    commission_coast_lamplighter: {
-        chapter: 2,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.SUSPENSE, SideStoryTone.ADVENTURE],
-        narrativeRole: '補上海岸災後小人物，讓沉鐘線有活人的恐懼與職責。',
-        emotionalCore: '塔維怕黑，卻一輩子替海岸點燈；現在他害怕自己的燈把錯的人叫回來。',
-        playPromise: '校正燈號、驅散亡魂，讓海岸不只是災難背景。',
-        expansionBeats: [
-            '塔維不求玩家打敗神諭，只求確認今晚該不該點燈。',
-            '靈質校正能讓燈號從招魂變回指路。',
-            '完成後城鎮可出現遠方一點穩定燈光，作為沉鐘線的溫柔收束。'
+        SideBossPotential.SIDE_BOSS,
+        '黑鐵倉道可加入影鑄監工，掉落暗鋼與工匠刻痕。'
+    ),
+    commission_merchant_001: meta(
+        2,
+        SideStoryTone.INTRIGUE,
+        [SideStoryTone.DARK_HUMOR, SideStoryTone.WORLD_LORE],
+        '黑市收藏家標籤補上灰燼男爵貨物流進城鎮的暗線。',
+        '伊文不願當英雄，只願當收據；他的幽默來自把危險講得像估價單。',
+        '完成後打開黑市籤或特殊交易來源，讓金幣與稀有物資更有重量。',
+        [
+            '古代錢幣帶玩家接觸伊文，他交出焦黑貨籤。',
+            '玩家取得詛咒碎片，讀出貨號背後的路線。',
+            '完成後黑市接入城鎮經濟，也為賭場與灰燼帳冊建立第三方來源。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '回岸燈亡：被錯誤燈號召回的海岸亡魂，可用燈號節奏削弱。',
-        placeholderIcon: 'lantern'
-    },
-    commission_ash_ledger_names: {
-        chapter: 2,
-        primaryTone: SideStoryTone.INTRIGUE,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.MORAL_CHOICE],
-        narrativeRole: '讓灰燼男爵暴政從遠方要塞壓到城鎮公告欄。',
-        emotionalCore: '名字公開後，家屬不能再假裝人只是晚點回家。',
-        playPromise: '取得影徽，確認失蹤工匠與黑曜石要塞的關聯。',
-        expansionBeats: [
-            '村長把名單藏在抽屜裡，不是怕麻煩，而是怕真相讓家屬站不住。',
-            '影徽成為證據後，公告欄第一次不是發布委託，而是承認失蹤。',
-            '完成後男爵線會從「打暴君」變成「追查誰替暴君挖地宮」。'
+        SideBossPotential.ELITE,
+        '可配置黑市押貨手作為精英，掉落黑市籤與詛咒碎片。'
+    ),
+    commission_casino_001: meta(
+        2,
+        SideStoryTone.INTRIGUE,
+        [SideStoryTone.DARK_HUMOR, SideStoryTone.SUSPENSE],
+        '假勝率把賭場從任務入口改成金幣與黑錢流向的核心場所。',
+        '瑪洛相信數字不會說謊，直到她發現數字被迫講笑話。',
+        '完成後提供勝率揭露或賭場情報獎勵，支撐玩家想進賭場的理由。',
+        [
+            '巷口流浪者交出瑪洛的勝率表，要求玩家實測賭桌。',
+            '玩家在老虎機與骰子局取得勝場，辨認被調整的節奏。',
+            '完成後賭場暗流露出貨號，連到灰燼男爵與黑市。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '黑鐵監工：押送工匠的男爵手下，人形支線 BOSS。',
-        placeholderIcon: 'shadow_insignia'
-    },
-    commission_ash_ledger_names_002: {
-        chapter: 2,
-        primaryTone: SideStoryTone.ADVENTURE,
-        secondaryTones: [SideStoryTone.INTRIGUE, SideStoryTone.EMOTIONAL],
-        narrativeRole: '把失蹤名單推進成地宮工事線索。',
-        emotionalCore: '工匠死前留下的不是遺物，而是能讓後來者找到路的刻痕。',
-        playPromise: '沿刻痕追到黑鐵倉道，找出男爵地宮材料來源。',
-        expansionBeats: [
-            '家屬把舊工具拿出來，代表城鎮終於願意一起面對失蹤。',
-            '刻痕可以和地圖地標互相對上，提升探索感。',
-            '完成後黑曜石要塞不再只是主線地點，而是由一群被迫工作的人挖出來。'
+        SideBossPotential.SIDE_BOSS,
+        '可設計暗桌荷官作為支線 Boss 或特殊賭局，掉落修正勝率表。'
+    ),
+    commission_northern_letter: meta(
+        3,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.ADVENTURE, SideStoryTone.WORLD_LORE],
+        '北境來信讓終局壓力第一次透過普通信使抵達城鎮。',
+        '村長把信讀得很慢，像怕字太快就會把人帶走。',
+        '完成後提供北境偵查或事件線索獎勵，推動龍巢前哨。',
+        [
+            '北境信件抵達，紙邊有熱痕與龍鱗粉。',
+            '玩家追查飛龍斥候，確認信使走過的熱風路線。',
+            '完成後北境成為真實方向，城鎮開始準備終局。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '男爵收稅官：以糧食與鐵器名義徵收平民，戰鬥中召喚影兵。',
-        placeholderIcon: 'worker_marks'
-    },
-    commission_merchant_001: {
-        chapter: 2,
-        primaryTone: SideStoryTone.INTRIGUE,
-        secondaryTones: [SideStoryTone.DARK_HUMOR, SideStoryTone.WORLD_LORE],
-        narrativeRole: '讓黑市從商店功能變成灰燼男爵物流的情報切口。',
-        emotionalCore: '伊文不想當英雄，只想當收據；可末日裡看懂收據的人也會被拖下水。',
-        playPromise: '用詛咒碎片辨認黑市標籤，追出走私路線。',
-        expansionBeats: [
-            '伊文用像推銷古董的語氣說出危險情報，形成灰色幽默。',
-            '標籤上的殘咒能讓玩家知道男爵貨物不是憑空出現。',
-            '完成後商店與黑市可有更自然的情報交易定位。'
+        SideBossPotential.ELITE,
+        '可配置熱風信道獵手作為精英，掉落飛龍鱗與信封蠟印。'
+    ),
+    commission_northern_letter_002: meta(
+        3,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.MORAL_CHOICE, SideStoryTone.SURVIVAL],
+        '未寄出的回信讓等待本身成為一條需要被尊重的路線。',
+        '村長知道信可能送不到，仍想確認路是否還能走。',
+        '完成後提供首領減傷或事件線索，讓情感收束變成終局準備。',
+        [
+            '村長拿出未寄出的回信，承認自己拖了很久。',
+            '玩家追查幼龍與龍牙，確認回信路線是否已被封死。',
+            '完成後城鎮不一定得到好消息，但得到停止假裝的勇氣。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '標籤守貨人：黑市貨箱旁的契約傀儡，適合作為短遭遇。',
-        placeholderIcon: 'black_market_ticket'
-    },
-    commission_casino_001: {
-        chapter: 2,
-        primaryTone: SideStoryTone.INTRIGUE,
-        secondaryTones: [SideStoryTone.DARK_HUMOR, SideStoryTone.SUSPENSE],
-        narrativeRole: '讓賭場接上灰燼男爵金流，不再只是賺金幣的小遊戲。',
-        emotionalCore: '瑪洛不是突然變善良，她只是看懂了輸贏表裡藏著會害死人的貨號。',
-        playPromise: '驗證假勝率，從賭桌找出黑市暗號。',
-        expansionBeats: [
-            '瑪洛把勝率表藏得像一把薄刀，玩家需要用賭局把刀刃磨出來。',
-            '輸贏數字可以和男爵貨號呼應，讓賭場變情報節點。',
-            '完成後賭場的語氣仍然貪婪，但玩家知道它開始漏出真相。'
+        SideBossPotential.ELITE,
+        '可設計龍巢信道守衛作為精英，掉落龍牙與未寄信件。'
+    ),
+    commission_last_soup: meta(
+        3,
+        SideStoryTone.SURVIVAL,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.DARK_HUMOR],
+        '最後一鍋湯把終局避難從宏大戰爭拉回吃飯與補給。',
+        '藥師用玩笑維持隊伍呼吸，因為如果她沉默，大家會開始數剩下幾碗。',
+        '完成後提供治療增益或補給券，讓城鎮生存系統更明確。',
+        [
+            '藥師清點最後一鍋湯，要求玩家找回能維持補給的材料。',
+            '玩家帶回生命種子與藥品，讓避難餐線不會斷。',
+            '完成後補給站狀態更新，終局城鎮更像真的有人在努力活下來。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '暗桌代理人：介於賭局與戰鬥之間的人形對手，能作第二章賭場高潮。',
-        placeholderIcon: 'casino_chip'
-    },
-    commission_northern_letter: {
-        chapter: 3,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.ADVENTURE, SideStoryTone.WORLD_LORE],
-        narrativeRole: '讓北境不只是高階戰場，而是曾有人生活的地方。',
-        emotionalCore: '家書裡抱怨豆子太硬，比任何戰報都更能證明北方曾經正常。',
-        playPromise: '追蹤信使路線，確認熱風與飛龍斥候。',
-        expansionBeats: [
-            '信使懷裡不是軍令，而是家書，降低主線重量但加深人味。',
-            '飛龍鱗證明那條路曾被人穿越，也證明現在被古龍壓住。',
-            '完成後城鎮可出現北境難民談論家常，讓終局前世界更大。'
+        SideBossPotential.ELITE,
+        '可加入搶奪補給的深淵斥候精英，掉落避難食材。'
+    ),
+    commission_broken_standard: meta(
+        3,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.ADVENTURE, SideStoryTone.MORAL_CHOICE],
+        '斷旗手芙蕾把前線撤退變成城鎮仍有秩序的證明。',
+        '芙蕾拒絕英雄稱號，她只想讓還活著的人看見旗還在。',
+        '完成後提供旗幟飾品或士氣相關能力，讓防線有實際效果。',
+        [
+            '村長收到焦黑斷旗，請玩家修補象徵與實用路標。',
+            '玩家擊退深淵追兵並找回旗飾，確認撤退線仍可用。',
+            '完成後城門升起斷旗，城鎮不是變完整，而是學會帶傷站著。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '截信飛龍斥候：不必是完整 BOSS，可作為北境路線菁英遭遇。',
-        placeholderIcon: 'sealed_letter'
-    },
-    commission_northern_letter_002: {
-        chapter: 3,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.MORAL_CHOICE, SideStoryTone.SURVIVAL],
-        narrativeRole: '把北境家書推成城鎮對遠方的回應。',
-        emotionalCore: '回信可能送不到，但承認想回應本身就是抵抗。',
-        playPromise: '確認回信路線是否已被龍族封鎖。',
-        expansionBeats: [
-            '村長拿出的回信短得可笑，卻讓玩家知道沉默不等於不在乎。',
-            '龍牙證明路線封鎖，讓玩家明白終局不是單向冒險，而是通信斷裂。',
-            '完成後城鎮可以把未寄出的回信收進手札或書記檔案。'
+        SideBossPotential.SIDE_BOSS,
+        '撤退線可加入深淵旗獵者作為支線 Boss，掉落斷旗角飾。'
+    ),
+    commission_broken_standard_002: meta(
+        3,
+        SideStoryTone.EMOTIONAL,
+        [SideStoryTone.SURVIVAL, SideStoryTone.ADVENTURE],
+        '點名冊讓斷旗支線從象徵走向具體失散者。',
+        '芙蕾不想被稱讚，只想確定名單沒有漏掉誰。',
+        '完成後提供首領抗性或撤退秩序獎勵，支援終局連戰。',
+        [
+            '芙蕾交出汗水泡皺的點名冊，要求玩家確認撤退線追兵。',
+            '玩家擊退深淵士兵並取得魔族角，證明追兵來源。',
+            '完成後點名冊補齊，城鎮防線有了能被信任的撤退規則。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '熱痕幼龍：守著回信路線的龍族幼體，適合作為路線確認戰。',
-        placeholderIcon: 'unsent_letter'
-    },
-    commission_last_soup: {
-        chapter: 3,
-        primaryTone: SideStoryTone.SURVIVAL,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.DARK_HUMOR],
-        narrativeRole: '讓終局壓力落到廚房、傷患與避難者身上。',
-        emotionalCore: '藥水能救傷口，熱湯讓人明天願意醒來。',
-        playPromise: '收集補給、保護路線，讓避難者廚房撐住。',
-        expansionBeats: [
-            '蓮娜把預言丟給書記，自己只管鍋底不要焦。',
-            '補給路線上的深淵士兵讓玩家感覺城鎮被戰場逼近。',
-            '完成後市集邊棚能變成避難廚房，直接改變場所氛圍。'
+        SideBossPotential.SIDE_BOSS,
+        '可設計追名惡魔作為支線 Boss，掉落撤退點名冊。'
+    ),
+    commission_scholar_last_index: meta(
+        3,
+        SideStoryTone.WORLD_LORE,
+        [SideStoryTone.EMOTIONAL, SideStoryTone.SURVIVAL],
+        '書記最後索引把所有災害鏈壓進一本會呼吸的手札。',
+        '書記害怕自己記不完，但更怕沒有記錄的人像從未存在。',
+        '完成後提供首領抗性與解謎提示，讓知識成為終局防禦。',
+        [
+            '書記發現手札索引開始自行錯位，要求玩家取回核心證物。',
+            '玩家追查世界碎片與終局怪物紀錄，讓索引穩定。',
+            '完成後活索引成為獎勵，所有前期記錄被接到終局。'
         ],
-        sideBossPotential: SideBossPotential.ELITE,
-        sideBossSeed: '熄爐掠食者：專門襲擊補給車的深淵菁英。',
-        placeholderIcon: 'soup_pot'
-    },
-    commission_broken_standard: {
-        chapter: 3,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.ADVENTURE, SideStoryTone.MORAL_CHOICE],
-        narrativeRole: '把撤退從失敗改寫成秩序與倖存。',
-        emotionalCore: '芙蕾不是英雄，只是最後一個還抓著旗的人。',
-        playPromise: '奪回角飾、修補斷旗，讓城門重新有集結象徵。',
-        expansionBeats: [
-            '芙蕾拒絕被讚美，因為她記得每個沒跑回來的人。',
-            '惡魔角飾不是材料，而是深淵拿來嘲笑撤退者的裝飾。',
-            '完成後城門掛起斷旗，讓玩家看見支線改變城鎮畫面。'
+        SideBossPotential.SIDE_BOSS,
+        '可安排索引噬頁者作為支線 Boss，掉落活索引核心。'
+    ),
+    commission_casino_002: meta(
+        3,
+        SideStoryTone.DARK_HUMOR,
+        [SideStoryTone.SURVIVAL, SideStoryTone.INTRIGUE],
+        '最後一夜籌碼把賭場從誘惑資源轉成避難資金來源。',
+        '瑪洛討厭把善意寫進帳冊，因為善意通常沒有發票，但她仍然寫了。',
+        '完成後給予補給券或賭場轉化功能，讓金幣與生存直接連動。',
+        [
+            '巷口流浪者說賭場還有城裡最快流動的金幣。',
+            '玩家累計籌碼盈利，讓瑪洛把賭場收益換成避難補給。',
+            '完成後賭場功能從純抽獎延伸到城鎮救援。'
         ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '追旗魔將：專門追殺撤退旗手的人形惡魔軍官。',
-        placeholderIcon: 'broken_standard'
-    },
-    commission_broken_standard_002: {
-        chapter: 3,
-        primaryTone: SideStoryTone.EMOTIONAL,
-        secondaryTones: [SideStoryTone.SURVIVAL, SideStoryTone.ADVENTURE],
-        narrativeRole: '把斷旗象徵推進到點名與失散者名單。',
-        emotionalCore: '缺席不是數字，是每次點名時卡住的一口氣。',
-        playPromise: '截斷追兵，讓撤退線能完成點名。',
-        expansionBeats: [
-            '芙蕾的點名冊比旗更重，因為它需要活人承認誰不在。',
-            '追兵沿撤退線逼近，讓玩家保護的不只是城門，而是名單完整性。',
-            '完成後城門狀態可以從「斷旗」變成「旗影下仍有人排隊」。'
-        ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '點名獵手：追著失散者名字出現的深淵軍官，可接在追旗魔將後。',
-        placeholderIcon: 'roll_call'
-    },
-    commission_scholar_last_index: {
-        chapter: 3,
-        primaryTone: SideStoryTone.WORLD_LORE,
-        secondaryTones: [SideStoryTone.EMOTIONAL, SideStoryTone.SURVIVAL],
-        narrativeRole: '把旅人手札與書記職責推到終局記憶保存。',
-        emotionalCore: '書記不是在寫墓誌銘，他固執地替明天保留空白頁。',
-        playPromise: '奪回索引封皮、封住黑印，保存活人名冊。',
-        expansionBeats: [
-            '書記語氣越平靜，越能讓玩家感覺他其實很害怕。',
-            '深淵碎片能污染名字，讓「被遺忘」成為可戰鬥的威脅。',
-            '完成後旅人手札可以多一層城鎮記憶意味，而不只是任務列表。'
-        ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '刪名者：深淵書吏型人形 BOSS，會抹除名冊與戰鬥紀錄。',
-        placeholderIcon: 'last_index'
-    },
-    commission_casino_002: {
-        chapter: 3,
-        primaryTone: SideStoryTone.DARK_HUMOR,
-        secondaryTones: [SideStoryTone.SURVIVAL, SideStoryTone.INTRIGUE],
-        narrativeRole: '把賭場從吞錢場所轉成終局避難補給的灰色渠道。',
-        emotionalCore: '瑪洛沒有變成好人，只是終於讓貪婪替人做一件有用的事。',
-        playPromise: '用賭場盈利換補給，讓灰色地帶也被迫參與城鎮生存。',
-        expansionBeats: [
-            '瑪洛仍然嘴硬，說這只是短差修正，不是良心發現。',
-            '籌碼換成乾糧時，賭場的華麗與避難者的疲憊形成反差。',
-            '完成後賭場可留下基金清單，讓玩家看到金幣第一次有故事重量。'
-        ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '惡魔莊家：暗桌契約的正面化，可在第三章賭場收束成特殊 BOSS。',
-        placeholderIcon: 'black_chip'
-    },
-    hidden_dark_deal: {
-        chapter: null,
-        primaryTone: SideStoryTone.SECRET,
-        secondaryTones: [SideStoryTone.DARK_HUMOR, SideStoryTone.INTRIGUE],
-        narrativeRole: '讓賭場黑暗面變成可追蹤的隱藏劇情。',
-        emotionalCore: '輸掉的不只是籌碼，而是被惡魔莊家寫進契約的名字。',
-        playPromise: '回到暗桌贏一局，逼出契約正文。',
-        expansionBeats: [
-            '暗桌輸局留下血印，讓玩家知道賭場的灰色地帶真的會咬人。',
-            '巷口流浪者能看懂血印，把隱藏任務接回城鎮暗流。',
-            '完成後可作為惡魔莊家支線 BOSS 的前置入口。'
-        ],
-        sideBossPotential: SideBossPotential.SIDE_BOSS,
-        sideBossSeed: '惡魔莊家：用籌碼、血印與骨骰切換戰鬥規則。',
-        placeholderIcon: 'bone_dice'
-    }
+        SideBossPotential.SIDE_BOSS,
+        '可加入末夜莊家作為特殊賭局 Boss，掉落補給籌碼。'
+    )
 };
 
 export function getSideStoryNarrativeMeta(questId) {
-    const meta = SideStoryNarrativeTaxonomy[questId] || null;
-    if (!meta) return null;
-
+    const entry = SideStoryNarrativeTaxonomy[questId] || null;
+    if (!entry) return null;
     return {
-        ...meta,
-        primaryLabel: SideStoryToneLabels[meta.primaryTone] || meta.primaryTone,
-        secondaryLabels: (meta.secondaryTones || []).map(tone => SideStoryToneLabels[tone] || tone)
+        ...entry,
+        primaryLabel: SideStoryToneLabels[entry.primaryTone] || entry.primaryTone,
+        secondaryLabels: (entry.secondaryTones || []).map(tone => SideStoryToneLabels[tone] || tone)
     };
 }

@@ -1,16 +1,14 @@
 /**
  * DialogueManager.js
- * Picks contextual NPC dialogue and applies lightweight dialogue effects.
+ * Contextual NPC dialogue selector for the rebuilt town scripts.
  */
 
 import GameManager from './GameManager.js';
 import { questManager } from './QuestManager.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
-import { getQuestStory } from '../data/QuestStories.js';
 import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
-import { getCharacterReportClosing } from '../data/CharacterProfiles.js';
 
 class DialogueManager {
     constructor() {
@@ -32,7 +30,7 @@ class DialogueManager {
 
     markSeen(npcId, dialogueId) {
         const key = this.getSeenKey(npcId, dialogueId);
-        this.history[key] = Number(this.history[key] || 0) + 1;
+        this.history[key] = this.getSeenCount(npcId, dialogueId) + 1;
         GameManager.markSaveDirty?.('dialogue');
     }
 
@@ -41,7 +39,6 @@ class DialogueManager {
     }
 
     getAvailableDialogues(npcId) {
-        this.prepareContextualDialogue(npcId);
         const dialogues = [
             ...this.getCompletedQuestReportDialogues(npcId),
             ...getTownNPCDialogues(npcId)
@@ -57,18 +54,14 @@ class DialogueManager {
         return storyDialogues.length > 0 ? storyDialogues : dialogues;
     }
 
-    getCompletedQuestReportDialogue(npcId) {
-        return this.getCompletedQuestReportDialogues(npcId)[0] || null;
-    }
-
     getCompletedQuestReportDialogues(npcId) {
         const npc = getTownNPC(npcId);
-        if (!npc) return [];
+        if (!npc || typeof questManager.getCompletedQuests !== 'function') return [];
 
         return questManager.getCompletedQuests()
             .filter(quest => this.isQuestReporter(npcId, quest))
             .filter(quest => !this.hasExplicitQuestReportDialogue(npcId, quest.id))
-            .map(completedQuest => this.createQuestReportDialogue(npc, completedQuest));
+            .map(quest => this.createQuestReportDialogue(npc, quest));
     }
 
     hasExplicitQuestReportDialogue(npcId, questId) {
@@ -80,48 +73,40 @@ class DialogueManager {
     }
 
     createQuestReportDialogue(npc, completedQuest) {
-        const story = getQuestStory(completedQuest, completedQuest.state);
-        const reportName = story.reportTo?.name || npc.name;
-        const reportMessage = `${reportName}把「${completedQuest.name}」的紀錄歸檔。`;
-        const nextLead = story.finished || story.nextLead || '城鎮裡的下一段動向正在浮上來。';
-        const closingLine = getCharacterReportClosing(npc.id, completedQuest.id)
-            || '這份紀錄我會收下。接下來如果有新動向，城鎮裡會先有人露出那種「我有麻煩要交給你」的表情。';
-
+        const questName = completedQuest.name || completedQuest.id || '任務';
         return {
             id: `report_${completedQuest.id}`,
             priority: 86,
             tone: 'discovery',
-            narrativeTitle: '回報完成',
-            narrativeSummary: `你向${reportName}回報了「${completedQuest.name}」。這段紀錄被收進旅人手札，${nextLead}`,
+            narrativeTitle: '回報完成事項',
+            narrativeSummary: `${npc.name}把「${questName}」記進城鎮恢復紀錄。這類回報之後應該接到城鎮狀態、功能解鎖或後續劇情，而不是只給獎勵就結束。`,
             lines: [
                 {
                     speaker: 'npc',
-                    text: story.completed || completedQuest.dialogue?.complete || `你帶回了「${completedQuest.name}」的結果。`
+                    text: `我知道你完成了「${questName}」。這不只是清掉一件事，是讓城鎮少一處斷點。`
                 },
                 {
                     speaker: 'npc',
-                    text: closingLine
+                    text: '之後相關的商店、地圖、情報或人物反應都應該跟著更新。沒有後續的回報，就只是比較漂亮的打勾。'
                 }
             ],
             effects: [
-                { type: 'completeQuest', questId: completedQuest.id, message: reportMessage }
+                { type: 'completeQuest', questId: completedQuest.id, message: `已回報：${questName}` }
             ],
             route: 'quest',
-            routeLabel: '查看旅人手札'
+            routeLabel: '查看任務'
         };
     }
 
     isQuestReporter(npcId, quest) {
         if (!quest) return false;
-        const story = getQuestStory(quest, quest.state);
-        if (story.reportTo?.npcId) return story.reportTo.npcId === npcId;
-        return quest.npc === npcId;
+        if (quest.reportTo?.npcId) return quest.reportTo.npcId === npcId;
+        if (quest.npc) return quest.npc === npcId;
+        return false;
     }
 
     hasFreshDialogue(npcId) {
-        this.prepareContextualDialogue(npcId);
-        const dialogues = this.getAvailableDialogues(npcId);
-        return dialogues.some(dialogue => {
+        return this.getAvailableDialogues(npcId).some(dialogue => {
             if (this.isFallbackDialogue(dialogue)) return false;
             if (dialogue.once && !this.hasSeen(npcId, dialogue.id)) return true;
             return this.dialogueChangesState(dialogue);
@@ -129,10 +114,10 @@ class DialogueManager {
     }
 
     dialogueChangesState(dialogue) {
-        return (dialogue?.effects || []).some(effect => {
-            if (!effect?.type) return false;
-            return ['worldInteraction', 'questProgress', 'unlockQuest', 'acceptQuest', 'completeQuest', 'setFlag'].includes(effect.type);
-        });
+        return (dialogue?.effects || []).some(effect => (
+            ['worldInteraction', 'questProgress', 'unlockQuest', 'acceptQuest', 'completeQuest', 'setFlag']
+                .includes(effect?.type)
+        ));
     }
 
     canUseDialogue(npcId, dialogue) {
@@ -162,7 +147,7 @@ class DialogueManager {
         if (!quest) return { success: false, reason: 'missing_quest' };
 
         const status = questManager.getQuestState(questId)?.status || QuestStatus.LOCKED;
-        if (status !== QuestStatus.LOCKED && status !== QuestStatus.AVAILABLE) {
+        if (![QuestStatus.LOCKED, QuestStatus.AVAILABLE].includes(status)) {
             return { success: true };
         }
 
@@ -189,11 +174,7 @@ class DialogueManager {
 
     isQuestAtLeastStarted(questId) {
         const status = questManager.getQuestState(questId)?.status || QuestStatus.LOCKED;
-        return [
-            QuestStatus.ACTIVE,
-            QuestStatus.COMPLETED,
-            QuestStatus.FINISHED
-        ].includes(status);
+        return [QuestStatus.ACTIVE, QuestStatus.COMPLETED, QuestStatus.FINISHED].includes(status);
     }
 
     isFallbackDialogue(dialogue = {}) {
@@ -248,7 +229,7 @@ class DialogueManager {
 
         if (quests.some(quest => quest.type === QuestType.MAIN)) return 'main';
         if (quests.length > 0) return 'side';
-        if (type === 'request' || type === 'discovery') return 'side';
+        if (type === 'request' || type === 'discovery') return 'town';
         if (type === 'destination' || type === 'guidance') return 'function';
         return 'chat';
     }
@@ -257,10 +238,11 @@ class DialogueManager {
         return {
             report: '回報',
             main: '主線',
-            side: '支線・委託',
+            side: '支線',
+            town: '城鎮',
             function: '功能',
-            chat: '近況'
-        }[category] || '話題';
+            chat: '交談'
+        }[category] || '交談';
     }
 
     getDialogueTopicType(dialogue = {}) {
@@ -280,38 +262,39 @@ class DialogueManager {
         const title = dialogue.narrativeTitle || dialogue.topicTitle || dialogue.id || '';
         const labelMap = {
             report: '回報',
-            request: '詢問',
-            discovery: '聽聞',
-            guidance: '提醒',
+            request: '請求',
+            discovery: '發現',
+            guidance: '指引',
             destination: '前往',
-            status: '近況'
+            status: '交談'
         };
-        return title ? `${labelMap[type] || '話題'}：${title}` : (labelMap[type] || '話題');
+        return title ? `${labelMap[type] || '交談'}：${title}` : (labelMap[type] || '交談');
     }
 
     getDialogueTopicSummary(dialogue = {}, type = 'status') {
         if (dialogue.topicSummary) return dialogue.topicSummary;
+        if (dialogue.narrativeSummary) return dialogue.narrativeSummary;
         const firstLine = dialogue.lines?.find(line => line?.text)?.text || '';
         if (firstLine) return firstLine;
-        const fallbackMap = {
-            report: '把已完成的紀錄交給對方歸檔。',
-            request: '聽聽對方想請你處理的事。',
-            discovery: '確認剛出現的新聽聞。',
-            guidance: '確認目前該往哪裡推進。',
-            destination: '前往對應地點或開啟相關功能。',
-            status: '聽聽對方目前注意到的狀況。'
-        };
-        return fallbackMap[type] || '選擇這個話題。';
+
+        return {
+            report: '回報已完成的事項，並更新城鎮狀態。',
+            request: '這段對話會打開新的任務或目標。',
+            discovery: '這段對話會留下新的城鎮變化、線索或旗標。',
+            guidance: '這段對話會指向可用功能或下一步。',
+            destination: '前往相關功能。',
+            status: '普通交談。'
+        }[type] || '普通交談。';
     }
 
     getDialogueTopicIcon(dialogue = {}, type = 'status') {
         const iconMap = {
-            report: '📌',
-            request: '📜',
-            discovery: '✦',
-            guidance: '☞',
-            destination: '➜',
-            status: '…'
+            report: '✓',
+            request: '!',
+            discovery: '*',
+            guidance: '>',
+            destination: '>',
+            status: '•'
         };
         return dialogue.topicIcon || iconMap[type] || '•';
     }
@@ -323,7 +306,7 @@ class DialogueManager {
             case 'notFlag':
                 return !Boolean(GameManager.getFlag(condition.flag));
             case 'questStatus': {
-                const status = questManager.getQuestState(condition.questId)?.status || 'locked';
+                const status = questManager.getQuestState(condition.questId)?.status || QuestStatus.LOCKED;
                 if (Array.isArray(condition.statuses)) return condition.statuses.includes(status);
                 return status === condition.status;
             }
@@ -343,16 +326,16 @@ class DialogueManager {
                 success: false,
                 npc: null,
                 lines: [],
-                effectMessages: ['這裡暫時沒有可對話的對象。']
+                effectMessages: ['找不到這位 NPC 的對話資料。']
             };
         }
 
-        this.prepareContextualDialogue(npcId);
         const dialogues = this.getAvailableDialogues(npcId);
         const requestedDialogueId = context.dialogueId || context.topicId || null;
         const dialogue = requestedDialogueId
             ? dialogues.find(entry => entry.id === requestedDialogueId)
             : dialogues[0];
+
         if (!dialogue) {
             return {
                 success: false,
@@ -360,7 +343,7 @@ class DialogueManager {
                 lines: [{
                     speaker: npc.name,
                     avatar: npc.avatar,
-                    text: '他暫時沒有新的話要說。'
+                    text: '現在沒有可用的對話。'
                 }],
                 effectMessages: []
             };
@@ -389,23 +372,17 @@ class DialogueManager {
         };
     }
 
-    prepareContextualDialogue(npcId) {
-        if (npcId === 'street_beggar') {
-            questManager.ensureBrokeQuestActive?.({ announce: true });
-        }
-    }
-
     resolveDialogueNarrativeSummary(npc, dialogue = {}, effectMessages = []) {
         if (typeof dialogue.narrativeSummary === 'string' && dialogue.narrativeSummary.trim()) {
             return dialogue.narrativeSummary.trim();
         }
 
         if (effectMessages.length > 0) {
-            return `你與${npc.name}交談完畢，新的情況被整理成旅人手札裡的一段紀錄。城鎮的下一步，不再只是廣場上的閒聊。`;
+            return `${npc.name}讓城鎮狀態產生了新的變化。`;
         }
 
         if (dialogue.tone === 'discovery') {
-            return `你與${npc.name}談完後，城鎮裡多了一條值得追蹤的動向。`;
+            return `${npc.name}提供了新的線索。`;
         }
 
         return null;
@@ -414,16 +391,16 @@ class DialogueManager {
     resolveLine(line, npc) {
         if (line.speaker === 'player') {
             return {
-                speaker: '冒險者',
-                avatar: '🧭',
+                speaker: '玩家',
+                avatar: '你',
                 text: line.text || ''
             };
         }
 
         if (line.speaker === 'system') {
             return {
-                speaker: line.name || '紀錄',
-                avatar: line.avatar || '📌',
+                speaker: line.name || '系統',
+                avatar: line.avatar || '!',
                 text: line.text || ''
             };
         }
@@ -437,41 +414,18 @@ class DialogueManager {
 
     buildQuestCompletionFeedback(effect = {}, result = {}) {
         const quest = getQuestById(effect.questId);
-        const story = quest ? getQuestStory(quest, { status: QuestStatus.FINISHED }) : null;
-        const rewardText = questManager.getRewardToastText?.(result.rewards, result.blueprintUnlocks);
-        const newClues = Array.isArray(result.storyOutcome?.newClues) ? result.storyOutcome.newClues : [];
-        const progressUpdates = Array.isArray(result.storyOutcome?.progressUpdates) ? result.storyOutcome.progressUpdates : [];
-        const finalReady = Array.isArray(result.storyOutcome?.finalReady) ? result.storyOutcome.finalReady : [];
+        const questName = quest?.name || effect.questId || '任務';
         const messages = [];
 
-        messages.push(effect.message || (quest ? `「${quest.name}」已由委託人歸檔。` : '這段紀錄已經歸檔。'));
+        messages.push(effect.message || `已回報：${questName}`);
 
-        if (rewardText) {
-            messages.push(`收穫整理：${rewardText.replace(/^獲得\s*/, '')}`);
-        }
+        const rewardText = questManager.getRewardToastText?.(result.rewards, result.blueprintUnlocks);
+        if (rewardText) messages.push(`獲得獎勵：${rewardText.replace(/^獎勵\s*/, '')}`);
 
-        if (newClues.length > 0) {
-            const clueNames = newClues
-                .map(clue => clue.title || clue.name || clue.text)
-                .filter(Boolean)
-                .slice(0, 2)
-                .join('、');
-            if (clueNames) messages.push(`旅人手札新增線索：${clueNames}`);
-        }
-
-        if (progressUpdates.length > 0 || finalReady.length > 0) {
-            messages.push(finalReady.length > 0
-                ? '首領痕跡已經收束，可以確認最終觸發方式。'
-                : '首領痕跡有了新的推進，之後可在旅人手札裡比對。');
-        }
-
-        if (result.finaleOutcome?.title) {
-            messages.push(`終局收束：${result.finaleOutcome.title}。${result.finaleOutcome.summary || ''}`.trim());
-        }
-
-        const nextLead = story?.finished || story?.nextLead;
-        if (nextLead) {
-            messages.push(`接下來：${nextLead}`);
+        if (result.storyOutcome?.finalReady?.length > 0) {
+            messages.push('相關劇情已推進到下一個可回報階段。');
+        } else if (result.storyOutcome?.progressUpdates?.length > 0) {
+            messages.push('相關劇情進度已更新。');
         }
 
         return [...new Set(messages.filter(Boolean))];
@@ -535,7 +489,7 @@ class DialogueManager {
         const unlockedEffects = GameManager.consumePassiveCombatUnlocks?.() || [];
         if (unlockedEffects.length > 0) {
             const names = unlockedEffects.map(effect => effect.name).join('、');
-            messages.push(`戰術技能解鎖：${names}。可回大廳旅人卡片更換。`);
+            messages.push(`解鎖被動效果：${names}`);
         }
 
         return messages;
