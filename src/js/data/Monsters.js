@@ -24,6 +24,8 @@ export const MonsterElement = {
     THUNDER: 'thunder',
     EARTH: 'earth',
     SHADOW: 'shadow',
+    VOID: 'void',
+    LIGHT: 'light',
     HOLY: 'holy'
 };
 
@@ -198,11 +200,10 @@ export const MonsterDatabase = {
         exp: 35,
         gold: 25,
         drops: [
-            { itemId: 'bat_wing', chance: 0.5, quantity: [1, 2] },
-            { itemId: 'shadow_shard', chance: 0.15, quantity: [1, 1] }
+            { itemId: 'bat_wing', chance: 0.5, quantity: [1, 2] }
         ],
         skills: ['sonic_screech'],
-        description: '在黑暗中飛行的蝙蝠。'
+        description: '在洞窟暗處飛行的蝙蝠，薄翼可作為早期裁縫與鍛造材料。'
     },
     
     poison_spider: {
@@ -247,6 +248,9 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'stone_fragment', chance: 0.6, quantity: [2, 3] },
             { itemId: 'golem_core', chance: 0.1, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'miners_pickhammer', chance: 0.025 }
         ],
         skills: ['stone_fist'],
         description: '由石頭構成的小型魔像。'
@@ -398,7 +402,8 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'lich_phylactery', chance: 1.0, quantity: [1, 1] },
             { itemId: 'dark_crystal', chance: 0.7, quantity: [1, 2] },
-            { itemId: 'shadow_shard', chance: 0.5, quantity: [2, 3] },
+            { itemId: 'glimmer_shard', chance: 0.25, quantity: [1, 1] },
+            { itemId: 'rune_stone', chance: 0.2, quantity: [1, 1] },
             { itemId: 'soul_fragment', chance: 0.35, quantity: [1, 1] }
         ],
         equipmentDrops: [
@@ -455,7 +460,8 @@ export const MonsterDatabase = {
             { itemId: 'shadow_arrow', chance: 0.3, quantity: [3, 6] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_armor_drop', chance: 0.025 }
+            { equipmentId: 'shadow_armor_drop', chance: 0.025 },
+            { equipmentId: 'shadowneedle_dagger', chance: 0.035 }
         ],
         skills: ['shadow_shot', 'multishot'],
         description: '遠程攻擊的暗影戰士。'
@@ -481,7 +487,9 @@ export const MonsterDatabase = {
             { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_badge', chance: 0.05 }
+            { equipmentId: 'shadow_badge', chance: 0.05 },
+            { equipmentId: 'shadowneedle_dagger', chance: 0.04 },
+            { equipmentId: 'shade_focus', chance: 0.035 }
         ],
         skills: ['shadow_bolt', 'dark_curse'],
         description: '操控暗影魔法的法師。'
@@ -510,7 +518,8 @@ export const MonsterDatabase = {
         ],
         equipmentDrops: [
             { equipmentId: 'shadow_commander_blade', chance: 0.25 },
-            { equipmentId: 'shadow_commander_sword', chance: 0.10 }
+            { equipmentId: 'shadow_commander_sword', chance: 0.10 },
+            { equipmentId: 'umbral_pike', chance: 0.08 }
         ],
         skills: ['shadow_slash', 'rally_troops', 'dark_aura'],
         description: '統領暗影軍團的指揮官。'
@@ -584,6 +593,7 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'ancient_rune', chance: 0.35, quantity: [1, 1] },
             { itemId: 'rune_stone', chance: 0.3, quantity: [1, 2] },
+            { itemId: 'glimmer_shard', chance: 0.25, quantity: [1, 1] },
             { itemId: 'mithril_ore', chance: 0.25, quantity: [1, 1] },
             { itemId: 'crystal_shard', chance: 0.2, quantity: [1, 2] }
         ],
@@ -1007,6 +1017,267 @@ export const MonsterDatabase = {
         ],
         skills: ['apocalypse', 'void_rupture', 'demon_transformation', 'soul_harvest'],
         description: '企圖毀滅世界的魔王，最終的敵人。'
+    },
+
+    // ==================== 微光前置與深淵/光明補強 ====================
+    glimmer_sprite: {
+        id: 'glimmer_sprite',
+        name: '微光靈',
+        icon: '✦',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.LIGHT,
+        level: 9,
+        hp: 145,
+        maxHp: 145,
+        attack: 22,
+        attackSpeed: 1.8,
+        defense: 9,
+        exp: 85,
+        gold: 55,
+        drops: [
+            { itemId: 'glimmer_shard', chance: 0.38, quantity: [1, 1] },
+            { itemId: 'rune_stone', chance: 0.16, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'glimmer_lampstaff', chance: 0.045 }
+        ],
+        skills: ['lightning_bolt'],
+        description: '只帶有微弱光明輪廓的靈體，讓玩家提前理解節奏型裝備，但不提供正式光明力量。'
+    },
+
+    rune_wisp: {
+        id: 'rune_wisp',
+        name: '符文微靈',
+        icon: '◈',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.LIGHT,
+        level: 10,
+        hp: 170,
+        maxHp: 170,
+        attack: 25,
+        attackSpeed: 1.7,
+        defense: 12,
+        exp: 105,
+        gold: 70,
+        drops: [
+            { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 1] },
+            { itemId: 'rune_stone', chance: 0.24, quantity: [1, 1] },
+            { itemId: 'pure_crystal', chance: 0.12, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'rune_scriber_focus', chance: 0.04 }
+        ],
+        skills: ['lightning_bolt', 'harden'],
+        description: '遺跡入口附近浮現的符文靈，掉落微光與符文材料。'
+    },
+
+    prism_wisp: {
+        id: 'prism_wisp',
+        name: '棱光微靈',
+        icon: '◇',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.LIGHT,
+        level: 20,
+        hp: 320,
+        maxHp: 320,
+        attack: 54,
+        attackSpeed: 1.9,
+        defense: 20,
+        exp: 230,
+        gold: 135,
+        drops: [
+            { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 2] },
+            { itemId: 'rune_stone', chance: 0.22, quantity: [1, 1] },
+            { itemId: 'pure_crystal', chance: 0.16, quantity: [1, 1] }
+        ],
+        equipmentDrops: [],
+        skills: ['chain_lightning', 'harden'],
+        description: '元素中後段才會出現的微光前兆，仍屬於弱化光明，不自然升階成光明系。'
+    },
+
+    starvein_lurker: {
+        id: 'starvein_lurker',
+        name: '星脈潛伏者',
+        icon: '✹',
+        type: MonsterType.ELITE,
+        element: MonsterElement.LIGHT,
+        level: 22,
+        hp: 620,
+        maxHp: 620,
+        attack: 72,
+        attackSpeed: 1.55,
+        defense: 32,
+        exp: 360,
+        gold: 240,
+        drops: [
+            { itemId: 'vine_core', chance: 0.42, quantity: [1, 1] },
+            { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 2] },
+            { itemId: 'primal_essence', chance: 0.18, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'thornhook_claws', chance: 0.075 }
+        ],
+        skills: ['poison_bite', 'regeneration'],
+        description: '叢林深處吸收星脈的獵食者，提供生命、毒與微光交界的掉落。'
+    },
+
+    void_walker: {
+        id: 'void_walker',
+        name: '虛痕行者',
+        icon: '◌',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.VOID,
+        level: 28,
+        hp: 520,
+        maxHp: 520,
+        attack: 88,
+        attackSpeed: 1.45,
+        defense: 30,
+        exp: 360,
+        gold: 220,
+        drops: [
+            { itemId: 'abyssal_shard', chance: 0.34, quantity: [1, 1] },
+            { itemId: 'void_essence', chance: 0.12, quantity: [1, 1] },
+            { itemId: 'demon_core', chance: 0.08, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'abyssal_needle', chance: 0.06 }
+        ],
+        skills: ['void_slash', 'shadow_strike'],
+        description: '深淵裂縫旁遊走的虛空前兆，只給低量虛空壓力，不取代塔的完整虛空線。'
+    },
+
+    abyssal_seraph: {
+        id: 'abyssal_seraph',
+        name: '深淵偽翼',
+        icon: '☄',
+        type: MonsterType.ELITE,
+        element: MonsterElement.VOID,
+        level: 29,
+        hp: 780,
+        maxHp: 780,
+        attack: 104,
+        attackSpeed: 1.65,
+        defense: 42,
+        exp: 480,
+        gold: 320,
+        drops: [
+            { itemId: 'abyssal_shard', chance: 0.46, quantity: [1, 2] },
+            { itemId: 'void_essence', chance: 0.2, quantity: [1, 1] },
+            { itemId: 'demon_core', chance: 0.18, quantity: [1, 1] },
+            { itemId: 'world_shard', chance: 0.04, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'seraph_void_focus', chance: 0.075 }
+        ],
+        skills: ['void_rupture', 'dark_shield'],
+        description: '像天使卻由深淵拼成的菁英怪，是本篇通往塔前的虛空壓力預告。'
+    },
+
+    dawn_sentinel: {
+        id: 'dawn_sentinel',
+        name: '黎明衛士',
+        icon: '☀',
+        type: MonsterType.NORMAL,
+        element: MonsterElement.LIGHT,
+        level: 30,
+        hp: 720,
+        maxHp: 720,
+        attack: 92,
+        attackSpeed: 1.6,
+        defense: 48,
+        exp: 440,
+        gold: 280,
+        drops: [
+            { itemId: 'radiant_thread', chance: 0.55, quantity: [1, 2] },
+            { itemId: 'light_essence', chance: 0.16, quantity: [1, 1] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'dawnbrand_sword', chance: 0.045 }
+        ],
+        skills: ['lightning_bolt', 'harden'],
+        description: '黎明迴廊的第一道正式光明檢查，逼玩家用穩定節奏處理戰鬥。'
+    },
+
+    radiant_keeper: {
+        id: 'radiant_keeper',
+        name: '光明守藏者',
+        icon: '✺',
+        type: MonsterType.ELITE,
+        element: MonsterElement.LIGHT,
+        level: 30,
+        hp: 980,
+        maxHp: 980,
+        attack: 104,
+        attackSpeed: 1.55,
+        defense: 58,
+        exp: 620,
+        gold: 420,
+        drops: [
+            { itemId: 'light_essence', chance: 0.42, quantity: [1, 1] },
+            { itemId: 'radiant_shard', chance: 0.28, quantity: [1, 1] },
+            { itemId: 'radiant_thread', chance: 0.45, quantity: [1, 2] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'dawnbrand_sword', chance: 0.08 },
+            { equipmentId: 'aurora_ward_plate', chance: 0.055 }
+        ],
+        skills: ['dark_shield', 'lightning_bolt'],
+        description: '守著光明裝備圖譜的菁英敵人，掉落正式光明素材。'
+    },
+
+    mirror_seraph: {
+        id: 'mirror_seraph',
+        name: '鏡翼熾使',
+        icon: '✧',
+        type: MonsterType.ELITE,
+        element: MonsterElement.LIGHT,
+        level: 30,
+        hp: 920,
+        maxHp: 920,
+        attack: 112,
+        attackSpeed: 1.85,
+        defense: 50,
+        exp: 650,
+        gold: 450,
+        drops: [
+            { itemId: 'radiant_shard', chance: 0.38, quantity: [1, 1] },
+            { itemId: 'light_essence', chance: 0.32, quantity: [1, 1] },
+            { itemId: 'radiant_thread', chance: 0.35, quantity: [1, 2] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'prism_focus', chance: 0.08 }
+        ],
+        skills: ['chain_lightning', 'damage_reflect'],
+        description: '會懲罰無腦高暴擊與高攻速的鏡翼菁英，要求玩家控制輸出節奏。'
+    },
+
+    aurora_archon: {
+        id: 'aurora_archon',
+        name: '極光執政官',
+        icon: '✷',
+        type: MonsterType.BOSS,
+        element: MonsterElement.LIGHT,
+        level: 30,
+        hp: 2400,
+        maxHp: 2400,
+        attack: 118,
+        attackSpeed: 1.7,
+        defense: 62,
+        exp: 1800,
+        gold: 1800,
+        drops: [
+            { itemId: 'radiant_core', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'radiant_shard', chance: 0.85, quantity: [1, 2] },
+            { itemId: 'light_essence', chance: 0.6, quantity: [1, 2] }
+        ],
+        equipmentDrops: [
+            { equipmentId: 'dawnbrand_sword', chance: 0.18 },
+            { equipmentId: 'prism_focus', chance: 0.16 },
+            { equipmentId: 'aurora_ward_plate', chance: 0.14 }
+        ],
+        skills: ['annihilation', 'reality_tear', 'chain_lightning'],
+        description: '黎明迴廊的核心 Boss。它不是主線滿版 Boss，但負責讓玩家取得抗衡無盡塔的光明裝備。'
     },
 
     // ==================== 世界故事 BOSS ====================

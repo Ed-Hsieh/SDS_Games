@@ -8,6 +8,7 @@
 
 | 項目 | 目前狀態 | 下一步 |
 | --- | --- | --- |
+| 怪物 / 武器 / 副本資料補完接續 | 2026-07-05 已補進 10 隻計畫怪物、6 個素材、16 件裝備、`radiant_corridor` 光明副本；`DataConsistencyCheck` 已通過。仍缺圖片、藍圖掉落與部分 dungeon-scoped 掉落來源判定。 | 先讀 `docs/AGENT_SESSION_LOG.md` 的「2026-07-05 Checkpoint」。下一步先處理 dungeon-scoped drop source：決定補 dungeon monster `equipmentDrops`，或更新平衡檢查器支援 `cave:rock_golem` 這類來源；再補 `BlueprintDrops.js`。 |
 | 商業版 UI 精修 | 百科、部分鍛造、物品詳細、戰術技能提示已進入收斂；旅行行囊、角色、背包、倉庫仍是主要弱點。 | 先重構旅行行囊的角色 / 背包 / 倉庫內容區，移除重複 TAB 語意，固定 icon 尺寸與資訊密度；不再處理手機版。 |
 | 戰鬥面板重構 | 圓形節奏、主副手概念、裝備效果認知已開始；仍需要整體版面與狀態資訊區收斂。 | 整理玩家 / 怪物 BUFF、DEBUFF、裝備效果、套裝效果的顯示位置；修正戰鬥與戰利品擠壓；確認命中、暴擊、失誤顯示與判定一致。 |
 | 鍛造強化 / 修復 / 詞綴 UI | 鍛造製作頁目前可接受；強化、修復、詞綴重鑄仍需要統一資訊結構。 | 保留製作頁邏輯，重構強化、修復、詞綴頁：材料需求、費用、成功率、結果預覽、裝備選擇與錯誤提示要一致且不跑版。 |
@@ -25,6 +26,17 @@
 | 場景走入式互動 | 市集邊棚與賭場目前先保留現有低成本表現；走入場景熱點式入口延後。 | 最後打磨時改成場景圖熱點：滑過反光、點擊聚焦攤位 / NPC、再開較大的對話與交易介面。 |
 | 美術替換 | 主線 BOSS 風格保留；菁英、非主線 BOSS、圖紙歪斜與部分素材仍要逐批替換。 | 等 UI 框線與圖像規格穩定後，再重新生成菁英 / BOSS / 圖紙 / 系統外框素材，避免重複返工。 |
 
+## 2026-07-05 資料補完後的明確缺口
+
+| 項目 | 目前狀態 | 下一步 |
+| --- | --- | --- |
+| 新素材圖片 | 新增 `vine_core`、`demon_core`、`radiant_thread`、`light_essence`、`radiant_shard`、`radiant_core` 後，這 6 張 runtime WebP 還不存在。 | 生成並放入 `src/assets/images/art/items/materials/`，再更新 ready 狀態。 |
+| 新武器 / 裝備圖片 | 新增 16 件裝備資料，但尚未生成對應圖片。 | 先確認裝備清單與風格，再批次生成武器、焦點、防具圖片。 |
+| 新怪物圖片 | 新增 10 隻怪物資料，但尚未生成對應圖片。 | 依規則生成：普通怪少背景，菁英可有輕場景，`aurora_archon` 是非主線 Boss，不可比主線 Boss 更華麗。 |
+| 光明副本場景圖 | `radiant_corridor` 已加入副本 DB 與 AssetManifest，但 `dungeon_radiant_corridor` 圖片尚未生成。 | 補副本圖卡 / 全圖場景後再跑 `AssetCoverageCheck.mjs`。 |
+| 藍圖掉落 | 新怪物與新特殊裝備已存在，但 `BlueprintDrops.js` 還沒補。 | 補光明、深淵、叢林、微光、暗影新增裝備的圖紙或掉落來源。 |
+| 平衡檢查警告 | `EquipmentBalanceCheck` 與 `MonsterBalanceCheck_v4` 已跑出非阻斷警告。 | 後續調整戰鬥大改時再處理：舊普通怪偏軟、`aurora_archon` 偏致命、新套裝單件分數偏弱但可能可接受。 |
+
 ## 暫緩或明確不做
 
 - 手機版打磨：目前不開發手機模式，後續 UI 驗收以桌面為準。
@@ -37,3 +49,64 @@
 - 桌面優先尺寸：`1280x631`。
 - 每次 UI 改動至少檢查：大廳、旅行行囊、百科、鍛造、冒險戰鬥、戰利品結算。
 - 每次平衡改動至少檢查：初期 1 到 3 級、第一個 BOSS 前、第一章結束前的裝備耐久、藥水、修復素材與死亡率。
+
+## 2026-07-05 Clean Checkpoint
+
+Completed in the latest continuation:
+
+- Data consistency still passes.
+- New dungeon-scoped equipment drops and blueprint source links are connected.
+- New special equipment stats were tuned back into OK range.
+- New material art gaps are closed:
+  `vine_core`, `demon_core`, `radiant_thread`, `light_essence`,
+  `radiant_shard`, `radiant_core`.
+- All 16 new content-rebuild equipment images are generated, converted to WebP,
+  and ready in `AssetManifest.js`.
+- All 10 new content-rebuild monster images are generated, converted to WebP,
+  and ready in `AssetManifest.js`.
+
+Current remaining asset work:
+
+- 36 legacy/live equipment images still need new `src/assets/images/art/`
+  replacements.
+- 33 legacy/live monster images still need new `src/assets/images/art/`
+  replacements.
+- Radiant dungeon scene/card/full image still needs generation and linking.
+
+Current validation snapshot:
+
+```text
+DataConsistencyCheck.mjs: passed
+EquipmentBalanceCheck.js --json: ran successfully
+MonsterBalanceCheck_v4.js: ran successfully, flagged 36/53
+Equipment issues: 19 old/legacy issues remain
+New rebuild equipment ready: 16/16
+New rebuild monsters ready: 10/10
+Materials ready: 101/101 database materials
+```
+
+## 2026-07-05 Legacy Replacement Pass 1
+
+Completed old monster replacements:
+
+```text
+slime, goblin, wild_wolf, skeleton, giant_rat,
+orc_warrior, shadow_bat, poison_spider, stone_golem_mini, treant
+```
+
+Completed old equipment replacements:
+
+```text
+old_sword, old_armor, slime_sword, goblin_dagger, wolf_fang_blade,
+wolf_pelt_armor, spider_silk_gloves, forest_guardian_staff,
+forest_guardian_crown, bone_sword
+```
+
+Updated asset counts:
+
+```text
+Equipment art in new folder: 26/62
+Monster art in new folder: 20/53
+Remaining equipment gaps: 36
+Remaining monster gaps: 33
+```

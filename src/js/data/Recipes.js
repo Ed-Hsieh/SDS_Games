@@ -931,6 +931,40 @@ export const RecipeDatabase = {
         }
     },
 
+    glimmer_focus: {
+        id: 'glimmer_focus',
+        name: '微光調律符',
+        icon: '✨',
+        type: EquipmentType.ACCESSORY,
+        rarity: ItemRarity.RARE,
+        materials: [
+            { id: 'glimmer_shard', quantity: 3 },
+            { id: 'rune_stone', quantity: 2 },
+            { id: 'crystal_shard', quantity: 2 },
+            { id: 'magic_crystal', quantity: 1 }
+        ],
+        cost: 1200,
+        successRate: 68,
+        result: {
+            id: 'crafted_glimmer_focus',
+            name: '微光調律符',
+            icon: '✨',
+            type: EquipmentType.ACCESSORY,
+            rarity: ItemRarity.RARE,
+            stats: {
+                attack: 8,
+                defense: 6,
+                critChance: 0.08,
+                critDamage: 1.55
+            },
+            specialEffects: [
+                { type: AffixStat.ATTACK_SPEED, value: 8 },
+                { type: AffixStat.CRIT_CHANCE, value: 3 }
+            ],
+            desc: '用微光與符文校準出手節奏的護符，只提供光明系的弱化前兆。'
+        }
+    },
+
     goblin_trickster_charm: {
         id: 'goblin_trickster_charm',
         name: '哥布林詭符',
@@ -1203,6 +1237,7 @@ const RECIPE_RESULT_LEVELS = Object.freeze({
     blood_moon_pendant: 8,
     bone_soul_staff: 9,
     gargoyle_bulwark: 10,
+    glimmer_focus: 10,
     mithril_sword: 12,
     shadow_blade: 13,
     shadow_armor: 13,

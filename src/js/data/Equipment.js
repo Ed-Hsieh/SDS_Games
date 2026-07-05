@@ -1083,6 +1083,382 @@ export const EquipmentDatabase = {
         canEnhance: true,
         level: 28,
         dropSource: 'demon_lord_asariel'
+    },
+
+    // ===== 補強：副本與非工藝特殊掉落 =====
+    miners_pickhammer: {
+        id: 'miners_pickhammer',
+        name: '礦脈破槌',
+        icon: '⛏️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.UNCOMMON,
+        level: 5,
+        stats: {
+            attack: 17,
+            defense: 3,
+            critChance: 0.05,
+            critDamage: 1.55,
+            weaponSpeed: 0.78,
+            attackSpeed: 0.78
+        },
+        specialEffects: [
+            { type: AffixStat.ARMOR_PENETRATION, value: 6 }
+        ],
+        setId: 'cave_miner',
+        description: '洞窟礦工用來敲開礦脈與石殼的重槌，是早期副本第一批值得刷的武器。',
+        dropFrom: ['stone_golem_mini', 'cave:rock_golem']
+    },
+
+    cave_ward_shield: {
+        id: 'cave_ward_shield',
+        name: '洞燈護盾',
+        icon: '🛡️',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.UNCOMMON,
+        level: 6,
+        stats: {
+            attack: 4,
+            defense: 20,
+            critChance: 0.02,
+            critDamage: 1.2
+        },
+        specialEffects: [
+            { type: AffixStat.DAMAGE_REDUCTION, value: 5 }
+        ],
+        setId: 'cave_miner',
+        description: '盾面掛著礦燈，讓玩家能用更穩的節奏推進洞窟。',
+        dropFrom: ['cave:shadow_lurker', 'cave:rock_golem']
+    },
+
+    glimmer_lampstaff: {
+        id: 'glimmer_lampstaff',
+        name: '微光燈杖',
+        icon: '🪄',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 9,
+        stats: {
+            attack: 26,
+            defense: 4,
+            critChance: 0.11,
+            critDamage: 1.65,
+            weaponSpeed: 1.08,
+            attackSpeed: 1.08
+        },
+        specialEffects: [
+            { type: AffixStat.ATTACK_SPEED, value: 5 }
+        ],
+        setId: 'glimmer_initiate',
+        description: '用微光碎片穩住節奏的法杖，只是光明的前置影子，不提供正式光明壓制。',
+        dropFrom: ['glimmer_sprite']
+    },
+
+    rune_scriber_focus: {
+        id: 'rune_scriber_focus',
+        name: '刻符焦鏡',
+        icon: '🔮',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 10,
+        stats: {
+            attack: 44,
+            defense: 14,
+            critChance: 0.13,
+            critDamage: 1.75,
+            weaponSpeed: 1.15,
+            attackSpeed: 1.15
+        },
+        specialEffects: [
+            { type: AffixStat.CRIT_CHANCE, value: 5 }
+        ],
+        setId: 'glimmer_initiate',
+        description: '符文微靈留下的聚焦器，讓玩家提前理解光明線的命中與節奏修正。',
+        dropFrom: ['rune_wisp']
+    },
+
+    frostbite_dueling_blade: {
+        id: 'frostbite_dueling_blade',
+        name: '霜吻決鬥刃',
+        icon: '❄️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 10,
+        stats: {
+            attack: 29,
+            defense: 3,
+            critChance: 0.13,
+            critDamage: 1.75,
+            weaponSpeed: 1.05,
+            attackSpeed: 1.05
+        },
+        specialEffects: [
+            { type: AffixStat.ICE, value: 10 },
+            { type: AffixStat.SLOW_CHANCE, value: 6 }
+        ],
+        setId: 'early_frost',
+        description: '雪原副本的決鬥型武器，提供抗寒段落需要的控速能力。',
+        dropFrom: ['snow:frost_giant', 'snow:ice_dragon']
+    },
+
+    frostbound_scepter_drop: {
+        id: 'frostbound_scepter_drop',
+        name: '縛霜權杖',
+        icon: '🧊',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 10,
+        stats: {
+            attack: 27,
+            defense: 7,
+            critChance: 0.1,
+            critDamage: 1.6,
+            weaponSpeed: 0.92,
+            attackSpeed: 0.92
+        },
+        specialEffects: [
+            { type: AffixStat.ICE, value: 12 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 4 }
+        ],
+        setId: 'early_frost',
+        description: '雪原巫術凝成的權杖，讓法杖型玩家也能從副本直接取得追求目標。',
+        dropFrom: ['snow:ice_elemental', 'snow:frost_giant', 'snow:ice_dragon']
+    },
+
+    shadowneedle_dagger: {
+        id: 'shadowneedle_dagger',
+        name: '影針匕首',
+        icon: '🗡️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 12,
+        stats: {
+            attack: 36,
+            defense: 0,
+            critChance: 0.2,
+            critDamage: 1.95,
+            weaponSpeed: 1.35,
+            attackSpeed: 1.35
+        },
+        specialEffects: [
+            { type: AffixStat.ARMOR_PENETRATION, value: 8 }
+        ],
+        setId: 'shadow_legion',
+        description: '暗影弓手與法師攜帶的短刃，表現弱化虛空的削防輪廓。',
+        dropFrom: ['shadow_archer', 'shadow_mage']
+    },
+
+    umbral_pike: {
+        id: 'umbral_pike',
+        name: '暗幕長槍',
+        icon: '🔱',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        level: 14,
+        stats: {
+            attack: 43,
+            defense: 6,
+            critChance: 0.12,
+            critDamage: 1.9,
+            weaponSpeed: 0.95,
+            attackSpeed: 0.95
+        },
+        specialEffects: [
+            { type: AffixStat.ARMOR_PENETRATION, value: 12 },
+            { type: AffixStat.LIFE_STEAL, value: 3 }
+        ],
+        setId: 'shadow_legion',
+        description: '暗影指揮官麾下的長槍型裝備，補上暗影套裝過去過度偏劍的問題。',
+        dropFrom: ['shadow_commander']
+    },
+
+    shade_focus: {
+        id: 'shade_focus',
+        name: '幽影焦核',
+        icon: '🌑',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 13,
+        stats: {
+            attack: 33,
+            defense: 10,
+            critChance: 0.1,
+            critDamage: 1.7,
+            weaponSpeed: 1.05,
+            attackSpeed: 1.05
+        },
+        specialEffects: [
+            { type: AffixStat.DAMAGE_REDUCTION, value: 7 }
+        ],
+        setId: 'shadow_legion',
+        description: '暗影法師使用的焦核，將暗影定位成虛空前置的防禦與壓制線。',
+        dropFrom: ['shadow_mage']
+    },
+
+    thornhook_claws: {
+        id: 'thornhook_claws',
+        name: '棘鉤爪',
+        icon: '🪝',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.RARE,
+        level: 22,
+        stats: {
+            attack: 105,
+            defense: 8,
+            critChance: 0.19,
+            critDamage: 2.05,
+            weaponSpeed: 1.32,
+            attackSpeed: 1.32
+        },
+        specialEffects: [
+            { type: AffixStat.POISON, value: 12 },
+            { type: AffixStat.LIFE_STEAL, value: 4 }
+        ],
+        setId: 'jungle_life',
+        description: '叢林群落的爪型特殊武器，把毒與續戰綁在一起。',
+        dropFrom: ['starvein_lurker', 'jungle:jungle_hydra']
+    },
+
+    hydra_spine_spear: {
+        id: 'hydra_spine_spear',
+        name: '九頭脊槍',
+        icon: '🐍',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        level: 23,
+        stats: {
+            attack: 128,
+            defense: 12,
+            critChance: 0.14,
+            critDamage: 2.15,
+            weaponSpeed: 0.96,
+            attackSpeed: 0.96
+        },
+        specialEffects: [
+            { type: AffixStat.POISON, value: 18 },
+            { type: AffixStat.BOSS_BONUS, value: 8 }
+        ],
+        setId: 'jungle_life',
+        description: '由九頭蛇脊骨製成的長槍，是叢林副本的高追求掉落。',
+        dropFrom: ['jungle:jungle_hydra']
+    },
+
+    abyssal_needle: {
+        id: 'abyssal_needle',
+        name: '深淵針刃',
+        icon: '🖤',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        level: 28,
+        stats: {
+            attack: 206,
+            defense: 6,
+            critChance: 0.22,
+            critDamage: 2.45,
+            weaponSpeed: 1.28,
+            attackSpeed: 1.28
+        },
+        specialEffects: [
+            { type: AffixStat.VOID, value: 6 },
+            { type: AffixStat.ARMOR_PENETRATION, value: 10 }
+        ],
+        setId: 'abyss_precursor',
+        description: '深淵前兆的匕首，只提供受控的低量虛空效果，完整虛空仍留給塔。',
+        dropFrom: ['void_walker']
+    },
+
+    seraph_void_focus: {
+        id: 'seraph_void_focus',
+        name: '偽翼虛核',
+        icon: '🌀',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        level: 29,
+        stats: {
+            attack: 198,
+            defense: 24,
+            critChance: 0.16,
+            critDamage: 2.2,
+            weaponSpeed: 1.02,
+            attackSpeed: 1.02
+        },
+        specialEffects: [
+            { type: AffixStat.VOID, value: 8 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 8 }
+        ],
+        setId: 'abyss_precursor',
+        description: '深淵偽翼凝出的焦點武器，作為進塔前理解虛空壓力的高階掉落。',
+        dropFrom: ['abyssal_seraph']
+    },
+
+    dawnbrand_sword: {
+        id: 'dawnbrand_sword',
+        name: '黎印長劍',
+        icon: '☀️',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.LEGENDARY,
+        level: 30,
+        stats: {
+            attack: 250,
+            defense: 18,
+            critChance: 0.2,
+            critDamage: 2.35,
+            weaponSpeed: 1.12,
+            attackSpeed: 1.12
+        },
+        specialEffects: [
+            { type: AffixStat.LIGHT, value: 12 },
+            { type: AffixStat.ATTACK_SPEED, value: 8 }
+        ],
+        setId: 'radiant_vow',
+        description: '黎明迴廊正式光明武器，提供抗衡無盡塔虛空壓力的高速節奏。',
+        dropFrom: ['dawn_sentinel', 'radiant_keeper', 'aurora_archon']
+    },
+
+    prism_focus: {
+        id: 'prism_focus',
+        name: '棱光焦儀',
+        icon: '💠',
+        type: EquipmentType.WEAPON,
+        rarity: ItemRarity.EPIC,
+        level: 30,
+        stats: {
+            attack: 208,
+            defense: 22,
+            critChance: 0.18,
+            critDamage: 2.15,
+            weaponSpeed: 1.28,
+            attackSpeed: 1.28
+        },
+        specialEffects: [
+            { type: AffixStat.LIGHT, value: 10 },
+            { type: AffixStat.CRIT_CHANCE, value: 6 }
+        ],
+        setId: 'radiant_vow',
+        description: '鏡翼熾使掉落的焦點武器，讓光明線不只是一把劍。',
+        dropFrom: ['radiant_corridor:prism_wisp', 'radiant_corridor:mirror_seraph', 'radiant_corridor:aurora_archon']
+    },
+
+    aurora_ward_plate: {
+        id: 'aurora_ward_plate',
+        name: '極光誓甲',
+        icon: '🌅',
+        type: EquipmentType.EQUIPMENT,
+        rarity: ItemRarity.LEGENDARY,
+        level: 30,
+        stats: {
+            attack: 44,
+            defense: 250,
+            critChance: 0.08,
+            critDamage: 1.65,
+            hp: 520
+        },
+        specialEffects: [
+            { type: AffixStat.LIGHT, value: 8 },
+            { type: AffixStat.DAMAGE_REDUCTION, value: 12 }
+        ],
+        setId: 'radiant_vow',
+        description: '極光執政官的防具掉落，作為塔 DLC 前的正式光明防線。',
+        dropFrom: ['radiant_keeper', 'aurora_archon']
     }
 };
 
@@ -1170,7 +1546,10 @@ export const SetDatabase = {
         id: 'shadow_legion',
         name: '暗影軍團套裝',
         icon: '⚫',
-        pieces: ['shadow_blade_drop', 'shadow_armor_drop', 'shadow_badge', 'shadow_commander_blade'],
+        pieces: [
+            'shadow_blade_drop', 'shadow_armor_drop', 'shadow_badge', 'shadow_commander_blade',
+            'shadowneedle_dagger', 'umbral_pike', 'shade_focus'
+        ],
         bonuses: [
             {
                 required: 2,
@@ -1186,6 +1565,60 @@ export const SetDatabase = {
                 description: '受到的傷害 -12%',
                 effects: {
                     damageReduceBonus: 12
+                }
+            }
+        ]
+    },
+
+    cave_miner: {
+        id: 'cave_miner',
+        name: '洞窟礦工套裝',
+        icon: '⛏️',
+        pieces: ['miners_pickhammer', 'cave_ward_shield'],
+        bonuses: [
+            {
+                required: 2,
+                name: '礦燈步伐',
+                description: '防禦 +8%，破甲 +5%',
+                effects: {
+                    defenseBonus: 8,
+                    armorPierceBonus: 5
+                }
+            }
+        ]
+    },
+
+    early_frost: {
+        id: 'early_frost',
+        name: '雪原抗寒套裝',
+        icon: '❄️',
+        pieces: ['frostbite_dueling_blade', 'frostbound_scepter_drop'],
+        bonuses: [
+            {
+                required: 2,
+                name: '霜線節奏',
+                description: '冰屬性傷害 +12%，受到的傷害 -6%',
+                effects: {
+                    iceDamageBonus: 12,
+                    damageReduceBonus: 6
+                }
+            }
+        ]
+    },
+
+    glimmer_initiate: {
+        id: 'glimmer_initiate',
+        name: '微光啟蒙套裝',
+        icon: '✦',
+        pieces: ['glimmer_lampstaff', 'rune_scriber_focus'],
+        bonuses: [
+            {
+                required: 2,
+                name: '短暫專注',
+                description: '攻擊速度 +8%，暴擊率 +4%',
+                effects: {
+                    attackSpeedBonus: 8,
+                    critChanceBonus: 0.04
                 }
             }
         ]
@@ -1281,6 +1714,69 @@ export const SetDatabase = {
                 effects: {
                     dragonDamageBonus: 50,
                     dragonPower: true
+                }
+            }
+        ]
+    },
+
+    jungle_life: {
+        id: 'jungle_life',
+        name: '叢林獵命套裝',
+        icon: '🌿',
+        pieces: ['thornhook_claws', 'hydra_spine_spear'],
+        bonuses: [
+            {
+                required: 2,
+                name: '毒脈續戰',
+                description: '毒屬性傷害 +15%，生命偷取 +4%',
+                effects: {
+                    poisonDamageBonus: 15,
+                    lifeStealBonus: 4
+                }
+            }
+        ]
+    },
+
+    abyss_precursor: {
+        id: 'abyss_precursor',
+        name: '深淵前兆套裝',
+        icon: '🌀',
+        pieces: ['abyssal_needle', 'seraph_void_focus'],
+        bonuses: [
+            {
+                required: 2,
+                name: '裂隙預感',
+                description: '破甲 +12%，受到的傷害 -8%',
+                effects: {
+                    armorPierceBonus: 12,
+                    damageReduceBonus: 8
+                }
+            }
+        ]
+    },
+
+    radiant_vow: {
+        id: 'radiant_vow',
+        name: '光明誓約套裝',
+        icon: '☀️',
+        pieces: ['dawnbrand_sword', 'prism_focus', 'aurora_ward_plate'],
+        bonuses: [
+            {
+                required: 2,
+                name: '黎明節奏',
+                description: '攻擊速度 +12%，光明傷害 +10%',
+                effects: {
+                    attackSpeedBonus: 12,
+                    lightDamageBonus: 10
+                }
+            },
+            {
+                required: 3,
+                name: '抗塔誓約',
+                description: '受到的傷害 -15%，破甲 +10%',
+                effects: {
+                    damageReduceBonus: 15,
+                    armorPierceBonus: 10
                 }
             }
         ]

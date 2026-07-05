@@ -52,6 +52,17 @@ export const BlueprintDropDatabase = {
         { recipeId: 'blood_moon_pendant', chance: 0.18 },
         { recipeId: 'nature_amulet', chance: 0.10 }
     ],
+    lich: [
+        { recipeId: 'glimmer_focus', chance: 0.10 },
+        { recipeId: 'bone_soul_staff', chance: 0.10 }
+    ],
+    glimmer_sprite: [
+        { recipeId: 'glimmer_focus', chance: 0.06 }
+    ],
+    rune_wisp: [
+        { recipeId: 'glimmer_focus', chance: 0.08 },
+        { recipeId: 'earthwarden_aegis', chance: 0.04 }
+    ],
     shadow_soldier: [
         { recipeId: 'shadow_blade', chance: 0.05 },
         { recipeId: 'shadow_armor', chance: 0.04 }
@@ -72,7 +83,8 @@ export const BlueprintDropDatabase = {
     rune_keeper: [
         { recipeId: 'mithril_sword', chance: 0.08 },
         { recipeId: 'earthwarden_aegis', chance: 0.08 },
-        { recipeId: 'storm_spear', chance: 0.07 }
+        { recipeId: 'storm_spear', chance: 0.07 },
+        { recipeId: 'glimmer_focus', chance: 0.10 }
     ],
     ancient_titan: [
         { recipeId: 'earthwarden_aegis', chance: 0.10 },
@@ -98,6 +110,13 @@ export const BlueprintDropDatabase = {
     ],
     treant: [
         { recipeId: 'nature_amulet', chance: 0.04 }
+    ],
+    prism_wisp: [
+        { recipeId: 'glimmer_focus', chance: 0.05 }
+    ],
+    starvein_lurker: [
+        { recipeId: 'primal_focus', chance: 0.07 },
+        { recipeId: 'nature_amulet', chance: 0.06 }
     ],
     wyvern: [
         { recipeId: 'wyvern_scale_mail', chance: 0.06 }
@@ -129,6 +148,30 @@ export const BlueprintDropDatabase = {
     demon_lord_asariel: [
         { recipeId: 'void_reaver', chance: 0.10 },
         { recipeId: 'demonwar_helm', chance: 0.14 }
+    ],
+    void_walker: [
+        { recipeId: 'void_reaver', chance: 0.06 },
+        { recipeId: 'assassin_shadow_veil', chance: 0.05 }
+    ],
+    abyssal_seraph: [
+        { recipeId: 'void_reaver', chance: 0.1 },
+        { recipeId: 'demonwar_helm', chance: 0.08 }
+    ],
+    dawn_sentinel: [
+        { recipeId: 'glimmer_focus', chance: 0.05 }
+    ],
+    radiant_keeper: [
+        { recipeId: 'glimmer_focus', chance: 0.08 },
+        { recipeId: 'primal_focus', chance: 0.04 }
+    ],
+    mirror_seraph: [
+        { recipeId: 'glimmer_focus', chance: 0.08 },
+        { recipeId: 'void_reaver', chance: 0.04 }
+    ],
+    aurora_archon: [
+        { recipeId: 'glimmer_focus', chance: 0.16 },
+        { recipeId: 'primal_focus', chance: 0.08 },
+        { recipeId: 'void_reaver', chance: 0.06 }
     ],
 
     // Dungeon-specific monsters
@@ -169,6 +212,10 @@ export const BlueprintDropDatabase = {
         { recipeId: 'nature_amulet', chance: 0.10 },
         { recipeId: 'primal_focus', chance: 0.06 }
     ],
+    'jungle:vine_beast': [
+        { recipeId: 'nature_amulet', chance: 0.06 },
+        { recipeId: 'primal_focus', chance: 0.03 }
+    ],
     'jungle:jungle_hydra': [
         { recipeId: 'hydra_fang_dagger', chance: 0.14 },
         { recipeId: 'nature_amulet', chance: 0.12 },
@@ -184,6 +231,25 @@ export const BlueprintDropDatabase = {
         { recipeId: 'fire_sword', chance: 0.10 },
         { recipeId: 'void_reaver', chance: 0.10 },
         { recipeId: 'demonwar_helm', chance: 0.14 }
+    ],
+    'radiant_corridor:prism_wisp': [
+        { recipeId: 'glimmer_focus', chance: 0.08 }
+    ],
+    'radiant_corridor:dawn_sentinel': [
+        { recipeId: 'glimmer_focus', chance: 0.08 }
+    ],
+    'radiant_corridor:radiant_keeper': [
+        { recipeId: 'glimmer_focus', chance: 0.14 },
+        { recipeId: 'primal_focus', chance: 0.08 }
+    ],
+    'radiant_corridor:mirror_seraph': [
+        { recipeId: 'glimmer_focus', chance: 0.14 },
+        { recipeId: 'void_reaver', chance: 0.06 }
+    ],
+    'radiant_corridor:aurora_archon': [
+        { recipeId: 'glimmer_focus', chance: 0.22 },
+        { recipeId: 'primal_focus', chance: 0.12 },
+        { recipeId: 'void_reaver', chance: 0.08 }
     ]
 };
 

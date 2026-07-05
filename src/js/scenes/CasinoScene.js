@@ -14,7 +14,7 @@ const CASINO_VENUES = [
         game: 'dice',
         title: '骨骰賭桌',
         label: '低額試手',
-        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp',
         focus: '50% 56%',
         copy: '木桌邊緣被骰子敲出細痕，適合用小注換獎券。'
     },
@@ -22,7 +22,7 @@ const CASINO_VENUES = [
         game: 'slots',
         title: '老虎機廳',
         label: '連勝誘惑',
-        image: 'src/assets/images/art-v2/backgrounds/casino-hall.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-hall.webp',
         focus: '42% 48%',
         copy: '燈泡一排排亮起，拉桿聲會把人往下一局推。'
     },
@@ -30,7 +30,7 @@ const CASINO_VENUES = [
         game: 'roulette',
         title: '輪盤長桌',
         label: '快節奏下注',
-        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp',
         focus: '64% 50%',
         copy: '輪盤旁的人群比較安靜，因為每個人都在等指針替自己說話。'
     },
@@ -38,7 +38,7 @@ const CASINO_VENUES = [
         game: 'dark',
         title: '暗桌門簾',
         label: '高風險',
-        image: 'src/assets/images/art-v2/backgrounds/casino-game-table.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp',
         focus: '78% 44%',
         copy: '門簾後方沒有招牌，只有莊家把籌碼推回陰影裡。'
     },
@@ -46,7 +46,7 @@ const CASINO_VENUES = [
         game: 'showcase',
         title: '老闆展示櫃',
         label: '長支線伏筆',
-        image: 'src/assets/images/art-v2/backgrounds/casino-prize-wall.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp',
         focus: '58% 46%',
         copy: '玻璃後的展品比獎池更昂貴，也更容易讓老闆記住你。'
     },
@@ -54,7 +54,7 @@ const CASINO_VENUES = [
         game: 'prize',
         title: '奇物獎池',
         label: '公開機率',
-        image: 'src/assets/images/art-v2/backgrounds/casino-prize-wall.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp',
         focus: '42% 50%',
         copy: '獎券在這裡被撕下，裝備、素材與傳說物都從暗格裡醒來。'
     },
@@ -62,7 +62,7 @@ const CASINO_VENUES = [
         game: 'cashier',
         title: '瑪洛帳房',
         label: '金幣換籌碼',
-        image: 'src/assets/images/art-v2/backgrounds/casino-hall.webp',
+        image: 'src/assets/images/art/scenes/backgrounds/casino-hall.webp',
         focus: '58% 54%',
         copy: '金幣先變成籌碼，籌碼再變成獎券，最後才變成你真正想要的東西。'
     }
@@ -338,7 +338,7 @@ export default class CasinoScene {
                 <span>場內地圖</span>
                 <strong>${escapeHtml(activeVenue?.title || '賭場')}</strong>
             </div>
-            <div class="casino-venue-list casino-scene-board" style="--casino-map-bg:url('/src/assets/images/art-v2/backgrounds/casino-hall.webp')">
+            <div class="casino-venue-list casino-scene-board" style="--casino-map-bg:url('/src/assets/images/art/scenes/backgrounds/casino-hall.webp')">
                 <span class="casino-hall-vignette" aria-hidden="true"></span>
                 ${CASINO_VENUES.map(venue => {
                     const hotspot = getCasinoVenueHotspot(venue.game);

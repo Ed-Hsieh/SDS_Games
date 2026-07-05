@@ -10,14 +10,16 @@ async function main() {
         monsterModule,
         recipeModule,
         questModule,
-        blueprintModule
+        blueprintModule,
+        dungeonModule
     ] = await Promise.all([
         import('../src/js/data/Equipment.js'),
         import('../src/js/data/EquipmentBalance.js'),
         import('../src/js/data/Monsters.js'),
         import('../src/js/data/Recipes.js'),
         import('../src/js/data/Quests.js'),
-        import('../src/js/data/BlueprintDrops.js')
+        import('../src/js/data/BlueprintDrops.js'),
+        import('../src/js/data/Dungeons.js')
     ]);
 
     const { EquipmentDatabase, SetDatabase } = equipmentModule;
@@ -26,12 +28,14 @@ async function main() {
     const { RecipeDatabase } = recipeModule;
     const { QuestDatabase } = questModule;
     const { BlueprintDropDatabase } = blueprintModule;
+    const { DungeonDatabase } = dungeonModule;
 
     const items = Object.values(EquipmentDatabase);
     const sourceAudit = buildEquipmentSourceAudit({
         EquipmentDatabase,
         MonsterDatabase,
         TowerMonsterData,
+        DungeonDatabase,
         RecipeDatabase,
         QuestDatabase,
         BlueprintDropDatabase,
@@ -194,6 +198,7 @@ function buildEquipmentSourceAudit(context) {
         EquipmentDatabase,
         MonsterDatabase,
         TowerMonsterData,
+        DungeonDatabase,
         RecipeDatabase,
         QuestDatabase,
         BlueprintDropDatabase,
@@ -202,7 +207,8 @@ function buildEquipmentSourceAudit(context) {
 
     const allMonsters = {
         ...MonsterDatabase,
-        ...TowerMonsterData
+        ...TowerMonsterData,
+        ...collectDungeonMonsterSources(DungeonDatabase)
     };
     const sources = new Map();
     const issues = [];
@@ -294,7 +300,7 @@ function buildEquipmentSourceAudit(context) {
 
     for (const [sourceKey, drops] of Object.entries(BlueprintDropDatabase || {})) {
         const monsterKey = sourceKey.includes(':') ? sourceKey.split(':').pop() : sourceKey;
-        const monster = allMonsters[monsterKey];
+        const monster = allMonsters[sourceKey] || allMonsters[monsterKey];
         for (const drop of drops || []) {
             const recipe = RecipeDatabase[drop.recipeId];
             const resultId = recipe?.result?.id;
@@ -381,6 +387,35 @@ function buildEquipmentSourceAudit(context) {
             blueprintSourceLinks: blueprintSourceLinks.length
         }
     };
+}
+
+function collectDungeonMonsterSources(DungeonDatabase = {}) {
+    const monsters = {};
+
+    for (const [dungeonId, dungeon] of Object.entries(DungeonDatabase || {})) {
+        const targetRange = dungeon?.contentPlan?.targetLevelRange;
+        const baseLevel = Number(Array.isArray(targetRange) ? targetRange[0] : null)
+            || Number(dungeon?.recommendLevel)
+            || 1;
+        const add = (monster, offset = 0) => {
+            if (!monster?.id) return;
+            const key = `${dungeonId}:${monster.id}`;
+            monsters[key] = {
+                ...monster,
+                id: key,
+                sourceMonsterId: monster.id,
+                dungeonId,
+                level: Number(monster.level) || Math.max(1, baseLevel + offset),
+                name: monster.name || key
+            };
+        };
+
+        for (const monster of dungeon?.monsters?.common || []) add(monster, 0);
+        for (const monster of dungeon?.monsters?.elite || []) add(monster, 2);
+        add(dungeon?.monsters?.boss, 3);
+    }
+
+    return monsters;
 }
 
 function hasBalanceIntent(item, intent) {

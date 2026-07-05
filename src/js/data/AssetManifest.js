@@ -1,7 +1,5 @@
 const GENERATED_ASSET_BASE = 'src/assets/images/art';
 const GENERATED_BACKGROUND_BASE = 'src/assets/images/art/scenes/backgrounds';
-const LEGACY_ASSET_BASE = 'src/assets/images/art-v2';
-const LEGACY_BACKGROUND_BASE = 'src/assets/images/art-v2/backgrounds';
 const GENERATED_ASSET_EXTENSION = 'webp';
 
 const ART_CATEGORY_PATHS = {
@@ -14,6 +12,7 @@ const ART_CATEGORY_PATHS = {
     'crafted-items': 'items/crafted-items',
     clues: 'items/clues',
     'town-places': 'scenes/town/places',
+    'town-places-full': 'scenes/town/places-full',
     portraits: 'characters/portraits',
     monsters: 'entities/monsters',
     'dungeon-zone-scenes': 'scenes/dungeons/cards',
@@ -27,7 +26,23 @@ const ART_CATEGORY_PATHS = {
 };
 
 const ART_READY = {
-    equipment: new Set([]),
+    equipment: new Set([
+        'miners_pickhammer', 'cave_ward_shield', 'glimmer_lampstaff', 'rune_scriber_focus',
+        'frostbite_dueling_blade', 'frostbound_scepter_drop', 'shadowneedle_dagger',
+        'umbral_pike', 'shade_focus', 'thornhook_claws', 'hydra_spine_spear',
+        'abyssal_needle', 'seraph_void_focus', 'dawnbrand_sword', 'prism_focus',
+        'aurora_ward_plate', 'old_sword', 'old_armor', 'slime_sword', 'goblin_dagger',
+        'wolf_fang_blade', 'wolf_pelt_armor', 'spider_silk_gloves',
+        'forest_guardian_staff', 'forest_guardian_crown', 'bone_sword', 'ghost_cloak',
+        'lich_staff', 'shadow_blade_drop', 'shadow_armor_drop', 'shadow_badge',
+        'shadow_commander_blade', 'titan_hammer', 'ancient_sword', 'crystal_shield',
+        'rune_badge', 'flame_sword', 'frost_blade', 'thunder_axe',
+        'elemental_badge', 'elemental_crown', 'wyvern_lance', 'dragon_knight_helm',
+        'elder_dragon_fang_badge', 'elder_dragon_fang', 'titan_gauntlet',
+        'assassin_blade', 'shadow_commander_sword', 'shadow_overlord_armor',
+        'overlord_armor', 'elemental_orb', 'demon_blade', 'demon_general_armor',
+        'demon_lord_sword', 'demon_lord_crown', 'demon_lord_armor'
+    ]),
     materials: new Set([
         'slime_jelly', 'beast_hide', 'raw_meat', 'goblin_ear', 'iron_ore',
         'wolf_pelt', 'wolf_fang', 'spider_silk', 'poison_gland', 'ancient_bark',
@@ -39,7 +54,18 @@ const ART_READY = {
         'commander_blade', 'shadow_core', 'ancient_gear', 'mithril_ore', 'crystal_shard',
         'pure_crystal', 'ancient_rune', 'glimmer_shard', 'rune_stone', 'titan_heart',
         'ancient_artifact', 'fire_essence', 'ember_stone', 'ice_essence', 'frost_crystal',
-        'frost_core', 'thunder_essence', 'storm_crystal', 'storm_essence', 'earth_essence'
+        'frost_core', 'thunder_essence', 'storm_crystal', 'storm_essence', 'earth_essence',
+        'geo_crystal', 'elemental_core', 'primal_essence', 'wyvern_scale', 'wyvern_wing',
+        'drake_scale', 'dragon_tooth', 'dragon_scale_armor', 'dragon_knight_badge', 'dragon_heart',
+        'elder_dragon_scale', 'dark_dragon_scale', 'assassin_blade', 'shadow_cloak_fragment',
+        'general_armor', 'shadow_insignia', 'overlord_crown', 'void_essence', 'demon_horn',
+        'demonic_steel', 'demon_general_helm', 'abyssal_shard', 'world_shard', 'slime_crown',
+        'bone_sword', 'spider_queen_fang', 'alpha_fang', 'gargoyle_wing', 'imp_horn',
+        'thunder_feather', 'lava_scale', 'molten_core', 'carnivore_seed', 'hydra_scale',
+        'hydra_fang', 'spectral_staff', 'primordial_stone', 'legendary_shard', 'health_potion_s',
+        'antidote', 'enhance_stone', 'cold_resist_potion', 'fire_resist_potion',
+        'vine_core', 'demon_core', 'radiant_thread', 'light_essence', 'radiant_shard',
+        'radiant_core'
     ]),
     blueprints: new Set([]),
     shopItems: new Set([]),
@@ -49,7 +75,20 @@ const ART_READY = {
     clues: new Set([]),
     'town-places': new Set([]),
     portraits: new Set([]),
-    monsters: new Set([]),
+    monsters: new Set([
+        'glimmer_sprite', 'rune_wisp', 'prism_wisp', 'void_walker', 'dawn_sentinel',
+        'starvein_lurker', 'abyssal_seraph', 'radiant_keeper', 'mirror_seraph',
+        'aurora_archon', 'slime', 'goblin', 'wild_wolf', 'skeleton', 'giant_rat',
+        'orc_warrior', 'shadow_bat', 'poison_spider', 'stone_golem_mini', 'treant',
+        'forest_guardian', 'skeleton_warrior', 'ghost', 'stone_golem', 'lich',
+        'shadow_soldier', 'shadow_archer', 'shadow_mage', 'shadow_commander',
+        'ancient_titan', 'fire_elemental', 'ice_elemental', 'thunder_elemental',
+        'earth_elemental', 'elemental_lord', 'wyvern', 'drake', 'dragon_knight',
+        'elder_dragon', 'ancient_guardian', 'crystal_golem', 'rune_keeper',
+        'shadow_assassin', 'shadow_general', 'shadow_overlord', 'demon_soldier',
+        'demon_general', 'demon_lord_asariel', 'blood_moon_stag', 'drowned_oracle',
+        'ash_baron', 'thorn_witch', 'ambush_mantis'
+    ]),
     'dungeon-zone-scenes': new Set([]),
     'dungeon-zone-scenes-full': new Set([]),
     'world-landmarks': new Set([]),
@@ -62,11 +101,6 @@ const ART_READY = {
 
 const ART_PATH_OVERRIDES = {
     monsters: {}
-};
-
-const LEGACY_CATEGORY_PATHS = {
-    shopItems: 'shop-items',
-    craftedItems: 'crafted-items'
 };
 
 const sets = {
@@ -86,7 +120,12 @@ const sets = {
         'starter_sword', 'lucky_coin', 'fate_crystal', 'assassin_dagger', 'master_hammer',
         'loaded_dice', 'beggars_wisdom', 'phoenix_feather', 'gamblers_fallacy',
         'demon_contract', 'lucky_charm_7', 'torch', 'bat_wing_cloak', 'frost_crown',
-        'guardian_shield', 'compass', 'jungle_heart', 'demon_slayer', 'dungeon_master_badge'
+        'guardian_shield', 'compass', 'jungle_heart', 'demon_slayer', 'dungeon_master_badge',
+        'miners_pickhammer', 'cave_ward_shield', 'glimmer_lampstaff', 'rune_scriber_focus',
+        'frostbite_dueling_blade', 'frostbound_scepter_drop', 'shadowneedle_dagger',
+        'umbral_pike', 'shade_focus', 'thornhook_claws', 'hydra_spine_spear',
+        'abyssal_needle', 'seraph_void_focus', 'dawnbrand_sword', 'prism_focus',
+        'aurora_ward_plate'
     ]),
     materials: new Set([
         'slime_jelly', 'beast_hide', 'raw_meat', 'goblin_ear', 'iron_ore', 'wolf_pelt',
@@ -109,7 +148,8 @@ const sets = {
         'imp_horn', 'thunder_feather', 'lava_scale', 'molten_core', 'carnivore_seed',
         'hydra_scale', 'hydra_fang', 'spectral_staff', 'primordial_stone', 'legendary_shard',
         'health_potion_s', 'antidote', 'assassin_blade', 'enhance_stone',
-        'cold_resist_potion', 'fire_resist_potion'
+        'cold_resist_potion', 'fire_resist_potion', 'vine_core', 'demon_core',
+        'radiant_thread', 'light_essence', 'radiant_shard', 'radiant_core'
     ]),
     blueprints: new Set([
         'iron_sword', 'bone_blade', 'poison_dagger', 'shadow_blade', 'mithril_sword',
@@ -160,7 +200,9 @@ const sets = {
         'rare_material_box', 'legendary_weapon_box', 'enhance_scroll', 'vip_card',
         'mystery_box', 'transcend_stone', 'ancient_key', 'dungeon_token',
         'casino_chip_bundle', 'black_market_ticket', 'casino_prize_case', 'blood_chip',
-        'relief_voucher', 'recipe_fragment', 'forbidden_blueprint_fragment'
+        'relief_voucher', 'recipe_fragment', 'forbidden_blueprint_fragment',
+        'gate_patrol_map', 'julian_bookmark', 'north_letter_seal', 'unsent_reply',
+        'lamplighter_oil', 'marlo_odds_sheet'
     ]),
     'town-places': new Set([
         'crossroads', 'market', 'forge', 'handbook', 'alley', 'casino', 'tower', 'gate'
@@ -193,15 +235,18 @@ const sets = {
         'frost_wolf', 'yeti_scout', 'frost_giant', 'ice_dragon', 'stone_guardian',
         'animated_armor', 'phantom', 'ancient_mage', 'jungle_panther', 'poison_frog',
         'vine_beast', 'tribal_hunter', 'ancient_treant', 'jungle_hydra', 'imp',
-        'hell_hound', 'tormented_soul', 'lava_golem', 'pit_fiend', 'demon_king'
+        'hell_hound', 'tormented_soul', 'lava_golem', 'pit_fiend', 'demon_king',
+        'glimmer_sprite', 'rune_wisp', 'prism_wisp', 'starvein_lurker',
+        'void_walker', 'abyssal_seraph', 'dawn_sentinel', 'radiant_keeper',
+        'mirror_seraph', 'aurora_archon'
     ]),
     'dungeon-zone-scenes': new Set([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle', 'dungeon_ruins', 'dungeon_snow',
-        'zone_death', 'zone_high', 'zone_low', 'zone_medium'
+        'dungeon_radiant_corridor', 'zone_death', 'zone_high', 'zone_low', 'zone_medium'
     ]),
     'dungeon-zone-scenes-full': new Set([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle', 'dungeon_ruins', 'dungeon_snow',
-        'zone_death', 'zone_high', 'zone_low', 'zone_medium'
+        'dungeon_radiant_corridor', 'zone_death', 'zone_high', 'zone_low', 'zone_medium'
     ]),
     'world-landmarks': new Set([
         'abyssal_seal_break', 'black_iron_storehouse', 'broken_horn_camp', 'charred_obelisk',
@@ -232,7 +277,9 @@ const sets = {
         'black_flame_ash_vial', 'bran_bloodied_diary', 'burned_knight_diary',
         'deep_sea_orb', 'demon_seal_fragment', 'dragon_nest_mana_crystal',
         'frostbreaker_blueprint', 'frozen_anvil_inscription', 'julian_tablet_rubbing',
-        'last_human_edge', 'lich_staff_remnant', 'living_black_rock', 'weaving_clan_scroll'
+        'last_human_edge', 'lich_staff_remnant', 'living_black_rock', 'weaving_clan_scroll',
+        'leah_stitched_name', 'bell_rhythm_charm', 'ash_nameplate', 'craftsman_gouge',
+        'frey_broken_standard'
     ]),
     'combat-effects': new Set([
         'armor_break', 'attack_speed_down', 'attack_up', 'bleed', 'block', 'boss_warning',
@@ -328,12 +375,7 @@ function normalizeId(id = '') {
     return String(id || '').trim();
 }
 
-function getCategoryBase(category, legacy = false) {
-    if (legacy) {
-        return category === 'backgrounds'
-            ? LEGACY_BACKGROUND_BASE
-            : `${LEGACY_ASSET_BASE}/${LEGACY_CATEGORY_PATHS[category] || category}`;
-    }
+function getCategoryBase(category) {
     return category === 'backgrounds'
         ? GENERATED_BACKGROUND_BASE
         : `${GENERATED_ASSET_BASE}/${ART_CATEGORY_PATHS[category] || category}`;
@@ -345,16 +387,14 @@ function assetPath(category, id, options = {}) {
     const overridePath = !options.legacy ? ART_PATH_OVERRIDES[category]?.[normalizedId] : '';
     const base = overridePath
         ? `${GENERATED_ASSET_BASE}/${overridePath}`
-        : getCategoryBase(category, Boolean(options.legacy));
+        : getCategoryBase(category);
     return `${base}/${normalizedId}.${GENERATED_ASSET_EXTENSION}`;
 }
 
 function preferredAssetPath(category, id) {
     const normalizedId = normalizeId(id);
     if (!normalizedId) return '';
-    return ART_READY[category]?.has(normalizedId)
-        ? assetPath(category, normalizedId)
-        : assetPath(category, normalizedId, { legacy: true });
+    return assetPath(category, normalizedId);
 }
 
 function knownAssetPath(category, id) {
@@ -449,9 +489,10 @@ export function getGeneratedItemImage(item = {}, options = {}) {
     if (sets.shopItems.has(id)) return knownAssetPath('shopItems', id);
     if (sets.craftedItems.has(id)) return knownAssetPath('craftedItems', id);
     if (sets.clues.has(id)) return knownAssetPath('clues', id);
+    if (sets['story-relics'].has(id)) return knownAssetPath('story-relics', id);
     if (sets.blueprints.has(id)) return knownAssetPath('blueprints', id);
 
-    for (const category of ['equipment', 'materials', 'shopItems', 'craftedItems', 'clues', 'blueprints']) {
+    for (const category of ['equipment', 'materials', 'shopItems', 'craftedItems', 'clues', 'story-relics', 'blueprints']) {
         const aliasedPath = knownAssetPath(category, id);
         if (aliasedPath) return aliasedPath;
     }

@@ -3,7 +3,7 @@ import { attachCharacterProfile } from './CharacterProfiles.js';
 
 
 export const MarketSceneAssets = {
-    background: 'src/assets/images/art-v2/town-places/market.webp',
+    background: 'src/assets/images/art/scenes/town/places/market.webp',
 };
 
 export const MarketItemCatalog = {
@@ -121,8 +121,8 @@ export const MarketVendors = [
         name: '伊芙',
         role: '藥棚助手',
         icon: '🧪',
-        portrait: 'src/assets/images/art-v2/portraits/apothecary_assistant.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places/market.webp',
+        portrait: 'src/assets/images/art/characters/portraits/apothecary_assistant.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places/market.webp',
         sceneFocus: '24% 62%',
         sceneCaption: '你走到左側藥棚，帆布下有藥草、玻璃瓶與剛熬好的苦味蒸氣。',
         functionList: ['貨架：生命藥水與解毒劑', '訂單：穩定藥水供應', '交換：凝膠、毒腺換補給'],
@@ -179,8 +179,8 @@ export const MarketVendors = [
         name: '奧托',
         role: '行腳貨商',
         icon: '🧳',
-        portrait: 'src/assets/images/art-v2/portraits/merchant.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places/market.webp',
+        portrait: 'src/assets/images/art/characters/portraits/merchant.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places/market.webp',
         sceneFocus: '56% 58%',
         sceneCaption: '你靠近中央貨車，箱籠與地圖筒把路線、誘餌和麻煩堆在同一側。',
         functionList: ['貨架：地圖碎片與路線道具', '訂單：試作銀絲誘餌', '交換：獸皮換路線拓片'],
@@ -232,8 +232,8 @@ export const MarketVendors = [
         name: '柏恩',
         role: '修補雜貨商',
         icon: '🧰',
-        portrait: 'src/assets/images/art-v2/portraits/tinker.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places/market.webp',
+        portrait: 'src/assets/images/art/characters/portraits/tinker.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places/market.webp',
         sceneFocus: '36% 76%',
         sceneCaption: '你繞到修補木桌，鐵片、皮繩與半修好的工具散在柏恩手邊。',
         functionList: ['貨架：鐵片補洞材料', '訂單：南門修補料', '交換：鐵礦石拆成鐵片'],
@@ -274,8 +274,8 @@ export const MarketVendors = [
         name: '米菈',
         role: '傳聞剪報人',
         icon: '🗞️',
-        portrait: 'src/assets/images/art-v2/portraits/rumor_broker.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places/market.webp',
+        portrait: 'src/assets/images/art/characters/portraits/rumor_broker.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places/market.webp',
         sceneFocus: '72% 52%',
         sceneCaption: '你走向布告角落，剪報、地圖角與壓低聲音的傳聞都貼在木板上。',
         functionList: ['貨架：戰術手記', '訂單：材料索引剪報', '交換：碎片換路線註記'],
@@ -344,8 +344,8 @@ export const MarketVendors = [
         name: '門縫掌櫃',
         role: '風險交易',
         icon: '🕯️',
-        portrait: 'src/assets/images/art-v2/portraits/black_market.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places/market.webp',
+        portrait: 'src/assets/images/art/characters/portraits/black_market.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places/market.webp',
         sceneFocus: '85% 62%',
         sceneCaption: '你停在右側暗巷的門縫前，市集聲音像被厚布蓋住，只剩燭火在數錢。',
         functionList: ['貨架：古代錢幣入口', '交換：黑市線索與捷徑', '限制：需先取得暗巷資格'],

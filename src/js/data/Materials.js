@@ -442,6 +442,17 @@ export const MaterialDatabase = {
         description: '記載古代力量的符文。',
         craftUse: ['rune_weapon', 'rune_armor']
     },
+
+    glimmer_shard: {
+        id: 'glimmer_shard',
+        name: '微光碎片',
+        icon: '✨',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
+        price: 160,
+        description: '封在符文裂縫中的微弱光芒，只能引導節奏，還不足以形成真正的光明力量。',
+        craftUse: ['glimmer_focus']
+    },
     
     rune_stone: {
         id: 'rune_stone',
@@ -775,6 +786,50 @@ export const MaterialDatabase = {
         description: '來自虛空的純粹能量。',
         craftUse: ['void_weapon', 'void_armor']
     },
+
+    radiant_thread: {
+        id: 'radiant_thread',
+        name: '輝光絲',
+        icon: '🧵',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
+        price: 520,
+        description: '微光升階為光明裝備前，用來穩定節奏迴路的高階絲線。',
+        craftUse: ['radiant_weapon', 'radiant_focus', 'light_armor']
+    },
+
+    light_essence: {
+        id: 'light_essence',
+        name: '光明精華',
+        icon: '☀️',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.EPIC,
+        price: 900,
+        description: '正式光明系素材，不會由微光自然升階取得，只能在黎明迴廊等高階來源獲得。',
+        craftUse: ['radiant_weapon', 'radiant_armor', 'radiant_accessory']
+    },
+
+    radiant_shard: {
+        id: 'radiant_shard',
+        name: '曦光碎晶',
+        icon: '💠',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.EPIC,
+        price: 1100,
+        description: '能修正戰鬥節奏的光明碎晶，用於高階光明裝備與抗塔詞綴。',
+        craftUse: ['radiant_reforge', 'tower_counter_gear']
+    },
+
+    radiant_core: {
+        id: 'radiant_core',
+        name: '極光核心',
+        icon: '🌅',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.LEGENDARY,
+        price: 2400,
+        description: '黎明迴廊 Boss 掉落的核心素材，是光明終局裝備的主要門檻。',
+        craftUse: ['radiant_legendary', 'tower_entry_counter']
+    },
     
     // ==================== 魔族材料 ====================
     demon_horn: {
@@ -808,6 +863,17 @@ export const MaterialDatabase = {
         price: 600,
         description: '魔族將軍的頭盔碎片。',
         craftUse: ['demon_general_armor']
+    },
+
+    demon_core: {
+        id: 'demon_core',
+        name: '魔族核心',
+        icon: '🧿',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.EPIC,
+        price: 680,
+        description: '高階惡魔體內凝結的核心，用來把普通地獄素材轉成深淵裝備。',
+        craftUse: ['demon_lord', 'abyss_weapon', 'abyss_focus']
     },
     
     abyssal_shard: {
@@ -941,6 +1007,17 @@ export const MaterialDatabase = {
         price: 180,
         description: '食人花的種子，危險！',
         craftUse: ['nature_weapon']
+    },
+
+    vine_core: {
+        id: 'vine_core',
+        name: '藤心核心',
+        icon: '🌿',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.RARE,
+        price: 260,
+        description: '叢林深處的藤蔓核心，兼具生命回復與束縛毒性的特質。',
+        craftUse: ['jungle_weapon', 'life_armor', 'hydra_venom']
     },
     
     hydra_scale: {

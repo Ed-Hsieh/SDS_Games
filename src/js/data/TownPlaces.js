@@ -5,11 +5,11 @@ export const TownPlaceDatabase = [
         icon: '🏘️',
         tag: '中心',
         mapClass: 'town-place-crossroads',
-        cardImage: 'src/assets/images/art-v2/town-places/crossroads.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/crossroads.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/crossroads.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/crossroads.webp',
         description: '你走進廣場中央，石板路被來往腳步磨得發亮。村長站在旗繩旁，公告欄上的新紙還帶著墨味，城門外的風聲最早吹到這裡。',
         residents: [
-            { npcId: 'village_elder', label: '村長', role: '城鎮管理者', icon: '🏘️', portrait: 'src/assets/images/art-v2/portraits/village_elder.webp', position: { x: 30, y: 58 } }
+            { npcId: 'village_elder', label: '村長', role: '城鎮管理者', icon: '🏘️', portrait: 'src/assets/images/art/characters/portraits/village_elder.webp', position: { x: 30, y: 58 } }
         ],
         actions: [
             { type: 'interaction', id: 'crossroads_notice_board', label: '查看公告欄', shortLabel: '公告欄', icon: '📌', description: '傳聞、委託與城鎮異常會先釘在這裡。', position: { x: 55, y: 60 } }
@@ -33,11 +33,11 @@ export const TownPlaceDatabase = [
         icon: '🌿',
         tag: '補給',
         mapClass: 'town-place-market',
-        cardImage: 'src/assets/images/art-v2/town-places/market.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/market.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/market.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/market.webp',
         description: '你掀開帆布棚的陰影，乾燥藥草、空瓶和湯鍋的氣味混在一起。這裡很窄，卻決定了城鎮明天還能不能有人排隊。',
         residents: [
-            { npcId: 'herbalist', label: '藥師蓮娜', role: '補給與藥水', icon: '🌿', portrait: 'src/assets/images/art-v2/portraits/herbalist.webp', position: { x: 31, y: 58 } }
+            { npcId: 'herbalist', label: '藥師蓮娜', role: '補給與藥水', icon: '🌿', portrait: 'src/assets/images/art/characters/portraits/herbalist.webp', position: { x: 31, y: 58 } }
         ],
         actions: [
             { type: 'route', route: 'shop', label: '打開市集', shortLabel: '市集', icon: '🛒', description: '購買藥水與基礎補給。', position: { x: 67, y: 62 } }
@@ -55,11 +55,11 @@ export const TownPlaceDatabase = [
         icon: '⚒️',
         tag: '裝備',
         mapClass: 'town-place-forge',
-        cardImage: 'src/assets/images/art-v2/town-places/forge.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/forge.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/forge.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/forge.webp',
         description: '你推開鍛造鋪的木門，熱浪先一步迎面撞來。爐火、白煙和敲擊聲把外面的怪物都敲進鐵裡，讓抵抗有了可以握住的重量。',
         residents: [
-            { npcId: 'blacksmith', label: '鍛造師', role: '鍛造與圖紙', icon: '⚒️', portrait: 'src/assets/images/art-v2/portraits/blacksmith.webp', position: { x: 32, y: 60 } }
+            { npcId: 'blacksmith', label: '鍛造師', role: '鍛造與圖紙', icon: '⚒️', portrait: 'src/assets/images/art/characters/portraits/blacksmith.webp', position: { x: 32, y: 60 } }
         ],
         actions: [
             { type: 'route', route: 'forge', label: '開始鍛造', shortLabel: '鍛造', icon: '🔨', description: '製作裝備、查看圖紙與材料需求。', position: { x: 68, y: 60 } }
@@ -76,11 +76,11 @@ export const TownPlaceDatabase = [
         icon: '📚',
         tag: '紀錄',
         mapClass: 'town-place-handbook',
-        cardImage: 'src/assets/images/art-v2/town-places/handbook.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/handbook.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/handbook.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/handbook.webp',
         description: '你走進小屋，紙張與乾墨的味道壓過木屑。怪物紀錄、地圖拓片與尚未歸檔的名字堆滿書桌，像有人用筆尖替世界留住呼吸。',
         residents: [
-            { npcId: 'town_scholar', label: '書記', role: '旅人手札與百科', icon: '📚', portrait: 'src/assets/images/art-v2/portraits/town_scholar.webp', position: { x: 33, y: 58 } }
+            { npcId: 'town_scholar', label: '書記', role: '旅人手札與百科', icon: '📚', portrait: 'src/assets/images/art/characters/portraits/town_scholar.webp', position: { x: 33, y: 58 } }
         ],
         actions: [
             { type: 'route', route: 'quest', label: '翻閱旅人手札', shortLabel: '手札', icon: '📔', description: '查看任務、線索與故事紀錄。', position: { x: 58, y: 60 } },
@@ -101,11 +101,11 @@ export const TownPlaceDatabase = [
         icon: '🧥',
         tag: '暗流',
         mapClass: 'town-place-alley',
-        cardImage: 'src/assets/images/art-v2/town-places/alley.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/alley.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/alley.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/alley.webp',
         description: '你拐進狹窄暗巷，屋簷把日光切成很薄的線。流浪者靠在牆邊，黑市標籤與賭場帳冊的耳語都會在這裡沉下來。',
         residents: [
-            { npcId: 'street_beggar', label: '巷口流浪者', role: '黑市與城中暗流', icon: '🧥', portrait: 'src/assets/images/art-v2/portraits/street_beggar.webp', position: { x: 32, y: 63 } }
+            { npcId: 'street_beggar', label: '巷口流浪者', role: '黑市與城中暗流', icon: '🧥', portrait: 'src/assets/images/art/characters/portraits/street_beggar.webp', position: { x: 32, y: 63 } }
         ],
         actions: [
             { type: 'interaction', id: 'merchant_ancient_coin', label: '交出古代錢幣', shortLabel: '古代錢幣', icon: '🪙', description: '如果你帶著真正的古代錢幣，暗巷會打開另一扇門。', position: { x: 68, y: 60 } }
@@ -121,8 +121,8 @@ export const TownPlaceDatabase = [
         icon: '🎲',
         tag: '金流',
         mapClass: 'town-place-casino',
-        cardImage: 'src/assets/images/art-v2/town-places/casino.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/casino.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/casino.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/casino.webp',
         description: '你推門走進賭場，骰子聲、笑聲和壓低的咒罵一起滾過桌面。瑪洛相信數字一旦被人動過，就會在勝率裡留下傷痕。',
         actions: [
             { type: 'route', route: 'casino', label: '進入賭場', shortLabel: '賭場', icon: '🎰', description: '遊玩賭場，也可能追查異常勝率。', position: { x: 63, y: 62 } }
@@ -140,8 +140,8 @@ export const TownPlaceDatabase = [
         icon: '🗼',
         tag: '挑戰',
         mapClass: 'town-place-tower',
-        cardImage: 'src/assets/images/art-v2/town-places/tower.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/tower.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/tower.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/tower.webp',
         description: '你來到城鎮邊緣，塔影像一把黑尺壓在地上。風穿過高處的裂縫，聲音像某種不肯停止的測驗。',
         actions: [
             { type: 'route', route: 'tower', label: '挑戰無盡塔', shortLabel: '無盡塔', icon: '🗼', description: '進入塔層挑戰，測試裝備與戰鬥狀態。', position: { x: 62, y: 62 } }
@@ -154,8 +154,8 @@ export const TownPlaceDatabase = [
         icon: '⚔️',
         tag: '出城',
         mapClass: 'town-place-gate',
-        cardImage: 'src/assets/images/art-v2/town-places/gate.webp',
-        sceneImage: 'src/assets/images/art-v2/town-places-full/gate.webp',
+        cardImage: 'src/assets/images/art/scenes/town/places/gate.webp',
+        sceneImage: 'src/assets/images/art/scenes/town/places-full/gate.webp',
         description: '你站到城門底下，鐵釘、旗繩與刮花的門板都帶著城外的塵。出去的人會帶回線索、傷口、戰利品，偶爾也帶回一個不該被壓低的消息。',
         actions: [
             { type: 'route', route: 'adventure', label: '出城冒險', shortLabel: '出城', icon: '🧭', description: '前往世界地圖探索、戰鬥與推進線索。', position: { x: 66, y: 62 } }

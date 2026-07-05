@@ -13,7 +13,8 @@ export const DungeonType = {
     SNOW: 'snow',       // 雪山
     RUINS: 'ruins',     // 遺跡
     JUNGLE: 'jungle',   // 叢林
-    HELL: 'hell'        // 地獄
+    HELL: 'hell',       // 地獄
+    RADIANT_CORRIDOR: 'radiant_corridor' // 黎明迴廊
 };
 
 // ==================== 副本難度 ====================
@@ -22,7 +23,8 @@ export const DungeonDifficulty = {
     NORMAL: 2,    // 雪山
     HARD: 3,      // 遺跡
     EXPERT: 4,    // 叢林
-    NIGHTMARE: 5  // 地獄
+    NIGHTMARE: 5, // 地獄
+    LEGEND: 6     // 黎明迴廊
 };
 
 // ==================== 副本狀態 ====================
@@ -69,6 +71,13 @@ export const DungeonEntranceConfig = {
         color: '#dc143c',
         zones: ['boss'],
         description: '魔王封印破裂後，地脈之血流出的深淵裂谷。'
+    },
+    radiant_corridor: {
+        name: '黎明迴廊',
+        icon: '☀️',
+        color: '#f8d56b',
+        zones: ['boss'],
+        description: '光明系正式登場的 70 等副本，用來抗衡無盡塔的虛空壓力。'
     }
 };
 
@@ -83,6 +92,13 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.cave,
         difficulty: DungeonDifficulty.EASY,
         recommendLevel: 3,
+        contentPlan: {
+            targetLevelRange: [5, 10],
+            role: 'first_high_risk_reward',
+            rewardLines: ['cave_miner', 'spider_venom'],
+            materialGroups: ['cave_ore', 'spider_venom'],
+            blockedDrops: ['shadow_shard', 'void_essence', 'light_essence']
+        },
         challenge: {
             playstyle: '低光源探索：視野短、事件密度高，重點是用火把與補給換取穩定推進。',
             riskBrief: '黑暗會縮短可判斷距離，陷阱與突襲比同等級野外更常見。',
@@ -126,11 +142,28 @@ export const DungeonDatabase = {
                 { id: 'cave_rat', name: '巨型洞鼠', icon: '🐀', hp: 25, attack: 12, defense: 1, exp: 12, gold: [3, 10] }
             ],
             elite: [
-                { id: 'shadow_lurker', name: '暗影潛伏者', icon: '👤', hp: 80, attack: 18, defense: 8, exp: 50, gold: [30, 60], special: '偷襲：首次攻擊傷害翻倍' }
+                {
+                    id: 'shadow_lurker',
+                    name: '暗影潛伏者',
+                    icon: '👤',
+                    hp: 80,
+                    attack: 18,
+                    defense: 8,
+                    exp: 50,
+                    gold: [30, 60],
+                    equipmentDrops: [
+                        { equipmentId: 'cave_ward_shield', chance: 0.055 }
+                    ],
+                    special: '偷襲：首次攻擊傷害翻倍'
+                }
             ],
             boss: {
                 id: 'rock_golem', name: '岩石巨人', icon: '🗿', 
                 hp: 200, attack: 25, defense: 20, exp: 150, gold: [100, 200],
+                equipmentDrops: [
+                    { equipmentId: 'miners_pickhammer', chance: 0.14 },
+                    { equipmentId: 'cave_ward_shield', chance: 0.12 }
+                ],
                 skills: [
                     { name: '地震', damage: 30, description: '對全體造成傷害' },
                     { name: '石化凝視', effect: 'stun', duration: 1, description: '使目標短暫僵住 1 秒' }
@@ -180,6 +213,13 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.snow,
         difficulty: DungeonDifficulty.NORMAL,
         recommendLevel: 6,
+        contentPlan: {
+            targetLevelRange: [16, 23],
+            role: 'cold_durability_pressure',
+            rewardLines: ['early_frost', 'lich_relic'],
+            materialGroups: ['frost_core', 'glimmer_seed'],
+            blockedDrops: ['shadow_shard', 'void_essence', 'light_essence']
+        },
         challenge: {
             playstyle: '補給壓力探索：移動本身就是消耗，重點是判斷何時深入、何時回撤。',
             riskBrief: '寒冷會累積並消耗補給；拖太久會把藥水以外的背包壓力放大。',
@@ -221,14 +261,45 @@ export const DungeonDatabase = {
             common: [
                 { id: 'frost_wolf', name: '冰霜狼', icon: '🐺', hp: 50, attack: 14, defense: 6, exp: 25, gold: [10, 25] },
                 { id: 'yeti_scout', name: '雪人斥候', icon: '⛄', hp: 60, attack: 12, defense: 10, exp: 30, gold: [15, 30] },
-                { id: 'ice_elemental', name: '冰元素', icon: '❄️', hp: 45, attack: 16, defense: 4, exp: 28, gold: [12, 28], special: '冰凍觸碰：攻擊時增加目標寒冷值' }
+                {
+                    id: 'ice_elemental',
+                    name: '冰元素',
+                    icon: '❄️',
+                    hp: 45,
+                    attack: 16,
+                    defense: 4,
+                    exp: 28,
+                    gold: [12, 28],
+                    equipmentDrops: [
+                        { equipmentId: 'frostbound_scepter_drop', chance: 0.035 }
+                    ],
+                    special: '冰凍觸碰：攻擊時增加目標寒冷值'
+                }
             ],
             elite: [
-                { id: 'frost_giant', name: '霜巨人', icon: '🧊', hp: 120, attack: 22, defense: 15, exp: 80, gold: [50, 100], special: '寒冰護甲：受到傷害減少 20%' }
+                {
+                    id: 'frost_giant',
+                    name: '霜巨人',
+                    icon: '🧊',
+                    hp: 120,
+                    attack: 22,
+                    defense: 15,
+                    exp: 80,
+                    gold: [50, 100],
+                    equipmentDrops: [
+                        { equipmentId: 'frostbite_dueling_blade', chance: 0.08 },
+                        { equipmentId: 'frostbound_scepter_drop', chance: 0.06 }
+                    ],
+                    special: '寒冰護甲：受到傷害減少 20%'
+                }
             ],
             boss: {
                 id: 'ice_dragon', name: '冰霜巨龍', icon: '🐉',
                 hp: 350, attack: 35, defense: 25, exp: 250, gold: [200, 400],
+                equipmentDrops: [
+                    { equipmentId: 'frostbite_dueling_blade', chance: 0.16 },
+                    { equipmentId: 'frostbound_scepter_drop', chance: 0.12 }
+                ],
                 skills: [
                     { name: '冰息', damage: 40, effect: 'freeze', duration: 2, description: '噴出冰冷的龍息' },
                     { name: '暴風雪', aoe: true, damage: 25, coldIncrease: 50, description: '召喚暴風雪' },
@@ -277,6 +348,13 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.ruins,
         difficulty: DungeonDifficulty.HARD,
         recommendLevel: 10,
+        contentPlan: {
+            targetLevelRange: [28, 37],
+            role: 'rune_defense_and_glimmer_bridge',
+            rewardLines: ['mithril_rune', 'glimmer_initiate', 'shadow_legion'],
+            materialGroups: ['ancient_ruins', 'glimmer_seed', 'shadow_legion'],
+            blockedDrops: ['void_essence', 'light_essence']
+        },
         challenge: {
             playstyle: '辨識型探索：先收集石碑線索，再決定要不要啟動機關。',
             riskBrief: '沒有線索就硬闖會觸發陷阱；遺跡怪物不會理解你只是路過。',
@@ -379,6 +457,13 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.jungle,
         difficulty: DungeonDifficulty.EXPERT,
         recommendLevel: 15,
+        contentPlan: {
+            targetLevelRange: [42, 52],
+            role: 'poison_life_sustain_reward_route',
+            rewardLines: ['jungle_series', 'hydra_venom'],
+            materialGroups: ['jungle_poison'],
+            blockedDrops: ['light_essence']
+        },
         challenge: {
             playstyle: '路標與毒霧探索：不是跑得快就好，而是每次前進都要留下可回頭的記號。',
             riskBrief: '迷霧會讓路徑扭曲；毒素會把錯誤慢慢變成生命壓力。',
@@ -422,7 +507,20 @@ export const DungeonDatabase = {
             common: [
                 { id: 'jungle_panther', name: '叢林黑豹', icon: '🐆', hp: 90, attack: 28, defense: 12, exp: 50, gold: [30, 60], special: '潛行突襲：首擊必爆擊' },
                 { id: 'poison_frog', name: '劇毒蛙', icon: '🐸', hp: 40, attack: 15, defense: 5, exp: 35, gold: [20, 40], special: '劇毒：攻擊附帶中毒效果' },
-                { id: 'vine_beast', name: '藤蔓獸', icon: '🌿', hp: 100, attack: 20, defense: 20, exp: 55, gold: [35, 70], special: '纏繞：降低目標速度' },
+                {
+                    id: 'vine_beast',
+                    name: '藤蔓獸',
+                    icon: '🌿',
+                    hp: 100,
+                    attack: 20,
+                    defense: 20,
+                    exp: 55,
+                    gold: [35, 70],
+                    drops: [
+                        { itemId: 'vine_core', chance: 0.28, quantity: [1, 1] }
+                    ],
+                    special: '纏繞：降低目標速度'
+                },
                 { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, attack: 32, defense: 8, exp: 48, gold: [25, 55] }
             ],
             elite: [
@@ -430,8 +528,12 @@ export const DungeonDatabase = {
             ],
             boss: {
                 id: 'jungle_hydra', name: '叢林九頭蛇', icon: '🐍',
-                hp: 700, attack: 45, defense: 20, exp: 600, gold: [500, 1000],
+                level: 52, hp: 700, attack: 45, defense: 20, exp: 600, gold: [500, 1000],
                 heads: 3,  // 多頭機制
+                equipmentDrops: [
+                    { equipmentId: 'hydra_spine_spear', chance: 0.16 },
+                    { equipmentId: 'thornhook_claws', chance: 0.1 }
+                ],
                 skills: [
                     { name: '多重撕咬', hits: 3, damage: 20, description: '每個頭各攻擊一次' },
                     { name: '劇毒噴吐', aoe: true, damage: 30, poison: { damage: 10, duration: 5 }, description: '噴灑致命毒液' },
@@ -486,6 +588,13 @@ export const DungeonDatabase = {
         story: DungeonStoryDatabase.hell,
         difficulty: DungeonDifficulty.NIGHTMARE,
         recommendLevel: 20,
+        contentPlan: {
+            targetLevelRange: [56, 66],
+            role: 'final_preparation_and_abyss_pressure',
+            rewardLines: ['abyss_series', 'demon_lord'],
+            materialGroups: ['abyss_void', 'elemental_basic'],
+            blockedDrops: ['light_essence']
+        },
         challenge: {
             playstyle: '終局耐壓探索：每一步都會消耗裝備與生命，重點是用最短路線完成目標。',
             riskBrief: '煉獄熱浪會磨耗耐久並壓低回復效率，拖延會把好裝備燒成代價。',
@@ -533,11 +642,30 @@ export const DungeonDatabase = {
                 { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, attack: 30, defense: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
             ],
             elite: [
-                { id: 'pit_fiend', name: '深淵領主', icon: '👿', hp: 300, attack: 55, defense: 25, exp: 250, gold: [200, 400], special: '地獄火：每 3 秒對全體造成 15 點傷害' }
+                {
+                    id: 'pit_fiend',
+                    name: '深淵領主',
+                    icon: '👿',
+                    hp: 300,
+                    attack: 55,
+                    defense: 25,
+                    exp: 250,
+                    gold: [200, 400],
+                    drops: [
+                        { itemId: 'demon_core', chance: 0.22, quantity: [1, 1] },
+                        { itemId: 'abyssal_shard', chance: 0.18, quantity: [1, 1] }
+                    ],
+                    special: '地獄火：每 3 秒對全體造成 15 點傷害'
+                }
             ],
             boss: {
                 id: 'demon_king', name: '惡魔領主・炎獄', icon: '👹',
                 hp: 1000, attack: 60, defense: 35, exp: 1000, gold: [1000, 2000],
+                drops: [
+                    { itemId: 'demon_core', chance: 0.7, quantity: [1, 2] },
+                    { itemId: 'abyssal_shard', chance: 0.45, quantity: [1, 2] },
+                    { itemId: 'void_essence', chance: 0.16, quantity: [1, 1] }
+                ],
                 skills: [
                     { name: '末日審判', aoe: true, damage: 80, description: '召喚地獄之火焚燒一切' },
                     { name: '深淵凝視', effect: 'fear', duration: 3, atkDebuff: 0.5, description: '凝視使目標陷入極度恐懼' },
@@ -588,6 +716,201 @@ export const DungeonDatabase = {
             accentColor: '#ff4500',
             backgroundGradient: 'linear-gradient(180deg, #2d0000 0%, #8b0000 50%, #ff4500 100%)'
         }
+    },
+
+    // ========== 6. 光明副本 (難度: ★★★★★★) ==========
+    [DungeonType.RADIANT_CORRIDOR]: {
+        id: DungeonType.RADIANT_CORRIDOR,
+        name: '黎明迴廊',
+        icon: '☀️',
+        description: '被極光切開的高階迴廊。這裡不是微光的自然升階，而是玩家正式取得光明素材、準備抗衡無盡塔虛空壓力的門檻。',
+        story: DungeonStoryDatabase.radiant_corridor || null,
+        difficulty: DungeonDifficulty.LEGEND,
+        recommendLevel: 30,
+        contentPlan: {
+            targetLevelRange: [70, 80],
+            role: 'light_counter_to_tower_void',
+            rewardLines: ['radiant_series'],
+            materialGroups: ['radiant_light'],
+            blockedDrops: [],
+            requiredContext: ['glimmer_precursor', 'tower_void_pressure']
+        },
+        challenge: {
+            playstyle: '節奏壓力副本：高攻速、高暴擊玩家若只追求爆發，會被鏡翼反制；穩定輸出與防禦節奏更重要。',
+            riskBrief: '光明敵人會放大玩家的節奏失誤，拖太久會讓怪物累積曦光層數，輸出窗口會越來越短。',
+            rewardBrief: '正式光明素材、光明誓約套裝與抗塔前置裝備。',
+            preparation: ['微光或暗影前置裝備能降低入門壓力', '建議先準備可控攻速與防禦向裝備，不要只堆暴擊'],
+            bossWarning: '極光執政官會鏡照玩家的輸出節奏。爆發越無腦，反制越痛。',
+            completion: '黎明迴廊的光路被穩定下來，玩家終於能帶著正式光明裝備踏入塔的虛空壓力。'
+        },
+        floors: 5,
+        bossFloor: 6,
+
+        mechanic: {
+            type: 'radiant_rhythm',
+            name: '曦光節奏',
+            description: '連續輸出會累積曦光層數，提高攻速但也提高被鏡翼反制的風險。光明誓約裝備可讓層數衰退更平滑。',
+            icon: '☀️',
+            effect: {
+                rhythmStackMax: 5,
+                attackSpeedPerStack: 0.04,
+                mirrorPunishThreshold: 4,
+                cleanseVoidPressure: 0.25
+            },
+            counterSet: 'radiant_vow',
+            precursorSet: 'glimmer_initiate'
+        },
+
+        environment: {
+            ambiance: '白金色光線沿著石柱流動，遠處傳來像玻璃互相摩擦的低鳴。',
+            hazards: ['鏡面折返', '曦光過載', '虛空殘響'],
+            events: [
+                { type: 'trap', name: '鏡面折返', damage: 45, chance: 0.12 },
+                { type: 'radiant_overload', name: '曦光過載', effect: 'attack_speed_up_damage_taken_up', duration: 4, chance: 0.12 },
+                { type: 'void_echo', name: '虛空殘響', effect: 'void_pressure', damage: 35, chance: 0.08 },
+                { type: 'rest', name: '黎明靜室', healPercent: 0.28, chance: 0.08 },
+                { type: 'treasure', name: '光藏櫃', goldRange: [260, 620], itemChance: 0.5, chance: 0.1 }
+            ]
+        },
+
+        monsters: {
+            common: [
+                {
+                    id: 'prism_wisp',
+                    name: '棱光微靈',
+                    icon: '◇',
+                    hp: 520,
+                    attack: 86,
+                    defense: 34,
+                    exp: 360,
+                    gold: [180, 320],
+                    drops: [
+                        { itemId: 'radiant_thread', chance: 0.38, quantity: [1, 1] },
+                        { itemId: 'glimmer_shard', chance: 0.3, quantity: [1, 2] }
+                    ],
+                    equipmentDrops: [
+                        { equipmentId: 'prism_focus', chance: 0.04 }
+                    ],
+                    special: '折光脈衝：短暫提高自身攻速。'
+                },
+                {
+                    id: 'dawn_sentinel',
+                    name: '黎明衛士',
+                    icon: '☀',
+                    hp: 720,
+                    attack: 92,
+                    defense: 48,
+                    exp: 440,
+                    gold: [220, 380],
+                    drops: [
+                        { itemId: 'radiant_thread', chance: 0.55, quantity: [1, 2] },
+                        { itemId: 'light_essence', chance: 0.16, quantity: [1, 1] }
+                    ],
+                    equipmentDrops: [
+                        { equipmentId: 'dawnbrand_sword', chance: 0.035 }
+                    ],
+                    special: '晨盾：低血量時提升防禦。'
+                }
+            ],
+            elite: [
+                {
+                    id: 'radiant_keeper',
+                    name: '光明守藏者',
+                    icon: '✺',
+                    hp: 980,
+                    attack: 104,
+                    defense: 58,
+                    exp: 620,
+                    gold: [360, 620],
+                    drops: [
+                        { itemId: 'light_essence', chance: 0.42, quantity: [1, 1] },
+                        { itemId: 'radiant_shard', chance: 0.28, quantity: [1, 1] }
+                    ],
+                    equipmentDrops: [
+                        { equipmentId: 'dawnbrand_sword', chance: 0.07 },
+                        { equipmentId: 'aurora_ward_plate', chance: 0.045 }
+                    ],
+                    special: '光藏守勢：防禦越高，反擊越重。'
+                },
+                {
+                    id: 'mirror_seraph',
+                    name: '鏡翼熾使',
+                    icon: '✧',
+                    hp: 920,
+                    attack: 112,
+                    defense: 50,
+                    exp: 650,
+                    gold: [380, 680],
+                    drops: [
+                        { itemId: 'radiant_shard', chance: 0.38, quantity: [1, 1] },
+                        { itemId: 'light_essence', chance: 0.32, quantity: [1, 1] }
+                    ],
+                    equipmentDrops: [
+                        { equipmentId: 'prism_focus', chance: 0.075 }
+                    ],
+                    special: '鏡翼反制：玩家連續暴擊時觸發反傷窗口。'
+                }
+            ],
+            boss: {
+                id: 'aurora_archon',
+                name: '極光執政官',
+                icon: '✷',
+                hp: 2400,
+                attack: 118,
+                defense: 62,
+                exp: 1800,
+                gold: [1500, 2600],
+                drops: [
+                    { itemId: 'radiant_core', chance: 1.0, quantity: [1, 1] },
+                    { itemId: 'radiant_shard', chance: 0.85, quantity: [1, 2] },
+                    { itemId: 'light_essence', chance: 0.6, quantity: [1, 2] }
+                ],
+                equipmentDrops: [
+                    { equipmentId: 'dawnbrand_sword', chance: 0.18 },
+                    { equipmentId: 'prism_focus', chance: 0.16 },
+                    { equipmentId: 'aurora_ward_plate', chance: 0.14 }
+                ],
+                skills: [
+                    { name: '極光裁定', damage: 130, description: '凝成一道高壓光束，對節奏層數過高的玩家追加傷害。' },
+                    { name: '鏡照脈衝', effect: 'reflect', duration: 2, description: '短暫反射過高頻率的連續攻擊。' },
+                    { name: '黎明重構', effect: 'cleanse', heal: 260, description: '清除自身負面狀態並修復光甲。' }
+                ],
+                phases: [
+                    { hpThreshold: 0.7, message: '迴廊光柱開始旋轉，曦光節奏加快。' },
+                    { hpThreshold: 0.4, message: '極光執政官張開鏡翼，反制窗口變得更短。', reflect: true },
+                    { hpThreshold: 0.18, message: '白金色裂縫吞掉殘留虛空，最後的光壓落下。', atkBoost: 1.35 }
+                ],
+                dialogue: {
+                    encounter: '能在黑塔前站穩的人，先證明你能掌握自己的節奏。',
+                    defeat: '光路已開。別讓塔知道你仍在害怕。'
+                }
+            }
+        },
+
+        treasures: {
+            guaranteed: {
+                id: 'radiant_core',
+                name: '極光核心',
+                icon: '🌅',
+                type: 'material',
+                rarity: 'legendary',
+                description: '極光執政官崩解後留下的光明核心。',
+                price: 2400
+            },
+            random: [
+                { id: 'radiant_thread', name: '輝光絲', icon: '🧵', type: 'material', rarity: 'rare', price: 520 },
+                { id: 'light_essence', name: '光明精華', icon: '☀️', type: 'material', rarity: 'epic', price: 900 },
+                { id: 'radiant_shard', name: '曦光碎晶', icon: '💠', type: 'material', rarity: 'epic', price: 1100 },
+                { id: 'dawnbrand_sword', name: '黎印長劍', icon: '☀️', type: 'weapon', rarity: 'legendary', stats: { attack: 96, defense: 10 }, price: 5200 }
+            ]
+        },
+
+        theme: {
+            primaryColor: '#f8d56b',
+            secondaryColor: '#2b2b34',
+            accentColor: '#8ad7ff',
+            backgroundGradient: 'linear-gradient(180deg, #1f2430 0%, #70613a 48%, #f8d56b 100%)'
+        }
     }
 };
 
@@ -602,7 +925,8 @@ export const DungeonSpawnConfig = {
         [DungeonType.SNOW]: 300000,   // 雪山：5分鐘
         [DungeonType.RUINS]: 600000,  // 遺跡：10分鐘
         [DungeonType.JUNGLE]: 900000, // 叢林：15分鐘
-        [DungeonType.HELL]: 1800000   // 地獄：30分鐘
+        [DungeonType.HELL]: 1800000,  // 地獄：30分鐘
+        [DungeonType.RADIANT_CORRIDOR]: 1800000 // 黎明迴廊：30分鐘
     },
     
     // 副本在地圖上的生成區域
@@ -611,7 +935,8 @@ export const DungeonSpawnConfig = {
         [DungeonType.SNOW]: ['medium', 'high'],     // 雪山：普通/危險區
         [DungeonType.RUINS]: ['medium', 'high'],    // 遺跡：普通/危險區
         [DungeonType.JUNGLE]: ['high'],             // 叢林：危險區
-        [DungeonType.HELL]: ['boss']                // 地獄：Boss區
+        [DungeonType.HELL]: ['boss'],               // 地獄：Boss區
+        [DungeonType.RADIANT_CORRIDOR]: ['boss']    // 黎明迴廊：終局區
     }
 };
 

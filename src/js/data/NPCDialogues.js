@@ -10,7 +10,7 @@ import { applyDialogueScriptRevision } from './StoryScriptRevisions.js';
 export const TownNPCDatabase = {
     village_elder: {
         id: 'village_elder',
-        portrait: 'src/assets/images/art-v2/portraits/village_elder.webp',
+        portrait: 'src/assets/images/art/characters/portraits/village_elder.webp',
         name: '村長',
         avatar: '🏘️',
         role: '城鎮十字路的管理者',
@@ -20,7 +20,7 @@ export const TownNPCDatabase = {
     },
     blacksmith: {
         id: 'blacksmith',
-        portrait: 'src/assets/images/art-v2/portraits/blacksmith.webp',
+        portrait: 'src/assets/images/art/characters/portraits/blacksmith.webp',
         name: '鍛造師',
         avatar: '⚒️',
         role: '負責修整武器與研究圖紙',
@@ -28,7 +28,7 @@ export const TownNPCDatabase = {
     },
     herbalist: {
         id: 'herbalist',
-        portrait: 'src/assets/images/art-v2/portraits/herbalist.webp',
+        portrait: 'src/assets/images/art/characters/portraits/herbalist.webp',
         name: '藥師蓮娜',
         avatar: '🌿',
         role: '記錄草藥、毒霧與居民傷勢',
@@ -38,7 +38,7 @@ export const TownNPCDatabase = {
     },
     street_beggar: {
         id: 'street_beggar',
-        portrait: 'src/assets/images/art-v2/portraits/street_beggar.webp',
+        portrait: 'src/assets/images/art/characters/portraits/street_beggar.webp',
         name: '巷口流浪者',
         avatar: '🧥',
         role: '知道太多小道消息的人',
@@ -46,7 +46,7 @@ export const TownNPCDatabase = {
     },
     town_scholar: {
         id: 'town_scholar',
-        portrait: 'src/assets/images/art-v2/portraits/town_scholar.webp',
+        portrait: 'src/assets/images/art/characters/portraits/town_scholar.webp',
         name: '書記',
         avatar: '📚',
         role: '整理地脈、石碑與怪物紀錄',

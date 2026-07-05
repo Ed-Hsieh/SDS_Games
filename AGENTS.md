@@ -36,6 +36,9 @@ agent sessions should read this file before editing content or asset systems.
   - Non-main bosses and elite monsters may have scene dressing, but should be
     less ornate than mainline bosses.
   - Normal mobs can have no background.
+- Boss-dropped equipment should visually match the item held or worn by that
+  boss. For example, `lich_staff` should look like the staff visible in the
+  `lich` boss illustration, not a separate redesign.
 - Keep light and void as high-tier elements:
   - `shadow` is the weak precursor to `void`.
   - `glimmer` is the weak precursor to `light`.
@@ -46,29 +49,43 @@ agent sessions should read this file before editing content or asset systems.
 The new `art` folder is active through `AssetManifest.js`, with fallback to
 `art-v2` for unfinished assets.
 
-Completed new material WebP assets: 55 / 95.
+Current runtime WebP progress as of 2026-07-05:
 
-Ready material IDs:
+- Materials: 101 / 101 database materials ready in `ART_READY.materials`.
+  `src/assets/images/art/items/materials/` currently has 104 WebP files because
+  `cold_resist_potion`, `enhance_stone`, and `fire_resist_potion` exist as
+  extra runtime item art outside `MaterialDatabase`.
+- New content-rebuild equipment: 16 / 16 ready in `ART_READY.equipment`:
+  `miners_pickhammer`, `cave_ward_shield`, `glimmer_lampstaff`,
+  `rune_scriber_focus`, `frostbite_dueling_blade`,
+  `frostbound_scepter_drop`, `shadowneedle_dagger`, `umbral_pike`,
+  `shade_focus`, `thornhook_claws`, `hydra_spine_spear`,
+  `abyssal_needle`, `seraph_void_focus`, `dawnbrand_sword`,
+  `prism_focus`, `aurora_ward_plate`.
+- New content-rebuild monsters: 10 / 10 ready in `ART_READY.monsters`:
+  `glimmer_sprite`, `rune_wisp`, `prism_wisp`, `starvein_lurker`,
+  `void_walker`, `abyssal_seraph`, `dawn_sentinel`, `radiant_keeper`,
+  `mirror_seraph`, `aurora_archon`.
+- Legacy/live equipment replacement started. Additional ready equipment:
+  `old_sword`, `old_armor`, `slime_sword`, `goblin_dagger`,
+  `wolf_fang_blade`, `wolf_pelt_armor`, `spider_silk_gloves`,
+  `forest_guardian_staff`, `forest_guardian_crown`, `bone_sword`.
+- Legacy/live monster replacement started. Additional ready monsters:
+  `slime`, `goblin`, `wild_wolf`, `skeleton`, `giant_rat`,
+  `orc_warrior`, `shadow_bat`, `poison_spider`, `stone_golem_mini`,
+  `treant`.
+- Legacy/live replacement pass 2 ready equipment:
+  `ghost_cloak`, `lich_staff`, `shadow_blade_drop`, `shadow_armor_drop`,
+  `shadow_badge`. `wolf_fang_blade` was regenerated so it reads as a real
+  cutting blade rather than a tooth mounted to a handle.
+- Legacy/live replacement pass 2 ready monsters:
+  `forest_guardian`, `skeleton_warrior`, `ghost`, `stone_golem`, `lich`.
 
-```text
-slime_jelly, beast_hide, raw_meat, goblin_ear, iron_ore,
-wolf_pelt, wolf_fang, spider_silk, poison_gland, ancient_bark,
-life_seed, guardian_branch, forest_essence, bone_fragment, ectoplasm,
-spirit_essence, golem_core, stone_fragment, lich_phylactery, goblin_coin,
-orc_fang, rat_tail, bat_wing, iron_shard, high_ore,
-rare_metal, forge_core, dark_crystal, shadow_shard, soul_fragment,
-cursed_shard, dark_steel, shadow_arrow, shadow_essence, magic_crystal,
-commander_blade, shadow_core, ancient_gear, mithril_ore, crystal_shard,
-pure_crystal, ancient_rune, glimmer_shard, rune_stone, titan_heart,
-ancient_artifact, fire_essence, ember_stone, ice_essence, frost_crystal,
-frost_core, thunder_essence, storm_crystal, storm_essence, earth_essence
-```
+Remaining new `art` gaps:
 
-Suggested next material batch:
-
-```text
-geo_crystal, elemental_core, primal_essence, wyvern_scale, wyvern_wing
-```
+- Equipment still missing new WebP art: 31 legacy/live entries.
+- Monsters still missing new WebP art: 28 legacy/live entries.
+- The radiant dungeon scene/card art is still not regenerated.
 
 ## Verification
 

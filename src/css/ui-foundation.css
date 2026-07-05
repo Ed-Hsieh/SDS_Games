@@ -11054,7 +11054,7 @@ body {
 }
 
 .market-stage {
-    --market-bg: url("../assets/images/art-v2/town-places/market.webp");
+    --market-bg: url("../assets/images/art/scenes/town/places/market.webp");
     position: relative;
     min-width: 0;
     min-height: 0;
@@ -11902,7 +11902,7 @@ body {
     background:
         linear-gradient(180deg, rgba(4, 8, 13, 0.18), rgba(4, 8, 13, 0.52)),
         radial-gradient(ellipse at 50% 78%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.36)),
-        url("/src/assets/images/art-v2/backgrounds/town-overview.webp") center / cover no-repeat !important;
+        url("/src/assets/images/art/scenes/backgrounds/town-overview.webp") center / cover no-repeat !important;
 }
 
 .world-stage-town .world-stage-backdrop::before {
@@ -11983,7 +11983,7 @@ body {
 .map-container {
     background:
         linear-gradient(180deg, rgba(3, 7, 10, 0.18), rgba(3, 7, 10, 0.58)),
-        url("/src/assets/images/art-v2/backgrounds/adventure-world-map.webp") center / cover no-repeat !important;
+        url("/src/assets/images/art/scenes/backgrounds/adventure-world-map.webp") center / cover no-repeat !important;
 }
 
 /* Visual-novel style town dialogue */
@@ -12374,7 +12374,7 @@ body {
     background:
         linear-gradient(180deg, rgba(8, 10, 12, 0.62), rgba(8, 10, 12, 0.88)),
         radial-gradient(circle at 50% 38%, rgba(217, 184, 95, 0.13), transparent 34%),
-        url("/src/assets/images/art-v2/backgrounds/casino-hall.webp") center / cover no-repeat,
+        url("/src/assets/images/art/scenes/backgrounds/casino-hall.webp") center / cover no-repeat,
         radial-gradient(circle at 16% 12%, rgba(217, 184, 95, 0.18), transparent 28%),
         linear-gradient(135deg, #16110d 0%, #111820 48%, #0a0d12 100%) !important;
     color: #eef2f7;
@@ -12718,14 +12718,14 @@ body {
 .casino-rework .casino-table-panel.active::before {
     background:
         linear-gradient(180deg, rgba(12, 15, 20, 0.72), rgba(12, 15, 20, 0.9)),
-        var(--casino-active-bg, url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp")) var(--casino-active-position, center) / cover no-repeat;
+        var(--casino-active-bg, url("/src/assets/images/art/scenes/backgrounds/casino-game-table.webp")) var(--casino-active-position, center) / cover no-repeat;
     opacity: 0.72;
 }
 
 .casino-rework .casino-prize-panel.active::before {
     background:
         linear-gradient(180deg, rgba(12, 15, 20, 0.66), rgba(12, 15, 20, 0.9)),
-        url("/src/assets/images/art-v2/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
+        url("/src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
     opacity: 0.74;
 }
 
@@ -12733,7 +12733,7 @@ body {
     background:
         linear-gradient(180deg, rgba(10, 11, 14, 0.6), rgba(10, 12, 16, 0.92)),
         radial-gradient(circle at 72% 34%, rgba(250, 204, 21, 0.14), transparent 32%),
-        url("/src/assets/images/art-v2/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
+        url("/src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp") center / cover no-repeat;
     opacity: 0.78;
 }
 
@@ -12741,7 +12741,7 @@ body {
     background:
         linear-gradient(180deg, rgba(12, 8, 12, 0.62), rgba(12, 10, 14, 0.92)),
         radial-gradient(circle at 72% 36%, rgba(163, 63, 44, 0.2), transparent 34%),
-        url("/src/assets/images/art-v2/backgrounds/casino-game-table.webp") center / cover no-repeat;
+        url("/src/assets/images/art/scenes/backgrounds/casino-game-table.webp") center / cover no-repeat;
     opacity: 0.82;
 }
 
@@ -16674,7 +16674,7 @@ body {
     border-radius: 16px !important;
     background:
         linear-gradient(180deg, rgba(5, 6, 8, 0.08), rgba(5, 6, 8, 0.2)),
-        url("../assets/images/art-v2/ui/right_dynamic_panel_frame.png") center / 100% 100% no-repeat !important;
+        url("../assets/images/art/ui/right_dynamic_panel_frame.png") center / 100% 100% no-repeat !important;
     box-shadow:
         0 24px 52px rgba(0, 0, 0, 0.38),
         0 0 0 1px rgba(225, 184, 91, 0.08) !important;
@@ -18492,7 +18492,7 @@ body {
     pointer-events: none;
     background:
         linear-gradient(180deg, rgba(5, 7, 9, 0.32), rgba(5, 7, 9, 0.78)),
-        url("../assets/images/art-v2/town-places-full/handbook.webp") center / cover no-repeat;
+        url("../assets/images/art/scenes/town/places-full/handbook.webp") center / cover no-repeat;
     opacity: 0.2;
     mix-blend-mode: screen;
 }
