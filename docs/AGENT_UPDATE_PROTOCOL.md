@@ -14,8 +14,29 @@ Keep every agent working from the same documentation shape:
 - Markdown documents explain direction, constraints, and handoff state.
 - New planning files are avoided unless no existing authoritative document can
   hold the information cleanly.
-- Progress updates use fixed status, priority, and validation fields so another
-  session can continue without reinterpreting free-form notes.
+- Progress updates are written only when the user explicitly asks for a handoff
+  or checkpoint. When written, they use fixed status, priority, and validation
+  fields so another session can continue without reinterpreting free-form notes.
+
+## Manual Documentation Trigger
+
+Default behavior: do not update progress Markdown during ordinary implementation.
+
+Update `docs/AGENT_SESSION_LOG.md` or other progress/checkpoint notes only when
+the user explicitly asks for one of these actions:
+
+- Record current progress.
+- Update the handoff.
+- Save unfinished work for the next session.
+- Summarize current state into project files.
+- Modify documentation rules or authoritative planning documents.
+
+If work leaves useful context but the user did not ask for a checkpoint, mention
+the context briefly in the final response instead of editing documentation.
+
+Do not treat every code, data, asset, or balance change as a reason to update
+Markdown. The documentation layer is a manual handoff system, not an automatic
+development log.
 
 ## Do Not Create New Planning Docs By Default
 
@@ -119,7 +140,8 @@ Rules:
 
 Rules:
 
-- Update the session log only when the next session needs the information.
+- Update the session log only when the user explicitly asks for a handoff or
+  progress checkpoint.
 - Keep it as a checkpoint, not a diary.
 - Replace `Next Resume Task` when the actual next task changes.
 - Do not append long historical timelines. Move durable direction into the
@@ -195,7 +217,8 @@ object when the item comes from a boss.
 
 ## Update Workflow
 
-Follow this sequence for documentation changes:
+Follow this sequence only when the user asks for documentation or checkpoint
+updates:
 
 1. Read `AGENTS.md` and `docs/README.md`.
 2. Choose the existing authoritative document that owns the topic.
@@ -221,6 +244,8 @@ Do not:
 
 - Create random `OPEN_TASKS.md`, `TODO.md`, `ROADMAP_NEW.md`, or duplicate
   planning files for topics already routed above.
+- Update `AGENT_SESSION_LOG.md` after every implementation step.
+- Spend ordinary development time maintaining a running Markdown diary.
 - Add mobile UI requirements unless the user explicitly resumes mobile work.
 - Reintroduce `art-v2` as a long-term fallback strategy.
 - Pull combat redesign, tower rewrite, or image generation into a pass where the

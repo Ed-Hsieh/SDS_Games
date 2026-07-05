@@ -391,6 +391,7 @@ function auditFrameworkDocs() {
         'Do Not Remove Just Yet'
     ]);
     assertDocContains('framework-docs', 'docs/AGENT_UPDATE_PROTOCOL.md', [
+        'Manual Documentation Trigger',
         'Do Not Create New Planning Docs By Default',
         'Fixed Progress Item Format',
         'Fixed Session Log Format',

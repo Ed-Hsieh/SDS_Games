@@ -44,6 +44,9 @@ when an MD file and JS data disagree.
 When updating project documentation, follow `docs/AGENT_UPDATE_PROTOCOL.md`.
 Do not invent new progress formats or new planning files when an authoritative
 document already owns the topic.
+Progress/checkpoint docs are manual handoffs: update them only when the user
+explicitly asks to record progress, update a handoff, or change documentation
+rules.
 
 ## Asset Structure
 

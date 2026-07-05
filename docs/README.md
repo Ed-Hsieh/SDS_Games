@@ -43,6 +43,8 @@ the design direction readable for future Codex sessions.
 - If an old system is structurally wrong, replace the core flow instead of adding
   compatibility padding.
 - Follow `AGENT_UPDATE_PROTOCOL.md` before creating or editing planning docs.
+- Do not update progress/checkpoint docs during ordinary implementation unless
+  the user explicitly asks for a handoff or current-state record.
 - Keep town map, shop, market, casino, and NPC story recovery moving as one network.
 - Backpack and commission-helper systems are stable and outside the first town
   rebuild unless explicitly pulled in later.
