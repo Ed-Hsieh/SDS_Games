@@ -1,6 +1,6 @@
 # Agent Session Log
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06
 
 ## Current Direction
 
@@ -26,7 +26,15 @@ Paused for now:
   for future implementation.
 - Consolidated docs into a smaller authoritative set:
   `TOWN_REBUILD_CONVERGENCE.md`, `CHAPTER_QUEST_FRAMEWORK.md`,
-  `CASINO_ROUTE_FRAMEWORK.md`, and `ART_STYLE_GUIDE.md`.
+  `CASINO_ROUTE_FRAMEWORK.md`, `ART_STYLE_GUIDE.md`, and
+  `IMAGE_GENERATION_PROMPTS.md`.
+- Removed old image-generation influence docs from the sheet/crop/art-v2 pipeline.
+  Future image generation should use `IMAGE_GENERATION_PROMPTS.md` as the prompt
+  standard and `ART_STYLE_GUIDE.md` as the visual reference guide.
+- Added `OBSOLETE_CLEANUP_PLAN.md` to record remaining obsolete pipeline and
+  compatibility cleanup targets.
+- Added `AGENT_UPDATE_PROTOCOL.md` so future agents use fixed document, progress,
+  cleanup, image prompt, and handoff formats instead of inventing new ones.
 
 ## Current Runtime Status
 
@@ -36,6 +44,8 @@ Paused for now:
 - Quest story placement exists, but reward redistribution across Lv1-Lv70 is still
   pending.
 - Art generation is intentionally deferred.
+- Documentation updates should follow `AGENT_UPDATE_PROTOCOL.md`; runtime JS/data
+  remains the source of truth for implemented behavior.
 
 ## Next Good Step
 
@@ -60,6 +70,11 @@ Target result:
 - Wire Lobby/Town hotspots first, then shop/market/forge/casino access.
 - Keep combat, tower, and image generation paused while this resolver pass is in
   progress.
+
+Parallel cleanup note:
+
+- If the user asks for cleanup before the resolver, start with the high-confidence
+  old art-v2 sheet/crop pipeline listed in `OBSOLETE_CLEANUP_PLAN.md`.
 
 Suggested implementation files:
 

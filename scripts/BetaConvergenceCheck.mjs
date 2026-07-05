@@ -346,7 +346,10 @@ function auditFrameworkDocs() {
         'docs/CHAPTER_QUEST_FRAMEWORK.md',
         'docs/CASINO_ROUTE_FRAMEWORK.md',
         'docs/ART_STYLE_GUIDE.md',
-        'docs/AGENT_SESSION_LOG.md'
+        'docs/IMAGE_GENERATION_PROMPTS.md',
+        'docs/OBSOLETE_CLEANUP_PLAN.md',
+        'docs/AGENT_SESSION_LOG.md',
+        'docs/AGENT_UPDATE_PROTOCOL.md'
     ];
     assertFiles('framework-docs', docs);
 
@@ -371,6 +374,27 @@ function auditFrameworkDocs() {
         'Dark realistic fantasy',
         'Boss-dropped equipment',
         'src/assets/images/art/scenes/town/places-full/casino.webp'
+    ]);
+    assertDocContains('framework-docs', 'docs/IMAGE_GENERATION_PROMPTS.md', [
+        'Standard Prompt Shell',
+        'Materials',
+        'Weapons',
+        'Normal Monsters',
+        'Main Bosses',
+        'Town Scenes',
+        'Casino Scenes And Showcase Items'
+    ]);
+    assertDocContains('framework-docs', 'docs/OBSOLETE_CLEANUP_PLAN.md', [
+        'High-Confidence Cleanup',
+        'Medium-Confidence Cleanup',
+        'ProgressionLevels.js',
+        'Do Not Remove Just Yet'
+    ]);
+    assertDocContains('framework-docs', 'docs/AGENT_UPDATE_PROTOCOL.md', [
+        'Do Not Create New Planning Docs By Default',
+        'Fixed Progress Item Format',
+        'Fixed Session Log Format',
+        'Update Workflow'
     ]);
 
     summary.frameworkDocs = docs.length;

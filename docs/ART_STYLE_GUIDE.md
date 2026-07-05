@@ -5,6 +5,10 @@ Last updated: 2026-07-05
 Image generation is paused for this pass. This guide records the current style so
 future generated assets stay consistent.
 
+Use this file for style direction and reference examples. Use
+`IMAGE_GENERATION_PROMPTS.md` for copy-ready prompt templates and category
+standards.
+
 ## Global Style
 
 - Dark realistic fantasy.

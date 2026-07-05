@@ -1,5 +1,7 @@
 # SDS_Games Agent Handoff
 
+Last updated: 2026-07-06
+
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
 
@@ -30,11 +32,18 @@ work:
 - `docs/CHAPTER_QUEST_FRAMEWORK.md`
 - `docs/CASINO_ROUTE_FRAMEWORK.md`
 - `docs/ART_STYLE_GUIDE.md`
+- `docs/IMAGE_GENERATION_PROMPTS.md`
+- `docs/OBSOLETE_CLEANUP_PLAN.md`
 - `docs/AGENT_SESSION_LOG.md`
+- `docs/AGENT_UPDATE_PROTOCOL.md`
 
 Older broad planning docs were removed on 2026-07-05 so future sessions do not
 inherit conflicting design directions. Runtime data remains the source of truth
 when an MD file and JS data disagree.
+
+When updating project documentation, follow `docs/AGENT_UPDATE_PROTOCOL.md`.
+Do not invent new progress formats or new planning files when an authoritative
+document already owns the topic.
 
 ## Asset Structure
 
@@ -75,8 +84,8 @@ assets should be listed as gaps and regenerated into `art`.
 
 Image generation is paused during the current town-rebuild documentation pass.
 Use `docs/ART_STYLE_GUIDE.md` for style direction and current example paths.
-Use `docs/generated/art-asset-queue.md` only as a generated queue reference, not
-as higher authority than the active framework docs.
+Use `docs/IMAGE_GENERATION_PROMPTS.md` for prompt templates and category
+standards when image work resumes.
 
 ## Verification
 

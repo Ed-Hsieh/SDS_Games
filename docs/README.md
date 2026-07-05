@@ -1,6 +1,6 @@
 # SDS Games Development Docs
 
-Last updated: 2026-07-05
+Last updated: 2026-07-06
 
 This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
 data files remain the source of truth for shipped behavior; these documents keep
@@ -16,9 +16,13 @@ the design direction readable for future Codex sessions.
   reward loop, and future integration points.
 - `ART_STYLE_GUIDE.md` - current image style rules and reference assets already in
   the project.
+- `IMAGE_GENERATION_PROMPTS.md` - authoritative prompt templates for every
+  generated asset category.
+- `OBSOLETE_CLEANUP_PLAN.md` - cleanup sequence for old art-v2, sheet/crop,
+  temporary progression, and compatibility leftovers.
 - `AGENT_SESSION_LOG.md` - latest checkpoint for continuing development.
-- `generated/art-asset-queue.md` - generated asset queue reference. Do not treat it
-  as design authority when it conflicts with the active docs above.
+- `AGENT_UPDATE_PROTOCOL.md` - required formatting and update rules for future
+  agent documentation changes.
 
 ## Paused This Cycle
 
@@ -38,6 +42,7 @@ the design direction readable for future Codex sessions.
 - Build desktop first.
 - If an old system is structurally wrong, replace the core flow instead of adding
   compatibility padding.
+- Follow `AGENT_UPDATE_PROTOCOL.md` before creating or editing planning docs.
 - Keep town map, shop, market, casino, and NPC story recovery moving as one network.
 - Backpack and commission-helper systems are stable and outside the first town
   rebuild unless explicitly pulled in later.

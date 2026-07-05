@@ -18,3 +18,5 @@ src/assets/images/art/
 
 Use the ignored originals when re-exporting multiple resolutions or replacing a
 runtime WebP with a new compression/size target.
+
+Use `docs/IMAGE_GENERATION_PROMPTS.md` when generating new originals.
