@@ -11,6 +11,7 @@ import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { createRecipeBlueprintDisplayItems, rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
+import { dialogueManager } from '../managers/DialogueManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
@@ -20,8 +21,13 @@ import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getLandmark } from '../data/WorldStories.js';
+import {
+    getChapterOneRouteGroups,
+    getChapterOneRouteProgressTargetsForLandmark
+} from '../data/ChapterOneRoutePlan.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getTownPlaces } from '../data/TownPlaces.js';
+import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -48,19 +54,18 @@ const AMBUSH_MANTIS_CHAIN_ID = 'ambush_mantis';
 const AMBUSH_MANTIS_BOSS_ID = 'ambush_mantis';
 const AMBUSH_MANTIS_BAIT_ITEM_ID = 'silver_thread_bait';
 const AMBUSH_MANTIS_TRIGGER_LANDMARK_ID = 'silver_snare_pass';
-const ADVENTURE_TRAVEL_COSTS = {
-    low: { fatigue: 1 },
-    medium: { fatigue: 2 },
-    high: { fatigue: 4 },
-    death: { fatigue: 7 },
-    boss: { fatigue: 7 }
-};
 const AMBUSH_MANTIS_RELATED_LANDMARKS = new Set([
     'hunter_boardwalk',
     'old_campfire_site',
     'cut_roadsign',
     AMBUSH_MANTIS_TRIGGER_LANDMARK_ID
 ]);
+
+const RELATIONSHIP_PROFILE_NPC_ALIASES = {
+    frey_standard_bearer: 'standard_bearer_frey',
+    tavi_lamplighter: 'lamplighter_tavi',
+    malo_bookkeeper: 'accountant_marlo'
+};
 const LANDMARK_BOSS_TRIGGERS = {
     forest_guardian: {
         chainId: 'forest_guardian',
@@ -636,18 +641,6 @@ export default class AdventureScene {
             return true;
         }
 
-        if (cell.type === 'rift') {
-            this.worldMap.currentRift = cell.riftData || { zone };
-            if (zone && this.worldMap.unlockedZones) {
-                this.worldMap.unlockedZones.add(zone);
-                this.worldMap._saveMapState?.();
-            }
-            this.hideSmallLocationHint();
-            this.isLocked = true;
-            this.handleRiftInteraction();
-            return true;
-        }
-
         if (cell.type === 'home') {
             if (!this.worldMap.hasLeftHome) {
                 showGlobalToast('城鎮在身後', '先踏出城門，回程時再按 F 返回大廳。', 'info', { duration: 1800 });
@@ -701,31 +694,33 @@ export default class AdventureScene {
     movePlayerBy(dx, dy) {
         if (this.isLocked || !this.worldMap || (dx === 0 && dy === 0)) return;
 
-        const travelZone = this.worldMap.getCurrentZone?.() || 'low';
-        if (!this.hasAdventureTravelCost(travelZone)) return;
+        const target = this.worldMap.getStepTarget?.(dx, dy);
+        const travelCost = target
+            ? this.worldMap.getTravelCostForCell?.(target.x, target.y)
+            : { fatigue: 1 };
+        if (!this.hasAdventureTravelCost(travelCost)) return;
 
         const before = { ...this.worldMap.playerPos };
         const result = this.worldMap.movePlayer(dx, dy);
         const moved = before.x !== this.worldMap.playerPos.x || before.y !== this.worldMap.playerPos.y;
         if (moved && result !== 'home') {
-            this.consumeAdventureTravelCost(travelZone);
+            this.consumeAdventureTravelCost(travelCost);
         }
         this.handleMapMoveResult(result);
     }
 
-    hasAdventureTravelCost(zone) {
-        const cost = ADVENTURE_TRAVEL_COSTS[zone] || ADVENTURE_TRAVEL_COSTS.low;
-        const fatigueCost = Math.max(0, Number(cost?.fatigue) || 0);
+    hasAdventureTravelCost(cost) {
+        const fatigueCost = Math.max(0, Number(cost?.fatigue ?? cost) || 0);
         if (fatigueCost <= 0) return true;
         return true;
     }
 
-    consumeAdventureTravelCost(zone) {
-        const cost = ADVENTURE_TRAVEL_COSTS[zone] || ADVENTURE_TRAVEL_COSTS.low;
-        if (!cost) return;
+    consumeAdventureTravelCost(cost) {
+        const fatigueCost = Math.max(0, Number(cost?.fatigue ?? cost) || 0);
+        if (fatigueCost <= 0) return;
 
         const before = GameManager.getAdventureFatigueStatus?.({ recover: false });
-        GameManager.consumeAdventureFatigue?.(cost.fatigue || 0);
+        GameManager.consumeAdventureFatigue?.(fatigueCost);
         const after = GameManager.getAdventureFatigueStatus?.({ recover: false });
         if (after?.depleted && before?.current > 0) {
             const now = Date.now();
@@ -765,10 +760,26 @@ export default class AdventureScene {
         } else if (result === 'home') {
             this.isLocked = true;
             this.handleReturnHome();
-        } else if (result === 'rift') {
-            this.isLocked = true;
-            this.handleRiftInteraction();
         }
+    }
+
+    applyLandmarkQuestProgress(landmarkId, outcome = {}) {
+        if (!landmarkId || !outcome.firstVisit) return [];
+
+        const progressTargets = [
+            `landmark:${landmarkId}`,
+            ...getChapterOneRouteProgressTargetsForLandmark(landmarkId)
+        ];
+        const updatedTargets = [];
+
+        progressTargets.forEach(target => {
+            if (questManager.updateProgress(ObjectiveType.EXPLORE, target, 1)) {
+                updatedTargets.push(target);
+            }
+        });
+
+        questManager.syncExplorationObjectives?.();
+        return updatedTargets;
     }
 
     handleKeyPress(event) {
@@ -1003,11 +1014,11 @@ export default class AdventureScene {
 
     getZoneRiskLine(zoneId) {
         const lines = {
-            low: '風險很低，適合確認路線與收集基礎材料。',
-            medium: '這一帶開始有穩定遭遇，請確認生命與藥水。',
-            high: '高威脅區會出現更強敵人與首領線索，撤退前先看好回城路。',
-            death: '死亡區會壓迫補給與裝備耐久，建議準備抗性與足夠藥水。',
-            boss: '黑焰邊境接近終局事件，進入前請確認裝備、藥水與首領痕跡。'
+            low: '初段路網適合確認路線、收集基礎材料，並找出第一批線索。',
+            medium: '中段路網開始有穩定遭遇，請確認生命、藥水與裝備耐久。',
+            high: '深入路網會出現更強敵人與首領線索，撤退前先看好回城路。',
+            death: '終段路網會壓迫補給與裝備耐久，建議準備抗性與足夠藥水。',
+            boss: '首領收束點接近終局事件，進入前請確認裝備、藥水與首領痕跡。'
         };
         return lines[zoneId] || '';
     }
@@ -1294,21 +1305,30 @@ export default class AdventureScene {
                 note: '之後的線索會以實際發現順序補進來。'
             }));
 
-        const forge = activeQuests
-            .filter(quest => (quest.objectives || []).some(objective => [ObjectiveType.CRAFT, ObjectiveType.ENHANCE].includes(objective.type)))
-            .slice(0, 6)
-            .map(quest => {
-                const story = getQuestStory(quest, quest.state);
+        const chapterOneRoutes = this.getChapterOneRouteHandbookRecords();
+
+        const relationships = getAllCharacterProfiles()
+            .map(profile => {
+                const npcId = RELATIONSHIP_PROFILE_NPC_ALIASES[profile.id] || profile.id;
+                const talkCount = dialogueManager.getNpcTalkCount?.(npcId) || 0;
+                if (talkCount <= 0) return null;
+                const unlockedStage = (profile.stages || [])
+                    .filter(stage => !stage.fromFlag || GameManager.getFlag(stage.fromFlag))
+                    .at(-1);
                 return {
-                    key: `forge:${quest.id}`,
-                    icon: quest.icon || '⚒',
-                    kicker: this.formatAdventureQuestStatus(quest.state.status),
-                    title: story.source || quest.name,
-                    meta: '鍛造備忘',
-                    text: story.current || story.active || quest.description,
-                    note: this.getAdventureQuestObjectiveText(quest)
+                    key: `relationship:${profile.id}`,
+                    icon: '👥',
+                    kicker: unlockedStage?.label || (talkCount > 1 ? '留下印象' : '初識'),
+                    title: profile.name || npcId,
+                    meta: '城鎮人際',
+                    text: talkCount > 1
+                        ? profile.core || '你開始看見這個人的輪廓。'
+                        : `你只和${profile.name || '這個人'}說過幾句話，目前還只是第一印象。`,
+                    note: unlockedStage?.mood || profile.title || `${talkCount} 次對話`
                 };
-            });
+            })
+            .filter(Boolean)
+            .slice(0, 8);
 
         const town = getTownPlaces()
             .flatMap(place => (place.states || [])
@@ -1327,10 +1347,41 @@ export default class AdventureScene {
         return {
             commissions,
             boss,
-            world: [...journalRecords, ...landmarkRecords].slice(0, 10),
-            forge,
+            world: [...chapterOneRoutes, ...journalRecords, ...landmarkRecords].slice(0, 10),
+            relationships,
             town
         };
+    }
+
+    getChapterOneRouteHandbookRecords() {
+        return getChapterOneRouteGroups()
+            .map(group => {
+                const visited = (group.landmarkIds || [])
+                    .map(landmarkId => getLandmark(landmarkId))
+                    .filter(landmark => landmark && GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(landmark.id)));
+                const nextLandmark = (group.landmarkIds || [])
+                    .map(landmarkId => getLandmark(landmarkId))
+                    .find(landmark => landmark && !GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(landmark.id)));
+                const hasRelatedQuest = (group.questIds || []).some(questId => {
+                    const status = questManager.getQuestState(questId)?.status;
+                    return status && status !== QuestStatus.LOCKED;
+                });
+
+                if (visited.length === 0 && !hasRelatedQuest) return null;
+
+                return {
+                    key: `chapter1-route:${group.id}`,
+                    icon: '◇',
+                    kicker: '第一章路線',
+                    title: group.name,
+                    meta: `路標 ${visited.length}/${group.landmarkIds.length}`,
+                    text: group.summary,
+                    note: nextLandmark
+                        ? `下一個可確認地點：${nextLandmark.name}`
+                        : '這條路線的主要地點已經記錄。'
+                };
+            })
+            .filter(Boolean);
     }
 
     getAdventureHandbookCountMap(records = {}) {
@@ -1380,7 +1431,7 @@ export default class AdventureScene {
             commissions: '目前沒有正在推進的委託。回城與居民交談，或在地圖上發現新的狀況後，這裡會留下摘要。',
             boss: '你還沒有取得任何首領痕跡。足跡、異常物件與戰鬥紀錄會依照發現順序補上。',
             world: '尚未記下值得回看的旅途事件。真正改變路線、物資或情報的遭遇會被收在這裡。',
-            forge: '目前沒有需要追蹤的鍛造備忘。取得圖紙或接到鍛造相關委託後再回來看。',
+            relationships: '還沒有真正認識任何城鎮角色。回城和居民說話後，第一印象會出現在這裡。',
             town: '城鎮還沒有留下新的變化。完成主線或支線後，居民與場所的改變會被記錄。'
         };
         return `<div class="handbook-quick-empty">${escapeHtml(emptyCopy[tabId] || '目前沒有紀錄。')}</div>`;
@@ -1790,10 +1841,10 @@ export default class AdventureScene {
                         <b>怪物測試</b>
                         <div class="boss-tester-actions">
                             <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="current">目前區域怪物</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="low">低威脅</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="medium">普通威脅</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="high">高威脅</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="death">死亡區</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="low">第1章池</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="medium">第2章池</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="high">第3章池</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="death">後期池</button>
                             <button class="boss-test-action" type="button" data-boss-action="test-monster" data-test-zone="boss">隨機 BOSS</button>
                         </div>
                     </div>
@@ -1802,14 +1853,14 @@ export default class AdventureScene {
                         <div class="boss-tester-actions">
                             <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="current" data-test-mode="question">目前問號事件</button>
                             <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="current" data-test-mode="random">目前一般事件</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="question">低區問號</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="question">中區問號</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="question">高區問號</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="question">死亡區問號</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="random">低區一般</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="random">中區一般</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="random">高區一般</button>
-                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="random">死亡區一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="question">第1章問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="question">第2章問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="question">第3章問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="question">後期問號</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="low" data-test-mode="random">第1章一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="medium" data-test-mode="random">第2章一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="high" data-test-mode="random">第3章一般</button>
+                            <button class="boss-test-action" type="button" data-boss-action="test-event" data-test-zone="death" data-test-mode="random">後期一般</button>
                         </div>
                     </div>
                     <div class="boss-tester-block">
@@ -1923,7 +1974,9 @@ export default class AdventureScene {
 
         const visibleCells = this.worldMap.getVisibleCells();
         const devRevealMap = Boolean(this.devMode);
-        const exploredCells = devRevealMap ? visibleCells : visibleCells.filter(cell => cell.explored);
+        const exploredCells = devRevealMap
+            ? visibleCells
+            : visibleCells.filter(cell => cell.explored || cell.revealedByStructure || cell.nearPlayer);
         const center = (x, y) => ({ cx: x + gridSize / 2, cy: y + gridSize / 2 });
         const drawUnexploredCell = (x, y) => {
             ctx.fillStyle = '#020305';
@@ -2052,30 +2105,6 @@ export default class AdventureScene {
             ctx.fill();
             ctx.restore();
         };
-        const drawRiftMarker = (x, y) => {
-            const { cx, cy } = center(x, y);
-            const riftImage = getGeneratedMapPropImage('abyss_crack');
-            if (this.drawCanvasImageMarker(ctx, riftImage, cx, cy, gridSize * 0.66, {
-                shadowColor: 'rgba(123, 97, 255, 0.5)',
-                stroke: 'rgba(155, 135, 255, 0.7)'
-            })) return;
-            ctx.save();
-            ctx.strokeStyle = 'rgba(155, 135, 255, 0.66)';
-            ctx.shadowColor = 'rgba(123, 97, 255, 0.5)';
-            ctx.shadowBlur = 14;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i < 18; i += 1) {
-                const t = i / 3;
-                const r = gridSize * 0.03 * i;
-                const px = cx + Math.cos(t) * r;
-                const py = cy + Math.sin(t) * r;
-                if (i === 0) ctx.moveTo(px, py);
-                else ctx.lineTo(px, py);
-            }
-            ctx.stroke();
-            ctx.restore();
-        };
         const drawHomeMarker = (x, y) => {
             const { cx, cy } = center(x, y);
             const homeImage = getGeneratedTownPlaceImage('crossroads');
@@ -2101,7 +2130,7 @@ export default class AdventureScene {
 
         visibleCells.forEach(cell => {
             if (devRevealMap) return;
-            if (cell.explored) return;
+            if (cell.explored || cell.revealedByStructure || cell.nearPlayer) return;
             const x = cell.x * gridSize - cameraX;
             const y = cell.y * gridSize - cameraY;
             drawUnexploredCell(x, y);
@@ -2120,8 +2149,6 @@ export default class AdventureScene {
                 drawLandmarkMarker(cell, x, y);
             } else if (cell.data.type === 'dungeon') {
                 drawDungeonMarker(cell, x, y);
-            } else if (cell.data.type === 'rift') {
-                drawRiftMarker(x, y);
             } else if (cell.data.type === 'home') {
                 drawHomeMarker(x, y);
             }
@@ -2431,6 +2458,7 @@ export default class AdventureScene {
             zoneId: landmarkRef.zone,
             source: 'adventure_map'
         });
+        const progressedTargets = this.applyLandmarkQuestProgress(landmarkRef.id, outcome);
         this.renderMap();
         if ((outcome.newClues || []).length > 0 && this.dom.btnToggleClueBook && !this.clueBookOpen) {
             this.dom.btnToggleClueBook.classList.add('has-new');
@@ -2448,9 +2476,12 @@ export default class AdventureScene {
                 <p>${escapeHtml(effect.summary)}</p>
             </div>
         `).join('');
+        const progressHTML = progressedTargets.length > 0
+            ? `<div class="event-reward"><strong>路線紀錄更新</strong><p>這個地點已推進第一章探索目標。</p></div>`
+            : '';
         const ambushBaitHTML = this.renderAmbushMantisBaitPanel(landmarkRef.id);
         const landmarkBossHTML = this.renderLandmarkBossPanel(landmarkRef.id);
-        const resultHTML = `${clueHTML}${effectHTML}${ambushBaitHTML}${landmarkBossHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
+        const resultHTML = `${clueHTML}${effectHTML}${progressHTML}${ambushBaitHTML}${landmarkBossHTML}` || '<div class="event-reward">你把這裡的位置記進旅途紀錄。</div>';
 
         this.updateWorldNarrativePanel({
             landmark: outcome.landmark,
@@ -2564,102 +2595,6 @@ export default class AdventureScene {
         });
     }
 
-    // ===== 裂縫互動 (傳送 UI) =====
-    handleRiftInteraction() {
-        const rift = this.worldMap.getCurrentRift();
-        const options = this.worldMap.getRiftOptions();
-
-        const zoneNames = { 'low': '安全區', 'medium': '普通區', 'high': '危險區', 'death': '死亡區' };
-
-        const modalHTML = `
-            <div class="rift-modal" id="rift-modal" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display:flex; align-items:center; justify-content:center; z-index:11000;">
-                <div style="background: linear-gradient(145deg,#1a1f2e,#252b3d); padding:20px; border-radius:12px; width: 380px; max-width:94%;">
-                    <h3 style="margin:0 0 8px 0; color:#9aa;">🌀 裂縫傳送</h3>
-                    <p style="color:#ccc; margin:0 0 12px 0;">你站在裂縫旁，裂縫可以將你傳送到其他已解鎖的區域。選擇目的地：</p>
-                    <div id="rift-options" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-                    </div>
-                    <div style="display:flex; gap:8px; justify-content:flex-end;">
-                        <button id="rift-cancel" class="btn btn-secondary" style="padding:8px 12px;">取消</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        const modal = document.getElementById('rift-modal');
-        const optionsContainer = document.getElementById('rift-options');
-
-        if (options.length === 0) {
-            optionsContainer.innerHTML = `<div style="color:#ccc;">目前沒有其他已解鎖的區域可供傳送。</div>`;
-        } else {
-            options.forEach(zone => {
-                const btn = document.createElement('button');
-                btn.className = 'btn btn-primary';
-                btn.style.padding = '10px';
-                btn.style.textAlign = 'left';
-                btn.textContent = zoneNames[zone] || zone;
-                btn.addEventListener('click', () => {
-                    modal.remove();
-                    this.teleportPlayerToZone(zone);
-                });
-                optionsContainer.appendChild(btn);
-            });
-        }
-
-        const cancelBtn = document.getElementById('rift-cancel');
-        cancelBtn.addEventListener('click', () => {
-            modal.remove();
-            this.worldMap.clearCurrentRift();
-            this.isLocked = false;
-        });
-
-        // 點擊背景關閉
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-                this.worldMap.clearCurrentRift();
-                this.isLocked = false;
-            }
-        });
-    }
-
-    teleportPlayerToZone(zone) {
-        const target = this.findRandomEmptyCellInZone(zone);
-        if (!target) {
-            showGlobalToast('傳送失敗', '找不到可傳送的位置。', 'error');
-            this.worldMap.clearCurrentRift();
-            this.isLocked = false;
-            return;
-        }
-
-        this.worldMap.playerPos.x = target.c;
-        this.worldMap.playerPos.y = target.r;
-        // 抵達目的地視為解鎖
-        this.worldMap.unlockedZones.add(zone);
-        if (typeof this.worldMap._saveMapState === 'function') this.worldMap._saveMapState();
-        this.worldMap.updateCamera();
-        this.renderMap();
-        this.updateUI();
-        this.worldMap.clearCurrentRift();
-        this.isLocked = false;
-    }
-
-    findRandomEmptyCellInZone(zone) {
-        const cells = [];
-        for (let r = 0; r < this.worldMap.rows; r++) {
-            for (let c = 0; c < this.worldMap.cols; c++) {
-                const cell = this.worldMap.mapData[r][c];
-                if (cell.zone === zone && cell.type === 'empty') {
-                    // 避免傳到玩家出生點或副本
-                    if (this.worldMap.homePos && c === this.worldMap.homePos.x && r === this.worldMap.homePos.y) continue;
-                    cells.push({ r, c });
-                }
-            }
-        }
-        if (cells.length === 0) return null;
-        return cells[Math.floor(Math.random() * cells.length)];
-    }
-    
     showDungeonEntranceModal(dungeonType, dungeonData, entranceConfig) {
         // 建立彈窗 HTML
         const char = GameManager.getCharacter();
@@ -2923,21 +2858,7 @@ export default class AdventureScene {
         
         returnBtn.addEventListener('click', () => {
             modal.remove();
-            
-            // 恢復玩家所有狀態
-            const char = GameManager.getCharacter();
-            if (char) {
-                char.hp = char.maxHp || 100;
-                char.currentHP = char.maxHp || 100;
-                
-                // 清除負面狀態（如果有的話）
-                if (char.debuffs) {
-                    char.debuffs = [];
-                }
-                if (char.statusEffects) {
-                    char.statusEffects = char.statusEffects.filter(e => e.positive);
-                }
-            }
+            GameManager.restoreCharacterAtHome?.('home-rest');
             // 返回大廳
             this.app.navigateTo('lobby');
         });
@@ -3243,7 +3164,6 @@ export default class AdventureScene {
             wandering_blacksmith: 'ore_vein',
             fairy_deal: 'herb_patch',
             mysterious_statue: 'carved_stone_tablet',
-            dimensional_rift: 'abyss_crack',
             foragers_emergency_stash: 'hidden_stash_mound',
             leyline_splinter: 'random_event_spark',
             ash_scout_report: 'blackflame_tile',

@@ -706,6 +706,45 @@ class GameManager {
         return this.getAdventureFatigueStatus();
     }
 
+    restoreCharacterAtHome(reason = 'home-rest') {
+        const character = this.state.character;
+        if (!character) return null;
+
+        if (!Array.isArray(character.debuffs)) character.debuffs = [];
+        character.debuffs = character.debuffs.filter(debuff =>
+            debuff?.id !== ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID
+            && debuff?.type !== 'fatigueWeakness'
+            && debuff?.source !== 'adventureFatigue'
+        );
+
+        if (Array.isArray(character.statusEffects)) {
+            character.statusEffects = character.statusEffects.filter(effect => effect?.positive);
+        }
+
+        const fatigue = this.normalizeAdventureFatigue();
+        const fatigueMax = this.getAdventureFatigueMax();
+        if (fatigue.current <= 0) {
+            fatigue.current = Math.min(fatigueMax, 1);
+            fatigue.lastRecoveredAt = Date.now();
+        }
+
+        const fullHp = Math.max(1, Number(character.maxHp) || Number(character.calculateMaxHp?.()) || 100);
+        character.hp = fullHp;
+        character.currentHP = fullHp;
+        character.syncProperties?.();
+
+        this.markSaveDirty(reason);
+        this.notify('all');
+        return {
+            hp: character.hp,
+            maxHp: character.maxHp,
+            fatigue: {
+                current: fatigue.current,
+                max: fatigueMax
+            }
+        };
+    }
+
     getInventoryUpgradeTier(level = this.state.inventoryUpgradeLevel) {
         const safeLevel = Math.max(0, Number(level) || 0);
         return INVENTORY_UPGRADE_TIERS.find(tier => tier.level === safeLevel)

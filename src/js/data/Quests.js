@@ -54,8 +54,8 @@ export const QuestDatabase = {
             icon: '📖',
             description: '村長請你先找書記確認旅人手札的記錄方式，再到南門外近郊確認哪些路還能走。',
             objectives: [
-                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, description: '先找書記確認旅人手札的記錄方式' },
-                { type: ObjectiveType.EXPLORE, target: 'low', count: 3, description: '再確認南門外近郊 3 處路線' }
+                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, completionFlag: 'town.scholar.first_index_open', description: '先找書記確認旅人手札的記錄方式' },
+                { type: ObjectiveType.EXPLORE, target: 'chapter1_route_intro', count: 3, description: '確認南門農田、獵人棧道與舊營火點 3 處路標' }
             ],
             rewards: {
                 gold: 100,

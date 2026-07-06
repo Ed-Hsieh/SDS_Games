@@ -1993,6 +1993,61 @@ input {
     text-align: right;
 }
 
+.ledger-actions {
+    flex: 0 0 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.ledger-clue-shortcut {
+    min-height: 30px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0 10px;
+    border: 1px solid rgba(125, 211, 252, 0.24);
+    border-radius: 4px;
+    background:
+        linear-gradient(180deg, rgba(125, 211, 252, 0.11), rgba(125, 211, 252, 0.025)),
+        rgba(3, 6, 8, 0.48);
+    color: rgba(219, 234, 254, 0.86);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.ledger-clue-shortcut:hover,
+.ledger-clue-shortcut:focus-visible,
+.ledger-clue-shortcut.is-active {
+    border-color: rgba(125, 211, 252, 0.52);
+    background:
+        linear-gradient(180deg, rgba(125, 211, 252, 0.2), rgba(125, 211, 252, 0.055)),
+        rgba(7, 12, 18, 0.72);
+    color: rgba(237, 242, 244, 0.96);
+    outline: none;
+}
+
+.ledger-clue-shortcut b {
+    min-width: 20px;
+    height: 20px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.14);
+    color: rgba(255, 247, 230, 0.9);
+    font-size: 11px;
+}
+
+.ledger-clue-shortcut.has-clues b {
+    background: rgba(233, 189, 101, 0.22);
+    color: rgba(255, 232, 170, 0.96);
+}
+
 .quest-tabs.handbook-tabs {
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2062,6 +2117,11 @@ input {
 
 .quest-actions {
     align-items: center;
+}
+
+.quest-board-container .quest-actions[hidden],
+.scene-quest .quest-actions[hidden] {
+    display: none !important;
 }
 
 .quest-btn {
@@ -12185,7 +12245,10 @@ body {
 .event-modal.is-landmark-event .event-content {
     width: min(680px, calc(100vw - 32px));
     max-width: min(680px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
     padding: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
     text-align: left;
     border-color: rgba(216, 181, 95, 0.48);
@@ -12195,6 +12258,7 @@ body {
 }
 
 .event-modal.is-landmark-event .modal-header {
+    flex: 0 0 auto;
     display: grid;
     gap: 0;
     margin: 0;
@@ -12208,7 +12272,7 @@ body {
 .event-modal.is-landmark-event .event-icon.is-scene-image {
     display: block;
     width: 100%;
-    height: clamp(190px, 34vh, 300px);
+    height: clamp(140px, 26vh, 240px);
     margin: 0;
     border-radius: 0;
     background: #020408;
@@ -12226,6 +12290,9 @@ body {
 }
 
 .event-modal.is-landmark-event .modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     margin: 0;
     padding: 12px 20px 0;
 }
@@ -12268,9 +12335,33 @@ body {
 }
 
 .event-modal.is-landmark-event .modal-footer {
+    flex: 0 0 auto;
     margin-top: 0;
     padding: 16px 20px 20px;
     border-top-color: rgba(216, 181, 95, 0.18);
+}
+
+@media (max-height: 760px) {
+    .event-modal.is-landmark-event .event-content {
+        max-height: calc(100vh - 24px);
+    }
+
+    .event-modal.is-landmark-event .event-icon.is-scene-image {
+        height: clamp(120px, 22vh, 180px);
+    }
+
+    .event-modal.is-landmark-event #event-title {
+        margin: 12px 18px 0;
+        font-size: 24px;
+    }
+
+    .event-modal.is-landmark-event .modal-body {
+        padding: 10px 18px 0;
+    }
+
+    .event-modal.is-landmark-event .modal-footer {
+        padding: 12px 18px 16px;
+    }
 }
 
 #town-place-icon {
@@ -17515,6 +17606,166 @@ body {
     letter-spacing: 0;
 }
 
+:where(.scene-quest, .quest-board-container) .detail-content.is-relationship-detail .detail-header {
+    margin-bottom: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .detail-content.is-relationship-detail .quest-detail-summary {
+    display: block;
+    margin-bottom: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-card {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+    border: 2px solid rgba(223, 190, 121, 0.28);
+    border-radius: 9px;
+    background:
+        linear-gradient(135deg, rgba(233, 189, 101, 0.13), rgba(132, 186, 198, 0.045) 54%),
+        rgba(12, 13, 12, 0.68);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-portrait {
+    width: 150px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 2px solid rgba(223, 190, 121, 0.38);
+    border-radius: 9px;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(233, 189, 101, 0.28), transparent 58%),
+        rgba(18, 15, 10, 0.72);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 244, 214, 0.08),
+        0 0 22px rgba(233, 189, 101, 0.08);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-portrait img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-copy {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-kicker {
+    color: rgba(233, 189, 101, 0.78);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row strong {
+    color: rgba(255, 247, 230, 0.96);
+    font-size: 22px;
+    line-height: 1.15;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row span,
+:where(.scene-quest, .quest-board-container) .relationship-lore-head span {
+    padding: 3px 8px;
+    border: 1px solid rgba(233, 189, 101, 0.2);
+    border-radius: 999px;
+    background: rgba(49, 31, 18, 0.34);
+    color: rgba(233, 189, 101, 0.88);
+    font-size: 11px;
+    font-weight: 850;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-copy p {
+    margin: 0;
+    color: rgba(255, 247, 230, 0.76);
+    line-height: 1.55;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 10px;
+    border: 1px solid rgba(223, 190, 121, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 244, 214, 0.045);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row span {
+    color: rgba(255, 247, 230, 0.58);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row strong {
+    color: rgba(255, 232, 170, 0.96);
+    font-size: 13px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row small {
+    color: rgba(255, 247, 230, 0.58);
+    font-size: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card {
+    min-width: 0;
+    min-height: 118px;
+    padding: 12px;
+    border: 1px solid rgba(223, 190, 121, 0.15);
+    border-radius: 9px;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.04), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.46);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card.is-locked {
+    border-style: dashed;
+    opacity: 0.68;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-head strong {
+    color: rgba(255, 247, 230, 0.94);
+    font-size: 14px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card p {
+    margin: 6px 0 0;
+    color: rgba(255, 247, 230, 0.7);
+    line-height: 1.52;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card.is-locked p {
+    color: rgba(255, 247, 230, 0.5);
+}
+
 .scene-quest .quest-footer {
     border-top: 1px solid rgba(223, 190, 121, 0.18);
     background: rgba(3, 6, 8, 0.44) !important;
@@ -19854,3 +20105,146 @@ body {
     position: relative;
     z-index: 1;
 }
+
+/* Town place scene hotspots: residents and exits live on the 2D scene image. */
+.town-place-view .town-place-view-body {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 4 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    pointer-events: none !important;
+}
+
+.town-place-view .town-place-section,
+.town-place-view .town-place-resident-section,
+.town-place-view .town-place-action-section {
+    display: contents !important;
+    pointer-events: none !important;
+}
+
+.town-place-view .town-place-section[hidden],
+.town-place-view .town-place-resident-section[hidden],
+.town-place-view .town-place-action-section[hidden] {
+    display: none !important;
+}
+
+.town-place-view .town-place-section-head {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+}
+
+.town-place-view .town-place-list {
+    display: contents !important;
+    pointer-events: none !important;
+}
+
+.town-place-view .town-place-entry,
+.town-place-view.has-scene-image .town-place-entry {
+    position: absolute !important;
+    left: var(--scene-x, 50%) !important;
+    top: var(--scene-y, 58%) !important;
+    z-index: 5 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 52px !important;
+    grid-template-rows: 52px !important;
+    place-items: center !important;
+    padding: 0 !important;
+    border: 1px solid rgba(233, 189, 101, 0.34) !important;
+    border-radius: 999px !important;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 244, 205, 0.12), rgba(0, 0, 0, 0.1) 66%),
+        rgba(5, 8, 11, 0.72) !important;
+    box-shadow: 0 13px 30px rgba(0, 0, 0, 0.42), 0 0 0 3px rgba(0, 0, 0, 0.22) !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: auto !important;
+}
+
+.town-place-view .town-place-action {
+    border-color: rgba(116, 190, 231, 0.38) !important;
+}
+
+.town-place-view .town-place-entry:hover,
+.town-place-view .town-place-entry:focus-visible,
+.town-place-view.has-scene-image .town-place-entry:hover,
+.town-place-view.has-scene-image .town-place-entry:focus-visible {
+    z-index: 12 !important;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 232, 172, 0.22), rgba(0, 0, 0, 0.08) 66%),
+        rgba(11, 15, 18, 0.92) !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(233, 189, 101, 0.16) !important;
+    transform: translate(-50%, -58%) scale(1.06) !important;
+}
+
+.town-place-view .town-place-entry-icon,
+.town-place-view.has-scene-image .town-place-entry-icon {
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.town-place-view .town-place-entry-copy {
+    position: absolute !important;
+    left: 50% !important;
+    bottom: calc(100% + 8px) !important;
+    width: max-content !important;
+    max-width: 190px !important;
+    padding: 6px 9px !important;
+    border: 1px solid rgba(233, 189, 101, 0.32) !important;
+    border-radius: 8px !important;
+    background: rgba(5, 8, 11, 0.88) !important;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.38) !important;
+    color: #fff7e6 !important;
+    opacity: 0 !important;
+    transform: translate(-50%, 4px) !important;
+    transition: opacity 140ms ease, transform 140ms ease !important;
+    pointer-events: none !important;
+}
+
+.town-place-view .town-place-entry:hover .town-place-entry-copy,
+.town-place-view .town-place-entry:focus-visible .town-place-entry-copy {
+    opacity: 1 !important;
+    transform: translate(-50%, 0) !important;
+}
+
+.town-place-view .town-place-entry-copy strong {
+    display: block !important;
+    color: #fff7e6 !important;
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-align: center !important;
+}
+
+.town-place-view .town-place-entry-mark {
+    position: absolute !important;
+    right: -5px !important;
+    top: -5px !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    padding: 0 5px !important;
+    border-radius: 999px !important;
+    background: rgba(233, 189, 101, 0.86) !important;
+    color: #17120a !important;
+    font-size: 11px !important;
+    font-weight: 900 !important;
+}
+
+.town-place-crossroads { --place-x: 50% !important; --place-y: 48% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-gate { --place-x: 51% !important; --place-y: 83% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-handbook { --place-x: 76% !important; --place-y: 40% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-market { --place-x: 20% !important; --place-y: 52% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-forge { --place-x: 24% !important; --place-y: 78% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-alley { --place-x: 41% !important; --place-y: 71% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-casino { --place-x: 73% !important; --place-y: 72% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+.town-place-tower { --place-x: 60% !important; --place-y: 23% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
+

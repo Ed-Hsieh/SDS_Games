@@ -1,22 +1,28 @@
 /**
  * QuestScene.js
- * 任務公告板場景 - 顯示任務列表、接取/放棄/完成任務
+ * 任務冊場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js';
-import { escapeHtml, getItemVisualHtml, ITEM_RARITY_TEXT, ITEM_TYPE_TEXT } from '../utils/ItemDisplay.js';
+import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
+import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
+import { dialogueManager } from '../managers/DialogueManager.js';
 import GameManager from '../managers/GameManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { getWorldEventJournalRecords } from '../managers/EventManager.js';
 import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldStories.js';
 import { getTownPlaces } from '../data/TownPlaces.js';
-import { RecipeDatabase, getMissingMaterials } from '../managers/RecipeManager.js';
-import { isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';
 import audioManager from '../utils/AudioManager.js';
+
+const RELATIONSHIP_PROFILE_NPC_ALIASES = {
+    frey_standard_bearer: 'standard_bearer_frey',
+    tavi_lamplighter: 'lamplighter_tavi',
+    malo_bookkeeper: 'accountant_marlo'
+};
 
 const HANDBOOK_TABS = {
     commissions: {
@@ -43,13 +49,13 @@ const HANDBOOK_TABS = {
         emptyText: '還沒有留下值得翻閱的地點紀錄。走進新的地標後，這裡會記下你親眼確認的事情。',
         ledger: records => `${records.length} 則世界見聞`
     },
-    forge: {
-        title: '鍛造備忘',
-        panelTitle: '待準備配方',
-        countLabel: '則備忘',
-        emptyIcon: '⚒️',
-        emptyText: '目前沒有需要追的鍛造備忘。取得圖紙、缺少素材或接到工坊委託時，這裡會整理成清單。',
-        ledger: records => `${records.length} 則鍛造備忘`
+    relationships: {
+        title: '城鎮人際',
+        panelTitle: '認識的人',
+        countLabel: '位人物',
+        emptyIcon: '👥',
+        emptyText: '還沒有真正認識任何人。和城鎮角色對話後，這裡才會留下很少的第一印象。',
+        ledger: records => `${records.length} 位已認識的人`
     },
     town: {
         title: '城鎮記憶',
@@ -95,6 +101,8 @@ export default class QuestScene {
     cacheDOM() {
         this.dom = {
             ledgerSummary: this.container.querySelector('#ledger-summary'),
+            ledgerClueShortcut: this.container.querySelector('#ledger-clue-shortcut'),
+            ledgerClueCount: this.container.querySelector('#ledger-clue-count'),
             handbookTabs: this.container.querySelector('#handbook-tabs'),
             handbookTabButtons: Array.from(this.container.querySelectorAll('[data-handbook-tab]')),
             handbookCountBadges: Array.from(this.container.querySelectorAll('[data-handbook-count]')),
@@ -173,6 +181,10 @@ export default class QuestScene {
         this.dom.btnBackLobby?.addEventListener('click', () => {
             this.app.loadScene('lobby');
         });
+
+        this.dom.ledgerClueShortcut?.addEventListener('click', () => {
+            this.openClueShortcut();
+        });
     }
 
     selectHandbookTab(tabId) {
@@ -197,6 +209,7 @@ export default class QuestScene {
         const tab = HANDBOOK_TABS[this.activeTab] || HANDBOOK_TABS.commissions;
 
         this.updateHandbookCounts();
+        this.updateClueShortcut();
         if (this.dom.listTitle) this.dom.listTitle.textContent = tab.panelTitle || '紀錄清單';
         if (this.dom.questCount) this.dom.questCount.textContent = records.length > 0 ? `${records.length} 筆` : '空白';
         if (this.dom.ledgerSummary) {
@@ -266,12 +279,41 @@ export default class QuestScene {
         return tab.ledger(records);
     }
 
+    getClueShortcutCountMap() {
+        return {
+            boss: this.getBossTraceRecords().length,
+            world: this.getWorldNoteRecords().length
+        };
+    }
+
+    updateClueShortcut() {
+        if (!this.dom.ledgerClueShortcut) return;
+
+        const counts = this.getClueShortcutCountMap();
+        const total = counts.boss + counts.world;
+        const isActive = this.activeTab === 'boss' || this.activeTab === 'world';
+        this.dom.ledgerClueShortcut.classList.toggle('has-clues', total > 0);
+        this.dom.ledgerClueShortcut.classList.toggle('is-active', isActive);
+        this.dom.ledgerClueShortcut.title = total > 0
+            ? `查看 ${total} 則線索`
+            : '查看線索紀錄';
+        if (this.dom.ledgerClueCount) {
+            this.dom.ledgerClueCount.textContent = total;
+        }
+    }
+
+    openClueShortcut() {
+        const counts = this.getClueShortcutCountMap();
+        const targetTab = counts.boss > 0 ? 'boss' : 'world';
+        this.selectHandbookTab(targetTab);
+    }
+
     updateHandbookCounts() {
         const counts = {
             commissions: this.getStoryQuestList().length,
             boss: this.getBossTraceRecords().length,
             world: this.getWorldNoteRecords().length,
-            forge: this.getForgeMemoRecords().length,
+            relationships: this.getRelationshipRecords().length,
             town: this.getTownMemoryRecords().length
         };
 
@@ -287,8 +329,8 @@ export default class QuestScene {
                 return this.getBossTraceRecords();
             case 'world':
                 return this.getWorldNoteRecords();
-            case 'forge':
-                return this.getForgeMemoRecords();
+            case 'relationships':
+                return this.getRelationshipRecords();
             case 'town':
                 return this.getTownMemoryRecords();
             case 'commissions':
@@ -419,6 +461,10 @@ export default class QuestScene {
     }
 
     renderHandbookRecordIcon(record = {}, extraClass = 'handbook-icon-image') {
+        if (record.image) {
+            return `<img src="${escapeHtml(record.image)}" alt="${escapeHtml(record.title || '')}" class="${escapeHtml(extraClass)}">`;
+        }
+
         const item = record.visualItem
             || record.item
             || (record.itemId ? resolveItemById(record.itemId) : null);
@@ -652,150 +698,204 @@ export default class QuestScene {
         return [...eventRecords, ...clueRecords, ...landmarkRecords];
     }
 
-    getForgeMemoRecords() {
-        const craftQuestRecords = this.getStoryQuestList()
-            .filter(quest => (quest.objectives || []).some(obj => [ObjectiveType.CRAFT, ObjectiveType.ENHANCE].includes(obj.type)))
-            .map(quest => {
-                const state = quest.state || questManager.getQuestState(quest.id);
-                const progressInfo = this.getObjectiveProgressInfo(quest.objectives, state.progress);
-                const story = getQuestStory(quest, state);
-                const routeInfo = this.getQuestRouteInfo(state.status, story) || {
-                    route: 'forge',
-                    label: '前往鑄造'
-                };
-                return {
-                    key: `forge-quest:${quest.id}`,
-                    kind: 'forge',
-                    icon: quest.icon || '⚒️',
-                    title: quest.name,
-                    typeLabel: '工坊委託',
-                    statusIcon: state.status === QuestStatus.COMPLETED ? '📌' : '✎',
-                    statusText: this.getStatusText(state.status),
-                    statusTone: state.status === QuestStatus.COMPLETED ? 'completed' : 'active',
-                    meta: [story.source, story.location, this.getTypeText(quest.type)],
-                    cues: [
-                        story.location || '工坊',
-                        this.getStatusText(state.status),
-                        progressInfo.nextObjective
-                            ? this.getStoryObjectiveText(story, progressInfo.nextObjective.index) || progressInfo.nextObjective.description || '下一段準備'
-                            : '可整理結果'
-                    ],
-                    current: story.current,
-                    thoughtTitle: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).title,
-                    thoughtText: this.getQuestThoughtText(state.status, this.getNextStepText(state.status, progressInfo, story), story, progressInfo, quest).description,
-                    progress: {
-                        current: progressInfo.current,
-                        required: Math.max(1, progressInfo.required),
-                        percent: progressInfo.percent
-                    },
-                    sections: [
-                        {
-                            title: '工坊目標',
-                            lines: (quest.objectives || []).map((obj, index) => this.getStoryObjectiveText(story, index) || obj.description || this.getObjectiveText(obj))
-                        }
-                    ],
-                    route: routeInfo.route,
-                    routeLabel: routeInfo.label,
-                    routeDescription: routeInfo.description,
-                    reportToName: routeInfo.reportToName,
-                    npcId: routeInfo.npcId
-                };
-            });
-
-        const inventory = GameManager.getInventory?.() || [];
-        const warehouse = GameManager.state?.warehouse || [];
-        const gold = Number(GameManager.getGold?.() || 0);
-        const recipeRecords = Object.values(RecipeDatabase)
-            .filter(recipe => isRecipeBlueprintKnown(recipe.id))
-            .map(recipe => {
-                const missing = getMissingMaterials(recipe.id, inventory, warehouse);
-                const cost = Number(recipe.cost || 0);
-                const successRate = Number(recipe.successRate || 100);
-                const recipeType = ITEM_TYPE_TEXT[recipe.type] || (recipe.type === 'equipment' ? '裝備' : recipe.type) || '裝備';
-                const resultRarity = recipe.result?.rarity || recipe.rarity;
-                const recipeRarity = ITEM_RARITY_TEXT[resultRarity] || resultRarity || '普通';
-                const costReady = gold >= cost;
-                const craftReady = missing.length === 0 && costReady;
-                const goldShortage = Math.max(0, cost - gold);
-                const recipeResultItem = recipe.result
-                    || resolveItemById(recipe.result?.id || recipe.id)
-                    || {
-                        id: recipe.result?.id || recipe.id,
-                        name: recipe.name,
-                        icon: recipe.icon,
-                        type: recipe.type,
-                        rarity: resultRarity
-                    };
-                const missingLines = missing.map(entry => {
-                    const material = getMaterial(entry.id);
-                    return `${material?.name || entry.id} ${entry.owned}/${entry.required}`;
-                });
-                const statusText = craftReady
-                    ? '可以製作'
-                    : missing.length > 0 ? '素材不足' : '金幣不足';
-                const statusSummary = craftReady
-                    ? '材料與費用齊備'
-                    : missing.length > 0 ? `缺 ${missing.length} 種素材` : `缺 ${goldShortage}G`;
-                const progressRequired = Math.max(1, (recipe.materials || []).length + 1);
-                const progressCurrent = Math.max(0, (recipe.materials || []).length - missing.length + (costReady ? 1 : 0));
-
-                return {
-                    key: `recipe:${recipe.id}`,
-                    kind: 'forge',
-                    icon: recipe.icon || '⚒️',
-                    visualItem: recipeResultItem,
-                    title: recipe.name,
-                    typeLabel: '製作圖',
-                    summaryMode: 'compact',
-                    hideSummaryMeta: true,
-                    summaryLabel: '鍛造備忘',
-                    summaryHint: craftReady ? '可製作' : '材料缺口',
-                    statusIcon: craftReady ? '✓' : '⛏',
-                    statusText,
-                    statusTone: craftReady ? 'completed' : 'available',
-                    meta: [recipeType, recipeRarity, statusSummary],
-                    metaLabels: ['類型', '稀有度'],
-                    cues: [
-                        statusSummary,
-                        `成功率 ${successRate}%`
-                    ],
-                    current: craftReady
-                        ? `可以前往鍛造鋪製作「${recipe.name}」。`
-                        : missing.length > 0 ? `還缺 ${missing.length} 種素材，詳細缺口列在下方。` : `素材已齊，還缺製作費 ${goldShortage}G。`,
-                    thoughtTitle: craftReady
-                        ? '是否前往鍛造？'
-                        : missing.length > 0 ? '先補哪一種素材？' : '先準備金幣',
-                    thoughtText: craftReady
-                        ? '材料、金幣與圖紙都在手上；這裡保留行動入口，不再重複列素材。'
-                        : missing.length > 0 ? '看下方缺口後，優先去能掉落該素材的怪物、委託或副本補齊。' : '素材已足夠，先透過委託或戰鬥補足製作費。',
-                    progress: {
-                        current: progressCurrent,
-                        required: progressRequired,
-                        percent: Math.min(100, Math.floor((progressCurrent / progressRequired) * 100))
-                    },
-                    sections: [
-                        {
-                            title: craftReady ? '狀態' : '缺口',
-                            lines: craftReady
-                                ? ['材料與金幣已齊備。']
-                                : missingLines.length > 0 ? missingLines : [`製作費 ${gold}/${cost}G`]
-                        },
-                        {
-                            title: '配方資訊',
-                            lines: [`${recipeType} / ${recipeRarity}`, `費用 ${cost}G`, `成功率 ${successRate}%`]
-                        }
-                    ],
-                    route: 'forge',
-                    routeLabel: '前往鑄造'
-                };
-            })
+    getRelationshipRecords() {
+        return getAllCharacterProfiles()
+            .map(profile => this.createRelationshipRecord(profile))
+            .filter(Boolean)
             .sort((a, b) => {
-                const readyDiff = Number(b.statusTone === 'completed') - Number(a.statusTone === 'completed');
-                if (readyDiff !== 0) return readyDiff;
+                const depthDiff = (b.relationship?.depth || 0) - (a.relationship?.depth || 0);
+                if (depthDiff !== 0) return depthDiff;
                 return String(a.title).localeCompare(String(b.title), 'zh-Hant');
             });
+    }
 
-        return [...craftQuestRecords, ...recipeRecords];
+    createRelationshipRecord(profile = {}) {
+        const npcId = this.getRelationshipNpcId(profile);
+        const talkCount = dialogueManager.getNpcTalkCount?.(npcId) || 0;
+        if (talkCount <= 0) return null;
+
+        const stages = this.getUnlockedRelationshipStages(profile);
+        const currentStage = stages.at(-1) || profile.stages?.[0] || null;
+        const depth = this.getRelationshipDepth(profile, talkCount, stages);
+        const portrait = profile.portrait || getGeneratedPortraitImage(npcId) || getGeneratedPortraitImage(profile.id);
+        const statusText = depth >= 3
+            ? '慢慢看清'
+            : depth >= 2 ? '有些印象' : '初識';
+
+        return {
+            key: `relationship:${profile.id}`,
+            kind: 'relationship',
+            icon: '👥',
+            image: portrait,
+            title: profile.name || npcId,
+            typeLabel: '城鎮人際',
+            summaryLabel: profile.name || '城鎮人物',
+            summaryHint: statusText,
+            statusIcon: depth >= 3 ? '◆' : depth >= 2 ? '◇' : '·',
+            statusText,
+            statusTone: depth >= 3 ? 'completed' : depth >= 2 ? 'active' : 'available',
+            meta: [profile.title, statusText, `${talkCount} 次交流`],
+            metaLabels: ['身分', '印象'],
+            listMeta: [
+                profile.title || '城鎮居民',
+                statusText,
+                `${talkCount} 次交流`
+            ],
+            current: this.getRelationshipCurrentText(profile, talkCount, currentStage),
+            thoughtTitle: depth >= 3 ? '這個人好像不只是名字了。' : '這個人現在留給我的感覺。',
+            thoughtText: depth >= 3
+                ? '有些語氣、停頓和選擇開始連在一起，但這仍然只是旅途中留下的感受。'
+                : '目前只是第一印象。這頁只記下已經發生過的交會，不替未來標路。',
+            sections: this.getRelationshipSections(profile, talkCount, stages, depth),
+            relationship: {
+                profile,
+                npcId,
+                talkCount,
+                depth,
+                stage: currentStage,
+                stages,
+                statusText
+            }
+        };
+    }
+
+    getRelationshipNpcId(profile = {}) {
+        return RELATIONSHIP_PROFILE_NPC_ALIASES[profile.id] || profile.id;
+    }
+
+    getRelationshipDepth(profile = {}, talkCount = 0, stages = []) {
+        let depth = 1;
+        const storyStageCount = stages.filter(stage => stage.fromFlag && GameManager.getFlag(stage.fromFlag)).length;
+        if (talkCount >= 3 || (talkCount >= 2 && storyStageCount >= 1)) depth += 1;
+        if (talkCount >= 5 || (talkCount >= 3 && storyStageCount >= 2)) depth += 1;
+        return Math.min(3, depth);
+    }
+
+    getUnlockedRelationshipStages(profile = {}) {
+        return (profile.stages || []).filter(stage => {
+            if (!stage.fromFlag) return true;
+            return Boolean(GameManager.getFlag(stage.fromFlag));
+        });
+    }
+
+    getRelationshipCurrentText(profile = {}, talkCount = 0, currentStage = null) {
+        const name = profile.name || '這個人';
+        if (talkCount <= 1) {
+            return `你只和${name}說過幾句話。目前留下的是第一印象，還談不上真正理解。`;
+        }
+        if (currentStage?.fromFlag && GameManager.getFlag(currentStage.fromFlag)) {
+            return `${name}身上多了一點和城鎮變化相連的痕跡。你記得那次交會，也記得他當時的語氣。`;
+        }
+        return `${name}不再只是街上的一個名字。你開始記得他的說話方式，和他看待事情的角度。`;
+    }
+
+    getRelationshipSections(profile = {}, talkCount = 0, stages = [], depth = 1) {
+        const sections = [
+            {
+                title: '初步印象',
+                lines: [
+                    profile.title || '城鎮居民',
+                    profile.imageAnchor || profile.core || '目前只留下很模糊的第一印象。'
+                ].filter(Boolean)
+            }
+        ];
+
+        if (depth >= 2) {
+            sections.push({
+                title: '性格輪廓',
+                lines: [
+                    profile.core || '仍需要更多對話才能看清他的性格。',
+                    profile.voice?.tone ? `說話方式：${profile.voice.tone}` : null
+                ].filter(Boolean)
+            });
+        }
+
+        if (depth >= 3) {
+            sections.push({
+                title: '藏起來的傷口',
+                lines: [profile.wound || '他身上應該還有故事，只是目前沒有被任何事件真正碰到。']
+            });
+            if (profile.storyFunction) {
+                sections.push({
+                    title: '在城鎮裡的位置',
+                    lines: [profile.storyFunction]
+                });
+            }
+        }
+
+        const flaggedStages = stages.filter(stage => stage.fromFlag && GameManager.getFlag(stage.fromFlag));
+        if (flaggedStages.length > 0) {
+            sections.push({
+                title: '關係推進',
+                lines: flaggedStages.map(stage => `${stage.label || stage.id}：${stage.mood || '這段關係因事件有了新的理解。'}`)
+            });
+        }
+
+        return sections;
+    }
+
+    renderRelationshipDetail(record = {}) {
+        this.renderRelationshipSummary(record);
+        this.renderRelationshipSections(record);
+        if (this.dom.detailRewards) this.dom.detailRewards.innerHTML = '';
+    }
+
+    renderRelationshipSummary(record = {}) {
+        if (!this.dom.detailContent) return;
+
+        let summary = this.dom.detailContent.querySelector('.quest-detail-summary');
+        if (!summary) {
+            summary = document.createElement('div');
+            summary.className = 'quest-detail-summary';
+            const header = this.dom.detailContent.querySelector('.detail-header');
+            if (header) header.insertAdjacentElement('afterend', summary);
+            else this.dom.detailContent.prepend(summary);
+        }
+
+        const rel = record.relationship || {};
+        const profile = rel.profile || {};
+        const talkCount = Number(rel.talkCount || 0);
+        const stageLabel = rel.stage?.label || '初次交會';
+
+        summary.innerHTML = `
+            <section class="relationship-profile-card" aria-label="人物檔案">
+                <div class="relationship-portrait">
+                    ${record.image ? `<img src="${escapeHtml(record.image)}" alt="${escapeHtml(record.title || '')}">` : `<span>${escapeHtml(record.icon || '人')}</span>`}
+                </div>
+                <div class="relationship-profile-copy">
+                    <div class="relationship-kicker">${escapeHtml(profile.title || record.typeLabel || '城鎮人物')}</div>
+                    <div class="relationship-name-row">
+                        <strong>${escapeHtml(record.title || profile.name || '未命名人物')}</strong>
+                        <span>${escapeHtml(record.statusText || '初識')}</span>
+                    </div>
+                    <p>${escapeHtml(record.current || '這段人際還需要更多接觸。')}</p>
+                    <div class="relationship-feeling-row" aria-label="人物印象">
+                        <span>目前印象</span>
+                        <strong>${escapeHtml(record.statusText || '初識')}</strong>
+                        <small>${escapeHtml(`${talkCount} 次交流 · ${stageLabel}`)}</small>
+                    </div>
+                </div>
+            </section>
+        `;
+    }
+
+    renderRelationshipSections(record = {}) {
+        if (!this.dom.detailObjectives) return;
+
+        const rel = record.relationship || {};
+        const sections = Array.isArray(record.sections) ? record.sections : [];
+        const cards = sections.map(section => ({ ...section, locked: false }));
+
+        this.dom.detailObjectives.classList.add('relationship-lore-grid');
+        this.dom.detailObjectives.innerHTML = cards.map(card => `
+            <li class="relationship-lore-card ${card.locked ? 'is-locked' : ''}">
+                <div class="relationship-lore-head">
+                    <span>${escapeHtml(card.locked ? '未解鎖' : '已記錄')}</span>
+                    <strong>${escapeHtml(card.title || '側記')}</strong>
+                </div>
+                ${(card.lines || ['尚未留下內容。']).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
+            </li>
+        `).join('');
     }
 
     getTownMemoryRecords() {
@@ -1022,6 +1122,7 @@ export default class QuestScene {
     renderHandbookRecordDetail(record) {
         this.dom.detailPlaceholder.classList.add('hidden');
         this.dom.detailContent.classList.remove('hidden');
+        this.dom.detailContent.classList.toggle('is-relationship-detail', record.kind === 'relationship');
         this.dom.detailContent.dataset.status = record.statusTone || 'active';
         if (record.progress) {
             this.dom.detailContent.style.setProperty('--quest-progress', `${record.progress.percent || 0}%`);
@@ -1036,6 +1137,12 @@ export default class QuestScene {
         if (dialogueBox) dialogueBox.hidden = true;
 
         this.applyDetailSectionLabels(this.getHandbookSectionLabels(record));
+        if (record.kind === 'relationship') {
+            this.renderRelationshipDetail(record);
+            this.updateHandbookActions(record);
+            return;
+        }
+
         this.renderHandbookSummary(record);
         this.renderHandbookSections(record);
         this.renderHandbookRecordRewards(record);
@@ -1068,9 +1175,9 @@ export default class QuestScene {
         const hasRouteAction = Boolean(record.route);
 
         switch (record.kind) {
-            case 'forge':
+            case 'relationship':
                 return {
-                    objectivesTitle: '🧾 配方準備',
+                    objectivesTitle: '人物側記',
                     showRewards: false
                 };
             case 'boss':
@@ -1201,6 +1308,7 @@ export default class QuestScene {
 
     renderHandbookSections(record) {
         this.dom.detailObjectives.innerHTML = '';
+        this.dom.detailObjectives.classList.remove('relationship-lore-grid');
         const sections = Array.isArray(record.sections) ? record.sections : [];
         if (sections.length === 0) {
             const li = document.createElement('li');
@@ -1275,8 +1383,8 @@ export default class QuestScene {
                 return '手札只整理痕跡，真正觸發仍要回到對應地點與條件。';
             case 'world':
                 return '這是親眼確認過的見聞，之後遇到相關委託或首領線時會派上用場。';
-            case 'forge':
-                return '材料、圖紙與成功率都收在這裡，準備好再回工坊處理。';
+            case 'relationship':
+                return '這頁只記下你真正接觸過的人；更多背景要靠對話、主線與支線慢慢補齊。';
             case 'town':
                 return '這頁只記下一幕城裡的日常；回城時可以再路過看看。';
             default:
@@ -1288,8 +1396,10 @@ export default class QuestScene {
         this.dom.btnAccept.classList.add('hidden');
         this.dom.btnAbandon.classList.add('hidden');
         this.dom.detailActions.querySelectorAll('.quest-travel-btn').forEach(btn => btn.remove());
+        this.dom.detailActions.hidden = true;
 
         if (record.route) {
+            this.dom.detailActions.hidden = false;
             const travelBtn = document.createElement('button');
             travelBtn.className = 'quest-btn quest-travel-btn';
             travelBtn.innerHTML = `
@@ -1351,6 +1461,8 @@ export default class QuestScene {
         // 顯示詳情面板
         this.dom.detailPlaceholder.classList.add('hidden');
         this.dom.detailContent.classList.remove('hidden');
+        this.dom.detailContent.classList.remove('is-relationship-detail');
+        this.dom.detailActions.hidden = false;
         this.dom.detailContent.dataset.status = state.status;
         this.dom.detailContent.style.setProperty('--quest-progress', `${progressInfo.percent}%`);
 
@@ -1898,7 +2010,7 @@ export default class QuestScene {
             'dungeon-ruins': '遠古遺跡',
             'dungeon-jungle': '迷霧叢林',
             'dungeon-hell': '煉獄深淵',
-            quest: '任務板'
+            quest: '任務冊'
         };
         return texts[route] || '目的地';
     }
@@ -1906,6 +2018,8 @@ export default class QuestScene {
     clearDetail() {
         this.selectedQuestId = null;
         this.selectedRecordKey = null;
+        this.dom.detailContent?.classList.remove('is-relationship-detail');
+        this.dom.detailObjectives?.classList.remove('relationship-lore-grid');
         this.dom.detailPlaceholder.classList.remove('hidden');
         this.dom.detailContent.classList.add('hidden');
         this.dom.questList?.querySelectorAll('.quest-list-item').forEach(item => item.classList.remove('selected'));

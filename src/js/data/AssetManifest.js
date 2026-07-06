@@ -268,7 +268,7 @@ const sets = {
         'charred_obelisk_mini', 'coast_wave', 'dark_forest_tile', 'dirt_road',
         'farmland_tile', 'grassland_tile', 'herb_patch', 'hidden_stash_mound',
         'merchant_wagon', 'mist_hill_tile', 'notice_board', 'obsidian_fortress_gate',
-        'ore_vein', 'random_event_spark', 'river_bend', 'rotten_ravine_tile',
+        'ore_vein', 'quest_open_book', 'random_event_spark', 'river_bend', 'rotten_ravine_tile',
         'sealed_altar', 'shrine_bell', 'silver_silk_trap', 'snowfield_tile',
         'swamp_tile', 'tomb_entrance', 'treasure_map_marker', 'wooden_boardwalk'
     ]),

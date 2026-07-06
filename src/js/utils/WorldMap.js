@@ -9,10 +9,18 @@ import { questManager, QuestStatus } from '../managers/QuestManager.js';
 import { BossMonsterIds } from '../data/Monsters.js';
 import { DungeonEntranceConfig } from '../managers/DungeonManager.js';
 import { getLandmark, getWorldEncounterProfile, getWorldLandmarks } from '../data/WorldStories.js';
+import {
+    getBossChapterPlanByBossId,
+    getLandmarkMapChapter,
+    getLandmarkMapNode,
+    getLandmarkRevealRadius
+} from '../data/ChapterMapFramework.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 
 const ManualTriggerBossIds = new Set(['ambush_mantis', 'forest_guardian', 'blood_moon_stag']);
 const SlimeQuestId = 'main_002';
+const HOME_REVEAL_RADIUS = 3;
+const DEFAULT_TRAVEL_FATIGUE = 1;
 
 const StaticDungeonPlacements = {
     cave: { x: 7, y: 5 },
@@ -20,13 +28,6 @@ const StaticDungeonPlacements = {
     ruins: { x: 14, y: -18 },
     snow: { x: 7, y: -24 },
     hell: { x: 27, y: 23 }
-};
-
-const StaticRiftPlacements = {
-    low: { x: 6, y: -5 },
-    medium: { x: 15, y: 10 },
-    high: { x: -19, y: -15 },
-    death: { x: 26, y: 20 }
 };
 
 function normalizePlacementZones(zones = []) {
@@ -106,28 +107,17 @@ export default class WorldMap {
         this.currentMonster = null;
         this.currentEvent = null;
         this.currentLandmark = null;
-        this.currentDungeon = null; // 新增：當前副本入口
+        this.currentDungeon = null;
         this.travelStep = Number(GameManager.getFlag('map.travelStep')) || 0;
         this.hasLeftHome = false; // 新增：玩家是否已經離開過家（用於判斷是否觸發回家事件）
-        this.currentRift = null; // 當前互動的裂縫
-        this.rifts = [];
         this.landmarks = [];
         this.bossSites = [];
         this.exploredCells = new Set();
-        // 記錄已解鎖的區域（玩家抵達過即視為解鎖）
-        this.unlockedZones = new Set(['low']);
 
-        // 嘗試從 GameManager 載入持久化的地圖狀態（rifts / unlockedZones）
+        // 嘗試從 GameManager 載入持久化的地圖狀態
         try {
             const persisted = GameManager.state?.mapState;
             if (persisted) {
-                if (Array.isArray(persisted.unlockedZones)) {
-                    this.unlockedZones = new Set(persisted.unlockedZones);
-                }
-                // 暫存已儲存的 rifts 供 generateMap 使用
-                if (Array.isArray(persisted.rifts)) {
-                    this._persistedRifts = persisted.rifts.slice();
-                }
                 if (Array.isArray(persisted.landmarks)) {
                     this._persistedLandmarks = persisted.landmarks.slice();
                 }
@@ -228,6 +218,7 @@ export default class WorldMap {
 
             const bossTemplate = MonsterManager.getMonster ? MonsterManager.getMonster(bossId) : null;
             if (!bossTemplate) continue;
+            const bossChapterPlan = getBossChapterPlanByBossId(bossTemplate.id);
 
             const preferred = zonesFromLevel(bossTemplate.level || 0);
             // 建立以 preferred 為首的 zone 排序
@@ -251,7 +242,13 @@ export default class WorldMap {
                     const target = data[pos.r][pos.c];
                     target.bossSiteId = bossTemplate.id;
                     target.bossSiteRank = bossTemplate.type || 'boss';
-                    this.bossSites.push({ x: pos.c, y: pos.r, bossId: bossTemplate.id });
+                    target.bossChapter = bossChapterPlan?.chapter || null;
+                    this.bossSites.push({
+                        x: pos.c,
+                        y: pos.r,
+                        bossId: bossTemplate.id,
+                        chapter: bossChapterPlan?.chapter || null
+                    });
                     placed = true;
                     break;
                 }
@@ -279,8 +276,6 @@ export default class WorldMap {
         // 記錄家的位置（玩家出生點）
         this.homePos = { x: this.playerPos.x, y: this.playerPos.y };
 
-        // 生成裂縫（每個 Layer 一個），避免覆蓋副本或出生點
-        this._generateRifts(data);
         this._saveMapState();
         
         return data;
@@ -348,6 +343,8 @@ export default class WorldMap {
             cell.type = 'landmark';
             cell.landmarkId = landmark.id;
             cell.landmarkData = landmark;
+            cell.mapNode = getLandmarkMapNode(landmark.id);
+            cell.chapter = getLandmarkMapChapter(landmark);
             this.landmarks.push({ x: pos.x, y: pos.y, landmarkId: landmark.id });
             placedIds.add(landmark.id);
             return true;
@@ -443,33 +440,10 @@ export default class WorldMap {
         return fallback[0] || null;
     }
 
-    _generateRifts(data) {
-        this.rifts = [];
-        const zoneLayers = ['low', 'medium', 'high', 'death'];
-
-        for (const zone of zoneLayers) {
-            const offset = StaticRiftPlacements[zone] || { x: 0, y: 0 };
-            const anchor = this.homePos || this.playerPos;
-            const targetPos = {
-                x: anchor.x + offset.x,
-                y: anchor.y + offset.y
-            };
-            const cell = this._findNearestEmptyCell(data, [zone], targetPos, { searchRadius: 10 });
-            if (!cell) continue;
-            data[cell.r][cell.c].type = 'rift';
-            data[cell.r][cell.c].riftData = { zone };
-            this.rifts.push({ x: cell.c, y: cell.r, zone });
-        }
-
-        this._saveMapState();
-    }
-
     _saveMapState() {
         try {
             GameManager.state.mapState = {
-                rifts: this.rifts.slice(),
                 landmarks: this.landmarks.slice(),
-                unlockedZones: Array.from(this.unlockedZones),
                 exploredCells: Array.from(this.exploredCells)
             };
             GameManager.notify('mapState');
@@ -484,6 +458,55 @@ export default class WorldMap {
 
     isCellExplored(x, y) {
         return this.exploredCells.has(this._cellKey(x, y));
+    }
+
+    isCellInsideHomeReveal(x, y) {
+        const home = this.homePos || this.playerPos;
+        if (!home) return false;
+        return Math.abs(x - home.x) <= HOME_REVEAL_RADIUS
+            && Math.abs(y - home.y) <= HOME_REVEAL_RADIUS;
+    }
+
+    isLandmarkRevealActive(landmarkId) {
+        if (!landmarkId) return false;
+        return Boolean(GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(landmarkId)));
+    }
+
+    isCellRevealedByMapStructure(x, y) {
+        if (this.isCellInsideHomeReveal(x, y)) return true;
+
+        for (const site of this.landmarks || []) {
+            const revealRadius = getLandmarkRevealRadius(site.landmarkId);
+            if (revealRadius <= 0 || !this.isLandmarkRevealActive(site.landmarkId)) continue;
+            if (Math.abs(x - site.x) <= revealRadius && Math.abs(y - site.y) <= revealRadius) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    isCellVisibleOnMap(x, y) {
+        return this.isCellExplored(x, y) || this.isCellRevealedByMapStructure(x, y);
+    }
+
+    getStepTarget(dx, dy) {
+        return {
+            x: Math.max(0, Math.min(this.cols - 1, this.playerPos.x + dx)),
+            y: Math.max(0, Math.min(this.rows - 1, this.playerPos.y + dy))
+        };
+    }
+
+    getTravelCostForCell(x, y) {
+        const baseFatigue = DEFAULT_TRAVEL_FATIGUE;
+        const visible = this.isCellVisibleOnMap(x, y);
+        const multiplier = visible ? 1 : 2;
+        return {
+            fatigue: baseFatigue * multiplier,
+            baseFatigue,
+            multiplier,
+            isUnexplored: !visible
+        };
     }
 
     revealAroundPlayer(radius = 1, options = {}) {
@@ -891,17 +914,6 @@ export default class WorldMap {
         GameManager.markSaveDirty?.('map-travel-step');
         this.updateCamera();
         this.revealAroundPlayer(1);
-            // 抵達任何區域視為解鎖（避免重新進入冒險時被重置）
-            try {
-                const arrivedZone = this.mapData[newY][newX].zone;
-                if (arrivedZone && !this.unlockedZones.has(arrivedZone)) {
-                    this.unlockedZones.add(arrivedZone);
-                    this._saveMapState();
-                }
-            } catch (e) {
-                // ignore
-            }
-            
             const cell = this.mapData[newY][newX];
 
             if (cell.bossSiteId && !ManualTriggerBossIds.has(cell.bossSiteId) && worldStoryManager.isBossLairVisible(cell.bossSiteId)) {
@@ -989,17 +1001,6 @@ export default class WorldMap {
                 return 'dungeon';
             }
 
-            // 裂縫互動
-            if (cell.type === 'rift') {
-                this.currentRift = cell.riftData || { zone: cell.zone };
-                // 當玩家抵達該區域，也視為已解鎖
-                if (this.currentRift && this.currentRift.zone) {
-                    this.unlockedZones.add(this.currentRift.zone);
-                    this._saveMapState();
-                }
-                return 'rift';
-            }
-            
             // 回到家 - 只有離開過家之後再回來才觸發
             if (cell.type === 'home') {
                 if (this.hasLeftHome) {
@@ -1027,16 +1028,6 @@ export default class WorldMap {
     getCurrentZone() { return this.mapData[this.playerPos.y][this.playerPos.x].zone; }
     getCurrentCell() { return this.mapData[this.playerPos.y][this.playerPos.x]; }
 
-    // 裂縫相關 API
-    getCurrentRift() { return this.currentRift; }
-    clearCurrentRift() { this.currentRift = null; }
-    // 回傳玩家可以傳送到的已解鎖區域（排除當前區域）
-    getRiftOptions() {
-        const current = this.getCurrentZone();
-        return Array.from(this.unlockedZones).filter(z => z !== current);
-    }
-    getUnlockedZones() { return Array.from(this.unlockedZones); }
-
     getVisibleCells() {
         const visibleCells = [];
         const gs = this.gridSize;
@@ -1055,6 +1046,8 @@ export default class WorldMap {
                     y: r,
                     data: row[c],
                     explored: this.isCellExplored(c, r),
+                    revealedByStructure: this.isCellRevealedByMapStructure(c, r),
+                    visible: this.isCellVisibleOnMap(c, r),
                     nearPlayer: Math.abs(c - this.playerPos.x) <= 1 && Math.abs(r - this.playerPos.y) <= 1
                 });
             }

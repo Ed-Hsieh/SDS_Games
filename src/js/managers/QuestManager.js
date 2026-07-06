@@ -12,6 +12,8 @@ import { unlockRecipesForInteraction } from './BlueprintManager.js';
 import { markItemKnown } from './EncyclopediaManager.js';
 import { worldStoryManager } from './WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
+import { getChapterOneRouteGroupByTarget } from '../data/ChapterOneRoutePlan.js';
+import { getQuestStory } from '../data/QuestStories.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 
 const FinaleOutcome = {
@@ -145,6 +147,8 @@ class QuestManager {
 
         this.notify('quest_accepted', { quest, questId, storyOutcome });
         this.syncCollectObjectives(GameManager.state);
+        this.syncExplorationObjectives();
+        this.syncFlagObjectives();
         
         return { 
             success: true, 
@@ -204,6 +208,7 @@ class QuestManager {
         };
 
         GameManager.setFlag?.(`quest.${questId}.finished`, true);
+        const townStateUpdate = this.applyQuestTownStateEffect(quest);
 
         // 解鎖後續任務
         if (quest.unlocks && quest.unlocks.length > 0) {
@@ -225,7 +230,7 @@ class QuestManager {
         });
         const finaleOutcome = questId === 'main_015' ? this.recordFinaleOutcome() : null;
 
-        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome, finaleOutcome });
+        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome, finaleOutcome, townStateUpdate });
 
         return {
             success: true,
@@ -233,7 +238,27 @@ class QuestManager {
             rewards,
             blueprintUnlocks,
             storyOutcome,
+            townStateUpdate,
             finaleOutcome
+        };
+    }
+
+    applyQuestTownStateEffect(quest) {
+        const story = getQuestStory(quest);
+        const townStateFlag = story?.characterProfile?.townState;
+        if (!townStateFlag) {
+            return null;
+        }
+
+        const wasActive = Boolean(GameManager.getFlag?.(townStateFlag));
+        GameManager.setFlag?.(townStateFlag, true);
+        GameManager.markSaveDirty?.('quest-town-state');
+
+        return {
+            flag: townStateFlag,
+            changed: !wasActive,
+            sourceQuestId: quest.id,
+            title: story.characterProfile?.mainThread || story.finished || story.completed || quest.name
         };
     }
 
@@ -534,6 +559,92 @@ class QuestManager {
         return updated;
     }
 
+    syncExplorationObjectives() {
+        let updated = false;
+
+        for (const [questId, questState] of Object.entries(this.questStates)) {
+            if (questState.status !== QuestStatus.ACTIVE) continue;
+
+            const quest = getQuestById(questId);
+            if (!quest) continue;
+
+            questState.progress.forEach((prog, index) => {
+                if (prog.type !== ObjectiveType.EXPLORE) return;
+
+                const routeGroup = getChapterOneRouteGroupByTarget(prog.target);
+                if (!routeGroup) return;
+
+                const visited = (routeGroup.landmarkIds || []).filter(landmarkId =>
+                    Boolean(GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(landmarkId)))
+                ).length;
+                const nextValue = Math.min(visited, prog.required);
+                if (nextValue <= prog.current) return;
+
+                prog.current = nextValue;
+                updated = true;
+                this.notify('progress_updated', {
+                    questId,
+                    quest,
+                    objectiveIndex: index,
+                    progress: prog
+                });
+            });
+
+            if (this.checkQuestCompletion(questId)) {
+                questState.status = QuestStatus.COMPLETED;
+                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
+                    questId,
+                    quest,
+                    source: 'quest_manager'
+                });
+                this.notify('quest_ready', { questId, quest, storyOutcome });
+            }
+        }
+
+        return updated;
+    }
+
+    syncFlagObjectives() {
+        let updated = false;
+
+        for (const [questId, questState] of Object.entries(this.questStates)) {
+            if (questState.status !== QuestStatus.ACTIVE) continue;
+
+            const quest = getQuestById(questId);
+            if (!quest) continue;
+
+            questState.progress.forEach((prog, index) => {
+                const objective = quest.objectives?.[index];
+                const flag = objective?.completionFlag;
+                if (!flag || !GameManager.getFlag?.(flag)) return;
+
+                const nextValue = Math.min(prog.required, Math.max(prog.current, prog.required));
+                if (nextValue === prog.current) return;
+
+                prog.current = nextValue;
+                updated = true;
+                this.notify('progress_updated', {
+                    questId,
+                    quest,
+                    objectiveIndex: index,
+                    progress: prog
+                });
+            });
+
+            if (this.checkQuestCompletion(questId)) {
+                questState.status = QuestStatus.COMPLETED;
+                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
+                    questId,
+                    quest,
+                    source: 'quest_manager'
+                });
+                this.notify('quest_ready', { questId, quest, storyOutcome });
+            }
+        }
+
+        return updated;
+    }
+
     // ==================== 隱藏任務觸發 ====================
 
     /**
@@ -705,6 +816,19 @@ class QuestManager {
     }
 
     /**
+     * 獲取已解鎖但尚未接取的任務
+     */
+    getAvailableQuests() {
+        return Object.entries(this.questStates)
+            .filter(([_, state]) => state.status === QuestStatus.AVAILABLE)
+            .map(([questId, state]) => {
+                const quest = getQuestById(questId);
+                return quest ? { ...quest, state } : null;
+            })
+            .filter(Boolean);
+    }
+
+    /**
      * 獲取待回報的任務
      */
     getCompletedQuests() {
@@ -778,7 +902,7 @@ class QuestManager {
         }
 
         if (eventType === 'hidden_quest_discovered') {
-            showGlobalToast('新的聽聞', `「${questName}」已寫入旅人手札。`, 'quest');
+            showGlobalToast('新的聽聞', `「${questName}」已加入任務冊。`, 'quest');
         }
     }
 
@@ -793,10 +917,11 @@ class QuestManager {
         if (newClues.length > 0) parts.push(`手札新增 ${newClues.length} 段線索`);
         if (finalReady.length > 0) parts.push('首領痕跡已收束');
         else if (progressUpdates.length > 0) parts.push('首領痕跡有新推進');
+        if (data.townStateUpdate?.changed) parts.push('城鎮狀態有新變化');
 
         return parts.length > 0
             ? `「${questName}」已回報，${parts.join('；')}。`
-            : `「${questName}」已回報，這段紀錄收進旅人手札。`;
+            : `「${questName}」已回報，這段紀錄收進任務冊。`;
     }
 
     getRewardToastText(rewards = {}, blueprintUnlocks = []) {

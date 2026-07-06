@@ -21,7 +21,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('crossroads'),
         sceneImage: townSceneFull('crossroads'),
         scenePosition: '50% 56%',
-        description: '廣場仍保留避難所的凌亂感。公告板、手札、難民火盆與巡邏路線都在這裡交會，玩家能直接看見城鎮是否真的恢復。',
+        description: '廣場仍保留避難所的凌亂感。公告板、難民火盆與巡邏路線都在這裡交會，玩家能直接看見城鎮是否真的恢復。',
         residents: [
             {
                 npcId: 'village_elder',
@@ -52,11 +52,11 @@ export const TownPlaceDatabase = [
             {
                 type: 'route',
                 route: 'quest',
-                label: '查看任務與手札',
+                label: '查看任務冊',
                 shortLabel: '任務',
-                icon: '?',
-                imageId: 'carved_stone_tablet',
-                description: '旅人手札把主線、支線與城鎮變化串成可追蹤的記錄。',
+                icon: '!',
+                imageId: 'quest_open_book',
+                description: '任務冊只放目前可追蹤、可回報的委託與主線目標；百科與成就留在手札書桌。',
                 position: { x: 77, y: 70 }
             }
         ],
@@ -349,7 +349,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('handbook'),
         sceneImage: townSceneFull('handbook'),
         scenePosition: '50% 56%',
-        description: '書桌與公告板負責把玩家做過的事變成世界記憶。這裡不只是百科入口，也是支線成果被城鎮吸收的地方。',
+        description: '書桌負責把玩家做過的事變成世界記憶。這裡保留百科、成就與線索索引，不再承載任務清單。',
         residents: [
             {
                 npcId: 'town_scholar',

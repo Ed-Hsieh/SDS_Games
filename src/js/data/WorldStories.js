@@ -1,8 +1,8 @@
 export const ZoneProfiles = {
     low: {
         id: 'low',
-        name: '村外近郊',
-        dangerLabel: '低威脅',
+        name: '第1章路網',
+        dangerLabel: '初段探索',
         icon: '🌿',
         summary: '村莊外圍仍有人走動，獵徑、木牌與舊營火讓你能辨認回程方向。',
         hint: '適合收集基礎材料、觀察怪物痕跡，並開始第一批痕跡鏈。',
@@ -10,8 +10,8 @@ export const ZoneProfiles = {
     },
     medium: {
         id: 'medium',
-        name: '腐根溪谷',
-        dangerLabel: '中威脅',
+        name: '第2章路網',
+        dangerLabel: '中段探索',
         icon: '🪵',
         summary: '潮濕的根系覆住舊路，怪物不再只是巡遊，而像是在守著某些東西。',
         hint: '補給壓力開始提高，菁英痕跡與特殊素材會更常出現。',
@@ -19,8 +19,8 @@ export const ZoneProfiles = {
     },
     high: {
         id: 'high',
-        name: '霧碑丘陵',
-        dangerLabel: '高威脅',
+        name: '第3章路網',
+        dangerLabel: '深入探索',
         icon: '🪨',
         summary: '霧把遠處的輪廓吞掉，石碑、爪痕與破碎盔甲像是刻意排成一條路。',
         hint: '這裡的痕跡會開始指向首領與古代封印，但撤退成本也明顯升高。',
@@ -28,8 +28,8 @@ export const ZoneProfiles = {
     },
     death: {
         id: 'death',
-        name: '黑焰邊境',
-        dangerLabel: '極高威脅',
+        name: '後期路網',
+        dangerLabel: '終段探索',
         icon: '🔥',
         summary: '地面像被高溫燒裂，空氣中有龍焰與深層封印混在一起的味道。',
         hint: '不會阻止你進入，但普通遭遇都可能接近首領戰壓力。',

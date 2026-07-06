@@ -8,6 +8,7 @@ import { questManager } from './QuestManager.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
+import { getQuestStory } from '../data/QuestStories.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 
 class DialogueManager {
@@ -28,6 +29,18 @@ class DialogueManager {
         return this.getSeenCount(npcId, dialogueId) > 0;
     }
 
+    getNpcTalkCount(npcId) {
+        if (!npcId) return 0;
+        const prefix = `${npcId}:`;
+        return Object.entries(this.history)
+            .filter(([key]) => key.startsWith(prefix))
+            .reduce((sum, [, count]) => sum + Number(count || 0), 0);
+    }
+
+    hasTalkedTo(npcId) {
+        return this.getNpcTalkCount(npcId) > 0;
+    }
+
     markSeen(npcId, dialogueId) {
         const key = this.getSeenKey(npcId, dialogueId);
         this.history[key] = this.getSeenCount(npcId, dialogueId) + 1;
@@ -41,6 +54,7 @@ class DialogueManager {
     getAvailableDialogues(npcId) {
         const dialogues = [
             ...this.getCompletedQuestReportDialogues(npcId),
+            ...this.getAvailableQuestRequestDialogues(npcId),
             ...getTownNPCDialogues(npcId)
         ]
             .filter(dialogue => this.canUseDialogue(npcId, dialogue))
@@ -52,6 +66,57 @@ class DialogueManager {
 
         const storyDialogues = dialogues.filter(dialogue => !this.isFallbackDialogue(dialogue));
         return storyDialogues.length > 0 ? storyDialogues : dialogues;
+    }
+
+    getAvailableQuestRequestDialogues(npcId) {
+        const npc = getTownNPC(npcId);
+        if (!npc || typeof questManager.getAvailableQuests !== 'function') return [];
+
+        return questManager.getAvailableQuests()
+            .filter(quest => this.isQuestRequester(npcId, quest))
+            .filter(quest => !this.hasExplicitQuestRequestDialogue(npcId, quest.id))
+            .map(quest => this.createQuestRequestDialogue(npc, quest));
+    }
+
+    hasExplicitQuestRequestDialogue(npcId, questId) {
+        return getTownNPCDialogues(npcId).some(dialogue => {
+            const hasRequestEffect = (dialogue.effects || [])
+                .some(effect => effect.type === 'acceptQuest' && effect.questId === questId);
+            return hasRequestEffect && this.canUseDialogue(npcId, dialogue);
+        });
+    }
+
+    createQuestRequestDialogue(npc, availableQuest) {
+        const questName = availableQuest.name || availableQuest.id || '委託';
+        const story = getQuestStory(availableQuest, availableQuest.state) || {};
+        const opening = story.available
+            || availableQuest.dialogue?.start
+            || availableQuest.description
+            || `「${questName}」需要有人接下。`;
+        const nextLead = story.nextLead || availableQuest.trigger?.reason || '確認內容後，就把這件事接進目前行程。';
+
+        return {
+            id: `request_${availableQuest.id}`,
+            priority: 84,
+            tone: 'discovery',
+            narrativeTitle: '新的委託',
+            narrativeSummary: opening,
+            lines: [
+                {
+                    speaker: 'npc',
+                    text: opening
+                },
+                {
+                    speaker: 'npc',
+                    text: nextLead
+                }
+            ],
+            effects: [
+                { type: 'acceptQuest', questId: availableQuest.id, message: `已接取：${questName}` }
+            ],
+            route: 'quest',
+            routeLabel: '查看任務'
+        };
     }
 
     getCompletedQuestReportDialogues(npcId) {
@@ -100,8 +165,20 @@ class DialogueManager {
 
     isQuestReporter(npcId, quest) {
         if (!quest) return false;
+        const story = getQuestStory(quest, quest.state);
+        if (story?.reportTo?.npcId) return story.reportTo.npcId === npcId;
         if (quest.reportTo?.npcId) return quest.reportTo.npcId === npcId;
         if (quest.npc) return quest.npc === npcId;
+        return false;
+    }
+
+    isQuestRequester(npcId, quest) {
+        if (!quest) return false;
+        const story = getQuestStory(quest, quest.state);
+        if (story?.requestFrom?.npcId) return story.requestFrom.npcId === npcId;
+        if (quest.requestFrom?.npcId) return quest.requestFrom.npcId === npcId;
+        if (quest.npc) return quest.npc === npcId;
+        if (story?.reportTo?.npcId) return story.reportTo.npcId === npcId;
         return false;
     }
 
@@ -147,7 +224,7 @@ class DialogueManager {
         if (!quest) return { success: false, reason: 'missing_quest' };
 
         const status = questManager.getQuestState(questId)?.status || QuestStatus.LOCKED;
-        if (![QuestStatus.LOCKED, QuestStatus.AVAILABLE].includes(status)) {
+        if (status !== QuestStatus.LOCKED) {
             return { success: true };
         }
 
@@ -426,6 +503,9 @@ class DialogueManager {
             messages.push('相關劇情已推進到下一個可回報階段。');
         } else if (result.storyOutcome?.progressUpdates?.length > 0) {
             messages.push('相關劇情進度已更新。');
+        }
+        if (result.townStateUpdate?.changed) {
+            messages.push('城鎮狀態已更新。');
         }
 
         return [...new Set(messages.filter(Boolean))];

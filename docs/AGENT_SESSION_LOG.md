@@ -35,41 +35,64 @@ Paused for now:
   compatibility cleanup targets.
 - Added `AGENT_UPDATE_PROTOCOL.md` so future agents use fixed document, progress,
   cleanup, image prompt, and handoff formats instead of inventing new ones.
+- Added `ChapterMapFramework.js` and wired the map away from visible
+  low/medium/high/death route labels. Fogged unexplored movement now costs double
+  fatigue, while town/watchpost reveal areas provide clear map anchors. Void rift
+  teleport is retired.
+- Added `QuestSpineFramework.js` plus `scripts/QuestSpineCheck.mjs` so the
+  existing main quests are mapped into a seven-chapter planning spine before the
+  playable quest chain is rewritten.
+- Adjusted the quest spine rule away from quest-count balance. Chapters are now
+  checked by meaning beats: large goal, exploration, clues, equipment pressure,
+  town-state change, boss convergence, and dungeon side-story support.
+- Landed the first chapter route plan in `ChapterOneRoutePlan.js`. `main_001`
+  now progresses through first visits to the South Gate Farm, Hunter Boardwalk,
+  and Old Campfire landmarks instead of generic low-zone steps.
+- Adventure handbook quick records now surface first-chapter route progress, and
+  the DEV panel has a First Chapter tab for route visits and boss-line setup.
+- Added `TownStateResolver.js` and wired the lobby town map to runtime visibility
+  rules. First-chapter initial town now shows only the opening places/residents,
+  while black market, casino, tower, and later NPCs wait for town-state flags.
+- Quest completion now applies `QuestStories.characterProfile.townState` when
+  present, so side-story reports can visibly change the town.
 
 ## Current Runtime Status
 
-- `TownRebuildPlan.js` is not fully wired into UI/runtime gates yet.
+- `TownRebuildPlan.js` is partially wired into lobby visibility through
+  `TownStateResolver.js`. Shop, forge, market, and casino service gates still
+  need to read the same resolver in later passes.
 - Casino showcase UI and inspection flags exist, but the owner long side quest and
   final showcase choice are framework-only.
 - Quest story placement exists, but reward redistribution across Lv1-Lv70 is still
   pending.
+- The quest spine is validated separately from `Quests.js`; current playable
+  quests still use the old chapter 1-3 data until the user approves the new route
+  order.
 - Art generation is intentionally deferred.
 - Documentation updates should follow `AGENT_UPDATE_PROTOCOL.md`; runtime JS/data
   remains the source of truth for implemented behavior.
 
 ## Next Good Step
 
-Implement a town-state resolver that reads quest/town flags and returns the current
-town phase, active facility gates, visible town-state labels, and locked/unlocked
-actions. Then connect Lobby/Town hotspots, shop stock, market stock, forge service,
-and casino access to the same resolver.
+Review the seven-chapter quest spine in `QuestSpineFramework.js`. If approved,
+start the runtime quest pass: retarget old low/medium/high/death objectives,
+reorder `main_008`, rechapter `main_011` through `main_015`, and reduce quest
+reward material overfeeding. Keep dungeon integration as side-story support unless
+the user approves a concrete mainline dungeon plan. The first-chapter route is now
+the reference pattern for later chapter route-node objectives.
 
 ## Next Resume Task
 
-Continue with the town-state resolver. This is the next concrete development step
-and should be picked up before adding more story copy or images.
+Continue by validating the first-chapter town state in-game, then wire shop,
+forge, market, and casino service access to the same town-state resolver. The
+quest-spine runtime pass remains pending after the first-chapter loop is approved.
 
 Target result:
 
-- Add a resolver data/API layer that converts quest flags and town flags into the
-  current town phase.
-- Return facility gate states for lobby/town map, shop, market, forge, casino, and
-  future town modules.
-- Make locked/unlocked actions come from the resolver instead of scattered scene
-  checks.
-- Wire Lobby/Town hotspots first, then shop/market/forge/casino access.
-- Keep combat, tower, and image generation paused while this resolver pass is in
-  progress.
+- Keep `Quests.js` playable while moving it toward the seven-chapter spine.
+- Replace old route-layer objectives with landmark/clue-oriented objectives.
+- Align main boss convergence with `ChapterBossPlan`.
+- Leave new monsters, materials, and images out until the route plan is approved.
 
 Parallel cleanup note:
 
@@ -90,6 +113,9 @@ Suggested implementation files:
 
 ```powershell
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\DataConsistencyCheck.mjs
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\QuestSpineCheck.mjs
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\ChapterOneRouteCheck.mjs
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\TownRuntimeCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\SideStoryNarrativeTaxonomyCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\BetaConvergenceCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\AssetCoverageCheck.mjs

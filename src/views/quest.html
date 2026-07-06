@@ -1,14 +1,20 @@
-<!-- 任務公告板視覺背景 -->
+<!-- 任務冊視覺背景 -->
 <div class="quest-board-container">
     <div class="quest-story-ledger">
         <div>
-            <span class="ledger-kicker">Story Ledger</span>
-            <h2>旅人手札</h2>
+            <span class="ledger-kicker">Quest Ledger</span>
+            <h2>任務冊</h2>
         </div>
-        <div class="ledger-summary" id="ledger-summary">0 件委託</div>
+        <div class="ledger-actions">
+            <button class="ledger-clue-shortcut" id="ledger-clue-shortcut" type="button" aria-label="查看線索">
+                <span>線索</span>
+                <b id="ledger-clue-count">0</b>
+            </button>
+            <div class="ledger-summary" id="ledger-summary">0 件委託</div>
+        </div>
     </div>
 
-    <div class="quest-tabs handbook-tabs" id="handbook-tabs" role="tablist" aria-label="旅人手札分類">
+    <div class="quest-tabs handbook-tabs" id="handbook-tabs" role="tablist" aria-label="任務冊分類">
         <button class="quest-tab active" type="button" role="tab" aria-selected="true" data-handbook-tab="commissions">
             <span class="tab-label">委託</span>
             <span class="badge" data-handbook-count="commissions">0</span>
@@ -21,9 +27,9 @@
             <span class="tab-label">世界見聞</span>
             <span class="badge" data-handbook-count="world">0</span>
         </button>
-        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="forge">
-            <span class="tab-label">鍛造備忘</span>
-            <span class="badge" data-handbook-count="forge">0</span>
+        <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="relationships">
+            <span class="tab-label">城鎮人際</span>
+            <span class="badge" data-handbook-count="relationships">0</span>
         </button>
         <button class="quest-tab" type="button" role="tab" aria-selected="false" data-handbook-tab="town">
             <span class="tab-label">城鎮記憶</span>
@@ -94,7 +100,7 @@
                 <div class="quest-actions" id="detail-actions">
                     <button class="quest-btn accept-btn" id="btn-accept">
                         <span class="btn-icon">✅</span>
-                        收入手札
+                        接下委託
                     </button>
                     <button class="quest-btn abandon-btn hidden" id="btn-abandon">
                         <span class="btn-icon">❌</span>
@@ -128,4 +134,4 @@
     </div>
 </div>
 
-<!-- 任務通知改由旅人手札本身更新，不使用彈跳 toast。 -->
+<!-- 任務通知改由任務冊本身更新，不使用彈跳 toast。 -->

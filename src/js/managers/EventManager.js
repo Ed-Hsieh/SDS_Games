@@ -48,13 +48,11 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
         'ash_scout_report',
         'dragon_heat_haze',
         'refugee_cart_repair',
-        'dimensional_rift',
         'last_campfire_before_north',
         'weathered_route_tablet'
     ],
     boss: [
         'dragon_heat_haze',
-        'dimensional_rift',
         'last_campfire_before_north',
         'weathered_route_tablet'
     ]
@@ -63,6 +61,7 @@ const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
 const EVENT_MEMORY_FLAG_PREFIX = 'event.memory.';
 const EVENT_LAST_STEP_FLAG_PREFIX = 'event.lastStep.';
 const WORLD_EVENT_JOURNAL_LIMIT = 24;
+const RETIRED_EVENT_IDS = new Set(['dimensional_rift']);
 
 const EVENT_ROLE_LABELS = {
     [EventRole.RESOURCE]: '補給發現',
@@ -149,11 +148,11 @@ function getEventRoleLabel(eventRole) {
 
 function getEventZoneLabel(zoneId) {
     const labels = {
-        low: '低威脅區',
-        medium: '中威脅區',
-        high: '高威脅區',
-        death: '死亡區',
-        boss: '首領邊境'
+        low: '第1章路網',
+        medium: '第2章路網',
+        high: '第3章路網',
+        death: '後期路網',
+        boss: '首領收束點'
     };
     return labels[zoneId] || zoneId || '未知地帶';
 }
@@ -527,6 +526,8 @@ function isWorldInteractionUseful(interactionId) {
 }
 
 function isEventRetired(eventObj = {}) {
+    if (RETIRED_EVENT_IDS.has(eventObj.id)) return true;
+
     const retireFlags = Array.isArray(eventObj.retireWhenFlags) ? eventObj.retireWhenFlags : [];
     if (retireFlags.some(flag => GameManager.getFlag(flag))) return true;
 

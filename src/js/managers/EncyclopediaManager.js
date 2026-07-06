@@ -35,7 +35,7 @@ import {
     getSeriesRecipeIds
 } from '../data/RecipeSeries.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { isRecipeBlueprintKnown, isRecipeSeriesKnown } from './BlueprintManager.js';
+import { getRecipeBlueprintFlag, getRecipeSeriesFlag } from './BlueprintManager.js';
 
 const REVEAL_ALL_FLAG = 'encyclopedia.revealAll';
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
@@ -287,13 +287,13 @@ export function isItemKnown(itemId) {
 
 export function isBlueprintKnownInEncyclopedia(recipeId) {
     return isEncyclopediaRevealAll()
-        || isRecipeBlueprintKnown(recipeId)
+        || Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`));
 }
 
 export function isBlueprintSeriesKnownInEncyclopedia(seriesId) {
     return isEncyclopediaRevealAll()
-        || isRecipeSeriesKnown(seriesId)
+        || Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${seriesId}`));
 }
 

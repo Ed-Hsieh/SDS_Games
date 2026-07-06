@@ -135,7 +135,7 @@ function auditSharedSystems() {
 
 function auditTravelerJournal() {
     const questScene = readText('src/js/scenes/QuestScene.js');
-    const requiredTabs = ['委託', '首領痕跡', '世界見聞', '鍛造備忘', '城鎮記憶'];
+    const requiredTabs = ['委託', '首領痕跡', '世界見聞', '城鎮人際', '城鎮記憶'];
 
     for (const tab of requiredTabs) {
         if (!questScene.includes(tab)) {

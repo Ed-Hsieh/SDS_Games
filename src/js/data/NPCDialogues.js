@@ -176,7 +176,7 @@ export const TownDialogueDatabase = {
             lines: [
                 { speaker: 'npc', text: '你回來得正好。別急著問哪裡需要殺怪，現在整座城鎮需要的不是一把劍，是能重新接上的手。' },
                 { speaker: 'npc', text: '市場沒有貨，鐵匠鋪沒有火，南門沒有巡線，書庫只有半本索引。聽起來像四個問題，實際上是一個問題。' },
-                { speaker: 'npc', text: '先從公告板開始。它很醜，但至少比我這張臉更會把壞消息排成順序。' }
+                { speaker: 'npc', text: '先去找伊萊，把旅人手札的記錄方式弄清楚。公告板只是把壞消息釘起來，真正能帶你往前走的是他整理出的線索。' }
             ],
             effects: [
                 { type: 'setFlag', flag: 'town.elder.first_warning', value: true },
@@ -223,7 +223,8 @@ export const TownDialogueDatabase = {
                 { speaker: 'npc', text: '等索引完整一點，我會把副本準備、素材來源和裝備方向一起標上去。' }
             ],
             effects: [
-                { type: 'setFlag', flag: 'town.scholar.first_index_open', value: true }
+                { type: 'setFlag', flag: 'town.scholar.first_index_open', value: true },
+                { type: 'questProgress', objectiveType: 'talk', target: 'town_scholar', amount: 1, message: '書記已把旅人手札的記錄方式說明清楚。' }
             ],
             route: 'encyclopedia',
             routeLabel: '翻閱百科'

@@ -1,6 +1,6 @@
 /**
  * DevPanel.js
- * 全域開發測試面板（Ctrl+Shift+D 開關，或網址加 ?dev=1）。
+ * 全域開發測試面板（Ctrl+Alt+K 開關，或網址加 ?dev=1）。
  * 涵蓋：角色等級、道具、任務進度、BOSS 線索、地點、章節/城鎮狀態、副本、裝備效果、存檔。
  */
 
@@ -17,6 +17,11 @@ import { MonsterDatabase } from '../data/Monsters.js';
 import { applyMonsterCombatBalance, getMonsterCombatRank } from '../data/CombatBalance.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { TownPlaceDatabase } from '../data/TownPlaces.js';
+import { getTownRuntimeSummary, TownVisibility } from '../managers/TownStateResolver.js';
+import {
+    getChapterOneRouteGroup,
+    getChapterOneRouteGroups
+} from '../data/ChapterOneRoutePlan.js';
 import { resolveItemById, resolveItemRecord } from './ItemResolver.js';
 import { escapeHtml, formatAffixStats } from './ItemDisplay.js';
 import { showGlobalToast } from './UIFeedback.js';
@@ -73,6 +78,47 @@ const DEV_ITEM_CATEGORY_ORDER = [
     'currency',
     'scroll',
     'item'
+];
+
+const DEV_TOWN_VISIBILITY_FLAGS = [
+    'town.elder.first_warning',
+    'town.network.first_recovery_named',
+    'town.crossroads.notice_read',
+    'town.scholar.first_index_open',
+    'town.forge.problem_named',
+    'town.blacksmith.forge_open',
+    'town.apothecary.problem_named',
+    'town.apothecary.stock_basic_potion',
+    'town.supply.route_problem_named',
+    'town.supply.first_route_open',
+    'town.south_gate.guard_route_ready',
+    'town.tinker.repair_logic_named',
+    'town.mine.route_problem_named',
+    'market.rumor.material_index',
+    'market.tinker.repair_stock',
+    'town.rumor.elite_warning_open',
+    'secretShopUnlocked',
+    'town.black_market.contact_open',
+    'town.black_market.rules_explained',
+    'town.casino.showcase_seen',
+    'town.casino.owner_route_seeded',
+    'town.casino.false_odds_exposed',
+    'foundTowerGlyphMemory',
+    'tower.unsealed'
+];
+
+const DEV_TOWN_RECOVERY_FLAGS = [
+    'town.elder.first_warning',
+    'town.network.first_recovery_named',
+    'town.crossroads.notice_read',
+    'town.scholar.first_index_open',
+    'town.forge.problem_named',
+    'town.apothecary.problem_named',
+    'town.supply.route_problem_named',
+    'town.supply.first_route_open',
+    'town.south_gate.guard_route_ready',
+    'market.rumor.material_index',
+    'town.rumor.elite_warning_open'
 ];
 
 const EQUIPMENT_SLOT_LABELS = {
@@ -210,6 +256,7 @@ class DevPanel {
             ['character', '角色'],
             ['items', '道具'],
             ['quests', '任務'],
+            ['chapter1', '第一章'],
             ['boss', 'BOSS線'],
             ['world', '地點'],
             ['town', '章節/城鎮'],
@@ -236,7 +283,7 @@ class DevPanel {
         this.root.innerHTML = `
             <div class="dev-panel-head">
                 <strong>開發測試面板</strong>
-                <small class="dev-muted">Ctrl+Shift+D</small>
+                <small class="dev-muted">Ctrl+Alt+K</small>
                 <button class="dev-close" type="button" data-dev="close">✕</button>
             </div>
             <div class="dev-panel-tabs">
@@ -263,7 +310,7 @@ class DevPanel {
 
     bindHotkey() {
         document.addEventListener('keydown', event => {
-            if (event.ctrlKey && event.shiftKey && String(event.key).toLowerCase() === 'd') {
+            if (event.ctrlKey && event.altKey && String(event.key).toLowerCase() === 'k') {
                 event.preventDefault();
                 this.toggle();
             }
@@ -284,6 +331,7 @@ class DevPanel {
             character: () => this.renderCharacter(),
             items: () => this.renderItems(),
             quests: () => this.renderQuests(),
+            chapter1: () => this.renderChapterOne(),
             boss: () => this.renderBoss(),
             world: () => this.renderWorld(),
             town: () => this.renderTown(),
@@ -437,6 +485,66 @@ class DevPanel {
         `).join('');
     }
 
+    renderChapterOne() {
+        const mainQuestIds = new Set(['main_001', 'main_002', 'main_003', 'main_004', 'main_005', 'main_006']);
+        const questRows = QuestDatabase.main
+            .filter(quest => mainQuestIds.has(quest.id))
+            .map(quest => {
+                const state = questManager.getQuestState(quest.id);
+                const status = state?.status || 'locked';
+                const progress = Array.isArray(state?.progress) && state.progress.length > 0
+                    ? state.progress.map(item => `${item.current}/${item.required} ${item.target}`).join('｜')
+                    : '尚無進度';
+                return `
+                    <div class="dev-row">
+                        <small style="flex:1">${escapeHtml(quest.id)}｜${escapeHtml(quest.name || quest.id)}｜${escapeHtml(status)}｜${escapeHtml(progress)}</small>
+                        <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="${escapeHtml(quest.id)}">解鎖</button>
+                        <button class="dev-act" type="button" data-dev="quest-accept" data-quest-id="${escapeHtml(quest.id)}">接取</button>
+                        <button class="dev-act" type="button" data-dev="quest-fill" data-quest-id="${escapeHtml(quest.id)}">填滿</button>
+                    </div>
+                `;
+            }).join('');
+
+        const routeCards = getChapterOneRouteGroups().map(group => {
+            const visited = (group.landmarkIds || []).filter(landmarkId =>
+                Boolean(GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(landmarkId)))
+            );
+            const bossButtons = (group.bossThreadIds || []).map(chainId => `
+                <button class="dev-act" type="button" data-dev="chapter1-ready-boss" data-chain-id="${escapeHtml(chainId)}">收束 ${escapeHtml(chainId)}</button>
+            `).join('');
+            const landmarkRows = (group.landmarkIds || []).map(landmarkId => {
+                const landmark = WorldLandmarks.find(item => item.id === landmarkId);
+                const isVisited = visited.includes(landmarkId);
+                return `
+                    <div class="dev-row">
+                        <small style="flex:1">${landmark?.icon || ''} ${escapeHtml(landmark?.name || landmarkId)}${isVisited ? '｜已記錄' : ''}</small>
+                        <button class="dev-act" type="button" data-dev="visit-landmark" data-landmark-id="${escapeHtml(landmarkId)}">造訪</button>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="dev-card">
+                    <h4>${escapeHtml(group.name)} <small class="dev-muted">${visited.length}/${group.landmarkIds.length}</small></h4>
+                    <small>${escapeHtml(group.summary)}</small>
+                    <div class="dev-row">
+                        <button class="dev-act" type="button" data-dev="chapter1-visit-route" data-route-id="${escapeHtml(group.id)}">造訪整條路線</button>
+                        ${bossButtons}
+                    </div>
+                    ${landmarkRows}
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="dev-card">
+                <h4>第一章主線狀態</h4>
+                ${questRows}
+            </div>
+            ${routeCards}
+        `;
+    }
+
     renderBoss() {
         return Object.keys(WorldStoryChains).map(chainId => {
             const status = worldStoryManager.getBossFlowStatus(chainId);
@@ -479,14 +587,45 @@ class DevPanel {
         const mains = QuestDatabase.main;
         const finished = mains.filter(quest => questManager.getQuestState(quest.id)?.status === QuestStatus.FINISHED);
         const chapter = finished.reduce((max, quest) => Math.max(max, quest.chapter), mains.some(q => questManager.getQuestState(q.id)?.status !== 'locked') ? 1 : 0);
+        const townSummary = getTownRuntimeSummary();
+        const visiblePlaceNames = townSummary.visiblePlaces.map(place => place.name || place.id).join('、') || '無';
+        const hiddenPlaceNames = townSummary.hiddenPlaces.map(place => `${place.name || place.id}${place.hiddenReason ? `：${place.hiddenReason}` : ''}`).join('\n') || '無';
+        const visibleResidentRows = townSummary.visibleResidents.map(resident => `
+            <div class="dev-row">
+                <small style="flex:1">${escapeHtml(resident.label || resident.npcId)}｜${escapeHtml(resident.placeName || resident.placeId)}｜${escapeHtml(resident.role || '')}</small>
+            </div>
+        `).join('') || '<small class="dev-muted">沒有可見人物</small>';
+        const hiddenResidentRows = townSummary.hiddenResidents.map(resident => `
+            <div class="dev-row">
+                <small style="flex:1">${escapeHtml(resident.label || resident.npcId)}｜${escapeHtml(resident.placeName || resident.placeId)}｜${escapeHtml(resident.hiddenReason || '尚未達成登場條件')}</small>
+            </div>
+        `).join('') || '<small class="dev-muted">沒有被延後的人物</small>';
         return `
             <div class="dev-card">
                 <h4>章節狀態</h4>
-                <small>主線完成 ${finished.length}/${mains.length}，目前章節進度約：第 ${Math.max(1, chapter)} 章</small>
+                <small>主線完成 ${finished.length}/${mains.length}，目前章節進度約：第 ${Math.max(1, chapter)} 章｜城鎮階段：${escapeHtml(townSummary.stage)}</small>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="town-reset-initial">第一章初始城鎮</button>
+                    <button class="dev-act" type="button" data-dev="town-open-recovery">第一章回復網路</button>
+                </div>
+            </div>
+            <div class="dev-card">
+                <h4>目前可見場所</h4>
+                <small>${escapeHtml(visiblePlaceNames)}</small>
+            </div>
+            <div class="dev-card">
+                <h4>第一章可見人物</h4>
+                ${visibleResidentRows}
+            </div>
+            <div class="dev-card">
+                <h4>延後登場人物 / 場所</h4>
+                ${hiddenResidentRows}
+                <pre class="dev-report">${escapeHtml(hiddenPlaceNames)}</pre>
             </div>
             ${TownPlaceDatabase.filter(place => (place.states || []).length > 0).map(place => `
                 <div class="dev-card">
                     <h4>${place.icon || ''} ${escapeHtml(place.name)}</h4>
+                    <div class="dev-row"><small>顯示狀態：${escapeHtml(townSummary.visiblePlaces.some(visible => visible.id === place.id) ? TownVisibility.VISIBLE : TownVisibility.HIDDEN)}</small></div>
                     ${place.states.map(state => {
                         const on = Boolean(GameManager.getFlag(state.flag));
                         return `
@@ -770,7 +909,46 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             },
             'visit-landmark': () => {
                 const outcome = worldStoryManager.visitLandmark(data.landmarkId, { source: DEV_SOURCE });
+                questManager.syncExplorationObjectives?.();
                 this.refresh(outcome.success ? `已造訪 ${outcome.title}` : '造訪失敗');
+            },
+            'chapter1-visit-route': () => {
+                const group = getChapterOneRouteGroup(data.routeId);
+                if (!group) {
+                    this.refresh(`找不到第一章路線：${data.routeId}`);
+                    return;
+                }
+                for (const landmarkId of group.landmarkIds || []) {
+                    worldStoryManager.visitLandmark(landmarkId, { source: `${DEV_SOURCE}:chapter1`, chapterRouteId: group.id });
+                }
+                questManager.syncExplorationObjectives?.();
+                this.refresh(`已造訪第一章路線：${group.name}`);
+            },
+            'chapter1-ready-boss': () => {
+                const chain = WorldStoryChains[data.chainId];
+                if (!chain) {
+                    this.refresh(`找不到 Boss 線：${data.chainId}`);
+                    return;
+                }
+                worldStoryManager.revealAllClues(data.chainId, { source: `${DEV_SOURCE}:chapter1` });
+                for (const method of chain.progressMethods || []) {
+                    worldStoryManager.recordProgress(data.chainId, method.id, { source: `${DEV_SOURCE}:chapter1` });
+                }
+                worldStoryManager.markFinalReady(data.chainId, { source: `${DEV_SOURCE}:chapter1` });
+                questManager.syncExplorationObjectives?.();
+                this.refresh(`已收束 Boss 線：${data.chainId}`);
+            },
+            'town-reset-initial': () => {
+                for (const flag of DEV_TOWN_VISIBILITY_FLAGS) {
+                    GameManager.setFlag(flag, false);
+                }
+                this.refresh('已切回第一章初始城鎮顯示');
+            },
+            'town-open-recovery': () => {
+                for (const flag of DEV_TOWN_RECOVERY_FLAGS) {
+                    GameManager.setFlag(flag, true);
+                }
+                this.refresh('已打開第一章回復網路顯示');
             },
             'toggle-flag': () => {
                 GameManager.setFlag(data.flag, !GameManager.getFlag(data.flag));

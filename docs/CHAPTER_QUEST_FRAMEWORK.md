@@ -11,6 +11,40 @@ chapter spine before rewards are redistributed.
 Combat redesign and tower rewrite are paused. This framework only defines where
 story and systems should land.
 
+## Runtime Spine Files
+
+- `src/js/data/ChapterMapFramework.js` is the current map-route spine. It removes
+  the old visible low/medium/high/death route identity and maps existing
+  landmarks, watchposts, and boss routes into seven chapters.
+- `src/js/data/QuestSpineFramework.js` is the current main-quest spine. It maps
+  existing `main_001` through `main_015` into the planned seven-chapter route
+  without changing the playable `Quests.js` chain yet.
+- `src/js/data/ChapterOneRoutePlan.js` is the first landed chapter route. It maps
+  the opening route, silver-thread ambush, forest guardian trace, and blood-moon
+  side route to concrete landmarks.
+- `scripts/QuestSpineCheck.mjs` validates that every current main quest is mapped,
+  each planned boss has a convergence quest, and every chapter has the required
+  meaning beats behind the surface quest display.
+- `scripts/ChapterOneRouteCheck.mjs` validates first-chapter landmark routes,
+  `main_001` route-target wiring, and first-chapter boss story chains.
+
+## Quest Display Rule
+
+Quest count is not the design target. A chapter can surface as one large objective,
+several quests, or a mixed clue log, but the underlying spine must still carry:
+
+- A clear chapter-scale goal.
+- Route exploration that makes landmarks matter.
+- Non-linear information or clues.
+- Equipment pressure before the boss.
+- A town-state change or NPC/environment consequence.
+- Boss convergence as the chapter payoff.
+- Dungeon side-story support for the same level band.
+
+Dungeons are not mandatory mainline fillers. They should exist across level bands
+as side-story and equipment-support routes. If a dungeon is moved into the main
+chapter route, the plan needs to say why before implementation.
+
 ## Chapter Spine
 
 | Chapter | Level | Title | Core Focus |
@@ -71,6 +105,13 @@ story and systems should land.
 ## Open Implementation Work
 
 - Existing quests still need full reward redistribution by chapter.
+- First-chapter `main_001` now uses `chapter1_route_intro` instead of generic
+  low-zone exploration. Later chapter objectives still need the same route-node
+  pass.
+- Existing `Quests.js` chapter values still reflect the old 1-3 chapter runtime
+  chain. Rechaptering should happen only after the spine is approved.
+- Old route objectives such as low/medium/high/death need to be retargeted to
+  route nodes or clue nodes.
 - Existing monster/equipment data needs to be aligned with this chapter framework.
 - Dungeon reward tables need a pass after equipment families are finalized.
 - Combat changes are paused and should not be mixed into this pass.

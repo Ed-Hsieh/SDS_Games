@@ -36,7 +36,11 @@ Stable systems that should not be disturbed in the first pass:
   removed.
 - `TownRebuildPlan.js` defines phases, facility gates, recovery nodes, branch
   policy, character voice direction, third-party sources, and future asset needs.
-- `TownRebuildPlan.js` is not fully wired into lobby/shop/market/casino runtime yet.
+- `TownStateResolver.js` now maps town-state flags to lobby-visible places,
+  residents, and actions. The first chapter starts with a sparse broken-town
+  cast; later NPCs, black market, casino, and tower wait for explicit flags.
+- Shop, forge, market, and casino service gates are not fully wired to the
+  resolver yet.
 
 ## Rebuild Phases
 
@@ -95,12 +99,11 @@ of forcing one tone onto every scene.
 Resume priority: build the town-state resolver first. Do not add more image work,
 combat work, or tower work before this resolver pass is in place.
 
-1. Add a town-state resolver that maps quest flags to active phase and visible
-   facility states.
-2. Wire Lobby/Town scene hotspots to the resolver.
-3. Gate shop, market, forge, and casino entry/stock from the same resolver.
-4. Give every recovery node at least one story flag and one gameplay result.
-5. Add UI copy only after the data shape is stable.
+1. Gate shop, market, forge, and casino entry/stock from the same resolver.
+2. Give every recovery node at least one story flag and one gameplay result.
+3. Audit first-chapter town staging after real playtesting: opening cast,
+   delayed NPC returns, and route-to-town feedback.
+4. Add UI copy only after the data shape is stable.
 
 Image asset gaps are listed through `TownAssetNeedDatabase`, but image generation
 is intentionally deferred.

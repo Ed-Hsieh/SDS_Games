@@ -12,11 +12,13 @@ import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js';
+import { questManager } from '../managers/QuestManager.js';
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
-import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
+import { getTownPlace } from '../data/TownPlaces.js';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
+import { getResolvedTownPlace, getResolvedTownPlaces } from '../managers/TownStateResolver.js';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -38,6 +40,7 @@ export default class LobbyScene {
         this.handleTownNpc = this.handleTownNpc.bind(this);
         this.handleTownTopicClick = this.handleTownTopicClick.bind(this);
         this.handleTownDialogueAdvance = this.handleTownDialogueAdvance.bind(this);
+        this.handleQuestEvent = this.handleQuestEvent.bind(this);
         this.closeTownDialogue = this.closeTownDialogue.bind(this);
         this.openAchievementModal = this.openAchievementModal.bind(this);
         this.closeAchievementModal = this.closeAchievementModal.bind(this);
@@ -82,6 +85,7 @@ export default class LobbyScene {
             
             // Subscribe to GameManager updates
             GameManager.subscribe(this.updateUI);
+            questManager.subscribe(this.handleQuestEvent);
 
             this.restoreTownPlaceReturn();
             this.initializeTownNarrative();
@@ -490,6 +494,17 @@ export default class LobbyScene {
 
     }
 
+    handleQuestEvent(eventType) {
+        const townRefreshEvents = new Set([
+            'quest_ready',
+            'quest_completed',
+            'quest_unlocked',
+            'quest_accepted'
+        ]);
+        if (!townRefreshEvents.has(eventType)) return;
+        this.renderWorldStage();
+    }
+
     handleWorldInteraction(event) {
         const hotspot = event.currentTarget;
         const interactionId = hotspot?.dataset?.interactionId;
@@ -583,7 +598,7 @@ export default class LobbyScene {
 
     restoreTownPlaceReturn() {
         const placeId = GameManager.state?.ui?.returnTownPlaceId;
-        if (!placeId || !getTownPlace(placeId)) return;
+        if (!placeId || !getResolvedTownPlace(placeId)) return;
 
         this.activeTownPlaceId = placeId;
         delete GameManager.state.ui.returnTownPlaceId;
@@ -1067,7 +1082,7 @@ export default class LobbyScene {
 
         GameManager.state.ui.lastNotebookHintAt = now;
         GameManager.markSaveDirty?.('notebook-hint');
-        return '旅人手札已更新。需要確認下一步時，可從右上角翻閱最新紀錄。';
+        return '任務冊已更新。需要確認下一步時，回到廣場翻開任務冊。';
     }
 
     scrollTownDialogueLinesToEnd() {
@@ -1435,8 +1450,8 @@ export default class LobbyScene {
     renderTownPlaceStage() {
         if (!this.dom?.townPlaceMap || !this.dom?.townPlaceView) return;
 
-        const activePlace = getTownPlace(this.activeTownPlaceId);
-        if (!activePlace) {
+        const activePlace = getResolvedTownPlace(this.activeTownPlaceId);
+        if (!activePlace || !this.shouldShowTownPlaceCard(activePlace)) {
             this.activeTownPlaceId = null;
             this.renderTownPlaceMap();
             return;
@@ -1455,7 +1470,7 @@ export default class LobbyScene {
         delete view.dataset.placeId;
         map.innerHTML = '';
 
-        getTownPlaces().forEach(place => {
+        getResolvedTownPlaces().filter(place => this.shouldShowTownPlaceCard(place)).forEach(place => {
             const readyCount = this.getTownPlaceReadyCount(place);
             const button = document.createElement('button');
             button.type = 'button';
@@ -1567,6 +1582,8 @@ export default class LobbyScene {
         if (!list) return;
 
         list.innerHTML = '';
+        const section = list.closest('.town-place-section');
+        if (section) section.hidden = residents.length === 0;
         if (residents.length === 0) {
             return;
         }
@@ -1617,6 +1634,8 @@ export default class LobbyScene {
         if (!list) return;
 
         list.innerHTML = '';
+        const section = list.closest('.town-place-section');
+        if (section) section.hidden = actions.length === 0;
         if (actions.length === 0) {
             return;
         }
@@ -1648,6 +1667,10 @@ export default class LobbyScene {
     }
 
     renderTownActionIcon(action = {}) {
+        if (action.iconOnly) {
+            return escapeHtml(action.icon || '•');
+        }
+
         const interactionImages = {
             crossroads_notice_board: 'notice_board',
             merchant_ancient_coin: 'hidden_stash_mound'
@@ -1690,6 +1713,12 @@ export default class LobbyScene {
         const position = entry.position || fallback;
         element.style.setProperty('--scene-x', `${Number(position.x) || fallback.x}%`);
         element.style.setProperty('--scene-y', `${Number(position.y) || fallback.y}%`);
+    }
+
+    shouldShowTownPlaceCard(place = {}) {
+        if (!place?.id) return false;
+        if (place.id === 'gate') return true;
+        return (place.residents || []).length > 0;
     }
 
     getTownPlaceReadyCount(place) {
@@ -1748,7 +1777,8 @@ export default class LobbyScene {
     }
 
     enterTownPlace(placeId) {
-        if (!getTownPlace(placeId)) return;
+        const place = getResolvedTownPlace(placeId);
+        if (!place || !this.shouldShowTownPlaceCard(place)) return;
         this.activeTownPlaceId = placeId;
         this.renderWorldStage();
     }
@@ -1771,6 +1801,7 @@ export default class LobbyScene {
     cleanup() {
         // Unsubscribe from GameManager
         GameManager.unsubscribe(this.updateUI);
+        questManager.unsubscribe(this.handleQuestEvent);
         if (this._invUpdateRAF) {
             cancelAnimationFrame(this._invUpdateRAF);
             this._invUpdateRAF = null;
