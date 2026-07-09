@@ -50,6 +50,10 @@
             <span>BOSS 測試</span>
         </button>
 
+        <button class="dialogue-test-tab" id="btn-open-dialogue-test" type="button" aria-controls="adventure-dialogue-modal">
+            <span>多人對話測試</span>
+        </button>
+
         <aside class="clue-book-panel" id="clue-book-panel" aria-hidden="true">
             <div class="clue-book-header">
                 <div>
@@ -103,6 +107,25 @@
             <div class="hint-item">F 調查</div>
             <div class="hint-item">J 手札</div>
             <div class="hint-item">I / B 背包</div>
+        </div>
+    </div>
+
+    <div class="town-dialogue-modal adventure-dialogue-modal" id="adventure-dialogue-modal" hidden>
+        <div class="town-dialogue-card adventure-dialogue-card" role="dialog" aria-modal="true" aria-labelledby="adventure-dialogue-name" tabindex="-1">
+            <button class="town-dialogue-close" id="adventure-dialogue-close" type="button" aria-label="關閉對話">×</button>
+            <header class="town-dialogue-person">
+                <div class="town-dialogue-avatar" id="adventure-dialogue-avatar">?</div>
+                <div>
+                    <span id="adventure-dialogue-role">多人對話測試</span>
+                    <strong id="adventure-dialogue-name">測試</strong>
+                </div>
+            </header>
+            <div class="town-dialogue-lines" id="adventure-dialogue-lines"></div>
+            <div class="town-dialogue-effects" id="adventure-dialogue-effects"></div>
+            <div class="town-dialogue-actions">
+                <button class="town-dialogue-mode" id="adventure-dialogue-mode" type="button" aria-pressed="false">手動閱讀</button>
+                <button class="town-dialogue-done" id="adventure-dialogue-done" type="button" hidden>關閉</button>
+            </div>
         </div>
     </div>
 </div>

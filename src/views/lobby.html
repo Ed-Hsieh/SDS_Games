@@ -84,8 +84,16 @@
                         </span>
                     </div>
                     <div class="traveler-handbook-actions">
+                        <button class="traveler-handbook-action" data-route="quest" type="button">
+                            <span class="traveler-handbook-action-icon" aria-hidden="true">
+                                <img src="/src/assets/images/art/scenes/world/props/quest_open_book.webp" alt="">
+                            </span>
+                            <b>線索</b>
+                        </button>
                         <button class="traveler-handbook-action" data-route="encyclopedia" type="button">
-                            <span>📖</span>
+                            <span class="traveler-handbook-action-icon" aria-hidden="true">
+                                <img src="/src/assets/images/art/scenes/world/props/encyclopedia_tome.webp" alt="">
+                            </span>
                             <b>百科</b>
                         </button>
                     </div>
@@ -117,6 +125,7 @@
                     <div class="town-dialogue-lines" id="town-dialogue-lines"></div>
                     <div class="town-dialogue-effects" id="town-dialogue-effects"></div>
                     <div class="town-dialogue-actions">
+                        <button class="town-dialogue-mode" id="town-dialogue-mode" type="button" aria-pressed="false">手動閱讀</button>
                         <button class="town-dialogue-done" id="town-dialogue-done" type="button" hidden>關閉</button>
                     </div>
                 </div>

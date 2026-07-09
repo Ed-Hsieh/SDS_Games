@@ -6,6 +6,17 @@ function textIncludesAny(text, keys) {
     return keys.some(key => text.includes(key));
 }
 
+function normalizeWeaponForm(form) {
+    const value = String(form || '').trim().toLowerCase();
+    if (!value) return '';
+    if (['sword', 'blade', 'katana'].includes(value)) return 'sword';
+    if (['dagger', 'knife', 'needle', 'claw', 'claws'].includes(value)) return 'dagger';
+    if (['heavy', 'hammer', 'axe', 'mace', 'club', 'gauntlet'].includes(value)) return 'heavy';
+    if (['staff', 'focus', 'wand', 'orb', 'tome', 'book', 'scepter', 'sceptre'].includes(value)) return 'focus';
+    if (['lance', 'spear', 'pike'].includes(value)) return 'lance';
+    return '';
+}
+
 const BASE_PROFILES = {
     unarmed: {
         id: 'unarmed',
@@ -19,15 +30,16 @@ const BASE_PROFILES = {
     },
     sword: {
         id: 'sword',
-        label: 'Blade Tempo',
-        triggerCondition: 'critTempo',
+        label: 'Steady Stance',
+        triggerCondition: '命中或暴擊後穩定架勢，失誤時清空',
         needleSpeedMultiplier: 1.00,
         cooldownMultiplier: 1.00,
-        hitZoneMultiplier: 1.00,
-        critZoneMultiplier: 0.82,
+        hitZoneMultiplier: 1.10,
+        critZoneMultiplier: 0.58,
         damageMultiplier: 1.00,
-        critDamageMultiplier: 0.90,
-        critTempoPercent: 6
+        critDamageMultiplier: 0.82,
+        steadyStanceHitZoneBonus: 0.06,
+        steadyStanceMaxStacks: 4
     },
     dagger: {
         id: 'dagger',
@@ -45,32 +57,33 @@ const BASE_PROFILES = {
     },
     heavy: {
         id: 'heavy',
-        label: 'Guard Break',
-        triggerCondition: '暴擊或命中重甲目標時破甲',
+        label: 'Bulwark Guard',
+        triggerCondition: '命中且穿戴護甲時獲得一次減傷',
         needleSpeedMultiplier: 0.78,
         cooldownMultiplier: 1.22,
         hitZoneMultiplier: 0.94,
         critZoneMultiplier: 0.58,
         damageMultiplier: 1.14,
         critDamageMultiplier: 0.80,
-        armorBreakPercent: 18,
-        armorBreakDuration: 4,
-        armorBreakMinDefense: 10
+        bulwarkGuardReductionPercent: 22,
+        bulwarkGuardDuration: 4,
+        bulwarkRequiresArmor: true
     },
     focus: {
         id: 'focus',
-        label: 'Focus Cast',
-        triggerCondition: '暴擊時有高機率緩速',
+        label: 'Arcane Resonance',
+        triggerCondition: '命中累積 2 層共鳴後強化元素；無元素時發射魔法彈',
         needleSpeedMultiplier: 0.95,
         cooldownMultiplier: 1.08,
         hitZoneMultiplier: 0.96,
         critZoneMultiplier: 0.74,
         damageMultiplier: 0.96,
         critDamageMultiplier: 0.86,
-        slowChance: 35,
-        slowRequiresCrit: true,
-        slowPercent: 22,
-        slowDuration: 2.6
+        resonanceStacksRequired: 2,
+        resonanceElementBonusPercent: 30,
+        resonanceElements: ['fire', 'ice', 'thunder', 'poison'],
+        magicBoltDamageRatio: 0.45,
+        magicBoltLabel: 'Magic Bolt'
     },
     lance: {
         id: 'lance',
@@ -95,42 +108,29 @@ export function getWeaponCombatProfile(character) {
         weapon.id,
         weapon.name,
         weapon.type,
+        weapon.weaponForm,
+        weapon.form,
+        weapon.weaponType,
         weapon.subtype,
         weapon.category
     ].filter(Boolean).join(' ').toLowerCase();
 
-    let profile = BASE_PROFILES.sword;
-    if (textIncludesAny(haystack, ['dagger', 'knife', 'assassin', 'goblin_dagger', 'shadow'])) {
+    const declaredForm = normalizeWeaponForm(weapon.weaponForm || weapon.form || weapon.weaponType || weapon.subtype);
+    let profile = declaredForm && BASE_PROFILES[declaredForm]
+        ? BASE_PROFILES[declaredForm]
+        : BASE_PROFILES.sword;
+
+    if (!declaredForm && textIncludesAny(haystack, ['dagger', 'knife', 'needle', 'claw', 'claws', 'assassin', 'goblin_dagger', 'shadow'])) {
         profile = BASE_PROFILES.dagger;
-    } else if (textIncludesAny(haystack, ['axe', 'hammer', 'mace', 'club', 'gauntlet', 'titan'])) {
+    } else if (!declaredForm && textIncludesAny(haystack, ['axe', 'hammer', 'mace', 'club', 'gauntlet', 'titan'])) {
         profile = BASE_PROFILES.heavy;
-    } else if (textIncludesAny(haystack, ['staff', 'wand', 'orb', 'tome', 'book'])) {
+    } else if (!declaredForm && textIncludesAny(haystack, ['staff', 'focus', 'wand', 'orb', 'tome', 'book', 'scepter', 'sceptre'])) {
         profile = BASE_PROFILES.focus;
-    } else if (textIncludesAny(haystack, ['spear', 'lance', 'pike'])) {
+    } else if (!declaredForm && textIncludesAny(haystack, ['spear', 'lance', 'pike'])) {
         profile = BASE_PROFILES.lance;
     }
 
-    if (haystack.includes('slime_sword') || haystack.includes('slime')) {
-        return {
-            ...profile,
-            id: 'slime_sword',
-            label: 'Slime Drain',
-            triggerCondition: '命中且自身受傷時吸血',
-            lifestealMin: 3,
-            lifestealMax: 5
-        };
-    }
-
     return { ...profile };
-}
-
-export function getWeaponLifestealBounds(character) {
-    const profile = getWeaponCombatProfile(character);
-    if (profile.lifestealMin == null && profile.lifestealMax == null) return null;
-    return {
-        min: Math.max(0, Number(profile.lifestealMin) || 0),
-        max: Math.max(0, Number(profile.lifestealMax) || Number(profile.lifestealMin) || 0)
-    };
 }
 
 export function getWeaponProfileTriggerText(character) {
@@ -140,6 +140,5 @@ export function getWeaponProfileTriggerText(character) {
 
 export default {
     getWeaponCombatProfile,
-    getWeaponLifestealBounds,
     getWeaponProfileTriggerText
 };

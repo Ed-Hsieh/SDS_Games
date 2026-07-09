@@ -4,8 +4,6 @@
  */
 
 import { DungeonStoryDatabase } from './DungeonStories.js';
-import { applyMonsterCombatBalance } from './CombatBalance.js';
-import { applyLegacyLevelProgressionToDungeonDatabase } from './ProgressionLevels.js';
 
 // ==================== 副本類型 ====================
 export const DungeonType = {
@@ -189,9 +187,9 @@ export const DungeonDatabase = {
                 price: 500
             },
             random: [
-                { id: 'cave_crystal', name: '洞窟水晶', icon: '💎', type: 'material', rarity: 'uncommon', price: 100 },
-                { id: 'bat_wing', name: '蝙蝠翅膀', icon: '🦇', type: 'material', rarity: 'common', price: 30 },
-                { id: 'glowing_moss', name: '發光苔蘚', icon: '🌿', type: 'material', rarity: 'uncommon', price: 80 }
+                { itemId: 'iron_ore' },
+                { itemId: 'bat_wing' },
+                { itemId: 'crystal_shard' }
             ]
         },
         
@@ -212,7 +210,7 @@ export const DungeonDatabase = {
         description: '沉鐘神諭引發的氣候異變封住山脊熱泉，冰霜巨龍在魔力逆流中驚醒。',
         story: DungeonStoryDatabase.snow,
         difficulty: DungeonDifficulty.NORMAL,
-        recommendLevel: 6,
+        recommendLevel: 10,
         contentPlan: {
             targetLevelRange: [16, 23],
             role: 'cold_durability_pressure',
@@ -325,9 +323,9 @@ export const DungeonDatabase = {
                 price: 1200
             },
             random: [
-                { id: 'frost_shard', name: '霜之碎片', icon: '🧊', type: 'material', rarity: 'rare', price: 150 },
-                { id: 'yeti_fur', name: '雪人皮毛', icon: '🦣', type: 'material', rarity: 'uncommon', price: 80 },
-                { id: 'frozen_tear', name: '冰凍淚珠', icon: '💧', type: 'material', rarity: 'rare', price: 200 }
+                { itemId: 'ice_essence' },
+                { itemId: 'frost_crystal' },
+                { itemId: 'frost_core' }
             ]
         },
         
@@ -347,7 +345,7 @@ export const DungeonDatabase = {
         description: '千年前監測地脈的黃金神殿，如今仍以盲目的防衛協定清除所有活體。',
         story: DungeonStoryDatabase.ruins,
         difficulty: DungeonDifficulty.HARD,
-        recommendLevel: 10,
+        recommendLevel: 20,
         contentPlan: {
             targetLevelRange: [28, 37],
             role: 'rune_defense_and_glimmer_bridge',
@@ -434,9 +432,9 @@ export const DungeonDatabase = {
                 price: 1500
             },
             random: [
-                { id: 'ancient_gear', name: '遠古齒輪', icon: '⚙️', type: 'material', rarity: 'rare', price: 180 },
-                { id: 'arcane_crystal', name: '星輝水晶', icon: '🔮', type: 'material', rarity: 'rare', price: 220 },
-                { id: 'rune_fragment', name: '符文碎片', icon: '📜', type: 'material', rarity: 'uncommon', price: 100 }
+                { itemId: 'ancient_gear' },
+                { itemId: 'crystal_shard' },
+                { itemId: 'ancient_rune' }
             ]
         },
         
@@ -456,7 +454,7 @@ export const DungeonDatabase = {
         description: '靈草被飛龍奪走後，劇毒迷霧腐爛了叢林，也逼瘋了深處的九頭蛇。',
         story: DungeonStoryDatabase.jungle,
         difficulty: DungeonDifficulty.EXPERT,
-        recommendLevel: 15,
+        recommendLevel: 33,
         contentPlan: {
             targetLevelRange: [42, 52],
             role: 'poison_life_sustain_reward_route',
@@ -564,9 +562,9 @@ export const DungeonDatabase = {
                 price: 2500
             },
             random: [
-                { id: 'exotic_flower', name: '異域奇花', icon: '🌺', type: 'material', rarity: 'epic', price: 300 },
-                { id: 'panther_fang', name: '黑豹獠牙', icon: '🦷', type: 'material', rarity: 'rare', price: 200 },
-                { id: 'ancient_map', name: '古老地圖', icon: '🗺️', type: 'material', rarity: 'rare', price: 250 },
+                { itemId: 'vine_core' },
+                { itemId: 'poison_gland' },
+                { itemId: 'hydra_scale' },
                 { id: 'tribal_mask', name: '部落面具', icon: '🎭', type: 'accessory', rarity: 'rare', stats: { attack: 15 }, price: 400 }
             ]
         },
@@ -587,7 +585,7 @@ export const DungeonDatabase = {
         description: '魔王封印破裂後，地底最暴虐的火元素意志從地脈傷口中湧出。',
         story: DungeonStoryDatabase.hell,
         difficulty: DungeonDifficulty.NIGHTMARE,
-        recommendLevel: 20,
+        recommendLevel: 45,
         contentPlan: {
             targetLevelRange: [56, 66],
             role: 'final_preparation_and_abyss_pressure',
@@ -703,10 +701,10 @@ export const DungeonDatabase = {
                 price: 5000
             },
             random: [
-                { id: 'demon_horn', name: '惡魔之角', icon: '🦯', type: 'material', rarity: 'legendary', price: 500 },
-                { id: 'soul_essence', name: '靈魂精華', icon: '✨', type: 'material', rarity: 'epic', price: 350 },
-                { id: 'lava_core', name: '熔岩核心', icon: '🔴', type: 'material', rarity: 'epic', price: 400 },
-                { id: 'infernal_blade', name: '煉獄之刃', icon: '🗡️', type: 'weapon', rarity: 'legendary', stats: { attack: 50, critChance: 0.2, critDamage: 2.0 }, special: { burnOnHit: { damage: 10, duration: 3 } }, price: 3000 }
+                { itemId: 'demon_horn' },
+                { itemId: 'ember_stone' },
+                { itemId: 'molten_core' },
+                { itemId: 'demon_lord_sword' }
             ]
         },
         
@@ -726,7 +724,7 @@ export const DungeonDatabase = {
         description: '被極光切開的高階迴廊。這裡不是微光的自然升階，而是玩家正式取得光明素材、準備抗衡無盡塔虛空壓力的門檻。',
         story: DungeonStoryDatabase.radiant_corridor || null,
         difficulty: DungeonDifficulty.LEGEND,
-        recommendLevel: 30,
+        recommendLevel: 70,
         contentPlan: {
             targetLevelRange: [70, 80],
             role: 'light_counter_to_tower_void',
@@ -898,10 +896,10 @@ export const DungeonDatabase = {
                 price: 2400
             },
             random: [
-                { id: 'radiant_thread', name: '輝光絲', icon: '🧵', type: 'material', rarity: 'rare', price: 520 },
-                { id: 'light_essence', name: '光明精華', icon: '☀️', type: 'material', rarity: 'epic', price: 900 },
-                { id: 'radiant_shard', name: '曦光碎晶', icon: '💠', type: 'material', rarity: 'epic', price: 1100 },
-                { id: 'dawnbrand_sword', name: '黎印長劍', icon: '☀️', type: 'weapon', rarity: 'legendary', stats: { attack: 96, defense: 10 }, price: 5200 }
+                { itemId: 'radiant_thread' },
+                { itemId: 'light_essence' },
+                { itemId: 'radiant_shard' },
+                { itemId: 'dawnbrand_sword' }
             ]
         },
 
@@ -945,8 +943,6 @@ export const DungeonSpawnConfig = {
 /**
  * 根據類型獲取副本資料
  */
-applyLegacyLevelProgressionToDungeonDatabase(DungeonDatabase);
-
 export function getDungeonByType(type) {
     return DungeonDatabase[type] || null;
 }
@@ -990,7 +986,7 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
     const defense = Math.floor((monster.defense ?? monster.def ?? 0) * floorMultiplier);
     const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + floor - 1 + (isElite ? 2 : 0));
     
-    return applyMonsterCombatBalance({
+    return {
         ...monster,
         level,
         hp: Math.floor(monster.hp * floorMultiplier),
@@ -1001,30 +997,35 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
         def: defense,
         exp: Math.floor(monster.exp * floorMultiplier),
         gold: monster.gold.map(g => Math.floor(g * floorMultiplier))
-    });
+    };
 }
 
 /**
  * 生成副本 Boss
  */
-export function generateDungeonBoss(dungeonType) {
+export function generateDungeonBoss(dungeonType, floor = 1) {
     const dungeon = DungeonDatabase[dungeonType];
     if (!dungeon) return null;
     const boss = dungeon.monsters.boss;
+    const floorMultiplier = 1 + (Math.max(1, Number(floor) || 1) - 1) * 0.15;
     const attack = boss.attack ?? boss.atk ?? 0;
     const defense = boss.defense ?? boss.def ?? 0;
-    const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + 3);
+    const scaledAttack = Math.floor(attack * floorMultiplier);
+    const scaledDefense = Math.floor(defense * floorMultiplier);
+    const scaledHp = Math.floor((boss.hp ?? boss.maxHp ?? 1) * floorMultiplier);
+    const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + Math.max(1, Number(floor) || 1) - 1 + 3);
     
-    return applyMonsterCombatBalance({
+    return {
         ...boss,
         level,
-        maxHp: boss.hp,
-        attack,
-        defense,
-        atk: attack,
-        def: defense,
+        hp: scaledHp,
+        maxHp: scaledHp,
+        attack: scaledAttack,
+        defense: scaledDefense,
+        atk: scaledAttack,
+        def: scaledDefense,
         isBoss: true
-    });
+    };
 }
 
 /**

@@ -90,29 +90,19 @@ class DialogueManager {
         const questName = availableQuest.name || availableQuest.id || '委託';
         const story = getQuestStory(availableQuest, availableQuest.state) || {};
         const opening = story.available
-            || availableQuest.dialogue?.start
             || availableQuest.description
             || `「${questName}」需要有人接下。`;
-        const nextLead = story.nextLead || availableQuest.trigger?.reason || '確認內容後，就把這件事接進目前行程。';
+        const lines = this.buildQuestDialogueLines(story.requestLines, opening);
 
         return {
             id: `request_${availableQuest.id}`,
             priority: 84,
             tone: 'discovery',
-            narrativeTitle: '新的委託',
-            narrativeSummary: opening,
-            lines: [
-                {
-                    speaker: 'npc',
-                    text: opening
-                },
-                {
-                    speaker: 'npc',
-                    text: nextLead
-                }
-            ],
+            narrativeTitle: story.requestTitle || story.source || '新的委託',
+            narrativeSummary: story.requestSummary || opening,
+            lines,
             effects: [
-                { type: 'acceptQuest', questId: availableQuest.id, message: `已接取：${questName}` }
+                { type: 'acceptQuest', questId: availableQuest.id, message: story.acceptMessage || `已接取：${questName}` }
             ],
             route: 'quest',
             routeLabel: '查看任務'
@@ -139,28 +129,43 @@ class DialogueManager {
 
     createQuestReportDialogue(npc, completedQuest) {
         const questName = completedQuest.name || completedQuest.id || '任務';
+        const story = getQuestStory(completedQuest, completedQuest.state) || {};
+        const summary = story.completed
+            || story.finished
+            || `「${questName}」已完成。`;
+        const lines = this.buildQuestDialogueLines(story.reportLines, summary);
+
         return {
             id: `report_${completedQuest.id}`,
             priority: 86,
             tone: 'discovery',
-            narrativeTitle: '回報完成事項',
-            narrativeSummary: `${npc.name}把「${questName}」記進城鎮恢復紀錄。這類回報之後應該接到城鎮狀態、功能解鎖或後續劇情，而不是只給獎勵就結束。`,
-            lines: [
-                {
-                    speaker: 'npc',
-                    text: `我知道你完成了「${questName}」。這不只是清掉一件事，是讓城鎮少一處斷點。`
-                },
-                {
-                    speaker: 'npc',
-                    text: '之後相關的商店、地圖、情報或人物反應都應該跟著更新。沒有後續的回報，就只是比較漂亮的打勾。'
-                }
-            ],
+            narrativeTitle: story.reportTitle || story.source || '回報完成事項',
+            narrativeSummary: story.reportSummary || summary,
+            lines,
             effects: [
-                { type: 'completeQuest', questId: completedQuest.id, message: `已回報：${questName}` }
+                { type: 'completeQuest', questId: completedQuest.id, message: story.reportMessage || `已回報：${questName}` }
             ],
             route: 'quest',
             routeLabel: '查看任務'
         };
+    }
+
+    buildQuestDialogueLines(sourceLines, fallbackNarration) {
+        if (Array.isArray(sourceLines) && sourceLines.length > 0) {
+            return sourceLines
+                .map(line => {
+                    if (typeof line === 'string') {
+                        return { speaker: 'npc', text: line };
+                    }
+                    return line;
+                })
+                .filter(line => line?.text);
+        }
+
+        return [{
+            speaker: 'narration',
+            text: fallbackNarration
+        }];
     }
 
     isQuestReporter(npcId, quest) {
@@ -376,6 +381,44 @@ class DialogueManager {
         return dialogue.topicIcon || iconMap[type] || '•';
     }
 
+    getDialogueParticipants(dialogue = {}, fallbackNpc = {}) {
+        const participants = [];
+        const seen = new Set();
+        const addParticipant = entry => {
+            if (!entry) return;
+            const raw = typeof entry === 'string' ? { npcId: entry } : entry;
+            const npcId = raw.npcId || raw.id;
+            const npc = npcId ? getTownNPC(npcId) : null;
+            const participant = {
+                ...(npc || {}),
+                ...raw,
+                id: npcId || raw.id || raw.actorId || raw.name
+            };
+            if (!participant.id || seen.has(participant.id)) return;
+            seen.add(participant.id);
+            participants.push(participant);
+        };
+
+        if (fallbackNpc?.id) addParticipant({ npcId: fallbackNpc.id });
+        for (const entry of dialogue.participants || []) addParticipant(entry);
+
+        for (const line of dialogue.lines || []) {
+            const actorId = line?.actorId || line?.npcId;
+            if (actorId && actorId !== 'player' && actorId !== 'system') {
+                addParticipant({ npcId: actorId });
+            }
+        }
+
+        return participants;
+    }
+
+    getParticipantMap(participants = []) {
+        return participants.reduce((map, participant) => {
+            if (participant?.id) map[participant.id] = participant;
+            return map;
+        }, {});
+    }
+
     checkCondition(condition = {}) {
         switch (condition.type) {
             case 'flag':
@@ -427,7 +470,9 @@ class DialogueManager {
         }
 
         this.markSeen(npcId, dialogue.id);
-        const lines = (dialogue.lines || []).map(line => this.resolveLine(line, npc));
+        const participants = this.getDialogueParticipants(dialogue, npc);
+        const participantMap = this.getParticipantMap(participants);
+        const lines = (dialogue.lines || []).map(line => this.resolveLine(line, npc, participantMap));
         const effectMessages = this.applyEffects(dialogue.effects || [], {
             ...context,
             npcId,
@@ -439,6 +484,7 @@ class DialogueManager {
             npc,
             dialogue,
             topic: this.getDialogueTopic(dialogue),
+            participants,
             lines,
             effectMessages,
             narrativeTitle: dialogue.narrativeTitle || null,
@@ -465,50 +511,73 @@ class DialogueManager {
         return null;
     }
 
-    resolveLine(line, npc) {
-        if (line.speaker === 'player') {
+    resolveLine(line = {}, npc = {}, participantMap = {}) {
+        const actorId = line.actorId || line.npcId || null;
+        if (actorId && participantMap[actorId]) {
+            const participant = participantMap[actorId];
             return {
-                speaker: '玩家',
-                avatar: '你',
+                actorId,
+                speaker: line.name || line.speakerName || participant.name || '居民',
+                avatar: line.avatar || participant.avatar || '•',
+                portrait: line.portrait || line.image || participant.portrait || participant.image || '',
+                role: line.role || participant.role || participant.location || '城鎮居民',
                 text: line.text || ''
             };
         }
 
-        if (line.speaker === 'system') {
+        if (line.speaker === 'player' || actorId === 'player') {
             return {
+                actorId: 'player',
+                speaker: '玩家',
+                avatar: '你',
+                portrait: line.portrait || line.image || '',
+                role: '冒險者',
+                text: line.text || ''
+            };
+        }
+
+        if (line.speaker === 'narration' || actorId === 'narration') {
+            return {
+                actorId: 'narration',
+                speaker: '',
+                avatar: '',
+                portrait: '',
+                role: '',
+                isNarration: true,
+                text: line.text || ''
+            };
+        }
+
+        if (line.speaker === 'system' || actorId === 'system') {
+            return {
+                actorId: 'system',
                 speaker: line.name || '系統',
                 avatar: line.avatar || '!',
+                portrait: line.portrait || line.image || '',
+                role: line.role || '系統',
+                text: line.text || ''
+            };
+        }
+
+        if (line.speaker && line.speaker !== 'npc') {
+            return {
+                actorId: actorId || line.speaker,
+                speaker: line.name || line.speaker,
+                avatar: line.avatar || '•',
+                portrait: line.portrait || line.image || '',
+                role: line.role || '',
                 text: line.text || ''
             };
         }
 
         return {
+            actorId: npc.id || 'npc',
             speaker: line.name || npc.name,
             avatar: line.avatar || npc.avatar,
+            portrait: line.portrait || line.image || npc.portrait || npc.image || '',
+            role: line.role || npc.role || npc.location || '城鎮居民',
             text: line.text || ''
         };
-    }
-
-    buildQuestCompletionFeedback(effect = {}, result = {}) {
-        const quest = getQuestById(effect.questId);
-        const questName = quest?.name || effect.questId || '任務';
-        const messages = [];
-
-        messages.push(effect.message || `已回報：${questName}`);
-
-        const rewardText = questManager.getRewardToastText?.(result.rewards, result.blueprintUnlocks);
-        if (rewardText) messages.push(`獲得獎勵：${rewardText.replace(/^獎勵\s*/, '')}`);
-
-        if (result.storyOutcome?.finalReady?.length > 0) {
-            messages.push('相關劇情已推進到下一個可回報階段。');
-        } else if (result.storyOutcome?.progressUpdates?.length > 0) {
-            messages.push('相關劇情進度已更新。');
-        }
-        if (result.townStateUpdate?.changed) {
-            messages.push('城鎮狀態已更新。');
-        }
-
-        return [...new Set(messages.filter(Boolean))];
     }
 
     applyEffects(effects = [], context = {}) {
@@ -551,9 +620,7 @@ class DialogueManager {
 
             if (effect.type === 'completeQuest') {
                 const result = questManager.completeQuest(effect.questId);
-                if (result.success) {
-                    messages.push(...this.buildQuestCompletionFeedback(effect, result));
-                } else if (effect.failMessage) {
+                if (!result.success && effect.failMessage) {
                     messages.push(effect.failMessage);
                 }
                 continue;

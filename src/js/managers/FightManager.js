@@ -1,8 +1,7 @@
 
 import GameManager from './GameManager.js';
 import { getEquipmentEffectTotals } from './EquipmentEffectResolver.js';
-import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
-import { getWeaponCombatProfile, getWeaponLifestealBounds } from '../utils/WeaponCombatProfile.js';
+import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 
 function getPassiveCombatBonus(character, stat) {
     return typeof character?.getPassiveCombatBonus === 'function'
@@ -18,11 +17,16 @@ function applyMonsterDamagePassiveMitigation(monster, player, damage) {
 }
 
 function getCurrentHp(entity) {
-    return (typeof entity?.hp === 'number') ? entity.hp : (entity?.getHP ? entity.getHP() : 0);
+    if (typeof entity?.hp === 'number') return entity.hp;
+    if (typeof entity?.currentHP === 'number') return entity.currentHP;
+    if (typeof entity?.currentHp === 'number') return entity.currentHp;
+    return entity?.getHP ? entity.getHP() : 0;
 }
 
 function getMaxHp(entity) {
-    return (typeof entity?.maxHp === 'number') ? entity.maxHp : (entity?.getMaxHP ? entity.getMaxHP() : 0);
+    if (typeof entity?.maxHp === 'number') return entity.maxHp;
+    if (typeof entity?.maxHP === 'number') return entity.maxHP;
+    return entity?.getMaxHP ? entity.getMaxHP() : 0;
 }
 
 function getEntityDefense(entity) {
@@ -45,12 +49,15 @@ function setEntityHp(entity, hp) {
     if (typeof entity?.hp === 'number') {
         entity.hp = nextHp;
         if ('currentHp' in entity) entity.currentHp = nextHp;
+        if ('currentHP' in entity) entity.currentHP = nextHp;
     } else if (entity?.setHP) {
         entity.setHP(nextHp);
         if ('currentHp' in entity) entity.currentHp = nextHp;
+        if ('currentHP' in entity) entity.currentHP = nextHp;
     } else if (entity) {
         entity.hp = nextHp;
         entity.currentHp = nextHp;
+        entity.currentHP = nextHp;
     }
 }
 
@@ -85,14 +92,6 @@ function getPoisonAccumulated(target, now = Date.now()) {
     return syncActiveStatusEffects(target, now)
         .filter(effect => effect.type === 'poison')
         .reduce((sum, effect) => sum + (Number(effect.accumulated) || 0), 0);
-}
-
-function rollFlatLifestealBonus(bounds) {
-    if (!bounds) return 0;
-    const min = Math.max(0, Math.floor(Number(bounds.min) || 0));
-    const max = Math.max(min, Math.floor(Number(bounds.max) || min));
-    if (max <= 0) return 0;
-    return min + Math.floor(Math.random() * (max - min + 1));
 }
 
 function getStatusLabel(effect) {
@@ -135,6 +134,161 @@ function shouldTriggerArmorPenetration(profile, hitType, target) {
     return getEntityDefense(target) >= minDefense;
 }
 
+const WEAPON_TRIGGER_VISUAL_DURATION = 2;
+
+function formatTriggerPercent(value) {
+    const numeric = Math.max(0, Number(value) || 0);
+    return Math.round(numeric);
+}
+
+const ARCANE_RESONANCE_ELEMENT_LABELS = {
+    fire: '火焰',
+    ice: '冰霜',
+    thunder: '雷霆',
+    poison: '毒素'
+};
+
+const ARCANE_RESONANCE_ELEMENT_ASSETS = {
+    fire: 'burn',
+    ice: 'freeze',
+    thunder: 'critical',
+    poison: 'poison'
+};
+
+function getStrongestResonanceElement(breakdown = {}, allowedElements = []) {
+    const allowed = allowedElements.length > 0
+        ? allowedElements
+        : ['fire', 'ice', 'thunder', 'poison'];
+    let strongest = null;
+    allowed.forEach(element => {
+        const value = Math.max(0, Number(breakdown[`${element}Percent`]) || 0);
+        if (value <= 0) return;
+        if (!strongest || value > strongest.value) {
+            strongest = {
+                element,
+                value,
+                label: ARCANE_RESONANCE_ELEMENT_LABELS[element] || element
+            };
+        }
+    });
+    return strongest;
+}
+
+function isEquippedArmor(item) {
+    if (!item) return false;
+    const type = String(item.type || item.category || '').toLowerCase();
+    return type === 'armor' || type === 'equipment';
+}
+
+function createWeaponTriggerVisual(profile, triggerType, details = {}) {
+    if (!profile?.id || !triggerType) return null;
+
+    const label = details.label || profile.label || '武器能力';
+    const percent = formatTriggerPercent(details.percent);
+    const duration = Math.max(1, Number(details.visualDuration ?? WEAPON_TRIGGER_VISUAL_DURATION) || WEAPON_TRIGGER_VISUAL_DURATION);
+    const base = {
+        id: `weapon-trigger:${profile.id}:${triggerType}`,
+        type: 'weaponTrigger',
+        source: `weapon:${profile.id}`,
+        name: label,
+        icon: '⚔️',
+        duration,
+        visualOnly: true,
+        triggerType
+    };
+
+    if (triggerType === 'steadyStance') {
+        const stacks = Math.max(0, Math.floor(Number(details.stacks) || 0));
+        const maxStacks = Math.max(1, Math.floor(Number(details.maxStacks) || 1));
+        const widthPercent = formatTriggerPercent(details.percent);
+        return {
+            ...base,
+            assetId: 'hit',
+            persistent: true,
+            durationText: `${stacks}/${maxStacks}`,
+            value: stacks,
+            description: `穩定架勢 ${stacks}/${maxStacks}：命中區加寬 ${widthPercent}%，失誤後清空。`
+        };
+    }
+    if (triggerType === 'combo') {
+        const amount = Math.max(0, Math.floor(Number(details.amount) || 0));
+        return {
+            ...base,
+            assetId: 'double_strike',
+            value: amount,
+            description: `連續命中觸發追擊，追加 ${amount} 傷害。`
+        };
+    }
+    if (triggerType === 'bulwarkGuard') {
+        return {
+            ...base,
+            assetId: 'defense_up',
+            persistent: true,
+            durationText: '1次',
+            value: percent,
+            description: `重勢守護已架起：下次受擊減少 ${percent}% 傷害。`
+        };
+    }
+    if (triggerType === 'arcaneResonance') {
+        const stacks = Math.max(0, Math.floor(Number(details.stacks) || 0));
+        const maxStacks = Math.max(1, Math.floor(Number(details.maxStacks) || 2));
+        return {
+            ...base,
+            assetId: 'attack_up',
+            persistent: true,
+            durationText: `${stacks}/${maxStacks}`,
+            value: stacks,
+            description: `法術共鳴 ${stacks}/${maxStacks}：滿層後強化火、冰、雷、毒；沒有元素時釋放魔法彈。`
+        };
+    }
+    if (triggerType === 'arcaneElement') {
+        const element = String(details.element || '').toLowerCase();
+        const elementLabel = ARCANE_RESONANCE_ELEMENT_LABELS[element] || details.elementLabel || '元素';
+        return {
+            ...base,
+            id: `weapon-trigger:${profile.id}:arcaneElement:${element}`,
+            assetId: ARCANE_RESONANCE_ELEMENT_ASSETS[element] || 'attack_up',
+            value: details.amount ?? percent,
+            description: `法術共鳴釋放，強化本次 ${elementLabel} 效果。`
+        };
+    }
+    if (triggerType === 'magicBolt') {
+        const amount = Math.max(0, Math.floor(Number(details.amount) || 0));
+        return {
+            ...base,
+            assetId: 'hit',
+            value: amount,
+            description: `法術共鳴釋放魔法彈，追加 ${amount} 傷害。`
+        };
+    }
+    if (triggerType === 'armorPenetration') {
+        return {
+            ...base,
+            assetId: 'armor_break',
+            value: percent,
+            description: `武器能力觸發，本次攻擊穿透 ${percent}% 防禦。`
+        };
+    }
+    if (triggerType === 'lifesteal') {
+        const amount = Math.max(0, Math.floor(Number(details.amount) || 0));
+        return {
+            ...base,
+            assetId: 'lifesteal',
+            value: amount > 0 ? amount : null,
+            description: amount > 0
+                ? `武器能力觸發，回復 ${amount} 生命。`
+                : '武器能力觸發，但生命已滿。'
+        };
+    }
+
+    return {
+        ...base,
+        assetId: 'hit',
+        value: details.value ?? 0,
+        description: '武器能力已觸發。'
+    };
+}
+
 export function normalizeMonsterCombatStats(monster) {
     if (!monster) return monster;
 
@@ -151,7 +305,7 @@ export function normalizeMonsterCombatStats(monster) {
     monster.maxHp = maxHp;
     if (monster.currentHp === undefined) monster.currentHp = hp;
 
-    return applyMonsterCombatBalance(monster);
+    return monster;
 }
 
 /**
@@ -307,14 +461,7 @@ export function applyDamage(attacker, target, damageObj) {
     const poisonExecutionDamage = poisonExecuted ? Math.max(0, finalDamage - directDamage) : 0;
 
     // Apply HP change
-    if (typeof target.hp === 'number') {
-        target.hp = Math.max(0, target.hp - finalDamage);
-        if ('currentHp' in target) target.currentHp = target.hp;
-    } else if (target.setHP) {
-        const newHP = Math.max(0, beforeHP - finalDamage);
-        target.setHP(newHP);
-        if ('currentHp' in target) target.currentHp = newHP;
-    }
+    setEntityHp(target, Math.max(0, beforeHP - finalDamage));
 
     // Lifesteal: apply to attacker if present
     let lifestealRecovered = 0;
@@ -325,17 +472,12 @@ export function applyDamage(attacker, target, damageObj) {
             const currentHp = getCurrentHp(attacker);
             const maxHp = getMaxHp(attacker) || Infinity;
             const missingHp = Math.max(0, maxHp - currentHp);
-            const flatLifesteal = rollFlatLifestealBonus(getWeaponLifestealBounds(attacker));
             const percentLifesteal = Math.max(1, Math.floor(lifestealBaseDamage * (lifestealPercent / 100)));
             // Small early-game hits should still visibly trigger lifesteal.
             lifestealRecovered = missingHp > 0
-                ? Math.min(missingHp, Math.max(percentLifesteal, flatLifesteal))
+                ? Math.min(missingHp, percentLifesteal)
                 : 0;
-            if (typeof attacker.hp === 'number') {
-                attacker.hp = Math.min((attacker.maxHp || Infinity), attacker.hp + lifestealRecovered);
-            } else if (attacker.setHP) {
-                attacker.setHP(Math.min(maxHp, currentHp + lifestealRecovered));
-            }
+            setEntityHp(attacker, Math.min(maxHp, currentHp + lifestealRecovered));
         }
     }
 
@@ -442,6 +584,8 @@ export class BattleController {
         this._nextPlayerRegenAt = 0;
         this._playerAttackSpeedBonusPercent = 0;
         this._weaponProfileCombo = 0;
+        this._weaponProfileSlotState = {};
+        this._bulwarkGuard = null;
     }
 
     _getActiveMonsterStatusEffects(now = Date.now()) {
@@ -471,6 +615,91 @@ export class BattleController {
 
     getPlayerAttackSpeedBonusPercent() {
         return Math.max(0, Number(this._playerAttackSpeedBonusPercent) || 0);
+    }
+
+    _getWeaponProfileSlotState(slotType = 'weapon') {
+        const normalizedSlot = slotType || 'weapon';
+        if (!this._weaponProfileSlotState[normalizedSlot]) {
+            this._weaponProfileSlotState[normalizedSlot] = {
+                steadyStanceStacks: 0,
+                steadyStanceHitZoneBonusPercent: 0,
+                arcaneResonanceStacks: 0
+            };
+        }
+        return this._weaponProfileSlotState[normalizedSlot];
+    }
+
+    getPlayerHitZoneBonusPercent(slotType = 'weapon') {
+        const state = this._getWeaponProfileSlotState(slotType);
+        return Math.max(0, Number(state.steadyStanceHitZoneBonusPercent) || 0);
+    }
+
+    _removeWeaponTriggerVisuals(predicate = null) {
+        if (!Array.isArray(this.player?.activeBuffs)) return;
+        this.player.activeBuffs = this.player.activeBuffs.filter(buff => {
+            if (buff?.type !== 'weaponTrigger') return true;
+            return predicate ? !predicate(buff) : false;
+        });
+    }
+
+    _clearSteadyStance(slotType = 'weapon') {
+        const state = this._getWeaponProfileSlotState(slotType);
+        state.steadyStanceStacks = 0;
+        state.steadyStanceHitZoneBonusPercent = 0;
+        this._removeWeaponTriggerVisuals(buff => buff.triggerType === 'steadyStance');
+    }
+
+    _clearWeaponProfileState(slotType = null) {
+        if (slotType) {
+            this._weaponProfileSlotState[slotType] = {
+                steadyStanceStacks: 0,
+                steadyStanceHitZoneBonusPercent: 0,
+                arcaneResonanceStacks: 0
+            };
+        } else {
+            this._weaponProfileSlotState = {};
+        }
+        this._weaponProfileCombo = 0;
+        this._bulwarkGuard = null;
+        this._removeWeaponTriggerVisuals();
+    }
+
+    _hasEquippedArmor() {
+        return isEquippedArmor(this.player?.equipment?.armor);
+    }
+
+    _setBulwarkGuard(profile, slotType = 'weapon') {
+        const percent = Math.max(1, Number(profile?.bulwarkGuardReductionPercent) || 0);
+        if (percent <= 0 || !this._hasEquippedArmor()) return null;
+        this._bulwarkGuard = {
+            profileId: profile.id,
+            slotType,
+            percent,
+            name: profile.label || 'Bulwark Guard'
+        };
+        return this._bulwarkGuard;
+    }
+
+    _consumeBulwarkGuard(damage) {
+        if (!this._bulwarkGuard || damage <= 0) {
+            return { damage, event: null };
+        }
+        const guard = this._bulwarkGuard;
+        const percent = Math.max(1, Math.min(80, Number(guard.percent) || 0));
+        const reducedDamage = Math.max(1, Math.floor(damage * (1 - percent / 100)));
+        const prevented = Math.max(0, damage - reducedDamage);
+        this._bulwarkGuard = null;
+        this._removeWeaponTriggerVisuals(buff => buff.triggerType === 'bulwarkGuard');
+        return {
+            damage: reducedDamage,
+            event: {
+                type: 'bulwarkGuard',
+                percent,
+                prevented,
+                source: guard.profileId,
+                name: guard.name
+            }
+        };
     }
 
     getPlayerActionCooldownSeconds(baseSeconds = null) {
@@ -602,6 +831,29 @@ export class BattleController {
             });
         }
         return statusEvents;
+    }
+
+    applyWeaponTriggerVisuals(events = []) {
+        if (!this.player || !Array.isArray(events) || events.length === 0) return [];
+        if (!Array.isArray(this.player.activeBuffs)) this.player.activeBuffs = [];
+
+        const visuals = events
+            .map(event => createWeaponTriggerVisual(event.profile, event.type, event))
+            .filter(Boolean);
+
+        visuals.forEach(visual => {
+            const existingIndex = this.player.activeBuffs.findIndex(buff => buff.id === visual.id);
+            if (existingIndex >= 0) {
+                this.player.activeBuffs[existingIndex] = {
+                    ...this.player.activeBuffs[existingIndex],
+                    ...visual
+                };
+                return;
+            }
+            this.player.activeBuffs.push(visual);
+        });
+
+        return visuals;
     }
 
     tickStatusEffects(now = Date.now()) {
@@ -771,58 +1023,151 @@ export class BattleController {
         );
     }
 
-    _resolveWeaponProfileEffects(profile, hitType, computeRes, applyRes) {
+    _resolveWeaponProfileEffects(profile, hitType, computeRes, applyRes, slotType = 'weapon') {
         const effects = {
             statusEffects: [],
             attackerStatusEffects: [],
+            triggerEvents: [],
             extraStrike: null
         };
 
-        if (!profile || hitType === 'miss' || !applyRes?.finalDamage) {
+        if (!profile) return effects;
+
+        if (hitType === 'miss') {
             this._weaponProfileCombo = 0;
+            if (profile.steadyStanceHitZoneBonus > 0) {
+                this._clearSteadyStance(slotType);
+            }
             return effects;
         }
 
+        if (!applyRes?.finalDamage) return effects;
+
         this._weaponProfileCombo += 1;
 
-        const targetDefense = getEntityDefense(this.monster);
-        const canArmorBreak = profile.armorBreakPercent > 0
-            && (
-                hitType === 'crit'
-                || targetDefense >= (Number(profile.armorBreakMinDefense) || Infinity)
-            );
-        if (canArmorBreak) {
-            effects.statusEffects.push({
-                type: 'armorBreak',
-                percent: profile.armorBreakPercent,
-                duration: profile.armorBreakDuration || 4,
-                source: `weapon:${profile.id}`,
-                value: profile.armorBreakPercent
+        const armorPenetrationPercent = Number(computeRes?.breakdown?.profileArmorPenetrationBonus) || 0;
+        if (armorPenetrationPercent > 0) {
+            effects.triggerEvents.push({
+                type: 'armorPenetration',
+                profile,
+                percent: armorPenetrationPercent
             });
         }
 
-        if (profile.slowChance > 0 && (!profile.slowRequiresCrit || hitType === 'crit')) {
-            const chance = hitType === 'crit'
-                ? Math.max(profile.slowChance, 75)
-                : profile.slowChance;
-            if (Math.random() * 100 < chance) {
-                effects.statusEffects.push({
-                    type: 'slow',
-                    percent: profile.slowPercent || 20,
-                    duration: profile.slowDuration || 2.5,
-                    source: `weapon:${profile.id}`,
-                    value: chance
+        if (profile.steadyStanceHitZoneBonus > 0) {
+            const state = this._getWeaponProfileSlotState(slotType);
+            const maxStacks = Math.max(1, Math.floor(Number(profile.steadyStanceMaxStacks) || 1));
+            const bonusPerStack = Math.max(0, Number(profile.steadyStanceHitZoneBonus) || 0);
+            state.steadyStanceStacks = Math.min(maxStacks, (Number(state.steadyStanceStacks) || 0) + 1);
+            state.steadyStanceHitZoneBonusPercent = state.steadyStanceStacks * bonusPerStack * 100;
+            effects.triggerEvents.push({
+                type: 'steadyStance',
+                profile,
+                stacks: state.steadyStanceStacks,
+                maxStacks,
+                percent: state.steadyStanceHitZoneBonusPercent
+            });
+        }
+
+        if (profile.bulwarkGuardReductionPercent > 0 && this._setBulwarkGuard(profile, slotType)) {
+            effects.triggerEvents.push({
+                type: 'bulwarkGuard',
+                profile,
+                percent: profile.bulwarkGuardReductionPercent
+            });
+        }
+
+        const resonanceRequired = Math.max(0, Math.floor(Number(profile.resonanceStacksRequired) || 0));
+        if (resonanceRequired > 0) {
+            const state = this._getWeaponProfileSlotState(slotType);
+            state.arcaneResonanceStacks = Math.min(
+                resonanceRequired,
+                (Number(state.arcaneResonanceStacks) || 0) + 1
+            );
+
+            if (state.arcaneResonanceStacks >= resonanceRequired) {
+                state.arcaneResonanceStacks = 0;
+                this._removeWeaponTriggerVisuals(buff => buff.triggerType === 'arcaneResonance');
+                const element = getStrongestResonanceElement(
+                    computeRes?.breakdown,
+                    Array.isArray(profile.resonanceElements) ? profile.resonanceElements : []
+                );
+                const bonusPercent = Math.max(0, Number(profile.resonanceElementBonusPercent) || 0);
+
+                if (element?.element === 'fire') {
+                    effects.extraStrike = {
+                        damage: Math.max(1, Math.floor((computeRes.damage || 1) * (bonusPercent / 100))),
+                        label: '共鳴火焰',
+                        triggerType: 'arcaneElement',
+                        element: element.element,
+                        elementLabel: element.label,
+                        useElementBreakdown: false
+                    };
+                } else if (element?.element === 'ice') {
+                    const percent = Math.max(8, Math.floor(element.value * (1 + bonusPercent / 100)));
+                    effects.statusEffects.push({
+                        type: 'slow',
+                        percent,
+                        duration: 2.5,
+                        source: `weapon:${profile.id}:arcane_resonance`,
+                        value: percent
+                    });
+                    effects.triggerEvents.push({
+                        type: 'arcaneElement',
+                        profile,
+                        element: element.element,
+                        elementLabel: element.label,
+                        percent
+                    });
+                } else if (element?.element === 'thunder') {
+                    const chance = Math.min(100, element.value + bonusPercent);
+                    if (Math.random() * 100 < chance) {
+                        effects.statusEffects.push({
+                            type: 'stun',
+                            duration: 1.0,
+                            source: `weapon:${profile.id}:arcane_resonance`,
+                            value: chance
+                        });
+                    }
+                    effects.triggerEvents.push({
+                        type: 'arcaneElement',
+                        profile,
+                        element: element.element,
+                        elementLabel: element.label,
+                        percent: chance
+                    });
+                } else if (element?.element === 'poison') {
+                    const accumulate = Math.max(1, Math.floor(element.value * (bonusPercent / 100)));
+                    effects.statusEffects.push({
+                        type: 'poison',
+                        accumulatePerSecond: accumulate,
+                        duration: 3,
+                        source: `weapon:${profile.id}:arcane_resonance`,
+                        value: accumulate
+                    });
+                    effects.triggerEvents.push({
+                        type: 'arcaneElement',
+                        profile,
+                        element: element.element,
+                        elementLabel: element.label,
+                        amount: accumulate
+                    });
+                } else {
+                    effects.extraStrike = {
+                        damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.magicBoltDamageRatio || 0.45))),
+                        label: profile.magicBoltLabel || 'Magic Bolt',
+                        triggerType: 'magicBolt',
+                        useElementBreakdown: false
+                    };
+                }
+            } else {
+                effects.triggerEvents.push({
+                    type: 'arcaneResonance',
+                    profile,
+                    stacks: state.arcaneResonanceStacks,
+                    maxStacks: resonanceRequired
                 });
             }
-        }
-
-        if (profile.critTempoPercent > 0 && hitType === 'crit') {
-            effects.attackerStatusEffects.push({
-                type: 'attackSpeed',
-                percent: profile.critTempoPercent,
-                stacking: 'infinite',
-                source: `weapon:${profile.id}`
-            });
         }
 
         if (
@@ -832,7 +1177,8 @@ export class BattleController {
         ) {
             effects.extraStrike = {
                 damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.comboDamageRatio || 0.45))),
-                label: profile.comboLabel || profile.label || 'Weapon Chain'
+                label: profile.comboLabel || profile.label || 'Weapon Chain',
+                triggerType: 'combo'
             };
         }
 
@@ -885,7 +1231,8 @@ export class BattleController {
                 applyRes = applyDamage(this.player, this.monster, { damage: computeRes.damage, isCrit: computeRes.isCrit, breakdown: computeRes.breakdown });
                 const pendingStatusEffects = [...(applyRes.appliedEffects || [])];
                 const weaponProfile = getWeaponCombatProfile(this.player);
-                const profileEffects = this._resolveWeaponProfileEffects(weaponProfile, hitType, computeRes, applyRes);
+                const profileEffects = this._resolveWeaponProfileEffects(weaponProfile, hitType, computeRes, applyRes, slotType);
+                const weaponTriggerEvents = [...(profileEffects.triggerEvents || [])];
                 pendingStatusEffects.push(...profileEffects.statusEffects);
                 applyRes.attackerEffects = [
                     ...(applyRes.attackerEffects || []),
@@ -893,14 +1240,22 @@ export class BattleController {
                 ];
 
                 if (profileEffects.extraStrike && this._isMonsterAlive()) {
-                    const profileStrikeRes = applyDamage(this.player, this.monster, {
-                        damage: profileEffects.extraStrike.damage,
-                        isCrit: false,
-                        breakdown: {
+                    const strikeBreakdown = profileEffects.extraStrike.useElementBreakdown === false
+                        ? {
+                            profileStrike: true,
+                            profileStrikeSource: weaponProfile.id,
+                            weaponProfileId: weaponProfile.id,
+                            weaponProfileLabel: weaponProfile.label
+                        }
+                        : {
                             ...computeRes.breakdown,
                             profileStrike: true,
                             profileStrikeSource: weaponProfile.id
-                        }
+                        };
+                    const profileStrikeRes = applyDamage(this.player, this.monster, {
+                        damage: profileEffects.extraStrike.damage,
+                        isCrit: false,
+                        breakdown: strikeBreakdown
                     });
                     applyRes.finalDamage += profileStrikeRes.finalDamage;
                     applyRes.afterHP = profileStrikeRes.afterHP;
@@ -910,6 +1265,14 @@ export class BattleController {
                         ...profileStrikeRes,
                         label: profileEffects.extraStrike.label
                     };
+                    weaponTriggerEvents.push({
+                        type: profileEffects.extraStrike.triggerType || 'combo',
+                        profile: weaponProfile,
+                        amount: profileStrikeRes.finalDamage,
+                        label: profileEffects.extraStrike.label,
+                        element: profileEffects.extraStrike.element,
+                        elementLabel: profileEffects.extraStrike.elementLabel
+                    });
                 }
 
                 const effects = getEquipmentEffectTotals(this.player);
@@ -939,6 +1302,10 @@ export class BattleController {
                 applyRes.statusEvents = statusEvents;
                 const attackerStatusEvents = this.applyAttackerStatusEffects(applyRes.attackerEffects);
                 applyRes.attackerStatusEvents = attackerStatusEvents;
+                applyRes.weaponTriggerEvents = this.applyWeaponTriggerVisuals(weaponTriggerEvents);
+                if (destroyedWeapon) {
+                    this._clearWeaponProfileState(slotType);
+                }
                 if (attackerStatusEvents.length > 0) {
                     try {
                         if (typeof this._onStatusApplied === 'function') this._onStatusApplied(attackerStatusEvents);
@@ -949,12 +1316,17 @@ export class BattleController {
 
                 if (getCurrentHp(this.monster) <= 0 || (this.monster && typeof this.monster.isDead === 'function' && this.monster.isDead())) {
                     this.battleEnded = true;
+                    this._clearWeaponProfileState();
                 }
             } catch (e) {
                 console.error('applyDamage failed:', e);
             }
         } else if (hitType === 'miss') {
-            // nothing else to do
+            const weaponProfile = getWeaponCombatProfile(this.player);
+            this._resolveWeaponProfileEffects(weaponProfile, hitType, computeRes, null, slotType);
+            if (destroyedWeapon) {
+                this._clearWeaponProfileState(slotType);
+            }
         }
 
         // NOTE: counter-attack scheduling removed. Monster auto-attacks are handled
@@ -1013,6 +1385,9 @@ export class BattleController {
             };
         }
 
+        const bulwarkResult = this._consumeBulwarkGuard(damage);
+        damage = bulwarkResult.damage;
+
         // Apply to player
         if (typeof this.player.hp === 'number') {
             this.player.hp = Math.max(0, this.player.hp - damage);
@@ -1054,6 +1429,7 @@ export class BattleController {
 
         if (getCurrentHp(this.player) <= 0) {
             this.battleEnded = true;
+            this._clearWeaponProfileState();
         }
 
         return {
@@ -1062,7 +1438,8 @@ export class BattleController {
             playerHp: getCurrentHp(this.player),
             dodged: false,
             reflectedDamage,
-            revived
+            revived,
+            bulwarkGuard: bulwarkResult.event
         };
     }
 
@@ -1115,6 +1492,7 @@ export class BattleController {
         this.battleEnded = true;
         this._battleActive = false;
         this._pendingAutoStart = false;
+        this._clearWeaponProfileState();
         this.stopAutoAttack();
         this.stopStatusTicker();
     }

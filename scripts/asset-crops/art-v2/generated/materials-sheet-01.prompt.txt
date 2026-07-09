@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "materials".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-abyssal_shard, alpha_fang, ancient_artifact, ancient_bark, ancient_gear, ancient_rune, antidote, assassin_blade, bat_wing, beast_hide, bone_fragment, bone_sword, carnivore_seed, cold_resist_potion, commander_blade, crystal_shard, cursed_shard, dark_crystal, dark_dragon_scale, dark_steel, demon_general_helm, demon_horn, demonic_steel, dragon_heart, dragon_knight_badge
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

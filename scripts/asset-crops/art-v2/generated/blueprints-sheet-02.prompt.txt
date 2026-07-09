@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "blueprints".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-shadow_armor, shadow_blade, shadow_ring, silver_thread_hook, slime_crown_ring, storm_spear, titan_armor, titan_blade, titan_ring, void_reaver, wolf_cloak, wolf_fang_necklace, wyvern_scale_mail
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

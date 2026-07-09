@@ -1271,10 +1271,35 @@
 
 .town-dialogue-actions {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 10px;
     border-top: 1px solid rgba(237, 242, 244, 0.1);
     padding-top: 14px;
+}
+
+.town-dialogue-mode {
+    min-width: 110px;
+    min-height: 38px;
+    margin-right: auto;
+    border: 1px solid rgba(106, 176, 209, 0.32);
+    border-radius: 8px;
+    background: rgba(23, 49, 64, 0.42);
+    color: rgba(190, 224, 241, 0.92);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.town-dialogue-mode.is-active {
+    border-color: rgba(233, 189, 101, 0.62);
+    background: rgba(233, 189, 101, 0.14);
+    color: rgba(255, 225, 151, 0.96);
+}
+
+.town-dialogue-mode:hover,
+.town-dialogue-mode:focus-visible {
+    border-color: rgba(142, 207, 238, 0.76);
+    background: rgba(37, 79, 101, 0.54);
 }
 
 .town-dialogue-done {

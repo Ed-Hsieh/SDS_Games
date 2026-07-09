@@ -2,7 +2,7 @@
  * AdventureScene.js
  * Logic for the Adventure scene (Map, Battle, Events, etc.)
  */
-import GameManager, { Weapon, Armor, Accessory, Consumable, Item, ItemType, ItemRarity } from '../managers/GameManager.js';
+import GameManager, { ItemType } from '../managers/GameManager.js';
 import WorldMap from '../utils/WorldMap.js';
 import { eventManager, getWorldEventJournalRecords } from '../managers/EventManager.js';
 import { questManager, ObjectiveType, QuestStatus } from '../managers/QuestManager.js';
@@ -20,6 +20,7 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
+import { normalizeMonsterCombatStats } from '../managers/FightManager.js';
 import { getLandmark } from '../data/WorldStories.js';
 import {
     getChapterOneRouteGroups,
@@ -27,6 +28,7 @@ import {
 } from '../data/ChapterOneRoutePlan.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getTownPlaces } from '../data/TownPlaces.js';
+import { getTownNPC } from '../data/NPCDialogues.js';
 import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
 import {
     renderCombatMonster,
@@ -37,6 +39,7 @@ import {
     isCombatActionCooling,
     startCombatActionCooldown,
     showCombatDamageNumber,
+    showCombatPlayerDamageNumber,
     showCombatPlayerHitFeedback,
     showCombatKillFreeze
 } from '../utils/CombatUI.js';
@@ -61,11 +64,6 @@ const AMBUSH_MANTIS_RELATED_LANDMARKS = new Set([
     AMBUSH_MANTIS_TRIGGER_LANDMARK_ID
 ]);
 
-const RELATIONSHIP_PROFILE_NPC_ALIASES = {
-    frey_standard_bearer: 'standard_bearer_frey',
-    tavi_lamplighter: 'lamplighter_tavi',
-    malo_bookkeeper: 'accountant_marlo'
-};
 const LANDMARK_BOSS_TRIGGERS = {
     forest_guardian: {
         chainId: 'forest_guardian',
@@ -76,8 +74,8 @@ const LANDMARK_BOSS_TRIGGERS = {
         pendingTitle: '根心仍被霧遮住',
         defeatedTitle: '根心暫時安靜',
         actionLabel: '進入古樹根心',
-        readyBody: '狼牙痕、霧碑拓印與發黑樹皮終於接成一條路。焦黑根鬚向地底張開，古樹守衛就在裡面痛苦喘息。',
-        pendingBody: '根鬚在岩縫裡緩慢收縮，但痕跡還沒足以判斷核心入口。先補齊狼群、溪谷與霧碑的紀錄。',
+        readyBody: '狼牙痕、獵人遺物與發黑樹皮終於接成一條路。焦黑根鬚向地底張開，古樹守衛就在裡面痛苦喘息。',
+        pendingBody: '根鬚在岩縫裡緩慢收縮，但痕跡還沒足以判斷核心入口。先補齊狼群、溪谷與斷角營地的紀錄。',
         defeatedBody: '古樹守衛已被擊敗。根心仍有餘溫，但不再主動排斥靠近的人。'
     },
     blood_moon_stag: {
@@ -185,6 +183,10 @@ export default class AdventureScene {
         this.smallLocationHintTimer = null;
         this.travelCostToastAt = 0;
         this.mapImageCache = new Map();
+        this.activeAdventureDialogue = null;
+        this.adventureDialogueTypeTimer = null;
+        this.adventureDialogueAutoTimer = null;
+        this.dialogueWasLocked = false;
         this.isLocked = false; // 移動鎖定狀態（事件/戰鬥中鎖定）
 
         // Bindings
@@ -194,18 +196,19 @@ export default class AdventureScene {
         this.handleMapPointerLeave = this.handleMapPointerLeave.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.updateUI = this.updateUI.bind(this);
+        this.handleAdventureDialogueModeToggle = this.handleAdventureDialogueModeToggle.bind(this);
     }
 
     init() {
         // Set global reference for adventure item actions
         window.currentAdventureScene = this;
-        
+
         try {
             this.cacheDOM();
-            
+
             // Initialize Canvas
             this.initCanvas();
-            
+
             // Create World Map
             const char = GameManager.getCharacter();
             this.worldMap = new WorldMap(
@@ -233,7 +236,7 @@ export default class AdventureScene {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = null;
         }
-        
+
         // Stop rhythm system if active
         if (this.rhythmSystem) {
             this.rhythmSystem.stop();
@@ -249,7 +252,7 @@ export default class AdventureScene {
             this.currentBattle.battleEnded = true;
             this.currentBattle = null;
         }
-        
+
         if (this._invUpdateRAF) {
             cancelAnimationFrame(this._invUpdateRAF);
             this._invUpdateRAF = null;
@@ -263,6 +266,7 @@ export default class AdventureScene {
             clearTimeout(this.smallLocationHintTimer);
             this.smallLocationHintTimer = null;
         }
+        this.clearAdventureDialogueTimers();
 
         this.unbindEvents();
     }
@@ -295,14 +299,25 @@ export default class AdventureScene {
             btnCloseBossTest: this.container.querySelector('#btn-close-boss-test'),
             bossTestPanel: this.container.querySelector('#boss-test-panel'),
             bossTestContent: this.container.querySelector('#boss-test-content'),
-            
+            btnOpenDialogueTest: this.container.querySelector('#btn-open-dialogue-test'),
+            adventureDialogueModal: this.container.querySelector('#adventure-dialogue-modal'),
+            adventureDialogueCard: this.container.querySelector('.adventure-dialogue-card'),
+            adventureDialogueClose: this.container.querySelector('#adventure-dialogue-close'),
+            adventureDialogueMode: this.container.querySelector('#adventure-dialogue-mode'),
+            adventureDialogueDone: this.container.querySelector('#adventure-dialogue-done'),
+            adventureDialogueAvatar: this.container.querySelector('#adventure-dialogue-avatar'),
+            adventureDialogueRole: this.container.querySelector('#adventure-dialogue-role'),
+            adventureDialogueName: this.container.querySelector('#adventure-dialogue-name'),
+            adventureDialogueLines: this.container.querySelector('#adventure-dialogue-lines'),
+            adventureDialogueEffects: this.container.querySelector('#adventure-dialogue-effects'),
+
             // Battle Modal
             battleModal: this.container.querySelector('#battle-modal'),
             battleBody: this.container.querySelector('#battle-modal .battle-body'),
             attackBtn: this.container.querySelector('#btn-attack'),
             fleeBtn: this.container.querySelector('#btn-flee'),
             buffIndicators: this.container.querySelector('#buff-indicators'),
-            
+
             // Event Modal (新增)
             eventModal: this.container.querySelector('#event-modal'),
             eventIcon: this.container.querySelector('#event-icon'),
@@ -310,7 +325,7 @@ export default class AdventureScene {
             eventDescription: this.container.querySelector('#event-description'),
             eventResult: this.container.querySelector('#event-result'),
             btnCloseEvent: this.container.querySelector('#btn-close-event'),
-            
+
             // Story Event Modal (Slay the Spire 風格)
             storyEventModal: this.container.querySelector('#story-event-modal'),
             storyEventIcon: this.container.querySelector('#story-event-icon'),
@@ -321,25 +336,25 @@ export default class AdventureScene {
             storyEventResult: this.container.querySelector('#story-event-result'),
             storyResultMessages: this.container.querySelector('#story-result-messages'),
             btnCloseStoryEvent: this.container.querySelector('#btn-close-story-event'),
-            
+
             // Loot Modal
             lootModal: this.container.querySelector('#loot-modal'),
             lootItems: this.container.querySelector('#loot-items'),
             lootCloseBtn: this.container.querySelector('#btn-close-loot'),
-            
+
             // Inventory Modal
             btnOpenInventory: this.container.querySelector('#btn-open-inventory'),
             inventoryModal: this.container.querySelector('#inventory-modal'),
             inventoryList: this.container.querySelector('#adventure-inventory-list'),
             inventoryCapacity: this.container.querySelector('#inventory-capacity'),
             btnCloseInventory: this.container.querySelector('#btn-close-inventory'),
-            
+
             // Equipment Slots in Inventory
             equipmentSlots: this.container.querySelector('#adv-equipment-slots'),
             slotWeapon: this.container.querySelector('#adv-slot-weapon'),
             slotArmor: this.container.querySelector('#adv-slot-armor'),
             slotAccessory: this.container.querySelector('#adv-slot-accessory'),
-            
+
             // Item Detail Modal (for equipment interaction in inventory)
             itemModal: this.container.querySelector('#adv-item-detail-modal'),
             btnCloseItemModal: this.container.querySelector('#btn-close-adv-item-modal')
@@ -349,7 +364,7 @@ export default class AdventureScene {
         if (!this.dom.canvas) {
             throw new Error('Canvas element not found in Adventure Scene');
         }
-        
+
         this.canvas = this.dom.canvas;
         this.ctx = this.canvas.getContext('2d');
     }
@@ -412,14 +427,14 @@ export default class AdventureScene {
                 if (stack) this.showInventoryItemModal(stack);
             });
         }
-        
+
         // Item Detail Modal close button
         if (this.dom.btnCloseItemModal) {
             this.dom.btnCloseItemModal.addEventListener('click', () => {
                 this.closeItemDetailModal();
             });
         }
-        
+
         // Equipment slot click events
         if (this.dom.slotWeapon) {
             this.dom.slotWeapon.addEventListener('click', () => {
@@ -439,21 +454,21 @@ export default class AdventureScene {
                 if (accessory) this.showEquipmentModal(accessory, 'accessory');
             });
         }
-        
+
         // Event modal close button (新增)
         if (this.dom.btnCloseEvent) {
             this.dom.btnCloseEvent.addEventListener('click', () => {
                 this.closeEventModal();
             });
         }
-        
+
         // Story Event modal close button
         if (this.dom.btnCloseStoryEvent) {
             this.dom.btnCloseStoryEvent.addEventListener('click', () => {
                 this.closeStoryEventModal();
             });
         }
-        
+
         // 新：行動卡片事件
         const weaponCard = this.container.querySelector('#action-weapon');
         const offhandCard = this.container.querySelector('#action-offhand');
@@ -464,12 +479,12 @@ export default class AdventureScene {
         if (offhandCard) offhandCard.addEventListener('click', () => this.handleOffhandAttackClick());
         if (potionCard) potionCard.addEventListener('click', () => this.handlePotionUse());
         if (fleeCard) fleeCard.addEventListener('click', () => this.handleFleeClick());
-        
+
         // 保留舊按鈕兼容性
         if (this.dom.attackBtn) this.dom.attackBtn.addEventListener('click', () => this.handleAttackClick());
-        
+
         const returnBtn = this.container.querySelector('#btn-return-to-lobby');
-        if (returnBtn) returnBtn.addEventListener('click', () => this.app.navigateTo('lobby'));
+        if (returnBtn) returnBtn.addEventListener('click', () => this.returnToLobby('adventure_return'));
 
         if (this.dom.btnToggleClueBook) {
             this.dom.btnToggleClueBook.addEventListener('click', () => this.toggleClueBook());
@@ -498,7 +513,35 @@ export default class AdventureScene {
         if (this.devMode && this.dom.bossTestPanel) {
             this.dom.bossTestPanel.addEventListener('click', event => this.handleBossTestPanelClick(event));
         }
-        
+
+        if (this.dom.btnOpenDialogueTest) {
+            this.dom.btnOpenDialogueTest.addEventListener('click', () => this.openAdventureDialogueTest());
+        }
+
+        if (this.dom.adventureDialogueCard) {
+            this.dom.adventureDialogueCard.addEventListener('click', event => this.handleAdventureDialogueAdvance(event));
+        }
+
+        if (this.dom.adventureDialogueModal) {
+            this.dom.adventureDialogueModal.addEventListener('click', event => {
+                if (event.target === this.dom.adventureDialogueModal) {
+                    this.closeAdventureDialogue();
+                }
+            });
+        }
+
+        if (this.dom.adventureDialogueClose) {
+            this.dom.adventureDialogueClose.addEventListener('click', () => this.closeAdventureDialogue());
+        }
+
+        if (this.dom.adventureDialogueMode) {
+            this.dom.adventureDialogueMode.addEventListener('click', this.handleAdventureDialogueModeToggle);
+        }
+
+        if (this.dom.adventureDialogueDone) {
+            this.dom.adventureDialogueDone.addEventListener('click', () => this.closeAdventureDialogue());
+        }
+
         if (this.dom.fleeBtn) this.dom.fleeBtn.addEventListener('click', () => this.handleFleeClick());
         if (this.dom.lootCloseBtn) this.dom.lootCloseBtn.addEventListener('click', () => {
             if (!this.lootCloseHandler) this.closeBattleResult();
@@ -521,7 +564,7 @@ export default class AdventureScene {
             const { width: containerWidth, height: containerHeight } = this.getMapViewportSize();
             this.canvas.width = containerWidth;
             this.canvas.height = containerHeight;
-            
+
             this.worldMap.screenWidth = containerWidth;
             this.worldMap.screenHeight = containerHeight;
             this.worldMap.updateCamera();
@@ -582,6 +625,11 @@ export default class AdventureScene {
     }
 
     closeKeyboardOverlay() {
+        if (this.activeAdventureDialogue && !this.dom.adventureDialogueModal?.hidden) {
+            this.closeAdventureDialogue();
+            return true;
+        }
+
         if (window.ItemDetailModal?.isOpen?.() && typeof window.ItemDetailModal.close === 'function') {
             window.ItemDetailModal.close();
             return true;
@@ -608,6 +656,389 @@ export default class AdventureScene {
         }
 
         return false;
+    }
+
+    getAdventureDialogueTestSpeaker(npcId, fallback = {}) {
+        const npc = getTownNPC(npcId) || {};
+        return {
+            id: npcId,
+            name: fallback.name || npc.name || npcId,
+            role: fallback.role || npc.role || npc.location || '城鎮居民',
+            avatar: fallback.avatar || npc.avatar || '?',
+            portrait: fallback.portrait || npc.portrait || npc.image || ''
+        };
+    }
+
+    openAdventureDialogueTest() {
+        if (this.dom.battleModal?.style.display === 'flex') return;
+
+        const elder = this.getAdventureDialogueTestSpeaker('village_elder', {
+            name: '村長奧倫',
+            role: '村長'
+        });
+        const scholar = this.getAdventureDialogueTestSpeaker('town_scholar', {
+            name: '學者伊萊',
+            role: '書記小屋'
+        });
+        const guard = this.getAdventureDialogueTestSpeaker('standard_bearer_frey', {
+            name: '旗手芙蕾',
+            role: '南門防線'
+        });
+
+        const participants = [elder, scholar, guard];
+        const lines = [
+            { ...elder, actorId: elder.id, speaker: elder.name, text: '測試' },
+            { ...scholar, actorId: scholar.id, speaker: scholar.name, text: '測試' },
+            { ...guard, actorId: guard.id, speaker: guard.name, text: '測試' },
+            { ...scholar, actorId: scholar.id, speaker: scholar.name, text: '測試' },
+            { ...elder, actorId: elder.id, speaker: elder.name, text: '測試' }
+        ];
+
+        this.dialogueWasLocked = this.isLocked;
+        this.isLocked = true;
+        this.renderAdventureDialogueModal({
+            npc: elder,
+            participants,
+            lines,
+            effectMessages: [],
+            tone: 'test'
+        });
+    }
+
+    renderAdventureDialogueModal(outcome = {}) {
+        if (!this.dom?.adventureDialogueModal || !outcome?.npc) return;
+
+        const visibleLines = (outcome.lines || []).filter(line => line?.text);
+        const lines = visibleLines.length > 0 ? visibleLines : [{
+            ...outcome.npc,
+            actorId: outcome.npc.id,
+            speaker: outcome.npc.name || '居民',
+            text: '測試'
+        }];
+
+        this.activeAdventureDialogue = {
+            npc: outcome.npc,
+            participants: outcome.participants || [],
+            isMultiSpeaker: this.isMultiSpeakerDialogue(outcome.participants || [], lines),
+            lines,
+            currentIndex: 0,
+            currentText: '',
+            isTyping: false,
+            lineComplete: false,
+            renderedIndexes: new Set()
+        };
+
+        this.clearAdventureDialogueTimers();
+        this.syncAdventureDialogueModeButton();
+        this.dom.adventureDialogueCard?.classList.toggle('is-multi-speaker', this.activeAdventureDialogue.isMultiSpeaker);
+        if (this.dom.adventureDialogueLines) this.dom.adventureDialogueLines.innerHTML = '';
+        if (this.dom.adventureDialogueEffects) this.dom.adventureDialogueEffects.innerHTML = '';
+        if (this.dom.adventureDialogueDone) this.dom.adventureDialogueDone.hidden = true;
+        this.syncAdventureDialogueSpeakerHeader();
+        this.dom.adventureDialogueModal.hidden = false;
+        audioManager.play('dialogue-open', { throttleKey: 'adventure-dialogue-open', throttleMs: 180 });
+        this.startAdventureDialogueLine();
+        this.dom.adventureDialogueCard?.focus?.();
+    }
+
+    clearAdventureDialogueTimers() {
+        if (this.adventureDialogueTypeTimer) {
+            clearTimeout(this.adventureDialogueTypeTimer);
+            this.adventureDialogueTypeTimer = null;
+        }
+        if (this.adventureDialogueAutoTimer) {
+            clearTimeout(this.adventureDialogueAutoTimer);
+            this.adventureDialogueAutoTimer = null;
+        }
+    }
+
+    getCurrentAdventureDialogueLine() {
+        const dialogue = this.activeAdventureDialogue;
+        return dialogue?.lines?.[dialogue.currentIndex] || null;
+    }
+
+    startAdventureDialogueLine() {
+        const dialogue = this.activeAdventureDialogue;
+        const line = this.getCurrentAdventureDialogueLine();
+        if (!dialogue || !line) return;
+
+        this.clearAdventureDialogueTimers();
+        this.syncAdventureDialogueSpeakerHeader();
+        dialogue.currentText = '';
+        dialogue.isTyping = true;
+        dialogue.lineComplete = false;
+        this.renderAdventureDialogueLines();
+        if (this.dom.adventureDialogueDone) this.dom.adventureDialogueDone.hidden = true;
+
+        const typeNext = () => {
+            if (this.activeAdventureDialogue !== dialogue || this.dom?.adventureDialogueModal?.hidden) return;
+            const activeLine = this.getCurrentAdventureDialogueLine();
+            const text = activeLine?.text || '';
+
+            if (dialogue.currentText.length >= text.length) {
+                this.completeAdventureDialogueLine();
+                return;
+            }
+
+            dialogue.currentText = text.slice(0, dialogue.currentText.length + 1);
+            this.renderAdventureDialogueLines();
+            audioManager.play('type', { throttleKey: 'adventure-dialogue-type', throttleMs: 60 });
+            this.adventureDialogueTypeTimer = setTimeout(typeNext, 90);
+        };
+
+        typeNext();
+    }
+
+    renderAdventureDialogueLines() {
+        const dialogue = this.activeAdventureDialogue;
+        if (!dialogue || !this.dom?.adventureDialogueLines) return;
+
+        for (let index = 0; index <= dialogue.currentIndex; index += 1) {
+            if (!dialogue.renderedIndexes.has(index)) {
+                this.appendAdventureDialogueLine(index);
+            }
+        }
+
+        this.updateAdventureDialogueLineState();
+        this.dom.adventureDialogueLines.scrollTop = this.dom.adventureDialogueLines.scrollHeight;
+    }
+
+    appendAdventureDialogueLine(index) {
+        const dialogue = this.activeAdventureDialogue;
+        const line = dialogue?.lines?.[index];
+        if (!dialogue || !line || !this.dom?.adventureDialogueLines) return;
+
+        const article = document.createElement('article');
+        article.className = 'town-dialogue-line is-new';
+        if (line.isNarration) article.classList.add('is-narration');
+        article.dataset.lineIndex = String(index);
+
+        const icon = document.createElement('div');
+        icon.className = 'town-dialogue-line-icon';
+        icon.innerHTML = line.isNarration ? '' : this.renderAdventureDialogueAvatar(dialogue.npc, line);
+
+        const copy = document.createElement('div');
+        copy.className = 'town-dialogue-line-copy';
+
+        const speaker = document.createElement('strong');
+        speaker.textContent = line.isNarration ? '' : (line.speaker || dialogue.npc.name || '居民');
+        if (line.isNarration) speaker.hidden = true;
+
+        const paragraph = document.createElement('p');
+        const text = document.createElement('span');
+        text.className = 'town-dialogue-text';
+        text.textContent = index === dialogue.currentIndex ? dialogue.currentText : (line.text || '');
+        paragraph.appendChild(text);
+
+        if (!line.isNarration) copy.appendChild(speaker);
+        copy.appendChild(paragraph);
+        if (!line.isNarration) article.appendChild(icon);
+        article.appendChild(copy);
+        this.dom.adventureDialogueLines.appendChild(article);
+        dialogue.renderedIndexes.add(index);
+
+        setTimeout(() => article.classList.remove('is-new'), 320);
+    }
+
+    updateAdventureDialogueLineState() {
+        const dialogue = this.activeAdventureDialogue;
+        if (!dialogue || !this.dom?.adventureDialogueLines) return;
+
+        this.dom.adventureDialogueLines.querySelectorAll('.town-dialogue-line').forEach(article => {
+            const index = Number(article.dataset.lineIndex);
+            const line = dialogue.lines[index];
+            const isCurrent = index === dialogue.currentIndex;
+            const text = article.querySelector('.town-dialogue-text');
+            const paragraph = article.querySelector('p');
+
+            article.classList.toggle('is-current', isCurrent);
+            article.classList.toggle('is-past', index < dialogue.currentIndex);
+            article.classList.toggle('is-typing', isCurrent && dialogue.isTyping);
+            if (text) text.textContent = isCurrent ? dialogue.currentText : (line?.text || '');
+
+            let cursor = article.querySelector('.town-dialogue-cursor');
+            if (isCurrent && dialogue.isTyping) {
+                if (!cursor && paragraph) {
+                    cursor = document.createElement('span');
+                    cursor.className = 'town-dialogue-cursor';
+                    cursor.setAttribute('aria-hidden', 'true');
+                    paragraph.appendChild(cursor);
+                }
+            } else {
+                cursor?.remove();
+            }
+        });
+    }
+
+    completeAdventureDialogueLine(scheduleAuto = true) {
+        const dialogue = this.activeAdventureDialogue;
+        const line = this.getCurrentAdventureDialogueLine();
+        if (!dialogue || !line) return;
+
+        if (this.adventureDialogueTypeTimer) {
+            clearTimeout(this.adventureDialogueTypeTimer);
+            this.adventureDialogueTypeTimer = null;
+        }
+
+        dialogue.currentText = line.text || '';
+        dialogue.isTyping = false;
+        dialogue.lineComplete = true;
+        this.renderAdventureDialogueLines();
+
+        const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
+        if (finished) {
+            if (this.dom.adventureDialogueDone) this.dom.adventureDialogueDone.hidden = false;
+            return;
+        }
+
+        if (scheduleAuto && this.isAdventureDialogueAutoPlayEnabled()) {
+            this.adventureDialogueAutoTimer = setTimeout(() => {
+                this.advanceAdventureDialogueLine();
+            }, this.getAdventureDialogueAutoDelay(line));
+        }
+    }
+
+    getAdventureDialogueAutoDelay(line = {}) {
+        const length = String(line.text || '').length;
+        const base = line.isNarration ? 1400 : 900;
+        return Math.min(4200, base + length * 24);
+    }
+
+    advanceAdventureDialogueLine() {
+        const dialogue = this.activeAdventureDialogue;
+        if (!dialogue || this.dom?.adventureDialogueModal?.hidden) return;
+
+        this.clearAdventureDialogueTimers();
+        if (dialogue.currentIndex >= dialogue.lines.length - 1) {
+            if (this.dom.adventureDialogueDone) this.dom.adventureDialogueDone.hidden = false;
+            return;
+        }
+
+        dialogue.currentIndex += 1;
+        audioManager.play('page', { throttleKey: 'adventure-dialogue-next-line', throttleMs: 120 });
+        this.startAdventureDialogueLine();
+    }
+
+    handleAdventureDialogueAdvance(event) {
+        if (event?.target?.closest?.('button')) return;
+        const dialogue = this.activeAdventureDialogue;
+        if (!dialogue || this.dom?.adventureDialogueModal?.hidden) return;
+
+        if (dialogue.isTyping) {
+            this.completeAdventureDialogueLine(this.isAdventureDialogueAutoPlayEnabled());
+            return;
+        }
+
+        if (dialogue.lineComplete && dialogue.currentIndex < dialogue.lines.length - 1) {
+            this.advanceAdventureDialogueLine();
+        }
+    }
+
+    isAdventureDialogueAutoPlayEnabled() {
+        return Boolean(GameManager.state?.ui?.dialogueAutoPlay);
+    }
+
+    setAdventureDialogueAutoPlay(enabled) {
+        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
+            GameManager.state.ui = {};
+        }
+        GameManager.state.ui.dialogueAutoPlay = Boolean(enabled);
+        GameManager.markSaveDirty?.('dialogue-auto-play');
+        this.syncAdventureDialogueModeButton();
+    }
+
+    syncAdventureDialogueModeButton() {
+        const button = this.dom?.adventureDialogueMode;
+        if (!button) return;
+        const enabled = this.isAdventureDialogueAutoPlayEnabled();
+        button.textContent = enabled ? '自動播放' : '手動閱讀';
+        button.setAttribute('aria-pressed', String(enabled));
+        button.classList.toggle('is-active', enabled);
+    }
+
+    handleAdventureDialogueModeToggle(event) {
+        event?.stopPropagation?.();
+        const nextValue = !this.isAdventureDialogueAutoPlayEnabled();
+        this.setAdventureDialogueAutoPlay(nextValue);
+
+        if (this.adventureDialogueAutoTimer) {
+            clearTimeout(this.adventureDialogueAutoTimer);
+            this.adventureDialogueAutoTimer = null;
+        }
+
+        const dialogue = this.activeAdventureDialogue;
+        const line = this.getCurrentAdventureDialogueLine();
+        const canAdvance = nextValue
+            && dialogue
+            && line
+            && dialogue.lineComplete
+            && dialogue.currentIndex < dialogue.lines.length - 1
+            && !this.dom?.adventureDialogueModal?.hidden;
+        if (canAdvance) {
+            this.adventureDialogueAutoTimer = setTimeout(() => {
+                this.advanceAdventureDialogueLine();
+            }, this.getAdventureDialogueAutoDelay(line));
+        }
+    }
+
+    closeAdventureDialogue() {
+        if (!this.dom?.adventureDialogueModal) return;
+
+        this.clearAdventureDialogueTimers();
+        this.dom.adventureDialogueModal.hidden = true;
+        this.dom.adventureDialogueCard?.classList.remove('is-multi-speaker');
+        this.activeAdventureDialogue = null;
+        this.isLocked = this.dialogueWasLocked;
+        this.dialogueWasLocked = false;
+        audioManager.play('book-close', { throttleKey: 'adventure-dialogue-close', throttleMs: 180 });
+    }
+
+    renderAdventureDialogueAvatar(npc = {}, line = {}, fallbackIcon = '?') {
+        const image = line.portrait || line.image || npc.portrait || npc.image;
+        const label = line.speaker || npc.name || '';
+        if (image) {
+            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}" loading="lazy">`;
+        }
+        return escapeHtml(line.avatar || npc.avatar || fallbackIcon);
+    }
+
+    isMultiSpeakerDialogue(participants = [], lines = []) {
+        const actorIds = new Set(lines
+            .filter(line => !line.isNarration && line.actorId !== 'system')
+            .map(line => line.actorId || line.speaker)
+            .filter(Boolean));
+        return participants.length > 1 || actorIds.size > 1;
+    }
+
+    syncAdventureDialogueSpeakerHeader() {
+        const dialogue = this.activeAdventureDialogue;
+        if (!dialogue) return;
+
+        const line = dialogue.lines?.[dialogue.currentIndex] || {};
+        if (line.isNarration) {
+            const npc = dialogue.npc || {};
+            if (this.dom.adventureDialogueAvatar) {
+                this.dom.adventureDialogueAvatar.innerHTML = this.renderAdventureDialogueAvatar(npc);
+            }
+            if (this.dom.adventureDialogueRole) this.dom.adventureDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
+            if (this.dom.adventureDialogueName) this.dom.adventureDialogueName.textContent = npc.name || '居民';
+            return;
+        }
+        const speaker = {
+            ...dialogue.npc,
+            ...line,
+            name: line.speaker || dialogue.npc?.name || '居民',
+            role: line.role || dialogue.npc?.role || dialogue.npc?.location || '城鎮居民'
+        };
+        const roleText = dialogue.isMultiSpeaker
+            ? `${speaker.role || '城鎮居民'} · 多人對話`
+            : (speaker.role || '城鎮居民');
+
+        if (this.dom.adventureDialogueAvatar) {
+            this.dom.adventureDialogueAvatar.innerHTML = this.renderAdventureDialogueAvatar(dialogue.npc, speaker);
+        }
+        if (this.dom.adventureDialogueRole) this.dom.adventureDialogueRole.textContent = roleText;
+        if (this.dom.adventureDialogueName) this.dom.adventureDialogueName.textContent = speaker.name || '居民';
     }
 
     handleKeyboardInvestigate() {
@@ -733,6 +1164,9 @@ export default class AdventureScene {
 
     handleMapMoveResult(result) {
         this.renderMap();
+        if (result === 'landmark') {
+            this.suppressNextLocationToast = true;
+        }
         this.updateUI();
 
         const zone = this.worldMap.getCurrentZone();
@@ -804,7 +1238,7 @@ export default class AdventureScene {
             }
             return;
         }
-        
+
         // 如果被鎖定（事件/副本入口彈窗開啟時），不允許移動
         if (key === 'escape') {
             if (this.closeKeyboardOverlay()) {
@@ -843,7 +1277,7 @@ export default class AdventureScene {
 
         let dx = 0;
         let dy = 0;
-        
+
         switch (key) {
             case 'arrowup': case 'w': dy = -1; break;
             case 'arrowdown': case 's': dy = 1; break;
@@ -851,7 +1285,7 @@ export default class AdventureScene {
             case 'arrowright': case 'd': dx = 1; break;
             default: return;
         }
-        
+
         if (dx !== 0 || dy !== 0) {
             event.preventDefault();
             this.movePlayerBy(dx, dy);
@@ -864,7 +1298,7 @@ export default class AdventureScene {
             console.error('Character not found in GameManager');
             return;
         }
-        
+
         if (this.dom.playerLevel) {
             this.dom.playerLevel.textContent = char.level || 1;
         }
@@ -880,8 +1314,21 @@ export default class AdventureScene {
             const fatigue = GameManager.getAdventureFatigueStatus?.({ recover: false });
             if (fatigue) this.dom.playerFatigue.textContent = `${fatigue.current}/${fatigue.max}`;
         }
-        
+
         this.updateWorldNarrativePanel();
+    }
+
+    returnToLobby(reason = 'adventure_return') {
+        GameManager.requestTownNarrativeReset?.(reason);
+        GameManager.markSaveDirty?.('town-narrative-reset-request');
+
+        if (this.app?.navigateTo) {
+            this.app.navigateTo('lobby');
+        } else if (this.app?.loadScene) {
+            this.app.loadScene('lobby');
+        } else {
+            window.location.hash = '#lobby';
+        }
     }
 
     normalizeCanvasAssetSrc(src = '') {
@@ -1001,11 +1448,17 @@ export default class AdventureScene {
 
         if (locationKey !== this.currentLocationKey) {
             this.currentLocationKey = locationKey;
-            this.showLocationToast(narrative, {
-                force: Boolean(override),
-                locationKey,
-                zoneId
-            });
+            const suppressToast = Boolean(override?.suppressToast || this.suppressNextLocationToast);
+            this.suppressNextLocationToast = false;
+            if (!suppressToast) {
+                this.showLocationToast(narrative, {
+                    force: Boolean(override),
+                    locationKey,
+                    zoneId
+                });
+            }
+        } else if (this.suppressNextLocationToast) {
+            this.suppressNextLocationToast = false;
         }
         this.renderClueBook();
         this.renderBossTestPanel();
@@ -1309,7 +1762,7 @@ export default class AdventureScene {
 
         const relationships = getAllCharacterProfiles()
             .map(profile => {
-                const npcId = RELATIONSHIP_PROFILE_NPC_ALIASES[profile.id] || profile.id;
+                const npcId = profile.id;
                 const talkCount = dialogueManager.getNpcTalkCount?.(npcId) || 0;
                 if (talkCount <= 0) return null;
                 const unlockedStage = (profile.stages || [])
@@ -1946,13 +2399,13 @@ export default class AdventureScene {
 
     renderMap() {
         if (!this.ctx || !this.worldMap) return;
-        
+
         const ctx = this.ctx;
         const canvas = this.canvas;
         const gridSize = this.worldMap.gridSize;
         const cameraX = this.worldMap.cameraOffsetX;
         const cameraY = this.worldMap.cameraOffsetY;
-        
+
         // Clear
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -2156,7 +2609,7 @@ export default class AdventureScene {
                 drawBossLairMarker(cell, x, y);
             }
         });
-        
+
         const playerX = this.worldMap.playerPos.x * gridSize - cameraX;
         const playerY = this.worldMap.playerPos.y * gridSize - cameraY;
         const { cx: pcx, cy: pcy } = center(playerX, playerY);
@@ -2182,7 +2635,7 @@ export default class AdventureScene {
     }
 
     // ===== 地圖事件處理 =====
-    
+
     getInventoryItemCount(itemId) {
         return (GameManager.state?.inventory || [])
             .filter(stack => stack?.item?.id === itemId)
@@ -2486,6 +2939,7 @@ export default class AdventureScene {
         this.updateWorldNarrativePanel({
             landmark: outcome.landmark,
             zoneId: landmarkRef.zone,
+            suppressToast: true,
             narrative: worldStoryManager.getNarrative({
                 zoneId: landmarkRef.zone,
                 landmarkId: landmarkRef.id
@@ -2517,28 +2971,33 @@ export default class AdventureScene {
             this.showStoryEventModal(event);
             return;
         }
-        
+
         const char = GameManager.getCharacter();
         let resultHTML = '';
-        
+
         switch (event.type) {
             case 'treasure':
                 const gold = Math.floor(Math.random() * (event.goldMax - event.goldMin + 1)) + event.goldMin;
                 GameManager.addGold(gold);
                 resultHTML = `<div class="event-reward">💰 獲得 ${gold} 金幣！</div>`;
-                
+
                 // 根據機率掉落物品
                 if (Math.random() < event.itemChance) {
                     const item = this.generateTreasureItem(event.zone);
                     if (item) {
-                        GameManager.addToInventory(item);
-                        resultHTML += `<div class="event-reward">🎁 獲得 ${item.name}！</div>`;
+                        const added = GameManager.addToInventory(item);
+                        if (added) {
+                            markItemKnown(item.id);
+                            resultHTML += `<div class="event-reward">🎁 獲得 ${item.name}！</div>`;
+                        } else {
+                            resultHTML += `<div class="event-reward">背包已滿，無法收下 ${item.name}。</div>`;
+                        }
                     }
                 }
-                
+
                 this.showEventModal(event.icon, event.name, '你打開了寶箱，發現了寶物！', resultHTML);
                 break;
-                
+
             case 'healing':
                 const healingBonus = typeof char.getPassiveCombatBonus === 'function'
                     ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
@@ -2549,7 +3008,7 @@ export default class AdventureScene {
                 resultHTML = `<div class="event-heal">💚 恢復了 ${actualHeal} 點生命！</div>`;
                 this.showEventModal(event.icon, event.name, '你發現了一處神秘的治療之泉，泉水散發著淡淡的光芒。', resultHTML);
                 break;
-                
+
             case 'trap':
                 const damage = Math.floor(Math.random() * (event.damageMax - event.damageMin + 1)) + event.damageMin;
                 const actualDamage = Math.max(1, damage - char.getTotalDef());
@@ -2557,7 +3016,7 @@ export default class AdventureScene {
                 resultHTML = `<div class="event-damage">💔 受到 ${actualDamage} 點傷害！</div>`;
                 this.showEventModal(event.icon, event.name, '糟糕！你觸發了陷阱！', resultHTML);
                 break;
-                
+
             case 'story':
                 // 觸發劇情事件 (Slay the Spire 風格)
                 this.triggerStoryEvent();
@@ -2565,29 +3024,29 @@ export default class AdventureScene {
                 questManager.updateProgress(ObjectiveType.EVENT, 'random', 1);
                 return; // 不要清除事件，讓玩家選擇後再清除
         }
-        
+
         this.worldMap.clearCurrentEvent();
         this.updateUI();
     }
-    
+
     // ===== 副本入口處理 =====
-    
+
     handleDungeonEntrance() {
         const dungeon = this.worldMap.getCurrentDungeon();
         if (!dungeon) return;
-        
+
         // 導入副本資料
         import('../data/Dungeons.js').then(module => {
             const { DungeonDatabase, DungeonEntranceConfig } = module;
             const dungeonType = dungeon.type; // 正確讀取 type 屬性
             const dungeonData = DungeonDatabase[dungeonType];
             const entranceConfig = DungeonEntranceConfig[dungeonType];
-            
+
             if (!dungeonData) {
                 console.error('找不到副本資料:', dungeonType);
                 return;
             }
-            
+
             // 顯示副本入口確認彈窗
             this.showDungeonEntranceModal(dungeonType, dungeonData, entranceConfig);
         }).catch(err => {
@@ -2673,14 +3132,14 @@ export default class AdventureScene {
                 </div>
             </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
+
         // 綁定按鈕事件
         const modal = document.getElementById('dungeon-entrance-modal');
         const enterBtn = document.getElementById('btn-enter-dungeon');
         const cancelBtn = document.getElementById('btn-cancel-dungeon');
-        
+
         enterBtn.addEventListener('click', () => {
             if (!isLevelOK) return;
             modal.remove();
@@ -2691,14 +3150,14 @@ export default class AdventureScene {
                 window.location.hash = `#dungeon-${dungeonType}`;
             }
         });
-        
+
         cancelBtn.addEventListener('click', () => {
             modal.remove();
             this.worldMap.clearCurrentDungeon();
             // 解除移動鎖定
             this.isLocked = false;
         });
-        
+
         // 點擊背景關閉
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -2709,7 +3168,7 @@ export default class AdventureScene {
             }
         });
     }
-    
+
     getDungeonMechanicDescription(mechanic) {
         const mechanics = {
             darkness: {
@@ -2733,7 +3192,7 @@ export default class AdventureScene {
                 description: '持續受到灼燒傷害，並加速裝備耐久消耗。建議準備治療與抗火手段。'
             }
         };
-        
+
         return mechanics[mechanic] || { name: '未知', description: '未知的副本機制' };
     }
 
@@ -2813,9 +3272,9 @@ export default class AdventureScene {
             </section>
         `;
     }
-    
+
     // ===== 返回家處理 =====
-    
+
     handleReturnHome() {
         // 顯示確認彈窗
         const modalHTML = `
@@ -2826,7 +3285,7 @@ export default class AdventureScene {
                         <h2 style="color: #ffb347; margin: 0 0 8px 0; font-size: 24px;">溫暖的家</h2>
                         <div style="color: #aaa; font-size: 14px;">回到這裡可以完全恢復</div>
                     </div>
-                    
+
                     <div class="home-info" style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 16px; margin-bottom: 20px;">
                         <p style="color: #ccc; font-size: 14px; margin: 0 0 12px 0; text-align: center;">
                             返回大廳將會：
@@ -2836,7 +3295,7 @@ export default class AdventureScene {
                             <li>✨ 清除所有負面狀態</li>
                         </ul>
                     </div>
-                    
+
                     <div class="home-actions" style="display: flex; gap: 12px; justify-content: center;">
                         <button id="btn-return-home" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 16px; background: linear-gradient(145deg, #ffb347, #ff8c00); border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold;">
                             🏠 回家休息
@@ -2848,26 +3307,25 @@ export default class AdventureScene {
                 </div>
             </div>
         `;
-        
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
+
         // 綁定按鈕事件
         const modal = document.getElementById('home-modal');
         const returnBtn = document.getElementById('btn-return-home');
         const cancelBtn = document.getElementById('btn-cancel-home');
-        
+
         returnBtn.addEventListener('click', () => {
             modal.remove();
             GameManager.restoreCharacterAtHome?.('home-rest');
-            // 返回大廳
-            this.app.navigateTo('lobby');
+            this.returnToLobby('adventure_return');
         });
-        
+
         cancelBtn.addEventListener('click', () => {
             modal.remove();
             this.isLocked = false;
         });
-        
+
         // 點擊背景關閉
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
@@ -2876,15 +3334,16 @@ export default class AdventureScene {
             }
         });
     }
-    
+
     // ===== 劇情事件系統 (Slay the Spire 風格) =====
-    
+
     handlePlayerDeathReturnHome(reason = 'adventure-death') {
         const char = GameManager.getCharacter();
         if (char) {
-            const safeHp = Math.max(1, Math.floor((char.maxHp || 100) * 0.3));
-            char.hp = safeHp;
-            char.currentHP = safeHp;
+            const maxHp = Math.max(1, Math.floor(Number(char.maxHp ?? char.maxHP ?? char.getMaxHP?.() ?? 100) || 100));
+            char.hp = maxHp;
+            char.currentHP = maxHp;
+            char.currentHp = maxHp;
         }
 
         GameManager.setFlag?.('death.pendingPenalty', true);
@@ -2908,43 +3367,43 @@ export default class AdventureScene {
             zone,
             this.worldMap?.getEventContext?.() || { stepCount: this.worldMap?.travelStep }
         );
-        
+
         if (!event) {
             this.worldMap.clearCurrentEvent();
             return;
         }
-        
+
         this.showStoryEventModal(event);
     }
-    
+
     showStoryEventModal(event) {
         if (!this.dom.storyEventModal) return;
-        
+
         // 設置標題和描述
         if (this.dom.storyEventIcon) this.dom.storyEventIcon.innerHTML = this.renderEventVisual(event);
         if (this.dom.storyEventTitle) this.dom.storyEventTitle.textContent = event.name;
         if (this.dom.storyEventType) this.dom.storyEventType.textContent = this.getStoryEventLabel(event);
         if (this.dom.storyEventDescription) this.dom.storyEventDescription.textContent = event.description;
-        
+
         // 生成選項按鈕
         if (this.dom.storyEventChoices) {
             this.dom.storyEventChoices.innerHTML = '';
-            
+
             event.choices.forEach((choice, index) => {
                 const btn = document.createElement('button');
                 btn.className = 'story-choice-btn';
-                
+
                 let costText = '';
                 if (choice.cost) {
                     if (choice.cost.gold) costText += `💰 -${choice.cost.gold} 金幣 `;
                     if (choice.cost.hp) {
-                        const hpCost = choice.cost.isPercent 
+                        const hpCost = choice.cost.isPercent
                             ? `${Math.floor(choice.cost.hp * 100)}% 生命`
                             : `${choice.cost.hp} 生命`;
                         costText += `❤️ -${hpCost} `;
                     }
                 }
-                
+
                 let chanceText = '';
                 if (choice.chance !== undefined) {
                     chanceText = `<span class="choice-chance">(${Math.floor(choice.chance * 100)}% 成功)</span>`;
@@ -2954,29 +3413,29 @@ export default class AdventureScene {
                 const choiceMeta = this.getStoryChoiceMeta(choice);
                 costText = choiceMeta.costText;
                 chanceText = choiceMeta.chanceText;
-                
+
                 btn.innerHTML = `
                     <span class="choice-text">${choice.text}</span>
                     ${intentText ? `<span class="choice-intent">${intentText}</span>` : ''}
                     ${costText ? `<span class="choice-cost">${costText}</span>` : ''}
                     ${chanceText}
                 `;
-                
+
                 btn.addEventListener('click', () => this.executeStoryChoice(index));
                 this.dom.storyEventChoices.appendChild(btn);
             });
         }
-        
+
         // 隱藏結果區域
         if (this.dom.storyEventResult) {
             this.dom.storyEventResult.style.display = 'none';
         }
-        
+
         // 顯示選項區域
         if (this.dom.storyEventChoices) {
             this.dom.storyEventChoices.style.display = 'flex';
         }
-        
+
         this.dom.storyEventModal.style.display = 'flex';
     }
 
@@ -3057,30 +3516,30 @@ export default class AdventureScene {
         if (cleanTypes.has('damage') || cleanTypes.has('debuff')) return '可能承受傷害或不利狀態。';
         return '觀察這件事，讓旅途留下新的判斷。';
     }
-    
+
     executeStoryChoice(choiceIndex) {
         const result = eventManager.executeChoiceByIndex(choiceIndex);
-        
+
         // 隱藏選項，顯示結果
         if (this.dom.storyEventChoices) {
             this.dom.storyEventChoices.style.display = 'none';
         }
-        
+
         if (this.dom.storyEventResult && this.dom.storyResultMessages) {
-            this.dom.storyResultMessages.innerHTML = result.messages.map(msg => 
+            this.dom.storyResultMessages.innerHTML = result.messages.map(msg =>
                 `<div class="result-message-item">${msg}</div>`
             ).join('');
-            
+
             if (result.messages.length === 0) {
                 this.dom.storyResultMessages.innerHTML = '<div class="result-message-item">什麼都沒發生...</div>';
             }
-            
+
             this.dom.storyEventResult.style.display = 'block';
         }
-        
+
         this.updateUI();
     }
-    
+
     closeStoryEventModal() {
         if (this.dom.storyEventModal) {
             this.dom.storyEventModal.style.display = 'none';
@@ -3090,40 +3549,25 @@ export default class AdventureScene {
         this.isLocked = false;
         this.updateUI();
     }
-    
+
     generateTreasureItem(zone) {
-        const rarityByZone = {
-            'low': [ItemRarity.COMMON, ItemRarity.UNCOMMON],
-            'medium': [ItemRarity.UNCOMMON, ItemRarity.RARE],
-            'high': [ItemRarity.RARE, ItemRarity.EPIC],
-            'death': [ItemRarity.EPIC, ItemRarity.LEGENDARY]
+        const treasurePools = {
+            low: ['health_potion_s', 'iron_shard', 'slime_jelly'],
+            medium: ['health_potion_s', 'iron_ore', 'crystal_shard'],
+            high: ['health_potion_s', 'rare_metal', 'pure_crystal'],
+            death: ['health_potion_s', 'forge_core', 'rare_metal']
         };
-        
-        const possibleRarities = rarityByZone[zone] || [ItemRarity.COMMON];
-        const rarity = possibleRarities[Math.floor(Math.random() * possibleRarities.length)];
-        
-        // 隨機生成物品類型
-        const itemType = Math.random();
-        const timestamp = Date.now();
-        
-        if (itemType < 0.3) {
-            // 生成藥水
-            const potions = [
-                new Consumable(`treasure_hp_${timestamp}`, '生命藥水', ItemType.POTION, rarity, '🧪', '恢復生命值的藥水', 50, { hp: 50 }),
-                new Consumable(`treasure_medkit_${timestamp}`, '急救藥水', ItemType.POTION, rarity, '🩹', '恢復大量生命值的藥水', 60, { hp: 80 })
-            ];
-            return potions[Math.floor(Math.random() * potions.length)];
-        } else if (itemType < 0.6) {
-            // 生成材料
-            return new Item(`treasure_material_${timestamp}`, '神秘礦晶', ItemType.MATERIAL, rarity, '🔮', '從寶箱中發現的神秘礦晶', 100);
-        }
-        
-        return null;
+
+        const pool = treasurePools[zone] || treasurePools.low;
+        const itemId = pool[Math.floor(Math.random() * pool.length)];
+        return resolveItemById(itemId, {
+            order: ['material', 'shop', 'questReward', 'equipment', 'bossEquipment']
+        });
     }
-    
+
     showEventModal(icon, title, description, resultHTML) {
         if (!this.dom.eventModal) return;
-        
+
         const isLandmarkEvent = Boolean(icon && typeof icon === 'object' && icon.type === 'landmark');
         this.dom.eventModal.classList.toggle('is-landmark-event', isLandmarkEvent);
         if (this.dom.eventIcon) {
@@ -3133,7 +3577,7 @@ export default class AdventureScene {
         if (this.dom.eventTitle) this.dom.eventTitle.textContent = title;
         if (this.dom.eventDescription) this.dom.eventDescription.textContent = description;
         if (this.dom.eventResult) this.dom.eventResult.innerHTML = resultHTML;
-        
+
         this.dom.eventModal.style.display = 'flex';
     }
 
@@ -3189,7 +3633,7 @@ export default class AdventureScene {
         };
         return byType[type] || '';
     }
-    
+
     closeEventModal() {
         if (this.dom.eventModal) {
             this.dom.eventModal.style.display = 'none';
@@ -3220,9 +3664,10 @@ export default class AdventureScene {
         if (monster && !monster.zoneId) {
             monster.zoneId = this.currentBattleZone;
         }
-        
+        const battleMonster = monster ? normalizeMonsterCombatStats(monster) : monster;
+
         this.battleLog = []; // 清空戰鬥日誌
-        this.currentBattle = new AdventureBattleViewController(GameManager.getCharacter(), monster, this);
+        this.currentBattle = new AdventureBattleViewController(GameManager.getCharacter(), battleMonster, this);
         this.dom.battleModal.classList.remove('battle-result-mode');
         if (this.dom.battleBody) this.dom.battleBody.hidden = false;
         if (this.dom.lootModal) {
@@ -3231,7 +3676,7 @@ export default class AdventureScene {
         }
         this.clearActionCooldowns();
         this.dom.battleModal.style.display = 'flex';
-        
+
         this.updateMonsterDisplay();
         this.updatePlayerHUD();
         this.updateActionDeck();
@@ -3321,6 +3766,7 @@ export default class AdventureScene {
         engine._onStatusApplied = (events = []) => {
             events.forEach(event => this.currentBattle?.showStatusFeedback?.(event));
             this.updateMonsterDisplay();
+            this.updateBuffIndicators();
         };
 
         engine._onStatusTick = (events = []) => {
@@ -3386,14 +3832,14 @@ export default class AdventureScene {
     handleAttackClick() {
         if (!this.currentBattle || this.currentBattle.battleEnded) return;
         if (!this.rhythmSystem) return;
-        
+
         // judgeHit() 返回 { type: 'crit'|'hit'|'miss'|'cooldown', damage: number }
         const result = this.rhythmSystem.judgeHit();
-        
+
         // 冷卻中無法攻擊
         if (result.type === 'cooldown') {            return;
         }
-        
+
         // 傳遞 hitType 給戰鬥系統
         const attackResult = this.currentBattle.playerAttack(result.type);
         if (attackResult && !this.currentBattle?.battleEnded) {
@@ -3421,7 +3867,7 @@ export default class AdventureScene {
         startCombatActionCooldown(fleeCard, 1);
         this.currentBattle.flee();
     }
-    
+
     // 技能使用：已由 UI 移除（保留空位以避免破壞原本結構）
 
     handlePotionUse() {
@@ -3431,13 +3877,13 @@ export default class AdventureScene {
 
         const inventory = GameManager.state.inventory;
         const potionStack = inventory.find(stack => stack.item.type === 'potion');
-        
+
         if (!potionStack || potionStack.quantity <= 0) {            return;
         }
-        
+
         const potion = potionStack.item;
         const char = GameManager.getCharacter();
-        
+
         // 使用藥水
         if (potion.effect?.hp) {
             const healingBonus = typeof char.getPassiveCombatBonus === 'function'
@@ -3454,7 +3900,7 @@ export default class AdventureScene {
             char.addBuff(potion.buff.type, potion.buff.value, potion.buff.duration);
             const buffNames = { 'atk': '攻擊力', 'def': '防禦力', 'critChance': '爆擊率' };            this.updateBuffIndicators();
         }
-        
+
         // 減少數量
         potionStack.quantity--;
         if (potionStack.quantity <= 0) {
@@ -3469,9 +3915,9 @@ export default class AdventureScene {
         this.updateActionDeck();
         this.updateUI();
     }
-    
+
     // 玩家戰鬥操作維持攻擊、道具、逃跑；戰術技能顯示於 Buff 區。
-    
+
     // 新增：更新 Buff 顯示
     updateBuffIndicators() {
         renderCombatBuffIndicators(this.dom.buffIndicators, GameManager.getCharacter());
@@ -3506,23 +3952,23 @@ export default class AdventureScene {
             .filter(Boolean)
             .forEach(card => clearCombatActionCooldown(card));
     }
-    
+
     /**
      * 更新裝備顯示（包括耐久度）
      */
     updateEquipmentDisplay() {
         const char = GameManager.getCharacter();
-        
+
         // 更新武器顯示
         const weapon = char.equipment.weapon;
         const weaponCard = this.container.querySelector('#action-weapon');
         const weaponDamageEl = this.container.querySelector('#weapon-damage');
         const weaponIconEl = this.container.querySelector('#weapon-icon');
         const weaponNameEl = this.container.querySelector('#weapon-name');
-        
+
         if (weapon) {
             if (weaponDamageEl) weaponDamageEl.textContent = char.getTotalAtk();
-            
+
             // 顯示耐久度
             let durabilityEl = weaponCard?.querySelector('.durability-display');
             if (!durabilityEl && weaponCard) {
@@ -3543,12 +3989,12 @@ export default class AdventureScene {
             if (weaponIconEl) weaponIconEl.textContent = '✊';
             if (weaponNameEl) weaponNameEl.textContent = '拳頭';
             if (weaponDamageEl) weaponDamageEl.textContent = char.getTotalAtk();
-            
+
             // 移除耐久度顯示
             const durabilityEl = weaponCard?.querySelector('.durability-display');
             if (durabilityEl) durabilityEl.remove();
         }
-        
+
         // 更新防具顯示（如果有顯示的話）
         const armor = char.equipment.armor;
         const defenseEl = this.container.querySelector('#player-defense');
@@ -3788,6 +4234,13 @@ class AdventureBattleViewController {
         this.scene.offhandRhythmSystem?.setBattleAttackSpeedBonus?.(
             this._engine.getPlayerAttackSpeedBonusPercent?.() || 0
         );
+        const slotType = res.slotType || options.slotType || 'weapon';
+        const hitZoneBonus = this._engine.getPlayerHitZoneBonusPercent?.(slotType) || 0;
+        if (slotType === 'armor') {
+            this.scene.offhandRhythmSystem?.setBattleHitZoneBonus?.(hitZoneBonus);
+        } else {
+            this.scene.rhythmSystem?.setBattleHitZoneBonus?.(hitZoneBonus);
+        }
 
         // Update equipment UI if weapon was destroyed
         if (res.destroyedWeapon) {
@@ -3821,10 +4274,15 @@ class AdventureBattleViewController {
 
         // lifesteal feedback
         if (applyRes && applyRes.lifestealRecovered && applyRes.lifestealRecovered > 0) {
-            this.showEffectNumber('lifesteal', applyRes.lifestealRecovered, `❤ 吸血 +${applyRes.lifestealRecovered}`);
+            showCombatPlayerDamageNumber(this.scene.dom?.battleModal || this.scene.container, applyRes.lifestealRecovered, {
+                type: 'lifesteal',
+                label: `吸血 +${applyRes.lifestealRecovered}`
+            });
             this.scene.updateUI();
             this.scene.updatePlayerHUD();
         }
+
+        this.scene.updateBuffIndicators();
 
         // Victory handled by scene when engine marks monster dead
         if (this.monster.isDead && this.monster.isDead()) {
@@ -3833,9 +4291,9 @@ class AdventureBattleViewController {
 
         return res;
     }
-    
+
     // 技能戰鬥 API 已移除（Adventure 的 BattleController 中）
-    
+
     showDamageNumber(damage, isCrit, isMiss) {
         showCombatDamageNumber(this.scene.container, damage, {
             type: isMiss ? 'dodge' : damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal',
@@ -3897,7 +4355,7 @@ class AdventureBattleViewController {
             });
         }
     }
-    
+
     startCooldown(duration) {
         this.attackCooldown = true;
         const attackBtn = this.scene.container.querySelector('#action-weapon');
@@ -3938,7 +4396,7 @@ class AdventureBattleViewController {
                 }
             }
         };
-        
+
         requestAnimationFrame(updateCooldown);
     }
 
@@ -4013,18 +4471,18 @@ class AdventureBattleViewController {
             this.handleDefeat();
         }
     }
-    
+
     // 新增：戰鬥節奏結算處理
     endTurn() {
         this.turnCount++;
-        
+
         // 減少 Buff 持續時間
         this.player.tickBuffs();
         this.scene.updateBuffIndicators();
-        
+
         // 玩家主動技能已移除；戰術技能不需要冷卻更新。
     }
-    
+
     showPlayerHitFeedback(damage) {
         const battleModal = this.scene.container.querySelector('.battle-modal');
         showCombatPlayerHitFeedback(battleModal, this.player, damage);
@@ -4034,7 +4492,7 @@ class AdventureBattleViewController {
         if (this.battleEnded) return;
         this.battleEnded = true;
         showCombatKillFreeze(this.scene.container.querySelector('.battle-modal') || this.scene.container);
-        
+
         // 使用 DropManager 的 resolve + generate 流程取得掉落物品
         const zoneId = this.monster.zoneId
             || this.scene?.currentBattleZone
@@ -4048,7 +4506,7 @@ class AdventureBattleViewController {
         });
         const baseGold = this.monster.gold || 0;
         const gold = Math.floor(baseGold * (1 + (rewardEffects.goldBonus || 0) / 100));
-        
+
         // 將掉落 ID 轉換成物品實例
         const droppedItems = [];
         markMonsterKnown(this.monster, { zoneId });
@@ -4078,7 +4536,7 @@ class AdventureBattleViewController {
             droppedItems.push(...blueprintItems);
             showGlobalToast('取得製作圖', blueprintItems.map(item => item.recipeName).join('、'), 'success');
         }
-        
+
         const exp = Math.floor((this.monster.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
         this.player.exp += exp;
         this.player.checkLevelUp();
@@ -4098,12 +4556,15 @@ class AdventureBattleViewController {
     handleDefeat() {
         this.battleEnded = true;
         audioManager.play('defeat', { throttleKey: 'adventure-defeat', throttleMs: 600 });
-        
-        this.player.hp = Math.max(1, Math.floor(this.player.maxHp * 0.3));
-        
+
+        const maxHp = Math.max(1, Math.floor(Number(this.player.maxHp ?? this.player.maxHP ?? this.player.getMaxHP?.() ?? 1) || 1));
+        this.player.hp = maxHp;
+        this.player.currentHP = maxHp;
+        this.player.currentHp = maxHp;
+
         // 任務系統：更新死亡統計
         questManager.updateStats('death');
-        
+
         setTimeout(() => {
             this.scene.endBattle(false, { keepLocked: true });
             showGlobalToast('戰敗回城', '你被送回大廳。死亡懲罰規則保留待定。', 'warning');
@@ -4152,7 +4613,7 @@ class AdventureBattleViewController {
 // Export AdventureScene with inventory management methods
 AdventureScene.prototype.openInventoryModal = function() {
     if (!this.dom.inventoryModal) return;
-    
+
     this.renderInventory();
     this.dom.inventoryModal.style.display = 'flex';
     setTimeout(() => {
@@ -4176,10 +4637,10 @@ AdventureScene.prototype.renderInventory = function() {
     if (this.dom.inventoryCapacity) {
         this.dom.inventoryCapacity.textContent = `${state.inventory.length}/${state.inventoryCapacity}`;
     }
-    
+
     // Render equipment slots
     this.renderEquipmentSlots();
-    
+
     if (!this.dom.inventoryList) return;
 
     const inventory = state.inventory || [];
@@ -4548,7 +5009,7 @@ window.adventureUseItem = function(instanceId) {
 window.adventureSellItem = async function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
-    
+
     const sellPrice = getSellPrice(stack.item, stack.quantity);
     const confirmed = await confirmAction({
         title: '確認出售',
@@ -4569,7 +5030,7 @@ window.adventureSellItem = async function(instanceId) {
 window.adventureDiscardItem = async function(instanceId) {
     const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
     if (!stack) return;
-    
+
     const confirmed = await confirmAction({
         title: '確認回收',
         message: `回收「${stack.item.name}」後會永久移除。`,

@@ -262,11 +262,11 @@ export const MainQuestSpineNodes = Object.freeze([
     {
         questId: 'main_003',
         plannedChapter: 1,
-        role: QuestSpineRole.FORGE_PREPARATION,
+        role: QuestSpineRole.BOSS_CLUE,
         status: QuestSpineStatus.LIVE_EXISTING,
-        mapNodeIds: ['old_campfire_site'],
-        bossThreadIds: [],
-        notes: 'Forge introduction stays early, but wording should support repair and crafting pressure.'
+        mapNodeIds: ['hunter_boardwalk', 'old_campfire_site', 'cut_roadsign'],
+        bossThreadIds: ['ambush_mantis'],
+        notes: 'This quest now turns the slime anomaly into route clues and a silver-thread bait, without requiring the blacksmith before he is staged into town.'
     },
     {
         questId: 'main_004',

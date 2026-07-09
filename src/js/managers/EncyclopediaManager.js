@@ -12,6 +12,7 @@ import { RecipeDiscoveryDatabase } from '../data/RecipeDiscoveries.js';
 import { EquipmentDatabase } from '../data/Equipment.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { QuestDatabase, QuestRewardItems } from '../data/Quests.js';
+import { getQuestStory } from '../data/QuestStories.js';
 import {
     CasinoPrizePools,
     CasinoShowcaseItems,
@@ -456,27 +457,41 @@ function collectItemDropSourceIndex() {
 const QuestGiverOverrides = {
     main_001: 'village_elder',
     main_002: 'town_scholar',
-    main_003: 'blacksmith'
+    main_003: 'town_scholar'
 };
 
 const QuestNpcKeywords = [
     { pattern: /書記|學者|手札|資料|見聞/, npcId: 'town_scholar' },
     { pattern: /鍛造|鐵匠|修復|強化/, npcId: 'blacksmith' },
     { pattern: /藥師|藥水|草藥|瓶/, npcId: 'herbalist' },
-    { pattern: /賭場|骰|籌碼|瑪洛|帳本/, npcId: 'malo_bookkeeper' },
+    { pattern: /賭場|骰|籌碼|瑪洛|帳本/, npcId: 'accountant_marlo' },
     { pattern: /暗巷|黑市|流浪|乞丐/, npcId: 'street_beggar' },
     { pattern: /村長|守衛|南門|村莊/, npcId: 'village_elder' }
 ];
 
 function getQuestTextBlob(quest = {}) {
+    const story = getQuestStory(quest);
     return [
         quest.name,
         quest.description,
-        quest.dialogue?.start,
-        quest.dialogue?.complete,
+        story.discovery,
+        story.available,
+        story.active,
+        story.completed,
+        story.finished,
+        story.nextLead,
         quest.trigger?.reason,
         ...(quest.objectives || []).map(objective => objective.description)
     ].filter(Boolean).join(' ');
+}
+
+function getQuestNarrativeDescription(quest = {}) {
+    const story = getQuestStory(quest);
+    return story.finished
+        || story.completed
+        || story.discovery
+        || quest.description
+        || '';
 }
 
 function findQuestTalkTarget(quest = {}) {
@@ -575,7 +590,7 @@ function collectQuestRewardSourceIndex() {
                 questTypeLabel: getReadableQuestSourceType(quest.type),
                 chapter: quest.chapter ?? null,
                 icon: quest.icon || '📜',
-                description: quest.description || quest.dialogue?.complete || quest.dialogue?.start || '',
+                description: getQuestNarrativeDescription(quest),
                 quantity: reward.quantity,
                 rewardType: reward.rewardType,
                 ...giver

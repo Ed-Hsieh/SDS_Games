@@ -226,12 +226,6 @@ function collectStatMap(totals, statMap, source = {}) {
     }
 }
 
-function hasSpecialEffectFor(item, key) {
-    if (!Array.isArray(item?.specialEffects)) return false;
-    const wanted = normalizeStatKey(key);
-    return item.specialEffects.some(effect => normalizeStatKey(effect?.type) === wanted);
-}
-
 function collectBaseStats(totals, item) {
     addStat(totals, 'atk', readItemStat(item, 'atk', ['attack'], 0), { kind: 'base', itemId: item.id });
     addStat(totals, 'def', readItemStat(item, 'def', ['defense'], 0), { kind: 'base', itemId: item.id });
@@ -276,26 +270,6 @@ function collectItemEffects(totals, item, options = {}) {
         });
     }
 
-    const legacyKeys = [
-        'lifesteal',
-        'lifeStealBonus',
-        'damageReduction',
-        'damageReduceBonus',
-        'armorPenetration',
-        'armorPierceBonus',
-        'allStatsBonus',
-        'hpRegenBonus',
-        'goldBonus',
-        'expBonus',
-        'dropBonus',
-        'bossBonus'
-    ];
-
-    legacyKeys.forEach(key => {
-        if (item[key] === undefined || item[key] === null) return;
-        if (hasSpecialEffectFor(item, key)) return;
-        addStat(totals, key, item[key], { ...sourceBase, kind: 'legacyDirect' });
-    });
 }
 
 function collectSetEffects(totals, character) {

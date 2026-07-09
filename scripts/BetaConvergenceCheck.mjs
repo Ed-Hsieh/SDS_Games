@@ -19,6 +19,12 @@ import {
 } from '../src/js/data/PassiveCombatEffects.js';
 import { QuestDatabase } from '../src/js/data/Quests.js';
 import { SideStoryNarrativeTaxonomy } from '../src/js/data/SideStoryNarrativeTaxonomy.js';
+import {
+    ResourceExpansionRequirement,
+    StoryRebuildCleanupCandidates,
+    StoryRebuildFoundation,
+    StoryRebuildNarrativeTarget
+} from '../src/js/data/StoryRebuildPlan.js';
 import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -86,7 +92,8 @@ function auditValidationGates() {
         'scripts/GameExperienceAudit.mjs',
         'scripts/CrossChapterStoryArcsCheck.mjs',
         'scripts/SideStoryNarrativeTaxonomyCheck.mjs',
-        'scripts/EquipmentBalanceCheck.js'
+        'scripts/EquipmentBalanceCheck.js',
+        'scripts/StoryRebuildPlanCheck.mjs'
     ];
 
     assertFiles('validation-gates', scripts);
@@ -344,7 +351,17 @@ function auditFrameworkDocs() {
         'docs/README.md',
         'docs/TOWN_REBUILD_CONVERGENCE.md',
         'docs/CHAPTER_QUEST_FRAMEWORK.md',
+        'docs/MAIN_STORY_BIBLE.md',
+        'docs/characters/VILLAGE_ELDER_PROFILE.md',
+        'docs/characters/HERBALIST_PROFILE.md',
+        'docs/characters/TOWN_SCHOLAR_PROFILE.md',
+        'docs/characters/STANDARD_BEARER_FREY_PROFILE.md',
+        'docs/characters/LAMPLIGHTER_TAVI_PROFILE.md',
+        'docs/characters/BLACKSMITH_PROFILE.md',
+        'docs/characters/STREET_BEGGAR_PROFILE.md',
+        'docs/NARRATIVE_WRITING_GUIDE.md',
         'docs/CASINO_ROUTE_FRAMEWORK.md',
+        'docs/EQUIPMENT_SERIES_FRAMEWORK.md',
         'docs/ART_STYLE_GUIDE.md',
         'docs/IMAGE_GENERATION_PROMPTS.md',
         'docs/OBSOLETE_CLEANUP_PLAN.md',
@@ -365,10 +382,75 @@ function auditFrameworkDocs() {
         'Glimmer is a weak precursor to light',
         'Tower content is paused'
     ]);
+    assertDocContains('framework-docs', 'docs/MAIN_STORY_BIBLE.md', [
+        'Design the main story like a long film or serialized drama',
+        'Current Narrative Reset',
+        'Working Canon V0',
+        'Seven Chapter Story Spine V0',
+        'central mystery and final truth',
+        'Detailed Character Profile Files V1',
+        'Character Entry And Exit Rules',
+        'Story-To-System Adaptation'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/VILLAGE_ELDER_PROFILE.md', [
+        'Runtime Mapping',
+        'First Run',
+        'Second Run',
+        'Do Not Do'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/HERBALIST_PROFILE.md', [
+        'Runtime Mapping',
+        'First Run',
+        'Second Run',
+        '藥師手記'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/TOWN_SCHOLAR_PROFILE.md', [
+        'Runtime Mapping',
+        'First Run',
+        'Second Run',
+        '伊萊'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/STANDARD_BEARER_FREY_PROFILE.md', [
+        'Runtime Mapping',
+        'First Run',
+        'Second Run',
+        '芙蕾'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/LAMPLIGHTER_TAVI_PROFILE.md', [
+        'Runtime Mapping',
+        'First Run',
+        'Second Run',
+        '塔維'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/BLACKSMITH_PROFILE.md', [
+        'Runtime Mapping',
+        'Village Temperature Gauge',
+        'First Run',
+        'Second Run'
+    ]);
+    assertDocContains('framework-docs', 'docs/characters/STREET_BEGGAR_PROFILE.md', [
+        'Runtime Mapping',
+        'Accepted Direction',
+        'Possible Origin Models Under Discussion',
+        'Do Not Do'
+    ]);
+    assertDocContains('framework-docs', 'docs/NARRATIVE_WRITING_GUIDE.md', [
+        'Write as a novelist',
+        'Quest And Objective Clarity',
+        'Multi-Speaker Scene Rules',
+        'Do not physically move a town or map NPC icon for every scene'
+    ]);
     assertDocContains('framework-docs', 'docs/CASINO_ROUTE_FRAMEWORK.md', [
         'commission_casino_showcase_001',
         'Final choice',
         'display-case prizes'
+    ]);
+    assertDocContains('framework-docs', 'docs/EQUIPMENT_SERIES_FRAMEWORK.md', [
+        'Steady Stance',
+        'Arcane Resonance',
+        'Bulwark Guard',
+        'weaponSpeed',
+        'shadow feels like a real precursor to void'
     ]);
     assertDocContains('framework-docs', 'docs/ART_STYLE_GUIDE.md', [
         'Dark realistic fantasy',
@@ -385,9 +467,11 @@ function auditFrameworkDocs() {
         'Casino Scenes And Showcase Items'
     ]);
     assertDocContains('framework-docs', 'docs/OBSOLETE_CLEANUP_PLAN.md', [
+        'Story And Quest Cleanup',
         'High-Confidence Cleanup',
         'Medium-Confidence Cleanup',
         'ProgressionLevels.js',
+        'Removed on 2026-07-07',
         'Do Not Remove Just Yet'
     ]);
     assertDocContains('framework-docs', 'docs/AGENT_UPDATE_PROTOCOL.md', [
@@ -469,10 +553,46 @@ function auditCasinoRouteFramework() {
     summary.casinoRouteStages = CasinoRouteFramework.length;
 }
 
+function auditStoryRebuildPlan() {
+    if (StoryRebuildFoundation.mode !== 'reset_content_keep_systems') {
+        addIssue('story-rebuild-plan', 'Story rebuild mode must keep the accepted clean-reset policy.', {
+            mode: StoryRebuildFoundation.mode
+        });
+    }
+
+    if (!Array.isArray(StoryRebuildFoundation.retiredContentLayers) || StoryRebuildFoundation.retiredContentLayers.length < 5) {
+        addIssue('story-rebuild-plan', 'Story rebuild plan must list retired content layers.');
+    }
+
+    if (!Array.isArray(ResourceExpansionRequirement.requiredProposalFields) || ResourceExpansionRequirement.requiredProposalFields.length < 6) {
+        addIssue('story-rebuild-plan', 'Resource expansion gate is too thin.');
+    }
+
+    if (!Array.isArray(StoryRebuildCleanupCandidates) || StoryRebuildCleanupCandidates.length < 5) {
+        addIssue('story-rebuild-plan', 'Story rebuild cleanup candidates are missing.');
+    }
+
+    if (!Array.isArray(StoryRebuildNarrativeTarget.chapterTargets) || StoryRebuildNarrativeTarget.chapterTargets.length !== 7) {
+        addIssue('story-rebuild-plan', 'Story rebuild narrative target must cover seven chapters.', {
+            chapters: StoryRebuildNarrativeTarget.chapterTargets?.length || 0
+        });
+    }
+
+    if (StoryRebuildNarrativeTarget.finalBossId !== 'demon_lord_asariel') {
+        addIssue('story-rebuild-plan', 'Mainline final boss target changed unexpectedly.', {
+            finalBossId: StoryRebuildNarrativeTarget.finalBossId
+        });
+    }
+
+    summary.storyRebuildCleanupCandidates = StoryRebuildCleanupCandidates.length;
+    summary.storyRebuildNarrativeChapters = StoryRebuildNarrativeTarget.chapterTargets?.length || 0;
+}
+
 function auditDataBacklog() {
     const dataFiles = [
         'AGENTS.md',
         'src/js/data/TownRebuildPlan.js',
+        'src/js/data/StoryRebuildPlan.js',
         'src/js/data/ChapterQuestFramework.js',
         'src/js/data/CasinoRouteFramework.js',
         'src/js/data/QuestStories.js',
@@ -495,6 +615,7 @@ auditTownAndPlaces();
 auditFrameworkDocs();
 auditChapterQuestFramework();
 auditCasinoRouteFramework();
+auditStoryRebuildPlan();
 auditDataBacklog();
 
 const result = {

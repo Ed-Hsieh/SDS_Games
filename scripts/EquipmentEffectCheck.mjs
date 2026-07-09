@@ -1,7 +1,9 @@
 import {
     applyDamage,
     BattleController,
-    computePlayerAttack
+    computeMonsterAttack,
+    computePlayerAttack,
+    normalizeMonsterCombatStats
 } from '../src/js/managers/FightManager.js';
 import {
     getEquipmentEffectTotals,
@@ -51,6 +53,7 @@ function makeMonster(overrides = {}) {
         hp,
         currentHp: hp,
         maxHp: overrides.maxHp ?? hp,
+        level: overrides.level ?? 1,
         attack: overrides.attack ?? 10,
         atk: overrides.attack ?? 10,
         defense: overrides.defense ?? 0,
@@ -114,6 +117,14 @@ const custom = {
         specialEffects: [{ type: 'void', value: 25 }]
     }
 };
+
+const visibleDamageMonster = normalizeMonsterCombatStats(makeMonster({ level: 2, hp: 50, maxHp: 50, attack: 8, defense: 2 }));
+const visibleDamagePlayer = makePlayer({}, { def: 2 });
+const visibleDamageRes = computeMonsterAttack(visibleDamageMonster, visibleDamagePlayer);
+assert(
+    visibleDamageRes.damage === Math.max(1, visibleDamageMonster.attack - visibleDamagePlayer.getTotalDef()),
+    '怪物顯示攻擊力與實際傷害計算應使用同一份正規化數值。'
+);
 
 const slimePlayer = makePlayer({ weapon: EquipmentDatabase.slime_sword }, { hp: 50, atk: 30 });
 const slimeEffects = getEquipmentEffectTotals(slimePlayer);

@@ -1,6 +1,6 @@
 # Art Style Guide
 
-Last updated: 2026-07-05
+Last updated: 2026-07-08
 
 Image generation is paused for this pass. This guide records the current style so
 future generated assets stay consistent.
@@ -78,3 +78,12 @@ Future town images should use paired state design:
 
 Planned gaps are listed in `TownAssetNeedDatabase`. Do not generate them during the
 current documentation pass.
+
+## Current Story Asset Notes
+
+- The previous `village_elder.webp` read too strongly as a casino-owner portrait.
+  It is preserved as a casino-owner candidate while the village elder receives a
+  grounded broken-town portrait.
+- As the main story bible becomes concrete, town scenes may need more specific
+  broken, recovering, and chapter-state images so the world does not feel staged
+  with generic backgrounds.

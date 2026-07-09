@@ -4,20 +4,27 @@
  */
 
 import DungeonMap, { DungeonTileType, DungeonTileIcons } from '../utils/DungeonMap.js';
-import { DungeonDatabase, DungeonEntranceConfig, generateFloorEvent } from '../managers/DungeonManager.js';
+import {
+    DungeonDatabase,
+    DungeonEntranceConfig,
+    generateDungeonMonster,
+    generateDungeonBoss,
+    generateFloorEvent
+} from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
 import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
-import { markBlueprintKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
+import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
-import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { escapeHtml } from '../utils/ItemDisplay.js';
 import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
+import { createRuntimeItem } from '../models/ItemFactory.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 import {
     renderCombatMonster,
     renderCombatPlayer,
@@ -1002,31 +1009,48 @@ class DungeonSceneClass {
         return item ? { ...item } : null;
     }
 
+    resolveDungeonTreasureItem(item) {
+        if (!item) return null;
+        if (!item.itemId) return item;
+
+        const itemData = resolveItemById(item.itemId, {
+            order: ['material', 'equipment', 'shop', 'questReward', 'bossEquipment']
+        });
+        return itemData ? createRuntimeItem(itemData) : null;
+    }
+
     getDungeonTreasureQuantity(item) {
-        const type = String(item?.type || '').toLowerCase();
-        if (type === 'material') return Math.random() < 0.20 ? 2 : 1;
+        const resolvedItem = this.resolveDungeonTreasureItem(item);
+        const type = String(resolvedItem?.type || '').toLowerCase();
+        if (type === 'material') return Math.random() < 0.2 ? 2 : 1;
         return 1;
     }
 
     grantDungeonItem(item, quantity = 1, label = '獲得副本物資') {
-        if (!item) return false;
+        const resolvedItem = this.resolveDungeonTreasureItem(item);
+        if (!resolvedItem) {
+            this.addMessage('副本物資資料不存在，未取得獎勵。', 'danger');
+            return false;
+        }
 
         const safeQuantity = Math.max(1, Number(quantity) || 1);
         const quantityText = safeQuantity > 1 ? ` x${safeQuantity}` : '';
-        const addedToInventory = GameManager.addToInventory?.(item, safeQuantity);
+        const addedToInventory = GameManager.addToInventory?.(resolvedItem, safeQuantity);
 
         if (addedToInventory) {
-            this.addMessage(`${label}：${item.name}${quantityText}`, 'reward');
+            markItemKnown(resolvedItem.id);
+            this.addMessage(`${label}：${resolvedItem.name}${quantityText}`, 'reward');
             return true;
         }
 
-        const addedToWarehouse = GameManager.addToWarehouse?.(item, safeQuantity);
+        const addedToWarehouse = GameManager.addToWarehouse?.(resolvedItem, safeQuantity);
         if (addedToWarehouse) {
-            this.addMessage(`背包已滿，${item.name}${quantityText} 已送入倉庫。`, 'warning');
+            markItemKnown(resolvedItem.id);
+            this.addMessage(`背包已滿，${resolvedItem.name}${quantityText} 已送入倉庫。`, 'warning');
             return true;
         }
 
-        this.addMessage(`${item.name || '副本物資'} 無法放入背包或倉庫。`, 'danger');
+        this.addMessage(`${resolvedItem.name || '副本物資'} 無法放入背包或倉庫。`, 'danger');
         return false;
     }
 
@@ -1083,36 +1107,26 @@ class DungeonSceneClass {
     // ==================== 戰鬥系統 ====================
     
     startBattle(monsterType) {
-        const dungeonData = DungeonDatabase[this.dungeonType];
         let monster;
         audioManager.play('combat-start', { throttleKey: 'dungeon-combat-start', throttleMs: 650 });
         audioManager.playBgm('combat');
         
         switch (monsterType) {
             case 'elite':
-                const elites = dungeonData.monsters.elite;
-                monster = { ...elites[Math.floor(Math.random() * elites.length)], isElite: true };
+                monster = generateDungeonMonster(this.dungeonType, this.currentFloor, true);
                 break;
             case 'boss':
-                monster = { ...dungeonData.monsters.boss, isBoss: true };
+                monster = generateDungeonBoss(this.dungeonType, this.currentFloor);
                 break;
             default:
-                const commons = dungeonData.monsters.common;
-                monster = { ...commons[Math.floor(Math.random() * commons.length)] };
+                monster = generateDungeonMonster(this.dungeonType, this.currentFloor, false);
         }
         
         // 樓層加成
-        const floorBonus = 1 + (this.currentFloor - 1) * 0.15;
-        const baseAttack = monster.attack ?? monster.atk ?? 0;
-        const baseDefense = monster.defense ?? monster.def ?? 0;
-
-        monster.hp = Math.floor(monster.hp * floorBonus);
-        monster.maxHp = monster.hp;
-        monster.attack = Math.floor(baseAttack * floorBonus);
-        monster.defense = Math.floor(baseDefense * floorBonus);
-        monster.atk = monster.attack;
-        monster.def = monster.defense;
-        applyMonsterCombatBalance(monster);
+        if (!monster) {
+            this.addMessage('副本戰鬥資料缺失，無法開始戰鬥。', 'error');
+            return;
+        }
         
         this.currentMonster = monster;
         this.isInCombat = true;
@@ -1188,6 +1202,7 @@ class DungeonSceneClass {
         engine._onStatusApplied = (events = []) => {
             events.forEach(event => this.addCombatStatusMessage(event));
             this.updateMonsterDisplay();
+            this.updateBattlePlayerDisplay();
         };
 
         engine._onStatusTick = (events = []) => {
@@ -1337,6 +1352,8 @@ class DungeonSceneClass {
             this.updateUI();
             this.updateBattlePlayerDisplay();
         }
+
+        this.updateBattlePlayerDisplay();
 
         // Check monster death
         if (this.currentMonster.hp <= 0) {

@@ -2,109 +2,66 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <title>BalanceCheck — UI</title>
+  <title>Monster Balance Check</title>
   <style>
-    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
-    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:1200px;margin:0 auto}
-    .controls{display:flex;gap:8px;margin-bottom:12px}
-    .btn{background:#163341;color:#dff0ff;padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
-    .report{margin-top:12px}
-    /* Use grid so header and data columns align precisely */
-    .row{display:grid;grid-template-columns:60px 2fr 90px 90px 80px 110px 90px 90px 140px;gap:12px;padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.03);align-items:center}
-    .row.header{font-weight:700;background:rgba(255,255,255,0.02)}
-    .row>div{ text-align:center }
-    /* name column is the second grid column; keep it flexible via 2fr above */
-    #summary{ text-align:center;margin-bottom:8px }
-    .card h2{ text-align:center }
+    body {
+      margin: 24px;
+      background: #07101a;
+      color: #eaf3ff;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    .card {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid rgba(122, 169, 199, 0.28);
+      border-radius: 8px;
+      background: #0e1a24;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #ffd166;
+    }
+
+    p {
+      line-height: 1.7;
+      color: #c9d6df;
+    }
+
+    code,
+    pre {
+      color: #ffe3a3;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+    }
+
+    code {
+      padding: 2px 5px;
+    }
+
+    pre {
+      padding: 14px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>BalanceCheck — 報表</h2>
-    <div class="controls">
-      <button id="run" class="btn">執行檢查</button>
-      <button id="csv" class="btn">匯出 CSV</button>
-    </div>
-    <div id="summary"></div>
-    <div id="report" class="report">載入中…</div>
-  </div>
-
-  <script>
-  (function(){
-    // Render table-style report by using functions exposed by BalanceCheck_v4.js
-    const report = document.getElementById('report');
-    report.innerHTML = '';
-
-    // helper: get DB (window.MonsterDatabase set if import succeeded)
-    function getDB(){ return window.MonsterDatabase || null; }
-
-    // Render function using global getStandardPlayerStats & simulateBattle (provided by BalanceCheck_v4)
-    function renderReport(){
-      const db = getDB();
-      // If BalanceCheck script established MonsterDatabase internally, it may not be on window yet
-      const entries = db ? Object.keys(db).map(k=>({k,monster:db[k]})).sort((a,b)=>(a.monster.level||0)-(b.monster.level||0)) : [];
-
-      document.getElementById('summary').innerHTML = `怪物數量：<strong>${entries.length}</strong>`;
-      report.innerHTML = '';
-      const header = document.createElement('div'); header.className='row header'; ['Lv','名稱','HP','攻/防','攻速','DPS','殺怪(s)','存活(s)','評價'].forEach(h=>{const d=document.createElement('div');d.textContent=h;header.appendChild(d)}); report.appendChild(header);
-
-      if(entries.length === 0){
-        const note = document.createElement('div'); note.className = 'row'; note.textContent = '未載入 MonsterDatabase，請確認專案路徑或先按下 Load Project Data。'; report.appendChild(note); return; }
-
-      entries.forEach(e=>{
-        const m = e.monster;
-        if(typeof window.getStandardPlayerStats !== 'function' || typeof window.simulateBattle !== 'function'){
-          const row = document.createElement('div'); row.className='row'; row.textContent = 'BalanceCheck 函式尚未就緒，請確認已載入 BalanceCheck_v4.js'; report.appendChild(row); return;
-        }
-
-        const p = window.getStandardPlayerStats(m.level);
-        const r = window.simulateBattle(p, m);
-
-        const row = document.createElement('div'); row.className='row';
-        const cells = [m.level, m.name, p.hp, `${p.attack}/${p.defense}`, p.attackSpeed, `${r.playerDPS} vs ${r.monsterDPS}`, r.timeToKill, r.timeToDie, `${r.rank} (${r.powerRatio})`];
-        cells.forEach((c,i)=>{ const d=document.createElement('div'); d.textContent = c; if(i===1) d.className='name'; row.appendChild(d); });
-        report.appendChild(row);
-      });
-    }
-
-    // CSV export using the same functions
-    function exportCSV(){
-      const db = getDB(); if(!db){ alert('未載入 MonsterDatabase'); return; }
-      const rows = [['Lv','Name','HP','Atk/Def','AtkSpd','DPS','TTK','TTD','Rank']];
-      Object.keys(db).forEach(k=>{
-        const m = db[k];
-        const p = (typeof window.getStandardPlayerStats==='function') ? window.getStandardPlayerStats(m.level) : {hp:'',attack:'',defense:'',attackSpeed:''};
-        const r = (typeof window.simulateBattle==='function') ? window.simulateBattle(p,m) : {playerDPS:'',monsterDPS:'',timeToKill:'',timeToDie:'',rank:''};
-        rows.push([m.level,m.name,p.hp,`${p.attack}/${p.defense}`,p.attackSpeed,`${r.playerDPS} vs ${r.monsterDPS}`,r.timeToKill,r.timeToDie,`${r.rank} (${r.powerRatio})`]);
-      });
-      const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""') }"`).join(',')).join('\n');
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='balance_report.csv'; document.body.appendChild(a); a.click(); a.remove();
-    }
-
-    // Load project Monster DB first (if available), then load BalanceCheck script
-    (async function(){
-      try{
-        const mod = await import('../../src/js/data/Monsters.js');
-        const db = (mod && (mod.MonsterDatabase || (mod.default && mod.default.MonsterDatabase) || mod.default)) || null;
-        if(db) window.MonsterDatabase = db;
-      }catch(e){ /* ignore */ }
-
-      // append BalanceCheck_v4.js
-      const s = document.createElement('script'); s.src = '../MonsterBalanceCheck_v4.js';
-      s.onload = function(){
-        // Hook buttons
-        document.getElementById('run').disabled = false;
-        document.getElementById('run').addEventListener('click', renderReport);
-        document.getElementById('csv').addEventListener('click', exportCSV);
-        // Auto-render if possible
-        renderReport();
-      };
-      s.onerror = function(){
-        const err = document.createElement('div'); err.className='row'; err.textContent='載入 BalanceCheck_v4.js 失敗，請確認檔案存在。'; report.appendChild(err);
-      };
-      document.body.appendChild(s);
-    })();
-  })();
-  </script>
+  <main class="card">
+    <h1>怪物平衡檢查</h1>
+    <p>
+      這個檢查器是 Node 腳本，不再提供瀏覽器版資料載入。
+      平衡結果以資料庫原始數值為準，避免工具頁和腳本各自維護不同規則。
+    </p>
+    <p>只檢查並輸出報告：</p>
+    <pre>node scripts\MonsterBalanceCheck_v4.js --report-only</pre>
+    <p>需要 JSON 輸出時執行：</p>
+    <pre>node scripts\MonsterBalanceCheck_v4.js --json --report-only</pre>
+    <p>確認要套用建議值時，指定 ID 寫回資料庫：</p>
+    <pre>node scripts\MonsterBalanceCheck_v4.js --write --ids=slime,goblin</pre>
+  </main>
 </body>
 </html>

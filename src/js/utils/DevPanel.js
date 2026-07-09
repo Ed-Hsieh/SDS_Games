@@ -14,7 +14,7 @@ import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { TowerBossEquipment } from '../data/BossEquipment.js';
 import { ShopData, SecretShopItems } from '../data/Items.js';
 import { MonsterDatabase } from '../data/Monsters.js';
-import { applyMonsterCombatBalance, getMonsterCombatRank } from '../data/CombatBalance.js';
+import { getMonsterCombatRank } from '../data/CombatBalance.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { TownPlaceDatabase } from '../data/TownPlaces.js';
 import { getTownRuntimeSummary, TownVisibility } from '../managers/TownStateResolver.js';
@@ -1065,7 +1065,6 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         }
 
         const monster = { ...monsterData };
-        applyMonsterCombatBalance(monster);
         const effects = getEquipmentEffectTotals(character);
         const rank = getMonsterCombatRank(monster);
         const effectiveDefense = Math.max(0, (monster.defense || 0) * (1 - (effects.armorPenetration || 0) / 100));

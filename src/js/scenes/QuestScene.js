@@ -18,12 +18,6 @@ import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldSto
 import { getTownPlaces } from '../data/TownPlaces.js';
 import audioManager from '../utils/AudioManager.js';
 
-const RELATIONSHIP_PROFILE_NPC_ALIASES = {
-    frey_standard_bearer: 'standard_bearer_frey',
-    tavi_lamplighter: 'lamplighter_tavi',
-    malo_bookkeeper: 'accountant_marlo'
-};
-
 const HANDBOOK_TABS = {
     commissions: {
         title: '委託',
@@ -101,8 +95,6 @@ export default class QuestScene {
     cacheDOM() {
         this.dom = {
             ledgerSummary: this.container.querySelector('#ledger-summary'),
-            ledgerClueShortcut: this.container.querySelector('#ledger-clue-shortcut'),
-            ledgerClueCount: this.container.querySelector('#ledger-clue-count'),
             handbookTabs: this.container.querySelector('#handbook-tabs'),
             handbookTabButtons: Array.from(this.container.querySelectorAll('[data-handbook-tab]')),
             handbookCountBadges: Array.from(this.container.querySelectorAll('[data-handbook-count]')),
@@ -181,10 +173,6 @@ export default class QuestScene {
         this.dom.btnBackLobby?.addEventListener('click', () => {
             this.app.loadScene('lobby');
         });
-
-        this.dom.ledgerClueShortcut?.addEventListener('click', () => {
-            this.openClueShortcut();
-        });
     }
 
     selectHandbookTab(tabId) {
@@ -195,7 +183,7 @@ export default class QuestScene {
         this.selectedQuestId = null;
 
         this.dom.handbookTabButtons?.forEach(button => {
-            const active = button.dataset.handbookTab === tabId;
+            const active = button.dataset.handbookTab === this.activeTab;
             button.classList.toggle('active', active);
             button.setAttribute('aria-selected', active ? 'true' : 'false');
         });
@@ -209,7 +197,6 @@ export default class QuestScene {
         const tab = HANDBOOK_TABS[this.activeTab] || HANDBOOK_TABS.commissions;
 
         this.updateHandbookCounts();
-        this.updateClueShortcut();
         if (this.dom.listTitle) this.dom.listTitle.textContent = tab.panelTitle || '紀錄清單';
         if (this.dom.questCount) this.dom.questCount.textContent = records.length > 0 ? `${records.length} 筆` : '空白';
         if (this.dom.ledgerSummary) {
@@ -277,35 +264,6 @@ export default class QuestScene {
 
         const tab = HANDBOOK_TABS[tabId] || HANDBOOK_TABS.commissions;
         return tab.ledger(records);
-    }
-
-    getClueShortcutCountMap() {
-        return {
-            boss: this.getBossTraceRecords().length,
-            world: this.getWorldNoteRecords().length
-        };
-    }
-
-    updateClueShortcut() {
-        if (!this.dom.ledgerClueShortcut) return;
-
-        const counts = this.getClueShortcutCountMap();
-        const total = counts.boss + counts.world;
-        const isActive = this.activeTab === 'boss' || this.activeTab === 'world';
-        this.dom.ledgerClueShortcut.classList.toggle('has-clues', total > 0);
-        this.dom.ledgerClueShortcut.classList.toggle('is-active', isActive);
-        this.dom.ledgerClueShortcut.title = total > 0
-            ? `查看 ${total} 則線索`
-            : '查看線索紀錄';
-        if (this.dom.ledgerClueCount) {
-            this.dom.ledgerClueCount.textContent = total;
-        }
-    }
-
-    openClueShortcut() {
-        const counts = this.getClueShortcutCountMap();
-        const targetTab = counts.boss > 0 ? 'boss' : 'world';
-        this.selectHandbookTab(targetTab);
     }
 
     updateHandbookCounts() {
@@ -760,7 +718,7 @@ export default class QuestScene {
     }
 
     getRelationshipNpcId(profile = {}) {
-        return RELATIONSHIP_PROFILE_NPC_ALIASES[profile.id] || profile.id;
+        return profile.id;
     }
 
     getRelationshipDepth(profile = {}, talkCount = 0, stages = []) {

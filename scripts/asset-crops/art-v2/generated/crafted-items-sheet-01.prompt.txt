@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "crafted-items".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-assassin_shadow_veil, blood_moon_pendant, bone_blade, bone_soul_staff, demonwar_helm, dragon_amulet, dragon_overlord_crown, dragon_scale_armor, dragon_slayer, earthwarden_aegis, fire_sword, frostbound_scepter, gargoyle_bulwark, goblin_trickster_charm, greater_health_potion, guardian_armor, health_potion_basic, hydra_fang_dagger, ice_sword, iron_sword, leather_armor, mithril_sword, nature_amulet, poison_dagger, primal_focus
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

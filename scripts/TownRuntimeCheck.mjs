@@ -39,11 +39,11 @@ const initialSummary = getTownRuntimeSummary();
 const initialPlaces = visiblePlaceIds(initialSummary);
 const initialResidents = visibleResidentIds(initialSummary);
 
-for (const placeId of ['crossroads', 'gate', 'handbook', 'market', 'forge']) {
+for (const placeId of ['crossroads', 'gate', 'handbook']) {
     expectSetContains(initialPlaces, placeId, 'chapter1-initial-place', `${placeId} should be visible in the first chapter town.`);
 }
 
-for (const placeId of ['alley', 'casino', 'tower']) {
+for (const placeId of ['market', 'forge', 'alley', 'casino', 'tower']) {
     expectSetOmits(initialPlaces, placeId, 'chapter1-initial-hidden-place', `${placeId} should not be visible in the first chapter initial town.`);
 }
 

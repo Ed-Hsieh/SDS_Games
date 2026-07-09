@@ -48,7 +48,7 @@ export const CrossChapterStoryArcs = [
         title: '鍛造與裝備成長',
         theme: '凡人用工具追上災難',
         chapters: {
-            1: '鐵匠煙囪與斷裂誘餌鉤讓玩家理解：裝備不是數值欄，而是活下去的工具。',
+            1: '鐵匠煙囪讓玩家理解：裝備不是數值欄，而是活下去的工具。銀絲伏道則先用斷鉤證明準備有多重要。',
             2: '礦脈、副本圖紙、特殊素材讓鍛造開始分流，玩家為地形與 BOSS 壓力準備裝備。',
             3: '秘銀、終局素材與套裝效果成為對抗古龍與魔王的凡人答案。'
         },
@@ -57,7 +57,7 @@ export const CrossChapterStoryArcs = [
         chapterThreePayoff: '第三章把裝備線收成決戰準備，而不是單純換更高數值的武器。',
         gameplayBridge: '圖紙、材料、怪物掉落、副本保底、套裝收集與裝備效果解析器都應對齊這條線。',
         riskIfMissing: '如果缺少這條線，鍛造會變成旁支功能，玩家不會覺得自己正在準備一場越來越大的戰爭。',
-        relatedQuests: ['main_003', 'commission_blacksmith_chimney', 'commission_forge_001', 'commission_forge_002'],
+        relatedQuests: ['commission_blacksmith_chimney', 'commission_forge_001', 'commission_forge_002'],
         relatedSystems: ['forge', 'recipes', 'equipment_effects', 'sets', 'dungeon_rewards']
     },
     {

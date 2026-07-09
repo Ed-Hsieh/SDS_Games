@@ -1,13 +1,13 @@
 # Agent Session Log
 
-Last updated: 2026-07-06
+Last updated: 2026-07-09
 
 ## Current Direction
 
 The project is being rebuilt as a desktop-focused 2D RPG. The current priority is
-the town rebuild framework: broken town state, NPC return, facility repair, market
-and shop recovery, casino temptation route, third-party sources, and chapter story
-placement.
+the clean story rebuild and major NPC profile pass before rewriting runtime
+quests. The active design target is a dark fantasy two-run structure: first-run
+false victory and loss, second-run understanding and limited rescue.
 
 Paused for now:
 
@@ -26,6 +26,7 @@ Paused for now:
   for future implementation.
 - Consolidated docs into a smaller authoritative set:
   `TOWN_REBUILD_CONVERGENCE.md`, `CHAPTER_QUEST_FRAMEWORK.md`,
+  `MAIN_STORY_BIBLE.md`, `NARRATIVE_WRITING_GUIDE.md`,
   `CASINO_ROUTE_FRAMEWORK.md`, `ART_STYLE_GUIDE.md`, and
   `IMAGE_GENERATION_PROMPTS.md`.
 - Removed old image-generation influence docs from the sheet/crop/art-v2 pipeline.
@@ -55,6 +56,16 @@ Paused for now:
   while black market, casino, tower, and later NPCs wait for town-state flags.
 - Quest completion now applies `QuestStories.characterProfile.townState` when
   present, so side-story reports can visibly change the town.
+- Added `EQUIPMENT_SERIES_FRAMEWORK.md` to record equipment-series roles,
+  weapon-form quadrants, affinity/group boundaries, and planned weapon ability
+  replacements before combat implementation resumes.
+- Added detailed character dossiers for `village_elder`, `herbalist`,
+  `town_scholar`, `standard_bearer_frey`, `lamplighter_tavi`, and `blacksmith`.
+  These files now own accepted background, first-run arc, second-run reading, and
+  unresolved fate questions for those characters.
+- Added in-progress `street_beggar` dossier. Accepted so far: he is an outside
+  lost-settlement survivor, erratic but not omniscient, likely first-run
+  disappearance; his original identity and madness logic are still unresolved.
 
 ## Current Runtime Status
 
@@ -65,49 +76,66 @@ Paused for now:
   final showcase choice are framework-only.
 - Quest story placement exists, but reward redistribution across Lv1-Lv70 is still
   pending.
+- Weapon-form positioning has been accepted in documentation, but runtime combat
+  profiles still need a later pass to replace Blade Tempo, focus slow, and heavy
+  armor-break behavior.
 - The quest spine is validated separately from `Quests.js`; current playable
   quests still use the old chapter 1-3 data until the user approves the new route
   order.
 - Art generation is intentionally deferred.
 - Documentation updates should follow `AGENT_UPDATE_PROTOCOL.md`; runtime JS/data
   remains the source of truth for implemented behavior.
+- Narrative prose, NPC voice, objective clarity, side-story tone, and
+  multi-speaker scene staging should follow `NARRATIVE_WRITING_GUIDE.md`.
+- Mainline suspense, long-form plot reveals, character arcs, and character
+  entry/exit should follow `MAIN_STORY_BIBLE.md`.
+- Character-specific accepted details now live under `docs/characters/*.md`.
+  The current completed core profiles are village elder, herbalist, town scholar,
+  Frey, Tavi, and blacksmith. Street beggar is in progress; casino owner remains
+  unprofiled in this pass.
 
 ## Next Good Step
 
-Review the seven-chapter quest spine in `QuestSpineFramework.js`. If approved,
-start the runtime quest pass: retarget old low/medium/high/death objectives,
-reorder `main_008`, rechapter `main_011` through `main_015`, and reduce quest
-reward material overfeeding. Keep dungeon integration as side-story support unless
-the user approves a concrete mainline dungeon plan. The first-chapter route is now
-the reference pattern for later chapter route-node objectives.
+Continue the NPC profile pass before runtime quest rewriting. Next best step is
+to finish the `street_beggar` route by defining what he was before the lost
+settlement disaster, what rule of the world broke his mind, why he treats the
+protagonist as story-centered, and when he disappears in the first run. After
+that, profile the casino owner.
 
 ## Next Resume Task
 
-Continue by validating the first-chapter town state in-game, then wire shop,
-forge, market, and casino service access to the same town-state resolver. The
-quest-spine runtime pass remains pending after the first-chapter loop is approved.
+Continue the story-design pass by resolving the street beggar's madness logic and
+then drafting the casino owner's character dossier. Do not implement runtime
+quest rewrites until the core NPC motivations and first-run/second-run roles are
+accepted.
 
 Target result:
 
-- Keep `Quests.js` playable while moving it toward the seven-chapter spine.
-- Replace old route-layer objectives with landmark/clue-oriented objectives.
-- Align main boss convergence with `ChapterBossPlan`.
-- Leave new monsters, materials, and images out until the route plan is approved.
+- Finish the core NPC profile set before first-chapter runtime rewrite.
+- Keep accepted character details in `docs/characters/*.md`.
+- Preserve unresolved questions explicitly instead of inventing hidden lore.
+- Leave new monsters, materials, locations, and images out until story reasons
+  and resource needs are approved.
 
 Parallel cleanup note:
 
 - If the user asks for cleanup before the resolver, start with the high-confidence
   old art-v2 sheet/crop pipeline listed in `OBSOLETE_CLEANUP_PLAN.md`.
 
-Suggested implementation files:
+Suggested documentation files:
 
-- `src/js/data/TownRebuildPlan.js`
-- `src/js/data/TownPlaces.js`
-- `src/js/managers/TownStateResolver.js` or another clearly named resolver module
-- `src/js/scenes/LobbyScene.js`
-- `src/js/scenes/ShopScene.js`
-- `src/js/scenes/ForgeScene.js`
-- `src/js/scenes/CasinoScene.js`
+- `docs/characters/STREET_BEGGAR_PROFILE.md`
+- `docs/characters/BLACKSMITH_PROFILE.md`
+- `docs/characters/STANDARD_BEARER_FREY_PROFILE.md`
+- `docs/characters/LAMPLIGHTER_TAVI_PROFILE.md`
+- `docs/MAIN_STORY_BIBLE.md`
+
+Out of scope:
+
+- Runtime quest rewrite.
+- Combat redesign.
+- Tower rewrite.
+- Image generation.
 
 ## Verification Commands
 

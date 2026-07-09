@@ -10,6 +10,7 @@ import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../src/js/d
 import { DungeonDatabase, DungeonEntranceConfig } from '../src/js/data/Dungeons.js';
 import { ShopData, SecretShopItems } from '../src/js/data/Items.js';
 import { TowerBossEquipment } from '../src/js/data/BossEquipment.js';
+import { TownDialogueDatabase, TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
 import { ItemRarity, ItemType } from '../src/js/models/Enums.js';
 import { normalizeItemType, normalizeRarity } from '../src/js/models/ItemSchema.js';
 
@@ -207,6 +208,36 @@ for (const [dungeonId, dungeon] of objectEntries(DungeonDatabase)) {
 
 for (const [id, monster] of objectEntries(MonsterDatabase)) checkMonsterDrops(`Monster.${id}`, monster);
 for (const [id, monster] of objectEntries(TowerMonsterData)) checkMonsterDrops(`TowerMonster.${id}`, monster);
+
+for (const [npcId, dialogues] of objectEntries(TownDialogueDatabase)) {
+    if (!TownNPCDatabase[npcId]) push('dialogue-npc', `TownDialogueDatabase.${npcId} has no matching NPC`);
+
+    for (const dialogue of dialogues || []) {
+        const scope = `TownDialogueDatabase.${npcId}.${dialogue?.id || '(missing id)'}`;
+        const participantIds = new Set([npcId]);
+
+        for (const participant of dialogue?.participants || []) {
+            const participantId = typeof participant === 'string' ? participant : (participant?.npcId || participant?.id);
+            if (!participantId) {
+                push('dialogue-participant', `${scope} has participant without id`);
+                continue;
+            }
+            participantIds.add(participantId);
+            if (!TownNPCDatabase[participantId]) push('dialogue-participant', `${scope} references missing participant ${participantId}`);
+        }
+
+        for (const [index, line] of (dialogue?.lines || []).entries()) {
+            const actorId = line?.actorId || line?.npcId;
+            if (actorId && actorId !== 'player' && actorId !== 'system' && !participantIds.has(actorId)) {
+                push('dialogue-line-actor', `${scope}.lines[${index}] references actor ${actorId} outside participants`);
+            }
+            if (actorId && actorId !== 'player' && actorId !== 'system' && !TownNPCDatabase[actorId]) {
+                push('dialogue-line-actor', `${scope}.lines[${index}] references missing actor ${actorId}`);
+            }
+            if (!line?.text) push('dialogue-line-text', `${scope}.lines[${index}] has no text`);
+        }
+    }
+}
 
 function checkPool(scope, pool) {
     const entries = [

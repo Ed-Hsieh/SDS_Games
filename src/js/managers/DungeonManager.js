@@ -16,7 +16,15 @@ import {
 import GameManager from './GameManager.js';
 
 // 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { DungeonDatabase, DungeonType, DungeonState, DungeonEntranceConfig, generateFloorEvent };
+export {
+    DungeonDatabase,
+    DungeonType,
+    DungeonState,
+    DungeonEntranceConfig,
+    generateDungeonMonster,
+    generateDungeonBoss,
+    generateFloorEvent
+};
 
 class DungeonManagerClass {
     constructor() {
@@ -581,7 +589,7 @@ class DungeonManagerClass {
                 type: 'boss',
                 floor: this.currentFloor,
                 message: `你到達了最深處... ${this.currentDungeon.monsters.boss.name} 正等待著你！`,
-                boss: generateDungeonBoss(this.currentDungeon.id)
+                boss: generateDungeonBoss(this.currentDungeon.id, this.currentFloor)
             };
         }
         
@@ -715,6 +723,4 @@ class DungeonManagerClass {
 export const dungeonManager = new DungeonManagerClass();
 
 // 向後兼容
-export { DungeonManagerClass as DungeonSystemClass };
-export const DungeonSystem = dungeonManager;
 export default DungeonManagerClass;

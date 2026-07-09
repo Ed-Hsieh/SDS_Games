@@ -41,14 +41,14 @@ const TownRules = Object.freeze({
             note: '第一章情報入口：書記、百科與成就。'
         },
         market: {
-            visible: true,
-            stage: TownRuntimeStage.CHAPTER_1_INITIAL,
-            note: '第一章半開市集：先保留基礎補給，不顯示完整人群。'
+            visibleWhen: [{ anyFlags: ['town.apothecary.problem_named', 'town.supply.route_problem_named', 'town.supply.first_route_open', 'town.apothecary.stock_basic_potion'] }],
+            stage: TownRuntimeStage.CHAPTER_1_RECOVERY,
+            hiddenReason: '市集要等藥棚、補給線或基礎庫存被故事提起後再回到城鎮畫面。'
         },
         forge: {
-            visible: true,
-            stage: TownRuntimeStage.CHAPTER_1_INITIAL,
-            note: '第一章冷爐：鐵匠可見，功能由任務逐步接上。'
+            visibleWhen: [{ anyFlags: ['town.forge.problem_named', 'town.blacksmith.forge_open', 'town.mine.route_problem_named'] }],
+            stage: TownRuntimeStage.CHAPTER_1_RECOVERY,
+            hiddenReason: '冷爐要等裝備壓力與斷鉤問題被故事提起後再回到城鎮畫面。'
         },
         alley: {
             visibleWhen: [{ anyFlags: ['secretShopUnlocked', 'town.black_market.contact_open', 'town.black_market.rules_explained'] }],

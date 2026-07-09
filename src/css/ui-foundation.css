@@ -1993,61 +1993,6 @@ input {
     text-align: right;
 }
 
-.ledger-actions {
-    flex: 0 0 auto;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-}
-
-.ledger-clue-shortcut {
-    min-height: 30px;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 0 10px;
-    border: 1px solid rgba(125, 211, 252, 0.24);
-    border-radius: 4px;
-    background:
-        linear-gradient(180deg, rgba(125, 211, 252, 0.11), rgba(125, 211, 252, 0.025)),
-        rgba(3, 6, 8, 0.48);
-    color: rgba(219, 234, 254, 0.86);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 900;
-    letter-spacing: 0;
-}
-
-.ledger-clue-shortcut:hover,
-.ledger-clue-shortcut:focus-visible,
-.ledger-clue-shortcut.is-active {
-    border-color: rgba(125, 211, 252, 0.52);
-    background:
-        linear-gradient(180deg, rgba(125, 211, 252, 0.2), rgba(125, 211, 252, 0.055)),
-        rgba(7, 12, 18, 0.72);
-    color: rgba(237, 242, 244, 0.96);
-    outline: none;
-}
-
-.ledger-clue-shortcut b {
-    min-width: 20px;
-    height: 20px;
-    display: inline-grid;
-    place-items: center;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: rgba(125, 211, 252, 0.14);
-    color: rgba(255, 247, 230, 0.9);
-    font-size: 11px;
-}
-
-.ledger-clue-shortcut.has-clues b {
-    background: rgba(233, 189, 101, 0.22);
-    color: rgba(255, 232, 170, 0.96);
-}
-
 .quest-tabs.handbook-tabs {
     display: grid !important;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -5046,6 +4991,7 @@ body {
 
 .battle-modal .player-info-bar,
 .combat-panel-bottom .player-info-bar {
+    position: relative !important;
     min-width: 0 !important;
     padding: 10px 12px !important;
     gap: 12px !important;
@@ -7986,9 +7932,9 @@ body {
     border: 1px solid rgba(132, 186, 198, 0.22);
     border-radius: 9px;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: 28px minmax(0, 1fr);
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     background: rgba(5, 9, 12, 0.42);
     color: rgba(237, 242, 244, 0.86);
     cursor: pointer;
@@ -8006,6 +7952,26 @@ body {
 .traveler-handbook-action span {
     font-size: 15px;
     line-height: 1;
+}
+
+.traveler-handbook-action-icon {
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(233, 189, 101, 0.2);
+    border-radius: 7px;
+    background:
+        radial-gradient(circle at 50% 32%, rgba(233, 189, 101, 0.2), transparent 64%),
+        rgba(2, 5, 8, 0.64);
+}
+
+.traveler-handbook-action-icon img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
 }
 
 .traveler-handbook-action b {
@@ -9436,6 +9402,14 @@ body {
         0 0 24px rgba(220, 38, 38, 0.44),
         0 2px 8px rgba(0, 0, 0, 0.86) !important;
     animation: combatPlayerDamageFloat 0.9s cubic-bezier(0.18, 1.18, 0.26, 1) forwards !important;
+}
+
+.player-damage-number.damage-player-heal {
+    color: #86efac !important;
+    text-shadow:
+        0 0 12px rgba(34, 197, 94, 0.92),
+        0 0 24px rgba(16, 185, 129, 0.42),
+        0 2px 8px rgba(0, 0, 0, 0.86) !important;
 }
 
 .player-damage-number.damage-player-heavy {
@@ -12125,8 +12099,45 @@ body {
     background: rgba(8, 12, 16, 0.56);
 }
 
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line.is-narration {
+    padding: 6px 4px;
+    border-color: transparent;
+    background: transparent;
+    opacity: 0.86;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line.is-narration.is-current {
+    border-color: transparent;
+    background: transparent;
+    opacity: 1;
+}
+
 .town-dialogue-card:not(.is-topic-mode) .town-dialogue-line-icon {
     display: none;
+}
+
+.town-dialogue-card.is-multi-speaker:not(.is-topic-mode) .town-dialogue-line {
+    grid-template-columns: 46px minmax(0, 1fr) !important;
+    gap: 10px;
+}
+
+.town-dialogue-card.is-multi-speaker:not(.is-topic-mode) .town-dialogue-line-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(233, 189, 101, 0.22);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(233, 189, 101, 0.14), transparent 58%),
+        rgba(0, 0, 0, 0.32);
+    color: #f5d889;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.town-dialogue-card.is-multi-speaker:not(.is-topic-mode) .town-dialogue-line.is-past .town-dialogue-line-icon {
+    opacity: 0.62;
 }
 
 .town-dialogue-card:not(.is-topic-mode) .town-dialogue-line-copy strong {
@@ -12139,12 +12150,39 @@ body {
     line-height: 1.72;
 }
 
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-line.is-narration .town-dialogue-line-copy p {
+    margin-top: 0;
+    color: rgba(237, 242, 244, 0.78);
+    font-size: 19px;
+    font-weight: 650;
+    line-height: 1.82;
+}
+
 .town-dialogue-card:not(.is-topic-mode) .town-dialogue-effects {
     grid-area: effects;
 }
 
 .town-dialogue-card:not(.is-topic-mode) .town-dialogue-actions {
     grid-area: actions;
+    align-items: center;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-mode {
+    min-width: 110px;
+    min-height: 38px;
+    margin-right: auto;
+    border: 1px solid rgba(106, 176, 209, 0.34);
+    border-radius: 8px;
+    background: rgba(23, 49, 64, 0.42);
+    color: rgba(190, 224, 241, 0.92);
+    cursor: pointer;
+    font-weight: 900;
+}
+
+.town-dialogue-card:not(.is-topic-mode) .town-dialogue-mode.is-active {
+    border-color: rgba(233, 189, 101, 0.62);
+    background: rgba(233, 189, 101, 0.14);
+    color: rgba(255, 225, 151, 0.96);
 }
 
 @media (max-width: 900px) {

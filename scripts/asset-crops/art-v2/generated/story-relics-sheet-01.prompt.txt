@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "story-relics".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-ancient_loom_shuttle, arcane_core_gear, black_bark_guardian_core, black_flame_ash_vial, bran_bloodied_diary, burned_knight_diary, deep_sea_orb, demon_seal_fragment, dragon_nest_mana_crystal, frostbreaker_blueprint, frozen_anvil_inscription, julian_tablet_rubbing, last_human_edge, lich_staff_remnant, living_black_rock, weaving_clan_scroll
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

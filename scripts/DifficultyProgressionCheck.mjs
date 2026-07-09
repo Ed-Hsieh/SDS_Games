@@ -7,7 +7,7 @@ import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { ObjectiveType, QuestDatabase } from '../src/js/data/Quests.js';
-import { applyMonsterCombatBalance, getMonsterCombatRank } from '../src/js/data/CombatBalance.js';
+import { getMonsterCombatRank } from '../src/js/data/CombatBalance.js';
 import {
     calculateMaxExp,
     getAffixHpBonus,
@@ -138,9 +138,7 @@ function applyLevelUps(character) {
 function prepareMonster(monsterId) {
     const monster = MonsterDatabase[monsterId];
     if (!monster) throw new Error(`Unknown monster: ${monsterId}`);
-    const cloneMonster = clone(monster);
-    applyMonsterCombatBalance(cloneMonster);
-    return cloneMonster;
+    return clone(monster);
 }
 
 function tryEquip(state, item) {
@@ -472,6 +470,7 @@ function runMatchup(playerScenario, monsterId) {
 
 function runGateChecks() {
     const players = {
+        lv1Unarmed: createScenarioPlayer('lv1_unarmed', 1, []),
         earlyJunk: createScenarioPlayer('early_rusty_no_armor', 1, ['old_sword']),
         earlyUncommon: createScenarioPlayer('early_uncommon', 5, ['wolf_fang_blade', 'wolf_pelt_armor']),
         midWeak: createScenarioPlayer('mid_weak', 12, ['bone_sword', 'ghost_cloak', 'shadow_badge']),
@@ -481,6 +480,9 @@ function runGateChecks() {
     };
 
     return [
+        runMatchup(players.lv1Unarmed, 'orc_warrior'),
+        runMatchup(players.lv1Unarmed, 'poison_spider'),
+        runMatchup(players.lv1Unarmed, 'stone_golem_mini'),
         runMatchup(players.earlyJunk, 'poison_spider'),
         runMatchup(players.earlyUncommon, 'forest_guardian'),
         runMatchup(players.midWeak, 'shadow_mage'),
@@ -533,7 +535,6 @@ function runGuidedEarlyQuestSimulation() {
     const steps = [
         { questId: 'main_001' },
         { questId: 'main_002', fights: Array(5).fill('slime') },
-        { questId: 'bounty_001', fights: Array(5).fill('slime') },
         { questId: 'bounty_002', fights: Array(8).fill('goblin') },
         { questId: 'main_003' }
     ];
@@ -671,6 +672,9 @@ function validateReport(report) {
     assertAtLeast(issues, 'guided early quest upgraded weapon rate', guided.upgradedWeaponRate, 0.35);
     assertAtMost(issues, 'guided early quest material share from quests', guided.questMaterialShare, 0.30);
 
+    assertAtLeast(issues, 'lv1 unarmed vs orc warrior ratio', byKey['lv1_unarmed:orc_warrior'].ratio, 2.0);
+    assertAtLeast(issues, 'lv1 unarmed vs poison spider ratio', byKey['lv1_unarmed:poison_spider'].ratio, 2.0);
+    assertAtLeast(issues, 'lv1 unarmed vs stone golem ratio', byKey['lv1_unarmed:stone_golem_mini'].ratio, 2.0);
     assertAtLeast(issues, 'early rusty no armor vs poison spider ratio', byKey['early_rusty_no_armor:poison_spider'].ratio, 1.05);
     assertAtLeast(issues, 'early uncommon vs forest guardian ratio', byKey['early_uncommon:forest_guardian'].ratio, 2.5);
     assertAtLeast(issues, 'mid weak vs shadow mage ratio', byKey['mid_weak:shadow_mage'].ratio, 1.1);

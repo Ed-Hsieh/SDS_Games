@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "monsters".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-ambush_mantis, ancient_guardian, ancient_mage, ancient_titan, ancient_treant, animated_armor, ash_baron, blood_moon_stag, cave_bat, cave_rat, cave_spider, crystal_golem, demon_general, demon_king, demon_lord_asariel, demon_soldier, dragon_knight, drake, drowned_oracle, earth_elemental, elder_dragon, elemental_lord, fire_elemental, forest_guardian, frost_giant
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

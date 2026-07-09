@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "shop-items".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-ancient_coin, ancient_tome, berserker_potion, defense_potion, dragon_blade, elixir, emergency_potion, fatal_reading_manual, first_aid_potion, guard_memory_manual, health_potion, immortal_elixir, lucky_charm, lucky_potion, map_fragment, mithril_blade, phoenix_armor, quick_rhythm_manual, sharp_focus_manual, silver_ring, silver_thread_bait, steel_armor, strength_potion, time_amulet
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

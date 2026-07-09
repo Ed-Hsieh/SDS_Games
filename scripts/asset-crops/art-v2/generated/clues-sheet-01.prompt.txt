@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "clues".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-abyss_vanguard_oath, ancient_key, ash_ledger_page, black_bark_sample, black_market_ticket, blood_chip, bloodied_arrow_pouch, broken_horn_map, carved_stone_shard, casino_chip_bundle, casino_prize_case, cracked_crown_mark, dragon_heat_trace, dragon_nest_resonance, drowned_bell_rubbing, dungeon_token, enhance_scroll, forbidden_blueprint_fragment, green_bargain_mark, hunter_board_notice, legendary_weapon_box, mist_tablet_rubbing, moon_moss_sample, mystery_box, oracle_shell
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

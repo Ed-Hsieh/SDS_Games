@@ -2,74 +2,56 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <title>EquipmentScore — UI</title>
+  <title>Equipment Balance Check</title>
   <style>
-    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
-    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:1000px;margin:0 auto}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:8px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left}
-    th{background:rgba(255,255,255,0.02)}
-    .controls{display:flex;gap:8px}
-    .btn{background:#163341;color:#dff0ff;padding:8px 10px;border-radius:6px;border:0;cursor:pointer}
+    body {
+      margin: 24px;
+      background: #07101a;
+      color: #eaf3ff;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    .card {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid rgba(122, 169, 199, 0.28);
+      border-radius: 8px;
+      background: #0e1a24;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #ffd166;
+    }
+
+    p {
+      line-height: 1.7;
+      color: #c9d6df;
+    }
+
+    pre {
+      padding: 14px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #ffe3a3;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>EquipmentScore — 裝備評分</h2>
-    <div class="controls"><button id="run" class="btn">執行評分</button></div>
-    <div id="out"></div>
-  </div>
-
-  <script>
-  (function(){
-    const out = document.getElementById('out');
-    out.innerHTML = '<div id="tableWrap"></div>';
-
-    // Attempt to load EquipmentBalanceCheck_v3.js as a classic script (it defines evaluateItem globally)
-    const scoreScript = document.createElement('script');
-    scoreScript.src = '../EquipmentBalanceCheck.js';
-    scoreScript.onload = async function(){
-      // Try to import Equipment DB
-      let EquipmentDB = null;
-      try{
-        const mod = await import('../../src/js/data/Equipment.js');
-        EquipmentDB = mod.EquipmentDatabase || mod.default || mod;
-      }catch(e){ console.warn('Could not import Equipment.js', e); }
-
-      const items = EquipmentDB ? (Array.isArray(EquipmentDB) ? EquipmentDB : Object.values(EquipmentDB)) : [ { name:'虛空之刃', type:'weapon', level:30, rarity:'legendary', stats:{ attack:80, critChance:25, critDamage:3.0 }, specialEffects:[{type:'armor_pierce',value:30},{type:'life_steal',value:15}] }, { name:'史萊姆劍', type:'weapon', level:1, rarity:'uncommon', stats:{ attack:12, critChance:5 }, specialEffects:[{type:'life_steal',value:3}] } ];
-
-      // Use global evaluateItem if provided by the loaded script, otherwise fallback
-      const scorer = window.evaluateItem || window.evaluate_item || null;
-
-      function fallback(item){
-        // Basic fallback calculation (kept minimal)
-        const stats = item.stats || {};
-        let score = (stats.attack||0) * 1 + (stats.defense||0) * 2.5 + (stats.hp||0) * 0.2;
-        const cc = stats.critChance || 0; score += (cc>0 && cc<=1 ? cc*100 : cc) * 1.5;
-        const cd = stats.critDamage || 0; let cdPct = 0; if(cd>10) cdPct=cd; else if(cd>=1.1) cdPct=(cd-1)*100; else if(cd>0) cdPct=cd*100; score += cdPct * 0.8;
-        return { score: Math.floor(score), target: Math.max(10, (item.level||1) * 4), ratio: (score / Math.max(1, (item.level||1)*4)).toFixed(2), rank: 'N/A' };
-      }
-
-      function render(){
-        const wrap = document.getElementById('tableWrap'); wrap.innerHTML='';
-        const t = document.createElement('table');
-        const thead = document.createElement('thead'); thead.innerHTML='<tr><th>名稱</th><th>等級</th><th>分數</th><th>及格分</th><th>倍數</th><th>評級</th></tr>'; t.appendChild(thead);
-        const tbody = document.createElement('tbody');
-        items.forEach(it=>{
-          const res = scorer ? scorer(it) : fallback(it);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${it.name||it.id}</td><td>${it.level||''}</td><td>${res.score}</td><td>${res.target||''}</td><td>${res.ratio}</td><td>${res.rank||''}</td>`;
-          tbody.appendChild(tr);
-        });
-        t.appendChild(tbody); wrap.appendChild(t);
-      }
-
-      document.getElementById('run').addEventListener('click', render);
-      render();
-    };
-    scoreScript.onerror = function(e){ document.getElementById('out').textContent = 'Failed to load scoring script.'; };
-    document.body.appendChild(scoreScript);
-  })();
-  </script>
+  <main class="card">
+    <h1>裝備平衡檢查</h1>
+    <p>
+      這個檢查器是 Node 腳本，不再提供瀏覽器版資料載入。
+      這樣可以避免瀏覽器頁面和實際平衡腳本各自維護一套邏輯。
+    </p>
+    <p>在專案根目錄執行：</p>
+    <pre>node scripts\EquipmentBalanceCheck.js</pre>
+    <p>需要 JSON 輸出時執行：</p>
+    <pre>node scripts\EquipmentBalanceCheck.js --json</pre>
+  </main>
 </body>
 </html>

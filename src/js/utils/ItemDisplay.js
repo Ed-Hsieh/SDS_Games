@@ -627,12 +627,13 @@ function braceValue(value) {
 function buildWeaponProfileDisplay(profile = {}) {
     const id = profile.id || 'weapon';
     if (id === 'sword') {
-        const value = `+${formatPlainNumber(profile.critTempoPercent || 0)}% 攻擊速度`;
+        const perStack = `${formatPlainNumber((profile.steadyStanceHitZoneBonus || 0) * 100)}% 命中區/層`;
+        const maxStacks = formatPlainNumber(profile.steadyStanceMaxStacks || 1);
         return {
-            valueText: value,
-            abilityText: profile.label || 'Blade Tempo',
-            description: `暴擊時獲得 ${braceValue(value)}，可在戰鬥中堆疊。`,
-            iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
+            valueText: `${maxStacks} 層`,
+            abilityText: profile.label || 'Steady Stance',
+            description: `命中或暴擊後獲得 {穩定架勢}，每層 ${braceValue(perStack)}；失誤後清空。`,
+            iconHtml: getEffectIconHtml({ type: 'hit', name: profile.label }, '⚔️')
         };
     }
     if (id === 'dagger') {
@@ -646,24 +647,23 @@ function buildWeaponProfileDisplay(profile = {}) {
         };
     }
     if (id === 'heavy') {
-        const defense = formatPlainNumber(profile.armorBreakMinDefense || 0);
-        const value = `${formatPlainNumber(profile.armorBreakPercent || 0)}% 破甲`;
+        const value = `${formatPlainNumber(profile.bulwarkGuardReductionPercent || 0)}% 減傷`;
         return {
             valueText: value,
-            abilityText: profile.label || 'Guard Break',
-            description: `暴擊或命中防禦達 ${braceValue(defense)} 的目標時造成 ${braceValue(value)}。`,
-            iconHtml: getEffectIconHtml({ type: 'armorPenetration', name: profile.label }, '⚔️')
+            abilityText: profile.label || 'Bulwark Guard',
+            description: `命中且穿戴護甲時獲得一次 ${braceValue(value)}。副手改裝武器時不會觸發。`,
+            iconHtml: getEffectIconHtml({ type: 'damageReduction', name: profile.label }, '⚔️')
         };
     }
     if (id === 'focus') {
-        const chance = `${formatPlainNumber(profile.slowChance || 0)}% 機率`;
-        const value = `${formatPlainNumber(profile.slowPercent || 0)}% 緩速`;
-        const duration = `${formatPlainNumber(profile.slowDuration || 0)} 秒`;
+        const stacks = formatPlainNumber(profile.resonanceStacksRequired || 2);
+        const value = `${formatPlainNumber(profile.resonanceElementBonusPercent || 0)}% 強化`;
+        const bolt = `${formatPlainNumber((profile.magicBoltDamageRatio || 0.45) * 100)}% 傷害`;
         return {
-            valueText: value,
-            abilityText: profile.label || 'Focus Cast',
-            description: `暴擊時有 ${braceValue(chance)} 施加 ${braceValue(value)}，持續 ${braceValue(duration)}。`,
-            iconHtml: getEffectIconHtml({ type: 'slowChance', name: profile.label }, '⚔️')
+            valueText: `${stacks} 層共鳴`,
+            abilityText: profile.label || 'Arcane Resonance',
+            description: `命中累積共鳴；滿 ${braceValue(stacks)} 層後強化火/冰/雷/毒 ${braceValue(value)}。沒有元素時釋放 ${braceValue(bolt)} 的魔法彈。`,
+            iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
         };
     }
     if (id === 'lance') {
@@ -674,15 +674,6 @@ function buildWeaponProfileDisplay(profile = {}) {
             abilityText: profile.label || 'Piercing Line',
             description: `暴擊或命中防禦達 ${braceValue(defense)} 的目標時獲得 ${braceValue(value)}。`,
             iconHtml: getEffectIconHtml({ type: 'armorPenetration', name: profile.label }, '⚔️')
-        };
-    }
-    if (id === 'slime_sword') {
-        const value = `${formatPlainNumber(profile.lifestealMin || 0)}-${formatPlainNumber(profile.lifestealMax || profile.lifestealMin || 0)} 生命`;
-        return {
-            valueText: value,
-            abilityText: profile.label || 'Slime Drain',
-            description: `命中且自身受傷時回復 ${braceValue(value)}。`,
-            iconHtml: getEffectIconHtml({ type: 'lifesteal', name: profile.label }, '⚔️')
         };
     }
     return {
@@ -696,6 +687,9 @@ function buildWeaponProfileDisplay(profile = {}) {
 function buildGenericEffectDescription(entry = {}) {
     if (entry.type === 'empty') return '尚未附帶可觸發的戰鬥效果。';
     const valueText = entry.valueText || '';
+    if (entry.type === 'lifesteal' && valueText) {
+        return `造成傷害時回復 ${braceValue(valueText)} 生命。`;
+    }
     const sourceText = entry.description || describeEffectDisplayText(entry.type) || entry.triggerText || '戰鬥中觸發。';
     return valueText && !sourceText.includes('{')
         ? `${sourceText} ${braceValue(valueText)}`

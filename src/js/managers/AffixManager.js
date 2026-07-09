@@ -310,6 +310,4 @@ export class AffixManager {
 export const affixManager = new AffixManager();
 
 // 向後兼容
-export { AffixManager as AffixSystem };
-export const affixSystem = affixManager;
 export default AffixManager;

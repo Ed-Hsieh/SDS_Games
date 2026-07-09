@@ -279,6 +279,33 @@
     background: rgba(14, 43, 57, 0.94);
 }
 
+.dialogue-test-tab {
+    position: absolute;
+    right: 18px;
+    top: 64px;
+    z-index: 15;
+    border: 1px solid rgba(216, 181, 95, 0.34);
+    border-radius: 6px;
+    background: rgba(26, 20, 13, 0.86);
+    color: #f3d990;
+    padding: 9px 12px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+.dialogue-test-tab:hover,
+.dialogue-test-tab:focus-visible {
+    border-color: rgba(244, 211, 122, 0.78);
+    background: rgba(45, 34, 18, 0.94);
+}
+
+.adventure-dialogue-modal .town-dialogue-card {
+    box-shadow:
+        0 28px 80px rgba(0, 0, 0, 0.62),
+        0 0 0 1px rgba(216, 181, 95, 0.12);
+}
+
 @keyframes clueBookPulse {
     0%, 100% { box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28); }
     50% { box-shadow: 0 0 24px rgba(216, 181, 95, 0.5); }

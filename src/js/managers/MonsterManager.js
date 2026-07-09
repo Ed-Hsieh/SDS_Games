@@ -12,7 +12,6 @@ import {
     TowerMonsters,
     MonsterType
 } from '../data/Monsters.js';
-import { applyMonsterCombatBalance } from '../data/CombatBalance.js';
 
 export function getMonster(monsterId) {
     return AllMonsters.find(m => m.id === monsterId) || null;
@@ -51,7 +50,7 @@ export function createMonsterInstance(monsterOrId) {
     const atk = template.atk ?? template.attack ?? 0;
     const def = template.def ?? template.defense ?? 0;
 
-    return applyMonsterCombatBalance({
+    return {
         ...template,
 
         // base identity
@@ -88,14 +87,16 @@ export function createMonsterInstance(monsterOrId) {
 
         buffs: [],
         debuffs: []
-    });
+    };
 }
 
 export function createRandomMonsterForZone(zoneType, rng = Math.random) {
     let candidates = [];
     switch (zoneType) {
         case 'low':
-            candidates = LowLevelMonster.slice();
+            candidates = LowLevelMonster
+                .filter(monster => Number(monster.level) <= 5)
+                .slice();
             break;
         case 'medium':
             candidates = MediumLevelMonster.slice();

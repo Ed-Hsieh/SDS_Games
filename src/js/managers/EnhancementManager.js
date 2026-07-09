@@ -551,6 +551,4 @@ export class EnhancementManager {
 
 export const enhancementManager = new EnhancementManager();
 
-export { EnhancementManager as EnhancementSystem };
-export const enhancementSystem = enhancementManager;
 export default EnhancementManager;

@@ -197,6 +197,7 @@ export function getBuffValue(character, buffType) {
 export function tickBuffs(character) {
     if (!character.activeBuffs) return;
     character.activeBuffs = character.activeBuffs.filter(buff => {
+        if (buff.persistent) return true;
         buff.duration--;
         return buff.duration > 0;
     });

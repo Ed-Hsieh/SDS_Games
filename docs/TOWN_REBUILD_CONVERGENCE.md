@@ -1,6 +1,6 @@
 # Town Rebuild Convergence
 
-Last updated: 2026-07-05
+Last updated: 2026-07-08
 
 ## Purpose
 
@@ -93,6 +93,14 @@ loading for fake consequences.
 Humor is character-based, not situation-based. A warm NPC may use humor in crisis;
 a severe NPC may not. Dialogue should preserve each character's personality instead
 of forcing one tone onto every scene.
+
+Use `docs/NARRATIVE_WRITING_GUIDE.md` for prose rhythm, NPC voice, objective
+clarity, relationship records, and multi-speaker event staging. This town document
+owns town-state recovery and facility gates; the narrative guide owns how those
+changes are written and presented.
+
+Use `docs/MAIN_STORY_BIBLE.md` before changing major NPC entry/exit timing,
+long-form character arcs, or mainline reveals that affect town staging.
 
 ## Next Integration Order
 

@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-06
+Last updated: 2026-07-09
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -22,6 +22,10 @@ agent sessions should read this file before editing content or asset systems.
   for materials and equipment.
 - Do not make every special weapon a sword. Spread special drops across weapon
   types, armor, accessories, materials, and systems.
+- During the clean story rebuild, do not silently add new NPCs, monsters,
+  materials, items, locations, or assets. Propose the story reason, system
+  function, acquisition/source, downstream data changes, asset needs, and
+  validation plan first.
 
 ## Current Documentation Authority
 
@@ -30,7 +34,17 @@ work:
 
 - `docs/TOWN_REBUILD_CONVERGENCE.md`
 - `docs/CHAPTER_QUEST_FRAMEWORK.md`
+- `docs/MAIN_STORY_BIBLE.md`
+- `docs/characters/VILLAGE_ELDER_PROFILE.md`
+- `docs/characters/HERBALIST_PROFILE.md`
+- `docs/characters/TOWN_SCHOLAR_PROFILE.md`
+- `docs/characters/STANDARD_BEARER_FREY_PROFILE.md`
+- `docs/characters/LAMPLIGHTER_TAVI_PROFILE.md`
+- `docs/characters/BLACKSMITH_PROFILE.md`
+- `docs/characters/STREET_BEGGAR_PROFILE.md`
+- `docs/NARRATIVE_WRITING_GUIDE.md`
 - `docs/CASINO_ROUTE_FRAMEWORK.md`
+- `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
 - `docs/ART_STYLE_GUIDE.md`
 - `docs/IMAGE_GENERATION_PROMPTS.md`
 - `docs/OBSOLETE_CLEANUP_PLAN.md`
@@ -78,6 +92,12 @@ rules.
   - `shadow` is the weak precursor to `void`.
   - `glimmer` is the weak precursor to `light`.
   - Shadow materials should begin around Lv24-30, not Lv1-10.
+- Use `docs/EQUIPMENT_SERIES_FRAMEWORK.md` before changing weapon abilities,
+  weapon-form balance, equipment-line roles, or affinity/group positioning.
+- Use `docs/MAIN_STORY_BIBLE.md` before changing mainline story structure,
+  chapter suspense, character entry/exit, or long-form plot reveals.
+- Use `src/js/data/StoryRebuildPlan.js` before removing or reclassifying old
+  story, quest, route, material, or item records during the clean reset.
 
 ## Current Art Status
 

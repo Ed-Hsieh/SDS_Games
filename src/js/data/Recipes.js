@@ -18,7 +18,6 @@
  */
 import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
-import { applyLegacyLevelProgressionToRecipeDatabase } from './ProgressionLevels.js';
 import { SeriesRecipeDatabase } from './RecipeSeries.js';
 
 
@@ -1226,41 +1225,41 @@ const RECIPE_RESULT_LEVELS = Object.freeze({
     leather_armor: 1,
     bone_blade: 3,
     health_potion_basic: 1,
-    greater_health_potion: 4,
-    wolf_cloak: 4,
-    wolf_fang_necklace: 4,
-    poison_dagger: 5,
-    silver_thread_hook: 5,
-    goblin_trickster_charm: 5,
-    guardian_armor: 7,
-    nature_amulet: 7,
-    blood_moon_pendant: 8,
-    bone_soul_staff: 9,
-    gargoyle_bulwark: 10,
-    glimmer_focus: 10,
-    mithril_sword: 12,
-    shadow_blade: 13,
-    shadow_armor: 13,
-    shadow_ring: 13,
-    earthwarden_aegis: 15,
-    frostbound_scepter: 15,
-    hydra_fang_dagger: 15,
-    ice_sword: 16,
-    fire_sword: 18,
-    storm_spear: 20,
-    titan_blade: 18,
-    titan_armor: 18,
-    titan_ring: 18,
-    primal_focus: 21,
-    wyvern_scale_mail: 24,
-    dragon_scale_armor: 25,
-    dragon_amulet: 25,
-    dragon_slayer: 26,
-    assassin_shadow_veil: 27,
-    void_reaver: 28,
-    demonwar_helm: 29,
-    dragon_overlord_crown: 30,
-    slime_crown_ring: 5
+    greater_health_potion: 5,
+    wolf_cloak: 5,
+    wolf_fang_necklace: 5,
+    poison_dagger: 8,
+    silver_thread_hook: 8,
+    goblin_trickster_charm: 8,
+    guardian_armor: 13,
+    nature_amulet: 13,
+    blood_moon_pendant: 15,
+    bone_soul_staff: 18,
+    gargoyle_bulwark: 20,
+    glimmer_focus: 20,
+    mithril_sword: 25,
+    shadow_blade: 28,
+    shadow_armor: 28,
+    shadow_ring: 28,
+    earthwarden_aegis: 33,
+    frostbound_scepter: 33,
+    hydra_fang_dagger: 33,
+    ice_sword: 35,
+    fire_sword: 40,
+    storm_spear: 45,
+    titan_blade: 40,
+    titan_armor: 40,
+    titan_ring: 40,
+    primal_focus: 48,
+    wyvern_scale_mail: 55,
+    dragon_scale_armor: 58,
+    dragon_amulet: 58,
+    dragon_slayer: 60,
+    assassin_shadow_veil: 63,
+    void_reaver: 65,
+    demonwar_helm: 68,
+    dragon_overlord_crown: 70,
+    slime_crown_ring: 8
 });
 
 Object.entries(RecipeDatabase).forEach(([recipeId, recipe]) => {
@@ -1272,7 +1271,6 @@ Object.entries(RecipeDatabase).forEach(([recipeId, recipe]) => {
     recipe.result.requiredLevel ??= level;
 });
 
-applyLegacyLevelProgressionToRecipeDatabase(RecipeDatabase, { skipSeries: true });
 
 /**
  * 根據ID獲取配方

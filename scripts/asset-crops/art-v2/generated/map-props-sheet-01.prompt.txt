@@ -1,8 +1,0 @@
-Create a strict 5 by 5 grid source sheet for SDS_Games category "map-props".
-The canvas must be square. Every cell must be exactly the same size. Use 25 equal cells.
-Place subjects in this exact left-to-right, top-to-bottom order:
-abyss_crack, ancient_ruin_arch, blackflame_tile, boss_lair_silhouette, broken_road_sign, campfire_ashes, carved_stone_tablet, cave_entrance, charred_obelisk_mini, coast_wave, dark_forest_tile, dirt_road, farmland_tile, grassland_tile, herb_patch, hidden_stash_mound, merchant_wagon, mist_hill_tile, notice_board, obsidian_fortress_gate, ore_vein, random_event_spark, river_bend, rotten_ravine_tile, sealed_altar
-Leave unused cells blank. No text, no labels, no numbers, no watermark, no UI frames.
-No overlapping, no object crossing cell boundaries, no cropped-off subjects, no compressed bottom row.
-Style: polished dark fantasy RPG, painterly semi-realistic, clear silhouettes, moody blue shadows and warm accent light.
-Background: dark neutral flat background inside each cell, subtle grid separation allowed.

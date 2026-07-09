@@ -4,8 +4,7 @@
  * 所有裝備都可強化
  */
 
-import { ItemType, ItemRarity } from '../models/Enums.js';
-import { applyLegacyLevelProgressionToDatabase } from './ProgressionLevels.js';
+import { AffixStat, ItemType, ItemRarity } from '../models/Enums.js';
 
 /**
  * 無盡塔 BOSS 裝備
@@ -28,7 +27,7 @@ export const TowerBossEquipment = {
         description: '哥布林首領的匕首，輕巧且攻擊迅速。',
         setId: null,
         canEnhance: true,
-        requiredLevel: 5,
+        requiredLevel: 8,
         dropSource: 'tower_goblin_chief'
     },
     
@@ -49,7 +48,7 @@ export const TowerBossEquipment = {
         description: '來自地獄的騎士鎧甲，散發著灼熱的氣息。',
         setId: 'hell_knight_set',
         canEnhance: true,
-        requiredLevel: 10,
+        requiredLevel: 20,
         dropSource: 'tower_hell_knight'
     },
     
@@ -66,12 +65,14 @@ export const TowerBossEquipment = {
         critDamage: 2.0,
         weaponSpeed: 1.2,
         attackSpeed: 1.3,
-        lifesteal: 0.05,
+        specialEffects: [
+            { type: AffixStat.LIFE_STEAL, value: 5 }
+        ],
         price: 1500,
         description: '深淵魔將的佩劍，帶有吸取生命的詛咒。',
         setId: 'abyss_set',
         canEnhance: true,
-        requiredLevel: 15,
+        requiredLevel: 33,
         dropSource: 'tower_abyss_general'
     },
     
@@ -87,17 +88,18 @@ export const TowerBossEquipment = {
         critChance: 0.12,
         critDamage: 1.8,
         hp: 130,
-        allStatsBonus: 0.08,
+        specialEffects: [
+            { type: AffixStat.ALL_STATS, value: 0.08 }
+        ],
         price: 5000,
         description: '虛空之王的王冠，蘊含扭曲現實的力量。',
         setId: 'void_set',
         canEnhance: true,
-        requiredLevel: 25,
+        requiredLevel: 58,
         dropSource: 'tower_void_king'
     }
 };
 
-applyLegacyLevelProgressionToDatabase(TowerBossEquipment);
 
 /**
  * 套裝效果

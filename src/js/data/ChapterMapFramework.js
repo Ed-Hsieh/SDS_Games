@@ -134,11 +134,11 @@ export const LandmarkMapNodePlan = Object.freeze({
         bossThreadIds: ['forest_guardian']
     },
     mist_tablet_hill: {
-        chapter: 1,
+        chapter: 2,
         type: MapNodeType.ROUTE_CLUE,
         revealRadius: 0,
-        routeRole: 'seal_clue_bridge',
-        bossThreadIds: ['forest_guardian', 'lich']
+        routeRole: 'mist_seal_chapter_entry',
+        bossThreadIds: ['lich', 'drowned_oracle']
     },
     old_wolf_den: {
         chapter: 1,

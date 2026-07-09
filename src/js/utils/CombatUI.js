@@ -80,6 +80,7 @@ function playCombatDamageSound(type, damage, options = {}) {
 }
 
 function getCombatEffectAssetId(effect = {}) {
+    if (effect.assetId) return String(effect.assetId).toLowerCase();
     const raw = String(effect.type || effect.id || '').toLowerCase();
     const map = {
         poison: 'poison',
@@ -251,7 +252,18 @@ function applyMonsterFrame(root, monster) {
 }
 
 function getPlayerDamageAnchor(root) {
-    return find(root, '.player-info-bar, .tower-player-battle-panel, .combat-panel-bottom, .battle-content');
+    const battleModal = root?.matches?.('.battle-modal')
+        ? root
+        : root?.querySelector?.('.battle-modal');
+    const battleModalVisible = battleModal
+        && !battleModal.hidden
+        && battleModal.style?.display !== 'none'
+        && !battleModal.classList?.contains('battle-result-mode');
+    if (battleModalVisible) {
+        return find(battleModal, '.combat-panel-bottom .player-info-bar, .tower-player-battle-panel .player-info-bar, .player-info-bar, .combat-panel-bottom');
+    }
+
+    return find(root, '.tower-player-battle-panel .player-info-bar, .combat-panel-bottom .player-info-bar, .player-info-bar, .tower-player-battle-panel, .combat-panel-bottom, .battle-content');
 }
 
 export function showCombatPlayerDamageNumber(root, damage, options = {}) {
@@ -265,8 +277,11 @@ export function showCombatPlayerDamageNumber(root, damage, options = {}) {
 
     const damageEl = document.createElement('div');
     const heavyThreshold = Number(options.heavyThreshold ?? 20) || 20;
-    damageEl.className = `damage-number player-damage-number damage-player-hit${numericDamage >= heavyThreshold ? ' damage-player-heavy' : ''}`;
-    damageEl.textContent = options.label || `-${numericDamage}`;
+    const type = options.type || 'hit';
+    const isHeal = type === 'heal' || type === 'lifesteal';
+    const typeClass = isHeal ? 'damage-player-heal damage-lifesteal' : 'damage-player-hit';
+    damageEl.className = `damage-number player-damage-number ${typeClass}${!isHeal && numericDamage >= heavyThreshold ? ' damage-player-heavy' : ''}`;
+    damageEl.textContent = options.label || (isHeal ? `+${numericDamage}` : `-${numericDamage}`);
 
     const hpTarget = anchor.querySelector('.info-vital-bars, .vital-row, .vital-bar-track, #player-hp-fill, #hud-hp-bar') || anchor;
     const anchorRect = anchor.getBoundingClientRect();
@@ -608,6 +623,7 @@ export function renderCombatBuffIndicators(container, character) {
         critChance: '🎯',
         critDamage: '💥',
         attackSpeed: '⚡',
+        weaponTrigger: '⚔️',
         armorBreak: '🧨',
         poison: '☠️',
         burn: '🔥',
@@ -621,11 +637,12 @@ export function renderCombatBuffIndicators(container, character) {
             effect: {
                 ...buff,
                 icon: buff.icon || buffIcons[buff.type] || '✨',
-                description: `+${buff.value ?? 0}`
+                description: buff.description || (buff.value != null ? `+${buff.value}` : '')
             },
             options: {
                 key: `buff:${buff.id || buff.type || index}:${index}`,
-                polarity: 'positive'
+                polarity: 'positive',
+                durationText: buff.durationText
             }
         });
     });

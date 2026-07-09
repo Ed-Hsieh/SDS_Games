@@ -28,19 +28,19 @@ export const ChapterOneRouteGroups = Object.freeze([
         id: 'ambush',
         target: ChapterOneRouteTarget.AMBUSH,
         name: '銀絲伏道',
-        questIds: ['main_004'],
+        questIds: ['main_003', 'main_004'],
         landmarkIds: ['hunter_boardwalk', 'old_campfire_site', 'cut_roadsign', 'silver_snare_pass'],
         bossThreadIds: ['ambush_mantis'],
-        summary: '用銀絲、營火警告與誘餌鉤反推伏獵者的出手規律。'
+        summary: '先用銀絲、營火警告與誘餌鉤反推伏獵者的出手規律，再帶著誘餌進入銀絲伏道。'
     },
     {
         id: 'forest',
         target: ChapterOneRouteTarget.FOREST,
         name: '古樹守衛追蹤',
         questIds: ['main_005'],
-        landmarkIds: ['broken_horn_camp', 'rotroot_ravine', 'mist_tablet_hill', 'old_wolf_den'],
+        landmarkIds: ['broken_horn_camp', 'rotroot_ravine', 'old_wolf_den'],
         bossThreadIds: ['forest_guardian'],
-        summary: '把營地、腐根溪谷、霧碑與根心接成古樹守衛的追蹤路線。'
+        summary: '把斷角營地、腐根溪谷與古樹根心接成古樹守衛的追蹤路線；這是第一章主收束，霧碑丘保留為第二章入口。'
     },
     {
         id: 'blood_moon',
@@ -49,7 +49,7 @@ export const ChapterOneRouteGroups = Object.freeze([
         questIds: ['main_006'],
         landmarkIds: ['broken_horn_camp', 'moon_moss_slope'],
         bossThreadIds: ['blood_moon_stag'],
-        summary: '在古樹守衛後，用斷角路線與月苔痕跡縮小角鹿狩獵範圍。'
+        summary: '在古樹守衛後，用斷角路線與月苔痕跡處理森林傷口留下的餘波；它不阻擋第二章主線。'
     }
 ]);
 

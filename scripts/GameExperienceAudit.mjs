@@ -6,10 +6,25 @@ import { getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/Cas
 import { MarketVendors } from '../src/js/data/MarketSupply.js';
 import { getCharacterProfile } from '../src/js/data/CharacterProfiles.js';
 import { getEquipmentPowerBudget } from '../src/js/data/EquipmentBalance.js';
+import { TownDialogueDatabase } from '../src/js/data/NPCDialogues.js';
+import { WorldInteractionDatabase } from '../src/js/data/WorldInteractions.js';
 
 const issues = [];
 const warnings = [];
 const summary = {};
+const NARRATIVE_META_TERMS = [
+    '玩家',
+    '系統',
+    'UI',
+    '設計',
+    '功能按鈕',
+    'NPC',
+    '提醒玩家',
+    '任務櫃台',
+    '支線裝飾',
+    '應該',
+    '之後'
+];
 
 const CASINO_POOL_POWER_LIMITS = {
     1: { common: 14, uncommon: 22, rare: 32, epic: 42, legendary: 52 },
@@ -344,12 +359,49 @@ function auditMarket() {
     summary.market = vendorSummary;
 }
 
+function auditNarrativeVoice() {
+    const matches = [];
+
+    function check(scope, value) {
+        if (!hasText(value)) return;
+        const terms = NARRATIVE_META_TERMS.filter(term => value.includes(term));
+        if (terms.length === 0) return;
+        matches.push({ scope, terms, text: value });
+        addWarning('敘事文字疑似殘留開發語氣', { scope, terms, text: value });
+    }
+
+    for (const [npcId, dialogues] of Object.entries(TownDialogueDatabase || {})) {
+        for (const dialogue of dialogues || []) {
+            const dialogueScope = `TownDialogue.${npcId}.${dialogue.id}`;
+            check(`${dialogueScope}.narrativeTitle`, dialogue.narrativeTitle);
+            check(`${dialogueScope}.narrativeSummary`, dialogue.narrativeSummary);
+            for (const [index, line] of (dialogue.lines || []).entries()) {
+                check(`${dialogueScope}.lines[${index}]`, line?.text);
+            }
+        }
+    }
+
+    for (const [interactionId, interaction] of Object.entries(WorldInteractionDatabase || {})) {
+        const interactionScope = `WorldInteraction.${interactionId}`;
+        check(`${interactionScope}.message`, interaction.message);
+        check(`${interactionScope}.repeatMessage`, interaction.repeatMessage);
+        check(`${interactionScope}.missingMessage`, interaction.missingMessage);
+    }
+
+    summary.narrativeVoice = {
+        scannedTownDialogues: Object.values(TownDialogueDatabase || {}).flat().length,
+        scannedWorldInteractions: Object.keys(WorldInteractionDatabase || {}).length,
+        warnings: matches.length
+    };
+}
+
 auditMainStory();
 auditSideStories();
 auditWorldEvents();
 auditDungeons();
 auditCasino();
 auditMarket();
+auditNarrativeVoice();
 
 const result = {
     ok: issues.length === 0,

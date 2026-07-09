@@ -1,6 +1,6 @@
 # Chapter Quest Framework
 
-Last updated: 2026-07-05
+Last updated: 2026-07-08
 
 ## Purpose
 
@@ -12,6 +12,11 @@ Combat redesign and tower rewrite are paused. This framework only defines where
 story and systems should land.
 
 ## Runtime Spine Files
+
+These files are current scaffolding for systems and validation, not approved
+canon after the clean narrative reset. Do not treat their plot content as final
+until `docs/MAIN_STORY_BIBLE.md` defines the central mystery, character arcs, and
+seven chapter promises.
 
 - `src/js/data/ChapterMapFramework.js` is the current map-route spine. It removes
   the old visible low/medium/high/death route identity and maps existing
@@ -45,17 +50,47 @@ Dungeons are not mandatory mainline fillers. They should exist across level band
 as side-story and equipment-support routes. If a dungeon is moved into the main
 chapter route, the plan needs to say why before implementation.
 
+## Narrative Writing Authority
+
+Use `docs/NARRATIVE_WRITING_GUIDE.md` before rewriting quest prose, NPC dialogue,
+landmark descriptions, relationship records, or multi-speaker scenes. This
+chapter framework owns placement and meaning beats; the narrative guide owns the
+voice, scene rhythm, objective clarity, and staging rules.
+
+Use `docs/MAIN_STORY_BIBLE.md` before changing the central mystery, chapter
+reveals, character entry/exit, or long-form plot structure. This chapter
+framework should follow the accepted story bible, not invent plot twists inside
+reward or quest-placement tables.
+
 ## Chapter Spine
 
 | Chapter | Level | Title | Core Focus |
 | ---: | ---: | --- | --- |
-| 1 | 1-10 | 破門之後 | Broken town, south gate, first NPC recovery, basic survival routes. |
-| 2 | 11-20 | 霧碑與沉鐘 | Roads widen, market supply begins, coast/ruin clues introduce larger pressure. |
-| 3 | 21-30 | 黑鐵與暗影前兆 | Shadow soldiers, black iron routes, first shadow precursor sources around Lv24-30. |
-| 4 | 31-40 | 四相裂線 | Fire, ice, thunder, and poison fronts compete at similar strength. |
-| 5 | 41-50 | 龍脈與遠征契約 | Advanced forge, elite preparation, dragon/northern route pressure. |
-| 6 | 51-60 | 深淵交易 | Void pressure, forbidden sources, casino/black-market consequences become serious. |
-| 7 | 61-70 | 微光成明 | Glimmer-to-light bridge, terminal town preparation, Lv70 radiant dungeon access. |
+| 1 | 1-10 | 不響的鐘 / The Bell That Would Not Ring | Broken town, south gate, first route investigation, early equipment pressure, `forest_guardian` convergence. |
+| 2 | 11-20 | 斷路上的藥味 / Medicine On The Broken Road | Supply, medicine, market recovery, old evacuation records, `lich` convergence. |
+| 3 | 21-30 | 影子仍守夜 / Shadows Still Keep Watch | Shadow precursor routes, old orders, rumor pressure, `shadow_commander` convergence. |
+| 4 | 31-40 | 石心與灰雨 / Stone Heart, Ash Rain | Stone routes, forge weight, regional instability, `ancient_titan` or `ash_baron` convergence. |
+| 5 | 41-50 | 元素失衡 / The Elements Lose Their Shape | Elemental fronts, dungeon preparation, advanced forge planning, `elemental_lord` convergence. |
+| 6 | 51-60 | 龍看見舊約 / The Dragon Remembers The Pact | Dragon route pressure, high-tier preparation, old pact reveal, `elder_dragon` convergence. |
+| 7 | 61-70 | 裂鐘回聲 / Echoes Of The Broken Bell | Final town network test, forbidden shortcuts, void/light pressure, `demon_lord_asariel` convergence. |
+
+## Chapter 1 Runtime Target
+
+Chapter 1 should land before later chapter rewrites.
+
+- Start town state: only `village_elder`, `town_scholar`, and south gate access
+  are clearly active.
+- First objective: investigate three nearby route landmarks and record whether
+  the roads still show footprints, smoke, or monster traces.
+- First pressure: fatigue, fog, weak equipment, and the need to survive with
+  limited resources.
+- First combat clue: `ambush_mantis` can teach that monsters are evidence, not
+  only loot containers.
+- First boss: `forest_guardian` is the convergence of broken route signal, forest
+  reaction, and the cracked bell mystery.
+- First reward direction: route clarity, handbook records, modest survival
+  supplies, and a controlled path toward forge/market recovery. Avoid excess
+  material rewards.
 
 ## Placement Rules
 
@@ -104,6 +139,8 @@ chapter route, the plan needs to say why before implementation.
 
 ## Open Implementation Work
 
+- Rebuild the seven-chapter story promises before rewriting the playable quest
+  chain.
 - Existing quests still need full reward redistribution by chapter.
 - First-chapter `main_001` now uses `chapter1_route_intro` instead of generic
   low-zone exploration. Later chapter objectives still need the same route-node

@@ -2,7 +2,6 @@
 // 特殊效果類型
 import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
 import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
-import { applyLegacyLevelProgressionToDatabase } from './ProgressionLevels.js';
 
 
 /**
@@ -53,6 +52,7 @@ export const EquipmentDatabase = {
         name: '青凝刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: 'dagger',
         rarity: ItemRarity.EPIC,
         level: 1,
         stats: {
@@ -64,10 +64,10 @@ export const EquipmentDatabase = {
             attackSpeed: 1.2     // 攻擊頻率（每秒）
         },
         specialEffects: [
-            { type: AffixStat.LIFE_STEAL, value: 3 }
+            { type: AffixStat.LIFE_STEAL, value: 30 }
         ],
         setId: null,
-        description: '由史萊姆凝膠包裹的劍，攻擊時能吸取少量生命。',
+        description: '由史萊姆凝膠包裹的短刃，命中時能吸取生命。',
         balanceIntent: 'early_chase_unique',
         dropFrom: ['slime']
     },
@@ -102,7 +102,7 @@ export const EquipmentDatabase = {
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
-        level: 4,
+        level: 5,
         stats: {
             attack: 14,
             defense: 0,
@@ -125,7 +125,7 @@ export const EquipmentDatabase = {
         icon: '🥋',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.UNCOMMON,
-        level: 4,
+        level: 5,
         stats: {
             attack: 2,
             defense: 12,
@@ -145,7 +145,7 @@ export const EquipmentDatabase = {
         icon: '🧤',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.UNCOMMON,
-        level: 5,
+        level: 8,
         stats: {
             attack: 6,
             defense: 7,
@@ -166,7 +166,7 @@ export const EquipmentDatabase = {
         icon: '🌿',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 7,
+        level: 13,
         stats: {
             attack: 18,
             defense: 5,
@@ -189,7 +189,7 @@ export const EquipmentDatabase = {
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
-        level: 7,
+        level: 13,
         stats: {
             attack: 3,
             defense: 15,
@@ -211,7 +211,7 @@ export const EquipmentDatabase = {
         icon: '💀',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
-        level: 7,
+        level: 13,
         stats: {
             attack: 16,
             defense: 0,
@@ -234,7 +234,7 @@ export const EquipmentDatabase = {
         icon: '👻',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
-        level: 8,
+        level: 15,
         stats: {
             attack: 5,
             defense: 10,
@@ -255,7 +255,7 @@ export const EquipmentDatabase = {
         icon: '☠️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 10,
+        level: 20,
         stats: {
             attack: 28,
             defense: 3,
@@ -281,7 +281,7 @@ export const EquipmentDatabase = {
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 11,
+        level: 23,
         stats: {
             attack: 25,
             defense: 0,
@@ -304,7 +304,7 @@ export const EquipmentDatabase = {
         icon: '⚫',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
-        level: 12,
+        level: 25,
         stats: {
             attack: 5,
             defense: 22,
@@ -325,7 +325,7 @@ export const EquipmentDatabase = {
         icon: '🛑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
-        level: 13,
+        level: 28,
         stats: {
             attack: 3,
             defense: 3,
@@ -346,7 +346,7 @@ export const EquipmentDatabase = {
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 14,
+        level: 30,
         stats: {
             attack: 38,
             defense: 5,
@@ -371,7 +371,7 @@ export const EquipmentDatabase = {
         icon: '⚔️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 15,
+        level: 33,
         stats: {
             attack: 32,
             defense: 5,
@@ -394,7 +394,7 @@ export const EquipmentDatabase = {
         icon: '💎',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.RARE,
-        level: 16,
+        level: 35,
         stats: {
             attack: 0,
             defense: 35,
@@ -416,7 +416,7 @@ export const EquipmentDatabase = {
         icon: '🧤',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.RARE,
-        level: 17,
+        level: 38,
         stats: {
             attack: 15,
             defense: 12,
@@ -437,7 +437,7 @@ export const EquipmentDatabase = {
         icon: '🔨',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 18,
+        level: 40,
         stats: {
             attack: 50,
             defense: 10,
@@ -463,7 +463,7 @@ export const EquipmentDatabase = {
         icon: '🔥',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 19,
+        level: 43,
         stats: {
             attack: 35,
             defense: 0,
@@ -486,7 +486,7 @@ export const EquipmentDatabase = {
         icon: '❄️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 19,
+        level: 43,
         stats: {
             attack: 30,
             defense: 5,
@@ -509,7 +509,7 @@ export const EquipmentDatabase = {
         icon: '⚡',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 20,
+        level: 45,
         stats: {
             attack: 40,
             defense: 0,
@@ -532,7 +532,7 @@ export const EquipmentDatabase = {
     icon: '👑',
     type: EquipmentType.ACCESSORY,
     rarity: ItemRarity.EPIC,
-    level: 22,
+    level: 50,
     stats: {
         attack: 10,
         defense: 10,
@@ -556,7 +556,7 @@ export const EquipmentDatabase = {
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
-        level: 22,
+        level: 50,
         stats: {
             attack: 15,
             defense: 25,
@@ -581,7 +581,7 @@ export const EquipmentDatabase = {
         icon: '🔱',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 23,
+        level: 53,
         stats: {
             attack: 42,
             defense: 5,
@@ -605,7 +605,7 @@ export const EquipmentDatabase = {
         icon: '⛑️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
-        level: 25,
+        level: 58,
         stats: {
             attack: 12,
             defense: 30,
@@ -627,7 +627,7 @@ export const EquipmentDatabase = {
         icon: '🐲',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
-        level: 26,
+        level: 60,
         stats: {
             attack: 58,
             defense: 9,
@@ -654,7 +654,7 @@ export const EquipmentDatabase = {
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 27,
+        level: 63,
         stats: {
             attack: 55,
             defense: 0,
@@ -679,7 +679,7 @@ export const EquipmentDatabase = {
         icon: '👹',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
-        level: 28,
+        level: 65,
         stats: {
             attack: 16,
             defense: 68,
@@ -703,7 +703,7 @@ export const EquipmentDatabase = {
         icon: '😈',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 29,
+        level: 68,
         stats: {
             attack: 60,
             defense: 5,
@@ -728,7 +728,7 @@ export const EquipmentDatabase = {
         icon: '👿',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
-        level: 30,
+        level: 70,
         stats: {
             attack: 16,
             defense: 45,
@@ -751,7 +751,7 @@ export const EquipmentDatabase = {
         icon: '👑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 90,
             defense: 14,
@@ -777,7 +777,7 @@ export const EquipmentDatabase = {
         icon: '👑',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 23,
             defense: 36,
@@ -801,7 +801,7 @@ export const EquipmentDatabase = {
         icon: '🌑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 72,
             defense: 9,
@@ -826,7 +826,7 @@ export const EquipmentDatabase = {
         icon: '👑',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 18,
             defense: 31,
@@ -848,7 +848,7 @@ export const EquipmentDatabase = {
         icon: '🖤',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.EPIC,
-        level: 20,
+        level: 45,
         stats: {
             attack: 12,
             defense: 40,
@@ -870,7 +870,7 @@ export const EquipmentDatabase = {
         icon: '🔥',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 15,
+        level: 33,
         stats: {
             attack: 35,
             defense: 5,
@@ -908,7 +908,7 @@ export const EquipmentDatabase = {
         description: '森林守護者留下的法杖，充滿自然之力。',
         setId: null,
         canEnhance: true,
-        level: 5,
+        level: 8,
         dropSource: 'forest_guardian'
     },
     
@@ -932,7 +932,7 @@ export const EquipmentDatabase = {
         description: '巫妖的法杖，充滿死亡的氣息。',
         setId: null,
         canEnhance: true,
-        level: 8,
+        level: 15,
         // 保留元素傷害作為特殊效果
         specialEffects: [ { type: AffixStat.POISON, value: 10 } ],
         dropSource: 'lich'
@@ -957,7 +957,7 @@ export const EquipmentDatabase = {
         description: '暗影指揮官的配劍，鋒利無比。',
         setId: null,
         canEnhance: true,
-        level: 12,
+        level: 25,
         dropSource: 'shadow_commander'
     },
     
@@ -979,7 +979,7 @@ export const EquipmentDatabase = {
         description: '遠古泰坦的護手，蘊含遠古之力。',
         setId: 'titan',
         canEnhance: true,
-        level: 16,
+        level: 35,
         dropSource: 'ancient_titan'
     },
     
@@ -1001,7 +1001,7 @@ export const EquipmentDatabase = {
         description: '融合四大元素之力的神秘寶珠。',
         setId: null,
         canEnhance: true,
-        level: 20,
+        level: 45,
         specialEffects: [
             { type: AffixStat.FIRE, value: 8 },
             { type: AffixStat.ICE, value: 8 },
@@ -1029,7 +1029,7 @@ export const EquipmentDatabase = {
         description: '由古龍牙齒鍛造的神劍，燃燒著龍焰。',
         setId: null,
         canEnhance: true,
-        level: 24,
+        level: 55,
         specialEffects: [ { type: AffixStat.FIRE, value: 22 } ],
         dropSource: 'elder_dragon'
     },
@@ -1052,7 +1052,7 @@ export const EquipmentDatabase = {
         description: '暗影霸主的戰甲，堅不可摧。',
         setId: null,
         canEnhance: true,
-        level: 26,
+        level: 60,
         specialEffects: [ { type: AffixStat.DAMAGE_REDUCTION, value: 10 } ],
         dropSource: 'shadow_overlord'
     },
@@ -1081,7 +1081,7 @@ export const EquipmentDatabase = {
         description: '魔王阿薩謝爾的戰甲，散發著邪惡的氣息。',
         setId: null,
         canEnhance: true,
-        level: 28,
+        level: 65,
         dropSource: 'demon_lord_asariel'
     },
 
@@ -1092,7 +1092,7 @@ export const EquipmentDatabase = {
         icon: '⛏️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.UNCOMMON,
-        level: 5,
+        level: 8,
         stats: {
             attack: 17,
             defense: 3,
@@ -1115,7 +1115,7 @@ export const EquipmentDatabase = {
         icon: '🛡️',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.UNCOMMON,
-        level: 6,
+        level: 10,
         stats: {
             attack: 4,
             defense: 20,
@@ -1136,7 +1136,7 @@ export const EquipmentDatabase = {
         icon: '🪄',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 9,
+        level: 18,
         stats: {
             attack: 26,
             defense: 4,
@@ -1159,7 +1159,7 @@ export const EquipmentDatabase = {
         icon: '🔮',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 10,
+        level: 20,
         stats: {
             attack: 44,
             defense: 14,
@@ -1182,7 +1182,7 @@ export const EquipmentDatabase = {
         icon: '❄️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 10,
+        level: 20,
         stats: {
             attack: 29,
             defense: 3,
@@ -1206,7 +1206,7 @@ export const EquipmentDatabase = {
         icon: '🧊',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 10,
+        level: 20,
         stats: {
             attack: 27,
             defense: 7,
@@ -1230,7 +1230,7 @@ export const EquipmentDatabase = {
         icon: '🗡️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 12,
+        level: 25,
         stats: {
             attack: 36,
             defense: 0,
@@ -1253,7 +1253,7 @@ export const EquipmentDatabase = {
         icon: '🔱',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 14,
+        level: 30,
         stats: {
             attack: 43,
             defense: 6,
@@ -1277,7 +1277,7 @@ export const EquipmentDatabase = {
         icon: '🌑',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 13,
+        level: 28,
         stats: {
             attack: 33,
             defense: 10,
@@ -1300,7 +1300,7 @@ export const EquipmentDatabase = {
         icon: '🪝',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.RARE,
-        level: 22,
+        level: 50,
         stats: {
             attack: 105,
             defense: 8,
@@ -1324,7 +1324,7 @@ export const EquipmentDatabase = {
         icon: '🐍',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 23,
+        level: 53,
         stats: {
             attack: 128,
             defense: 12,
@@ -1348,7 +1348,7 @@ export const EquipmentDatabase = {
         icon: '🖤',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 28,
+        level: 65,
         stats: {
             attack: 206,
             defense: 6,
@@ -1372,7 +1372,7 @@ export const EquipmentDatabase = {
         icon: '🌀',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 29,
+        level: 68,
         stats: {
             attack: 198,
             defense: 24,
@@ -1396,7 +1396,7 @@ export const EquipmentDatabase = {
         icon: '☀️',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 250,
             defense: 18,
@@ -1420,7 +1420,7 @@ export const EquipmentDatabase = {
         icon: '💠',
         type: EquipmentType.WEAPON,
         rarity: ItemRarity.EPIC,
-        level: 30,
+        level: 70,
         stats: {
             attack: 208,
             defense: 22,
@@ -1444,7 +1444,7 @@ export const EquipmentDatabase = {
         icon: '🌅',
         type: EquipmentType.EQUIPMENT,
         rarity: ItemRarity.LEGENDARY,
-        level: 30,
+        level: 70,
         stats: {
             attack: 44,
             defense: 250,
@@ -1463,8 +1463,6 @@ export const EquipmentDatabase = {
 };
 
 // 逐筆補齊耐久度，避免落入共用預設值
-applyLegacyLevelProgressionToDatabase(EquipmentDatabase);
-
 Object.values(EquipmentDatabase).forEach((item, index) => {
     // 稀有度欄位名稱統一，避免 UI 顯示遺失
     const level = Number(item.level) || 1;

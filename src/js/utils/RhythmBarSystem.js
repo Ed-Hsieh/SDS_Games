@@ -58,6 +58,7 @@ class RhythmBarSystem {
         this.needlePosition = 0;
         this.needleDirection = 1;
         this.battleAttackSpeedBonusPercent = 0;
+        this.battleHitZoneBonusPercent = 0;
         this.animationId = null;
         this.lastTime = 0;
         this.isRunning = false;
@@ -242,7 +243,8 @@ class RhythmBarSystem {
             mythic: 24
         };
         const profileWidth = Math.max(0.5, Number(this.weaponProfile?.hitZoneMultiplier) || 1);
-        return Math.max(8, Math.min(28, (rarityWidths[this.weaponRarity] || 14) * profileWidth));
+        const battleWidth = 1 + Math.max(0, Number(this.battleHitZoneBonusPercent) || 0) / 100;
+        return Math.max(8, Math.min(36, (rarityWidths[this.weaponRarity] || 14) * profileWidth * battleWidth));
     }
 
     generateZones() {
@@ -598,6 +600,12 @@ class RhythmBarSystem {
     setBattleAttackSpeedBonus(percent = 0) {
         this.battleAttackSpeedBonusPercent = Math.max(0, Number(percent) || 0);
         this.updateEquipmentStats();
+    }
+
+    setBattleHitZoneBonus(percent = 0, options = {}) {
+        this.battleHitZoneBonusPercent = Math.max(0, Number(percent) || 0);
+        if (this.isOnCooldown && options.refresh !== true) return;
+        this.generateZones();
     }
 
     destroy() {

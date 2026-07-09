@@ -266,7 +266,7 @@ const sets = {
         'abyss_crack', 'ancient_ruin_arch', 'blackflame_tile', 'boss_lair_silhouette',
         'broken_road_sign', 'campfire_ashes', 'carved_stone_tablet', 'cave_entrance',
         'charred_obelisk_mini', 'coast_wave', 'dark_forest_tile', 'dirt_road',
-        'farmland_tile', 'grassland_tile', 'herb_patch', 'hidden_stash_mound',
+        'encyclopedia_tome', 'farmland_tile', 'grassland_tile', 'herb_patch', 'hidden_stash_mound',
         'merchant_wagon', 'mist_hill_tile', 'notice_board', 'obsidian_fortress_gate',
         'ore_vein', 'quest_open_book', 'random_event_spark', 'river_bend', 'rotten_ravine_tile',
         'sealed_altar', 'shrine_bell', 'silver_silk_trap', 'snowfield_tile',

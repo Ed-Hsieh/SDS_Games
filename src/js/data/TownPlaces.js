@@ -21,7 +21,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('crossroads'),
         sceneImage: townSceneFull('crossroads'),
         scenePosition: '50% 56%',
-        description: '廣場仍保留避難所的凌亂感。公告板、難民火盆與巡邏路線都在這裡交會，玩家能直接看見城鎮是否真的恢復。',
+        description: '廣場還沒恢復秩序。火盆燒得低，公告板的舊紙被雨水泡皺；村長站在最容易被人找到的位置，也站在最難躲開的位置。',
         residents: [
             {
                 npcId: 'village_elder',
@@ -56,25 +56,35 @@ export const TownPlaceDatabase = [
                 shortLabel: '任務',
                 icon: '!',
                 imageId: 'quest_open_book',
-                description: '任務冊只放目前可追蹤、可回報的委託與主線目標；百科與成就留在手札書桌。',
+                description: '半開的任務冊壓在公告板旁，只留著還沒回報的事與仍要走完的路。',
                 position: { x: 77, y: 70 }
             }
         ],
         states: [
             {
                 flag: 'town.elder.first_warning',
-                title: '村長點出第一個警訊',
-                text: '村長把城外異變說得很短，像怕話說太滿會把人壓垮。廣場因此多了一層緊張。'
+                title: '村長把南門攤上桌',
+                text: '濕紙被壓在木桌中央。村長說得很短，手指卻一直停在南門那條線上。'
             },
             {
                 flag: 'town.crossroads.notice_read',
-                title: '公告板開始有人停留',
-                text: '居民會在公告板前讀字，然後裝作只是路過。至少恐慌有了可以被釘住的位置。'
+                title: '公告板被重新釘好',
+                text: '舊紙被撕下，新紙還帶墨味。有人路過時放慢腳步，又假裝只是看風。'
             },
             {
                 flag: 'town.network.first_recovery_named',
-                title: '恢復網路被命名',
-                text: '書記把修路、找人、補給與鍛造都畫在同一張圖上，城鎮第一次像一個系統。'
+                title: '第一批斷點被圈起',
+                text: '南門、藥棚、冷爐、書桌。幾個名字被圈在同一張紙上，像一座城終於承認自己哪裡疼。'
+            },
+            {
+                flag: 'town.chapter1.south_route_recorded',
+                title: '南門外有了三個記號',
+                text: '你帶回的路標拓片被壓在公告板下。風一吹，紙角發抖，像那幾條路還沒完全睡穩。'
+            },
+            {
+                flag: 'town.chapter1.blood_moon_settled',
+                title: '血月後的早晨',
+                text: '廣場沒有人慶祝。只是火盆旁多了幾個敢低聲說話的人，聲音很輕，沒有被夜色吞回去。'
             },
             {
                 flag: 'town.trust.reputation_opened',
@@ -112,7 +122,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('gate'),
         sceneImage: townSceneFull('gate'),
         scenePosition: '52% 58%',
-        description: '南門是玩家第一次感到城鎮真的會失守的地方。木樁、旗影、補給箱與守衛輪值都會隨旗標改變。',
+        description: '南門外的風帶著土味。木樁歪著，繩結被手汗磨亮；每個離開的人都會回頭看一眼，像怕門在背後合上。',
         residents: [
             {
                 npcId: 'standard_bearer_frey',
@@ -156,8 +166,18 @@ export const TownPlaceDatabase = [
             },
             {
                 flag: 'town.south_gate.guard_route_ready',
-                title: '南門巡守路線穩定',
-                text: '守衛開始按時換班，玩家離開城鎮時不再像是把所有人丟在身後。'
+                title: '南門換班聲變穩',
+                text: '靴底踩過石階，聲音一下一下。守衛把燈掛得更低，照著出去的人，也照著回來的人。'
+            },
+            {
+                flag: 'town.chapter1.boardwalk_reopened',
+                title: '獵人舊路重新透風',
+                text: '南門守衛把棧道位置補到地圖邊上。墨還沒乾，木板路的風聲已經先進了城。'
+            },
+            {
+                flag: 'town.chapter1.forest_wound_named',
+                title: '腐根溪谷被標成黑線',
+                text: '溪谷方向被畫上一道黑線。紙面很乾，指尖摸上去卻像沾到灰。'
             },
             {
                 flag: 'town.gate.broken_standard_raised',
@@ -195,7 +215,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('market'),
         sceneImage: townSceneFull('market'),
         scenePosition: '50% 60%',
-        description: '市集最能表現金幣與素材是否有價值。攤位從空棚、半開、補給進場到專門交易，應該隨故事慢慢變得可用。',
+        description: '邊棚底下空了幾個攤位。藥草味、濕布味和舊木箱的霉味混在一起；貨不多，話也不多。',
         residents: [
             {
                 npcId: 'herbalist',
@@ -227,20 +247,20 @@ export const TownPlaceDatabase = [
                 shortLabel: '商店',
                 icon: '$',
                 imageId: 'merchant_wagon',
-                description: '商店庫存應該跟路線、安全、補給與 NPC 狀態連動。',
+                description: '空箱被推到棚下。等路線穩一點，這裡才會有更像樣的補給。',
                 position: { x: 65, y: 48 }
             }
         ],
         states: [
             {
                 flag: 'town.apothecary.problem_named',
-                title: '藥棚缺貨原因被說出',
-                text: '藥師不再只說沒有貨，而是指出哪條採藥路、哪種人手、哪個箱子出了問題。'
+                title: '藥棚說出缺口',
+                text: '藥師把空瓶倒過來，瓶口只落出一點甜膩的黏味。她沒有皺眉，只把缺的東西寫下來。'
             },
             {
                 flag: 'town.apothecary.stock_basic_potion',
-                title: '基礎藥品重新上架',
-                text: '架上多了幾瓶不漂亮但可靠的藥。藥師說它們至少不會在你最痛時講道理。'
+                title: '小瓶重新排上木架',
+                text: '幾瓶藥水靠在一起，玻璃碰玻璃。聲音很薄，卻讓邊棚不像昨天那麼空。'
             },
             {
                 flag: 'town.apothecary.understands_thorn_trade',
@@ -278,7 +298,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('forge'),
         sceneImage: townSceneFull('forge'),
         scenePosition: '50% 58%',
-        description: '鐵匠鋪是故事獎勵和系統解鎖應該最直觀結合的地方。修好它，就應該真的打開修理、鍛造、藍圖與進階契約。',
+        description: '爐口是冷的。砧台上有鐵鏽，牆邊掛著幾把還沒修完的鉤索；屋裡沒有火聲，只有灰塵落下來。',
         residents: [
             {
                 npcId: 'blacksmith',
@@ -303,20 +323,20 @@ export const TownPlaceDatabase = [
                 shortLabel: '鍛造',
                 icon: '+',
                 imageId: 'ore_vein',
-                description: '鍛造服務應該隨任務逐步開啟，成為賭場與掉落之外的穩定成長路線。',
+                description: '冷爐一旦重新點起，礦石、圖紙與損壞的裝備才有地方變成下一次出門的底氣。',
                 position: { x: 70, y: 63 }
             }
         ],
         states: [
             {
                 flag: 'town.forge.problem_named',
-                title: '冷爐問題被確認',
-                text: '鐵匠敲了敲爐壁，說問題不在火，而在沒人敢把火重新交給它。'
+                title: '冷爐不再只是關門',
+                text: '斷鉤被放在砧台邊。爐子仍冷，屋裡卻多了一個必須被修好的理由。'
             },
             {
                 flag: 'town.blacksmith.forge_open',
-                title: '鐵匠鋪重新開爐',
-                text: '火光回到砧台上。它不華麗，但玩家終於能把材料變成選擇。'
+                title: '爐火重新咬住煤',
+                text: '火從爐口低低竄起。鐵匠沒有抬頭，只把第一塊鐵推進去，讓屋裡重新有了聲音。'
             },
             {
                 flag: 'town.blacksmith.neelu_blueprint_named',
@@ -349,7 +369,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('handbook'),
         sceneImage: townSceneFull('handbook'),
         scenePosition: '50% 56%',
-        description: '書桌負責把玩家做過的事變成世界記憶。這裡保留百科、成就與線索索引，不再承載任務清單。',
+        description: '書桌上堆著地圖拓片、怪物牙痕和沾泥的紙。書記把它們壓平，像怕世界一鬆手就散回傳聞裡。',
         residents: [
             {
                 npcId: 'town_scholar',
@@ -373,8 +393,8 @@ export const TownPlaceDatabase = [
                 label: '查看百科',
                 shortLabel: '百科',
                 icon: '?',
-                imageId: 'carved_stone_tablet',
-                description: '百科應該反映玩家發現的怪物、物品、地點與來源。',
+                imageId: 'encyclopedia_tome',
+                description: '厚書壓著一角乾泥。怪物、素材與地點會在被確認後慢慢寫進去。',
                 position: { x: 76, y: 67 }
             },
             {
@@ -384,15 +404,25 @@ export const TownPlaceDatabase = [
                 shortLabel: '記錄',
                 icon: '*',
                 imageId: 'notice_board',
-                description: '書記保存支線痕跡，讓玩家感覺做過的事沒有消失。',
+                description: '書記把小事留下來。名字、選擇、擦不掉的邊角，都先壓在這裡。',
                 position: { x: 21, y: 42 }
             }
         ],
         states: [
             {
                 flag: 'town.scholar.first_index_open',
-                title: '第一份索引完成',
-                text: '書記把怪物、地點與居民口供放在同一頁，終於不像一堆散亂紙片。'
+                title: '第一頁索引壓住黏液味',
+                text: '書記把史萊姆凝膠、農田水溝和南門路線寫在同一頁。墨味勉強蓋過那股甜。'
+            },
+            {
+                flag: 'town.chapter1.slime_anomaly_named',
+                title: '史萊姆不再只是史萊姆',
+                text: '凝膠樣本被封在小瓶裡。書記在旁邊寫下「來源未明」，字尾停得很重。'
+            },
+            {
+                flag: 'town.chapter1.silver_thread_route_named',
+                title: '銀絲被拉成路線',
+                text: '細絲被壓在紙角下，從農田拖到棧道，再拖到舊營火點。它太細了，卻讓整張地圖繃緊。'
             },
             {
                 flag: 'town.scholar.records_lich_name',

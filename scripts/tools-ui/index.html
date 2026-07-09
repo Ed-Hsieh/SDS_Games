@@ -2,25 +2,53 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <title>Tools UI — SDS Tools</title>
+  <title>SDS Tools</title>
   <style>
-    body{font-family:Inter,Segoe UI,Arial;margin:24px;background:#07101a;color:#eaf3ff}
-    .card{background:#0e1a24;padding:18px;border-radius:10px;max-width:1000px;margin:0 auto}
-    a{color:#59a8ff;text-decoration:none}
-    ul{padding-left:18px}
+    body {
+      margin: 24px;
+      background: #07101a;
+      color: #eaf3ff;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+    }
+
+    .card {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 18px;
+      border: 1px solid rgba(122, 169, 199, 0.28);
+      border-radius: 8px;
+      background: #0e1a24;
+    }
+
+    a {
+      color: #59a8ff;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #9bd0ff;
+    }
+
+    ul {
+      padding-left: 18px;
+      line-height: 1.9;
+    }
+
+    .muted {
+      color: #9fb0bd;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>工具總覽 — SDS Tools</h1>
-    <p>打開下列頁面以檢視與測試各項數值工具：</p>
+  <main class="card">
+    <h1>SDS 開發工具</h1>
+    <p>這裡只保留輔助驗證入口。主要資料檢查以 Node 腳本為準，避免工具頁和實際遊戲邏輯各自維護規則。</p>
     <ul>
-      <li><a href="asset-cropper.html" target="_blank">Asset Cropper（手動裁切素材並輸出裁切參數）</a></li>
-      <li><a href="MonsterBalanceCheck.html" target="_blank">BalanceCheck (怪物 vs 玩家 強度報表)</a></li>
-      <li><a href="EquipmentBalanceCheck.html" target="_blank">EquipmentScore (裝備靜態評分)</a></li>
-      <li><a href="FightMatchupCheck.html" target="_blank">Matchup Simulator (實戰模擬)</a></li>
+      <li><a href="MonsterBalanceCheck.html" target="_blank" rel="noreferrer">怪物平衡檢查</a></li>
+      <li><a href="EquipmentBalanceCheck.html" target="_blank" rel="noreferrer">裝備平衡檢查</a></li>
+      <li><a href="FightMatchupCheck.html" target="_blank" rel="noreferrer">戰鬥對局模擬</a></li>
     </ul>
-    <p class="muted">提示：這些頁面會載入專案內的怪物資料（若可用）或使用內建範例。</p>
-  </div>
+    <p class="muted">若要寫回資料，請回到專案根目錄執行對應腳本，不要在瀏覽器工具頁直接修改資料。</p>
+  </main>
 </body>
 </html>

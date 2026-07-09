@@ -88,6 +88,34 @@ export const CharacterProfileDatabase = {
             '我會把比例記下。下次帶材料來，別帶藉口。'
         ]
     },
+    old_miner_bran: {
+        id: 'old_miner_bran',
+        name: '老礦工布蘭',
+        title: '南脈礦路倖存者',
+        portrait: 'src/assets/images/art/characters/portraits/old_miner_bran.webp',
+        imageAnchor: '灰塵卡在鬍鬚裡，肩膀總像還背著一袋濕礦。說話前會先看地面，像在確認腳下還能不能承重。',
+        core: '布蘭記得舊礦路的聲音，也記得哪些人沒有從那條路回來。他不是勇敢，只是還沒找到能放心閉嘴的人。',
+        wound: '一次塌方奪走了他的工友，也讓他再也不相信鎮上的漂亮承諾。',
+        storyFunction: '連接鐵匠、礦路、材料來源與舊災難的證人，適合承載早中期的鍛造與路線真相。',
+        voice: {
+            tone: '乾硬、少話、帶砂礫感。',
+            rhythm: '短句多，偶爾冒出一段很長的回憶，說完又沉下去。',
+            vocabulary: ['礦脈', '塌聲', '濕土', '舊路', '別敲那面牆'],
+            humor: '黑色幽默，只在事情糟到不能再糟時出現。',
+            avoid: ['熱血鼓舞', '華麗比喻', '過度解釋礦業知識'],
+            lineRule: '每句話都像從喉嚨裡磨出來。不要讓他變成普通情報 NPC。'
+        },
+        stages: [
+            { id: 'survivor', label: '礦路倖存者', mood: '不願多談' },
+            { id: 'witness', label: '塌方證人', fromFlag: 'town.mine.route_problem_named', mood: '開始指出舊路的裂縫' },
+            { id: 'guide', label: '舊路引路人', fromFlag: 'town.blacksmith.mithril_route_ready', mood: '願意把真正的路說完' }
+        ],
+        reportClosings: [
+            '布蘭把手掌按在膝上。指縫裡還有黑灰。他只點了一下頭。',
+            '「聽見那種聲音就退。」他說。不是提醒。像命令。',
+            '他看了你帶回來的東西很久，最後把它推回來。「這不是石頭。這是人命換出來的。」'
+        ]
+    },
     herbalist: {
         id: 'herbalist',
         name: '藥師蓮娜',
@@ -157,6 +185,34 @@ export const CharacterProfileDatabase = {
             humor: '商人式自嘲與誇張保證。',
             lineRule: '奧托永遠讓商品背後有一條路線，而不是憑空上架。'
         }
+    },
+    supply_captain: {
+        id: 'supply_captain',
+        name: '補給隊長',
+        title: '南門補給線負責人',
+        portrait: 'src/assets/images/art/characters/portraits/supply_captain.webp',
+        imageAnchor: '外衣永遠扣到最上面，腰側掛著磨損的路線牌。她看貨箱，也看人。兩者都可能少一個。',
+        core: '她相信秩序，但現在秩序只剩幾張被雨泡軟的清單。她需要道路安全，卻比誰都清楚安全是拿人去墊出來的。',
+        wound: '曾經錯估一次護送路線，讓整隊補給和兩名年輕守衛消失在南邊。',
+        storyFunction: '把路線安全、商隊、哨塔、補給與城鎮服務擴張連起來。',
+        voice: {
+            tone: '利落、壓低情緒、習慣把害怕藏進數字。',
+            rhythm: '先講結論，再補一個不願多談的細節。',
+            vocabulary: ['路線', '箱數', '護送', '缺口', '回程'],
+            humor: '很少開玩笑；若有，多半是苦笑。',
+            avoid: ['商人腔', '軍官式空喊口號', '過度溫柔'],
+            lineRule: '她說話要有行動方向，但不要像任務板。'
+        },
+        stages: [
+            { id: 'blocked', label: '補給受阻', mood: '清點每一個缺口' },
+            { id: 'route-opened', label: '第一條路線重開', fromFlag: 'town.supply.first_route_open', mood: '緊繃稍微鬆開' },
+            { id: 'network', label: '商隊網絡成形', fromFlag: 'town.supply.route_problem_named', mood: '開始重新安排鎮外節點' }
+        ],
+        reportClosings: [
+            '她沒有立刻道謝，只把新路線用炭筆重描了一遍。',
+            '「能走，不代表安全。」她收起地圖，「但至少我們又能試一次。」',
+            '她把缺口那欄劃掉。紙面很薄，炭痕卻深。'
+        ]
     },
     apothecary_assistant: {
         id: 'apothecary_assistant',
@@ -228,6 +284,34 @@ export const CharacterProfileDatabase = {
             lineRule: '賭場台詞要有誘惑與腐敗，不只是數字結算。'
         }
     },
+    casino_owner: {
+        id: 'casino_owner',
+        name: '賭場主人',
+        title: '展示櫃與債務的主人',
+        portrait: 'src/assets/images/art/characters/portraits/casino_owner.webp',
+        imageAnchor: '她坐得很穩，像整間賭場只是她掌心裡的一枚籌碼。笑意很淺，算盤聲卻在她身後一直響。',
+        core: '她懂得讓人以為自己還有選擇。她也可能真心想讓城鎮活下去，只是她的方法會把人拖進更深的局。',
+        wound: '她見過善意破產，所以把所有善意都換成能計算的條款。',
+        storyFunction: '承載賭場誘惑、債務、黑市回聲與中後期城鎮代價的長線角色。',
+        voice: {
+            tone: '優雅、冷靜、帶壓迫感。',
+            rhythm: '句子不急，常留半拍，像等對方自己把弱點說出來。',
+            vocabulary: ['籌碼', '利息', '展示櫃', '選擇', '條款'],
+            humor: '精準而危險，不大笑。',
+            avoid: ['市井吆喝', '直接威脅', '反派獨白'],
+            lineRule: '她應該讓玩家感覺被看穿，而不是被大聲恐嚇。'
+        },
+        stages: [
+            { id: 'distant-owner', label: '遠處的主人', mood: '只讓玩家看見展示櫃' },
+            { id: 'contractor', label: '契約提出者', fromFlag: 'town.casino.owner_route_seeded', mood: '開始親自下注' },
+            { id: 'debt-holder', label: '債務持有人', fromFlag: 'town.casino.dark_contract_sealed', mood: '把城鎮推向代價' }
+        ],
+        reportClosings: [
+            '她把杯沿轉了半圈，沒有喝。你知道她已經得到答案。',
+            '「你可以拒絕。」她說得很輕，像拒絕也是她設計的一部分。',
+            '展示櫃後的燈光暗了一下。她仍在笑。'
+        ]
+    },
     tower_warden: {
         id: 'tower_warden',
         name: '塔守望者',
@@ -273,8 +357,8 @@ export const CharacterProfileDatabase = {
             lineRule: '妮露通常透過圖紙、邊註與鍛造師轉述出現。'
         }
     },
-    tavi_lamplighter: {
-        id: 'tavi_lamplighter',
+    lamplighter_tavi: {
+        id: 'lamplighter_tavi',
         name: '塔維',
         title: '海岸守燈人',
         portrait: 'src/assets/images/art/characters/portraits/lamplighter_tavi.webp',
@@ -290,8 +374,8 @@ export const CharacterProfileDatabase = {
             lineRule: '塔維支線要讓海岸不是地點，而是有人守過的夜。'
         }
     },
-    frey_standard_bearer: {
-        id: 'frey_standard_bearer',
+    standard_bearer_frey: {
+        id: 'standard_bearer_frey',
         name: '芙蕾',
         title: '斷旗手',
         portrait: 'src/assets/images/art/characters/portraits/standard_bearer_frey.webp',
@@ -307,8 +391,8 @@ export const CharacterProfileDatabase = {
             lineRule: '芙蕾支線要把「撤退不是失敗」這件事說清楚。'
         }
     },
-    malo_bookkeeper: {
-        id: 'malo_bookkeeper',
+    accountant_marlo: {
+        id: 'accountant_marlo',
         name: '瑪洛',
         title: '賭場帳房',
         portrait: 'src/assets/images/art/characters/portraits/accountant_marlo.webp',

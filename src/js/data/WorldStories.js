@@ -269,15 +269,15 @@ export const WorldClues = {
         chainId: 'forest_guardian',
         source: '擊殺野狼',
         text: '這些咬痕太整齊，像是狼群被某個更高階的意志驅趕。',
-        lead: '狼群痕跡會把你帶向霧碑丘。'
+        lead: '狼群痕跡會把你帶向腐根溪谷更深處。'
     },
     mist_tablet_rubbing: {
         id: 'mist_tablet_rubbing',
         title: '霧碑拓印',
-        chainId: 'forest_guardian',
+        chainId: 'lich',
         source: '石碑',
-        text: '拓印上出現古樹與守衛者的輪廓，狼群只是守門的第一層。',
-        lead: '收集足夠痕跡後，古樹守衛的核心地會變得可追蹤。'
+        text: '拓印上的線不是樹根，而是封印順序。霧氣濕冷，摸上去像碰到墓道裡的石門。',
+        lead: '第二章的古墓與沉鐘線索會從這裡分岔。'
     },
     black_bark_sample: {
         id: 'black_bark_sample',
@@ -407,15 +407,15 @@ Object.assign(WorldClues, {
         title: '銀絲絆線',
         chainId: 'ambush_mantis',
         source: '地圖痕跡',
-        text: '絆線細到幾乎看不見，卻只設在玩家常走的回程路上。',
-        lead: '反覆穿越同一區域會讓伏擊條件逐步成立。'
+        text: '銀絲貼著木板邊緣。細。冷。它不攔前路，只等你回頭。',
+        lead: '牠在記回程。重複穿越同一段路，伏擊條件會逐步成立。'
     },
     snapped_bait_hook: {
         id: 'snapped_bait_hook',
         title: '斷裂誘餌鉤',
         chainId: 'ambush_mantis',
-        source: '製作',
-        text: '誘餌鉤被整齊切斷，切面太新，代表某種東西一直跟在你後面。',
+        source: '地點調查',
+        text: '誘餌鉤斷在泥裡。切面很新，沒有咬痕，只有一點冷掉的鐵味。',
         lead: '帶著銀絲誘餌前往銀絲最密的伏道，才能反設陷阱引牠現身。'
     },
     survivor_warning: {
@@ -423,8 +423,8 @@ Object.assign(WorldClues, {
         title: '倖存者警告',
         chainId: 'ambush_mantis',
         source: '村民',
-        text: '倖存者說不要在同一段路點燃第二次營火，牠會記得光的位置。',
-        lead: '重複行為是觸發條件，也能用來設陷阱。'
+        text: '木牌被煙燻黑，只剩一句話還能讀：不要在同一段路點第二次火。',
+        lead: '牠記得光。重複行為是危險，也能變成陷阱。'
     }
 });
 
@@ -435,11 +435,11 @@ export const WorldStoryChains = {
         bossId: 'forest_guardian',
         method: '追蹤型',
         premise: '腐根溪谷的千年神木被剝離核心樹皮，地脈反噬讓守衛者陷入無意識防衛。',
-        clueIds: ['bloodied_arrow_pouch', 'wolf_fang_marks', 'mist_tablet_rubbing', 'black_bark_sample'],
+        clueIds: ['bloodied_arrow_pouch', 'wolf_fang_marks', 'black_bark_sample'],
         stages: [
             { minClues: 0, text: '溪谷方向偶爾有焦黑煙霧，但還看不出森林為何失控。' },
             { minClues: 1, text: '獵人遺物與狼群痕跡顯示，某條舊路正在被刻意清空。' },
-            { minClues: 2, text: '霧碑與焦黑根系指向同一件事：神木核心曾被外力剝離。' },
+            { minClues: 2, text: '焦黑根系與狼牙痕指向同一件事：神木核心曾被外力剝離。' },
             { minClues: 3, text: '古樹守衛的位置逐漸明確，牠更像被迫失控的受害者。' }
         ]
     },
@@ -449,7 +449,7 @@ export const WorldStoryChains = {
         bossId: 'lich',
         method: '封印型',
         premise: '遺跡怪物攜帶的石片能拼出巫妖所在，但石片也暗示牠可能在守住更深層的東西。',
-        clueIds: ['carved_stone_shard'],
+        clueIds: ['mist_tablet_rubbing', 'carved_stone_shard'],
         stages: [
             { minClues: 0, text: '遺跡的石像仍沉默，地下封印的輪廓尚未浮現。' },
             { minClues: 1, text: '石片證明巫妖和封印有關，牠的敵意可能不是故事的全貌。' }
@@ -590,15 +590,14 @@ Object.assign(WorldStoryChains, {
 const BossFlowDesigns = {
     forest_guardian: {
         archetype: '追蹤型',
-        entries: ['怪物掉落', '地圖痕跡', '石碑拓片', '藏寶圖定位'],
-        infoSources: ['怪物掉落', '地圖痕跡', '石碑', '藏寶圖'],
+        entries: ['怪物掉落', '地圖痕跡', '獵人遺物', '藏寶圖定位'],
+        infoSources: ['怪物掉落', '地圖痕跡', '獵人遺物', '藏寶圖'],
         progressMethods: [
             { id: 'kill_wolves', label: '擊殺狼群並比對牙痕', type: '擊殺' },
-            { id: 'track_mist_marks', label: '探索霧碑與溪谷痕跡', type: '追蹤' },
-            { id: 'solve_tablet_hint', label: '解讀霧碑拓印', type: '解謎' }
+            { id: 'track_mist_marks', label: '探索溪谷濕霧與發黑樹皮', type: '追蹤' }
         ],
         revealMethods: ['模糊方向', '新地標', '地圖標記'],
-        mapPuzzle: { id: 'mist_fang_route', label: '依牙痕、箭袋、碑文排列出古樹根心方向' },
+        mapPuzzle: { id: 'fang_bark_route', label: '依牙痕、箭袋與發黑樹皮排列出古樹根心方向' },
         shortcut: { id: 'hunter_cut', label: '修復獵人棧道，跳過一段高危追蹤' },
         finalTrigger: { id: 'enter_root_heart', label: '進入古樹根心', type: '進入巢穴', requiredClues: 3, requiredProgress: 2 }
     },
@@ -747,9 +746,9 @@ export const WorldLandmarks = [
         encounterRadius: 4,
         regionRadius: 3.2,
         mapOffset: { x: 0, y: 4 },
-        arrival: '南門外的田埂被黏液拖出亮痕，村民說昨晚水溝邊一直傳來濕答答的聲音。',
-        repeat: '田埂上的黏液又新了一層，史萊姆似乎更常沿著水溝靠近城鎮。',
-        mapHint: '村長要你確認的近郊路線，也是書記提到史萊姆增生的位置。'
+        arrival: '南門外的田埂被雨壓得很低。水溝邊有濕泥、半截腳印，還有一點甜膩味，悶在草根底下。',
+        repeat: '田埂上的濕痕又新了一層。水聲藏在草根底下，像有人用手指慢慢攪動。',
+        mapHint: '村長要你確認的第一處近郊路標；後續也會成為史萊姆異常的線索。'
     },
     {
         id: 'hunter_boardwalk',
@@ -759,14 +758,14 @@ export const WorldLandmarks = [
         effectIds: ['open_trail'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_004'],
+        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis', 'forest_guardian'],
         clueIds: [],
         regionRadius: 2.2,
         mapOffset: { x: -5, y: 2 },
-        arrival: '木板路邊沒有腳印，只有幾條銀色細線橫在回程方向。',
-        repeat: '銀絲被你撥開後又出現在相近的位置，像有人重新量過這條路。',
-        mapHint: '獵人舊路，適合開始調查銀絲伏擊。'
+        arrival: '木板路潮得發黑。沒有完整腳印，只有幾道被拖斷的泥線停在回程方向。',
+        repeat: '木板發出細小的吱聲。邊緣有新刮痕，低低貼著，像被什麼輕而利的東西量過。',
+        mapHint: '村長要你確認的第二處路標；後續會接上銀絲伏擊。'
     },
     {
         id: 'old_campfire_site',
@@ -776,14 +775,14 @@ export const WorldLandmarks = [
         effectIds: ['safe_camp'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_004'],
+        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
         regionRadius: 1.8,
         mapOffset: { x: -8, y: 0 },
-        arrival: '灰燼裡插著半截木牌，上面只剩一句話：不要在同一段路點第二次火。',
-        repeat: '營火灰燼被撥成細長弧線，像是在標出某種伏擊距離。',
-        mapHint: '倖存者留下警告的營地。'
+        arrival: '灰燼是冷的。半截木牌插在裡面，手一碰就掉下黑粉，指腹立刻有苦味。',
+        repeat: '灰被撥成細長弧線，旁邊壓著幾枚舊靴印。有人在這裡停過，也急著離開。',
+        mapHint: '村長要你確認的第三處路標；後續會露出倖存者留下的警告。'
     },
     {
         id: 'cut_roadsign',
@@ -798,8 +797,8 @@ export const WorldLandmarks = [
         clueIds: [],
         regionRadius: 1.6,
         mapOffset: { x: -7, y: -4 },
-        arrival: '路牌被整齊切成兩半，斷面旁掛著一枚折斷的誘餌鉤。',
-        repeat: '你能看見木牌切口旁的新鮮細痕，像是刀鋒剛擦過。',
+        arrival: '路牌被切成兩半。斷面太乾淨，旁邊掛著一枚折斷的誘餌鉤，鐵味還沒散。',
+        repeat: '木牌切口旁有新鮮細痕。手指摸上去，冷得不太像木頭。',
         mapHint: '可確認誘餌鉤與銀絲伏擊的關聯。'
     },
     {
@@ -868,19 +867,19 @@ export const WorldLandmarks = [
         zones: ['high'],
         effectIds: ['thick_fog', 'old_seal'],
         visible: 'always',
-        chapter: 1,
-        questIds: ['main_005', 'main_007'],
-        storyChainIds: ['forest_guardian', 'lich'],
+        chapter: 2,
+        questIds: ['main_007', 'main_010'],
+        storyChainIds: ['lich', 'drowned_oracle'],
         clueIds: [],
-        encounterProfileId: 'rotroot_wolf_track',
-        focusEncounterProfileId: 'rotroot_wolf_track_focus',
-        focusQuestIds: ['main_005'],
+        encounterProfileId: 'ancient_tomb_track',
+        focusEncounterProfileId: 'ancient_tomb_track',
+        focusQuestIds: ['main_010'],
         encounterRadius: 4,
         regionRadius: 2.4,
         mapOffset: { x: -21, y: -8 },
-        arrival: '石碑被霧包住，表面的刻痕在你靠近後才像露水一樣浮出。',
-        repeat: '拓印邊緣多出幾道你之前看不懂的線，像是指向森林更深處。',
-        mapHint: '石碑、古代文字與首領追蹤的重要節點。'
+        arrival: '石碑被霧包住，表面的刻痕在你靠近後才像露水一樣浮出。字縫裡有鹽味，也有墓土的冷。',
+        repeat: '拓印邊緣多出幾道你之前看不懂的線。它們沒有指回森林，而是往水聲與古墓分開。',
+        mapHint: '第二章入口地標。霧碑會把封印、沉鐘與古墓線索拆成不同方向。'
     },
     {
         id: 'old_wolf_den',

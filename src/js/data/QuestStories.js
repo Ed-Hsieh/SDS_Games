@@ -11,12 +11,22 @@ export const QuestStoryDatabase = {
         source: '村長的交代',
         location: '城鎮十字路',
         speaker: { name: '村長', avatar: '🏘️' },
-        discovery: '村長說南門外的獵人還沒回來，但他要你先找書記學會怎麼記錄線索，再出城確認道路。',
-        available: '村長請你先找書記確認旅人手札的記錄方式，再去南門外近郊走一圈。',
-        active: '你記得村長的交代：先找書記，讓聽聞有地方落筆；再看路、再看怪物。',
-        completed: '你把近郊路線重新記下，城鎮終於知道南門外還有哪幾條路能用。',
-        finished: '第一份路線紀錄完成後，村長開始把更深入的問題交給你。',
-        nextLead: '先去找書記，再前往南門外近郊確認 3 處路線。',
+        characterProfile: {
+            cause: '南門巡路未歸，城鎮不能再只靠傳聞判斷哪條路還能走。',
+            choice: '村長把第一份路線交給你，不是因為放心，而是南門守衛不能離開崗位。',
+            mainThread: '第一章起點：主角先替城鎮確認三個近郊路標。',
+            townState: 'town.chapter1.south_route_recorded',
+            townDynamic: {
+                title: '南門路線被記下',
+                text: '我帶回三處路標。紙上有泥點，邊角被手汗浸軟。村長把它壓在公告板下，先把能走的地方圈起來。'
+            }
+        },
+        discovery: '廣場的鐘沒有響。我看見濕紙攤在桌上，墨線斷在農田、棧道與舊營火點之間。',
+        available: '奧倫沒有急著催我出城。他讓我先找伊萊，把三個能確認的地標標進手札，免得我出門後只知道往霧裡走。',
+        active: '伊萊把三枚小釘壓在紙上。南門農田、獵人棧道、舊營火點，三處都近，近得讓人不舒服。',
+        completed: '我把近郊路線帶回來。鞋底有泥，衣角有草屑。至少城鎮知道第一段路沒有完全斷掉。',
+        finished: '第一份路線被壓進手札。紙很薄，卻讓南門外的空白少了一塊。',
+        nextLead: '伊萊的書桌上還空著三個位置。農田、棧道、舊營火點，我得把它們從霧裡帶回來。',
         route: 'adventure',
         reportTo: {
             npcId: 'village_elder',
@@ -25,62 +35,125 @@ export const QuestStoryDatabase = {
             label: '回去找村長'
         },
         objectives: [
-            '村長請我先找書記確認旅人手札的記錄方式。',
-            '再前往南門外近郊，記下 3 處還能通行的路線。'
+            '找伊萊標出南門外三處路標。',
+            '前往南門農田、獵人棧道與舊營火點，記下哪裡還能通行。'
         ]
     },
     main_002: {
         arc: '裂痕前夜',
-        source: '書記的異常紀錄',
+        source: '伊萊的異常紀錄',
         location: '舊書桌',
-        speaker: { name: '書記', avatar: '📚' },
-        discovery: '書記把村民的聽聞寫成第一份紀錄：農田邊的史萊姆正在變多。',
-        available: '這件委託小到不像英雄故事，卻足以證明地脈異常已經靠近城鎮。',
-        active: '清掉靠近農田的史萊姆，再回來讓書記比對時間、地點與黏液味道。最後一項聽起來很不體面，但他很堅持。',
-        completed: '史萊姆數量被壓下來，書記終於能把「黏糊糊的聲音」改寫成比較正式的紀錄。',
-        finished: '書記在紀錄旁加了一行小字：史萊姆只是第一個浮上來的症狀。',
-        nextLead: '到南門外近郊，消滅靠近農田的史萊姆。',
+        speaker: { name: '伊萊', avatar: '📚' },
+        characterProfile: {
+            cause: '南門農田能走，但水溝邊的黏液正在抹掉腳印與巡路痕跡。',
+            choice: '伊萊要你壓下史萊姆並帶回未擦乾的凝膠樣本，判斷這是普通增生，還是有東西被帶回了農田。',
+            mainThread: '第一章早期異常：先解決路線上的小阻塞，再從樣本裡發現銀絲。',
+            townState: 'town.chapter1.slime_anomaly_named',
+            townDynamic: {
+                title: '黏液裡有銀光',
+                text: '伊萊刮下一點凝膠。燈火一照，裡面浮出細絲。甜味悶在屋裡，沒有人再說那只是史萊姆太多。'
+            }
+        },
+        discovery: '三處路標被記下後，農田那一格反而更刺眼。我聞到水溝邊的甜膩味；腳印到了那裡就亂成一團。',
+        available: '伊萊把農田那一格圈起來。墨還沒乾，紙頁像先沾上了黏液味。小事最容易被拖爛。',
+        active: '南門農田的水溝邊還在翻動。史萊姆不難對付，麻煩的是牠們把路上的痕跡全黏成一團。樣本要濕，要髒，要帶著原本的位置感。',
+        completed: '史萊姆退進水溝。我把凝膠裝進小瓶，甜味貼在指縫。燈一照，黏液裡浮出細銀光。',
+        finished: '他把「增生」改成「異常」。筆尖停了一下，又在旁邊補上：來源未明。',
+        nextLead: '南門農田的水溝邊還留著甜膩味。伊萊要完整樣本，不要乾淨戰利品。',
+        requestFrom: { npcId: 'town_scholar' },
+        requestTitle: '農田水溝邊',
+        requestSummary: '我推開書庫門時，油燈被風壓得縮了一下。伊萊的指尖停在南門農田那一格。',
+        requestLines: [
+            { speaker: 'narration', text: '我推開書庫門時，油燈被風壓得縮了一下。伊萊沒有抬頭，指尖停在南門農田那一格。' },
+            { speaker: 'narration', text: '紙還潮。墨線旁沾著淡綠污痕，甜味很輕，卻一直鑽進鼻腔。' },
+            { speaker: 'npc', text: '農田能走，這是好事。可水溝邊的腳印全被黏液攪亂，巡路人的鞋底紋也看不清。' },
+            { speaker: 'npc', text: '我需要濕樣本。去把那些史萊姆壓下來，凝膠別擦乾；泥點、草根、甜味都留著。' }
+        ],
         route: 'adventure',
         reportTo: {
             npcId: 'town_scholar',
-            name: '書記',
+            name: '伊萊',
             route: 'lobby',
-            label: '回去找書記'
+            label: '回去找伊萊'
         },
         objectives: [
-            '書記說最近城外史萊姆變多了，請我消滅 5 個靠近農田的史萊姆。'
+            '前往南門農田，擊退水溝邊的史萊姆 5 隻，帶回未擦乾的凝膠樣本。'
         ]
     },
     main_003: {
         arc: '銀絲伏道',
-        source: '斷裂誘餌鉤',
-        location: '鍛造鋪',
-        speaker: { name: '鍛造師', avatar: '⚒️' },
-        discovery: '獵人棧道旁的誘餌鉤被切得太乾淨，鍛造師看完後臉色沉下來：普通野獸留不出這種痕跡。',
-        available: '鍛造師要你先把裝備整好。他嘴上說是為了方便收尾款，眼神卻一直往城外看。',
-        active: '完成一次裝備強化，讓裝備能撐過接下來的伏擊測試。',
-        completed: '強化完成後，鍛造師把誘餌鉤修成能反向設陷的形狀。',
-        finished: '獵人棧道的封鎖露出真正輪廓：一隻會記住路線的怪物正在等你犯錯。',
-        nextLead: '前往鍛造，完成一次裝備強化。',
-        route: 'forge',
+        source: '回程路上的銀絲',
+        location: '獵人棧道',
+        speaker: { name: '伊萊', avatar: '📚' },
+        characterProfile: {
+            cause: '銀絲不是史萊姆身體的一部分，而是被牠們從另一段路帶回農田。',
+            choice: '你沿著獵人棧道、舊營火與斷牌回查，確認銀絲第一次出現的位置。',
+            mainThread: '銀絲伏道把怪物變成線索：牠不是隨機出現，而是在量回程路。',
+            townState: 'town.chapter1.silver_thread_route_named',
+            townDynamic: {
+                title: '銀絲被接成路線',
+                text: '伊萊把銀絲壓在紙角。它很細，卻把農田、棧道和舊營火點拉到同一頁。'
+            }
+        },
+        discovery: '伊萊把凝膠裡的銀絲挑出來。它黏在針尖上，輕輕一拉，竟沒有斷。這不是史萊姆長出的東西。',
+        available: '銀絲像是被黏液帶回農田的。獵人棧道、舊營火、被割裂的木牌。三個點被細線牽在一起，輕得幾乎看不見。',
+        active: '棧道邊的木板會先說話。灰會說第二句。木牌切口最後才開口。不要只看前方，伏擊往往等在人想回頭的地方。',
+        completed: '誘餌鉤斷在泥裡。切口很新。沒有咬痕，沒有血，只有一點冷掉的鐵味。伊萊捏著紙角看了很久，最後把「野獸」兩個字劃掉。',
+        finished: '銀絲、營火與斷鉤被接成一條回程路。伊萊交給你一枚試作誘餌。小得可笑，握在掌心卻發涼。',
+        nextLead: '銀絲沒有從農田開始。它只是被帶回來。真正的第一個結，藏在回程路上。',
+        requestFrom: { npcId: 'town_scholar' },
+        requestTitle: '黏液裡的細線',
+        requestSummary: '伊萊把銀絲壓在紙角。那東西細得不像武器，卻把農田、棧道與舊營火點拉到同一頁。',
+        requestLines: [
+            { speaker: 'narration', text: '銀線被伊萊壓在紙角。它太細，細到不像武器。可它把農田、棧道、舊營火點連成了一條斜線。' },
+            { speaker: 'narration', text: '不是往外走的線。是回來的線。' },
+            { speaker: 'npc', text: '史萊姆只是把它帶回來。牠們沒有這種手藝，也沒有這種惡意。' },
+            { speaker: 'npc', text: '人出門時會緊張。回來時不會。回來時會想水、火、床，會把刀放低一點。' },
+            { speaker: 'npc', text: '往回查。棧道邊緣、舊營火的灰、那塊被割裂的木牌。看它從哪裡第一次貼上路。' }
+        ],
+        route: 'adventure',
         reportTo: {
-            npcId: 'blacksmith',
-            name: '鍛造師',
+            npcId: 'town_scholar',
+            name: '伊萊',
             route: 'lobby',
-            label: '回去找鍛造師'
-        }
+            label: '回去找伊萊'
+        },
+        objectives: [
+            '調查獵人棧道、舊營火點與被割裂的木牌。',
+            '確認銀絲、營火警告與斷裂誘餌鉤是否來自同一條伏擊路線。'
+        ]
     },
     main_004: {
         arc: '銀絲伏道',
         source: '倖存者警告',
-        location: '獵人棧道',
-        speaker: { name: '倖存者警告', avatar: '🔥' },
-        discovery: '舊營火點留下警告：不要在同一段路點燃第二次火，牠會記得光的位置。',
-        available: '銀絲集中在你可能回頭的位置。那裡沒有巢穴的安靜，只有等人踩進去的伏擊。',
-        active: '沿著獵人棧道、舊營火與被割裂的木牌拼出銀絲收束的位置，再帶著銀絲誘餌回到伏道設陷。',
-        completed: '銀鐮伏獵者被擊敗後，獵人棧道重新開放。你第一次看見地圖會因怪物行為而改變。',
-        finished: '道路打通後，腐根溪谷的焦黑煙霧終於不再只是遠方的模糊陰影。',
-        nextLead: '取得足夠線索後，帶著銀絲誘餌前往銀絲伏道設陷。',
+        location: '銀絲伏道',
+        speaker: { name: '舊營火警告', avatar: '🔥' },
+        characterProfile: {
+            cause: '銀絲伏獵者封住獵人舊路，讓南門外的回程變成陷阱。',
+            choice: '你用誘餌反設伏擊，讓城鎮知道怪物也能被讀懂。',
+            mainThread: '第一章第一個伏擊收束：獵人棧道重新開口，腐根溪谷露出煙。',
+            townState: 'town.chapter1.boardwalk_reopened',
+            townDynamic: {
+                title: '獵人棧道有了風聲',
+                text: '銀絲不再自己繃緊。舊木板咯吱作響，像終於敢呼吸。南門的人開始談起更遠的那條溪谷。'
+            }
+        },
+        discovery: '舊營火點留下警告：不要在同一段路點燃第二次火。伊萊把它和斷鉤放在同一頁，終於看出伏擊的位置。',
+        available: '銀絲集中在回程最容易鬆懈的位置。那裡沒有巢穴，沒有吼聲。只有等。',
+        active: '銀絲最密的地方沒有吼聲。只有空氣繃緊。誘餌放下去前，先摸一下藥瓶，確認手沒有抖。',
+        completed: '銀鐮伏獵者倒下後，棧道忽然有了風聲。木板咯吱作響，像終於敢呼吸。',
+        finished: '獵人舊路重新打開。遠處的腐根溪谷露出一縷黑煙，細，直，像有人在森林裡燒掉一封信。',
+        nextLead: '伏道太安靜了。安靜到像有東西在等你把背轉過去。',
+        requestFrom: { npcId: 'town_scholar' },
+        requestTitle: '回程路上的等待',
+        requestSummary: '伊萊把粗糙誘餌放進你掌心。小鉤沾著銀絲，冰得像剛從井水裡撈起來。',
+        requestLines: [
+            { speaker: 'narration', text: '伊萊把誘餌鉤修得很粗糙。不是不好。是故意的。' },
+            { speaker: 'narration', text: '他把小鉤放進你掌心。鉤上纏著一點銀絲，冰得像剛從井水裡撈起來。' },
+            { speaker: 'npc', text: '牠不是追人。牠等人回頭，等人放鬆，等腳步開始往家裡走。' },
+            { speaker: 'npc', text: '放在棧道回彎處。那裡有兩塊木板聲音不一樣，踩下去會慢半步。' },
+            { speaker: 'npc', text: '把誘餌放在銀絲最密的伏道。這次換我們等牠先動。' }
+        ],
         route: 'adventure',
         reportTo: {
             npcId: 'village_elder',
@@ -91,21 +164,40 @@ export const QuestStoryDatabase = {
     },
     main_005: {
         arc: '腐根溪谷',
-        source: '發黑樹皮',
+        source: '不響的森林',
         location: '腐根溪谷',
-        speaker: { name: '書記', avatar: '📚' },
-        discovery: '獵人棧道打通後，腐根溪谷的焦黑煙霧變得清楚。狼牙痕、霧碑拓印與發黑樹皮都指向神木核心。',
-        available: '森林的怒意像從傷口裡滲出來。它被剝掉一塊血肉後，痛到只剩防衛本能。',
-        active: '擊退被污染痕跡驅趕的狼群，找出古樹守衛核心的位置。',
-        completed: '古樹守衛倒下後，溪谷的燃燒藤蔓減弱，但污染已順著水流擴散。',
-        finished: '線索補上最重要的一句：黑樹皮被北方更高威脅剝走，爪痕還留在神木身上。',
-        nextLead: '調查腐根溪谷與霧碑丘，追蹤古樹守衛。',
+        speaker: { name: '伊萊', avatar: '📚' },
+        characterProfile: {
+            cause: '獵人舊路重新通行後，你才看見更遠處的腐根溪谷黑煙。',
+            choice: '你把斷角營地、腐根溪谷與古樹根心接起來，先證明森林異常有固定來源。',
+            mainThread: '第一章主幹收束：道路打開後，森林異常露出；裂鐘只是新懷疑，不是立即答案。',
+            townState: 'town.chapter1.forest_wound_named',
+            townDynamic: {
+                title: '森林的痛被記下',
+                text: '你帶回焦黑核心。伊萊把它放進乾布裡，先標出棧道、黑煙與根心，最後才在旁邊寫下裂鐘。'
+            }
+        },
+        discovery: '獵人棧道打通後，腐根溪谷的焦黑煙霧變得清楚。新的問題不是突然出現，而是路被打開後終於看得見。',
+        available: '棧道重新透風後，黑煙終於露出來。斷角營地有焦皮味，腐根溪谷潮熱，古樹根心像在地底慢慢敲門。',
+        active: '別急著找首領。先聽煙往哪裡走，摸樹皮哪裡發黑，再看根心的震動是不是同一個節拍。',
+        completed: '古樹守衛倒下後，溪谷黑煙低了。伊萊把道路、森林與廣場裂鐘放在同一頁，但只在旁邊寫下：尚待證實。',
+        finished: '第一章的問題第一次成形：城鎮不是單純被怪物包圍，而是和外面的路一起壞了。',
+        nextLead: '黑煙很直。太直。森林裡很少有東西這樣安靜地燒。',
+        requestFrom: { npcId: 'town_scholar' },
+        requestTitle: '腐根溪谷的黑煙',
+        requestSummary: '棧道一通，遠處的黑煙就變得清楚。伊萊把煙的位置標在地圖邊緣，筆尖停了很久。',
+        requestLines: [
+            { speaker: 'narration', text: '棧道一通，遠處的黑煙就變得清楚。伊萊把煙的位置標在地圖邊緣，筆尖停了很久。' },
+            { speaker: 'narration', text: '紙上有一道新空白。不是沒有路，是剛剛才有資格被看見。' },
+            { speaker: 'npc', text: '普通營火不會燒得這麼直。風在那邊，可煙不太聽風的話。' },
+            { speaker: 'npc', text: '斷角營地、腐根溪谷、古樹根心。先把三個點接起來。這次找的不是怪物，是森林為什麼疼。' }
+        ],
         route: 'adventure',
         reportTo: {
             npcId: 'town_scholar',
-            name: '書記',
+            name: '伊萊',
             route: 'lobby',
-            label: '回去找書記'
+            label: '回去找伊萊'
         }
     },
     main_006: {
@@ -113,12 +205,30 @@ export const QuestStoryDatabase = {
         source: '撕下的獵人告示',
         location: '月苔坡',
         speaker: { name: '獵人告示', avatar: '🌙' },
-        discovery: '古樹守衛事件後，夜裡開始有折角巨獸撞碎巨石。污染溪流把第二道傷口推到了月光下。',
+        characterProfile: {
+            cause: '污染沿溪水推到月苔坡，血月角鹿成了森林傷口留下的餘波。',
+            choice: '你追上角鹿，讓南門外的夜晚少一點撞石聲。',
+            mainThread: '第一章餘波：它補完森林傷口，但不阻擋第二章主線。',
+            townState: 'town.chapter1.blood_moon_settled',
+            townDynamic: {
+                title: '血月退到林後',
+                text: '夜裡沒有撞石聲。城門上的火盆燒得很低，灰燼裡有鹿角磨過的白粉。沒有人說結束。'
+            }
+        },
+        discovery: '古樹守衛事件後，夜裡開始有折角巨獸撞碎巨石。這不是新的門鎖，是森林傷口的餘波。',
         available: '血月角鹿不守巢穴。牠會沿著月苔、溪谷與林徑交界移動。',
-        active: '用月苔痕跡縮小狩獵範圍，把角鹿逼向月苔坡。',
-        completed: '角鹿倒下後，血月退去。石階鎮外暫時安靜，卻沒有人覺得事情真的結束了。',
-        finished: '第一章收束：邊境災害被壓下，但線索都指向霧碑丘陵與更深的地脈斷裂。',
-        nextLead: '追蹤月苔樣本與折角路線，完成血月角鹿狩獵。',
+        active: '月苔被踩碎時會留下淡淡苦味。沿著那味道走，會聽見角撞石面的聲音，悶，短，像有人不肯醒。',
+        completed: '角鹿倒下後，血月退去。南門外暫時安靜，真正的線索已經往霧碑丘陵延伸。',
+        finished: '血月餘波被壓下。它讓森林的傷更完整，也讓第二章的霧碑更冷。',
+        nextLead: '夜裡少了一種聲音，反而更容易聽見剩下的那一種。',
+        requestFrom: { npcId: 'village_elder' },
+        requestTitle: '血月退不乾淨',
+        requestSummary: '古樹守衛倒下後，夜裡仍有鹿角撞石的聲音。一下。又一下。守門的人聽久了，臉色比火盆還暗。',
+        requestLines: [
+            { speaker: 'narration', text: '古樹守衛倒下後，夜裡仍有鹿角撞石的聲音。一下。又一下。守門的人聽久了，臉色比火盆還暗。' },
+            { speaker: 'npc', text: '牠不是新的門。只是森林傷口還沒合上，痛得往外跑。' },
+            { speaker: 'npc', text: '沿著月苔找。若能讓那聲音停下，南門外的人今晚至少能睡一小段。' }
+        ],
         route: 'adventure',
         reportTo: {
             npcId: 'village_elder',
@@ -258,28 +368,6 @@ export const QuestStoryDatabase = {
         route: 'adventure',
         reportTo: { npcId: 'village_elder', name: '村長', route: 'lobby', label: '回去找村長' }
     },
-    bounty_001: {
-        arc: '城鎮委託',
-        source: '書記的求助',
-        location: '舊書桌',
-        speaker: { name: '書記', avatar: '📚' },
-        discovery: '書記說最近城外史萊姆變多了，村民擔心牠們繼續往農田靠近。',
-        available: '書記請你消滅 5 個史萊姆，先確認這是不是單純增生，還是地脈異常的前兆。',
-        active: '書記已把這件事寫進旅人手札：清掉靠近農田的史萊姆，再回來比對時間與地點。',
-        completed: '史萊姆數量被壓下來，書記終於能把「黏糊糊的聲音」改寫成比較正式的紀錄。',
-        finished: '書記在紀錄旁加了一行小字：史萊姆不是原因，只是第一個浮上來的症狀。',
-        nextLead: '到南門外近郊，消滅靠近農田的史萊姆。',
-        route: 'adventure',
-        reportTo: {
-            npcId: 'town_scholar',
-            name: '書記',
-            route: 'lobby',
-            label: '回去找書記'
-        },
-        objectives: [
-            '書記說最近城外史萊姆變多了，請我消滅 5 個靠近農田的史萊姆。'
-        ]
-    },
     bounty_002: {
         arc: '城鎮委託',
         source: '哥布林威脅',
@@ -409,7 +497,11 @@ export const QuestStoryDatabase = {
             cause: '他曾經把一枚獵人鉤索修得太輕，獵人再也沒有回來。',
             choice: '繼續只做生意，或把爐火穩住，讓城鎮夜裡仍有能支撐冒險者的地方。',
             mainThread: '斷裂誘餌鉤讓鍛造系統接上銀鐮伏獵者線。',
-            townState: 'town.blacksmith.forge_open'
+            townState: 'town.blacksmith.forge_open',
+            townDynamic: {
+                title: '冷爐吐出第一口煙',
+                text: '白煙終於往上走。鐵匠沒有道謝，只把爐門推開。屋裡有煤味，也有一點久違的熱。'
+            }
         },
         discovery: '鍛造鋪的白煙倒灌進屋裡，鍛造師把咳嗽壓回喉嚨，指節還停在那枚斷裂誘餌鉤上。那枚鉤太乾淨，像被某種懂得等候的東西切開。',
         available: '鍛造師要鐵礦石修爐。聽起來像雜活，實際上是替城鎮留住夜裡的火聲；火聲停了，很多人會開始相信門外的黑暗比較有道理。',
@@ -432,7 +524,11 @@ export const QuestStoryDatabase = {
             cause: '師父教她在混亂時先整理瓶子，因為可控的小事能讓人不至於崩潰。',
             choice: '把凝膠腐蝕當成普通缺貨，或承認農田土壤可能已經被地脈異常滲入。',
             mainThread: '史萊姆凝膠變甜是地脈異常浮上地表的早期症狀。',
-            townState: 'town.apothecary.stock_basic_potion'
+            townState: 'town.apothecary.stock_basic_potion',
+            townDynamic: {
+                title: '藥棚重新有了玻璃聲',
+                text: '小瓶被一只只排回木架。玻璃碰玻璃，聲音很薄。苦草味從棚底浮起來，蓋過一點凝膠的甜。'
+            }
         },
         discovery: '藥師把被凝膠咬穿的空瓶排成一列，表情像在數一群很不聽話的病人。她說史萊姆變多可以處理，凝膠開始發甜才讓人背脊發涼。',
         available: '她要 5 份史萊姆凝膠比對農田土壤。甜味會把人騙近一點，地脈異常也一樣，通常等人察覺時已經沾到鞋底。',
@@ -455,7 +551,11 @@ export const QuestStoryDatabase = {
             cause: '村長管理城鎮太久，知道城鎮靠日常巡查活著，不靠英雄詩活著。',
             choice: '只追主線災難，或替一個每天看路的人補好靴底。',
             mainThread: '南門外路線確認後，守衛必須把玩家發現的路變成每天可用的路。',
-            townState: 'town.south_gate.guard_route_ready'
+            townState: 'town.south_gate.guard_route_ready',
+            townDynamic: {
+                title: '南門靴聲重新穩了',
+                text: '守衛把補好的靴子踩在石階上。聲音不大，一下，一下。門邊的人聽見了，沒有回頭。'
+            }
         },
         discovery: '村長提到南門守衛的靴底裂開了。那名守衛每天最早踩上城外路線，晚飯前又把鞋上的泥帶回來，像替城鎮量一遍今天還能活到哪裡。',
         available: '南門外路線剛重新標記，需要有人每天確認。村長要獸皮修靴底，這件小事會讓地圖從紙上落回地面。',
@@ -1105,7 +1205,7 @@ export function getQuestStory(questData, state = null) {
     const baseStory = QuestStoryDatabase[questData?.id] || {};
     const story = baseStory;
     const status = state?.status || 'available';
-    const statusText = story[status] || story.available || questData?.dialogue?.start || questData?.description || '';
+    const statusText = story[status] || story.available || questData?.description || '';
 
     return {
         title: story.title || story.source || getFallbackTitle(questData),
@@ -1117,15 +1217,24 @@ export function getQuestStory(questData, state = null) {
         current: statusText,
         available: story.available || questData?.description || '',
         active: story.active || '',
-        completed: story.completed || questData?.dialogue?.complete || '',
+        completed: story.completed || '',
         finished: story.finished || '',
         nextLead: story.nextLead || getFallbackNextLead(questData),
         route: story.route || null,
+        requestFrom: story.requestFrom || questData?.requestFrom || null,
         reportTo: story.reportTo || getFallbackReportTo(questData),
         objectives: Array.isArray(story.objectives) ? story.objectives : null,
         triggerGate: story.triggerGate || questData?.trigger || null,
         characterProfile: story.characterProfile || null,
-        narrativeMeta: story.narrativeMeta || null
+        narrativeMeta: story.narrativeMeta || null,
+        requestTitle: story.requestTitle || null,
+        requestSummary: story.requestSummary || null,
+        requestLines: Array.isArray(story.requestLines) ? story.requestLines : null,
+        acceptMessage: story.acceptMessage || null,
+        reportTitle: story.reportTitle || null,
+        reportSummary: story.reportSummary || null,
+        reportLines: Array.isArray(story.reportLines) ? story.reportLines : null,
+        reportMessage: story.reportMessage || null
     };
 }
 

@@ -609,6 +609,9 @@ class TowerScene {
         this.rhythmSystem?.setBattleAttackSpeedBonus?.(
             this.battleEngine.getPlayerAttackSpeedBonusPercent?.() || 0
         );
+        this.rhythmSystem?.setBattleHitZoneBonus?.(
+            this.battleEngine.getPlayerHitZoneBonusPercent?.('weapon') || 0
+        );
 
         if (res.destroyedWeapon) {
             this.showMessage(`${res.destroyedWeapon.name} 已損壞。`, 'warning');

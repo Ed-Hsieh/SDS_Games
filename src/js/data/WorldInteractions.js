@@ -22,7 +22,7 @@ export const WorldInteractionDatabase = {
         flags: ['foundBlueprintCache'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '你找到一只被泥土埋住的藍圖匣。裡面的紙不完整，但足夠提醒玩家：鍛造不是裝飾，而是一條穩定成長路線。',
+        message: '你找到一只被泥土埋住的藍圖匣。紙頁缺了角，鉛灰沾滿指腹；它不像寶藏，更像有人把活路折起來藏進土裡。',
         repeatMessage: '藍圖匣已經被翻找過，只剩潮濕的紙屑和幾道看不懂的折痕。',
         imageKeys: ['world.blueprint_cache', 'item.blueprint_scroll']
     },
@@ -31,13 +31,13 @@ export const WorldInteractionDatabase = {
         title: '村長的第一個警告',
         source: InteractionSource.WORLD_OBJECT,
         oneTime: true,
-        flags: ['metVillageElder', 'town.network.first_recovery_named'],
+        flags: ['metVillageElder', 'town.elder.first_warning', 'town.network.first_recovery_named'],
         unlockQuests: ['main_001'],
         unlockRecipes: [],
         autoAcceptQuests: true,
         showQuestUnlockMessages: false,
-        message: '奧倫把城鎮目前的斷點攤開：南門、藥櫃、冷爐、書庫與市集都需要重新接上。',
-        repeatMessage: '奧倫已經把第一批復興方向交代清楚。',
+        message: '奧倫把濕紙攤在桌上。手指停在南門外三個小記號上，指節沾著乾泥。',
+        repeatMessage: '南門外的三個記號仍壓在公告板下。紙角發皺，像路還沒完全睡穩。',
         imageKeys: ['npc.village_elder', 'world.notice_board']
     },
     crossroads_notice_board: {
@@ -48,22 +48,22 @@ export const WorldInteractionDatabase = {
         flags: ['readCrossroadsNoticeBoard', 'town.crossroads.notice_read'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '你把公告板上殘留的紙條重新排好：藥櫃缺材料、鐵匠鋪冷爐、南門缺巡線、市集沒有穩定貨源。',
-        repeatMessage: '公告板已經整理過，第一批城鎮復興節點清楚地釘在上面。',
+        message: '你把公告板上的舊紙撕下，重新釘好。墨味很新，木板縫裡還卡著雨水。',
+        repeatMessage: '公告板已經整理過。新紙在風裡沙沙響，像有人正在小聲點名。',
         imageKeys: ['world.notice_board']
     },
     scholar_slime_request: {
         id: 'scholar_slime_request',
-        title: '學者的第一份怪物索引',
+        title: '伊萊的路線索引',
         source: InteractionSource.WORLD_OBJECT,
         oneTime: true,
         flags: ['heardScholarSlimeRequest', 'town.scholar.first_index_open'],
-        unlockQuests: ['main_002'],
+        unlockQuests: [],
         unlockRecipes: [],
-        autoAcceptQuests: true,
+        autoAcceptQuests: false,
         showQuestUnlockMessages: false,
-        message: '伊萊開始建立第一份怪物索引。這會把怪物掉落、素材用途與戰鬥準備接回同一個系統。',
-        repeatMessage: '第一份怪物索引已經建立，接下來要靠更多戰鬥紀錄補齊。',
+        message: '伊萊把第一頁索引壓平。南門農田、獵人棧道、舊營火點，三個地名被寫成一條能走的線。',
+        repeatMessage: '第一份路線索引已經攤在書桌上。泥味和墨味黏在同一頁。',
         imageKeys: ['npc.scholar', 'world.notice_board']
     },
     crossroads_beggar: {
@@ -94,7 +94,7 @@ export const WorldInteractionDatabase = {
         flags: ['readSpecialBountyNotice', 'town.rumor.elite_warning_open'],
         unlockQuests: ['bounty_elite_001'],
         unlockRecipes: [],
-        message: '你讀到一張被重新釘上的精英懸賞。它提醒玩家：菁英怪不只是更硬的小怪，而是高風險、高價值的重複挑戰目標。',
+        message: '你讀到一張重新釘上的精英懸賞。紙上沒有英雄話，只有幾行很冷的提醒：牠難纏，牠值錢，別空手去。',
         repeatMessage: '精英懸賞已經被記錄進書庫與情報板。',
         imageKeys: ['world.notice_board']
     },
@@ -106,7 +106,7 @@ export const WorldInteractionDatabase = {
         flags: ['foundRuinTabletTrace'],
         unlockQuests: ['dungeon_cave_001'],
         unlockRecipes: [],
-        message: '石板上的刻痕指向第一個副本入口。副本應該提供更特殊的素材、裝備和藍圖，而不是只當怪物房。',
+        message: '石板上的刻痕指向第一個副本入口。字縫裡有灰，像某個地方在地下悶了很久，等人把門重新摸出來。',
         repeatMessage: '石板痕跡已經被抄進書庫索引。',
         imageKeys: ['world.ruin_tablet']
     },
@@ -118,8 +118,8 @@ export const WorldInteractionDatabase = {
         flags: ['foundTowerGlyphMemory'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '塔的符文仍在發亮，但目前只保留為壓迫感與未來重做伏筆。相關怪物、裝備與圖像先不新增。',
-        repeatMessage: '塔的符文記憶已經被記錄；真正重做會等光明副本與後期反制完成後再接上。',
+        message: '塔的符文仍在發亮。光貼著石縫慢慢爬，沒有溫度，只讓人想起某扇不該太早打開的門。',
+        repeatMessage: '塔的符文記憶已經被記錄。石縫裡的光還在，只是暫時沒有人靠近。',
         imageKeys: ['world.tower_glyph']
     },
     dungeon_forge_relic: {
@@ -130,7 +130,7 @@ export const WorldInteractionDatabase = {
         flags: ['foundDungeonForgeRelic'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '你找到一件熄滅的鍛造核心。它證明鍛造進階不該憑空開放，而該由副本素材與藍圖推動。',
+        message: '你找到一件熄滅的鍛造核心。金屬裡還殘著焦味，像一座很久以前死去的爐子，牙根仍在發熱。',
         repeatMessage: '鍛造遺物已經被送回冷爐鐵匠鋪研究。',
         imageKeys: ['world.ancient_forge_core']
     },
@@ -158,7 +158,7 @@ export const WorldInteractionDatabase = {
         flags: ['market.rumor.echo_rhythm_matched'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '蕾恩把一段看似荒唐的節奏傳聞轉成可用線索。這類情報之後應該服務副本準備、怪物弱點或特殊路線。',
+        message: '蕾恩把一段荒唐的節奏傳聞壓低聲音念完。聽起來像玩笑，末尾卻準確指向一條不該有回聲的路。',
         repeatMessage: '回聲節奏已經被記錄，傳聞不會重複變成新的線索。',
         imageKeys: ['world.notice_board']
     },
@@ -170,7 +170,7 @@ export const WorldInteractionDatabase = {
         flags: ['market.black_market.coal_token_traded', 'town.black_market.debt_marked'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '黑市商人交出一枚黑煤籌碼。它不是立即懲罰，而是未來庫存、債務與結局陰影的記名點。',
+        message: '黑市商人交出一枚黑煤籌碼。它不燙，卻把掌心染得發黑，像某種還沒開始討債的名字。',
         repeatMessage: '黑煤籌碼已經登記，黑市不會把這筆交易忘掉。',
         imageKeys: ['world.black_market_door']
     },
@@ -182,7 +182,7 @@ export const WorldInteractionDatabase = {
         flags: ['town.apothecary.understands_thorn_trade'],
         unlockQuests: [],
         unlockRecipes: [],
-        message: '瑪菈理解了荊棘素材的用途。這會讓市場的解毒、抗性與毒系素材交易開始有劇情理由。',
+        message: '瑪菈把荊棘放進小碗裡碾碎。苦味先冒出來，接著是很淡的青草氣。她沒有笑，但眼神亮了一下。',
         repeatMessage: '荊棘交易已經被藥櫃記錄。',
         imageKeys: ['npc.herbalist']
     },
@@ -197,7 +197,7 @@ export const WorldInteractionDatabase = {
         unlockQuests: ['bounty_elite_001'],
         unlockRecipes: [],
         missingMessage: '你還沒有可交付的地圖碎片。',
-        message: '地圖碎片被整理成可用路線。新的精英懸賞與冒險目標被標到地圖上。',
+        message: '地圖碎片被壓平、對齊、重新描線。幾個紅圈落在邊角，像有人終於承認那裡不是空白。',
         repeatMessage: '這份地圖碎片已經交付並被整理。',
         imageKeys: ['item.map_fragment', 'world.notice_board']
     }

@@ -153,7 +153,7 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'main-003-prepares-reverse-trap',
+        id: 'main-003-reads-the-ambush-loop',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_003' },
         actions: [
@@ -170,7 +170,7 @@ export const StoryProgressRules = [
         ]
     },
     {
-        id: 'main-005-turns-forest-into-blood-moon',
+        id: 'main-005-records-forest-bell-signal',
         event: E.QUEST_COMPLETED,
         match: { questId: 'main_005' },
         requires: [{ type: 'monsterDefeated', monsterId: 'forest_guardian' }],
@@ -421,7 +421,6 @@ export const StoryProgressRules = [
         match: { landmarkId: 'mist_tablet_hill' },
         actions: [
             clue('mist_tablet_rubbing'),
-            progress('forest_guardian', 'solve_tablet_hint'),
             progress('lich', 'cleanse_tablets')
         ]
     },

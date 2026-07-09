@@ -106,8 +106,8 @@ export const PassiveCombatEffectUnlockSources = {
         sourceText: '初始戰術；也可透過銳利專注手記補登'
     },
     heavy_grip: {
-        questIds: ['main_003'],
-        sourceText: '完成鍛造師的第一次裝備整備後解鎖'
+        questIds: ['commission_blacksmith_chimney'],
+        sourceText: '協助鐵匠鋪重新穩住爐火後解鎖'
     },
     guard_memory: {
         itemIds: ['guard_memory_manual'],

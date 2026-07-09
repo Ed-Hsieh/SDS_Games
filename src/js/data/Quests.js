@@ -48,29 +48,21 @@ export const QuestDatabase = {
     main: [
         {
             id: 'main_001',
-            name: '冒險的起點',
+            name: '南門外的三個記號',
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📖',
-            description: '村長請你先找書記確認旅人手札的記錄方式，再到南門外近郊確認哪些路還能走。',
+            description: '南門巡路昨夜沒有回來。村長要我先找伊萊標出三處近郊地標，再確認農田、棧道與舊營火點是否仍能通行。',
             objectives: [
-                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, completionFlag: 'town.scholar.first_index_open', description: '先找書記確認旅人手札的記錄方式' },
-                { type: ObjectiveType.EXPLORE, target: 'chapter1_route_intro', count: 3, description: '確認南門農田、獵人棧道與舊營火點 3 處路標' }
+                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, completionFlag: 'town.scholar.first_index_open', description: '找伊萊標出南門外三處地標' },
+                { type: ObjectiveType.EXPLORE, target: 'chapter1_route_intro', count: 3, description: '確認南門農田、獵人棧道與舊營火點' }
             ],
             rewards: {
-                gold: 100,
-                exp: 50,
-                items: ['old_sword'],
-                materials: [
-                    { id: 'slime_jelly', quantity: 1 },
-                    { id: 'beast_hide', quantity: 1 }
-                ]
+                gold: 35,
+                exp: 35,
+                items: ['old_sword']
             },
             unlocks: ['main_002'], // 完成後解鎖
-            dialogue: {
-                start: '村長請你先找書記，再出城確認南門外的路線。',
-                complete: '你把第一份近郊路線帶回城鎮。'
-            }
         },
         {
             id: 'main_002',
@@ -78,40 +70,33 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '📚',
-            description: '書記把村民的聽聞整理成第一份紀錄：城外史萊姆正在靠近農田，這不是普通增生。',
+            description: '南門農田仍能通行，但水溝邊的黏液讓腳印全亂了。伊萊要我先壓下史萊姆，帶回未擦乾的凝膠樣本。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '消滅靠近農田的史萊姆 5 個' }
+                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '擊退水溝邊的史萊姆 5 隻，保留凝膠樣本' }
             ],
             rewards: {
-                gold: 150,
-                exp: 80,
+                gold: 45,
+                exp: 55,
                 items: ['health_potion_s']
             },
             unlocks: ['main_003'],
-            dialogue: {
-                start: '書記把農田附近的異常寫進旅人手札。',
-                complete: '史萊姆增生被壓下來，但這更像地脈異常的第一個症狀。'
-            }
         },
         {
             id: 'main_003',
-            name: '斷裂誘餌鉤',
+            name: '回程路上的銀絲',
             type: QuestType.MAIN,
             chapter: 1,
-            icon: '⚒️',
-            description: '獵人棧道旁出現被整齊切斷的誘餌鉤。鍛造師認為那不是刀痕，而是某種會記住路線的東西留下的。',
+            icon: '🕸️',
+            description: '史萊姆凝膠裡混著細銀絲。伊萊判斷那不是史萊姆長出的東西，而是牠們爬過某處後帶回農田的痕跡。',
             objectives: [
-                { type: ObjectiveType.ENHANCE, target: 'any', count: 1, description: '強化任意裝備 1 次' }
+                { type: ObjectiveType.EXPLORE, target: 'chapter1_ambush_signs', count: 3, description: '調查獵人棧道、舊營火點與被割裂的木牌' }
             ],
             rewards: {
-                gold: 100,
-                exp: 60
+                gold: 60,
+                exp: 70,
+                items: ['silver_thread_bait']
             },
             unlocks: ['main_004'],
-            dialogue: {
-                start: '鍛造師要你先把裝備整好，再去試探獵人棧道。',
-                complete: '誘餌鉤被修成能反向設陷的形狀。獵人棧道的銀絲開始有了脈絡。'
-            }
         },
         {
             id: 'main_004',
@@ -119,72 +104,51 @@ export const QuestDatabase = {
             type: QuestType.MAIN,
             chapter: 1,
             icon: '🕸️',
-            description: '獵人棧道的銀絲不是隨機陷阱，而是在丈量回程路。讀懂線索後，帶著銀絲誘餌到伏道反設陷阱。',
+            description: '銀絲伏擊集中在回程路最疲憊的位置。帶著伊萊做出的粗糙誘餌前往銀絲伏道，把潛伏者引出來。',
             objectives: [
                 { type: ObjectiveType.KILL, target: 'ambush_mantis', count: 1, description: '在銀絲伏道設置誘餌並擊敗銀鐮伏獵者' }
             ],
             rewards: {
-                gold: 220,
-                exp: 140,
-                items: ['silver_thread_hook'],
-                materials: [
-                    { id: 'spider_silk', quantity: 1 }
-                ]
+                gold: 90,
+                exp: 110,
+                items: ['silver_thread_hook']
             },
             unlocks: ['main_005'],
-            dialogue: {
-                start: '銀絲伏道沒有首領等在原地。牠會等你犯下可預測的錯。',
-                complete: '銀鐮伏獵者倒下後，獵人棧道終於能重新通行。'
-            }
         },
         {
             id: 'main_005',
-            name: '發黑樹皮',
+            name: '不響的森林',
             type: QuestType.MAIN,
             chapter: 1,
             icon: '🪵',
-            description: '獵人棧道重新打通後，腐根溪谷的焦黑煙霧變得清楚。狼群、霧碑與發黑樹皮都指向同一個核心。',
+            description: '獵人舊路重新通行後，腐根溪谷的黑煙露了出來。斷角營地、腐根溪谷與古樹根心都指向同一個異常震動。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'wild_wolf', count: 5, description: '擊敗被污染痕跡驅趕的野狼 5 隻' },
+                { type: ObjectiveType.EXPLORE, target: 'chapter1_forest_trace', count: 3, description: '調查斷角營地、腐根溪谷與古樹根心' },
                 { type: ObjectiveType.KILL, target: 'forest_guardian', count: 1, description: '追蹤並擊敗古樹守衛' }
             ],
             rewards: {
-                gold: 320,
-                exp: 220,
-                items: ['black_bark_guardian_core'],
-                materials: [
-                    { id: 'ancient_bark', quantity: 1 }
-                ]
+                gold: 150,
+                exp: 180,
+                items: ['black_bark_guardian_core']
             },
-            unlocks: ['main_006'],
-            dialogue: {
-                start: '森林不是主動攻擊人類。有人剝走了它的核心，讓守衛者痛到只剩防衛本能。',
-                complete: '古樹守衛倒下後，溪谷火勢減弱，污染卻順著水流擴散。'
-            }
+            unlocks: ['main_006', 'main_007'],
         },
         {
             id: 'main_006',
-            name: '血月下的折角',
+            name: '血月餘波',
             type: QuestType.MAIN,
             chapter: 1,
             icon: '🦌',
-            description: '神木污染滲入溪流後，血月角鹿開始在夜裡撞碎巨石。這不是新的災難，而是上一場災難的回聲。',
+            description: '古樹守衛倒下後，夜裡仍有鹿角撞石的聲音。血月角鹿不是第一章的門鎖，而是森林傷口留下的餘波。',
             objectives: [
                 { type: ObjectiveType.KILL, target: 'blood_moon_stag', count: 1, description: '完成月苔誘導並擊敗血月角鹿' }
             ],
             rewards: {
-                gold: 420,
-                exp: 260,
-                items: ['blood_moon_pendant'],
-                materials: [
-                    { id: 'life_seed', quantity: 1 }
-                ]
+                gold: 120,
+                exp: 120,
+                items: ['blood_moon_pendant']
             },
-            unlocks: ['main_007', 'dungeon_cave_001'],
-            dialogue: {
-                start: '角鹿不是守門人，而是喝下污染溪水後失控的受害者。追上牠，第一章才算收束。',
-                complete: '血月退去後，石階鎮外暫時穩定，但所有跡象都指向更高處的霧碑丘陵。'
-            }
+            unlocks: ['dungeon_cave_001'],
         },
         {
             id: 'main_007',
@@ -208,10 +172,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_008'],
             requiredLevel: 8,
-            dialogue: {
-                start: '霧碑丘陵不是單一事件。女巫、神諭、巫妖與人類貴族的問題會從這裡逐步展開。',
-                complete: '你跨過第一章的邊境災害，開始看見整片大陸如何一起斷裂。'
-            }
         },
         // ==================== 第二章：丘陵的執念 (Lv.10-18) ====================
         {
@@ -236,10 +196,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_009', 'dungeon_jungle_001'],
             requiredLevel: 10,
-            dialogue: {
-                start: '霧碑丘陵的草藥價格變得荒謬，荒謬到像有人把整片森林當作當鋪。',
-                complete: '荊棘交易被打斷後，女巫留下的珠子指向更深處的潮聲。'
-            }
         },
         {
             id: 'main_009',
@@ -263,10 +219,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_010', 'dungeon_snow_001'],
             requiredLevel: 12,
-            dialogue: {
-                start: '鐘聲不是從海邊傳來，而是從地脈裂縫裡往上冒。這句話聽起來很不合理，偏偏每個證人都這麼說。',
-                complete: '神諭沉默後，浮出的祭壇證明古龍已經拿走了不該被移動的核心。'
-            }
         },
         {
             id: 'main_010',
@@ -290,10 +242,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_011', 'dungeon_ruins_001'],
             requiredLevel: 14,
-            dialogue: {
-                start: '那些骷髏不是來攻城的，它們像是在找東西。問題是，牠們翻箱倒櫃的方式很傷人。',
-                complete: '巫妖倒下後，古墓沒有安靜太久。你找到的帳冊把下一個名字推到火光裡。'
-            }
         },
         {
             id: 'main_011',
@@ -317,10 +265,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_012'],
             requiredLevel: 16,
-            dialogue: {
-                start: '男爵說他是在保存文明。村民則說，他保存文明的方式主要是先搶走大家的鍋子。',
-                complete: '地宮被打開後，你終於確認：古龍的掠奪已經把人類自己的恐懼也點燃了。'
-            }
         },
         // ==================== 第三章：諸神黃昏 (Lv.18-30) ====================
         {
@@ -346,10 +290,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_013'],
             requiredLevel: 20,
-            dialogue: {
-                start: '你不需要有人告訴你龍在哪裡。被偷走的黑樹皮、寶珠與法杖，自己排成了路標。',
-                complete: '北方的熱痕匯到焦黑方尖碑，龍巢就在上方。'
-            }
         },
         {
             id: 'main_013',
@@ -372,10 +312,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_014'],
             requiredLevel: 24,
-            dialogue: {
-                start: '古龍盤踞在所有失竊核心之上。牠沒有統治世界的興趣，這反而更糟。',
-                complete: '古龍倒下後，龍巢的集中魔力暴露在黑焰下。深淵裡有東西醒了。'
-            }
         },
         {
             id: 'main_014',
@@ -399,10 +335,6 @@ export const QuestDatabase = {
             },
             unlocks: ['main_015'],
             requiredLevel: 27,
-            dialogue: {
-                start: '魔王北上不是為了救世界。這點值得先釐清，免得有人把他寫進感謝名單。',
-                complete: '深淵先鋒被擊退後，方尖碑下的黑焰開始向內旋轉。決戰入口打開了。'
-            }
         },
         {
             id: 'main_015',
@@ -425,31 +357,11 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 30,
-            dialogue: {
-                start: '這不是神魔合作，是兩個災難搶同一座魔力倉庫。你剛好是倉庫門口唯一還站著的人。',
-                complete: '阿薩謝爾被擊倒後，龍巢魔力開始回流地脈。艾瑟利亞沒有恢復和平，而城鎮能留下什麼樣的明天，會由你一路保住的人、道路與紀錄決定。'
-            }
         },
     ],
 
     // ==================== 懸賞任務 ====================
     bounty: [
-        {
-            id: 'bounty_001',
-            name: '書記的史萊姆紀錄',
-            type: QuestType.BOUNTY,
-            icon: '🎯',
-            description: '書記記下村民的聽聞：城外史萊姆靠近農田，需要先清掉一小批確認狀況。',
-            repeatable: true,
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '消滅靠近農田的史萊姆 5 個' }
-            ],
-            rewards: {
-                gold: 80,
-                exp: 40
-            },
-            unlocks: []
-        },
         {
             id: 'bounty_002',
             name: '哥布林威脅',
@@ -519,10 +431,6 @@ export const QuestDatabase = {
                 items: ['torch']
             },
             unlocks: ['dungeon_cave_002'],
-            dialogue: {
-                start: '那個洞窟裡住著什麼呢？小心黑暗中的危險。',
-                complete: '你成功深入了洞窟！這個火把應該能幫到你。'
-            }
         },
         {
             id: 'dungeon_cave_002',
@@ -540,10 +448,6 @@ export const QuestDatabase = {
                 items: ['bat_wing_cloak']
             },
             unlocks: ['dungeon_snow_001'],
-            dialogue: {
-                start: '洞窟深處有一個強大的存在...準備好了嗎？',
-                complete: '太厲害了！你征服了幽暗洞窟！'
-            }
         },
         
         // 冰封雪峰系列
@@ -562,10 +466,6 @@ export const QuestDatabase = {
                 items: ['cold_resist_potion']
             },
             unlocks: ['dungeon_snow_002'],
-            dialogue: {
-                start: '那座雪山常年被冰雪覆蓋，寒氣會逐漸侵蝕你的身體。',
-                complete: '你成功抵禦了寒冷！這瓶抗寒藥劑應該有用。'
-            }
         },
         {
             id: 'dungeon_snow_002',
@@ -583,10 +483,6 @@ export const QuestDatabase = {
                 items: ['frost_crown']
             },
             unlocks: ['dungeon_ruins_001'],
-            dialogue: {
-                start: '冰霜領主已經統治那座山數百年了...',
-                complete: '難以置信！你打敗了冰霜領主！'
-            }
         },
         
         // 遠古遺跡系列
@@ -605,10 +501,6 @@ export const QuestDatabase = {
                 items: ['ancient_key']
             },
             unlocks: ['dungeon_ruins_002'],
-            dialogue: {
-                start: '那些遺跡是古代文明留下的，充滿了智慧的結晶。',
-                complete: '你的智慧令人佩服！這把古老鑰匙或許能派上用場。'
-            }
         },
         {
             id: 'dungeon_ruins_002',
@@ -626,10 +518,6 @@ export const QuestDatabase = {
                 items: ['guardian_shield']
             },
             unlocks: ['dungeon_jungle_001'],
-            dialogue: {
-                start: '守護者會考驗所有闖入者，證明你有資格獲得古老的力量！',
-                complete: '你通過了守護者的考驗！'
-            }
         },
         
         // 迷霧叢林系列
@@ -648,10 +536,6 @@ export const QuestDatabase = {
                 items: ['compass']
             },
             unlocks: ['dungeon_jungle_002'],
-            dialogue: {
-                start: '那片叢林的迷霧會讓人失去方向感，要仔細尋找路標。',
-                complete: '你找到了穿越迷霧的方法！這個指南針能幫你指引方向。'
-            }
         },
         {
             id: 'dungeon_jungle_002',
@@ -669,10 +553,6 @@ export const QuestDatabase = {
                 items: ['jungle_heart']
             },
             unlocks: ['dungeon_hell_001'],
-            dialogue: {
-                start: '叢林女王會用自然的力量考驗你...',
-                complete: '你征服了迷霧叢林！'
-            }
         },
         
         // 煉獄深淵系列
@@ -691,10 +571,6 @@ export const QuestDatabase = {
                 items: ['fire_resist_potion']
             },
             unlocks: ['dungeon_hell_002'],
-            dialogue: {
-                start: '那裡是地獄的入口，火焰會持續灼燒你的身體。',
-                complete: '你承受住了地獄的炙烤！這瓶抗火藥劑能減輕傷害。'
-            }
         },
         {
             id: 'dungeon_hell_002',
@@ -712,10 +588,6 @@ export const QuestDatabase = {
                 items: ['demon_slayer']
             },
             unlocks: ['hidden_dungeon_master'],
-            dialogue: {
-                start: '這是最終的試煉...只有真正的英雄才能擊敗煉獄領主！',
-                complete: '不可思議！你擊敗了煉獄領主，成為了傳奇！'
-            }
         },
         
         // 每週副本挑戰（可重複）
@@ -735,10 +607,6 @@ export const QuestDatabase = {
                 items: ['dungeon_token']
             },
             unlocks: [],
-            dialogue: {
-                start: '每週都有新的副本挑戰等著你！',
-                complete: '本週挑戰完成！繼續保持！'
-            }
         }
     ],
 
@@ -773,10 +641,6 @@ export const QuestDatabase = {
                 ]
             },
             unlocks: [],
-            dialogue: {
-                start: '鍛造師請你帶回礦材，補齊失蹤學徒妮露留下的圖紙。',
-                complete: '妮露的名字被重新刻回圖紙邊角。鍛造鋪不再把這件事當成單純技術研究。'
-            }
         },
         {
             id: 'commission_forge_002',
@@ -807,10 +671,6 @@ export const QuestDatabase = {
                 ]
             },
             unlocks: [],
-            dialogue: {
-                start: '鍛造師請你帶回秘銀，讓妮露圖紙與逃匠奧倫的筆記接上。',
-                complete: '秘銀在爐中穩定下來。鍛造師第一次承認，妮露可能不是失蹤，而是追著真相往北去了。'
-            }
         },
         {
             id: 'commission_blacksmith_chimney',
@@ -834,10 +694,6 @@ export const QuestDatabase = {
                 exp: 45
             },
             unlocks: [],
-            dialogue: {
-                start: '鍛造師請你帶回鐵礦石，讓他把倒灌的爐火穩住。',
-                complete: '鐵匠鋪的煙終於往上走，不再像一頭被嗆醒的老牛。'
-            }
         },
         {
             id: 'commission_apothecary_bottles',
@@ -862,10 +718,6 @@ export const QuestDatabase = {
                 items: ['health_potion_s']
             },
             unlocks: [],
-            dialogue: {
-                start: '藥師請你帶回史萊姆凝膠，她要確認那股甜味到底從哪裡來。',
-                complete: '藥師把凝膠樣本分瓶封好，市集邊棚的藥味終於壓過了黏液味。'
-            }
         },
         {
             id: 'commission_guard_boots',
@@ -890,10 +742,6 @@ export const QuestDatabase = {
                 items: ['gate_patrol_map']
             },
             unlocks: [],
-            dialogue: {
-                start: '村長請你帶回幾張獸皮，讓南門守衛明天還能站崗。',
-                complete: '守衛的靴底被補好，南門的路線紀錄也變得更可靠。'
-            }
         },
         {
             id: 'commission_herb_basket',
@@ -923,10 +771,6 @@ export const QuestDatabase = {
             },
             unlocks: ['commission_herb_basket_002'],
             requiredLevel: 10,
-            dialogue: {
-                start: '藥師請你調查那只自己回來的採藥籃，看看荊棘交易到底留下了什麼。',
-                complete: '藥師確認毒霧不是亂飄，而是被某種交易規則一步步推向城鎮。'
-            }
         },
         {
             id: 'commission_herb_basket_002',
@@ -958,10 +802,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 11,
-            dialogue: {
-                start: '藥師請你沿著籃底縫線追查失蹤採藥人的路線。這一次要找的不是怪物，而是一個曾經想把警告送回來的人。',
-                complete: '藥師把採藥人的名字寫在藥棚門口。城鎮第一次知道，那只籃子回來不是怪事，是求救。'
-            }
         },
         {
             id: 'commission_grave_bookmark',
@@ -991,10 +831,6 @@ export const QuestDatabase = {
             },
             unlocks: ['commission_grave_bookmark_002'],
             requiredLevel: 12,
-            dialogue: {
-                start: '書記請你去古墓附近找回能辨認學者名字的碎片。',
-                complete: '書記把巫妖的名字補進紀錄旁，怪物仍是怪物，但不再只是一行分類。'
-            }
         },
         {
             id: 'commission_grave_bookmark_002',
@@ -1025,10 +861,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 14,
-            dialogue: {
-                start: '書記請你確認朱利安邊註中的防衛符文。這能讓遠古遺跡不只是副本，也成為巫妖線背後的錯誤秩序。',
-                complete: '書記把朱利安的邊註補進紀錄：秩序若不懂得停下，也會變成另一種怪物。'
-            }
         },
         {
             id: 'commission_drowned_bell_insomnia',
@@ -1059,10 +891,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 12,
-            dialogue: {
-                start: '書記請你調查夜裡的沉鐘聲。聽起來像失眠，但太有節奏的失眠通常不是失眠。',
-                complete: '書記把鐘聲節奏補進海岸紀錄，城鎮裡那位失眠的人終於能證明自己不是在跟枕頭吵架。'
-            }
         },
         {
             id: 'commission_ash_ledger_names',
@@ -1093,10 +921,6 @@ export const QuestDatabase = {
             },
             unlocks: ['commission_ash_ledger_names_002'],
             requiredLevel: 16,
-            dialogue: {
-                start: '村長請你查清灰燼帳冊上的工匠去向。有些名字藏久了，就不只是名字，還會變成整座城鎮的沉默。',
-                complete: '失蹤工匠的名字被釘上公告欄。城鎮很安靜，但那種安靜終於不再是假裝。'
-            }
         },
         {
             id: 'commission_ash_ledger_names_002',
@@ -1127,10 +951,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 17,
-            dialogue: {
-                start: '村長請你查明工具柄上的刻痕。名單讓人知道誰不見了，刻痕則可能告訴城鎮他們被迫做了什麼。',
-                complete: '村長把刻痕拓片貼在名單旁。失蹤工匠不再只是受害者，他們也留下了指向男爵地宮的路。'
-            }
         },
         {
             id: 'commission_northern_letter',
@@ -1161,10 +981,6 @@ export const QuestDatabase = {
             },
             unlocks: ['commission_northern_letter_002'],
             requiredLevel: 20,
-            dialogue: {
-                start: '村長請你確認北境信使走過的路。那封家書不會告訴你怎麼屠龍，但會告訴你北方真的有人在失去明天。',
-                complete: '村長把北境家書收進城鎮紀錄。那不是戰報，卻讓所有人第一次真的聽見北方。'
-            }
         },
         {
             id: 'commission_northern_letter_002',
@@ -1195,10 +1011,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 22,
-            dialogue: {
-                start: '村長請你追查那封沒有寄出的回信。北境的故事不能只停在「他們求救」，也要讓城鎮承認「我們聽見了」。',
-                complete: '回信被收進城鎮紀錄。它仍然送不到北方，但等待的人終於知道，沉默不是沒人在乎。'
-            }
         },
         {
             id: 'commission_last_soup',
@@ -1230,10 +1042,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 27,
-            dialogue: {
-                start: '藥師請你替避難者廚房找補給。這不是史詩，但世界快燒起來時，一碗熱湯很可能比預言有用。',
-                complete: '廚房的爐火重新亮起。避難者沒有因此不害怕，但至少有人先把碗端穩了。'
-            }
         },
         {
             id: 'commission_coast_lamplighter',
@@ -1264,10 +1072,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 12,
-            dialogue: {
-                start: '書記請你替守燈人塔維校正海岸燈號。這不是英雄傳說，只是一個怕黑的人還在硬撐。',
-                complete: '塔維的燈號終於不再把亡魂引回岸邊。書記把他的名字寫進海岸紀錄，旁邊畫了一盞很小的燈。'
-            }
         },
         {
             id: 'commission_broken_standard',
@@ -1297,10 +1101,6 @@ export const QuestDatabase = {
             },
             unlocks: ['commission_broken_standard_002'],
             requiredLevel: 27,
-            dialogue: {
-                start: '村長請你協助斷旗手芙蕾。她帶回的不是捷報，而是一面還沒承認自己輸掉的旗。',
-                complete: '斷旗被重新掛上城門。芙蕾沒有笑，但她終於把手從旗杆上放開。'
-            }
         },
         {
             id: 'commission_broken_standard_002',
@@ -1332,10 +1132,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 28,
-            dialogue: {
-                start: '村長請你替芙蕾確認撤退名單。旗掛起來能穩住人心，點名則能讓失散的人不被戰報吃掉。',
-                complete: '芙蕾把名單念完。城門下沒有人鼓掌，但所有人都知道，有些名字接下來要被找回來。'
-            }
         },
         {
             id: 'commission_scholar_last_index',
@@ -1365,10 +1161,6 @@ export const QuestDatabase = {
             },
             unlocks: [],
             requiredLevel: 30,
-            dialogue: {
-                start: '書記請你替他取回最後索引的封皮。他說這不是為了歷史，是為了明天醒來的人還能知道誰少了。',
-                complete: '最後索引被封好。書記把筆放下時手還在抖，但字跡比平常更穩。'
-            }
         },
 
         // 賭場老闆委託
@@ -1396,10 +1188,6 @@ export const QuestDatabase = {
                 items: ['vip_card', 'marlo_odds_sheet']
             },
             unlocks: [],
-            dialogue: {
-                start: '巷口流浪者把瑪洛的帳冊暗記交給你，要你去賭場確認勝率是否被人動過。',
-                complete: '你確認賭桌勝率被做成暗號。瑪洛沒有鬆一口氣，因為暗號指向黑曜石要塞。'
-            }
         },
         {
             id: 'commission_casino_002',
@@ -1425,10 +1213,6 @@ export const QuestDatabase = {
                 items: ['relief_voucher']
             },
             unlocks: [],
-            dialogue: {
-                start: '巷口流浪者說，瑪洛把賭場最後一夜的帳冊留給你，這一次贏錢不是表演，而是讓人明天還有乾糧。',
-                complete: '補給基金湊齊了。瑪洛在帳冊最後寫了一行：如果明天還有賭桌，希望大家只是為了好玩。'
-            }
         },
 
         // 神秘商人委託
@@ -1453,10 +1237,6 @@ export const QuestDatabase = {
                 items: ['mystery_box', 'black_market_ticket']
             },
             unlocks: [],
-            dialogue: {
-                start: '暗巷收藏家伊文請你帶回詛咒碎片，確認灰燼男爵的走私標籤。',
-                complete: '伊文收下碎片後，黑市門後傳來箱鎖打開的聲音。他說這不是報酬，是下一個麻煩的押金。'
-            }
         }
     ],
 
@@ -1480,10 +1260,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['beggars_wisdom']
             },
-            dialogue: {
-                start: '你也淪落到這個地步了嗎？來，我教你一些生存的智慧...',
-                complete: '記住，真正的財富不在口袋裡。'
-            }
         },
         {
             id: 'hidden_death_loop',
@@ -1502,10 +1278,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['phoenix_feather']
             },
-            dialogue: {
-                start: '死亡...不是終點。你開始明白了。',
-                complete: '從灰燼中重生，這就是你的命運。'
-            }
         },
         {
             id: 'hidden_gambler_ruin',
@@ -1524,10 +1296,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['gamblers_fallacy']
             },
-            dialogue: {
-                start: '都說賭博害人...但你還是要繼續嗎？',
-                complete: '有時候，堅持到底也是一種勝利。'
-            }
         },
         {
             id: 'hidden_dark_deal',
@@ -1546,10 +1314,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['demon_contract']
             },
-            dialogue: {
-                start: '暗桌已經記住你的血。巷口流浪者要你回去贏下一局，把契約正文逼出來。',
-                complete: '契約被你拿回來了。它不像戰利品，比較像一封很不禮貌的邀請函。'
-            }
         },
         {
             id: 'hidden_lucky_seven',
@@ -1568,10 +1332,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['lucky_charm_7']
             },
-            dialogue: {
-                start: '七...這個數字似乎與你有緣。',
-                complete: '幸運之神眷顧著你。'
-            }
         },
         {
             id: 'hidden_max_enhance',
@@ -1590,10 +1350,6 @@ export const QuestDatabase = {
             rewards: {
                 items: ['transcend_stone']
             },
-            dialogue: {
-                start: '+10 不是終點，只是新的起點...',
-                complete: '你已經超越了凡人的境界。'
-            }
         },
         {
             id: 'hidden_dungeon_master',
@@ -1618,10 +1374,6 @@ export const QuestDatabase = {
                 exp: 2000,
                 items: ['dungeon_master_badge']
             },
-            dialogue: {
-                start: '五大副本的征服者...這是屬於真正英雄的稱號。',
-                complete: '你已經證明了自己的實力！副本征服者的稱號實至名歸！'
-            }
         }
     ]
 };

@@ -1,6 +1,6 @@
 # Agent Update Protocol
 
-Last updated: 2026-07-06
+Last updated: 2026-07-08
 
 This document defines how future Codex or agent sessions update project notes,
 handoffs, and progress records. Use this as the formatting contract before
@@ -47,7 +47,10 @@ document that owns the topic:
 | --- | --- |
 | Town state, broken town recovery, NPC return, facility gates | `docs/TOWN_REBUILD_CONVERGENCE.md` |
 | Chapter titles, Lv1-Lv70 bands, quest placement, reward/source planning | `docs/CHAPTER_QUEST_FRAMEWORK.md` |
+| Mainline suspense, screenwriting rules, character arcs, character entry/exit, story-to-system adaptation | `docs/MAIN_STORY_BIBLE.md` |
+| Narrative voice, prose rules, NPC dialogue, side-story tone, multi-speaker staging | `docs/NARRATIVE_WRITING_GUIDE.md` |
 | Casino showcase route, owner side quest, ticket/prize direction | `docs/CASINO_ROUTE_FRAMEWORK.md` |
+| Equipment series, weapon-form quadrants, affinity/group positioning | `docs/EQUIPMENT_SERIES_FRAMEWORK.md` |
 | Visual rules, approved style references, image hierarchy | `docs/ART_STYLE_GUIDE.md` |
 | Copy-ready prompts and category prompt standards | `docs/IMAGE_GENERATION_PROMPTS.md` |
 | Old systems, obsolete art/data/docs, compatibility leftovers | `docs/OBSOLETE_CLEANUP_PLAN.md` |

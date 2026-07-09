@@ -4,14 +4,15 @@
  */
 import { EventDatabase, EventType, EventRole, ResultType, isEventAllowedInChapter } from '../data/Events.js';
 import GameManager from './GameManager.js';
-import { Consumable, Item } from '../models/DataModel.js';
-import { ItemType, ItemRarity } from '../models/Enums.js';
+import { createRuntimeItem } from '../models/ItemFactory.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 import { weightedPick } from '../utils/WeightedPick.js';
 import { questManager, QuestStatus } from './QuestManager.js';
 import { QuestDatabase, getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 import { getWorldEventReflectionByRole } from '../data/CharacterProfiles.js';
+import { markItemKnown } from './EncyclopediaManager.js';
 
 const MAP_QUESTION_EVENT_IDS_BY_ZONE = {
     low: [
@@ -95,6 +96,47 @@ const EVENT_REWARD_ZONE_MULTIPLIERS = {
     high: 1.1,
     death: 1.22,
     boss: 1.22
+};
+
+const EVENT_ITEM_REWARD_POOLS = {
+    forge_material: {
+        low: [{ itemId: 'iron_shard', quantity: 1 }],
+        medium: [{ itemId: 'iron_ore', quantity: 1 }],
+        high: [
+            { itemId: 'rare_metal', quantity: 1 },
+            { itemId: 'forge_core', quantity: 1 }
+        ]
+    },
+    material_medium: {
+        low: [{ itemId: 'iron_ore', quantity: 1 }],
+        medium: [
+            { itemId: 'iron_ore', quantity: 1 },
+            { itemId: 'stone_fragment', quantity: 1 }
+        ],
+        high: [
+            { itemId: 'high_ore', quantity: 1 },
+            { itemId: 'rare_metal', quantity: 1 }
+        ]
+    },
+    material_low: {
+        low: [{ itemId: 'iron_shard', quantity: 1 }],
+        medium: [{ itemId: 'iron_shard', quantity: 1 }],
+        high: [{ itemId: 'iron_ore', quantity: 1 }]
+    },
+    random: {
+        low: [
+            { itemId: 'health_potion_s', quantity: 1 },
+            { itemId: 'iron_shard', quantity: 1 }
+        ],
+        medium: [
+            { itemId: 'health_potion_s', quantity: 1 },
+            { itemId: 'iron_ore', quantity: 1 }
+        ],
+        high: [
+            { itemId: 'health_potion_s', quantity: 1 },
+            { itemId: 'rare_metal', quantity: 1 }
+        ]
+    }
 };
 
 function getEventMemoryKey(eventObj = {}) {
@@ -722,83 +764,26 @@ function getWeightedRandomResults(randomResults, rng = Math.random) {
     return randomResults[0].results || [];
 }
 
-function generateEventItem(itemType) {
-    const timestamp = Date.now();
-    switch (itemType) {
-        case 'forge_material': {
-            return new Item(`enhance_stone_${timestamp}`, '強化石', ItemType.MATERIAL, ItemRarity.RARE, '🪨', '可用於強化或任務的材料。', 150);
-        }
-        case 'material_medium': {
-            return new Item(`event_material_${timestamp}`, '可用金屬碎片', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⛏️', '野外撿到的金屬碎片，尺寸尷尬，但鐵匠會說它很有潛力。', 45);
-        }
-        case 'material_low': {
-            return new Item(`event_scrap_${timestamp}`, '雜色材料包', ItemType.MATERIAL, ItemRarity.COMMON, '📦', '一小包可用材料，品質普通，但總比空手回家強。', 25);
-        }
-        case 'random':
-        default: {
-            const items = [
-                new Consumable(`event_potion_${timestamp}`, '神秘藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '來自異世界的神秘藥水', 100, { hp: 120 }),
-                new Item(`event_crystal_${timestamp}`, '星輝水晶', ItemType.MATERIAL, ItemRarity.EPIC, '💎', '蘊含星輝能量的水晶', 200)
-            ];
-            return items[Math.floor(Math.random() * items.length)];
-        }
-    }
+function resolveEventItemReward(itemType, rewardTier = 'medium') {
+    const pool = EVENT_ITEM_REWARD_POOLS[itemType] || EVENT_ITEM_REWARD_POOLS.random;
+    const tierPool = pool[rewardTier] || pool.medium || pool.low || [];
+    if (tierPool.length === 0) return null;
+    return tierPool[Math.floor(Math.random() * tierPool.length)];
 }
 
-function generateCleanEventItem(itemType) {
-    const timestamp = Date.now();
-    switch (itemType) {
-        case 'forge_material':
-            return new Item(`enhance_stone_${timestamp}`, '精煉鐵片', ItemType.MATERIAL, ItemRarity.RARE, '🔩', '能用來強化裝備的乾淨鐵片。', 150);
-        case 'material_medium':
-            return new Item(`event_material_${timestamp}`, '可用零件', ItemType.MATERIAL, ItemRarity.UNCOMMON, '⚙️', '從事件中取得的可用零件，鍛造師應該能處理。', 45);
-        case 'material_low':
-            return new Item(`event_scrap_${timestamp}`, '破舊材料', ItemType.MATERIAL, ItemRarity.COMMON, '🧱', '雖然破舊，但整理後仍能拿來製作基礎裝備。', 25);
-        case 'random':
-        default: {
-            const items = [
-                new Consumable(`event_potion_${timestamp}`, '濃縮生命藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '從奇遇中取得的高效藥水。', 100, { hp: 120 }),
-                new Item(`event_crystal_${timestamp}`, '地脈晶片', ItemType.MATERIAL, ItemRarity.EPIC, '💠', '仍殘留地脈回聲的晶片，可作為高階素材。', 200)
-            ];
-            return items[Math.floor(Math.random() * items.length)];
-        }
-    }
-}
+function createEventRewardItem(itemType, rewardTier = 'medium') {
+    const reward = resolveEventItemReward(itemType, rewardTier);
+    if (!reward?.itemId) return null;
 
-function generateReadableEventItem(itemType, options = {}) {
-    const timestamp = Date.now();
-    const tier = options.rewardTier || 'medium';
-    switch (itemType) {
-        case 'forge_material':
-            if (tier === 'high') {
-                return new Item(`event_refined_steel_${timestamp}`, '精煉地脈鋼片', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從高壓地脈旁整理出的鍛造輔材，邊緣有細小藍光。', 260);
-            }
-            if (tier === 'low') {
-                return new Item(`event_rough_steel_${timestamp}`, '粗磨鐵片', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧩', '品質不算漂亮，但鍛造師看見會先收起來再嫌棄。', 90);
-            }
-            return new Item(`enhance_stone_${timestamp}`, '打磨用青鋼片', ItemType.MATERIAL, ItemRarity.RARE, '🧩', '流動匠人常用的補強材料，邊緣仍留著細小火星痕。', 150);
-        case 'material_medium':
-            if (tier === 'high') {
-                return new Item(`event_mithril_scrap_${timestamp}`, '壓紋秘銀碎材', ItemType.MATERIAL, ItemRarity.RARE, '⛏️', '裂面上有被壓過的銀色紋路，適合高階圖紙的材料缺口。', 160);
-            }
-            if (tier === 'low') {
-                return new Item(`event_repair_parts_${timestamp}`, '補修零件包', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧰', '螺釘、扣片與一點不該問來源的金屬邊角。', 55);
-            }
-            return new Item(`event_material_${timestamp}`, '旅途雜材', ItemType.MATERIAL, ItemRarity.UNCOMMON, '🧰', '從路邊事件中整理出的可用材料，品質普通但很實際。', 45);
-        case 'material_low':
-            return new Item(`event_scrap_${timestamp}`, '可用碎料', ItemType.MATERIAL, ItemRarity.COMMON, '🔩', '看起來零散，仍能拿去補鍛造材料的缺口。', 25);
-        case 'random':
-        default: {
-            const items = tier === 'high' ? [
-                new Consumable(`event_elixir_${timestamp}`, '旅人強效藥水', ItemType.POTION, ItemRarity.EPIC, '🧪', '瓶塞封著蠟印，喝下去前最好先相信自己的胃。', 220, { hp: 220 }),
-                new Item(`event_crystal_${timestamp}`, '地脈結晶屑', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從不穩定地脈中剝落的小結晶，可作為高階鍛造輔材。', 200)
-            ] : [
-                new Consumable(`event_potion_${timestamp}`, '旅人急救藥水', ItemType.POTION, ItemRarity.RARE, '🧪', '瓶身有些刮痕，但藥液仍然清澈。', 100, { hp: 120 }),
-                new Item(`event_crystal_${timestamp}`, '地脈結晶屑', ItemType.MATERIAL, ItemRarity.EPIC, '🔷', '從不穩定地脈中剝落的小結晶，可作為高階鍛造輔材。', 200)
-            ];
-            return items[Math.floor(Math.random() * items.length)];
-        }
-    }
+    const itemData = resolveItemById(reward.itemId, {
+        order: ['material', 'shop', 'questReward', 'equipment', 'bossEquipment']
+    });
+    if (!itemData) return null;
+
+    return {
+        item: createRuntimeItem(itemData),
+        quantity: Math.max(1, Number(reward.quantity) || 1)
+    };
 }
 
 function markEventResolved(eventObj = {}, context = {}) {
@@ -967,11 +952,15 @@ function applyResultToCharacter(char, result) {
             if (char.checkLevelUp) char.checkLevelUp();
             return result.message || `獲得 ${result.value} 經驗值`;
         case ResultType.ITEM: {
-            const item = generateReadableEventItem(result.itemType, {
-                rewardTier: result.rewardTier
-            });
-            if (item) GameManager.addToInventory(item);
-            return result.message || (item ? `獲得 ${item.name}！` : result.message);
+            const reward = createEventRewardItem(result.itemType, result.rewardTier);
+            if (!reward?.item) return result.message || null;
+
+            const added = GameManager.addToInventory(reward.item, reward.quantity);
+            if (!added) return `背包已滿，無法收下 ${reward.item.name}。`;
+
+            markItemKnown(reward.item.id);
+            const quantityText = reward.quantity > 1 ? ` x${reward.quantity}` : '';
+            return result.message || `獲得 ${reward.item.name}${quantityText}。`;
         }
         case ResultType.UNLOCK_QUEST: {
             const questId = result.questId || result.value;

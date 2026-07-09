@@ -150,9 +150,11 @@ class QuestManager {
         this.syncExplorationObjectives();
         this.syncFlagObjectives();
         
+        const questStory = getQuestStory(quest, this.questStates[questId]);
+
         return { 
             success: true, 
-            message: quest.dialogue?.start || `已接取任務：${quest.name}`,
+            message: questStory?.acceptMessage || `已接取：${quest.name}`,
             quest
         };
     }
@@ -197,6 +199,8 @@ class QuestManager {
             return { success: false, message: '任務尚未完成' };
         }
 
+        const completedStory = getQuestStory(quest, { ...state, status: QuestStatus.COMPLETED });
+
         // 發放獎勵
         const rewards = this.giveRewards(quest.rewards);
 
@@ -234,7 +238,7 @@ class QuestManager {
 
         return {
             success: true,
-            message: quest.dialogue?.complete || `完成任務：${quest.name}`,
+            message: completedStory?.reportMessage || `完成任務：${quest.name}`,
             rewards,
             blueprintUnlocks,
             storyOutcome,
@@ -258,7 +262,16 @@ class QuestManager {
             flag: townStateFlag,
             changed: !wasActive,
             sourceQuestId: quest.id,
-            title: story.characterProfile?.mainThread || story.finished || story.completed || quest.name
+            title: story.characterProfile?.townDynamic?.title
+                || story.characterProfile?.mainThread
+                || story.finished
+                || story.completed
+                || quest.name,
+            text: story.characterProfile?.townDynamic?.text
+                || story.finished
+                || story.completed
+                || story.characterProfile?.mainThread
+                || quest.name
         };
     }
 
@@ -896,32 +909,9 @@ class QuestManager {
             return;
         }
 
-        if (eventType === 'quest_completed') {
-            showGlobalToast('回報完成', this.getQuestCompletionToastText(questName, data), 'success');
-            return;
-        }
-
         if (eventType === 'hidden_quest_discovered') {
             showGlobalToast('新的聽聞', `「${questName}」已加入任務冊。`, 'quest');
         }
-    }
-
-    getQuestCompletionToastText(questName, data = {}) {
-        const parts = [];
-        const rewardText = this.getRewardToastText(data.rewards, data.blueprintUnlocks).replace(/^獲得\s*/, '');
-        const newClues = Array.isArray(data.storyOutcome?.newClues) ? data.storyOutcome.newClues : [];
-        const progressUpdates = Array.isArray(data.storyOutcome?.progressUpdates) ? data.storyOutcome.progressUpdates : [];
-        const finalReady = Array.isArray(data.storyOutcome?.finalReady) ? data.storyOutcome.finalReady : [];
-
-        if (rewardText) parts.push(`收穫：${rewardText}`);
-        if (newClues.length > 0) parts.push(`手札新增 ${newClues.length} 段線索`);
-        if (finalReady.length > 0) parts.push('首領痕跡已收束');
-        else if (progressUpdates.length > 0) parts.push('首領痕跡有新推進');
-        if (data.townStateUpdate?.changed) parts.push('城鎮狀態有新變化');
-
-        return parts.length > 0
-            ? `「${questName}」已回報，${parts.join('；')}。`
-            : `「${questName}」已回報，這段紀錄收進任務冊。`;
     }
 
     getRewardToastText(rewards = {}, blueprintUnlocks = []) {
