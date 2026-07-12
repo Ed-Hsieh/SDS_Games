@@ -1,11 +1,27 @@
 # Equipment Series Framework
 
-Last updated: 2026-07-07
+Last updated: 2026-07-11
 
 This document defines the intended equipment-series, weapon-form, and affinity
 positioning for future combat and item passes. Runtime JS/data remains the
 source of truth for current shipped behavior; this file records accepted design
 direction before those systems are rewritten.
+
+## Mainline, Second-Run External Story, And DLC Boundary
+
+- The mandatory first-run and second-run chapter progression may distribute
+  shadow and glimmer equipment only.
+- Formal light and Void equipment, materials, creature groups, affinities, and
+  combat routes belong to optional second-run external stories. They may reward
+  exploration and make later challenges easier, but they never gate the base
+  true ending or replace Lv1-Lv70 mainline rewards.
+- Shadow and glimmer foreshadow those later affinities without naturally
+  upgrading into them. Every physical external-story item is reacquired inside
+  the current run; only achievement meaning persists across runs.
+- Ash Baron, the expedition supreme commander, radiant Bosses, Void Bosses, and
+  the planned prologue overcap demon are base-game second-run chase sources, not
+  mainline convergence. Later DLC extends the light/Void and tower ecosystem
+  after their first optional resolution.
 
 ## Core Rules
 

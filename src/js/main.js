@@ -4,7 +4,6 @@
  */
 import LobbyScene from './scenes/LobbyScene.js?v=achievements-codex-sort-20260630a';
 import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
-import AdventureScene from './scenes/AdventureScene.js';
 import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
 import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
 import QuestScene from './scenes/QuestScene.js?v=beta-convergence-20260625d';
@@ -20,7 +19,7 @@ import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 
-const APP_ASSET_VERSION = 'achievements-codex-sort-20260630a';
+const APP_ASSET_VERSION = 'overworld-prototype-20260712e';
 
 class App {
     constructor() {
@@ -33,7 +32,7 @@ class App {
         this.routes = {
             'lobby': LobbyScene,
             'shop': ShopScene,
-            'adventure': AdventureScene,
+            'adventure': null,
             'casino': CasinoScene,
             'forge': ForgeScene,
             'quest': QuestScene,
@@ -138,7 +137,12 @@ class App {
             if (loadToken !== this.sceneLoadToken) return;
 
             // Initialize new scene logic
-            const SceneClass = this.routes[sceneName];
+            let SceneClass = this.routes[sceneName];
+            if (sceneName === 'adventure') {
+                const module = await import(`./scenes/AdventureScene.js?v=${APP_ASSET_VERSION}`);
+                SceneClass = module.default;
+                this.routes.adventure = SceneClass;
+            }
             if (SceneClass) {
                 this.currentScene = new SceneClass(this.appContainer, this);
                 this.currentScene.init();

@@ -1,0 +1,1049 @@
+import { EquipmentDatabase } from '../data/Equipment.js';
+import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260711l';
+import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260711p';
+import RhythmBarSystem from '../utils/RhythmBarSystem.js';
+import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+const ITEM_ASSETS = Object.freeze({
+    mainWeapon: 'src/assets/images/art/items/equipment/frostbite_dueling_blade.webp',
+    offhandWeapon: 'src/assets/images/art/items/equipment/hydra_spine_spear.webp',
+    powerBuff: 'src/assets/images/art/items/equipment/elemental_badge.webp',
+    guardBuff: 'src/assets/images/art/items/equipment/cave_ward_shield.webp'
+});
+
+function buildRhythmWeapon(itemId, weaponForm) {
+    const item = EquipmentDatabase[itemId] || { id: itemId, name: itemId, type: 'weapon', rarity: 'common' };
+    const stats = item.stats || {};
+    const attack = Number(stats.attack ?? item.attack ?? item.atk ?? 10) || 10;
+    return Object.freeze({
+        ...item,
+        ...stats,
+        type: 'weapon',
+        weaponForm,
+        attack,
+        atk: attack,
+        critChance: Number(stats.critChance ?? item.critChance ?? 0.05) || 0.05,
+        critDamage: Number(stats.critDamage ?? item.critDamage ?? 1.5) || 1.5,
+        weaponSpeed: Number(stats.weaponSpeed ?? item.weaponSpeed ?? 1) || 1,
+        attackSpeed: Number(stats.attackSpeed ?? item.attackSpeed ?? 1) || 1
+    });
+}
+
+const RHYTHM_WEAPONS = Object.freeze({
+    main: buildRhythmWeapon('frostbite_dueling_blade', 'sword'),
+    offhand: buildRhythmWeapon('hydra_spine_spear', 'lance')
+});
+
+function buildLoadoutEntry(slot, options) {
+    const weapon = RHYTHM_WEAPONS[slot];
+    const profile = getWeaponCombatProfile({ equipment: { weapon } });
+    const attackInterval = 1 / Math.max(0.1, weapon.attackSpeed);
+    return Object.freeze({
+        id: weapon.id,
+        name: weapon.name,
+        icon: options.icon,
+        effect: profile.id,
+        damage: options.damage,
+        cooldown: Math.max(0.18, attackInterval * profile.cooldownMultiplier),
+        windup: options.windup,
+        breakPower: options.breakPower,
+        critDamage: weapon.critDamage,
+        damageMultiplier: profile.damageMultiplier,
+        critDamageMultiplier: profile.critDamageMultiplier,
+        triggerBuff: options.triggerBuff || null
+    });
+}
+
+const BUFF_LIBRARY = Object.freeze({
+    power: Object.freeze({
+        id: 'power_tonic',
+        name: '元素增幅',
+        icon: ITEM_ASSETS.powerBuff,
+        duration: 14,
+        modifiers: { damage: 1.18 }
+    }),
+    guard: Object.freeze({
+        id: 'guard_tonic',
+        name: '礦燈護壁',
+        icon: ITEM_ASSETS.guardBuff,
+        duration: 14,
+        modifiers: { incomingDamage: 0.72 }
+    })
+});
+
+const LOADOUT = Object.freeze({
+    main: buildLoadoutEntry('main', {
+        icon: ITEM_ASSETS.mainWeapon,
+        damage: 96,
+        windup: 0.09,
+        breakPower: 26,
+        triggerBuff: Object.freeze({
+            id: 'frostbite_weapon_effect',
+            name: '霜吻附著',
+            icon: ITEM_ASSETS.mainWeapon,
+            duration: 6,
+            modifiers: Object.freeze({})
+        })
+    }),
+    offhand: buildLoadoutEntry('offhand', {
+        icon: ITEM_ASSETS.offhandWeapon,
+        damage: 122,
+        windup: 0.2,
+        breakPower: 42,
+        triggerBuff: Object.freeze({
+            id: 'hydra_weapon_effect',
+            name: '九頭毒脈',
+            icon: ITEM_ASSETS.offhandWeapon,
+            duration: 6,
+            modifiers: Object.freeze({})
+        })
+    })
+});
+
+function createRhythmCharacter() {
+    const main = RHYTHM_WEAPONS.main;
+    return {
+        equipment: {
+            weapon: main,
+            offhand: RHYTHM_WEAPONS.offhand
+        },
+        getWeaponSpeed: () => main.weaponSpeed,
+        getAttackSpeed: () => main.attackSpeed,
+        getAttackInterval: () => 1 / Math.max(0.1, main.attackSpeed),
+        getCritChance: () => clamp(0.04 + main.critChance, 0, 0.45),
+        getCritDamage: () => main.critDamage,
+        getTotalAtk: () => LOADOUT.main.damage
+    };
+}
+
+const MONSTERS = Object.freeze({
+    demon: Object.freeze({
+        name: '黑鐵先鋒',
+        className: '精英 · 魔族',
+        level: 42,
+        maxHp: 1840,
+        image: 'src/assets/images/art/entities/monsters/demon_general.webp',
+        background: 'src/assets/images/art/scenes/world/landmarks/obsidian_keep_gate.webp',
+        backgroundAlt: '黑曜要塞入口',
+        visualScale: '1.01',
+        feed: '黑鐵先鋒壓低武器，甲片間滲出暗紅火光',
+        initialDelay: 1.25,
+        interruptedDelay: 1.4,
+        attacks: Object.freeze([
+            Object.freeze({ id: 'claw', name: '裂甲三連爪', effect: 'claw', damage: 52, telegraph: 1.05, impactDelay: 0.27, recovery: 1.2, breakThreshold: 58 }),
+            Object.freeze({ id: 'projectile', name: '魔能投射', effect: 'projectile', damage: 41, telegraph: 1.35, impactDelay: 0.76, recovery: 1.45, breakThreshold: 72 }),
+            Object.freeze({ id: 'crush', name: '煉獄重壓', effect: 'crush', damage: 78, telegraph: 1.5, impactDelay: 0.29, recovery: 1.85, breakThreshold: 92 }),
+            Object.freeze({ id: 'breath', name: '灼熱吐息', effect: 'breath', damage: 66, telegraph: 1.65, impactDelay: 0.84, recovery: 2.05, breakThreshold: 104 })
+        ])
+    }),
+    mantis: Object.freeze({
+        name: '伏獵螳螂',
+        className: '支線 Boss · 蟲族',
+        level: 18,
+        maxHp: 1260,
+        image: 'src/assets/images/art/entities/monsters/ambush_mantis.webp',
+        background: 'src/assets/images/art/scenes/world/landmarks/silver_snare_pass.webp',
+        backgroundAlt: '銀絲伏獵道',
+        visualScale: '1.04',
+        feed: '鐮肢沿著地面緩慢張開，正在計算你的距離',
+        initialDelay: 0.95,
+        interruptedDelay: 1.05,
+        attacks: Object.freeze([
+            Object.freeze({ id: 'mantis_claw', name: '交錯鐮斬', effect: 'claw', damage: 44, telegraph: 0.78, impactDelay: 0.27, recovery: 0.9, breakThreshold: 52 }),
+            Object.freeze({ id: 'silk_curse', name: '獵絲拘束', effect: 'curse', damage: 32, telegraph: 1.15, impactDelay: 0.78, recovery: 1.25, breakThreshold: 66 }),
+            Object.freeze({ id: 'execution_crush', name: '斷頭鐮落', effect: 'crush', damage: 64, telegraph: 1.22, impactDelay: 0.29, recovery: 1.48, breakThreshold: 82 })
+        ])
+    }),
+    golem: Object.freeze({
+        name: '晶礦巨像',
+        className: '精英 · 構裝體',
+        level: 36,
+        maxHp: 2360,
+        image: 'src/assets/images/art/entities/monsters/crystal_golem.webp',
+        background: 'src/assets/images/art/scenes/world/landmarks/black_iron_storehouse.webp',
+        backgroundAlt: '黑鐵儲藏所',
+        visualScale: '0.96',
+        feed: '晶礦巨像的核心逐節亮起，沉重腳步震動地面',
+        initialDelay: 1.45,
+        interruptedDelay: 1.65,
+        attacks: Object.freeze([
+            Object.freeze({ id: 'golem_crush', name: '晶核震地', effect: 'crush', damage: 82, telegraph: 1.55, impactDelay: 0.29, recovery: 1.9, breakThreshold: 98 }),
+            Object.freeze({ id: 'crystal_projectile', name: '晶刺投射', effect: 'projectile', damage: 48, telegraph: 1.2, impactDelay: 0.76, recovery: 1.5, breakThreshold: 74 }),
+            Object.freeze({ id: 'core_curse', name: '核心過載', effect: 'curse', damage: 58, telegraph: 1.65, impactDelay: 0.78, recovery: 2.1, breakThreshold: 112 })
+        ])
+    })
+});
+
+const ELEMENT_LABELS = Object.freeze({
+    neutral: '無屬性',
+    fire: '火',
+    ice: '冰',
+    thunder: '雷',
+    poison: '毒',
+    shadow: '暗影',
+    glimmer: '微光'
+});
+
+const EFFECT_LABELS = Object.freeze({
+    sword: '劍 · 弧斬',
+    dagger: '匕首 · 連斬',
+    heavy: '重武器 · 震擊',
+    lance: '槍矛 · 穿刺',
+    focus: '法器 · 共鳴',
+    critical: '破綻暴擊',
+    claw: '裂甲三連爪',
+    crush: '煉獄重壓',
+    projectile: '魔能投射',
+    breath: '灼熱吐息',
+    curse: '暗影拘束',
+    'boss-phase': '戰意解放'
+});
+
+const PHASE_LABELS = Object.freeze({
+    [CombatSessionPhase.IDLE]: '待機',
+    [CombatSessionPhase.RUNNING]: '交戰中',
+    [CombatSessionPhase.PAUSED]: '已暫停',
+    [CombatSessionPhase.VICTORY]: '勝利',
+    [CombatSessionPhase.DEFEAT]: '敗北',
+    [CombatSessionPhase.ESCAPED]: '已撤離'
+});
+
+class CombatVfxLab {
+    constructor(root) {
+        this.root = root;
+        this.stage = root.querySelector('#battle-preview');
+        this.enemyStage = root.querySelector('#enemy-stage');
+        this.enemyVisual = root.querySelector('#enemy-visual');
+        this.background = root.querySelector('#battle-background');
+        this.screenFlash = root.querySelector('#screen-flash');
+        this.damageVignette = root.querySelector('#damage-vignette');
+        this.skillBanner = root.querySelector('#skill-banner');
+        this.floatLayer = root.querySelector('#float-layer');
+        this.feedText = root.querySelector('#battle-feed-text');
+        this.statusRow = root.querySelector('#enemy-status-row');
+        this.intentPanel = root.querySelector('#enemy-intent');
+        this.resultPanel = root.querySelector('#combat-result');
+        this.buffList = root.querySelector('#player-buff-list');
+        this.settings = { shake: true, hitStop: true, numbers: true };
+        this.labMode = 'combat';
+        this.currentMonsterId = 'demon';
+        this.currentElement = 'neutral';
+        this.uiTimers = new Set();
+        this.showcaseTimers = new Set();
+        this.showcaseRunning = false;
+        this.lastHealth = { player: null, monster: null };
+        this.rhythmCharacter = createRhythmCharacter();
+
+        this.engine = new CombatVfxEngine({
+            rearCanvas: root.querySelector('#vfx-canvas-rear'),
+            frontCanvas: root.querySelector('#vfx-canvas-front'),
+            stage: this.stage,
+            onFps: fps => {
+                const label = root.querySelector('#frame-rate');
+                if (label) label.textContent = `${fps} FPS`;
+            }
+        });
+
+        this.session = new RealtimeCombatSession(this.buildSessionConfig());
+        this.unsubscribeSession = this.session.subscribe(event => this.handleCombatEvent(event));
+        this.initializeRhythmSystems();
+        this.handleKeyboard = this.handleKeyboard.bind(this);
+        this.handleStageMouseDown = this.handleStageMouseDown.bind(this);
+        this.handleContextMenu = this.handleContextMenu.bind(this);
+
+        this.bindControls();
+        this.applyLoadoutVisual();
+        this.applyMonsterVisual();
+        this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
+        this.setMode('combat', { announce: false });
+        this.setFeed('等待交戰指令');
+    }
+
+    buildSessionConfig() {
+        const monster = MONSTERS[this.currentMonsterId];
+        return {
+            player: {
+                name: '玩家',
+                maxHp: 420,
+                hp: 368,
+                potions: 5,
+                potionHeal: 118,
+                potionCooldown: 1.2,
+                buffs: [BUFF_LIBRARY.power, BUFF_LIBRARY.guard]
+            },
+            monster: {
+                id: this.currentMonsterId,
+                name: monster.name,
+                maxHp: monster.maxHp,
+                initialDelay: monster.initialDelay,
+                interruptedDelay: monster.interruptedDelay,
+                attacks: monster.attacks
+            },
+            loadout: LOADOUT,
+            tempo: Number(this.root.querySelector('#tempo-control')?.value || 100) / 100
+        };
+    }
+
+    initializeRhythmSystems() {
+        this.mainRhythmSystem = new RhythmBarSystem(this.rhythmCharacter, this.root, {
+            ringMode: true,
+            barSelector: '#lab-main-rhythm-ring',
+            needleSelector: '#lab-main-rhythm-needle',
+            hitZoneSelector: '#lab-main-hit-zone',
+            critZoneSelector: '#lab-main-crit-zone',
+            attackSelector: '#lab-main-rhythm-action'
+        });
+        this.offhandRhythmSystem = new RhythmBarSystem(this.rhythmCharacter, this.root, {
+            weaponSlot: 'offhand',
+            windowMode: true,
+            windowCycles: 2,
+            ringMode: true,
+            barSelector: '#lab-offhand-rhythm-ring',
+            needleSelector: '#lab-offhand-rhythm-needle',
+            hitZoneSelector: '#lab-offhand-hit-zone',
+            critZoneSelector: '#lab-offhand-crit-zone',
+            attackSelector: '#lab-offhand-rhythm-action',
+            onWindowStateChange: () => {
+                const snapshot = this.session?.getSnapshot?.();
+                if (snapshot) this.renderRhythmState(snapshot);
+            }
+        });
+        this.mainRhythmSystem.start();
+        this.mainRhythmSystem.pause();
+        this.offhandRhythmSystem.start();
+    }
+
+    applyLoadoutVisual() {
+        const slots = [
+            ['main', '#lab-main-rhythm-icon', '#lab-main-rhythm-name'],
+            ['offhand', '#lab-offhand-rhythm-icon', '#lab-offhand-rhythm-name']
+        ];
+        slots.forEach(([slot, ringIconSelector, ringNameSelector]) => {
+            const weapon = LOADOUT[slot];
+            const ringIcon = this.root.querySelector(ringIconSelector);
+            if (ringIcon) {
+                ringIcon.src = weapon.icon;
+                ringIcon.alt = '';
+            }
+            const ringName = this.root.querySelector(ringNameSelector);
+            if (ringName) ringName.textContent = weapon.name;
+        });
+    }
+
+    resetRhythmSystems() {
+        this.mainRhythmSystem?.reset();
+        if (this.mainRhythmSystem && !this.mainRhythmSystem.isRunning) this.mainRhythmSystem.start();
+        this.offhandRhythmSystem?.expireWindow?.();
+        this.offhandRhythmSystem?.reset();
+        this.offhandRhythmSystem?.start();
+    }
+
+    syncRhythmPhase(phase) {
+        const running = this.labMode === 'combat' && phase === CombatSessionPhase.RUNNING;
+        if (running) {
+            if (this.mainRhythmSystem && !this.mainRhythmSystem.isRunning) this.mainRhythmSystem.start();
+            this.mainRhythmSystem?.resume();
+            if (this.offhandRhythmSystem?.isWindowActive) this.offhandRhythmSystem.resume();
+            return;
+        }
+        this.mainRhythmSystem?.pause();
+        this.offhandRhythmSystem?.pause();
+    }
+
+    renderRhythmState(snapshot) {
+        const active = snapshot.phase === CombatSessionPhase.RUNNING && this.labMode === 'combat';
+        const mainState = this.root.querySelector('#lab-main-rhythm-state');
+        const offhandState = this.root.querySelector('#lab-offhand-rhythm-state');
+        if (mainState) {
+            mainState.textContent = !active
+                ? 'HOLD'
+                : snapshot.cooldowns.main > 0.001 ? 'RECOVER' : 'READY';
+        }
+        if (offhandState) {
+            offhandState.textContent = !active
+                ? 'HOLD'
+                : this.offhandRhythmSystem?.isWindowActive
+                    ? 'WINDOW'
+                    : snapshot.cooldowns.offhand > 0.001 ? 'RECOVER' : 'WAIT';
+        }
+    }
+
+    bindControls() {
+        document.addEventListener('keydown', this.handleKeyboard);
+        this.stage.addEventListener('mousedown', this.handleStageMouseDown);
+        this.stage.addEventListener('contextmenu', this.handleContextMenu);
+
+        this.root.querySelector('#use-potion').addEventListener('click', event => {
+            event.stopPropagation();
+            this.activatePotion();
+        });
+        this.root.querySelector('#flee-battle').addEventListener('click', event => {
+            event.stopPropagation();
+            this.activateFlee();
+        });
+
+        this.root.querySelectorAll('[data-lab-mode]').forEach(button => {
+            button.addEventListener('click', () => this.setMode(button.dataset.labMode));
+        });
+        this.root.querySelector('#toggle-combat').addEventListener('click', () => this.toggleCombat());
+        this.root.querySelector('#combat-result-restart').addEventListener('click', () => this.restartCombat());
+
+        this.root.querySelectorAll('[data-add-buff]').forEach(button => {
+            button.addEventListener('click', () => {
+                const buff = BUFF_LIBRARY[button.dataset.addBuff];
+                if (buff) this.session.addBuff(buff);
+            });
+        });
+
+        this.root.querySelectorAll('[data-effect]').forEach(button => {
+            button.addEventListener('click', () => this.triggerManualEffect(button.dataset.effect));
+        });
+        this.root.querySelectorAll('[data-element]').forEach(button => {
+            button.addEventListener('click', () => this.setElement(button.dataset.element));
+        });
+        this.root.querySelector('#monster-select').addEventListener('change', event => {
+            this.setMonster(event.target.value);
+        });
+
+        const tempo = this.root.querySelector('#tempo-control');
+        tempo.addEventListener('input', () => {
+            const value = Number(tempo.value);
+            this.session.setTempo(value / 100);
+            this.root.querySelector('#tempo-value').textContent = `${value}%`;
+        });
+
+        const intensity = this.root.querySelector('#intensity-control');
+        intensity.addEventListener('input', () => {
+            const value = Number(intensity.value);
+            this.engine.setIntensity(value / 100);
+            this.root.querySelector('#intensity-value').textContent = `${value}%`;
+        });
+
+        const density = this.root.querySelector('#density-control');
+        density.addEventListener('input', () => {
+            this.engine.setDensity(Number(density.value) / 100);
+        });
+
+        this.bindToggle('#toggle-shake', 'shake');
+        this.bindToggle('#toggle-hitstop', 'hitStop');
+        this.bindToggle('#toggle-numbers', 'numbers');
+
+        this.root.querySelector('#play-showcase').addEventListener('click', () => this.playShowcase());
+        this.root.querySelector('#clear-effects').addEventListener('click', () => this.clearEffects());
+        this.root.querySelector('#reset-stage').addEventListener('click', () => this.resetStage());
+    }
+
+    bindToggle(selector, setting) {
+        const input = this.root.querySelector(selector);
+        input.addEventListener('change', () => {
+            this.settings[setting] = input.checked;
+        });
+    }
+
+    handleKeyboard(event) {
+        if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+        if (event.target?.matches?.('input, select, textarea, button')) return;
+        if (event.code === 'Space') {
+            event.preventDefault();
+            this.activatePotion();
+        } else if (event.key?.toLowerCase() === 'f') {
+            event.preventDefault();
+            this.activateFlee();
+        }
+    }
+
+    handleStageMouseDown(event) {
+        if (event.target.closest('input, select, label')) return;
+        if (event.button === 0) {
+            if (event.target.closest('button')) return;
+            event.preventDefault();
+            this.activateWeapon('main');
+        } else if (event.button === 2) {
+            if (event.target.closest('button')) return;
+            event.preventDefault();
+            this.activateWeapon('offhand');
+        }
+    }
+
+    handleContextMenu(event) {
+        event.preventDefault();
+    }
+
+    activateWeapon(slot) {
+        if (this.labMode !== 'combat') {
+            this.triggerManualEffect(slot === 'main' ? LOADOUT.main.effect : LOADOUT.offhand.effect);
+            return;
+        }
+
+        const snapshot = this.session.getSnapshot();
+        if (snapshot.phase !== CombatSessionPhase.RUNNING || snapshot.cooldowns[slot] > 0.001) {
+            this.session.playerAttack(slot);
+            return;
+        }
+
+        const rhythm = slot === 'main' ? this.mainRhythmSystem : this.offhandRhythmSystem;
+        const judgement = rhythm?.judgeHit?.() || { type: 'inactive' };
+        if (judgement.type === 'cooldown') {
+            this.setFeed(`${LOADOUT[slot].name}仍在回復`);
+            return;
+        }
+        if (judgement.type === 'inactive') {
+            this.setFeed('副武器節奏窗口尚未開啟');
+            return;
+        }
+
+        const accepted = this.session.playerAttack(slot, judgement.type);
+        if (!accepted) {
+            rhythm?.cancelCooldown?.();
+            return;
+        }
+        const attackSucceeded = judgement.type === 'hit' || judgement.type === 'crit';
+        if (
+            slot === 'main'
+            && attackSucceeded
+            && this.session.getSnapshot().phase === CombatSessionPhase.RUNNING
+        ) {
+            this.offhandRhythmSystem?.activateWindow?.();
+        }
+    }
+
+    activatePotion() {
+        if (this.labMode === 'combat') {
+            this.session.usePotion();
+            return;
+        }
+        this.engine.heal({ target: 'player' });
+        this.flash('rgba(120, 202, 146, 0.24)');
+        this.showFloatNumber(118, { target: 'player', heal: true, label: 'RECOVER' });
+        this.setFeed('生命藥水回饋正在播放');
+    }
+
+    activateFlee() {
+        if (this.labMode === 'combat') this.session.flee();
+        else this.playFleeFeedback();
+    }
+
+    setMode(mode, { announce = true } = {}) {
+        if (!['combat', 'effects'].includes(mode)) return;
+        if (mode === 'effects' && this.session.phase === CombatSessionPhase.RUNNING) this.session.pause();
+        this.labMode = mode;
+        this.root.dataset.labMode = mode;
+        this.root.querySelectorAll('[data-lab-mode]').forEach(button => {
+            button.classList.toggle('is-active', button.dataset.labMode === mode);
+        });
+        this.stage.setAttribute('aria-label', mode === 'combat' ? '戰鬥實戰模擬' : '單項戰鬥特效預覽');
+        this.clearEffects();
+        const snapshot = this.session.getSnapshot();
+        this.renderSnapshot(snapshot, { immediate: true });
+        this.syncRhythmPhase(snapshot.phase);
+        if (mode === 'effects') {
+            this.resultPanel.hidden = true;
+            if (announce) this.setFeed('單項特效驗收模式');
+            return;
+        }
+        if ([CombatSessionPhase.VICTORY, CombatSessionPhase.DEFEAT, CombatSessionPhase.ESCAPED].includes(snapshot.phase)) {
+            this.showResult(snapshot.phase);
+        } else if (announce) {
+            this.setFeed(snapshot.phase === CombatSessionPhase.PAUSED ? '戰鬥已暫停' : '實戰模擬已就緒');
+        }
+    }
+
+    toggleCombat() {
+        const phase = this.session.phase;
+        if (phase === CombatSessionPhase.RUNNING) this.session.pause();
+        else if (phase === CombatSessionPhase.PAUSED) this.session.resume();
+        else if (phase === CombatSessionPhase.IDLE) this.session.start();
+        else this.restartCombat();
+    }
+
+    restartCombat() {
+        this.clearEffects();
+        this.resultPanel.hidden = true;
+        this.session.configure(this.buildSessionConfig());
+        this.session.start();
+        this.stage.focus({ preventScroll: true });
+    }
+
+    setMonster(monsterId) {
+        if (!MONSTERS[monsterId]) return;
+        this.clearEffects();
+        this.currentMonsterId = monsterId;
+        this.applyMonsterVisual();
+        this.resultPanel.hidden = true;
+        this.lastHealth = { player: null, monster: null };
+        this.session.configure(this.buildSessionConfig());
+        this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
+        this.setFeed(MONSTERS[monsterId].feed);
+    }
+
+    applyMonsterVisual() {
+        const config = MONSTERS[this.currentMonsterId];
+        this.root.querySelector('#enemy-name').textContent = config.name;
+        this.root.querySelector('#enemy-class').textContent = config.className;
+        this.root.querySelector('#enemy-level').textContent = config.level;
+        this.root.querySelector('#enemy-max-hp').textContent = config.maxHp;
+        this.enemyVisual.src = config.image;
+        this.enemyVisual.alt = config.name;
+        this.enemyVisual.style.setProperty('--monster-scale', config.visualScale);
+        this.background.src = config.background;
+        this.background.alt = config.backgroundAlt;
+    }
+
+    setElement(element) {
+        if (!ELEMENT_LABELS[element]) return;
+        this.currentElement = element;
+        this.engine.setElement(element);
+        this.root.querySelector('#element-label').textContent = ELEMENT_LABELS[element];
+        this.root.querySelectorAll('[data-element]').forEach(button => {
+            button.classList.toggle('is-active', button.dataset.element === element);
+        });
+        this.setFeed(element === 'neutral'
+            ? '武器回到無屬性的物理回饋'
+            : `${ELEMENT_LABELS[element]}屬性已附著`);
+        this.engine.elementalImpact(this.engine.enemyPoint, { scale: 0.75 });
+    }
+
+    handleCombatEvent(event) {
+        const immediate = event.type === 'session:configured' || event.type === 'battle:reset';
+        if (immediate) this.resetRhythmSystems();
+        this.syncRhythmPhase(event.snapshot.phase);
+        this.renderSnapshot(event.snapshot, { immediate });
+
+        if (event.type === 'battle:start') {
+            this.resultPanel.hidden = true;
+            this.setFeed(`${event.snapshot.monster.name}進入攻擊距離`);
+        } else if (event.type === 'battle:pause') {
+            this.setFeed('戰鬥流程已暫停');
+        } else if (event.type === 'battle:resume') {
+            this.setFeed('戰鬥流程繼續');
+        } else if (event.type === 'player:attack-start') {
+            this.playWeaponEffect(event.weapon.effect);
+            const judgementLabel = event.hitType === 'crit' ? '暴擊節點' : event.hitType === 'hit' ? '命中節點' : '失誤節點';
+            this.setFeed(`${event.weapon.name}於${judgementLabel}出手`);
+        } else if (event.type === 'player:hit') {
+            this.enemyImpactFeedback(event.damage, {
+                critical: event.critical,
+                label: event.critical
+                    ? 'CRITICAL'
+                    : event.breakResult ? `破勢 ${Math.round(event.breakResult.amount)}` : 'HIT',
+                heavy: event.weapon.effect === 'heavy'
+            });
+            this.setFeed(`${event.weapon.name}${event.critical ? '暴擊' : '命中'}，造成 ${event.damage} 點傷害`);
+        } else if (event.type === 'player:miss') {
+            this.showFloatNumber(0, { target: 'enemy', label: 'MISS' });
+            this.setFeed(`${event.weapon.name}揮空`);
+        } else if (event.type === 'player:potion') {
+            this.engine.heal({ target: 'player' });
+            this.flash('rgba(120, 202, 146, 0.24)');
+            this.showFloatNumber(event.amount, { target: 'player', heal: true, label: 'RECOVER' });
+            this.setFeed(`生命藥水恢復 ${event.amount} 點生命`);
+        } else if (event.type === 'player:buff-added') {
+            this.setFeed(`${event.buff.name}${event.refreshed ? '已刷新' : '已生效'}`);
+        } else if (event.type === 'player:buff-expired') {
+            this.setFeed(`${event.buff.name}效果結束`);
+        } else if (event.type === 'player:flee') {
+            this.showSkill('TACTICAL', '脫離交戰');
+        } else if (event.type === 'monster:telegraph') {
+            this.showSkill('MONSTER', event.attack.name);
+            this.restartClass(this.enemyStage, 'is-casting', Math.ceil(event.attack.telegraph * 1000));
+            this.setFeed(`${event.snapshot.monster.name}正在準備「${event.attack.name}」`);
+        } else if (event.type === 'monster:attack-release') {
+            this.playMonsterEffect(event.attack.effect);
+            if (event.attack.effect === 'claw') this.restartClass(this.enemyStage, 'is-lunging', 650);
+            this.setFeed(`${event.attack.name}已釋放`);
+        } else if (event.type === 'monster:hit') {
+            this.playerImpactFeedback(event.damage, { label: event.attack.name });
+            this.setFeed(`${event.snapshot.monster.name}造成 ${event.damage} 點傷害`);
+        } else if (event.type === 'monster:interrupted') {
+            this.engine.interruptBurst();
+            this.restartClass(this.enemyStage, 'is-heavy-hit', 430);
+            this.flash('rgba(238, 214, 142, 0.36)');
+            this.shake('light');
+            this.showFloatNumber(0, { target: 'enemy', label: 'BREAK' });
+            this.addStatus('破勢', '#9fe2d5', 1700);
+            this.setFeed(`${event.attack.name}遭到中斷`);
+        } else if (event.type === 'action:rejected') {
+            this.handleRejectedAction(event);
+        } else if (event.type === 'battle:end') {
+            this.showResult(event.result);
+        }
+    }
+
+    handleRejectedAction(event) {
+        const messages = {
+            battle_not_running: '請先開始交戰',
+            cooldown: '動作仍在冷卻',
+            weapon_disabled: '武器目前無法使用',
+            empty: '生命藥水已用盡',
+            full_hp: '生命已滿'
+        };
+        this.setFeed(messages[event.reason] || '目前無法執行這個動作');
+    }
+
+    renderSnapshot(snapshot, { immediate = false } = {}) {
+        this.stage.dataset.phase = snapshot.phase;
+        this.renderHealth('monster', snapshot.monster.hp, snapshot.monster.maxHp, immediate);
+        this.renderHealth('player', snapshot.player.hp, snapshot.player.maxHp, immediate);
+        this.root.querySelector('#enemy-hp').textContent = snapshot.monster.hp;
+        this.root.querySelector('#enemy-max-hp').textContent = snapshot.monster.maxHp;
+        this.root.querySelector('#player-hp').textContent = snapshot.player.hp;
+        this.root.querySelector('#player-max-hp').textContent = snapshot.player.maxHp;
+        this.root.querySelector('#potion-count').textContent = snapshot.player.potions;
+        this.renderPotionCooldown(snapshot.cooldowns.potion, 1.2);
+        this.renderBuffs(snapshot.player.buffs);
+        this.renderIntent(snapshot.monsterIntent, snapshot.phase);
+        this.renderSessionState(snapshot.phase);
+        this.renderRhythmState(snapshot);
+    }
+
+    renderHealth(target, current, max, immediate) {
+        if (!immediate && this.lastHealth[target] === current) return;
+        const fill = this.root.querySelector(`#${target === 'monster' ? 'enemy' : 'player'}-health-fill`);
+        const loss = this.root.querySelector(`#${target === 'monster' ? 'enemy' : 'player'}-health-loss`);
+        const percent = clamp(current / Math.max(1, max) * 100, 0, 100);
+        const previous = this.lastHealth[target];
+        this.lastHealth[target] = current;
+        fill.style.width = `${percent}%`;
+        if (immediate || previous === null || current >= previous) {
+            loss.style.width = `${percent}%`;
+        } else {
+            this.scheduleUi(() => { loss.style.width = `${percent}%`; }, 130);
+        }
+    }
+
+    renderPotionCooldown(remaining, total) {
+        const button = this.root.querySelector('#use-potion');
+        const mask = this.root.querySelector('#potion-cooldown-mask');
+        const ratio = clamp(remaining / Math.max(total, 0.001), 0, 1);
+        button.classList.toggle('is-cooling', ratio > 0.001);
+        mask.style.setProperty('--cooldown-height', `${ratio * 100}%`);
+    }
+
+    renderBuffs(buffs) {
+        const activeIds = new Set(buffs.map(buff => buff.id));
+        this.buffList.querySelectorAll('[data-buff-id]').forEach(node => {
+            if (!activeIds.has(node.dataset.buffId)) node.remove();
+        });
+
+        buffs.forEach(buff => {
+            let node = this.buffList.querySelector(`[data-buff-id="${buff.id}"]`);
+            if (!node) {
+                node = document.createElement('span');
+                node.className = 'buff-icon';
+                node.dataset.buffId = buff.id;
+                const image = document.createElement('img');
+                image.src = buff.icon;
+                image.alt = buff.name;
+                const time = document.createElement('span');
+                time.className = 'buff-time';
+                node.append(image, time);
+                this.buffList.appendChild(node);
+            }
+            const consumed = clamp(1 - buff.remaining / Math.max(buff.duration, 0.001), 0, 1);
+            node.style.setProperty('--buff-consumed', `${consumed * 100}%`);
+            node.title = `${buff.name} · ${buff.remaining.toFixed(1)} 秒`;
+            node.querySelector('.buff-time').textContent = Math.ceil(buff.remaining);
+        });
+
+        const empty = this.buffList.querySelector('.buff-empty');
+        if (buffs.length === 0 && !empty) {
+            const placeholder = document.createElement('span');
+            placeholder.className = 'buff-empty';
+            placeholder.textContent = 'NONE';
+            this.buffList.appendChild(placeholder);
+        } else if (buffs.length > 0) {
+            empty?.remove();
+        }
+    }
+
+    renderIntent(intent, phase) {
+        if (this.labMode !== 'combat' || phase !== CombatSessionPhase.RUNNING || !intent) {
+            this.intentPanel.hidden = true;
+            return;
+        }
+        this.intentPanel.hidden = false;
+        this.root.querySelector('#intent-state').textContent = intent.progress > 0.72 ? '即將命中' : '蓄勢';
+        this.root.querySelector('#intent-name').textContent = intent.attack.name;
+        this.root.querySelector('#intent-time').textContent = `${Math.max(0, intent.remaining).toFixed(2)}s`;
+        this.root.querySelector('#intent-fill').style.width = `${intent.progress * 100}%`;
+        this.root.querySelector('#break-value').textContent = `${Math.ceil(intent.breakRemaining)} / ${Math.ceil(intent.breakMax)}`;
+        this.root.querySelector('#break-fill').style.width = `${intent.breakRemaining / intent.breakMax * 100}%`;
+    }
+
+    renderSessionState(phase) {
+        this.root.querySelector('#session-state').textContent = PHASE_LABELS[phase] || phase;
+        const button = this.root.querySelector('#toggle-combat');
+        if (phase === CombatSessionPhase.RUNNING) button.textContent = '暫停';
+        else if (phase === CombatSessionPhase.PAUSED) button.textContent = '繼續交戰';
+        else if (phase === CombatSessionPhase.IDLE) button.textContent = '開始交戰';
+        else button.textContent = '重新交戰';
+    }
+
+    playWeaponEffect(effect) {
+        if (effect === 'sword') this.engine.swordSlash();
+        else if (effect === 'dagger') this.engine.daggerChain();
+        else if (effect === 'heavy') this.engine.heavyImpact();
+        else if (effect === 'lance') this.engine.lanceThrust({ fromRight: true });
+        else if (effect === 'focus') this.engine.focusResonance();
+        else if (effect === 'critical') this.engine.swordSlash({ mirrored: true, critical: true });
+    }
+
+    playMonsterEffect(effect) {
+        if (effect === 'claw') this.engine.monsterClaw();
+        else if (effect === 'crush') this.engine.monsterCrush();
+        else if (effect === 'projectile') this.engine.monsterProjectile();
+        else if (effect === 'breath') this.engine.monsterBreath();
+        else if (effect === 'curse') this.engine.monsterCurse();
+    }
+
+    triggerManualEffect(effectId, options = {}) {
+        if (this.labMode !== 'effects' || !EFFECT_LABELS[effectId]) return;
+        if (!options.keepShowcase) this.stopShowcaseOnly();
+        if (!options.quiet) this.setFeed(`${EFFECT_LABELS[effectId]}正在播放`);
+
+        if (['sword', 'dagger', 'heavy', 'lance', 'focus', 'critical'].includes(effectId)) {
+            this.playWeaponEffect(effectId);
+            const delayMap = { sword: 90, dagger: 250, heavy: 100, lance: 260, focus: 580, critical: 90 };
+            const damageMap = { sword: 96, dagger: 98, heavy: 168, lance: 122, focus: 146, critical: 284 };
+            this.scheduleUi(() => this.enemyImpactFeedback(damageMap[effectId], {
+                critical: ['lance', 'critical'].includes(effectId),
+                heavy: effectId === 'heavy',
+                label: effectId === 'critical' ? 'CRITICAL' : null
+            }), delayMap[effectId]);
+            return;
+        }
+
+        if (effectId === 'boss-phase') {
+            this.showSkill('BOSS PHASE', EFFECT_LABELS[effectId]);
+            this.restartClass(this.enemyStage, 'is-phase', 1800);
+            this.engine.bossPhase();
+            this.flash('rgba(219, 91, 58, 0.42)');
+            this.shake('light');
+            return;
+        }
+
+        this.showSkill('MONSTER', EFFECT_LABELS[effectId]);
+        this.restartClass(this.enemyStage, effectId === 'claw' ? 'is-lunging' : 'is-casting', 860);
+        this.playMonsterEffect(effectId);
+        const delayMap = { claw: 270, crush: 290, projectile: 760, breath: 840, curse: 780 };
+        const damageMap = { claw: 52, crush: 78, projectile: 41, breath: 66, curse: 24 };
+        this.scheduleUi(() => this.playerImpactFeedback(damageMap[effectId], {
+            label: EFFECT_LABELS[effectId]
+        }), delayMap[effectId]);
+    }
+
+    enemyImpactFeedback(damage, { critical = false, heavy = false, label = null } = {}) {
+        const hitClass = heavy ? 'is-heavy-hit' : (critical ? 'is-critical-hit' : 'is-hit');
+        this.restartClass(this.enemyStage, hitClass, heavy ? 430 : 380);
+        this.flash(critical ? 'rgba(255, 211, 112, 0.58)' : 'rgba(255, 248, 225, 0.38)');
+        this.shake(heavy ? 'heavy' : 'light');
+        this.hitStop(heavy ? 86 : 55);
+        this.showFloatNumber(damage, { target: 'enemy', critical, label });
+    }
+
+    playerImpactFeedback(damage, { label = null } = {}) {
+        this.flash('rgba(210, 68, 48, 0.4)');
+        this.restartClass(this.damageVignette, 'is-active', 540);
+        this.shake('heavy');
+        this.hitStop(72);
+        this.showFloatNumber(damage, { target: 'player', playerDamage: true, label });
+    }
+
+    showResult(phase) {
+        if (this.labMode !== 'combat') return;
+        const titles = {
+            [CombatSessionPhase.VICTORY]: ['BATTLE COMPLETE', '勝利'],
+            [CombatSessionPhase.DEFEAT]: ['BATTLE FAILED', '敗北'],
+            [CombatSessionPhase.ESCAPED]: ['BATTLE DISENGAGED', '撤離成功']
+        };
+        const result = titles[phase];
+        if (!result) return;
+        this.root.querySelector('#combat-result-kicker').textContent = result[0];
+        this.root.querySelector('#combat-result-title').textContent = result[1];
+        this.resultPanel.hidden = false;
+        if (phase === CombatSessionPhase.VICTORY) {
+            this.flash('rgba(227, 197, 116, 0.32)');
+            this.setFeed(`${MONSTERS[this.currentMonsterId].name}已被擊破`);
+        } else if (phase === CombatSessionPhase.DEFEAT) {
+            this.restartClass(this.damageVignette, 'is-active', 900);
+            this.setFeed('玩家失去戰鬥能力');
+        } else {
+            this.playFleeFeedback({ quiet: true });
+            this.setFeed('已脫離交戰範圍');
+        }
+    }
+
+    scheduleUi(callback, delay) {
+        const timer = window.setTimeout(() => {
+            this.uiTimers.delete(timer);
+            callback();
+        }, delay);
+        this.uiTimers.add(timer);
+        return timer;
+    }
+
+    scheduleShowcase(callback, delay) {
+        const timer = window.setTimeout(() => {
+            this.showcaseTimers.delete(timer);
+            callback();
+        }, delay);
+        this.showcaseTimers.add(timer);
+        return timer;
+    }
+
+    showFloatNumber(amount, { target = 'enemy', critical = false, playerDamage = false, heal = false, label = null } = {}) {
+        if (!this.settings.numbers) return;
+        const number = document.createElement('span');
+        number.className = 'float-number';
+        if (critical) number.classList.add('is-critical');
+        if (playerDamage) number.classList.add('is-player-damage');
+        if (heal) number.classList.add('is-heal');
+        const base = target === 'enemy' ? { x: 51.5, y: 43 } : { x: 50, y: 77 };
+        number.style.left = `${base.x + (Math.random() - 0.5) * 7}%`;
+        number.style.top = `${base.y + (Math.random() - 0.5) * 4}%`;
+        const sign = heal ? '+' : (amount > 0 ? '−' : '');
+        number.innerHTML = `${sign}${amount || ''}${label ? `<small>${label}</small>` : ''}`;
+        this.floatLayer.appendChild(number);
+        this.scheduleUi(() => number.remove(), 960);
+    }
+
+    addStatus(label, color = '#d7b277', duration = 2200) {
+        const chip = document.createElement('span');
+        chip.className = 'status-chip';
+        chip.textContent = label;
+        chip.style.color = color;
+        this.statusRow.appendChild(chip);
+        while (this.statusRow.children.length > 3) this.statusRow.firstElementChild.remove();
+        this.scheduleUi(() => chip.remove(), duration);
+    }
+
+    showSkill(source, name) {
+        this.root.querySelector('#skill-source').textContent = source;
+        this.root.querySelector('#skill-name').textContent = name;
+        this.restartClass(this.skillBanner, 'is-active', 1210);
+    }
+
+    setFeed(text) {
+        this.feedText.textContent = text;
+    }
+
+    flash(color) {
+        this.screenFlash.style.setProperty('--flash-color', color);
+        this.restartClass(this.screenFlash, 'is-active', 190);
+    }
+
+    shake(strength = 'light') {
+        if (!this.settings.shake) return;
+        const className = strength === 'heavy' ? 'is-shaking-heavy' : 'is-shaking-light';
+        this.restartClass(this.stage, className, strength === 'heavy' ? 340 : 190);
+    }
+
+    hitStop(duration = 60) {
+        if (!this.settings.hitStop) return;
+        const canvases = [
+            this.root.querySelector('#vfx-canvas-front'),
+            this.root.querySelector('#vfx-canvas-rear')
+        ];
+        canvases.forEach(canvas => { canvas.style.filter = 'brightness(1.28) contrast(1.08)'; });
+        this.scheduleUi(() => canvases.forEach(canvas => { canvas.style.filter = ''; }), duration);
+    }
+
+    restartClass(element, className, duration) {
+        element.classList.remove(className);
+        void element.offsetWidth;
+        element.classList.add(className);
+        this.scheduleUi(() => element.classList.remove(className), duration);
+    }
+
+    playFleeFeedback({ quiet = false } = {}) {
+        if (!quiet) {
+            this.setFeed('撤離回饋正在播放');
+            this.showSkill('TACTICAL', '脫離交戰');
+        }
+        this.stage.animate([
+            { filter: 'brightness(1)', opacity: 1 },
+            { filter: 'brightness(0.2)', opacity: 0.42, offset: 0.58 },
+            { filter: 'brightness(1)', opacity: 1 }
+        ], { duration: 760, easing: 'ease-in-out' });
+    }
+
+    playShowcase() {
+        if (this.showcaseRunning || this.labMode !== 'effects') return;
+        this.clearEffects({ preserveShowcase: true });
+        this.showcaseRunning = true;
+        const button = this.root.querySelector('#play-showcase');
+        button.disabled = true;
+        button.textContent = '展示播放中';
+        const cues = [
+            [0, () => this.setElement('neutral')],
+            [180, () => this.triggerManualEffect('sword', { keepShowcase: true })],
+            [920, () => this.setElement('fire')],
+            [1120, () => this.triggerManualEffect('heavy', { keepShowcase: true })],
+            [2250, () => this.triggerManualEffect('projectile', { keepShowcase: true })],
+            [3550, () => this.setElement('ice')],
+            [3760, () => this.triggerManualEffect('lance', { keepShowcase: true })],
+            [4700, () => this.triggerManualEffect('curse', { keepShowcase: true })],
+            [5900, () => this.setElement('glimmer')],
+            [6100, () => this.triggerManualEffect('focus', { keepShowcase: true })],
+            [7480, () => this.triggerManualEffect('boss-phase', { keepShowcase: true })],
+            [9300, () => this.triggerManualEffect('critical', { keepShowcase: true })],
+            [10500, () => {
+                this.showcaseRunning = false;
+                button.disabled = false;
+                button.textContent = '播放完整展示';
+                this.setFeed('完整展示播放完畢');
+            }]
+        ];
+        cues.forEach(([delay, callback]) => this.scheduleShowcase(callback, delay));
+    }
+
+    stopShowcaseOnly() {
+        if (!this.showcaseRunning) return;
+        this.showcaseTimers.forEach(timer => window.clearTimeout(timer));
+        this.showcaseTimers.clear();
+        this.showcaseRunning = false;
+        const button = this.root.querySelector('#play-showcase');
+        button.disabled = false;
+        button.textContent = '播放完整展示';
+    }
+
+    cancelUiTimers() {
+        this.uiTimers.forEach(timer => window.clearTimeout(timer));
+        this.uiTimers.clear();
+    }
+
+    clearEffects({ preserveShowcase = false } = {}) {
+        if (!preserveShowcase) this.stopShowcaseOnly();
+        this.cancelUiTimers();
+        this.engine.clear();
+        this.floatLayer.innerHTML = '';
+        this.statusRow.innerHTML = '';
+        ['is-hit', 'is-critical-hit', 'is-heavy-hit', 'is-casting', 'is-lunging', 'is-phase', 'is-healing']
+            .forEach(className => this.enemyStage.classList.remove(className));
+        this.stage.classList.remove('is-shaking-light', 'is-shaking-heavy');
+        this.screenFlash.classList.remove('is-active');
+        this.damageVignette.classList.remove('is-active');
+        this.skillBanner.classList.remove('is-active');
+    }
+
+    resetStage() {
+        this.stopShowcaseOnly();
+        this.clearEffects();
+        this.currentElement = 'neutral';
+        this.engine.setElement('neutral');
+        this.root.querySelector('#element-label').textContent = ELEMENT_LABELS.neutral;
+        this.root.querySelectorAll('[data-element]').forEach(button => {
+            button.classList.toggle('is-active', button.dataset.element === 'neutral');
+        });
+        this.resultPanel.hidden = true;
+        this.lastHealth = { player: null, monster: null };
+        this.session.configure(this.buildSessionConfig());
+        this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
+        this.setFeed(MONSTERS[this.currentMonsterId].feed);
+    }
+}
+
+const root = document.querySelector('#vfx-lab');
+if (root) window.combatVfxLab = new CombatVfxLab(root);

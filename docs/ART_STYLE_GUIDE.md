@@ -1,6 +1,6 @@
 # Art Style Guide
 
-Last updated: 2026-07-08
+Last updated: 2026-07-10
 
 Image generation is paused for this pass. This guide records the current style so
 future generated assets stay consistent.
@@ -30,13 +30,16 @@ Portrait direction:
 - `src/assets/images/art/characters/portraits/lamplighter_tavi.webp`
 - `src/assets/images/art/characters/portraits/standard_bearer_frey.webp`
 
+These portraits are character and costume references only. Their baked-in
+backgrounds are not the final dialogue presentation format.
+
 Town scene direction:
 
-- `src/assets/images/art/scenes/town/places-full/crossroads.webp`
-- `src/assets/images/art/scenes/town/places-full/forge.webp`
-- `src/assets/images/art/scenes/town/places-full/market.webp`
-- `src/assets/images/art/scenes/town/places-full/casino.webp`
-- `src/assets/images/art/scenes/town/places-full/gate.webp`
+- `src/assets/images/art/scenes/town/locations/crossroads.webp`
+- `src/assets/images/art/scenes/town/locations/forge.webp`
+- `src/assets/images/art/scenes/town/locations/market.webp`
+- `src/assets/images/art/scenes/town/locations/casino.webp`
+- `src/assets/images/art/scenes/town/locations/gate.webp`
 
 Casino scene direction:
 
@@ -87,3 +90,50 @@ current documentation pass.
 - As the main story bible becomes concrete, town scenes may need more specific
   broken, recovering, and chapter-state images so the world does not feel staged
   with generic backgrounds.
+
+## Deferred Layered Dialogue Assets
+
+Do not generate or replace dialogue assets during the current screenplay pass.
+After the complete master screenplay is accepted, rebuild dialogue presentation
+as four independent layers:
+
+1. A scene background with no speaking character baked into it.
+2. One or more transparent character layers with stable framing and anchors.
+3. Reusable expression variants selected by screenplay metadata.
+4. The runtime dialogue UI above those visual layers.
+
+Character variants must keep the same body scale, crop, costume, silhouette,
+camera angle, and anchor point so expressions can swap without visual jumping.
+Only create a chapter-specific costume, injury state, age, or pose when an
+accepted scene requires it. Background variants should represent meaningful
+location or world-state changes rather than duplicate near-identical images.
+
+Generate expression coverage from the completed script, grouped by character
+and stable costume/age state. The project uses one closed vocabulary of at most
+nine reusable expression types: `neutral`, `soft`, `pleased`, `guarded`,
+`resolute`, `angry`, `afraid`, `grieving`, and `hurt`. More precise script
+emotions must map onto these slots. Do not add a tenth expression; use an
+existing alias or an approved story CG for a true one-off climax. Supporting
+characters may use fewer variants. Existing portraits remain visual references
+until this replacement pass; they must not constrain the screenplay.
+
+`elder_dragon` is an approved exception: it reuses the existing full Boss
+illustration as its dialogue presentation and does not require a separate
+portrait unless the story direction is changed later.
+
+## Deferred Story CG Illustrations
+
+The finished screenplay may mark a small number of major emotional or revelatory
+beats for full-scene CG illustrations. These are intentionally composed images
+with character, environment, action, lighting, and framing integrated into one
+large illustration. They are separate from reusable dialogue backgrounds and
+portrait expression layers.
+
+Current future candidates include:
+
+- Ailo's true-ending flower-field memory with Neelu.
+- Frey's first-run final moment holding the standard.
+
+Only accepted screenplay beats may create CG asset requirements. Do not produce
+CGs during the current script pass, and do not use them to illustrate ordinary
+conversation or every character death.

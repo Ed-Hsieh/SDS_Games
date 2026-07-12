@@ -11088,7 +11088,7 @@ body {
 }
 
 .market-stage {
-    --market-bg: url("../assets/images/art/scenes/town/places/market.webp");
+    --market-bg: url("../assets/images/art/scenes/town/locations/market.webp");
     position: relative;
     min-width: 0;
     min-height: 0;
@@ -12013,12 +12013,6 @@ body {
 .town-place-casino { --place-x: 76%; --place-y: 70%; }
 .town-place-tower { --place-x: 58%; --place-y: 23%; }
 .town-place-gate { --place-x: 53%; --place-y: 84%; }
-
-.map-container {
-    background:
-        linear-gradient(180deg, rgba(3, 7, 10, 0.18), rgba(3, 7, 10, 0.58)),
-        url("/src/assets/images/art/scenes/backgrounds/adventure-world-map.webp") center / cover no-repeat !important;
-}
 
 /* Visual-novel style town dialogue */
 .town-dialogue-card:not(.is-topic-mode) {
@@ -18781,7 +18775,7 @@ body {
     pointer-events: none;
     background:
         linear-gradient(180deg, rgba(5, 7, 9, 0.32), rgba(5, 7, 9, 0.78)),
-        url("../assets/images/art/scenes/town/places-full/handbook.webp") center / cover no-repeat;
+        url("../assets/images/art/scenes/town/locations/handbook.webp") center / cover no-repeat;
     opacity: 0.2;
     mix-blend-mode: screen;
 }

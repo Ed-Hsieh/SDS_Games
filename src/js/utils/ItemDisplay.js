@@ -81,8 +81,8 @@ const EFFECT_ASSET_ALIASES = {
     burn: 'burn',
     ice: 'freeze',
     freeze: 'freeze',
-    thunder: 'attack_speed_down',
-    stunChance: 'attack_speed_down',
+    thunder: 'stun',
+    stunChance: 'stun',
     slowChance: 'attack_speed_down',
     armorPenetration: 'armor_break',
     armor_break: 'armor_break',
@@ -90,12 +90,17 @@ const EFFECT_ASSET_ALIASES = {
     lifesteal: 'lifesteal',
     double_strike: 'double_strike',
     damage_reflect: 'counter',
-    void: 'lifesteal',
-    light: 'attack_up',
-    attackSpeed: 'attack_up',
-    hpRegen: 'defense_up',
-    dodgeChance: 'defense_up',
-    execute: 'double_strike'
+    void: 'void',
+    light: 'light',
+    attackSpeed: 'attack_speed_up',
+    hpRegen: 'health_regen',
+    dodgeChance: 'dodge_up',
+    execute: 'execute',
+    critChance: 'critical_chance_up',
+    critDamage: 'critical_damage_up',
+    hp: 'health_up',
+    revive: 'revive',
+    bossBonus: 'boss_damage_up'
 };
 
 export const PERCENT_STATS = new Set([

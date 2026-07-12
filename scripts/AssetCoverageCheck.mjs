@@ -4,19 +4,22 @@ import { fileURLToPath } from 'node:url';
 
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { MaterialDatabase } from '../src/js/data/Materials.js';
-import { MonsterDatabase, TowerMonsterData } from '../src/js/data/Monsters.js';
+import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
 import { MarketItemCatalog, MarketSceneAssets, MarketVendors } from '../src/js/data/MarketSupply.js';
 import { CasinoSpecialItems } from '../src/js/data/CasinoRewards.js';
 import { DungeonDatabase } from '../src/js/data/Dungeons.js';
+import { OverworldMapConfig } from '../src/js/data/OverworldMapRegistry.js';
 import {
     getGeneratedBackgroundImage,
     getGeneratedDungeonImage,
     getGeneratedItemImage,
     getGeneratedMonsterImage,
     getGeneratedPortraitImage,
-    getGeneratedTownPlaceImage
+    getGeneratedTownPlaceImage,
+    getGeneratedWorldMapImage,
+    getGeneratedLandmarkImage
 } from '../src/js/data/AssetManifest.js';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -146,6 +149,7 @@ function checkAsset(scope, id, assetPath, options = {}) {
 }
 
 for (const [id, item] of entries(EquipmentDatabase)) {
+    if (id.startsWith('tower_')) continue;
     checkAsset('equipment', id, getGeneratedItemImage({ ...item, id: item.id || id }), { square: true, minWidth: 96, minHeight: 96 });
 }
 
@@ -174,11 +178,21 @@ for (const [id, item] of entries(CasinoSpecialItems)) {
 }
 
 for (const [id, monster] of entries(MonsterDatabase)) {
-    checkAsset('monster', id, monster.image || getGeneratedMonsterImage(monster.id || id), { square: true, minWidth: 96, minHeight: 96 });
+    const isBoss = monster.type === 'boss' || monster.type === 'world_boss';
+    checkAsset('monster', id, monster.image || getGeneratedMonsterImage(monster.id || id), {
+        square: !isBoss,
+        minWidth: isBoss ? 1024 : 96,
+        minHeight: isBoss ? 1024 : 96
+    });
 }
 
-for (const [id, monster] of entries(TowerMonsterData)) {
-    checkAsset('tower-monster', id, monster.image || getGeneratedMonsterImage(monster.id || id), { minWidth: 96, minHeight: 96 });
+for (const [dungeonId, dungeon] of entries(DungeonDatabase)) {
+    const boss = dungeon.monsters?.boss;
+    if (!boss?.id) continue;
+    checkAsset('dungeon-boss', `${dungeonId}:${boss.id}`, boss.image || getGeneratedMonsterImage(boss.id), {
+        minWidth: 1024,
+        minHeight: 1024
+    });
 }
 
 for (const place of TownPlaceDatabase || []) {
@@ -200,12 +214,29 @@ for (const [id, dungeon] of entries(DungeonDatabase)) {
     checkAsset('dungeon', id, dungeon.image || getGeneratedDungeonImage(id), { minWidth: 480, minHeight: 300 });
 }
 
+for (const tile of OverworldMapConfig.tiles) {
+    checkAsset('overworld-map', tile.id, tile.image || getGeneratedWorldMapImage(tile.imageId), {
+        minWidth: tile.cols * OverworldMapConfig.cellSize,
+        minHeight: tile.rows * OverworldMapConfig.cellSize
+    });
+}
+
+for (const gate of OverworldMapConfig.routeGates) {
+    checkAsset('route-gate-blocked', gate.id, gate.blockedImage || getGeneratedLandmarkImage(gate.blockedImageId), {
+        minWidth: 1024,
+        minHeight: 640
+    });
+    checkAsset('route-gate-repaired', gate.id, gate.repairedImage || getGeneratedLandmarkImage(gate.repairedImageId), {
+        minWidth: 1024,
+        minHeight: 640
+    });
+}
+
 checkAsset('background', 'town-overview', getGeneratedBackgroundImage('town-overview'), { minWidth: 1024, minHeight: 640 });
-checkAsset('background', 'adventure-world-map', getGeneratedBackgroundImage('adventure-world-map'), { minWidth: 1024, minHeight: 640 });
 checkAsset('background', 'casino-hall', getGeneratedBackgroundImage('casino-hall'), { minWidth: 1024, minHeight: 640 });
 checkAsset('background', 'casino-game-table', getGeneratedBackgroundImage('casino-game-table'), { minWidth: 1024, minHeight: 640 });
 checkAsset('background', 'casino-prize-wall', getGeneratedBackgroundImage('casino-prize-wall'), { minWidth: 1024, minHeight: 640 });
-checkAsset('market-background', 'market', MarketSceneAssets.background, { square: true, minWidth: 256, minHeight: 256 });
+checkAsset('market-background', 'market', MarketSceneAssets.background, { minWidth: 1024, minHeight: 576 });
 
 console.log(JSON.stringify(report, null, 2));
 

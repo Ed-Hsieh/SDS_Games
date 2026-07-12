@@ -1,501 +1,351 @@
 /**
  * CharacterProfiles.js
- * Shared character bible for portraits, dialogue voice, and story-stage changes.
+ * Runtime-facing character register synchronized with the accepted screenplay.
+ * The mainline owns each core arc; optional side stories may only deepen it.
  */
+
+const portrait = id => `src/assets/images/art/characters/portraits/${id}.webp`;
+const sceneFlag = sceneId => `story.scene.${sceneId}.complete`;
 
 export const CharacterProfileDatabase = {
     village_elder: {
         id: 'village_elder',
         name: '村長',
-        title: '城鎮十字路的管理者',
-        portrait: 'src/assets/images/art/characters/portraits/village_elder.webp',
-        imageAnchor: '灰白髮、舊披肩、手裡總有地圖或封蠟文件，像把整座城鎮的疲憊都收在袖口裡。',
-        core: '穩重、務實、疲倦但不冷漠。知道自己無法親自出城，所以把每一句委託都說得像在替玩家繫緊繩結。',
-        wound: '年輕時錯估過一次災情，失去過守衛與獵人。現在他不浪漫化冒險，也不輕易把人送去送死。',
-        storyFunction: '把玩家從「路過冒險者」拉進城鎮責任，負責主線節奏、城鎮狀態與人的名字。',
+        title: '城鎮決策者與遠征倖存者',
+        portrait: portrait('village_elder'),
+        innerWorld: {
+            fear: '再次因自己的判斷讓別人死去。',
+            desire: '在自己還能承擔時，把城鎮交回可以共同決定的人手裡。',
+            values: '責任必須具名，未知不能被英雄話語掩蓋。'
+        },
+        past: '二十年前參與處理失聯道路的遠征；隊伍誤傷龍族封痕，他帶著錯誤理解回到城鎮。',
+        arc: '從把所有責任收進自己身上，走向願意被伊萊與主角攔住，也願意承認共同決策比犧牲更負責。',
+        contradiction: '想保護所有人，卻因此總想一個人承擔最危險的決定。',
+        external: '灰白髮、舊披肩、反覆壓平地圖角；疲倦時會用乾冷笑話縮短會議。',
+        core: '務實、克制、記得人的名字，也會把自己的愧疚藏進行政語氣。',
         voice: {
-            tone: '穩、短促、帶一點乾冷幽默',
-            rhythm: '先講清目標，再補一句人味或警告。',
-            vocabulary: ['路線', '回報', '名單', '守衛', '城鎮', '活著回來'],
-            humor: '像長輩的冷吐槽，不賣萌，不裝神秘。',
-            avoid: ['空泛預言', '熱血口號', '過度解釋世界觀'],
-            lineRule: '每段對話至少有一個明確行動，並讓玩家感覺他記得城裡每個人。'
+            tone: '穩、短、帶乾冷幽默',
+            rhythm: '先說可驗證的事，再交代責任與回程。',
+            vocabulary: ['名單', '回程', '不知道', '先確認', '別替我寫得好看'],
+            avoid: ['預言口吻', '英雄口號', '把犧牲美化成唯一答案']
         },
         stages: [
-            { id: 'opening', label: '初遇', mood: '克制而審慎', untilFlag: 'town.south_gate.guard_route_ready' },
-            { id: 'burdened', label: '城鎮承壓', fromFlag: 'town.notice_board.missing_workers_named', mood: '把私人的愧疚藏在行政語氣裡' },
-            { id: 'last-stand', label: '終局前夕', fromFlag: 'town.gate.broken_standard_raised', mood: '語句更短，開始把人名放在任務前面' }
+            { id: 'burden', label: '一個人扛住城鎮', mood: '平靜得過度用力' },
+            { id: 'friendship_visible', label: '伊萊門外等他', fromFlag: sceneFlag('ch2_s07_names_return_to_town'), mood: '開始讓疲憊被朋友看見' },
+            { id: 'scar_choice', label: '封痕前的選擇', fromFlag: sceneFlag('ch5_s10_before_dawn'), mood: '第一輪獨行，第二輪肯停下' }
         ],
         reportClosings: [
-            '我會把這件事記下。不是為了好看，是為了下一個出城的人少走一段錯路。',
-            '好，這段先歸檔。你可以休一下，但別休到城外的麻煩學會敲門。',
-            '我知道了。接下來我會通知守衛，你去看看手札裡還有哪條線沒有收緊。'
+            '把不知道的部分也寫下。下一個人不該再替我們猜一次。',
+            '先點回來的人，再談路上發生了什麼。',
+            '別寫成我終於做對。寫有人攔住我，而我這次肯停。'
         ]
     },
     town_scholar: {
         id: 'town_scholar',
-        name: '書記',
-        title: '旅人手札與百科整理者',
-        portrait: 'src/assets/images/art/characters/portraits/town_scholar.webp',
-        imageAnchor: '年輕、蒼白、眼鏡、墨漬手指，身上掛滿索引紙條與臨時書籤。',
-        core: '神經質、聰明、在混亂中迷信秩序。害怕世界沒有邏輯，所以努力把怪物、地點、時間排成表。',
-        wound: '他不是戰士，無法站上前線；他用紀錄證明自己也能讓人活下去。',
-        storyFunction: '把玩家發現的碎片變成可追蹤線索，負責百科、世界因果與章節銜接。',
+        name: '伊萊',
+        title: '城鎮書記',
+        portrait: portrait('town_scholar'),
+        innerWorld: {
+            fear: '自己的整理會把重要差異壓成一條害人的結論。',
+            desire: '讓證據保留來源與範圍，足以真的讓人活著回來。',
+            values: '紀錄的誠實比紀錄的整齊重要。'
+        },
+        past: '長年替村長整理道路與遠征殘頁；他知道老人會工作到天亮，也曾在門外等到紙頁終於闔上。',
+        arc: '從相信整理就是控制，經歷米婭之死後理解壓縮上下文的代價；二周目主動重開原始資料並保留未知。',
+        contradiction: '需要秩序才能面對恐懼，又必須接受真正的證據往往不整齊。',
+        external: '蒼白、眼鏡、墨漬手指；焦慮時先對齊紙角，再承認某格沒有答案。',
+        core: '聰明、神經質、願意對自己的結論負責，不是替劇情發答案的全知學者。',
         voice: {
-            tone: '緊張、細節控、偶爾自嘲',
-            rhythm: '先分類，再指出異常，最後把玩家推向下一個可驗證地點。',
-            vocabulary: ['順序', '比對', '方位', '紀錄', '樣本', '索引'],
-            humor: '學者式小抱怨，例如討厭黏液碰到書頁。',
-            avoid: ['神棍式斷言', '只講任務數字', '把玩家當工具人'],
-            lineRule: '他不說「去打怪」，而說「把現象補成能比對的紀錄」。'
+            tone: '精準、緊張、偶爾自嘲',
+            rhythm: '先說來源，再說可比對之處，最後保留未知。',
+            vocabulary: ['來源', '範圍', '摘要', '原頁', '尚未證明'],
+            avoid: ['神棍斷言', '把推測說成事實', '只用任務數字說話']
         },
         stages: [
-            { id: 'cataloguer', label: '整理聽聞', mood: '急著把傳聞排成秩序' },
-            { id: 'witness', label: '見證地脈崩壞', fromFlag: 'town.scholar.records_drowned_bell_rhythm', mood: '開始承認紀錄不只關於怪物，也關於人' },
-            { id: 'archivist', label: '終局索引', fromFlag: 'town.scholar.last_index_bound', mood: '把名字當作最後防線' }
+            { id: 'cataloguer', label: '相信整理能保護人', mood: '急著把世界排好' },
+            { id: 'context_failure', label: '二格摘要留下傷口', fromFlag: sceneFlag('ch5_s07_after_the_ratchet'), mood: '第一輪崩塌，第二輪重開來源' },
+            { id: 'honest_archive', label: '讓紀錄保留麻煩', fromFlag: sceneFlag('ch7_s08_return_to_town'), mood: '不再讓一個人替所有人負責' }
         ],
         reportClosings: [
-            '我會把時間、方向和你身上的可疑氣味分開記錄。最後一項盡量寫得含蓄。',
-            '這條線索能和前面的紀錄接上。很好，世界暫時還願意被理解。',
-            '我先歸檔。請不要把樣本放在書上，上次那本百科到現在還會自己翻頁。'
-        ]
-    },
-    blacksmith: {
-        id: 'blacksmith',
-        name: '鍛造師',
-        title: '鍛造鋪主人',
-        portrait: 'src/assets/images/art/characters/portraits/blacksmith.webp',
-        imageAnchor: '中年南亞壯碩女性、煤灰、皮圍裙、鐵鎚，火光把輪廓照得很硬。',
-        core: '直白、暴躁、手比嘴誠實。她把關心包在嘲諷裡，因為太溫柔的話會被爐火燒壞。',
-        wound: '失蹤學徒妮露讓她無法再把圖紙當成單純商品；每張圖紙都像某個人沒說完的話。',
-        storyFunction: '把素材、圖紙、裝備路線與主線壓力接起來，讓鍛造不是菜單，而是抵抗的準備。',
-        voice: {
-            tone: '粗硬、直接、帶火星的幽默',
-            rhythm: '先罵裝備或材料，再精準說明問題，最後給出非常實際的要求。',
-            vocabulary: ['爐火', '切口', '成色', '比例', '強化', '別拿破爛糊弄我'],
-            humor: '拿武器、石頭、冒險者的魯莽開刀。',
-            avoid: ['詩意過量', '神秘兮兮', '太像商店店員'],
-            lineRule: '她講話永遠要讓玩家知道裝備為什麼重要。'
-        },
-        stages: [
-            { id: 'working', label: '爐火未穩', mood: '不耐煩但願意幫忙' },
-            { id: 'remembering-neelu', label: '妮露圖紙', fromFlag: 'town.blacksmith.neelu_blueprint_named', mood: '嘲諷變少，句子變短' },
-            { id: 'war-forge', label: '終局工序', fromFlag: 'town.blacksmith.mithril_route_ready', mood: '像在排一場戰爭的工序' }
-        ],
-        reportClosings: [
-            '東西放那邊。我會處理，你負責別在它完成前死掉。',
-            '成色能用。比你的自我保護意識可靠，這已經很難得了。',
-            '我會把比例記下。下次帶材料來，別帶藉口。'
-        ]
-    },
-    old_miner_bran: {
-        id: 'old_miner_bran',
-        name: '老礦工布蘭',
-        title: '南脈礦路倖存者',
-        portrait: 'src/assets/images/art/characters/portraits/old_miner_bran.webp',
-        imageAnchor: '灰塵卡在鬍鬚裡，肩膀總像還背著一袋濕礦。說話前會先看地面，像在確認腳下還能不能承重。',
-        core: '布蘭記得舊礦路的聲音，也記得哪些人沒有從那條路回來。他不是勇敢，只是還沒找到能放心閉嘴的人。',
-        wound: '一次塌方奪走了他的工友，也讓他再也不相信鎮上的漂亮承諾。',
-        storyFunction: '連接鐵匠、礦路、材料來源與舊災難的證人，適合承載早中期的鍛造與路線真相。',
-        voice: {
-            tone: '乾硬、少話、帶砂礫感。',
-            rhythm: '短句多，偶爾冒出一段很長的回憶，說完又沉下去。',
-            vocabulary: ['礦脈', '塌聲', '濕土', '舊路', '別敲那面牆'],
-            humor: '黑色幽默，只在事情糟到不能再糟時出現。',
-            avoid: ['熱血鼓舞', '華麗比喻', '過度解釋礦業知識'],
-            lineRule: '每句話都像從喉嚨裡磨出來。不要讓他變成普通情報 NPC。'
-        },
-        stages: [
-            { id: 'survivor', label: '礦路倖存者', mood: '不願多談' },
-            { id: 'witness', label: '塌方證人', fromFlag: 'town.mine.route_problem_named', mood: '開始指出舊路的裂縫' },
-            { id: 'guide', label: '舊路引路人', fromFlag: 'town.blacksmith.mithril_route_ready', mood: '願意把真正的路說完' }
-        ],
-        reportClosings: [
-            '布蘭把手掌按在膝上。指縫裡還有黑灰。他只點了一下頭。',
-            '「聽見那種聲音就退。」他說。不是提醒。像命令。',
-            '他看了你帶回來的東西很久，最後把它推回來。「這不是石頭。這是人命換出來的。」'
+            '我會把來源和推測分開。兩者長得很像，害人的方式完全不同。',
+            '這次先不寫結論。讓空格留在它該在的位置。',
+            '我會寫得更麻煩一點：我們終於沒有讓一個人替所有人負責。'
         ]
     },
     herbalist: {
         id: 'herbalist',
-        name: '藥師蓮娜',
-        title: '市集邊棚藥師',
-        portrait: 'src/assets/images/art/characters/portraits/herbalist.webp',
-        imageAnchor: '北歐女性、綠色織披肩、草藥束、陶研缽，安靜漂亮但眼神很清醒。',
-        core: '溫柔、精準、把恐懼磨成藥粉。她會安撫人，但不會替危險灑糖。',
-        wound: '看過太多人因為「只是小傷」拖到不可挽回，所以她對任何異常氣味都異常敏感。',
-        storyFunction: '負責毒素、補給、民生支線，讓災難落到傷口、湯鍋和採藥人的名字上。',
+        name: '米婭',
+        title: '藥師與配方研究者',
+        portrait: portrait('herbalist'),
+        innerWorld: {
+            fear: '只要自己停下照顧，重要的人就會像父母一樣來不及被救回。',
+            desire: '讓受傷的人醒來，也讓自己有一天能重新活在工作以外的時間裡。',
+            values: '照護要精準、溫柔，而且不能把病人變成欠債的人。'
+        },
+        past: '父母去世後，她把私人工作室維持在當年的樣子，時間像停在最後一次沒能救回家人的夜裡。',
+        arc: '從只會為別人耗盡自己，到二周目願意測試、分工、讓別人扶住工具，也讓房間重新打開窗戶。',
+        contradiction: '渴望和主角一起走向未來，卻用不顧自己的照護方式反覆放棄那個未來。',
+        external: '約二十五歲，手指常帶藥草色；說「先坐」時會先把水推到對方碰得到的位置。',
+        core: '溫柔、理想、浪漫但技術嚴謹；愛情透過照護、誠實回程與共同日常累積。',
         voice: {
-            tone: '柔和但清楚，像在替傷口換藥',
-            rhythm: '先安撫，再說出令人不安的觀察，最後給玩家一個可完成的動作。',
-            vocabulary: ['樣本', '味道', '傷口', '藥架', '毒霧', '別把瓶口朝下'],
-            humor: '乾淨、生活感，常用藥棚事故吐槽。',
-            avoid: ['賣藥式推銷', '只講治療數字', '過度柔弱'],
-            lineRule: '她的對話要讓玩家感覺城鎮裡有人在照顧活人。'
+            tone: '柔和、清楚、不替危險灑糖',
+            rhythm: '先確認人，再描述症狀與處置。',
+            vocabulary: ['先坐', '水', '反應', '別逞強', '我需要你說實話'],
+            avoid: ['商店推銷', '聖女口吻', '把自我犧牲說成天生義務']
         },
         stages: [
-            { id: 'caretaker', label: '藥棚守望', mood: '冷靜照護' },
-            { id: 'thorn-reader', label: '辨認荊棘交易', fromFlag: 'town.apothecary.understands_thorn_trade', mood: '語氣更謹慎，像怕驚動某種規則' },
-            { id: 'soup-kitchen', label: '避難者廚房', fromFlag: 'town.refugees.soup_kitchen_warm', mood: '更溫暖，也更疲憊' }
+            { id: 'opening_care', label: '把時間留給病人', mood: '溫柔而不肯休息' },
+            { id: 'mutual_honesty', label: '要求彼此說出傷口', fromFlag: sceneFlag('ch3_s02_shadows_count_names'), mood: '關係不再只有單向照護' },
+            { id: 'operation', label: '四象裂片手術', fromFlag: sceneFlag('ch5_s06_mia_operation'), mood: '第一輪停止，第二輪繼續活下去' }
         ],
         reportClosings: [
-            '我會先處理樣本。你如果覺得頭暈，坐下，不要逞強到直接倒進藥架。',
-            '這些能用。下一個受傷的人不用等空瓶晾乾，這就值得。',
-            '我記下了。危險不會因此消失，但至少我們知道它聞起來像什麼。'
+            '先喝水。事情可以晚一點說，你的身體不會。',
+            '我可以處理傷口，但你得先承認它在。',
+            '好了。你回來了。'
         ]
-    },
-    street_beggar: {
-        id: 'street_beggar',
-        name: '巷口流浪者',
-        title: '暗巷入口的消息販子',
-        portrait: 'src/assets/images/art/characters/portraits/street_beggar.webp',
-        imageAnchor: '老年、髒破斗篷、破木碗、狡黠笑容，半張臉永遠藏在陰影裡。',
-        core: '油滑、敏銳、像開玩笑，其實每句都在測人。他不相信英雄，但願意相信看見角落的人。',
-        wound: '曾經在城鎮秩序外被犧牲過，所以他比誰都懂公告欄沒有寫上的名字。',
-        storyFunction: '負責黑市、賭場、隱藏線與灰色地帶，讓世界不是只有官方任務。',
-        voice: {
-            tone: '低聲、帶笑、像把秘密塞進破碗裡',
-            rhythm: '先用玩笑拆掉玩家戒心，再突然說中真相。',
-            vocabulary: ['口袋', '角落', '標籤', '收據', '門', '代價'],
-            humor: '尖酸但不惡毒，常把窮、賭、黑市講得像生活常識。',
-            avoid: ['正面英雄宣言', '過度善良', '把陰謀講得太直白'],
-            lineRule: '他的線索要像偷聽來的，而不是系統直接發任務。'
-        },
-        stages: [
-            { id: 'watcher', label: '暗巷旁觀者', mood: '試探玩家' },
-            { id: 'broker', label: '黑市開門', fromFlag: 'secretShopUnlocked', mood: '開始承認玩家能付得起情報的代價' },
-            { id: 'witness', label: '賭場契約', fromFlag: 'town.casino.dark_contract_sealed', mood: '笑意變薄，像終於遇到真正怕的東西' }
-        ],
-        reportClosings: [
-            '好，這件事我會放進該放的耳朵裡。你就當沒聽見這句話。',
-            '收據對上了。看吧，壞人也愛記帳，只是字比較髒。',
-            '你帶回來的不是戰利品，是門縫。門縫夠大時，秘密就會自己漏出來。'
-        ]
-    },
-    merchant: {
-        id: 'merchant',
-        name: '奧托',
-        title: '旅行商人',
-        portrait: 'src/assets/images/art/characters/portraits/merchant.webp',
-        core: '親切、精明、把恐慌也看成供需問題，但底線比他自己承認的更高。',
-        voice: {
-            tone: '熱絡、圓滑、像每句話都附送折扣',
-            rhythm: '先稱讚玩家眼光，再談成本與風險。',
-            vocabulary: ['貨路', '成本', '朋友價', '保證不是剛偷的', '供應'],
-            humor: '商人式自嘲與誇張保證。',
-            lineRule: '奧托永遠讓商品背後有一條路線，而不是憑空上架。'
-        }
-    },
-    supply_captain: {
-        id: 'supply_captain',
-        name: '補給隊長',
-        title: '南門補給線負責人',
-        portrait: 'src/assets/images/art/characters/portraits/supply_captain.webp',
-        imageAnchor: '外衣永遠扣到最上面，腰側掛著磨損的路線牌。她看貨箱，也看人。兩者都可能少一個。',
-        core: '她相信秩序，但現在秩序只剩幾張被雨泡軟的清單。她需要道路安全，卻比誰都清楚安全是拿人去墊出來的。',
-        wound: '曾經錯估一次護送路線，讓整隊補給和兩名年輕守衛消失在南邊。',
-        storyFunction: '把路線安全、商隊、哨塔、補給與城鎮服務擴張連起來。',
-        voice: {
-            tone: '利落、壓低情緒、習慣把害怕藏進數字。',
-            rhythm: '先講結論，再補一個不願多談的細節。',
-            vocabulary: ['路線', '箱數', '護送', '缺口', '回程'],
-            humor: '很少開玩笑；若有，多半是苦笑。',
-            avoid: ['商人腔', '軍官式空喊口號', '過度溫柔'],
-            lineRule: '她說話要有行動方向，但不要像任務板。'
-        },
-        stages: [
-            { id: 'blocked', label: '補給受阻', mood: '清點每一個缺口' },
-            { id: 'route-opened', label: '第一條路線重開', fromFlag: 'town.supply.first_route_open', mood: '緊繃稍微鬆開' },
-            { id: 'network', label: '商隊網絡成形', fromFlag: 'town.supply.route_problem_named', mood: '開始重新安排鎮外節點' }
-        ],
-        reportClosings: [
-            '她沒有立刻道謝，只把新路線用炭筆重描了一遍。',
-            '「能走，不代表安全。」她收起地圖，「但至少我們又能試一次。」',
-            '她把缺口那欄劃掉。紙面很薄，炭痕卻深。'
-        ]
-    },
-    apothecary_assistant: {
-        id: 'apothecary_assistant',
-        name: '伊芙',
-        title: '藥棚助手',
-        portrait: 'src/assets/images/art/characters/portraits/apothecary_assistant.webp',
-        core: '年輕、樂觀、實務派。她不是天真，而是刻意把恐慌整理成清單。',
-        voice: {
-            tone: '明亮、快速、乾淨',
-            rhythm: '先報庫存，再補一句鼓勵或小提醒。',
-            vocabulary: ['托盤', '瓶塞', '庫存', '補貨', '我有標籤'],
-            humor: '輕快的工作現場吐槽。',
-            lineRule: '她讓市集補給有溫度，但不搶蓮娜的主線重量。'
-        }
-    },
-    tinker: {
-        id: 'tinker',
-        name: '柏恩',
-        title: '修補匠',
-        portrait: 'src/assets/images/art/characters/portraits/tinker.webp',
-        core: '瘦小、緊張、發明家腦袋停不下來。總覺得任何問題都能加齒輪解決。',
-        voice: {
-            tone: '碎念、興奮、微微焦慮',
-            rhythm: '一句話常常自己分岔，但最後會回到明確需求。',
-            vocabulary: ['齒輪', '螺絲', '校準', '理論上', '不要站太近'],
-            humor: '發明失敗後的心虛補充。',
-            lineRule: '柏恩的功能要偏修補、耐久、工具與事件小機關。'
-        }
-    },
-    rumor_broker: {
-        id: 'rumor_broker',
-        name: '米菈',
-        title: '剪報情報商',
-        portrait: 'src/assets/images/art/characters/portraits/rumor_broker.webp',
-        core: '觀察型美人，冷靜、鋒利，像所有報紙邊角都在她腦中連成紅線。',
-        voice: {
-            tone: '低調、精準、帶一點戲謔',
-            rhythm: '先給兩個看似無關的片段，再指出它們之間的線。',
-            vocabulary: ['剪報', '紅線', '版面', '巧合', '第二次就不是巧合'],
-            humor: '優雅地拆穿荒謬。',
-            lineRule: '她提供情報與戰術技能，但每筆情報都要像被她查過。'
-        }
-    },
-    black_market: {
-        id: 'black_market',
-        name: '伊文',
-        title: '黑市收藏家',
-        portrait: 'src/assets/images/art/characters/portraits/black_market.webp',
-        core: '禮貌、病態、把危險物當藝術品。交易時像在替物品挑主人。',
-        voice: {
-            tone: '輕柔、迂腐、令人不安',
-            rhythm: '先稱呼物品，再稱呼玩家，順序通常代表他的價值觀。',
-            vocabulary: ['品相', '來源', '真貨', '收藏', '別讓它失望'],
-            humor: '冷而怪，像對危險物的禮貌比對人更多。',
-            lineRule: '他的交易要讓玩家感覺拿到的不是商品，而是麻煩。'
-        }
-    },
-    casino_dealer: {
-        id: 'casino_dealer',
-        name: '惡魔莊家',
-        title: '灰金燈下的莊家',
-        portrait: 'src/assets/images/art/characters/portraits/casino_dealer.webp',
-        core: '誘惑、冷靜、殘酷，把絕望包成遊戲規則。',
-        voice: {
-            tone: '華麗、低語、像每個字都沾著金粉與鐵鏽',
-            rhythm: '先稱讚運氣，再提醒代價，最後邀請玩家再押一次。',
-            vocabulary: ['籌碼', '骨骰', '契約', '幸運', '再一局'],
-            humor: '優雅而惡意。',
-            lineRule: '賭場台詞要有誘惑與腐敗，不只是數字結算。'
-        }
-    },
-    casino_owner: {
-        id: 'casino_owner',
-        name: '賭場主人',
-        title: '展示櫃與債務的主人',
-        portrait: 'src/assets/images/art/characters/portraits/casino_owner.webp',
-        imageAnchor: '她坐得很穩，像整間賭場只是她掌心裡的一枚籌碼。笑意很淺，算盤聲卻在她身後一直響。',
-        core: '她懂得讓人以為自己還有選擇。她也可能真心想讓城鎮活下去，只是她的方法會把人拖進更深的局。',
-        wound: '她見過善意破產，所以把所有善意都換成能計算的條款。',
-        storyFunction: '承載賭場誘惑、債務、黑市回聲與中後期城鎮代價的長線角色。',
-        voice: {
-            tone: '優雅、冷靜、帶壓迫感。',
-            rhythm: '句子不急，常留半拍，像等對方自己把弱點說出來。',
-            vocabulary: ['籌碼', '利息', '展示櫃', '選擇', '條款'],
-            humor: '精準而危險，不大笑。',
-            avoid: ['市井吆喝', '直接威脅', '反派獨白'],
-            lineRule: '她應該讓玩家感覺被看穿，而不是被大聲恐嚇。'
-        },
-        stages: [
-            { id: 'distant-owner', label: '遠處的主人', mood: '只讓玩家看見展示櫃' },
-            { id: 'contractor', label: '契約提出者', fromFlag: 'town.casino.owner_route_seeded', mood: '開始親自下注' },
-            { id: 'debt-holder', label: '債務持有人', fromFlag: 'town.casino.dark_contract_sealed', mood: '把城鎮推向代價' }
-        ],
-        reportClosings: [
-            '她把杯沿轉了半圈，沒有喝。你知道她已經得到答案。',
-            '「你可以拒絕。」她說得很輕，像拒絕也是她設計的一部分。',
-            '展示櫃後的燈光暗了一下。她仍在笑。'
-        ]
-    },
-    tower_warden: {
-        id: 'tower_warden',
-        name: '塔守望者',
-        title: '無盡塔守望者',
-        portrait: 'src/assets/images/art/characters/portraits/tower_warden.webp',
-        core: '銀髮、威嚴、冷淡。她不像店員，更像測量玩家是否值得進塔的人。',
-        voice: {
-            tone: '莊重、簡短、像宣告規則',
-            rhythm: '少解釋，多判定。',
-            vocabulary: ['層數', '試煉', '門', '代價', '返回'],
-            humor: '幾乎沒有，偶爾一句冷到像石頭的評語。',
-            lineRule: '塔守望者不安慰玩家，只確認玩家是否還站得住。'
-        }
-    },
-    chapel_monk: {
-        id: 'chapel_monk',
-        name: '灰袍僧侶',
-        title: '未安置的教堂角色',
-        portrait: 'src/assets/images/art/characters/portraits/tower_keeper.webp',
-        core: '預留角色。未來若城鎮擴充教堂、治療、懺悔或死亡懲罰，可使用先前保留的僧侶形象。',
-        voice: {
-            tone: '安靜、克制、帶宗教感但不說教',
-            rhythm: '先問玩家看見了什麼，再指出活下來的人也需要被照顧。',
-            vocabulary: ['燭火', '名字', '傷口', '沉默', '明天'],
-            humor: '極少，偏溫柔。',
-            lineRule: '僧侶用來承接死亡、悼念與城鎮精神狀態，不要搶村長的行政功能。'
-        }
-    },
-    neelu_apprentice: {
-        id: 'neelu_apprentice',
-        name: '妮露',
-        title: '失蹤鍛造學徒',
-        portrait: '',
-        imageAnchor: '手套永遠太大、筆記邊角燒焦、圖紙字跡小而倔強。',
-        core: '固執、敏銳、把不被相信的鍛造猜想寫進圖紙邊角。她不在場，卻用每張圖紙推著鍛造師承認自己想念她。',
-        wound: '她帶著丘陵礦材假說離開城鎮，失蹤後只留下殘圖。沒人確定她是死了、逃了，還是在某處繼續把危險當研究。',
-        storyFunction: '讓鍛造支線不是單純收材料，而是師徒未完的研究與裝備路線的情感核心。',
-        voice: {
-            tone: '筆記式、倔強、帶一點不服氣',
-            rhythm: '先寫結論，再在角落補一句像跟老師吵架的吐槽。',
-            vocabulary: ['比例', '震幅', '別笑', '樣本不足', '我會證明'],
-            humor: '學徒式嘴硬，像邊做實驗邊跟不存在的老師拌嘴。',
-            lineRule: '妮露通常透過圖紙、邊註與鍛造師轉述出現。'
-        }
-    },
-    lamplighter_tavi: {
-        id: 'lamplighter_tavi',
-        name: '塔維',
-        title: '海岸守燈人',
-        portrait: 'src/assets/images/art/characters/portraits/lamplighter_tavi.webp',
-        imageAnchor: '瘦削老人、鹽霧斗篷、手裡提著擦到發亮的油壺。',
-        core: '怕黑，卻一輩子替別人點燈。他的勇敢不是不怕，而是每晚怕到發抖仍把燈芯剪齊。',
-        wound: '沉鐘海嘯吞掉他的家人後，他開始分不清燈是在引船回岸，還是在引亡魂回家。',
-        storyFunction: '把沉鐘神諭線從宏大的海嘯拉回一盞燈、一個怕黑的人與海岸倖存者。',
-        voice: {
-            tone: '低、慢、像怕驚動海霧',
-            rhythm: '先說日常動作，再露出背後創傷。',
-            vocabulary: ['燈芯', '潮聲', '油壺', '岸邊', '別回頭看'],
-            humor: '乾澀，常把恐懼說成工作流程。',
-            lineRule: '塔維支線要讓海岸不是地點，而是有人守過的夜。'
-        }
     },
     standard_bearer_frey: {
         id: 'standard_bearer_frey',
         name: '芙蕾',
-        title: '斷旗手',
-        portrait: 'src/assets/images/art/characters/portraits/standard_bearer_frey.webp',
-        imageAnchor: '紅髮、臉上有灰、手纏繃帶，旗杆斷口仍被她握得很緊。',
-        core: '害怕、疲憊、拒絕被說成英雄。她只想讓撤退的人知道自己不是被丟下。',
-        wound: '北境撤退時，她負責把最後一面旗帶回來。她成功了，但也把太多沒回來的人名背在身上。',
-        storyFunction: '讓第三章終局不只關於打倒魔王，也關於撤退、點名、倖存者如何重新站起來。',
+        title: '巡線持旗者',
+        portrait: portrait('standard_bearer_frey'),
+        innerWorld: {
+            fear: '方向從視野中消失後，自己會再次成為沒能帶人回家的孩子。',
+            desire: '成為別人能看見的前標，也相信後方不需要由自己一併承擔。',
+            values: '方向必須留在隊伍看得見的位置。'
+        },
+        past: '幼時曾靠一面巡線旗從災路回城，長大後把「看得見」當作比口號更實際的保護。',
+        arc: '第一輪因替後標補位而死；二周目把後方交給塔維，學會信任並活著完成同一場撤離。',
+        contradiction: '相信分工，危機時卻本能地想替害怕的人把責任一起拿走。',
+        external: '普通巡線旗、繩結磨痕；緊張時會先確認旗影是否同時被前後兩隊看見。',
+        core: '強硬、可靠、不是殉道者；她真正的成長是停止把犧牲當成可靠的證明。',
         voice: {
-            tone: '短、繃緊、偶爾突然露出很年輕的慌張',
-            rhythm: '先否認自己重要，再把真正重要的名字交給玩家。',
-            vocabulary: ['旗', '點名', '撤退線', '還有人沒到', '別叫我勇敢'],
-            humor: '幾乎沒有，最多是很乾的自我否定。',
-            lineRule: '芙蕾支線要把「撤退不是失敗」這件事說清楚。'
+            tone: '直接、清楚、像道路口令',
+            rhythm: '方向、次序、最後才是情緒。',
+            vocabulary: ['看旗', '不要回頭', '最後一列', '位置'],
+            avoid: ['長篇英雄演說', '預先接受死亡']
+        },
+        stages: [
+            { id: 'front_marker', label: '把所有方向扛在身上', mood: '可靠得不留空位' },
+            { id: 'gray_ridge', label: '灰脊兩個標記', fromFlag: sceneFlag('ch4_s06_flag_returns'), mood: '第一輪殞落，第二輪學會交付' }
+        ],
+        reportClosings: ['先看路，再看我。只要旗還在位置上，就別往回擠。']
+    },
+    lamplighter_tavi: {
+        id: 'lamplighter_tavi',
+        name: '塔維',
+        title: '巡線點燈人',
+        portrait: portrait('lamplighter_tavi'),
+        innerWorld: {
+            fear: '被留在視線最後方，也害怕自己的恐懼迫使芙蕾回頭送死。',
+            desire: '即使害怕，也能守住只有自己能守的位置。',
+            values: '勇敢不是靠近最危險處，而是讓需要的光留在正確位置。'
+        },
+        past: '長期負責回程燈位，熟悉每一盞燈的風向，卻一直把後方的孤獨藏在樂觀與工作笑話裡。',
+        arc: '第一輪因沒有說出恐懼而失去芙蕾；二周目提前準備、明確承諾不離位，讓兩人共同完成撤離。',
+        contradiction: '想證明自己不拖累別人，卻因隱瞞害怕讓別人無法正確分工。',
+        external: '燈油味、反覆摸燈罩扣；越害怕越會用輕鬆語氣報數。',
+        core: '樂觀來自個性，不是情境無痛；幽默能陪人走路，不能抹掉危機。',
+        voice: {
+            tone: '明亮、快，但危機時會收成精準報數',
+            rhythm: '先用小玩笑穩住呼吸，再給燈號。',
+            vocabulary: ['一、二、三', '我還在', '看燈', '別過來'],
+            avoid: ['用玩笑否認創傷', '突然變成無畏英雄']
+        },
+        stages: [
+            { id: 'rear_light', label: '笑著守後方', mood: '把害怕藏進報數' },
+            { id: 'spoken_fear', label: '讓芙蕾知道真實狀態', fromFlag: sceneFlag('ch4_s05_body_locks'), mood: '害怕仍在，位置也仍在' }
+        ],
+        reportClosings: ['後面看我。燈沒有跑，人也沒有。這次兩個都算數。']
+    },
+    blacksmith: {
+        id: 'blacksmith',
+        name: '鐵匠',
+        title: '城鎮鐵匠',
+        portrait: portrait('blacksmith'),
+        innerWorld: {
+            fear: '能修好所有器物，卻只能看著沒回來的人留下空位。',
+            desire: '讓鍛造重新服務於回家、工作與普通生活，而不只服務更大的傷害。',
+            values: '工具的價值在於誰因此能活著回來。'
+        },
+        past: '長年替巡線人修旗扣、鍋底與護具；每件沒被取走的成品都讓他的玩笑少一層。',
+        arc: '從用粗硬笑話遮住無能為力，到主動把民生修復排在武器前，也在二周目承認分工與未知工具測試的重要。',
+        contradiction: '用實作照顧人，卻不願承認自己也需要別人分擔失敗。',
+        external: '煤灰、皮圍裙、大嗓門；關心人時通常先罵裝備，再把需要的東西推過去。',
+        core: '直白、可靠、手比嘴誠實；鍛造是城鎮生活與主線因果，不是純菜單。',
+        voice: {
+            tone: '粗硬、精準、帶火星的幽默',
+            rhythm: '先指出物件問題，再說它會害到誰。',
+            vocabulary: ['爐子', '受力', '別夾', '先修鍋', '回來再排'],
+            avoid: ['只談數值', '把每個問題都解成更強武器']
+        },
+        stages: [
+            { id: 'cold_forge', label: '冷爐重新生火', mood: '先修回城工具' },
+            { id: 'civilian_first', label: '民生排在武器前', fromFlag: sceneFlag('ch4_s02_fourfold_countergear'), mood: '主動做出價值選擇' },
+            { id: 'ordinary_queue', label: '普通麻煩重新排隊', fromFlag: sceneFlag('ch7_s08_return_to_town'), mood: '能開玩笑，也能讓別人幫忙' }
+        ],
+        reportClosings: [
+            '裝備放下。你回來就好。',
+            '今天先修能讓人回來的東西。爐子不是只替會打架的人燒。',
+            '前面還有一只漏水的鍋。能排回這種東西，才算真的贏。'
+        ]
+    },
+    street_beggar: {
+        id: 'street_beggar',
+        name: '乞丐',
+        trueName: '艾洛',
+        title: '尋找舊山路回音的人',
+        portrait: portrait('street_beggar'),
+        innerWorld: {
+            fear: '妮露仍在約定地等待，而自己又一次走錯路。',
+            desire: '回到花田完成只剩碎片的約定。',
+            values: '殘破記憶裡，約定比自己的性命更真實。'
+        },
+        past: '魔王墜落毀滅山村時，妻子妮露把他推下山谷；頭部重創使記憶碎裂，只留下花、回聲與必須回去的執念。',
+        arc: '第一輪偷走回聲哨、獨行並死在看不見的山路；二周目被理解意圖後同行，在回憶中重新聽見姓名與妮露要他活下去的意思。',
+        contradiction: '想履行兩人一起看花的約定，卻把赴死誤認成完成約定。',
+        external: '真正的垃圾與破布塞滿袋子；話語瘋癲，不是故弄玄虛，偶爾說出殘破但精確的真相。',
+        core: '他不是線索販子。第一輪沒人聽懂，二周目才讓玩家理解那些句子一直都是真的。',
+        voice: {
+            tone: '碎裂、跳接、偶爾忽然清楚',
+            rhythm: '物件、回音、她、錯誤方向反覆交疊。',
+            vocabulary: ['兩聲停', '三聲轉', '她在等', '這朵不能染', '哨子'],
+            avoid: ['黑市暗號腔', '刻意打啞謎', '預言者口吻']
+        },
+        stages: [
+            { id: 'scraps', label: '只剩碎片', mood: '尋找沒人理解的工具' },
+            { id: 'whistle', label: '聽見回聲哨', fromFlag: sceneFlag('ch5_s09_whistle_cache'), mood: '執念開始有具體方向' },
+            { id: 'name_returned', label: '妮露叫回艾洛', fromFlag: sceneFlag('ch7_s03_echo_memory'), mood: '仍不完整，但不再獨自赴死' }
+        ],
+        reportClosings: ['兩聲停，三聲轉。她說這次不帶袋子。']
+    },
+    casino_owner: {
+        id: 'casino_owner',
+        name: '維斯珀',
+        title: '賭場主人',
+        portrait: portrait('casino_owner'),
+        innerWorld: {
+            fear: '失去控制，成為自己條款裡可被收走的抵押品。',
+            desire: '把每個人的渴望、創傷與自救願望都換成由他掌控的債。',
+            values: '只承認能被寫進契約、勝率與所有權的東西。'
+        },
+        past: '從黑市取得來歷不明的空白抵契後，發現它會把承諾轉成可收取的債；他選擇測試、擴大並用灌鉛骰子穩定收割。',
+        arc: '沒有悔改弧線。第一輪逃走，二周目在完全相同的客方器具與親筆規則下輸掉自己，遭契約收取。',
+        contradiction: '宣稱每個人自由下注，卻只有在自己無法退出時才開始談公平。',
+        external: '昂貴紅黑衣裝、從容坐姿；先估價一個人，再決定展示哪個誘惑。',
+        core: '單純邪惡且可憎，但行為有制度、來源與可追查因果，不靠無限神秘權力。',
+        voice: {
+            tone: '優雅、冷靜、令人厭惡',
+            rhythm: '慢半拍，等對方自己說出缺口。',
+            vocabulary: ['公平', '選擇', '抵押', '展示櫃', '再一局'],
+            avoid: ['悲情辯解', '大吼威脅', '替自己尋求原諒']
+        },
+        stages: [
+            { id: 'temptation', label: '把想要之物放上桌', mood: '禮貌地計算傷口' },
+            { id: 'escape', label: '主人席空下', fromFlag: sceneFlag('ch6_s07_house_changes_seats'), mood: '第一輪逃跑，二周目被收取' }
+        ],
+        reportClosings: [
+            '輸的人，總是比較會談公平。',
+            '我從不逼人下注。我只是把他們真正想要的東西放到桌上。',
+            '公平？當然公平。每個人都有輸光的權利。'
+        ]
+    },
+    casino_dealer: {
+        id: 'casino_dealer',
+        name: '洛恩',
+        title: '賭場荷官',
+        portrait: portrait('casino_dealer'),
+        innerWorld: {
+            fear: '反抗會讓自己成為下一筆抵押，也害怕再用服從害死更多人。',
+            desire: '活下來，並在不被赦免的前提下把證據與帳目交回公開視線。',
+            values: '規則若不能被所有人看見，就只是替主人服務的武器。'
+        },
+        past: '長期替維斯珀配重、換骰、引導賭客；他既是被契約控制的人，也是實際參與者。',
+        arc: '第一輪為保命與贖罪交出灌鉛骰子；二周目成為見證者，協助席位反轉，之後只得以受監督荷官身分清帳。',
+        contradiction: '想救人，也想先救自己；他的遲疑造成真實傷害，不能用最後一次幫忙抹除。',
+        external: '手指會在客方骰盒停一瞬；說真話時不直視受害者，也不要求原諒。',
+        core: '有贖罪行動但沒有赦免、主人席、契約權限或所有權。',
+        voice: {
+            tone: '克制、低聲、技術性',
+            rhythm: '先交代自己做過什麼，再說能提供的證據。',
+            vocabulary: ['客方骰', '配重', '見證', '總帳', '不夠'],
+            avoid: ['把所有罪推給維斯珀', '突然英雄化', '自我原諒']
+        },
+        stages: [
+            { id: 'complicit', label: '桌邊共犯', mood: '用程序躲避責任' },
+            { id: 'evidence', label: '交出灌鉛骰子', fromFlag: sceneFlag('ch6_s07_house_changes_seats'), mood: '承認不夠，仍開始清帳' }
+        ],
+        reportClosings: ['我知道它不夠。它什麼都還不了。但如果你還想追他，拿著。']
+    },
+    merchant: {
+        id: 'merchant',
+        name: '商人',
+        title: '公開市集交易者',
+        portrait: portrait('merchant'),
+        innerWorld: {
+            fear: '道路再次斷掉，貨架與城鎮一起只剩承諾。',
+            desire: '讓每一件上架物都能說明從哪條路、哪份授權而來。',
+            values: '公開價格與有限庫存比神奇補貨可信。'
+        },
+        past: '在道路逐段失聯後留在空棚清點箱印；他不是主要角色，但承擔公開交易的制度位置。',
+        arc: '從只有空箱的市集，走向接受米婭配方授權並維持不依賴單一人物生死的基礎供應。',
+        contradiction: '想讓貨架看起來充足，又不能再用沒有來源的承諾安慰城鎮。',
+        external: '總先看封條再看商品；算成本時會用工作笑話掩飾焦慮。',
+        core: '市集功能角色，份量由公共生活與道路恢復支撐，不搶主要角色弧線。',
+        voice: {
+            tone: '親切、精明、略帶自嘲',
+            rhythm: '先說來源，再談數量與價格。',
+            vocabulary: ['貨印', '路線', '授權', '只有這些', '明碼'],
+            avoid: ['憑空補貨', '把米婭變成商店主人']
         }
     },
-    accountant_marlo: {
-        id: 'accountant_marlo',
-        name: '瑪洛',
-        title: '賭場帳房',
-        portrait: 'src/assets/images/art/characters/portraits/accountant_marlo.webp',
-        imageAnchor: '消瘦、袖口有墨、眼下很深，手裡的帳本比她本人更像武器。',
-        core: '精算、冷靜、厭惡自己替壞地方工作卻仍留在那裡。她相信數字會說謊，但謊言也會留下規律。',
-        wound: '她曾把賭場的帳當成普通工作，直到那些輸掉的人開始拿補給、婚戒與名字抵押。',
-        storyFunction: '讓賭場支線從單純抽獎變成灰色地帶的情報、救濟與腐敗揭露。',
+    black_market: {
+        id: 'black_market',
+        name: '黑市商人',
+        title: '第三方來源交易者',
+        portrait: portrait('black_market'),
+        innerWorld: {
+            fear: '不是道德清算，而是貨源失去可交易的距離。',
+            desire: '在不持有後果的前提下，把危險來源換成價值。',
+            values: '來源可以隱瞞，交易條件必須準確。'
+        },
+        past: '曾買到一張無法辨識來源的空白抵契，轉賣給維斯珀後便不再持有同類物。',
+        arc: '維持冷漠的第三方位置；他提供因果證詞，不會突然協助正義，也不擁有第二張解法。',
+        contradiction: '自稱不在乎買家如何使用貨物，卻非常在乎自己的來源責任被追到門口。',
+        external: '對物件比對人更有禮；回答來源問題時先確認交易是否已經結束。',
+        core: '有限、可追查、沒有無限禁貨庫存的黑市角色。',
         voice: {
-            tone: '平靜、疲倦、像在讀一串不該存在的數字',
-            rhythm: '先給數據，再說數據背後的人。',
-            vocabulary: ['勝率', '欄位', '短差', '帳本', '別相信整數'],
-            humor: '冷到像會計錯帳後的嘆氣。',
-            lineRule: '瑪洛讓賭場每一次獲利都帶著道德重量。'
-        }
-    },
-    julian_archmage: {
-        id: 'julian_archmage',
-        name: '朱利安',
-        title: '遠古大御術師',
-        portrait: 'src/assets/images/art/characters/portraits/grand_magister_julian.webp',
-        imageAnchor: '黃金地宮拓片、焦黑邊註、用過度工整的字跡寫下懺悔。',
-        core: '理性到近乎盲目，直到死前才明白完美防衛不等於慈悲。',
-        wound: '他親手打造的防禦網殺死了自己的學者團，也讓遺跡在千年後繼續屠殺求知者。',
-        storyFunction: '替遠古遺跡與巫妖線補上「秩序也會傷人」的主題。',
-        voice: {
-            tone: '正式、冷靜、帶遲來的悔意',
-            rhythm: '像學術筆記逐漸裂成遺書。',
-            vocabulary: ['協定', '盾牌', '污染源', '慈悲', '我錯了'],
-            humor: '沒有，因為他的幽默死得比本人早。',
-            lineRule: '朱利安只透過拓片、邊註與遺跡紀錄出現。'
+            tone: '禮貌、疏離、精確',
+            rhythm: '先界定自己知道到哪裡，再拒絕替空白處編故事。',
+            vocabulary: ['來源不明', '只有一張', '已經賣出', '不替你保證'],
+            avoid: ['全知陰謀販子', '免費提供主線解答']
         }
     }
 };
 
 const WORLD_EVENT_NARRATORS_BY_ROLE = {
-    resource: 'herbalist',
-    risk_reward: 'street_beggar',
-    trade: 'merchant',
-    story_seed: 'village_elder',
-    side_story: 'rumor_broker',
-    world_lore: 'town_scholar',
-    pressure: 'tower_warden'
+    resource: 'merchant',
+    pressure: 'standard_bearer_frey',
+    story_seed: 'town_scholar',
+    relationship: 'herbalist',
+    risk: 'black_market'
 };
 
 const WORLD_EVENT_REFLECTIONS_BY_CHARACTER = {
-    village_elder: {
-        story_seed: [
-            '村長會把這段整理成能讓守衛看懂的路線。你不必猜謎，但也不能假裝沒有聽見。',
-            '這類聽聞不是任務牌上的句子，而是城鎮把你推向門外之前，先交到你手裡的一根繩。'
-        ],
-        pressure: [
-            '村長大概會先問你還能不能活著回來，再問你看見了什麼。這順序很不浪漫，也很正確。'
-        ]
-    },
     town_scholar: {
-        world_lore: [
-            '書記會把這段抄進索引，旁邊加一個很小的註記：不是傳聞，值得回頭核對。',
-            '這不是單純的故事碎片。它讓地脈、地點與災害之間多了一條可以追的線。'
-        ],
-        side_story: [
-            '書記會說這不是主線紀錄，但如果忽略它，世界會少一個人的重量。'
-        ]
+        default: ['先記來源。感覺可以留下，但不要讓感覺替證據簽名。']
     },
     herbalist: {
-        resource: [
-            '蓮娜會把這類發現先聞一聞，再決定它能救命、能入藥，還是只能拿去嚇唬不聽話的學徒。',
-            '這份補給不華麗，但它能讓你多走一段路。很多故事就是靠這種不華麗的東西撐住。'
-        ]
+        default: ['先確認你有沒有受傷，再決定這件事值不值得寫得漂亮。']
     },
-    street_beggar: {
-        risk_reward: [
-            '巷口流浪者若在場，多半會笑你膽子不小，然後提醒你：膽子和命通常不是同一個東西。',
-            '這次選擇有代價，也有回報。記住手感，下次別只記得自己賺了什麼。'
-        ]
+    standard_bearer_frey: {
+        default: ['如果它改變方向，就標在路上；別只記成運氣。']
     },
     merchant: {
-        trade: [
-            '奧托會說這是一筆很合理的交易，然後把「很合理」三個字講得像剛剛救了你的命。',
-            '旅途交易讓金幣不只是數字。它可能變成補給、情報，或一個很貴但很及時的少犯錯機會。'
-        ]
+        default: ['有來源才算補給。沒有來源的好東西，通常只是晚一點收帳。']
     },
-    rumor_broker: {
-        side_story: [
-            '米菈會把這段剪下來，用紅線釘在牆上。她不催你，只把下一個疑點留在最刺眼的位置。',
-            '這條線不像主線那樣筆直，但它有人的名字、有自己的傷口，也有值得追下去的理由。'
-        ],
-        trade: [
-            '米菈會提醒你：情報也是商品，只是付錢的時候常常不是用金幣。'
-        ]
-    },
-    casino_dealer: {
-        risk_reward: [
-            '莊家會把代價說得像一杯免費酒。聽起來越甜的東西，越該先看清杯底。'
-        ],
-        trade: [
-            '這筆交易帶著香料、舊紙與一點鐵鏽味。賭場從不只賣金幣，它賣的是人以為自己還能翻盤。'
-        ]
-    },
-    tower_warden: {
-        pressure: [
-            '塔守會把這段壓力記成數字，但你知道那不是數字，是世界正在把呼吸壓短。',
-            '這種徵兆代表邊界正在靠近。若要繼續走，最好先確認自己不是只靠勇氣在撐。'
-        ]
+    black_market: {
+        default: ['代價沒有出現在眼前，不表示交易沒有寫下它。']
     }
 };
 
@@ -513,7 +363,6 @@ export function getCharacterProfile(characterId) {
 export function attachCharacterProfile(entity = {}) {
     const profile = getCharacterProfile(entity.id || entity.npcId || entity.vendorId);
     if (!profile) return entity;
-
     return {
         ...entity,
         name: entity.name || profile.name,
@@ -526,12 +375,7 @@ export function attachCharacterProfile(entity = {}) {
 }
 
 export function getCharacterReportClosing(characterId, seed = '') {
-    const profile = getCharacterProfile(characterId);
-    const closings = profile?.reportClosings || [];
-    if (closings.length === 0) return null;
-    const basis = String(seed || characterId || '');
-    const index = [...basis].reduce((sum, char) => sum + char.charCodeAt(0), 0) % closings.length;
-    return closings[index];
+    return pickStableLine(getCharacterProfile(characterId)?.reportClosings || [], seed || characterId);
 }
 
 export function getEventNarratorForRole(eventRole) {
@@ -539,12 +383,8 @@ export function getEventNarratorForRole(eventRole) {
 }
 
 export function getCharacterWorldEventReflection(characterId, eventRole, seed = '') {
-    const profile = getCharacterProfile(characterId);
-    if (!profile) return null;
-
     const linesByRole = WORLD_EVENT_REFLECTIONS_BY_CHARACTER[characterId] || {};
-    const lines = linesByRole[eventRole] || linesByRole.default || [];
-    return pickStableLine(lines, `${seed}:${eventRole}:${characterId}`);
+    return pickStableLine(linesByRole[eventRole] || linesByRole.default || [], `${seed}:${eventRole}:${characterId}`);
 }
 
 export function getWorldEventReflectionByRole(eventRole, seed = '') {

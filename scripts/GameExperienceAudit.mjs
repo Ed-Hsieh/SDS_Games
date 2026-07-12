@@ -1,417 +1,183 @@
+import { ChapterRegionOrder, ChapterRegionRegistry } from '../src/js/data/ChapterRegionRegistry.js';
+import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
+import { OptionalSideStoryRegistry, OptionalSideStoryStatus } from '../src/js/data/OptionalSideStoryRegistry.js';
 import { QuestDatabase } from '../src/js/data/Quests.js';
 import { getQuestStory } from '../src/js/data/QuestStories.js';
-import { EventDatabase, EventRole, isEventAllowedInChapter } from '../src/js/data/Events.js';
-import { DungeonDatabase } from '../src/js/data/Dungeons.js';
-import { getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/CasinoRewards.js';
-import { MarketVendors } from '../src/js/data/MarketSupply.js';
-import { getCharacterProfile } from '../src/js/data/CharacterProfiles.js';
-import { getEquipmentPowerBudget } from '../src/js/data/EquipmentBalance.js';
-import { TownDialogueDatabase } from '../src/js/data/NPCDialogues.js';
-import { WorldInteractionDatabase } from '../src/js/data/WorldInteractions.js';
+import { MainlineCharacterContracts } from '../src/js/data/StoryActors.js';
+import { StorySceneOrder, StorySceneRegistry } from '../src/js/data/StorySceneRegistry.js';
+import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
+import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
 
 const issues = [];
 const warnings = [];
 const summary = {};
-const NARRATIVE_META_TERMS = [
-    '玩家',
-    '系統',
-    'UI',
-    '設計',
-    '功能按鈕',
-    'NPC',
-    '提醒玩家',
-    '任務櫃台',
-    '支線裝飾',
-    '應該',
-    '之後'
-];
+const addIssue = (message, details = {}) => issues.push({ message, ...details });
+const addWarning = (message, details = {}) => warnings.push({ message, ...details });
+const hasText = value => typeof value === 'string' && value.trim().length > 0;
 
-const CASINO_POOL_POWER_LIMITS = {
-    1: { common: 14, uncommon: 22, rare: 32, epic: 42, legendary: 52 },
-    2: { common: 24, uncommon: 42, rare: 64, epic: 88, legendary: 98 },
-    3: { common: 36, uncommon: 60, rare: 92, epic: 128, legendary: 165 }
-};
+function auditMainlineExperience() {
+    const expectedChapterScenes = { 1: 11, 2: 8, 3: 9, 4: 9, 5: 11, 6: 9, 7: 9 };
+    const stageCounts = {};
 
-function hasText(value) {
-    return typeof value === 'string' && value.trim().length > 0;
-}
+    if (StorySceneOrder.length !== 66) {
+        addIssue('主劇本場景數不是鎖定的 66 場', { actual: StorySceneOrder.length });
+    }
+    for (const [chapterText, expected] of Object.entries(expectedChapterScenes)) {
+        const chapter = Number(chapterText);
+        const actual = StorySceneOrder.filter(sceneId => StorySceneRegistry[sceneId]?.chapter === chapter).length;
+        if (actual !== expected) addIssue('章節場景數與主劇本不一致', { chapter, expected, actual });
+    }
 
-function addIssue(message, details = {}) {
-    issues.push({ message, ...details });
-}
-
-function addWarning(message, details = {}) {
-    warnings.push({ message, ...details });
-}
-
-function isEquipmentReward(item) {
-    const type = String(item?.type || '').toLowerCase();
-    return Boolean(item && (
-        item.stats
-        || item.attack !== undefined
-        || item.defense !== undefined
-        || ['weapon', 'equipment', 'armor', 'accessory'].includes(type)
-    ));
-}
-
-function getCasinoPowerLimit(poolChapter, rarity) {
-    const chapter = Math.max(1, Math.min(3, Number(poolChapter) || 1));
-    return CASINO_POOL_POWER_LIMITS[chapter]?.[rarity] || null;
-}
-
-function flattenQuestGroups() {
-    return Object.entries(QuestDatabase)
-        .flatMap(([group, quests]) => Array.isArray(quests)
-            ? quests.map(quest => ({ ...quest, _group: group }))
-            : []);
-}
-
-function auditMainStory() {
-    const main = Array.isArray(QuestDatabase.main) ? QuestDatabase.main : [];
-    const chapterCounts = main.reduce((acc, quest) => {
-        const chapter = Number(quest.chapter) || 0;
-        acc[chapter] = (acc[chapter] || 0) + 1;
-        return acc;
-    }, {});
-
-    const expectedCounts = { 1: 6, 2: 5, 3: 4 };
-    for (const [chapter, expected] of Object.entries(expectedCounts)) {
-        if ((chapterCounts[chapter] || 0) !== expected) {
-            addIssue('主線章節段數與目前三章正史不一致', {
-                chapter: Number(chapter),
-                expected,
-                actual: chapterCounts[chapter] || 0
-            });
+    for (const sceneId of StorySceneOrder) {
+        const scene = StorySceneRegistry[sceneId];
+        if (!scene) {
+            addIssue('場景順序指向不存在的場景', { sceneId });
+            continue;
+        }
+        stageCounts[scene.stageClass] = (stageCounts[scene.stageClass] || 0) + 1;
+        for (const field of ['background', 'worldState', 'viewpoint', 'objective']) {
+            if (!hasText(scene[field])) addIssue('主劇本場景缺少必要展示資訊', { sceneId, field });
+        }
+        if (!Array.isArray(scene.beats) || scene.beats.length === 0) {
+            addIssue('主劇本場景沒有可播放的節拍', { sceneId });
         }
     }
 
-    for (let index = 0; index < main.length; index += 1) {
-        const quest = main[index];
-        const story = getQuestStory(quest, { status: 'active' }) || {};
-        const requiredStoryFields = ['discovery', 'current', 'active', 'completed', 'finished', 'nextLead', 'route'];
-
-        for (const field of requiredStoryFields) {
-            if (!hasText(story[field])) {
-                addIssue('主線缺少故事欄位', { questId: quest.id, field });
-            }
+    const main = QuestDatabase.main || [];
+    if (main.length !== 7) addIssue('主線任務不是每章一筆', { actual: main.length });
+    for (let chapter = 1; chapter <= 7; chapter += 1) {
+        const quests = main.filter(quest => quest.chapter === chapter);
+        if (quests.length !== 1) continue;
+        const quest = quests[0];
+        const story = getQuestStory(quest, { status: 'active' });
+        if (!quest.autoProgress) addIssue('主線任務仍需手動接取或回報', { questId: quest.id });
+        if (!quest.objectives?.[0]?.completionFlag?.startsWith('story.scene.')) {
+            addIssue('主線任務沒有由場景旗標推進', { questId: quest.id });
         }
-
-        if (!story.reportTo?.npcId) {
-            addIssue('主線缺少回報 NPC', { questId: quest.id });
+        if (Object.keys(quest.rewards || {}).length > 0) {
+            addIssue('地圖功能未定案前主線已配置獎勵', { questId: quest.id });
         }
-
-        if (!Array.isArray(quest.objectives) || quest.objectives.length === 0) {
-            addIssue('主線缺少可驗收目標', { questId: quest.id });
-        }
-
-        const nextQuest = main[index + 1];
-        if (nextQuest && !(quest.unlocks || []).includes(nextQuest.id)) {
-            addIssue('主線解鎖鏈斷裂', { questId: quest.id, expectedNext: nextQuest.id });
+        for (const field of ['available', 'active', 'completed', 'finished', 'location']) {
+            if (!hasText(story?.[field])) addIssue('章節任務缺少玩家可讀摘要', { questId: quest.id, field });
         }
     }
 
-    const chapterRewardAverages = Object.entries(chapterCounts).reduce((acc, [chapter]) => {
-        const quests = main.filter(quest => Number(quest.chapter) === Number(chapter));
-        const exp = quests.reduce((total, quest) => total + Number(quest.rewards?.exp || 0), 0) / Math.max(1, quests.length);
-        const gold = quests.reduce((total, quest) => total + Number(quest.rewards?.gold || 0), 0) / Math.max(1, quests.length);
-        acc[chapter] = { exp: Math.round(exp), gold: Math.round(gold) };
-        return acc;
-    }, {});
-
-    if ((chapterRewardAverages[2]?.exp || 0) <= (chapterRewardAverages[1]?.exp || 0)) {
-        addWarning('第二章主線平均經驗沒有明顯高於第一章', { chapterRewardAverages });
-    }
-    if ((chapterRewardAverages[3]?.exp || 0) <= (chapterRewardAverages[2]?.exp || 0)) {
-        addWarning('第三章主線平均經驗沒有明顯高於第二章', { chapterRewardAverages });
-    }
-
-    summary.mainStory = {
-        total: main.length,
-        chapterCounts,
-        chapterRewardAverages
+    summary.mainline = {
+        scenes: StorySceneOrder.length,
+        stageCounts,
+        chapterQuests: main.length
     };
 }
 
-function auditSideStories() {
-    const sideQuests = flattenQuestGroups().filter(quest => ['commission', 'hidden'].includes(quest._group));
-    const byChapter = sideQuests.reduce((acc, quest) => {
-        const chapter = Number(quest.chapter || quest.unlockConditions?.chapter || 1);
-        acc[chapter] = (acc[chapter] || 0) + 1;
-        return acc;
-    }, {});
+function auditCharacterWeight() {
+    for (const [actorId, contract] of Object.entries(MainlineCharacterContracts)) {
+        const profile = CharacterProfileDatabase[actorId];
+        const npc = TownNPCDatabase[actorId];
+        if (!profile) addIssue('長線角色缺少執行層設定', { actorId });
+        if (!npc) addIssue('城鎮長線角色缺少互動入口', { actorId });
+        if (!profile) continue;
 
-    for (const quest of sideQuests) {
-        const story = getQuestStory(quest, { status: 'active' }) || {};
-        if (!hasText(story.current) || !hasText(story.completed)) {
-            addIssue('支線缺少基本敘事狀態', { questId: quest.id, group: quest._group });
+        const requiredProfileFields = ['past', 'arc', 'contradiction', 'external', 'core', 'voice'];
+        for (const field of requiredProfileFields) {
+            if (!profile[field]) addIssue('角色無法在主線中完整成立', { actorId, field });
         }
-        if (quest._group === 'commission' && !story.reportTo?.npcId && !quest.reportTo) {
-            addWarning('委託沒有明確回報人', { questId: quest.id });
+        for (const field of ['fear', 'desire', 'values']) {
+            if (!hasText(profile.innerWorld?.[field])) addIssue('角色內在世界不完整', { actorId, field });
         }
-        if (typeof story.characterProfile === 'string' && story.characterProfile && !getCharacterProfile(story.characterProfile)) {
-            addWarning('支線綁定的角色設定不存在', { questId: quest.id, characterProfile: story.characterProfile });
+
+        const actorScenes = StorySceneOrder.filter(sceneId =>
+            StorySceneRegistry[sceneId]?.beats?.some(beat => beat.actorId === actorId)
+        );
+        const chapters = new Set(actorScenes.map(sceneId => StorySceneRegistry[sceneId].chapter));
+        if (chapters.size < 4) addIssue('核心角色沒有形成跨章長線', { actorId, chapters: [...chapters] });
+
+        for (const [runCondition, sceneId] of Object.entries(contract.endpointSceneIds || {})) {
+            const hasEndpointBeat = StorySceneRegistry[sceneId]?.beats?.some(beat =>
+                beat.actorId === actorId && ['any', runCondition].includes(beat.condition)
+            );
+            if (!hasEndpointBeat) addIssue('角色缺少當輪可見的終點演出', { actorId, runCondition, sceneId });
         }
     }
 
-    if ((byChapter[2] || 0) < (byChapter[1] || 0)) {
-        addWarning('第二章支線量少於第一章，可能不足以承接世界擴張', { byChapter });
+    summary.characters = {
+        coreContracts: Object.keys(MainlineCharacterContracts).length,
+        activeProfiles: Object.keys(CharacterProfileDatabase).length
+    };
+}
+
+function auditMapFoundation() {
+    if (ChapterRegionOrder.length !== 7) addIssue('手工章節地圖不是七張', { actual: ChapterRegionOrder.length });
+    const mapSceneIds = StorySceneOrder.filter(sceneId =>
+        ['regional_canvas', 'location_scene'].includes(StorySceneRegistry[sceneId]?.stageClass)
+    );
+    const boundSceneIds = [];
+
+    for (const regionId of ChapterRegionOrder) {
+        const region = ChapterRegionRegistry[regionId];
+        if (!region) {
+            addIssue('章節地圖順序指向不存在的區域', { regionId });
+            continue;
+        }
+        if (!region.entryNodes?.length || !region.exitNodes?.length) addIssue('地圖缺少固定出入口', { regionId });
+        if (!region.routeSegments?.some(segment => segment.optional)) addIssue('地圖缺少可選探索路線', { regionId });
+        if (!region.bossConvergence?.locationId) addIssue('地圖缺少固定 Boss 收束點', { regionId });
+        if (region.fogMask?.undiscoveredMarker !== 'black_question_square') {
+            addIssue('未探索地點不再使用黑色問號方塊', { regionId });
+        }
+        boundSceneIds.push(...(region.sceneBindings || []).map(binding => binding.sceneId));
     }
-    if ((byChapter[3] || 0) < Math.ceil((byChapter[2] || 0) * 0.65)) {
-        addWarning('第三章支線量偏薄，可能不足以支撐終局前鋪墊', { byChapter });
+
+    for (const sceneId of mapSceneIds) {
+        const count = boundSceneIds.filter(id => id === sceneId).length;
+        if (count !== 1) addIssue('地圖場景沒有唯一固定觸發點', { sceneId, count });
+    }
+
+    summary.map = {
+        regions: ChapterRegionOrder.length,
+        boundMapScenes: boundSceneIds.length
+    };
+}
+
+function auditSideStoryGate() {
+    const activeOptional = [...(QuestDatabase.commission || []), ...(QuestDatabase.hidden || [])];
+    if (activeOptional.length > 0) {
+        addIssue('支線在地圖擁有者定案前已進入執行層', { questIds: activeOptional.map(quest => quest.id) });
+    }
+    for (const story of OptionalSideStoryRegistry) {
+        if (story.status !== OptionalSideStoryStatus.DEFERRED) addIssue('支線過早啟用', { sideStoryId: story.id });
+        if (story.rewardBinding !== null) addIssue('支線過早綁定獎勵', { sideStoryId: story.id });
+        if (!hasText(story.mainlineBoundary)) addIssue('支線沒有跳過安全邊界', { sideStoryId: story.id });
+    }
+    if (OptionalSideStoryRegistry.length < 7) {
+        addWarning('核心角色的支線深化預留偏少', { count: OptionalSideStoryRegistry.length });
     }
 
     summary.sideStories = {
-        total: sideQuests.length,
-        byChapter
+        deferredConcepts: OptionalSideStoryRegistry.length,
+        activeOptionalQuests: activeOptional.length,
+        rewardBindings: OptionalSideStoryRegistry.filter(story => story.rewardBinding !== null).length
     };
 }
 
-function auditWorldEvents() {
-    const expectedRoles = Object.values(EventRole);
-    const chapterZoneMatrix = {
-        1: ['low'],
-        2: ['low', 'medium', 'high'],
-        3: ['medium', 'high', 'death', 'boss']
-    };
-    const coverage = {};
-
-    for (const [chapter, zones] of Object.entries(chapterZoneMatrix)) {
-        coverage[chapter] = {};
-        for (const zone of zones) {
-            const events = EventDatabase.filter(event => {
-                const zones = Array.isArray(event.zones) ? event.zones : [];
-                return isEventAllowedInChapter(event, Number(chapter))
-                    && (zones.length === 0 || zones.includes(zone));
-            });
-            const roles = [...new Set(events.map(event => event.eventRole).filter(Boolean))];
-            coverage[chapter][zone] = { count: events.length, roles };
-
-            if (events.length < 4) {
-                addWarning('區域事件池偏少，探索時可能容易重複', { chapter: Number(chapter), zone, count: events.length });
-            }
-            if (roles.length < 3) {
-                addWarning('區域事件角色太集中，事件期待感可能不足', { chapter: Number(chapter), zone, roles });
-            }
-        }
+function auditTownFoundation() {
+    const ids = new Set();
+    for (const place of TownPlaceDatabase) {
+        if (ids.has(place.id)) addIssue('城鎮地點 ID 重複', { placeId: place.id });
+        ids.add(place.id);
+        if (!place.when) addIssue('城鎮地點沒有劇情狀態條件', { placeId: place.id });
     }
-
-    const allRoles = [...new Set(Object.values(coverage).flatMap(zones => Object.values(zones).flatMap(entry => entry.roles)))];
-    const missingRoles = expectedRoles.filter(role => !allRoles.includes(role));
-    if (missingRoles.length > 0) {
-        addIssue('地圖事件缺少必要事件分類', { missingRoles });
+    for (const removedId of ['tower', 'apothecary', 'supply_depot']) {
+        if (ids.has(removedId)) addIssue('過時城鎮核心仍在活躍地點中', { placeId: removedId });
     }
-
-    summary.worldEvents = {
-        roles: allRoles,
-        coverage
-    };
+    summary.town = { places: TownPlaceDatabase.length };
 }
 
-function auditDungeons() {
-    const dungeons = Object.values(DungeonDatabase);
-    const mechanicTypes = new Set();
-    const dungeonSummary = [];
+auditMainlineExperience();
+auditCharacterWeight();
+auditMapFoundation();
+auditSideStoryGate();
+auditTownFoundation();
 
-    for (const dungeon of dungeons) {
-        const challenge = dungeon.challenge || {};
-        const requiredChallengeFields = ['playstyle', 'riskBrief', 'rewardBrief', 'preparation', 'bossWarning', 'completion'];
-        for (const field of requiredChallengeFields) {
-            const value = challenge[field];
-            const ok = Array.isArray(value) ? value.length > 0 : hasText(value);
-            if (!ok) {
-                addIssue('副本缺少挑戰前資訊', { dungeonId: dungeon.id, field });
-            }
-        }
-
-        const mechanicType = dungeon.mechanic?.type;
-        if (!hasText(mechanicType)) {
-            addIssue('副本缺少獨特玩法類型', { dungeonId: dungeon.id });
-        } else if (mechanicTypes.has(mechanicType)) {
-            addIssue('副本玩法類型重複', { dungeonId: dungeon.id, mechanicType });
-        } else {
-            mechanicTypes.add(mechanicType);
-        }
-
-        if ((dungeon.environment?.events || []).length < 3) {
-            addWarning('副本環境事件偏少', { dungeonId: dungeon.id, count: dungeon.environment?.events?.length || 0 });
-        }
-        if (!dungeon.treasures?.guaranteed?.id) {
-            addIssue('副本缺少保底獎勵', { dungeonId: dungeon.id });
-        }
-        const mechanicUnlock = dungeon.story?.mechanicUnlock;
-        const hasMechanicUnlock = hasText(mechanicUnlock)
-            || (mechanicUnlock && typeof mechanicUnlock === 'object' && hasText(mechanicUnlock.description));
-        if (!hasText(dungeon.story?.rewardFocus) || !hasMechanicUnlock) {
-            addIssue('副本故事缺少獎勵定位或解鎖定位', { dungeonId: dungeon.id });
-        }
-
-        dungeonSummary.push({
-            id: dungeon.id,
-            mechanicType,
-            events: dungeon.environment?.events?.length || 0,
-            rewardFocus: dungeon.story?.rewardFocus || ''
-        });
-    }
-
-    summary.dungeons = dungeonSummary;
-}
-
-function auditCasino() {
-    const pools = getCasinoPrizePools();
-    if (pools.length < 3) {
-        addIssue('賭場獎池不足，章節定位會顯得單薄', { count: pools.length });
-    }
-
-    const sortedByChapter = [...pools].sort((a, b) => (a.minChapter || 1) - (b.minChapter || 1));
-    for (let index = 1; index < sortedByChapter.length; index += 1) {
-        if (Number(sortedByChapter[index].cost || 0) <= Number(sortedByChapter[index - 1].cost || 0)) {
-            addWarning('賭場獎池費用沒有隨章節提高', {
-                previous: sortedByChapter[index - 1].id,
-                current: sortedByChapter[index].id
-            });
-        }
-    }
-
-    for (const pool of pools) {
-        if (!hasText(pool.description) || !hasText(pool.atmosphere)) {
-            addWarning('賭場獎池缺少氛圍或用途描述', { poolId: pool.id });
-        }
-        if (pool.pityAfter || pool.pityMinRarity) {
-            addIssue('賭場獎池仍保留保底規則，與純隨機設計不一致', { poolId: pool.id });
-        }
-        if (!Array.isArray(pool.rewards) || pool.rewards.length < 6) {
-            addWarning('賭場獎池獎項偏少，抽獎期待感可能不足', { poolId: pool.id });
-        }
-
-        const totalWeight = (pool.rewards || [])
-            .reduce((sum, reward) => sum + Math.max(0, Number(reward.weight) || 0), 0);
-        if (totalWeight <= 0) {
-            addIssue('賭場獎池缺少可公開換算的機率權重', { poolId: pool.id });
-        }
-
-        for (const reward of pool.rewards || []) {
-            const rewardItem = reward.kind === 'item' ? resolveCasinoRewardItem(reward.itemId) : null;
-            if (!Number.isFinite(Number(reward.weight)) || Number(reward.weight) <= 0) {
-                addIssue('賭場獎項缺少正權重，無法公開機率', { poolId: pool.id, rewardId: reward.id });
-            }
-            if (reward.kind === 'item' && !rewardItem) {
-                addIssue('賭場獎池指向不存在的道具', { poolId: pool.id, rewardId: reward.id, itemId: reward.itemId });
-            }
-            if (isEquipmentReward(rewardItem)) {
-                const powerBudget = getEquipmentPowerBudget(rewardItem);
-                const powerLimit = getCasinoPowerLimit(pool.minChapter, reward.rarity);
-                if (powerLimit !== null && powerBudget.score > powerLimit) {
-                    addIssue('賭場裝備獎勵超出章節強度曲線', {
-                        poolId: pool.id,
-                        rewardId: reward.id,
-                        itemId: reward.itemId,
-                        chapter: pool.minChapter || 1,
-                        rarity: reward.rarity,
-                        score: powerBudget.score,
-                        limit: powerLimit
-                    });
-                }
-            }
-        }
-    }
-
-    summary.casino = pools.map(pool => ({
-        id: pool.id,
-        chapter: pool.minChapter || 1,
-        cost: pool.cost,
-        rewards: pool.rewards?.length || 0
-    }));
-}
-
-function auditMarket() {
-    if (MarketVendors.length < 5) {
-        addWarning('市集可互動角色偏少', { count: MarketVendors.length });
-    }
-
-    const vendorSummary = [];
-    for (const vendor of MarketVendors) {
-        if (!hasText(vendor.portrait)) {
-            addIssue('商店角色缺少立繪', { vendorId: vendor.id });
-        }
-        if (!hasText(vendor.summary) || !hasText(vendor.dialogue)) {
-            addWarning('商店角色缺少敘事定位', { vendorId: vendor.id });
-        }
-
-        const shelves = vendor.shelves || [];
-        const orders = vendor.orders || [];
-        const exchanges = vendor.exchanges || [];
-        const offeringCount = shelves.length + orders.length + exchanges.length;
-        if (offeringCount === 0) {
-            addIssue('商店角色沒有任何功能入口', { vendorId: vendor.id });
-        }
-        if (vendor.lockedUnless && !hasText(vendor.lockedSummary)) {
-            addIssue('鎖定商店角色缺少鎖定說明', { vendorId: vendor.id });
-        }
-
-        vendorSummary.push({
-            id: vendor.id,
-            shelves: shelves.length,
-            orders: orders.length,
-            exchanges: exchanges.length
-        });
-    }
-
-    summary.market = vendorSummary;
-}
-
-function auditNarrativeVoice() {
-    const matches = [];
-
-    function check(scope, value) {
-        if (!hasText(value)) return;
-        const terms = NARRATIVE_META_TERMS.filter(term => value.includes(term));
-        if (terms.length === 0) return;
-        matches.push({ scope, terms, text: value });
-        addWarning('敘事文字疑似殘留開發語氣', { scope, terms, text: value });
-    }
-
-    for (const [npcId, dialogues] of Object.entries(TownDialogueDatabase || {})) {
-        for (const dialogue of dialogues || []) {
-            const dialogueScope = `TownDialogue.${npcId}.${dialogue.id}`;
-            check(`${dialogueScope}.narrativeTitle`, dialogue.narrativeTitle);
-            check(`${dialogueScope}.narrativeSummary`, dialogue.narrativeSummary);
-            for (const [index, line] of (dialogue.lines || []).entries()) {
-                check(`${dialogueScope}.lines[${index}]`, line?.text);
-            }
-        }
-    }
-
-    for (const [interactionId, interaction] of Object.entries(WorldInteractionDatabase || {})) {
-        const interactionScope = `WorldInteraction.${interactionId}`;
-        check(`${interactionScope}.message`, interaction.message);
-        check(`${interactionScope}.repeatMessage`, interaction.repeatMessage);
-        check(`${interactionScope}.missingMessage`, interaction.missingMessage);
-    }
-
-    summary.narrativeVoice = {
-        scannedTownDialogues: Object.values(TownDialogueDatabase || {}).flat().length,
-        scannedWorldInteractions: Object.keys(WorldInteractionDatabase || {}).length,
-        warnings: matches.length
-    };
-}
-
-auditMainStory();
-auditSideStories();
-auditWorldEvents();
-auditDungeons();
-auditCasino();
-auditMarket();
-auditNarrativeVoice();
-
-const result = {
-    ok: issues.length === 0,
-    issues,
-    warnings,
-    summary
-};
-
+const result = { ok: issues.length === 0, issues, warnings, summary };
 console.log(JSON.stringify(result, null, 2));
-
-if (issues.length > 0) {
-    process.exit(1);
-}
+if (!result.ok) process.exit(1);

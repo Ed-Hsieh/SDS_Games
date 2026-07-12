@@ -37,6 +37,9 @@ class RhythmBarSystem {
         this.windowCycles = this.windowMode
             ? Math.max(1, Math.min(4, Math.floor(readNumber(options.windowCycles, 1))))
             : 1;
+        this.onWindowStateChange = typeof options.onWindowStateChange === 'function'
+            ? options.onWindowStateChange
+            : null;
 
         const prefix = options.prefix || '';
         this.barElement = options.barElement
@@ -202,6 +205,16 @@ class RhythmBarSystem {
         this.attackBtn?.classList?.toggle('disabled', !hasWeapon);
     }
 
+    _notifyWindowState(reason) {
+        if (!this.windowMode || !this.onWindowStateChange) return;
+        this.onWindowStateChange({
+            active: this.isWindowActive,
+            cooldown: this.isOnCooldown,
+            cycles: this.windowCycles,
+            reason
+        });
+    }
+
     updateEquipmentStats() {
         const weapon = this._getWeapon();
         const profileCharacter = this._getProfileCharacter();
@@ -328,6 +341,7 @@ class RhythmBarSystem {
         this.lastTime = performance.now();
         this._setNeedlePosition(0);
         this._applyVisualState();
+        this._notifyWindowState('activated');
         this.animate();
         return true;
     }
@@ -345,6 +359,7 @@ class RhythmBarSystem {
         this.barElement?.classList?.add('is-window-expired');
         window.setTimeout(() => this.barElement?.classList?.remove('is-window-expired'), 260);
         this._applyVisualState();
+        this._notifyWindowState('expired');
     }
 
     animate() {
@@ -419,6 +434,7 @@ class RhythmBarSystem {
                 cancelAnimationFrame(this.animationId);
                 this.animationId = null;
             }
+            this._notifyWindowState('consumed');
         }
         this.startCooldown();
 

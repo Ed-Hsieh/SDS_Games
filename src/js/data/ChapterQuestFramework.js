@@ -38,9 +38,9 @@ export const ChapterQuestFramework = Object.freeze([
         id: 'chapter_01_after_the_broken_gate',
         chapter: 1,
         levelRange: [1, 10],
-        title: '破門之後',
+        title: '南門以外',
         subtitle: '城鎮不是大廳，而是剛撐住一口氣的避難所。',
-        coreConflict: 'The player learns that monsters outside the south gate are only the surface of a wider collapse.',
+        coreConflict: 'The player proves which roads still exist and learns that monsters are evidence of route damage.',
         townFocus: [
             'south_gate_first_repair',
             'apothecary_counter_reopens',
@@ -50,7 +50,7 @@ export const ChapterQuestFramework = Object.freeze([
         questBeats: [
             'Establish the broken town and missing services.',
             'Make the first repaired route visibly useful.',
-            'Let the elder, blacksmith, herbalist, and gate defenders become people before they become menus.'
+            'Let the elder, scholar, herbalist, and gate defenders become people before they become menus.'
         ],
         rewardDirection: [
             ChapterRewardScale.ORDINARY,
@@ -73,9 +73,9 @@ export const ChapterQuestFramework = Object.freeze([
         id: 'chapter_02_miststone_and_drowned_bell',
         chapter: 2,
         levelRange: [11, 20],
-        title: '霧碑與沉鐘',
-        subtitle: '道路、海岸、廢墟與補給線開始把城鎮拉向外界。',
-        coreConflict: 'The player discovers that routes and supplies are narrative power, not only travel convenience.',
+        title: '斷路上的藥味',
+        subtitle: '補給、藥品、市集與舊撤離紀錄開始讓城鎮重新呼吸。',
+        coreConflict: 'The player discovers that safe travel creates medicine, supply, and civic recovery.',
         townFocus: [
             'market_supply_line',
             'rumor_board_network',
@@ -84,7 +84,7 @@ export const ChapterQuestFramework = Object.freeze([
         ],
         questBeats: [
             'Connect route repair to stock changes and map confidence.',
-            'Introduce non-town threats through coast, bell, and ruin clues.',
+            'Introduce old evacuation and grave records through the lich route.',
             'Let side quests reward practical town growth instead of only gold.'
         ],
         rewardDirection: [
@@ -109,9 +109,9 @@ export const ChapterQuestFramework = Object.freeze([
         id: 'chapter_03_black_iron_shadow_precursor',
         chapter: 3,
         levelRange: [21, 30],
-        title: '黑鐵與暗影前兆',
-        subtitle: '暗影不是虛空本體，而是讓玩家提早感到不對勁的弱前置。',
-        coreConflict: 'Shadow soldiers and black-iron routes make the player choose between stable preparation and risky shortcuts.',
+        title: '影子仍守夜',
+        subtitle: '暗影不是虛空本體，而是舊命令、黑鐵路線與誘惑捷徑的前兆。',
+        coreConflict: 'Shadow soldiers, casino showcase prizes, and black-market access make the player choose between stable preparation and risky shortcuts.',
         townFocus: [
             'casino_showcase_hook',
             'black_market_contact',
@@ -145,9 +145,9 @@ export const ChapterQuestFramework = Object.freeze([
         id: 'chapter_04_fourfold_fracture',
         chapter: 4,
         levelRange: [31, 40],
-        title: '四相裂線',
-        subtitle: '冰、火、雷、毒各自成為一條可準備、可針對的威脅線。',
-        coreConflict: 'The player sees that preparation route choice matters against parallel elemental fronts.',
+        title: '石心與灰雨',
+        subtitle: '石路、灰雨、旗與燈把地圖本身變成鎖的一部分。',
+        coreConflict: 'The player sees that land instability and route safety matter as much as raw combat strength.',
         townFocus: [
             'elemental_stock',
             'route_based_market_supply',
@@ -157,7 +157,7 @@ export const ChapterQuestFramework = Object.freeze([
         questBeats: [
             'Let each element have clear monster, material, and equipment identity.',
             'Make town services offer different solutions instead of one optimal path.',
-            'Use side quests to seed dungeon-specific preparation.'
+            'Use the flag-and-lamp crisis to prove that courage without support can still kill someone.'
         ],
         rewardDirection: [
             ChapterRewardScale.STORY_MATCHED,
@@ -181,9 +181,9 @@ export const ChapterQuestFramework = Object.freeze([
         id: 'chapter_05_dragonline_contracts',
         chapter: 5,
         levelRange: [41, 50],
-        title: '龍脈與遠征契約',
-        subtitle: '城鎮不只是恢復，而是開始替高難度遠征生產選擇。',
-        coreConflict: 'Elite preparation, advanced forge contracts, and route control become the core power loop.',
+        title: '元素失衡',
+        subtitle: '元素前線、藥師手記、遠征名冊與進階鍛造把準備變得昂貴。',
+        coreConflict: 'Elemental fronts and old expedition truth force the player to prepare without repeating the old armed mistake.',
         townFocus: [
             'advanced_forge_contracts',
             'dungeon_supply_contracts',
@@ -193,7 +193,7 @@ export const ChapterQuestFramework = Object.freeze([
         questBeats: [
             'Move the blacksmith and supply network from repair into specialization.',
             'Use elite monsters as serious resource and equipment targets.',
-            'Make long side quests unlock distinctive preparation tools.'
+            'Make the herbalist notebook and expedition list carry second-run rescue and dragon-proof value.'
         ],
         rewardDirection: [
             ChapterRewardScale.UNIQUE_EQUIPMENT,
@@ -213,22 +213,22 @@ export const ChapterQuestFramework = Object.freeze([
         implementationNotes: 'Boss-dropped items must visually match boss-held or boss-worn objects.'
     },
     {
-        id: 'chapter_06_abyssal_bargains',
+        id: 'chapter_06_dragon_seal',
         chapter: 6,
         levelRange: [51, 60],
-        title: '深淵交易',
-        subtitle: '虛空壓力逼近，捷徑開始真的有代價。',
-        coreConflict: 'The player weighs forbidden power, casino pressure, black-market help, and town trust.',
+        title: '龍守封痕',
+        subtitle: '龍族不是盟友；他們守著被人類弄傷的封印邊界。',
+        coreConflict: 'The player either repeats the old expedition as a stronger invader or meets the non-war proof conditions.',
         townFocus: [
-            'forbidden_material_exchange',
+            'elder_pursuit_and_aftermath',
             'casino_owner_route_pressure',
-            'black_market_debt_echo',
-            'void_precursor_preparation'
+            'contract_anomaly_record_only',
+            'dragon_non_war_conditions'
         ],
         questBeats: [
             'Let risky third-party sources become tempting but consequential.',
-            'Escalate shadow into void pressure without fully turning every shadow item into void.',
-            'Make town trust and supply reliability visible in late preparation.'
+            'Use the seal scar shard and Echo Whistle route meaning to separate the second run from the first-run dragon war.',
+            'Resolve Vesper through Loaded Dice and contract reversal in the second run.'
         ],
         rewardDirection: [
             ChapterRewardScale.UNIQUE_EQUIPMENT,
@@ -243,27 +243,27 @@ export const ChapterQuestFramework = Object.freeze([
             ChapterSourceRole.INFORMATION
         ],
         thirdPartySources: ['black_market_ring', 'casino_house', 'scholar_network'],
-        elementPressure: ['void', 'abyss', 'late_shadow'],
-        townUnlocks: ['forbidden_stock', 'casino_owner_resolution_hooks', 'void_warning_routes'],
-        dungeonRole: 'Dungeons can require specialized preparation, but tower content remains out of scope.',
+        elementPressure: ['dragon_fire', 'late_shadow', 'void_foreshadow_only'],
+        townUnlocks: ['casino_owner_resolution_hooks', 'contract_anomaly_record', 'dragon_route_aftermath'],
+        dungeonRole: 'Dungeons can require specialized mainline preparation; formal Void and tower content remain outside mandatory Chapter 6.',
         implementationNotes: 'Use durable consequences only. Do not add fake moral branches.'
     },
     {
-        id: 'chapter_07_glimmer_becomes_light',
+        id: 'chapter_07_fall_site_true_kill',
         chapter: 7,
         levelRange: [61, 70],
-        title: '微光成明',
-        subtitle: '微光不進化成光明裝備，但會把玩家帶到真正的光明副本前。',
-        coreConflict: 'The town becomes a final staging ground for light pressure and future tower counterplay.',
+        title: '墜落之地',
+        subtitle: '回聲哨打開舊山路，魔王墜落的真相終於變成可抵達的地方。',
+        coreConflict: 'The player reaches the Demon King through a road understood by people, tools, and memory rather than brute force alone.',
         townFocus: [
-            'radiant_chapel_foundation',
-            'glimmer_to_light_story_bridge',
+            'glimmer_true_kill_preparation',
+            'external_route_departure_hints',
             'terminal_supply_line',
             'final_preparation_routes'
         ],
         questBeats: [
-            'Use glimmer as the narrative bridge toward light.',
-            'Build the Lv70 radiant dungeon route as counterweight to future tower pressure.',
+            'Use the Echo Whistle route and Ailo memory event to open the old mountain road.',
+            'Let glimmer complete the true-kill method without importing formal light or Void rewards.',
             'Let the town feel changed by the entire previous rebuild.'
         ],
         rewardDirection: [
@@ -278,10 +278,10 @@ export const ChapterQuestFramework = Object.freeze([
             ChapterSourceRole.INFORMATION
         ],
         thirdPartySources: ['scholar_network', 'supply_caravans'],
-        elementPressure: ['glimmer', 'light', 'late_void_counter'],
-        townUnlocks: ['radiant_corridor_route', 'glimmer_light_preparation', 'terminal_town_state'],
-        dungeonRole: 'Radiant dungeon exists to prepare the player for future tower rewrite, but the tower itself is paused.',
-        implementationNotes: 'Do not build tower monsters, tower equipment, or tower reward images in this pass.'
+        elementPressure: ['glimmer', 'demon', 'external_light_hook_only'],
+        townUnlocks: ['terminal_town_state', 'second_run_external_route_index'],
+        dungeonRole: 'The Radiant Corridor is an optional second-run external route and never part of Demon King preparation; the tower rewrite remains paused.',
+        implementationNotes: 'Do not assign tower rewards or external Boss art before their stories and map branches are approved.'
     }
 ]);
 
@@ -332,24 +332,73 @@ export const LevelBandQuestFramework = Object.freeze([
         expectedMaterialRole: 'elite materials and dungeon preparation components'
     },
     {
-        id: 'lv_51_60_abyss_void_pressure',
+        id: 'lv_51_60_dragon_and_late_shadow',
         levelRange: [51, 60],
         chapter: 6,
-        title: 'Abyss And Void Pressure',
-        expectedMonsterRole: 'late shadow and void-adjacent threats',
+        title: 'Dragon And Late Shadow',
+        expectedMonsterRole: 'dragon-route threats, late shadow pressure, and Void foreshadowing only',
         expectedEquipmentRole: 'forbidden, casino, dungeon, and high-risk preparation gear',
-        expectedMaterialRole: 'void-adjacent materials remain controlled and consequential'
+        expectedMaterialRole: 'dragon and late-shadow materials; no mandatory formal Void source'
     },
     {
-        id: 'lv_61_70_glimmer_light_bridge',
+        id: 'lv_61_70_fall_site_glimmer',
         levelRange: [61, 70],
         chapter: 7,
-        title: 'Glimmer To Light',
-        expectedMonsterRole: 'radiant-route threats and terminal preparation enemies',
-        expectedEquipmentRole: 'light preparation gear and radiant dungeon rewards',
-        expectedMaterialRole: 'glimmer bridge materials and true light dungeon materials'
+        title: 'Fall Site Glimmer',
+        expectedMonsterRole: 'demon-route threats and terminal glimmer preparation enemies',
+        expectedEquipmentRole: 'mainline Demon King preparation without required formal light gear',
+        expectedMaterialRole: 'glimmer and current-run true-kill anchors; formal light remains optional'
     }
 ]);
+
+export const SecondRunExternalBossFramework = Object.freeze({
+    status: ChapterFrameworkStatus.PAUSED,
+    unlock: 'first_run_false_ending_achievement',
+    requiredForTrueEnding: false,
+    physicalPersistence: 'current_run_only',
+    rollout: 'staggered_across_second_run',
+    resumeGate: 'complete_and_validate_first_run_story_systems_and_required_art_then_audit_persistent_evidence_flags',
+    tracks: Object.freeze([
+        Object.freeze({
+            key: 'prologue_overcap_demon',
+            runtimeBossId: null,
+            window: 'opening_seed_then_ch6_ch7_rematch',
+            purpose: 'Turn the tutorial defeat into a personal second-run revenge route.',
+            status: 'pending_story_design'
+        }),
+        Object.freeze({
+            key: 'ash_baron_external',
+            runtimeBossId: 'ash_baron',
+            window: 'ch3_ch4',
+            purpose: 'Expose freight rights, ash contracts, and regional exploitation.',
+            status: 'legacy_runtime_requires_rewrite'
+        }),
+        Object.freeze({
+            key: 'expedition_supreme_commander',
+            runtimeBossId: null,
+            window: 'ch5_ch6',
+            purpose: 'Reveal the expedition history that mandatory records can only approach from outside.',
+            status: 'pending_story_design'
+        }),
+        Object.freeze({
+            key: 'radiant_corridor_external',
+            runtimeBossId: 'aurora_archon',
+            window: 'late_second_run_level_70',
+            purpose: 'Introduce formal light as a rhythm trial without replacing glimmer in the true ending.',
+            status: 'existing_runtime_requires_story_unlock'
+        }),
+        Object.freeze({
+            key: 'void_revelation_external',
+            runtimeBossId: null,
+            existingCandidateId: 'tower_void_king',
+            window: 'post_true_ending',
+            purpose: 'Reveal the creditor and Void cosmology before later DLC extends the rebuilt tower.',
+            status: 'pending_story_and_tower_rewrite'
+        })
+    ]),
+    dlcBoundary: 'DLC continues the post-reveal light, Void, and tower world; first external resolutions remain in the base game.',
+    pauseRule: 'Do not expand second-run routes, lore, encounters, rewards, flags, or art before the first-run resume gate passes.'
+});
 
 export const ChapterQuestPausedSystems = Object.freeze({
     combat: {

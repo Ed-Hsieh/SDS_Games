@@ -47,317 +47,138 @@ export const QuestDatabase = {
     // ==================== 主線任務 ====================
     main: [
         {
-            id: 'main_001',
-            name: '南門外的三個記號',
+            id: 'story_chapter_01',
+            name: '南門以外',
             type: QuestType.MAIN,
             chapter: 1,
-            icon: '📖',
-            description: '南門巡路昨夜沒有回來。村長要我先找伊萊標出三處近郊地標，再確認農田、棧道與舊營火點是否仍能通行。',
+            icon: 'I',
+            description: '確認南門外三處證據、銀絲伏道與森林反應，讓第一條回城路重新可讀。',
             objectives: [
-                { type: ObjectiveType.TALK, target: 'town_scholar', count: 1, completionFlag: 'town.scholar.first_index_open', description: '找伊萊標出南門外三處地標' },
-                { type: ObjectiveType.EXPLORE, target: 'chapter1_route_intro', count: 3, description: '確認南門農田、獵人棧道與舊營火點' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_01_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch1_s11_roads_breathe_again.complete',
+                    description: '完成第一章主線場景'
+                }
             ],
-            rewards: {
-                gold: 35,
-                exp: 35,
-                items: ['old_sword']
-            },
-            unlocks: ['main_002'], // 完成後解鎖
+            rewards: {},
+            autoProgress: true
         },
         {
-            id: 'main_002',
-            name: '農田邊的黏液聲',
-            type: QuestType.MAIN,
-            chapter: 1,
-            icon: '📚',
-            description: '南門農田仍能通行，但水溝邊的黏液讓腳印全亂了。伊萊要我先壓下史萊姆，帶回未擦乾的凝膠樣本。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'slime', count: 5, description: '擊退水溝邊的史萊姆 5 隻，保留凝膠樣本' }
-            ],
-            rewards: {
-                gold: 45,
-                exp: 55,
-                items: ['health_potion_s']
-            },
-            unlocks: ['main_003'],
-        },
-        {
-            id: 'main_003',
-            name: '回程路上的銀絲',
-            type: QuestType.MAIN,
-            chapter: 1,
-            icon: '🕸️',
-            description: '史萊姆凝膠裡混著細銀絲。伊萊判斷那不是史萊姆長出的東西，而是牠們爬過某處後帶回農田的痕跡。',
-            objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'chapter1_ambush_signs', count: 3, description: '調查獵人棧道、舊營火點與被割裂的木牌' }
-            ],
-            rewards: {
-                gold: 60,
-                exp: 70,
-                items: ['silver_thread_bait']
-            },
-            unlocks: ['main_004'],
-        },
-        {
-            id: 'main_004',
-            name: '銀絲伏道',
-            type: QuestType.MAIN,
-            chapter: 1,
-            icon: '🕸️',
-            description: '銀絲伏擊集中在回程路最疲憊的位置。帶著伊萊做出的粗糙誘餌前往銀絲伏道，把潛伏者引出來。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'ambush_mantis', count: 1, description: '在銀絲伏道設置誘餌並擊敗銀鐮伏獵者' }
-            ],
-            rewards: {
-                gold: 90,
-                exp: 110,
-                items: ['silver_thread_hook']
-            },
-            unlocks: ['main_005'],
-        },
-        {
-            id: 'main_005',
-            name: '不響的森林',
-            type: QuestType.MAIN,
-            chapter: 1,
-            icon: '🪵',
-            description: '獵人舊路重新通行後，腐根溪谷的黑煙露了出來。斷角營地、腐根溪谷與古樹根心都指向同一個異常震動。',
-            objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'chapter1_forest_trace', count: 3, description: '調查斷角營地、腐根溪谷與古樹根心' },
-                { type: ObjectiveType.KILL, target: 'forest_guardian', count: 1, description: '追蹤並擊敗古樹守衛' }
-            ],
-            rewards: {
-                gold: 150,
-                exp: 180,
-                items: ['black_bark_guardian_core']
-            },
-            unlocks: ['main_006', 'main_007'],
-        },
-        {
-            id: 'main_006',
-            name: '血月餘波',
-            type: QuestType.MAIN,
-            chapter: 1,
-            icon: '🦌',
-            description: '古樹守衛倒下後，夜裡仍有鹿角撞石的聲音。血月角鹿不是第一章的門鎖，而是森林傷口留下的餘波。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'blood_moon_stag', count: 1, description: '完成月苔誘導並擊敗血月角鹿' }
-            ],
-            rewards: {
-                gold: 120,
-                exp: 120,
-                items: ['blood_moon_pendant']
-            },
-            unlocks: ['dungeon_cave_001'],
-        },
-        {
-            id: 'main_007',
-            name: '丘陵的執念',
+            id: 'story_chapter_02',
+            name: '斷路上的藥味',
             type: QuestType.MAIN,
             chapter: 2,
-            icon: '🪨',
-            description: '第一章的災害沒有真正結束，只是讓你看見更深的裂縫。霧碑丘陵的石碑、草藥與亡靈開始把事件推向第二章。',
+            icon: 'II',
+            description: '沿舊撤離路找回失蹤者的名字，處理赫恩與被錯置的亡者職責。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'high', count: 3, description: '探索霧碑丘陵 3 處地點' },
-                { type: ObjectiveType.KILL, target: 'high_monster', count: 3, description: '擊敗高威脅區怪物 3 隻' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_02_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch2_s08_shadow_at_the_checkpoint.complete',
+                    description: '完成第二章主線場景'
+                }
             ],
-            rewards: {
-                gold: 520,
-                exp: 300,
-                items: ['mist_tablet_rubbing'],
-                materials: [
-                    { id: 'dark_crystal', quantity: 2 },
-                    { id: 'ancient_rune', quantity: 1 }
-                ]
-            },
-            unlocks: ['main_008'],
-            requiredLevel: 8,
-        },
-        // ==================== 第二章：丘陵的執念 (Lv.10-18) ====================
-        {
-            id: 'main_008',
-            name: '荊棘交換珠',
-            type: QuestType.MAIN,
-            chapter: 2,
-            icon: '🌿',
-            description: '女巫的溫室被掠奪後，荊棘交換珠開始在村民之間流通。她不是單純攔路，而是在用交易重建失去的生命線。',
-            objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'high', count: 2, description: '調查霧碑丘陵中的荊棘交易痕跡' },
-                { type: ObjectiveType.KILL, target: 'thorn_witch', count: 1, description: '擊敗荊棘女巫' }
-            ],
-            rewards: {
-                gold: 620,
-                exp: 360,
-                items: ['thorn_trade_bead'],
-                materials: [
-                    { id: 'forest_essence', quantity: 1 },
-                    { id: 'poison_gland', quantity: 2 }
-                ]
-            },
-            unlocks: ['main_009', 'dungeon_jungle_001'],
-            requiredLevel: 10,
+            rewards: {},
+            autoProgress: true
         },
         {
-            id: 'main_009',
-            name: '沉鐘浮聲',
-            type: QuestType.MAIN,
-            chapter: 2,
-            icon: '🔔',
-            description: '海底祭壇失去深海寶珠後浮上海面，沉鐘神諭的聲音開始沿著霧碑丘陵回盪。',
-            objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'medium', count: 2, description: '追查水聲與潮濕拓片的來源' },
-                { type: ObjectiveType.KILL, target: 'drowned_oracle', count: 1, description: '擊敗沉鐘神諭' }
-            ],
-            rewards: {
-                gold: 760,
-                exp: 430,
-                items: ['deep_sea_orb'],
-                materials: [
-                    { id: 'dark_crystal', quantity: 2 },
-                    { id: 'ancient_rune', quantity: 1 }
-                ]
-            },
-            unlocks: ['main_010', 'dungeon_snow_001'],
-            requiredLevel: 12,
-        },
-        {
-            id: 'main_010',
-            name: '被掘開的古墓',
-            type: QuestType.MAIN,
-            chapter: 2,
-            icon: '💀',
-            description: '遠古古墓被龍族眷屬掘開，巫妖的法杖被奪走。失去靈魂火種錨點的古代學者，正在把整片原野叫醒。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'skeleton', count: 6, description: '擊退被喚醒的骷髏兵 6 隻' },
-                { type: ObjectiveType.KILL, target: 'lich', count: 1, description: '擊敗巫妖' }
-            ],
-            rewards: {
-                gold: 940,
-                exp: 520,
-                items: ['lich_staff_remnant'],
-                materials: [
-                    { id: 'lich_phylactery', quantity: 1 },
-                    { id: 'dark_crystal', quantity: 2 }
-                ]
-            },
-            unlocks: ['main_011', 'dungeon_ruins_001'],
-            requiredLevel: 14,
-        },
-        {
-            id: 'main_011',
-            name: '灰燼男爵的地宮',
-            type: QuestType.MAIN,
-            chapter: 2,
-            icon: '🔥',
-            description: '黑曜石要塞的男爵預見末日後選擇背叛。他不是要拯救領民，而是要把所有糧食與鐵器都帶進自己的地宮。',
-            objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'death', count: 2, description: '沿著煤印與走私帳冊追到黑曜石地宮' },
-                { type: ObjectiveType.KILL, target: 'ash_baron', count: 1, description: '擊敗灰燼男爵' }
-            ],
-            rewards: {
-                gold: 1120,
-                exp: 620,
-                items: ['ash_ledger_page'],
-                materials: [
-                    { id: 'ember_stone', quantity: 2 },
-                    { id: 'rare_metal', quantity: 1 }
-                ]
-            },
-            unlocks: ['main_012'],
-            requiredLevel: 16,
-        },
-        // ==================== 第三章：諸神黃昏 (Lv.18-30) ====================
-        {
-            id: 'main_012',
-            name: '龍巢之路',
+            id: 'story_chapter_03',
+            name: '影子仍守夜',
             type: QuestType.MAIN,
             chapter: 3,
-            icon: '🐉',
-            description: '各地核心被奪的證據都指向北方。古龍眷屬不必特別登場，牠們留下的缺口已經足夠讓你追上龍巢。',
+            icon: 'III',
+            description: '辨認仍在執行舊命令的人類影子，並關閉凱德倫的左線命令。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'wyvern', count: 3, description: '擊敗在北境盤旋的翼龍 3 隻' },
-                { type: ObjectiveType.KILL, target: 'drake', count: 3, description: '擊敗守著熱痕的幼龍 3 隻' },
-                { type: ObjectiveType.KILL, target: 'dragon_knight', count: 1, description: '擊敗龍騎士前哨' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_03_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch3_s09_temptation_and_orders.complete',
+                    description: '完成第三章主線場景'
+                }
             ],
-            rewards: {
-                gold: 1400,
-                exp: 760,
-                items: ['dragon_nest_resonance'],
-                materials: [
-                    { id: 'elder_dragon_scale', quantity: 1 },
-                    { id: 'rare_metal', quantity: 1 }
-                ]
-            },
-            unlocks: ['main_013'],
-            requiredLevel: 20,
+            rewards: {},
+            autoProgress: true
         },
         {
-            id: 'main_013',
-            name: '古龍之巢',
+            id: 'story_chapter_04',
+            name: '石心與灰雨',
             type: QuestType.MAIN,
-            chapter: 3,
-            icon: '🐲',
-            description: '古龍不是魔王的盟友。牠只是把全大陸的魔力精華堆成自己的冬眠巢穴，而這足以讓世界一起垮掉。',
+            chapter: 4,
+            icon: 'IV',
+            description: '在灰脊撤離中維持前旗與後燈，阻止遠古泰坦再次抬升道路。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'elder_dragon', count: 1, description: '擊敗古龍' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_04_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch4_s09_four_elements_one_report.complete',
+                    description: '完成第四章主線場景'
+                }
             ],
-            rewards: {
-                gold: 2600,
-                exp: 1200,
-                items: ['elder_dragon_fang'],
-                materials: [
-                    { id: 'elder_dragon_scale', quantity: 3 },
-                    { id: 'world_shard', quantity: 1 }
-                ]
-            },
-            unlocks: ['main_014'],
-            requiredLevel: 24,
+            rewards: {},
+            autoProgress: true
         },
         {
-            id: 'main_014',
-            name: '封印碎裂',
+            id: 'story_chapter_05',
+            name: '元素失衡',
             type: QuestType.MAIN,
-            chapter: 3,
-            icon: '😈',
-            description: '地脈全面斷裂，魔王阿薩謝爾掙脫深淵封印。他沒有先攻王都，而是盯上古龍留下的龍巢魔力。',
+            chapter: 5,
+            icon: 'V',
+            description: '追查四條元素前線的共同壓力，完成米婭手術與二十年前遠征真相。',
             objectives: [
-                { type: ObjectiveType.EXPLORE, target: 'death', count: 3, description: '穿越黑焰邊境確認封印裂口' },
-                { type: ObjectiveType.KILL, target: 'demon_soldier', count: 8, description: '擊退深淵先鋒 8 名' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_05_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch5_s11_town_loses_its_voice.complete',
+                    description: '完成第五章主線場景'
+                }
             ],
-            rewards: {
-                gold: 1700,
-                exp: 900,
-                items: ['abyss_vanguard_oath'],
-                materials: [
-                    { id: 'soul_fragment', quantity: 2 },
-                    { id: 'dark_crystal', quantity: 2 }
-                ]
-            },
-            unlocks: ['main_015'],
-            requiredLevel: 27,
+            rewards: {},
+            autoProgress: true
         },
         {
-            id: 'main_015',
-            name: '終焉之戰：阿薩謝爾',
+            id: 'story_chapter_06',
+            name: '龍守封痕',
             type: QuestType.MAIN,
-            chapter: 3,
-            icon: '👑',
-            description: '魔王阿薩謝爾要吞下龍巢的魔力，發動毀滅人類文明的終焉之戰。你必須在兩股毀滅力量的殘骸之間結束這一切。',
+            chapter: 6,
+            icon: 'VI',
+            description: '理解龍族守線與人類誤觸封痕的差別，並在回城後收束維斯珀賭局。',
             objectives: [
-                { type: ObjectiveType.KILL, target: 'demon_general', count: 2, description: '擊敗魔族將軍 2 名' },
-                { type: ObjectiveType.KILL, target: 'demon_lord_asariel', count: 1, description: '擊敗魔王阿薩謝爾' }
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_06_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch6_s09_the_old_note_answers.complete',
+                    description: '完成第六章主線場景'
+                }
             ],
-            rewards: {
-                gold: 10000,
-                exp: 5000,
-                materials: [
-                    { id: 'world_shard', quantity: 1 }
-                ],
-                items: ['demon_lord_sword', 'demon_lord_armor']
-            },
-            unlocks: [],
-            requiredLevel: 30,
+            rewards: {},
+            autoProgress: true
         },
+        {
+            id: 'story_chapter_07',
+            name: '墜落之地',
+            type: QuestType.MAIN,
+            chapter: 7,
+            icon: 'VII',
+            description: '沿回聲哨找到舊山路、花田與魔王墜落地，完成當前周目的結局。',
+            objectives: [
+                {
+                    type: ObjectiveType.CUSTOM,
+                    target: 'chapter_07_screenplay',
+                    count: 1,
+                    completionFlag: 'story.scene.ch7_s09_first_or_second_epilogue.complete',
+                    description: '完成第七章主線場景'
+                }
+            ],
+            rewards: {},
+            autoProgress: true
+        }
     ],
 
     // ==================== 懸賞任務 ====================
@@ -586,8 +407,7 @@ export const QuestDatabase = {
                 gold: 2000,
                 exp: 1000,
                 items: ['demon_slayer']
-            },
-            unlocks: ['hidden_dungeon_master'],
+            }
         },
         
         // 每週副本挑戰（可重複）
@@ -611,771 +431,14 @@ export const QuestDatabase = {
     ],
 
     // ==================== 委託任務 ====================
-    commission: [
-        // 鍛造師委託
-        {
-            id: 'commission_forge_001',
-            name: '圖紙邊角的名字',
-            type: QuestType.COMMISSION,
-            npc: 'blacksmith',
-            chapter: 2,
-            icon: '⚒️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'blacksmith',
-                afterFlag: 'foundBlueprintCache',
-                afterQuest: 'main_007',
-                reason: '你在野外找到殘缺圖紙後，鍛造師認出邊角上刻著失蹤學徒妮露的名字。'
-            },
-            description: '野外圖紙不是單純配方，而是鍛造師失蹤學徒留下的工作記錄。要補回缺頁，必須到丘陵帶回能承受地脈震動的礦材。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'iron_ore', count: 5, description: '收集鐵礦石 5 個，用來校準妮露筆記的基礎比例' },
-                { type: ObjectiveType.COLLECT, target: 'dark_steel', count: 1, description: '取得暗鋼 1 個，確認圖紙能承受丘陵地脈震動' }
-            ],
-            rewards: {
-                gold: 180,
-                exp: 120,
-                items: ['enhance_scroll'],
-                materials: [
-                    { id: 'rare_metal', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_forge_002',
-            name: '秘銀不是傳說',
-            type: QuestType.COMMISSION,
-            npc: 'blacksmith',
-            chapter: 3,
-            icon: '⚒️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'blacksmith',
-                afterQuest: 'commission_forge_001',
-                duringQuest: 'main_012',
-                reason: '北境路線打開後，一名逃匠的筆記證明妮露圖紙的下一段需要秘銀。'
-            },
-            description: '逃匠奧倫留下的筆記說，秘銀不是傳說，只是很多人還沒把它帶回城鎮就死在路上。鍛造師要用它驗證妮露圖紙的高階段落。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'mithril_ore', count: 3, description: '收集秘銀礦石 3 個' },
-                { type: ObjectiveType.ENHANCE, target: 'any', count: 5, description: '累計強化 5 次，測試秘銀的穩定性' }
-            ],
-            rewards: {
-                gold: 420,
-                exp: 260,
-                items: ['master_hammer'],
-                materials: [
-                    { id: 'rare_metal', quantity: 1 },
-                    { id: 'dark_steel', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_blacksmith_chimney',
-            name: '鐵匠的煙囪',
-            type: QuestType.COMMISSION,
-            npc: 'blacksmith',
-            chapter: 1,
-            icon: '⚒️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'blacksmith',
-                afterQuest: 'main_003',
-                reason: '斷裂誘餌鉤讓鍛造師想起過去失手的獵人鉤索，他才願意把爐火與煙道問題交給玩家。'
-            },
-            description: '鍛造師的爐煙開始倒灌。這不是單純修煙囪，而是讓城鎮夜裡重新有一盞敢亮著的爐火。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'iron_ore', count: 5, description: '帶回鐵礦石 5 個，讓鍛造師校準爐火' }
-            ],
-            rewards: {
-                gold: 90,
-                exp: 45
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_apothecary_bottles',
-            name: '藥師的空瓶',
-            type: QuestType.COMMISSION,
-            npc: 'herbalist',
-            chapter: 1,
-            icon: '🧪',
-            trigger: {
-                type: 'npc_story',
-                npc: 'herbalist',
-                afterQuest: 'main_002',
-                reason: '史萊姆增生被壓下後，藥師才有樣本理由追查凝膠甜味與農田土壤異常。'
-            },
-            description: '藥師的空瓶被異常凝膠腐蝕。她需要更多樣本，確認農田土壤是不是已經被地脈污染滲入。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'slime_jelly', count: 5, description: '帶回史萊姆凝膠 5 份' }
-            ],
-            rewards: {
-                gold: 70,
-                exp: 50,
-                items: ['health_potion_s']
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_guard_boots',
-            name: '南門守衛的靴底',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 1,
-            icon: '🥾',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                afterQuest: 'main_001',
-                reason: '南門外路線被玩家確認後，守衛必須重新巡查那些路，靴底問題才浮上檯面。'
-            },
-            description: '南門守衛的靴底被黏液和碎石磨穿。這不是英雄傳說，但有人得明天繼續站在門口看路。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'beast_hide', count: 3, description: '帶回獸皮 3 張，修補南門守衛的靴底' }
-            ],
-            rewards: {
-                gold: 80,
-                exp: 45,
-                items: ['gate_patrol_map']
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_herb_basket',
-            name: '採藥籃不會說謊',
-            type: QuestType.COMMISSION,
-            npc: 'herbalist',
-            chapter: 2,
-            icon: '🧺',
-            trigger: {
-                type: 'npc_story',
-                npc: 'herbalist',
-                duringQuest: 'main_008',
-                reason: '荊棘女巫線開啟後，自己回來的採藥籃才有意義，否則只是孤立怪事。'
-            },
-            description: '一只空採藥籃自己回到城鎮，提把上綁著荊棘。藥師不相信籃子會走路，但她更不相信這只是惡作劇。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'poison_gland', count: 2, description: '帶回毒腺 2 份，辨認毒霧林地的變化' },
-                { type: ObjectiveType.KILL, target: 'poison_spider', count: 4, description: '擊退毒霧林地附近的毒蛛 4 隻' }
-            ],
-            rewards: {
-                gold: 180,
-                exp: 110,
-                items: ['field_medic_notes'],
-                materials: [
-                    { id: 'forest_essence', quantity: 1 }
-                ]
-            },
-            unlocks: ['commission_herb_basket_002'],
-            requiredLevel: 10,
-        },
-        {
-            id: 'commission_herb_basket_002',
-            name: '籃底縫著的名字',
-            type: QuestType.COMMISSION,
-            npc: 'herbalist',
-            chapter: 2,
-            icon: '🧵',
-            trigger: {
-                type: 'npc_story',
-                npc: 'herbalist',
-                afterQuest: 'commission_herb_basket',
-                duringQuest: 'main_008',
-                reason: '採藥籃被確認與荊棘交易有關後，藥師才會拆開籃底，發現失蹤採藥人留下的縫線暗記。'
-            },
-            description: '藥師拆開採藥籃底，發現縫線不是補丁，而是一段名字與方向。那位失蹤採藥人不是單純被抓走，她曾經試著把毒霧的來源縫回城鎮。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'forest_essence', count: 2, description: '帶回森林精華 2 份，穩定籃底縫線上的殘留氣息' },
-                { type: ObjectiveType.KILL, target: 'poison_spider', count: 3, description: '清掉縫線指向路線上的毒蛛 3 隻' }
-            ],
-            rewards: {
-                gold: 230,
-                exp: 145,
-                items: ['leah_stitched_name'],
-                materials: [
-                    { id: 'poison_gland', quantity: 1 },
-                    { id: 'life_seed', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 11,
-        },
-        {
-            id: 'commission_grave_bookmark',
-            name: '墓園書籤',
-            type: QuestType.COMMISSION,
-            npc: 'town_scholar',
-            chapter: 2,
-            icon: '🔖',
-            trigger: {
-                type: 'npc_story',
-                npc: 'town_scholar',
-                duringQuest: 'main_010',
-                reason: '巫妖線進入古墓後，書記才會把古代學者書籤拿出來，讓名字成為戰鬥之外的重量。'
-            },
-            description: '書記找到一張古代學者的書籤。它不能讓巫妖變得無害，卻能讓城鎮記得牠曾經有名字。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'bone_fragment', count: 5, description: '從古墓附近帶回骨頭碎片 5 份' },
-                { type: ObjectiveType.KILL, target: 'skeleton_warrior', count: 3, description: '擊退墓道骷髏兵 3 隻' }
-            ],
-            rewards: {
-                gold: 210,
-                exp: 130,
-                items: ['julian_bookmark'],
-                materials: [
-                    { id: 'ancient_rune', quantity: 1 }
-                ]
-            },
-            unlocks: ['commission_grave_bookmark_002'],
-            requiredLevel: 12,
-        },
-        {
-            id: 'commission_grave_bookmark_002',
-            name: '朱利安的邊註',
-            type: QuestType.COMMISSION,
-            npc: 'town_scholar',
-            chapter: 2,
-            icon: '📝',
-            trigger: {
-                type: 'npc_story',
-                npc: 'town_scholar',
-                afterQuest: 'commission_grave_bookmark',
-                duringQuest: 'main_010',
-                reason: '巫妖生前姓名被補回後，書記才看懂書籤邊緣的縮寫，將它連到古代御術師朱利安的防衛紀錄。'
-            },
-            description: '書籤邊緣寫著朱利安的縮寫。那不是求救，而像一句遲到很久的道歉：他們打造了秩序，卻沒替活人留下關閉它的方法。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'ancient_rune', count: 2, description: '帶回古代符文 2 份，讓書記比對朱利安的縮寫' },
-                { type: ObjectiveType.KILL, target: 'ancient_guardian', count: 2, description: '擊退仍在執行舊命令的遠古守衛 2 具' }
-            ],
-            rewards: {
-                gold: 260,
-                exp: 170,
-                items: ['julian_margin_notes'],
-                materials: [
-                    { id: 'golem_core', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 14,
-        },
-        {
-            id: 'commission_drowned_bell_insomnia',
-            name: '沉鐘下的失眠人',
-            type: QuestType.COMMISSION,
-            npc: 'town_scholar',
-            chapter: 2,
-            icon: '🔔',
-            trigger: {
-                type: 'npc_story',
-                npc: 'town_scholar',
-                duringQuest: 'main_009',
-                reason: '沉鐘神諭線開始後，城鎮失眠居民聽見的鐘聲才會和海岸紀錄產生因果連結。'
-            },
-            description: '城鎮有人連續幾夜聽見海底鐘聲。書記不想把這只寫成失眠，因為鐘聲節奏和沉鐘神諭的海岸紀錄對得太整齊。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'ghost', count: 3, description: '擊退沉鐘異響附近的幽魂 3 隻' },
-                { type: ObjectiveType.COLLECT, target: 'ectoplasm', count: 3, description: '帶回回聲殘留 3 份，讓書記比對鐘聲節奏' }
-            ],
-            rewards: {
-                gold: 190,
-                exp: 120,
-                items: ['bell_rhythm_charm'],
-                materials: [
-                    { id: 'frost_crystal', quantity: 1 },
-                    { id: 'ancient_rune', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 12,
-        },
-        {
-            id: 'commission_ash_ledger_names',
-            name: '帳冊上的名字',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 2,
-            icon: '📒',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                duringQuest: 'main_011',
-                reason: '灰燼男爵線進入黑曜石要塞後，失蹤工匠名單才從村長抽屜裡被迫拿出來。'
-            },
-            description: '村長手上有一份失蹤工匠名單，卻一直沒有貼上公告欄。灰燼男爵的帳冊讓這些名字再也不能只躺在抽屜裡。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'shadow_soldier', count: 4, description: '擊退黑鐵倉道附近的影兵 4 名' },
-                { type: ObjectiveType.COLLECT, target: 'shadow_insignia', count: 2, description: '帶回影徽 2 枚，確認工匠被帶往黑曜石要塞' }
-            ],
-            rewards: {
-                gold: 260,
-                exp: 160,
-                items: ['ash_nameplate'],
-                materials: [
-                    { id: 'rare_metal', quantity: 1 },
-                    { id: 'dark_steel', quantity: 1 }
-                ]
-            },
-            unlocks: ['commission_ash_ledger_names_002'],
-            requiredLevel: 16,
-        },
-        {
-            id: 'commission_ash_ledger_names_002',
-            name: '工匠最後的刻痕',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 2,
-            icon: '🪓',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                afterQuest: 'commission_ash_ledger_names',
-                duringQuest: 'main_011',
-                reason: '失蹤名單公開後，村長才收到家屬交出的舊工具柄；上面刻著黑曜石要塞地下工程的方向。'
-            },
-            description: '公告欄貼出名單後，一位家屬交出工匠留下的工具柄。那上面的刻痕不是紀念，而是一條通往黑曜石地宮的工作路線。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'shadow_soldier', count: 3, description: '擊退守在倉道刻痕旁的影兵 3 名' },
-                { type: ObjectiveType.COLLECT, target: 'dark_steel', count: 1, description: '帶回暗鋼 1 份，確認地宮工事使用的材料' }
-            ],
-            rewards: {
-                gold: 300,
-                exp: 190,
-                items: ['craftsman_gouge'],
-                materials: [
-                    { id: 'rare_metal', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 17,
-        },
-        {
-            id: 'commission_northern_letter',
-            name: '北境來信',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 3,
-            icon: '✉️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                duringQuest: 'main_012',
-                reason: '龍巢之路開啟後，北境信使的家書才把古龍威脅從高階地圖拉回普通人的生活。'
-            },
-            description: '一名信使倒在城門口，懷裡的家書被熱風烤到捲邊。信裡沒有英雄口吻，只有北境天空變紅與軍糧豆子太硬。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'wyvern', count: 2, description: '擊退北境路線上的飛龍斥候 2 隻' },
-                { type: ObjectiveType.COLLECT, target: 'wyvern_scale', count: 2, description: '帶回飛龍鱗 2 片，確認信使穿越的熱風路線' }
-            ],
-            rewards: {
-                gold: 340,
-                exp: 220,
-                items: ['north_letter_seal'],
-                materials: [
-                    { id: 'dragon_tooth', quantity: 1 },
-                    { id: 'rare_metal', quantity: 1 }
-                ]
-            },
-            unlocks: ['commission_northern_letter_002'],
-            requiredLevel: 20,
-        },
-        {
-            id: 'commission_northern_letter_002',
-            name: '沒有寄出的回信',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 3,
-            icon: '📮',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                afterQuest: 'commission_northern_letter',
-                duringQuest: 'main_012',
-                reason: '北境家書被歸檔後，村長才找到城裡沒寄出的回信，讓古龍線從戰場再回到城鎮裡等待的人。'
-            },
-            description: '村長找到一封沒有寄出的回信。寫信的人沒有要求你復仇，只請你確認北境路線是否還能把一句「我知道了」送回去。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'drake', count: 2, description: '擊退守著熱痕路線的幼龍 2 隻' },
-                { type: ObjectiveType.COLLECT, target: 'dragon_tooth', count: 1, description: '帶回龍牙 1 枚，證明回信路線已被龍族封鎖' }
-            ],
-            rewards: {
-                gold: 380,
-                exp: 250,
-                items: ['unsent_reply'],
-                materials: [
-                    { id: 'wyvern_wing', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 22,
-        },
-        {
-            id: 'commission_last_soup',
-            name: '最後一鍋湯',
-            type: QuestType.COMMISSION,
-            npc: 'herbalist',
-            chapter: 3,
-            icon: '🍲',
-            trigger: {
-                type: 'npc_story',
-                npc: 'herbalist',
-                duringQuest: 'main_014',
-                reason: '封印碎裂後避難者湧入城鎮，藥師才會把補給與熱湯視為另一種治療。'
-            },
-            description: '深淵裂口開啟後，城鎮廚房開始收留避難者。藥師說藥水能救傷口，但熱湯能先阻止人心裂開。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'raw_meat', count: 6, description: '帶回可食用肉 6 份，補上避難者廚房' },
-                { type: ObjectiveType.COLLECT, target: 'fire_essence', count: 1, description: '帶回火焰精華 1 份，維持廚房爐火' },
-                { type: ObjectiveType.KILL, target: 'demon_soldier', count: 3, description: '擊退靠近補給路線的深淵士兵 3 名' }
-            ],
-            rewards: {
-                gold: 300,
-                exp: 240,
-                items: ['last_soup_ladle'],
-                materials: [
-                    { id: 'life_seed', quantity: 1 },
-                    { id: 'health_potion_s', quantity: 2 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 27,
-        },
-        {
-            id: 'commission_coast_lamplighter',
-            name: '守燈人的油壺',
-            type: QuestType.COMMISSION,
-            npc: 'town_scholar',
-            chapter: 2,
-            icon: '🕯️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'town_scholar',
-                afterQuest: 'commission_drowned_bell_insomnia',
-                duringQuest: 'main_009',
-                reason: '沉鐘聲被記錄後，書記才敢說海岸守燈人塔維一直用錯拍子的燈號引導倖存者。'
-            },
-            description: '守燈人塔維在海嘯後沒有離開燈塔。他怕黑，也怕承認自己聽不懂沉鐘聲，所以把每晚的燈號都點得很亮，亮到亡魂也跟著回岸。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'ghost', count: 2, description: '驅散跟著燈號回岸的亡魂 2 名' },
-                { type: ObjectiveType.COLLECT, target: 'spirit_essence', count: 2, description: '收集靈質 2 份，讓書記校正燈號節奏' }
-            ],
-            rewards: {
-                gold: 240,
-                exp: 150,
-                items: ['lamplighter_oil'],
-                materials: [
-                    { id: 'frost_crystal', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 12,
-        },
-        {
-            id: 'commission_broken_standard',
-            name: '斷旗手芙蕾',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 3,
-            icon: '🏳️',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                duringQuest: 'main_014',
-                reason: '深淵前鋒抵達後，北境斷旗手芙蕾把殘旗送回城鎮，證明前線不是傳聞。'
-            },
-            description: '芙蕾曾負責把撤退旗舉到最後一刻。她不是不害怕，只是手抖得太厲害時，旗反而會看起來很用力。她請你奪回旗杆上的惡魔角飾，讓倖存者知道撤退不是潰逃。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'demon_soldier', count: 4, description: '擊退奪旗的深淵士兵 4 名' },
-                { type: ObjectiveType.COLLECT, target: 'demon_horn', count: 2, description: '取回惡魔角飾 2 個，修補斷旗' }
-            ],
-            rewards: {
-                gold: 380,
-                exp: 280,
-                items: ['frey_broken_standard'],
-                materials: [
-                    { id: 'soul_fragment', quantity: 1 }
-                ]
-            },
-            unlocks: ['commission_broken_standard_002'],
-            requiredLevel: 27,
-        },
-        {
-            id: 'commission_broken_standard_002',
-            name: '旗影下的點名',
-            type: QuestType.COMMISSION,
-            npc: 'village_elder',
-            chapter: 3,
-            icon: '📜',
-            trigger: {
-                type: 'npc_story',
-                npc: 'village_elder',
-                afterQuest: 'commission_broken_standard',
-                duringQuest: 'main_014',
-                reason: '斷旗重新掛上城門後，芙蕾才願意把撤退名單交出來，讓士氣不只停在象徵物上。'
-            },
-            description: '斷旗掛回城門後，芙蕾交出一份被汗水泡皺的撤退名單。她不想被稱作英雄，只想確認那些沒回來的人不是被旗影蓋住。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'demon_soldier', count: 5, description: '擊退追著撤退線而來的深淵士兵 5 名' },
-                { type: ObjectiveType.COLLECT, target: 'demon_horn', count: 1, description: '帶回魔族角 1 個，確認追兵批次已被截斷' }
-            ],
-            rewards: {
-                gold: 430,
-                exp: 310,
-                items: ['retreat_rollcall'],
-                materials: [
-                    { id: 'soul_fragment', quantity: 1 },
-                    { id: 'demonic_steel', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 28,
-        },
-        {
-            id: 'commission_scholar_last_index',
-            name: '書記的最後索引',
-            type: QuestType.COMMISSION,
-            npc: 'town_scholar',
-            chapter: 3,
-            icon: '📚',
-            trigger: {
-                type: 'npc_story',
-                npc: 'town_scholar',
-                duringQuest: 'main_015',
-                reason: '魔王阿薩謝爾現身後，書記決定先把活人的名字編成索引，而不是替所有人寫墓誌銘。'
-            },
-            description: '書記一直相信只要把事情記清楚，世界就不會完全失控。直到深淵裂開，他才發現自己最害怕的不是死亡，而是大家死後只剩一堆沒有順序的紙。',
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'demon_general', count: 1, description: '擊退深淵將領 1 名，取回被奪走的索引封皮' },
-                { type: ObjectiveType.COLLECT, target: 'abyssal_shard', count: 2, description: '收集深淵碎片 2 份，封住索引上的黑印' }
-            ],
-            rewards: {
-                gold: 520,
-                exp: 360,
-                items: ['living_index'],
-                materials: [
-                    { id: 'world_shard', quantity: 1 }
-                ]
-            },
-            unlocks: [],
-            requiredLevel: 30,
-        },
-
-        // 賭場老闆委託
-        {
-            id: 'commission_casino_001',
-            name: '帳房瑪洛的假勝率',
-            type: QuestType.COMMISSION,
-            npc: 'street_beggar',
-            chapter: 2,
-            icon: '🎰',
-            trigger: {
-                type: 'npc_story',
-                npc: 'street_beggar',
-                duringQuest: 'main_011',
-                reason: '灰燼男爵的走私帳冊流入城鎮後，賭場帳房瑪洛發現勝率被人做成洗錢暗號。'
-            },
-            description: '賭場帳房瑪洛不相信運氣。她說最近每張賭桌的勝率都像被某隻看不見的手拉直，巷口流浪者把這件事當成灰燼帳冊的延伸線索交給你。',
-            objectives: [
-                { type: ObjectiveType.GAMBLE_WIN, target: 'slots', count: 5, description: '在老虎機獲勝 5 次，記錄被調整過的派彩節奏' },
-                { type: ObjectiveType.GAMBLE_WIN, target: 'dice', count: 5, description: '在骰子獲勝 5 次，比對瑪洛帳冊上的假勝率' }
-            ],
-            rewards: {
-                gold: 240,
-                exp: 140,
-                items: ['vip_card', 'marlo_odds_sheet']
-            },
-            unlocks: [],
-        },
-        {
-            id: 'commission_casino_002',
-            name: '最後一夜的籌碼',
-            type: QuestType.COMMISSION,
-            npc: 'street_beggar',
-            chapter: 3,
-            icon: '🎰',
-            trigger: {
-                type: 'npc_story',
-                npc: 'street_beggar',
-                afterQuest: 'commission_casino_001',
-                duringQuest: 'main_014',
-                reason: '深淵前鋒抵達後，賭場被臨時改成避難籌款所，瑪洛需要把最後一夜的籌碼換成補給。'
-            },
-            description: '深淵裂口打開後，賭場不再只是賭場。瑪洛把籌碼換成補給券，請你在賭桌上把人心穩住，順便把黑錢逼出來。',
-            objectives: [
-                { type: ObjectiveType.GAMBLE_PROFIT, target: 'any', count: 1000, description: '在賭場累計盈利 1000 枚籌碼，作為避難補給基金' }
-            ],
-            rewards: {
-                gold: 500,
-                exp: 320,
-                items: ['relief_voucher']
-            },
-            unlocks: [],
-        },
-
-        // 神秘商人委託
-        {
-            id: 'commission_merchant_001',
-            name: '黑市收藏家的標籤',
-            type: QuestType.COMMISSION,
-            npc: 'street_beggar',
-            chapter: 2,
-            icon: '🎭',
-            trigger: {
-                type: 'vendor_item',
-                interactionId: 'merchant_ancient_coin',
-                reason: '你交出古代錢幣後，暗巷裡的收藏家伊文承認自己在追一批灰燼男爵的黑市標籤。'
-            },
-            description: '黑市收藏家伊文不是單純收破爛。他要詛咒碎片，是因為那種碎片會附在走私標籤上，能證明灰燼男爵的貨從哪裡流進城鎮。',
-            objectives: [
-                { type: ObjectiveType.COLLECT, target: 'cursed_shard', count: 1, description: '取得詛咒碎片 1 個，讓伊文辨認黑市標籤' }
-            ],
-            rewards: {
-                gold: 0,
-                items: ['mystery_box', 'black_market_ticket']
-            },
-            unlocks: [],
-        }
-    ],
+    // Character-centered side stories stay outside the playable database until
+    // their map owner, scene script, and reward source are approved together.
+    commission: [],
 
     // ==================== 隱藏任務 ====================
-    hidden: [
-        {
-            id: 'hidden_broke',
-            name: '一無所有',
-            type: QuestType.HIDDEN,
-            npc: 'street_beggar',
-            icon: '💸',
-            description: '當你失去一切時，或許能發現新的可能...',
-            trigger: {
-                type: 'gold',
-                condition: 'equal',
-                value: 0
-            },
-            objectives: [
-                { type: ObjectiveType.TALK, target: 'beggar', count: 1, description: '與乞丐對話' }
-            ],
-            rewards: {
-                items: ['beggars_wisdom']
-            },
-        },
-        {
-            id: 'hidden_death_loop',
-            name: '死亡輪迴',
-            type: QuestType.HIDDEN,
-            icon: '💀',
-            description: '在無盡的死亡中，你發現了某些規律...',
-            trigger: {
-                type: 'death_count',
-                condition: 'gte',
-                value: 10
-            },
-            objectives: [
-                { type: ObjectiveType.KILL, target: 'any', count: 1, description: '在下次戰鬥中獲勝' }
-            ],
-            rewards: {
-                items: ['phoenix_feather']
-            },
-        },
-        {
-            id: 'hidden_gambler_ruin',
-            name: '賭徒的末路',
-            type: QuestType.HIDDEN,
-            icon: '🎲',
-            description: '連續的失敗讓你看清了賭博的本質...',
-            trigger: {
-                type: 'gamble_loss_streak',
-                condition: 'gte',
-                value: 10
-            },
-            objectives: [
-                { type: ObjectiveType.GAMBLE_WIN, target: 'any', count: 1, description: '再贏一次' }
-            ],
-            rewards: {
-                items: ['gamblers_fallacy']
-            },
-        },
-        {
-            id: 'hidden_dark_deal',
-            name: '暗桌契約',
-            type: QuestType.HIDDEN,
-            icon: '😈',
-            description: '你在賭場暗桌付出血價後，惡魔莊家的契約開始浮出字跡。',
-            trigger: {
-                type: 'dark_table_loss',
-                condition: 'gte',
-                value: 1
-            },
-            objectives: [
-                { type: ObjectiveType.GAMBLE_WIN, target: 'dark_table', count: 1, description: '回到暗桌贏下一局，逼莊家交出契約正文' }
-            ],
-            rewards: {
-                items: ['demon_contract']
-            },
-        },
-        {
-            id: 'hidden_lucky_seven',
-            name: '幸運七',
-            type: QuestType.HIDDEN,
-            icon: '7️⃣',
-            description: '連續中大獎的你，引起了某人的注意...',
-            trigger: {
-                type: 'jackpot_count',
-                condition: 'gte',
-                value: 3
-            },
-            objectives: [
-                { type: ObjectiveType.GAMBLE_WIN, target: 'slots', count: 7, description: '在老虎機連續獲勝 7 次' }
-            ],
-            rewards: {
-                items: ['lucky_charm_7']
-            },
-        },
-        {
-            id: 'hidden_max_enhance',
-            name: '鍛造大師',
-            type: QuestType.HIDDEN,
-            icon: '🔨',
-            description: '當裝備達到極限時，新的境界將會展開...',
-            trigger: {
-                type: 'enhance_level',
-                condition: 'gte',
-                value: 10
-            },
-            objectives: [
-                { type: ObjectiveType.ENHANCE, target: 'legendary', count: 1, description: '強化傳說裝備 1 次' }
-            ],
-            rewards: {
-                items: ['transcend_stone']
-            },
-        },
-        {
-            id: 'hidden_dungeon_master',
-            name: '副本征服者',
-            type: QuestType.HIDDEN,
-            icon: '🏆',
-            description: '當你征服了所有副本，傳說中的稱號將屬於你...',
-            trigger: {
-                type: 'dungeon_clear_all',
-                condition: 'equal',
-                value: true
-            },
-            objectives: [
-                { type: ObjectiveType.DUNGEON_CLEAR, target: 'cave', count: 1, description: '通關幽暗洞窟' },
-                { type: ObjectiveType.DUNGEON_CLEAR, target: 'snow', count: 1, description: '通關冰封雪峰' },
-                { type: ObjectiveType.DUNGEON_CLEAR, target: 'ruins', count: 1, description: '通關遠古遺跡' },
-                { type: ObjectiveType.DUNGEON_CLEAR, target: 'jungle', count: 1, description: '通關迷霧叢林' },
-                { type: ObjectiveType.DUNGEON_CLEAR, target: 'hell', count: 1, description: '通關煉獄深淵' }
-            ],
-            rewards: {
-                gold: 5000,
-                exp: 2000,
-                items: ['dungeon_master_badge']
-            },
-        }
-    ]
+    // Hidden story achievements are owned by StoryStateContract. Legacy
+    // stat-triggered hidden quests are disabled during screenplay migration.
+    hidden: []
 };
 
 /**
@@ -2223,6 +1286,6 @@ export function getQuestById(questId) {
  */
 export function getInitialQuests() {
     return [
-        QuestDatabase.main[0] // main_001
+        QuestDatabase.main[0]
     ];
 }

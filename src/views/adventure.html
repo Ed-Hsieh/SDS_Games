@@ -1,479 +1,79 @@
-<div class="adventure-scene">
+<main class="adventure-scene adventure-map-v2">
     <header class="adventure-header">
-        <div class="adventure-status-strip">
-            <div class="player-info-bar">
-                <div class="info-item">
-                    <span class="info-label">等級</span>
-                    <span class="info-value" id="adv-player-level">1</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">生命</span>
-                    <span class="info-value" id="adv-player-hp">100/100</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">金幣</span>
-                    <span class="info-value" id="adv-player-gold">1000</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">疲勞</span>
-                    <span class="info-value" id="adv-player-fatigue">18/18</span>
-                </div>
+        <div class="region-identity">
+            <span id="adventure-region-subtitle">第一區域</span>
+            <strong id="adventure-region-title">南門外林地</strong>
+            <small id="adventure-habitat-name">南門荒地</small>
+        </div>
+
+        <div class="adventure-player-status" aria-label="角色狀態">
+            <div class="adventure-stat">
+                <span>等級</span>
+                <b id="adv-player-level">1</b>
             </div>
-            <div class="header-buttons">
-                <button class="btn btn-primary" id="btn-open-inventory">背包</button>
-                <button class="btn btn-secondary" id="btn-return-to-lobby">返回大廳</button>
+            <div class="adventure-stat">
+                <span>生命</span>
+                <b id="adv-player-hp">100/100</b>
+            </div>
+            <div class="adventure-stat">
+                <span>金幣</span>
+                <b id="adv-player-gold">0</b>
             </div>
         </div>
+
+        <button class="adventure-icon-button" id="btn-return-to-lobby" type="button" title="返回村落" aria-label="返回村落">
+            <span aria-hidden="true">←</span>
+        </button>
     </header>
 
-    <div class="map-container" id="map-container">
-        <canvas id="world-map-canvas"></canvas>
+    <section class="adventure-map-stage" aria-label="冒險地圖">
+        <canvas id="world-map-canvas" tabindex="0"></canvas>
 
-        <div class="location-toast" id="location-toast" aria-live="polite">
-            <div class="location-toast-image" id="location-toast-image" aria-hidden="true"></div>
-            <div class="location-toast-kicker" id="location-toast-kicker">地點</div>
-            <h2 id="location-toast-title">村外近郊</h2>
-            <p id="location-toast-description">村莊外圍仍有人走動。</p>
+        <div class="map-region-toast" id="map-region-toast" aria-live="polite">
+            <span>進入區域</span>
+            <strong id="map-region-toast-title">南門荒地</strong>
+            <p id="map-region-toast-text"></p>
         </div>
 
-        <div class="small-location-hint" id="small-location-hint" aria-live="polite">
-            <div class="small-location-hint-kicker" id="small-location-hint-kicker">附近地點</div>
-            <div class="small-location-hint-title" id="small-location-hint-title">獵人棧道</div>
-            <div class="small-location-hint-text" id="small-location-hint-text">靠近後按 F 調查。</div>
+        <div class="map-location-hint" id="map-location-hint" aria-live="polite">
+            <span class="map-location-key">F</span>
+            <div>
+                <strong id="map-location-hint-title">未知地點</strong>
+                <p id="map-location-hint-text">靠近後調查。</p>
+            </div>
         </div>
 
-        <button class="clue-book-tab" id="btn-toggle-clue-book" type="button" aria-expanded="false" aria-controls="clue-book-panel">
-            <span class="clue-book-tab-title">旅人手札</span>
-        </button>
-
-        <button class="boss-test-tab" id="btn-toggle-boss-test" type="button" aria-expanded="false" aria-controls="boss-test-panel" hidden>
-            <span>BOSS 測試</span>
-        </button>
-
-        <button class="dialogue-test-tab" id="btn-open-dialogue-test" type="button" aria-controls="adventure-dialogue-modal">
-            <span>多人對話測試</span>
-        </button>
-
-        <aside class="clue-book-panel" id="clue-book-panel" aria-hidden="true">
-            <div class="clue-book-header">
-                <div>
-                    <span class="clue-book-kicker">旅行紀錄</span>
-                    <h2>旅人手札</h2>
-                </div>
-                <button class="clue-book-close" id="btn-close-clue-book" type="button" aria-label="關閉旅人手札">×</button>
-            </div>
-            <div class="clue-book-summary" id="clue-book-summary"></div>
-            <div class="clue-book-tabs" id="clue-book-tabs" role="tablist" aria-label="旅人手札快速分類">
-                <button class="clue-book-filter is-active" type="button" data-adventure-handbook-tab="commissions" aria-selected="true">
-                    <span>委託</span>
-                    <b data-adventure-handbook-count="commissions">0</b>
-                </button>
-                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="boss" aria-selected="false">
-                    <span>首領痕跡</span>
-                    <b data-adventure-handbook-count="boss">0</b>
-                </button>
-                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="world" aria-selected="false">
-                    <span>世界見聞</span>
-                    <b data-adventure-handbook-count="world">0</b>
-                </button>
-                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="relationships" aria-selected="false">
-                    <span>城鎮人際</span>
-                    <b data-adventure-handbook-count="relationships">0</b>
-                </button>
-                <button class="clue-book-filter" type="button" data-adventure-handbook-tab="town" aria-selected="false">
-                    <span>城鎮記憶</span>
-                    <b data-adventure-handbook-count="town">0</b>
-                </button>
-            </div>
-            <div class="clue-book-content" id="clue-book-content"></div>
-        </aside>
-
-        <aside class="boss-test-panel" id="boss-test-panel" aria-hidden="true" hidden>
-            <div class="boss-test-header">
-                <div>
-                    <span class="boss-test-kicker">開發測試</span>
-                    <h2>BOSS 流程檢查</h2>
-                </div>
-                <button class="boss-test-close" id="btn-close-boss-test" type="button" aria-label="關閉 BOSS 測試">×</button>
-            </div>
-            <div class="boss-test-toolbar">
-                <button class="boss-test-action" type="button" data-boss-action="reset-all">重置故事狀態</button>
-            </div>
-            <div class="boss-test-content" id="boss-test-content"></div>
-        </aside>
-
-        <div class="controls-hint">
-            <div class="hint-item">方向鍵 / WASD</div>
-            <div class="hint-item">F 調查</div>
-            <div class="hint-item">J 手札</div>
-            <div class="hint-item">I / B 背包</div>
-        </div>
-    </div>
-
-    <div class="town-dialogue-modal adventure-dialogue-modal" id="adventure-dialogue-modal" hidden>
-        <div class="town-dialogue-card adventure-dialogue-card" role="dialog" aria-modal="true" aria-labelledby="adventure-dialogue-name" tabindex="-1">
-            <button class="town-dialogue-close" id="adventure-dialogue-close" type="button" aria-label="關閉對話">×</button>
-            <header class="town-dialogue-person">
-                <div class="town-dialogue-avatar" id="adventure-dialogue-avatar">?</div>
-                <div>
-                    <span id="adventure-dialogue-role">多人對話測試</span>
-                    <strong id="adventure-dialogue-name">測試</strong>
-                </div>
+        <aside class="map-test-panel" id="map-test-panel" hidden>
+            <header>
+                <span>MAP PROTOTYPE</span>
+                <strong>連續地圖測試</strong>
             </header>
-            <div class="town-dialogue-lines" id="adventure-dialogue-lines"></div>
-            <div class="town-dialogue-effects" id="adventure-dialogue-effects"></div>
-            <div class="town-dialogue-actions">
-                <button class="town-dialogue-mode" id="adventure-dialogue-mode" type="button" aria-pressed="false">手動閱讀</button>
-                <button class="town-dialogue-done" id="adventure-dialogue-done" type="button" hidden>關閉</button>
+            <div class="map-test-actions">
+                <button type="button" data-map-test-action="goto-start">第一區起點</button>
+                <button type="button" data-map-test-action="goto-gate">腐根斷橋</button>
+                <button type="button" data-map-test-action="goto-chapter-two">第二區起點</button>
+                <button type="button" data-map-test-action="repair-gate">修復斷橋</button>
+                <button type="button" data-map-test-action="reset-gate">重置斷橋</button>
+                <button type="button" data-map-test-action="reveal-all">揭開迷霧</button>
+                <button type="button" data-map-test-action="reset-fog">重置迷霧</button>
+                <button type="button" data-map-test-action="sample-monster">抽樣當地怪物</button>
+                <button type="button" data-map-test-action="toggle-reserves">超格 Boss 預留點</button>
             </div>
-        </div>
+            <p class="map-test-sample" id="map-test-sample">尚未抽樣</p>
+            <ol class="map-test-boss-list" id="map-test-boss-list"></ol>
+        </aside>
+    </section>
+
+    <div class="map-landmark-modal" id="map-landmark-modal" hidden>
+        <article class="map-landmark-card" role="dialog" aria-modal="true" aria-labelledby="map-landmark-title">
+            <button class="map-landmark-close" id="map-landmark-close" type="button" title="關閉" aria-label="關閉">×</button>
+            <div class="map-landmark-image" id="map-landmark-image"></div>
+            <div class="map-landmark-copy">
+                <span id="map-landmark-kicker">地標已記錄</span>
+                <h2 id="map-landmark-title">地標</h2>
+                <p id="map-landmark-text"></p>
+                <button class="map-landmark-confirm" id="map-landmark-confirm" type="button">繼續探索</button>
+            </div>
+        </article>
     </div>
-</div>
-
-<!-- 戰鬥彈窗 - HOLOGRAPHIC COMBAT CARD -->
-<div class="modal battle-modal" id="battle-modal" style="display: none;">
-    <div class="modal-content battle-content">
-        
-        <!-- 敵人狀態卡 - THE TARGET -->
-        <div class="battle-header">
-            <div class="combat-card-glow"></div>
-            <div class="monster-display">
-                <div class="monster-avatar-frame">
-                    <div class="avatar-hexagon">
-                        <div class="monster-icon" id="battle-monster-icon">👾</div>
-                    </div>
-                    <div class="avatar-glow"></div>
-                </div>
-                <div class="monster-info">
-                    <div class="monster-name-bar">
-                        <div class="monster-name" id="battle-monster-name">WILD WOLF</div>
-                        <div class="monster-level">等級 <span id="battle-monster-level">2</span></div>
-                    </div>
-                    <div class="monster-hp-container">
-                        <div class="hp-bar-track">
-                            <div class="hp-bar-fill" id="battle-monster-hp-bar" style="width: 100%;">
-                                <div class="hp-bar-shine"></div>
-                                <div class="hp-bar-liquid"></div>
-                            </div>
-                        </div>
-                        <div class="hp-text" id="battle-monster-hp-text">55/55</div>
-                    </div>
-                    <div class="monster-stats">
-                        <span class="stat-badge stat-atk"><span class="stat-icon">⚔️</span><span id="battle-monster-atk">12</span></span>
-                        <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="battle-monster-def">6</span></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 精準計時系統 - THE CORE MECHANIC -->
-        <div class="battle-body">
-            <!-- 節奏條 - PRECISION GAUGE -->
-            <div class="rhythm-ring-stage">
-                <div class="rhythm-ring-panel rhythm-ring-panel-main">
-                    <div class="rhythm-ring-label"><span>主手</span><kbd>A</kbd></div>
-                <div class="rhythm-bar rhythm-ring" id="rhythm-bar" data-rhythm-mode="ring">
-                    <!-- MISS 區域（背景填滿整個軌道） -->
-                    <div class="zone-miss">
-                        <span class="zone-label">失誤</span>
-                    </div>
-                    <!-- HIT 區域（absolute定位） -->
-                    <div class="hit-zone" id="hit-zone">
-                        <div class="zone-glow zone-glow-hit"></div>
-                        <span class="zone-label">命中</span>
-                    </div>
-                    <!-- CRIT 區域（absolute定位） -->
-                    <div class="crit-zone" id="crit-zone">
-                        <div class="zone-glow zone-glow-crit"></div>
-                        <span class="zone-label">暴擊</span>
-                    </div>
-                    <!-- 雷射指針 -->
-                    <div class="rhythm-needle" id="rhythm-needle">
-                        <div class="needle-beam"></div>
-                        <div class="needle-tip"></div>
-                    </div>
-                    <div class="rhythm-ring-core">
-                        <div class="rhythm-ring-icon" id="main-rhythm-icon">⚔</div>
-                        <div class="rhythm-ring-name" id="main-rhythm-name">主手</div>
-                    </div>
-                </div>
-                </div>
-                <div class="rhythm-ring-panel rhythm-ring-panel-offhand">
-                    <div class="rhythm-ring-label"><span>副手</span><kbd>S</kbd></div>
-                    <div class="rhythm-bar rhythm-ring offhand-rhythm-ring" id="offhand-rhythm-ring" data-rhythm-mode="ring">
-                        <div class="zone-miss"><span class="zone-label">待命</span></div>
-                        <div class="hit-zone" id="offhand-hit-zone">
-                            <div class="zone-glow zone-glow-hit"></div>
-                            <span class="zone-label">命中</span>
-                        </div>
-                        <div class="crit-zone" id="offhand-crit-zone">
-                            <div class="zone-glow zone-glow-crit"></div>
-                            <span class="zone-label">暴擊</span>
-                        </div>
-                        <div class="rhythm-needle" id="offhand-rhythm-needle">
-                            <div class="needle-beam"></div>
-                            <div class="needle-tip"></div>
-                        </div>
-                        <div class="rhythm-ring-core">
-                            <div class="rhythm-ring-icon" id="offhand-rhythm-icon">🛡</div>
-                            <div class="rhythm-ring-name" id="offhand-rhythm-name">未裝副手</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 統一戰鬥控制台 - UNIFIED COMBAT PANEL -->
-            <div class="combat-panel-bottom">
-                <!-- 上排：玩家狀態資訊列 -->
-                <div class="player-info-bar">
-                    <div class="info-identity">
-                        <div class="info-level">等級 <span id="hud-player-level">1</span></div>
-                        <div class="info-name" id="hud-player-name">冒險者</div>
-                    </div>
-                    <div class="info-vital-bars">
-                        <div class="vital-row">
-                            <span class="vital-label">生命</span>
-                            <div class="vital-bar-track">
-                                <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
-                            </div>
-                            <span class="vital-text" id="hud-hp-text">100/100</span>
-                        </div>
-                    </div>
-                    <!-- 新增：Buff 狀態顯示 -->
-                    <div class="buff-indicators" id="buff-indicators">
-                        <!-- 動態生成 Buff 圖示 -->
-                    </div>
-                </div>
-
-                <!-- 下排：行動按鈕組 -->
-                <div class="action-deck">
-                    <!-- Slot A: 武器卡片 -->
-                    <div class="action-card weapon-card" id="action-weapon">
-                        <div class="card-header">
-                            <span class="card-key">[A]</span>
-                            <span class="card-title">武器</span>
-                        </div>
-                        <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                        <div class="card-body-row">
-                            <div>
-                                <div class="card-icon" id="weapon-icon">⚔️</div>
-                                <div class="card-name" id="weapon-name">舊劍</div>
-                            </div>
-                            <div>
-                                <span class="stat-label">攻擊</span>
-                                <span class="stat-value" id="weapon-damage">15</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="action-card offhand-card disabled" id="action-offhand">
-                        <div class="card-header">
-                            <span class="card-key">[S]</span>
-                            <span class="card-title">副手</span>
-                        </div>
-                        <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                        <div class="card-body-row">
-                            <div>
-                                <div class="card-icon" id="offhand-icon">🛡</div>
-                                <div class="card-name" id="offhand-name">未裝副手</div>
-                            </div>
-                            <div>
-                                <span class="stat-label">攻擊</span>
-                                <span class="stat-value" id="offhand-damage">--</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Slot B: 藥水卡片 -->
-                    <div class="action-card potion-card" id="action-potion">
-                        <div class="card-header">
-                            <span class="card-key">[D]</span>
-                            <span class="card-title">藥水</span>
-                        </div>
-                        <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                        <div class="card-body-row">
-                            <div>
-                                <div class="card-icon" id="potion-icon">🧪</div>
-                                <div class="card-name" id="potion-name">小紅水</div>
-                            </div>
-                            <span class="stat-label">使用</span>
-                            <span class="stat-value" id="potion-quantity">(x5)</span>
-                            <span class="stat-label">生命</span>
-                            <span class="stat-value" id="potion-heal">+50</span>
-                        </div>
-                    </div>
-
-                    <!-- Slot C: 逃跑卡片 -->
-                    <div class="action-card flee-card" id="action-flee">
-                        <div class="card-header">
-                            <span class="card-key">[F]</span>
-                            <span class="card-title">逃跑</span>
-                        </div>
-                        <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                        <div class="card-body-row">
-                            <div class="card-icon">🏃</div>
-                            <div class="card-name">撤退</div>
-                            <div class="card-subtitle">逃跑</div>
-                        </div>
-                    </div>
-                </div>            </div>
-        </div>
-
-        <!-- 戰鬥結算階段：留在同一個戰鬥 overlay 內，避免切換獨立彈窗時閃爍 -->
-        <div class="battle-result-stage loot-modal" id="loot-modal" style="display: none;">
-            <div class="modal-content loot-result-content">
-                <div class="modal-header">
-                    <h2>戰鬥結算</h2>
-                </div>
-                <div class="modal-body">
-                    <!-- 獎勵統計 -->
-                    <div class="loot-summary">
-                        <div class="loot-stat loot-stat-exp">
-                            <span class="loot-label">經驗</span>
-                            <span class="loot-value exp-value" id="exp-gained">+50 經驗</span>
-                        </div>
-                        <div class="loot-stat loot-stat-gold">
-                            <span class="loot-label">金幣</span>
-                            <span class="loot-value gold-value" id="gold-gained">+30</span>
-                        </div>
-                    </div>
-
-                    <div class="loot-reveal-strip" id="loot-reveal-strip" aria-live="polite"></div>
-
-                    <!-- 雙向交換系統 -->
-                    <div class="loot-exchange-container">
-                        <!-- 左側：玩家背包 -->
-                        <div class="exchange-panel inventory-panel">
-                            <div class="panel-header">
-                                <h3>背包</h3>
-                                <span class="capacity-badge" id="loot-inventory-capacity">5/10</span>
-                            </div>
-                            <div class="panel-body" id="loot-current-inventory">
-                                <!-- 背包物品動態插入 -->
-                            </div>
-                        </div>
-
-                        <!-- 中間：交換箭頭 -->
-                        <div class="exchange-indicator">
-                            <div class="arrow-left">←</div>
-                            <div class="exchange-text">選擇帶走</div>
-                            <div class="arrow-right">→</div>
-                        </div>
-
-                        <!-- 右側：戰利品 -->
-                        <div class="exchange-panel loot-panel">
-                            <div class="panel-header">
-                                <h3>戰利品</h3>
-                                <span class="count-badge" id="loot-count">3 件</span>
-                            </div>
-                            <div class="panel-body" id="loot-items">
-                                <!-- 戰利品動態插入 -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-primary btn-large" id="btn-close-loot">離開（未帶走會遺失）</button>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- 背包彈窗 -->
-<div class="modal inventory-modal" id="inventory-modal" style="display: none;">
-    <div class="modal-content inventory-content">
-        <div class="modal-header">
-            <h2>🎒 探險行囊</h2>
-            <span class="inventory-capacity" id="inventory-capacity">5/10</span>
-        </div>
-        <div class="modal-body inventory-body">
-            <div class="inventory-layout">
-                <!-- 左側：角色裝備 -->
-                <div class="equipment-panel">
-                    <div class="panel-title">👤 角色裝備</div>
-                    <div class="equipment-slots" id="adv-equipment-slots">
-                        <!-- 武器槽 -->
-                        <div class="equipment-slot empty" id="adv-slot-weapon" data-slot-type="weapon">
-                            <div class="equipment-slot-label">武器</div>
-                            <div class="equipment-slot-icon">⚔️</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                        <!-- 防具槽 -->
-                        <div class="equipment-slot empty" id="adv-slot-armor" data-slot-type="armor">
-                            <div class="equipment-slot-label">防具</div>
-                            <div class="equipment-slot-icon">🛡️</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                        <!-- 飾品槽 -->
-                        <div class="equipment-slot empty" id="adv-slot-accessory" data-slot-type="accessory">
-                            <div class="equipment-slot-label">飾品</div>
-                            <div class="equipment-slot-icon">💍</div>
-                            <div class="equipment-slot-name">未裝備</div>
-                        </div>
-                    </div>
-                </div>
-                <!-- 右側：背包物品 -->
-                <div class="inventory-panel">
-                    <div class="panel-title">🎒 背包格</div>
-                    <p class="adventure-inventory-note">探險中只能使用身上行囊；倉庫物品需回城整理。</p>
-                    <div class="adventure-inventory-list" id="adventure-inventory-list">
-                        <!-- 背包物品動態插入 -->
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" id="btn-close-inventory">關閉</button>
-        </div>
-    </div>
-</div>
-
-<!-- 物品詳情彈窗 (與大廳一致) -->
-<!-- Item detail modal provided by centralized ItemDetailModal component -->
-
-<!-- 地圖事件彈窗 -->
-<div class="modal event-modal" id="event-modal" style="display: none;">
-    <div class="modal-content event-content">
-        <div class="modal-header">
-            <span class="event-icon" id="event-icon">📦</span>
-            <h2 id="event-title">發現了寶箱！</h2>
-        </div>
-        <div class="modal-body">
-            <p class="event-description" id="event-description">你在探索時發現了一個寶箱。</p>
-            <div class="event-result" id="event-result">
-                <!-- 動態顯示事件結果 -->
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-primary" id="btn-close-event">繼續探索</button>
-        </div>
-    </div>
-</div>
-
-<!-- 隨機劇情事件彈窗 (Slay the Spire 風格) -->
-<div class="modal story-event-modal" id="story-event-modal" style="display: none;">
-    <div class="modal-content story-event-content">
-        <div class="story-event-header">
-            <span class="story-event-icon" id="story-event-icon">🔮</span>
-            <h2 class="story-event-title" id="story-event-title">神秘事件</h2>
-            <span class="story-event-type" id="story-event-type">MYSTERY</span>
-        </div>
-        <div class="story-event-body">
-            <p class="story-event-description" id="story-event-description">
-                一個神秘的事件正在等待著你...
-            </p>
-            <div class="story-event-choices" id="story-event-choices">
-                <!-- 動態生成選項按鈕 -->
-            </div>
-        </div>
-        <div class="story-event-result" id="story-event-result" style="display: none;">
-            <h3>結果</h3>
-            <div class="result-messages" id="story-result-messages">
-                <!-- 動態顯示結果訊息 -->
-            </div>
-            <button class="btn btn-primary" id="btn-close-story-event">繼續</button>
-        </div>
-    </div>
-</div>
+</main>

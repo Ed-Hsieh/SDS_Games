@@ -1,150 +1,159 @@
 # Agent Session Log
 
-Last updated: 2026-07-09
+Last updated: 2026-07-11
 
 ## Current Direction
 
-The project is being rebuilt as a desktop-focused 2D RPG. The current priority is
-the clean story rebuild and major NPC profile pass before rewriting runtime
-quests. The active design target is a dark fantasy two-run structure: first-run
-false victory and loss, second-run understanding and limited rescue.
+The sole delivery priority is a complete first run. Do not expand second-run
+external Boss stories, second-run gameplay, tower content, or post-reveal DLC
+until the first-run story, playable systems, and every required image are
+finished and validated.
 
-Paused for now:
+First-run completion means:
 
-- Combat redesign.
-- Tower rewrite.
-- Image generation.
+- The complete first-run screenplay and character causality are approved.
+- Chapter maps, town recovery, quests, market, casino, dialogue, combat-facing
+  encounters, saves, and ending flow are playable from opening to false ending.
+- Required full-screen location backgrounds, transparent half-body expression
+  portraits, monsters, items, and critical first-run CGs are complete.
+- The finished first run receives one final persistent-flag audit. Later
+  second-run work must consume those stable achievement/evidence interfaces
+  without changing first-run scene order, outputs, or core logic.
+
+Recorded and paused:
+
+- Optional second-run external Bosses remain base-game content and never gate
+  the true ending.
+- The five reserved route families are prologue overcap demon, Ash Baron,
+  expedition supreme commander, Radiant Corridor, and Void revelation.
+- Later DLC extends the post-reveal light, Void, and tower world; it does not own
+  those routes' first resolutions.
 
 ## Completed In Recent Passes
 
-- Added direct-rewrite preference to `AGENTS.md`.
-- Rebuilt town/NPC/world interaction data around the broken-town direction.
-- Removed `StoryScriptRevisions.js`; `QuestStories.js` is the direct story source.
-- Added `TownRebuildPlan.js` with phases, gates, recovery nodes, character voice,
-  branch policy, third-party sources, and future asset needs.
-- Added `ChapterQuestFramework.js` and `CasinoRouteFramework.js` as data skeletons
-  for future implementation.
-- Consolidated docs into a smaller authoritative set:
-  `TOWN_REBUILD_CONVERGENCE.md`, `CHAPTER_QUEST_FRAMEWORK.md`,
-  `MAIN_STORY_BIBLE.md`, `NARRATIVE_WRITING_GUIDE.md`,
-  `CASINO_ROUTE_FRAMEWORK.md`, `ART_STYLE_GUIDE.md`, and
-  `IMAGE_GENERATION_PROMPTS.md`.
-- Removed old image-generation influence docs from the sheet/crop/art-v2 pipeline.
-  Future image generation should use `IMAGE_GENERATION_PROMPTS.md` as the prompt
-  standard and `ART_STYLE_GUIDE.md` as the visual reference guide.
-- Added `OBSOLETE_CLEANUP_PLAN.md` to record remaining obsolete pipeline and
-  compatibility cleanup targets.
-- Added `AGENT_UPDATE_PROTOCOL.md` so future agents use fixed document, progress,
-  cleanup, image prompt, and handoff formats instead of inventing new ones.
-- Added `ChapterMapFramework.js` and wired the map away from visible
-  low/medium/high/death route labels. Fogged unexplored movement now costs double
-  fatigue, while town/watchpost reveal areas provide clear map anchors. Void rift
-  teleport is retired.
-- Added `QuestSpineFramework.js` plus `scripts/QuestSpineCheck.mjs` so the
-  existing main quests are mapped into a seven-chapter planning spine before the
-  playable quest chain is rewritten.
-- Adjusted the quest spine rule away from quest-count balance. Chapters are now
-  checked by meaning beats: large goal, exploration, clues, equipment pressure,
-  town-state change, boss convergence, and dungeon side-story support.
-- Landed the first chapter route plan in `ChapterOneRoutePlan.js`. `main_001`
-  now progresses through first visits to the South Gate Farm, Hunter Boardwalk,
-  and Old Campfire landmarks instead of generic low-zone steps.
-- Adventure handbook quick records now surface first-chapter route progress, and
-  the DEV panel has a First Chapter tab for route visits and boss-line setup.
-- Added `TownStateResolver.js` and wired the lobby town map to runtime visibility
-  rules. First-chapter initial town now shows only the opening places/residents,
-  while black market, casino, tower, and later NPCs wait for town-state flags.
-- Quest completion now applies `QuestStories.characterProfile.townState` when
-  present, so side-story reports can visibly change the town.
-- Added `EQUIPMENT_SERIES_FRAMEWORK.md` to record equipment-series roles,
-  weapon-form quadrants, affinity/group boundaries, and planned weapon ability
-  replacements before combat implementation resumes.
-- Added detailed character dossiers for `village_elder`, `herbalist`,
-  `town_scholar`, `standard_bearer_frey`, `lamplighter_tavi`, and `blacksmith`.
-  These files now own accepted background, first-run arc, second-run reading, and
-  unresolved fate questions for those characters.
-- Added in-progress `street_beggar` dossier. Accepted so far: he is an outside
-  lost-settlement survivor, erratic but not omniscient, likely first-run
-  disappearance; his original identity and madness logic are still unresolved.
+- [done] [P0] [story-runtime] Compiled the complete screenplay foundation
+  Owner file(s): `docs/MAIN_STORY_BIBLE.md`, `src/js/data/StorySceneRegistry.js`, `src/js/managers/StorySceneManager.js`
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`
+  Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/ChapterStoryCompletenessCheck.mjs`
+  Notes: All 66 scenes, seven chapters, nine expressions, run conditions, and nine core character contracts are machine-readable.
+
+- [done] [P0] [map-town] Replaced old route and town scaffolding with the new foundation
+  Owner file(s): `src/js/data/ChapterRegionRegistry.js`, `src/js/data/TownPlaces.js`, `src/js/managers/TownStateResolver.js`, `src/js/data/Quests.js`
+  Source of truth: `docs/CHAPTER_QUEST_FRAMEWORK.md`, `docs/TOWN_REBUILD_CONVERGENCE.md`
+  Validation: `scripts/TownRuntimeCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
+  Notes: Seven handcrafted regions, eight active town places, and seven reward-free scene-driven chapter quests replace the obsolete route and fifteen-quest layers.
+
+- [done] [P0] [dialogue-direction] Accepted the layered dialogue presentation direction
+  Owner file(s): `docs/NARRATIVE_WRITING_GUIDE.md`, `docs/MAIN_STORY_BIBLE.md`
+  Source of truth: `docs/NARRATIVE_WRITING_GUIDE.md`
+  Validation: manual user review
+  Notes: Desktop 16:9 uses reusable full-screen backgrounds, transparent half-body portraits, five positions, nine script-selected expressions, speaker focus, left-click advance, Ctrl fast-forward, auto play, read skip, and history.
+
+- [done] [P0] [second-run-boundary] Recorded and paused the external Boss layer
+  Owner file(s): `docs/MAIN_STORY_BIBLE.md`, `docs/CHAPTER_QUEST_FRAMEWORK.md`, `src/js/data/ChapterQuestFramework.js`, `src/js/data/StoryRebuildPlan.js`
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`
+  Validation: `scripts/StoryRebuildPlanCheck.mjs`, `scripts/BetaConvergenceCheck.mjs`
+  Notes: External routes are loosely related world extensions with no shared mastermind or third ending; their expansion is blocked behind first-run completion.
+
+- [done] [P0] [first-run-premise] Accepted the protagonist's official investigation role
+  Owner file(s): `docs/MAIN_STORY_BIBLE.md`
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`
+  Validation: manual premise review; detailed Chapter 1 scene synchronization remains pending
+  Notes: The protagonist is a formally appointed royal frontier inspector sent after scheduled land, tax, and courier reports stop; the opening uses a mandatory tutorial fight and scripted defeat by a genuine high-tier Boss.
 
 ## Current Runtime Status
 
-- `TownRebuildPlan.js` is partially wired into lobby visibility through
-  `TownStateResolver.js`. Shop, forge, market, and casino service gates still
-  need to read the same resolver in later passes.
-- Casino showcase UI and inspection flags exist, but the owner long side quest and
-  final showcase choice are framework-only.
-- Quest story placement exists, but reward redistribution across Lv1-Lv70 is still
-  pending.
-- Weapon-form positioning has been accepted in documentation, but runtime combat
-  profiles still need a later pass to replace Blade Tempo, focus slow, and heavy
-  armor-break behavior.
-- The quest spine is validated separately from `Quests.js`; current playable
-  quests still use the old chapter 1-3 data until the user approves the new route
-  order.
-- Art generation is intentionally deferred.
-- Documentation updates should follow `AGENT_UPDATE_PROTOCOL.md`; runtime JS/data
-  remains the source of truth for implemented behavior.
-- Narrative prose, NPC voice, objective clarity, side-story tone, and
-  multi-speaker scene staging should follow `NARRATIVE_WRITING_GUIDE.md`.
-- Mainline suspense, long-form plot reveals, character arcs, and character
-  entry/exit should follow `MAIN_STORY_BIBLE.md`.
-- Character-specific accepted details now live under `docs/characters/*.md`.
-  The current completed core profiles are village elder, herbalist, town scholar,
-  Frey, Tavi, and blacksmith. Street beggar is in progress; casino owner remains
-  unprofiled in this pass.
+- The 66-scene registry, achievement-only run reset, chapter regions, town
+  resolver, seven chapter quests, public one-merchant market, and validation
+  foundation exist and pass their current checks.
+- `StoryStateContract.js` already writes `story.secondRunUnlocked`,
+  `story.achievement.unfinished_regicide`, and five first-run tragedy-memory
+  achievements. Physical objects are never inherited across runs.
+- The five-track `SecondRunExternalBossFramework` exists only as a paused design
+  boundary. No prologue Boss identity, external route, reward, flag, or art was
+  added.
+- The first run is not yet a finished playable release slice. Detailed scene
+  execution, the layered dialogue UI, final map interactions, first-run reward
+  allocation, encounter/combat integration, and required art still need work.
+- Current dialogue portraits with baked-in backgrounds are temporary. No final
+  first-run expression sheets or approved critical CG set has been produced.
+- Existing Ash Baron Lv40 placement and full light/Void/tower records are
+  scaffolding; they must not be pulled into first-run implementation.
 
 ## Next Good Step
 
-Continue the NPC profile pass before runtime quest rewriting. Next best step is
-to finish the `street_beggar` route by defining what he was before the lost
-settlement disaster, what rule of the world broke his mind, why he treats the
-protagonist as story-centered, and when he disappears in the first run. After
-that, profile the casino owner.
+Finish first-run story review only, beginning with the opening:
+
+1. Lock the royal frontier inspector mission, tutorial Boss identity, reason for
+   the attack, fair tutorial completion, fixed defeat, equipment destruction,
+   Mia rescue, and retained proof of office.
+2. Finish first-run Chapters 1-3 town pacing and character groundwork.
+3. Lock the first-run Vesper escape and Lorne evidence outcome.
+4. Lock Chapter 7's first-run Ailo disappearance, false victory, surviving Demon
+   King reveal, and return-town ending order.
+5. Recompile the 66-scene registry after every accepted first-run revision.
+
+Do not design the tutorial Boss's second-run rematch while completing its
+first-run opening role.
 
 ## Next Resume Task
 
-Continue the story-design pass by resolving the street beggar's madness logic and
-then drafting the casino owner's character dossier. Do not implement runtime
-quest rewrites until the core NPC motivations and first-run/second-run roles are
-accepted.
+Continue the complete first-run delivery in this order.
 
 Target result:
 
-- Finish the core NPC profile set before first-chapter runtime rewrite.
-- Keep accepted character details in `docs/characters/*.md`.
-- Preserve unresolved questions explicitly instead of inventing hidden lore.
-- Leave new monsters, materials, locations, and images out until story reasons
-  and resource needs are approved.
+- Approve every first-run scene and causal transition from the south-road
+  tutorial through the hollow-victory ending.
+- Implement first-run scene execution, dialogue presentation, seven chapter
+  routes, town recovery, quests, market, casino, encounters, saves, and ending.
+- Review map functions, then allocate first-run rewards, materials, equipment,
+  stock, and encounter sources without linking second-run external content.
+- Produce and integrate every required first-run background, half-body
+  expression layer, monster/item image, and critical CG.
+- Complete an end-to-end first-run playthrough and validation pass.
+- Audit the final first-run persistence contract. Keep
+  `story.secondRunUnlocked`, `story.achievement.unfinished_regicide`, and the
+  accepted tragedy-memory achievements; add only stable first-run evidence
+  achievements whose source scenes are already final. Do not inherit physical
+  items.
 
-Parallel cleanup note:
+Suggested implementation files:
 
-- If the user asks for cleanup before the resolver, start with the high-confidence
-  old art-v2 sheet/crop pipeline listed in `OBSOLETE_CLEANUP_PLAN.md`.
-
-Suggested documentation files:
-
-- `docs/characters/STREET_BEGGAR_PROFILE.md`
-- `docs/characters/BLACKSMITH_PROFILE.md`
-- `docs/characters/STANDARD_BEARER_FREY_PROFILE.md`
-- `docs/characters/LAMPLIGHTER_TAVI_PROFILE.md`
 - `docs/MAIN_STORY_BIBLE.md`
+- `src/js/data/StorySceneRegistry.js`
+- `src/js/data/StoryStateContract.js`
+- `src/js/managers/StorySceneManager.js`
+- `src/js/managers/DialogueManager.js`
+- `src/js/data/ChapterRegionRegistry.js`
+- `src/js/managers/TownStateResolver.js`
+- `src/js/data/Quests.js`
+- `src/js/data/AssetManifest.js`
+- `src/assets/images/art/`
+
+Validation:
+
+- `scripts/StoryRuntimeCheck.mjs`
+- `scripts/ChapterStoryCompletenessCheck.mjs`
+- `scripts/TownRuntimeCheck.mjs`
+- `scripts/DataConsistencyCheck.mjs`
+- `scripts/BetaConvergenceCheck.mjs`
+- `scripts/AssetCoverageCheck.mjs`
+- One complete first-run browser playthrough after implementation.
 
 Out of scope:
 
-- Runtime quest rewrite.
-- Combat redesign.
-- Tower rewrite.
-- Image generation.
+- Further second-run external Boss story expansion.
+- Second-run route, rescue, combat, reward, map, dialogue, or art implementation.
+- Tower rewrite and post-reveal DLC.
+- Mobile interface work.
 
 ## Verification Commands
 
 ```powershell
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\StoryRuntimeCheck.mjs
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\StoryRebuildPlanCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\DataConsistencyCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\QuestSpineCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\ChapterOneRouteCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\TownRuntimeCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\SideStoryNarrativeTaxonomyCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\BetaConvergenceCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\AssetCoverageCheck.mjs
+git diff --check
 ```

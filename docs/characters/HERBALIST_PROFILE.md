@@ -1,324 +1,368 @@
 # Herbalist Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
-This file is the detailed character dossier for `herbalist`. It records the
-accepted emotional route, family wound, protagonist bond, first-run tragedy, and
-second-run rescue direction.
+This file is the detailed character dossier for `herbalist`, whose accepted
+story name is Mia / 米婭. It owns her family wound, protagonist relationship,
+first-run death, second-run rescue, relationship records, and recipe-research
+boundary.
 
-Runtime JS/data remains the source of truth for shipped behavior. This file owns
-the intended character canon until runtime dialogue, side stories, town-humanity
-records, and quest data are rewritten.
+Runtime JS/data remains the source of truth for shipped behavior. Current
+runtime shop names, apothecary flags, dialogue, and market ownership are obsolete
+scaffolding until the clean story and market rewrite lands.
 
 ## Runtime Mapping
 
 - Runtime id: `herbalist`
-- Current role label: herbalist / apothecary / healer
-- Current portrait path: `src/assets/images/art/characters/portraits/herbalist.webp`
-- Primary systems touched later: apothecary service, poison and wounds, fatigue
-  recovery, healing supplies, relationship records, side story, first-run tragedy,
-  second-run rescue branch
-- Canon status: in progress, accepted as a major emotional route
+- Accepted display name: Mia / 米婭
+- Age: 25
+- Current portrait path:
+  `src/assets/images/art/characters/portraits/herbalist.webp`
+- Accepted portrait anchor: young adult woman, long blond braid, green embroidered
+  clothing, herb mortar, capable hands, tired but attentive expression
+- Accepted story location: 米婭的藥草工作間 / Mia's herb workroom
+- Canon status: accepted for character construction and two-run fate; final scene
+  prose and runtime implementation remain deferred
 
 ## Core Identity
 
-The herbalist is gentle, but not because life spared her.
+Mia is an idealistic romantic whose gentleness survived grief but never
+fully moved beyond it.
 
-Her gentleness is a decision she keeps making after losing the people she could
-not save. She is emotionally rich, warm, attentive, and strong in the way people
-become strong when no one else is available to lean on.
-
-She should not read as fragile. She should read as someone who has been tired for
-years and still remembers where every bandage is.
+She is warm, attentive, observant, and professionally decisive. She is not
+fragile and should never read as a passive saint. Her danger is that she can
+recognize the value of every life except her own.
 
 Her core sentence:
 
-> She keeps treating others because the first people she wanted to save slipped
-> out of her hands.
+> She learned to keep other people alive before she learned that her own life
+> also belongs among the lives worth protecting.
 
 ## Fixed Background
 
-- Her father joined the village elder's expedition twenty years ago.
-- Her father did not come home.
-- Her mother collapsed under grief and illness after the loss.
-- The herbalist could not save her mother.
-- Her mother is dead.
-- The herbalist's work as healer grew out of that double wound: father gone,
-  mother dying, child left with medicine that was not enough.
-- She stayed in the village because her warmth makes it impossible for her to
-  abandon the wounded, sick, elderly, and vulnerable.
-- She is not trapped only by duty; she is emotionally unable to step over people
-  who need care.
+- Mia is 25 in the present story.
+- Her father joined the village elder's expedition twenty years ago, when she
+  was five.
+- Her father never returned.
+- Her mother was the village's working healer. She continued teaching Mia
+  herbs, stitching, wound cleaning, childbirth assistance, and embedded-object
+  removal while grief and illness gradually weakened her.
+- Mia could not save her mother. Her mother died when Mia was fifteen.
+- Mia inherited the herb workroom and has ten years of practical experience
+  treating hunters, patrol members, workers, and ordinary residents.
+- Her daily life continued after fifteen, but her inner sense of time did not.
+  She kept the workroom arranged almost exactly as her mother left it.
 
-## Public Function
+This history makes her surgical competence earned without introducing a living
+mentor, apprentice, or replacement healer.
 
-The player first sees her as:
+## Private Desire, Fear, And Contradiction
 
-- The person who saves the protagonist after the opening collapse.
-- The village's healer and medicine source.
-- The face of bodily cost: poison, wounds, fever, exhaustion, and fear after
-  battle.
+Mia wants to save everyone she can reach. Each person who survives is a
+small answer to the childhood moment when medicine was not enough.
 
-Her service function should always carry human meaning. Buying medicine from her
-should not feel like clicking a vending machine. It should feel like visiting the
-one place in town where pain is named plainly.
+Her core fear is watching another important person die beside a bed while her
+hands remain useful but insufficient.
 
-## Private Desire
+Her contradiction:
 
-She wants to save everyone she can reach.
+- She asks the protagonist not to treat their life as expendable.
+- She treats her own life as the first resource that can be spent.
+- She wants intimacy, but knows how to receive people most easily when they are
+  injured and need her.
+- She wants the protagonist to return safely, yet fears that without a wound
+  there may be no reason for them to return to her.
 
-This desire is impossible, and she knows it. The impossibility is exactly why she
-keeps going. Each saved patient is a small argument against the helplessness of
-her childhood.
-
-## Wound And Fear
-
-Her wound:
-
-- Father vanished with the old expedition.
-- Mother died slowly afterward.
-- She had hands, herbs, and attention, but no power to reverse either loss.
-
-Her fear:
-
-- Watching another important person die while she can only stand beside the bed.
-- Discovering that all her care is only delay.
-- Becoming the person who survives because someone else leaves.
-
-As the protagonist becomes important to her, this fear narrows onto the
-protagonist.
-
-## Belief
-
-Her early belief:
+Her first belief:
 
 > If I can still treat someone, I have not completely lost.
 
-Her later growth should challenge this belief. Healing others cannot be the only
-reason she deserves to live.
-
 Her end-route growth:
 
-> She learns to save herself as part of saving everyone, not as a selfish act.
+> Care includes protecting the person who provides it, and love does not need
+> an injury to justify returning.
+
+## Story And System Boundary
+
+Mia is not a shopkeeper and owns no buy, sell, exchange, paid-heal, status
+diagnosis, or material-identification menu.
+
+She owns exactly two game-facing functions:
+
+1. Research prescriptions and authorize the rebuilt market to add medicine
+   stock.
+2. Provide character story, patient records, and town-relationship events.
+
+Ordinary healing items, antidotes, and later medicines are traded through the
+market. Stock already authorized before Mia's first-run death remains
+available. Her death removes later research and relationship scenes without
+breaking the player's basic supply economy.
+
+The runtime `apothecary_assistant` is not required for Mia's story or for
+market continuity. Keep that id outside active screenplay placement unless a
+future character-centered story independently justifies it.
+
+## Herb Workroom
+
+Mia works in a private room behind her residence. It is not a public clinic,
+shop, or market stall.
+
+- The protagonist wakes here after the opening injury.
+- Medicine research and relationship scenes return here across Chapters 1-5.
+- The Elemental Lord surgery occurs at the same worktable, turning the opening
+  place of rescue into the first-run place of loss.
+- In the first run, the room remains accessible after her death as a quiet
+  relationship location, not a replacement shop or memorial museum.
+- In the second run, survival lets Mia move her mother's old arrangement for
+  the first time, open the long-closed window, and make space for present life.
+
+The current portrait's herb-filled interior is the approved visual reference for
+the future independent background asset.
 
 ## Relationship With The Protagonist
 
-The protagonist begins as a patient.
+The protagonist begins as a patient and becomes Mia's present emotional
+center. The relationship grows through ordinary care before romance is named.
 
-Opening premise:
+### Chapter progression
 
-- The protagonist arrives as a monster hunter from outside.
-- The protagonist was attacked near the village edge by withered monsters or
-  poison mist.
-- The protagonist barely survived, lost or broke their weapon, became poisoned,
-  and collapsed.
-- The herbalist saved the protagonist and brought them back inside.
+1. Chapter 1: Mia saves the collapsed protagonist. Her attention is
+   professional, concrete, and gently humorous. After the first route return she
+   checks the protagonist's fingers again before accepting the victory report.
+2. Chapter 2: the protagonist learns that her father entered the old expedition,
+   remains to sort dry leaves beside her, and notices that she looks up at every
+   passing footstep before returning to work.
+3. Chapter 3: the protagonist conceals an injury. Mia accuses them of treating
+   life cheaply; the protagonist points out that she never counts herself among
+   the people who deserve care. This is their first major conflict. At the
+   chapter close, the protagonist returns voluntarily, removes the armor, and
+   reports contact and symptoms before Mia or the blacksmith discovers them.
+   This is a behavioral repair, not a completed romance or a promise of safety.
+4. Chapter 4: after Frey's first-run death, Mia works without rest. The
+   protagonist stays to help and she admits that every departure now feels like
+   practice for another permanent absence.
+5. Chapter 5: their affection is clear but not formally confessed before the
+   Elemental Lord route and surgery.
+6. Second-run Chapter 7: the protagonist returns without an injury. Mia lets
+   them enter anyway and completes the romance through ordinary invitation, not
+   a reward screen.
 
-The relationship should develop slowly:
+Accepted final line direction:
 
-1. Ordinary care: changing bandages, checking fever, giving medicine, warning the
-   protagonist not to tear wounds open.
-2. Familiar concern: she begins to notice the protagonist's habits, injuries,
-   lies about being fine, and appetite after returning.
-3. Emotional reliance: the protagonist's return matters to her personally, not
-   only medically.
-4. Conflict: she cannot accept the protagonist constantly walking into danger;
-   the protagonist sees that her healing work has become self-punishment.
-5. Deeper bond: affection becomes clear but not declared through clean romance
-   language.
-6. Growth: she learns she does not need to be the only one holding everyone up.
+> 下次回來，別再拿傷口當理由。
 
-The tone is close to a romance route, but the crisis makes direct confession feel
-wrong early. Use gestures, pauses, medicine, anger, and relief before love words.
+## Relationship With The Village Elder
 
-## Relationship With Village Elder
+Mia knows the elder did not privately murder her father and that the old
+expedition answered a real regional threat. The relationship remains civil but
+contains a quiet thorn.
 
-Her father died in the elder's old expedition.
+- She pauses when he speaks about sending people outside for the common good.
+- He remembers her as the child of someone who did not return under his command.
+- Neither uses melodramatic blame or easy forgiveness.
+- Saving both characters in the second run permits understanding, not erasure of
+  the old wound.
 
-She understands the elder did not murder her father. She knows the expedition was
-not one man's private vanity. The village believed it was necessary, and her
-father chose to go.
+## Relationship With Town Scholar 伊萊
 
-Still, there is a thorn.
+伊萊 preserves Mia's father's name in the expedition records. She trusts his
+work because he normally distinguishes proof from absence instead of closing a
+painful blank for convenience.
 
-She can respect the elder and still feel the old wound when he speaks about
-protecting people by sending or not sending them outside.
+First-run function:
 
-This relationship should be quiet, not melodramatic:
+- He correctly compares four routine separated-residue records collected by
+  route crews before the convergence survey, then shortens their common result
+  into the field line `標準二格固定可安全處理` without keeping `分離樣本`
+  beside the conclusion. These pages are not the fresh residues used for the
+  second-run combined test.
+- The summary does not order Mia to use the forceps, but it gives the known
+  procedure documentary confidence and removes one ordinary reason to question
+  it during an emergency.
+- After Mia dies, he finds `安全` in his handwriting beside the broken forceps.
+  This is a real causal contribution, not an outdated gathering route, hidden
+  warning, or attempt to make him the sole culprit.
 
-- Civil speech.
-- Small pauses.
-- Avoided names.
-- Shared grief that does not fully reconcile.
+Second-run function:
 
-## Relationship With Town Scholar
+- The protagonist's remembered sound prompts a question about what the current-
+  run summary actually proves.
+- 伊萊 reopens the four source pages, refuses to generalize separated-residue
+  safety to a converged object, and records a current-run combined-residue test
+  with its scope and unknowns intact.
+- The scoped record reaches Mia before the operation while the blacksmith changes
+  the physical handling procedure.
 
-The scholar likely knows her father's name from expedition, funeral, and missing
-person records.
+## Relationship With The Blacksmith
 
-He may not have caused her wound, but his paperwork preserves the shape of it.
-This can create a gentle but painful bond:
+Mia and the blacksmith care for the same vulnerable body from different
+sides: she repairs flesh and he repairs the objects that keep flesh alive.
 
-- He knows which page her father appears on.
-- She may avoid looking at it.
-- He may avoid bringing it up unless necessary.
+- He provides the known-safe embedded-object forceps for the first-run surgery.
+- The tool is correct for every previously known fragment. Its failure does not
+  make him negligent or secretly responsible for Mia's death.
+- 伊萊's field summary supports the same selection, but the blacksmith states
+  afterward that he would have chosen the forceps without it. Responsibility is
+  shared without being flattened into equal blame.
+- He serves as the visible technical assistant during the surgery; Mia alone
+  performs the medical operation.
+- The forceps ratchet click becomes the protagonist's cross-run sensory memory.
+- In the second run, he removes the fixed-pressure ratchet and prepares the
+  flexible extraction support and gel container.
 
-No heavy scene is approved yet, but this connection should be remembered when
-writing multi-speaker scenes involving old records.
+## First-Run Surgery And Death
 
-## First Run
+The Elemental Lord dies in a four-element burst. One intact shard penetrates the
+protagonist between the ribs near a major blood vessel and disables them through
+cycling fire, ice, thunder, and poison pressure.
 
-In the first run, her route should gradually turn the protagonist from patient
-into emotional center.
+The protagonist is carried directly to Mia's workroom. Medicine can keep the
+patient stable long enough for one operation, but cannot remove the foreign
+object. Mia is the only person with the wound and extraction experience to
+operate.
 
-Surface reading:
+Accepted scene sequence:
 
-- She is kind.
-- She worries about the protagonist because the protagonist is wounded and useful
-  to the village.
-- She sells or prepares medicine.
-- She sometimes scolds the protagonist for coming back hurt.
+1. The protagonist is sedated but retains broken hearing and blurred awareness.
+   Runtime presentation then becomes Mia-limited for the audience: her questions,
+   hands, successful extraction, and relief remain visible while the protagonist
+   keeps only fragmented sound until the later review.
+2. The blacksmith assists with the unfamiliar material and known extraction
+   tools.
+3. Mia explicitly asks whether the material remains safe after leaving the body.
+   The blacksmith can only report that all four existing separated-residue pages
+   stayed within the standard pressure range and showed no contraction. With no
+   tested alternative and the patient's vessel at immediate risk, she chooses
+   the lowest known fixed pressure rather than accepting the summary blindly.
+4. Mia successfully removes the intact shard.
+5. She confirms that the protagonist's pulse has stabilized and says:
+   `好了。你回來了。`
+6. The shard contracts after leaving the body. The standard forceps ratchet
+   applies too much fixed pressure and crushes it in Mia's grasp.
+7. Fire, ice, thunder, and toxic energy erupt at point-blank range. Mia dies
+   immediately; there is no untreated return wound, delayed rescue gap, or
+   unexplained magical life exchange.
+8. The protagonist wakes after the event and learns that only one person came
+   back from the operation.
 
-Deeper progression:
+This perspective switch does not grant the protagonist the full causal sequence
+early. The audience witnesses Mia's decision and unforeseeable failure; the
+protagonist learns usable evidence only when the broken forceps and records are
+examined afterward.
 
-- Every injury reopens her childhood helplessness.
-- The protagonist becomes one of the few living people she cannot bear to lose.
-- Her care becomes love-like before either side can safely name it.
+This is the first known four-element shard. Mia's death is not clumsiness. The
+four source records describe only separated residues; 伊萊's shortened field
+summary accidentally makes their safe handling sound general. No existing test
+shows that an intact converged object contracts and becomes fragile after
+extraction.
 
-First-run tragedy direction:
+## Second-Run Correction
 
-- The protagonist is endangered, likely through poison, a corrupted wound, or a
-  condition tied to a route mistake.
-- The available medicine is not enough.
-- The herbalist decides to go out to gather the missing herb or second batch of
-  medicine.
-- She acts because she cannot watch another important person die beside a bed.
-- This is not a poison rebound, curse backlash, or arbitrary magical price.
-- Her action is a desperate, understandable, human decision.
-- She disappears or dies because she goes out to save the protagonist.
+No physical story object crosses the reset. The hidden first-run achievement
+preserves one sensory fact: the forceps ratchet click immediately before the
+burst.
 
-This tragedy should feel like character logic, not plot machinery.
+In the second run, hearing the blacksmith test the same mechanism prompts a
+concrete intervention. Current-run tests establish the safe procedure:
 
-## Conflict Scene Direction
+- Reopen the four older routine-sample pages and reject their use as proof for a
+  combined object; gather a fresh current-run batch from the four fronts for the
+  controlled convergence test.
+- Remove the forceps' self-tightening ratchet.
+- Place a flexible spider-silk loop around the exposed base so extraction force
+  is distributed rather than concentrated on the crystal body.
+- Let the freed shard slide directly into a container of purified slime gel.
+- Use the gel to absorb impact and rapid thermal expansion without adding a new
+  legendary material or inherited key item.
 
-Before the tragedy, there should be at least one emotional conflict.
+The same injury and surgery occur. Mia again says `好了。你回來了。`, but
+the shard remains intact and she survives.
 
-Core conflict:
+The correction is a shared procedure, not an item hand-in. Mia must allow
+the protagonist, 伊萊, and the blacksmith to protect the operator as deliberately
+as she protects the patient.
 
-- She wants the protagonist to stop risking themselves.
-- The protagonist cannot stop because the village's situation demands action.
-- The protagonist may accuse her of treating every patient as proof that she was
-  not helpless.
-- She may accuse the protagonist of speaking lightly because they are not the one
-  waiting beside the bed.
+## Second-Run Growth And Ending
 
-The fight should not be a romantic cliché. It should expose the central wound:
+Survival does not instantly cure Mia's self-neglect.
 
-- She is afraid of losing someone important.
-- The protagonist is afraid of being the reason she breaks.
-- Neither can solve this while the town is collapsing.
+- She is shaken by learning that the preparation was designed to bring both the
+  patient and healer through the operation.
+- She begins delegating market distribution instead of personally carrying
+  research, supply, and care.
+- She accepts rest and lets another person clean the workroom after a difficult
+  treatment.
+- She changes the room inherited from her mother instead of preserving grief as
+  furniture.
+- The true-ending relationship closes when the protagonist returns without an
+  injury and Mia welcomes them for their own sake.
 
-## Second Run
+## Town Relationship Records
 
-The second-run key is the herbalist's notebook.
+`藥師手記` is not an inventory item, quest item, inherited object, or second-run
+unlock condition.
 
-Accepted direction:
+First-run final relationship tile:
 
-- The player can obtain or carry knowledge from `藥師手記`.
-- The notebook reveals which medicine she lacked, where she intended to gather
-  it, and why she believed she had to go.
-- The player can gather the medicine early or otherwise prevent the event that
-  forced her to leave.
-- This reverses her first-run tragedy.
+- Title: `最後一頁`
+- Text: `《藥師手記》最後一頁只寫著：「醒來後先給他水。別讓他立刻起身。」`
 
-Second-run emotional meaning:
+Second-run final relationship tile:
 
-- The player is not only saving her life.
-- The player is proving she does not need to carry every emergency alone.
-- The altered event should let her begin learning to save herself as part of
-  saving everyone.
+- Title: `沒有傷也能回來`
+- Text: `今天沒有新增病歷。她只多準備了一只杯子。`
 
-Do not make the second run a simple item hand-in. It should feel like the player
-understood her.
+Accepted hidden achievements:
 
-## Entrusted Flame
-
-Her entrusted flame is care that includes the self.
-
-Primary relic:
-
-- `藥師手記` / herbalist notebook.
-
-The notebook should not be a generic recipe book. It should include:
-
-- Medicine notes.
-- Route notes.
-- Symptoms she noticed before others did.
-- Small personal details that reveal when the protagonist became important to
-  her.
-- Enough concrete information to enable second-run rescue.
+- First-run memory achievement: `醒來時，水已經涼了`
+- Second-run rescue achievement: `醒來時，水仍溫著`
 
 ## Dialogue Voice
 
-She should sound:
+Mia sounds warm, grounded, observant, medically concrete, and more direct
+when someone is injured. She is capable of gentle humor under pressure but does
+not sound holy, mystical, or endlessly patient.
 
-- Warm.
-- Grounded.
-- Observant.
-- Capable of gentle humor under pressure.
-- More direct when someone is injured.
+Good line behavior:
 
-She should not sound like a saint.
+- Names a symptom before naming an emotion.
+- Places water, cloth, or medicine into someone's hands instead of announcing
+  care.
+- Nearly says something intimate, then returns to a practical instruction.
+- Becomes sharper when the protagonist lies about pain.
+- Lets quiet domestic humor return in the second-run ending.
 
-Good line shape:
-
-- Concrete medical detail.
-- A small act of care.
-- A sentence that almost says too much, then turns practical.
-
-Examples of texture to aim for:
-
-- Bandage cloth.
-- Bitter herbs.
-- Warm water cooling in a bowl.
-- Her fingers pausing at an old scar.
-- A bottle pushed into the protagonist's hand without ceremony.
-
-Avoid:
-
-- Immediate confession.
-- Perfect selfless martyrdom.
-- Magical backlash as tragedy logic.
-- Treating her romance route as separate from the survival story.
+Avoid immediate confession, destiny language, saintly speeches, and jokes that
+make injury feel consequence-free.
 
 ## Story-System Notes
 
-- She should connect to poison, wounds, medicine, fatigue, and recovery.
-- Her service unlocks should reflect town condition and route safety.
-- Her emotional route can support town-humanity records.
-- Her notebook can become a second-run key item or persistent record.
-- If the protagonist's poisoning triggers her first-run tragedy, the cause chain
-  must be visible and fair.
-- Her save route should not require a random hidden action. It should grow from
-  notebook evidence and earlier scenes.
-
-## Open Questions
-
-- Which chapter contains the first major emotional conflict?
-- Which chapter contains her first-run disappearance or death?
-- What exact medicine is missing?
-- Which route or landmark does she go to for the missing herb?
-- Does saving her in the second run change apothecary service, relationship
-  records, combat preparation, or a later ending requirement?
-- Does she survive the final route if saved, or does she face another later test?
+- Her recipe research may unlock market stock, but the market owns every
+  transaction.
+- Her relationship route must use explicit story flags, not talk-count depth.
+- Her death must not disable baseline medicine acquisition.
+- Her survival may authorize later prescriptions and relationship scenes, but it
+  is not required to import full light, Void, tower, or DLC systems.
+- The workroom requires one future independent background and two run-specific
+  state treatments. Dialogue expression and story-CG production remain deferred
+  until the screenplay is locked.
 
 ## Do Not Do
 
-- Do not make her die only to motivate the protagonist.
-- Do not make her love the protagonist immediately.
-- Do not add poison rebound or unexplained magical sacrifice.
-- Do not make her helpless.
-- Do not erase her thorn toward the elder too quickly.
-- Do not let her route become only shop functionality.
+- Do not restore the Moon Moss gathering death or Life Seed rescue route.
+- Do not make Mia a market vendor, paid healer, material-identification UI,
+  or apothecary shop owner.
+- Do not add `藥師手記` as a physical key item.
+- Do not make her death a journey injury, delayed untreated wound, poison
+  rebound, life-transfer ritual, or unexplained magical price.
+- Do not make the first-run forceps failure incompetence by Mia or the
+  blacksmith.
+- Do not erase 伊萊's unscoped summary from the first-run causal chain, and do not
+  inflate it into fraud, recklessness, or sole responsibility.
+- Do not use a new apprentice or apothecary assistant merely to preserve market
+  functionality.
+- Do not make romance immediate or separate from the survival story.
+- Do not let the second-run correction become a random hidden pickup or optional
+  item hand-in.

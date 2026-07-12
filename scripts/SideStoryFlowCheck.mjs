@@ -1,103 +1,66 @@
 import { QuestDatabase } from '../src/js/data/Quests.js';
-import { QuestStoryDatabase } from '../src/js/data/QuestStories.js';
-import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
+import {
+    MainlineCharacterContracts,
+    StoryActorRegistry
+} from '../src/js/data/StoryActors.js';
+import {
+    OptionalSideStoryRegistry,
+    OptionalSideStoryStatus
+} from '../src/js/data/OptionalSideStoryRegistry.js';
 
 const problems = [];
+const push = (section, message) => problems.push({ section, message });
+const ids = new Set();
+const titles = new Set();
+const coveredCoreActors = new Set();
 
-const sideQuestTypes = new Set(['commission', 'hidden']);
-const storyRequiredFields = ['discovery', 'available', 'active', 'completed', 'finished', 'nextLead'];
-const characterProfileFields = ['cause', 'choice', 'mainThread', 'townState'];
+for (const story of OptionalSideStoryRegistry) {
+    if (!story.id || ids.has(story.id)) push('side-story-id', `missing or duplicate id: ${story.id}`);
+    if (!story.title || titles.has(story.title)) push('side-story-title', `missing or duplicate title: ${story.title}`);
+    ids.add(story.id);
+    titles.add(story.title);
 
-function push(section, message) {
-    problems.push({ section, message });
+    if (story.status !== OptionalSideStoryStatus.DEFERRED) {
+        push('side-story-status', `${story.id} is active before its map owner is approved`);
+    }
+    if (story.rewardBinding !== null) {
+        push('reward-deferral', `${story.id} has a reward binding before map functionality is final`);
+    }
+    if (!String(story.purpose || '').trim()) push('side-story-purpose', `${story.id} has no deepening purpose`);
+    if (!String(story.mainlineBoundary || '').trim()) push('mainline-boundary', `${story.id} has no skip-safe boundary`);
+    if (!String(story.futureOwner || '').trim()) push('map-owner', `${story.id} has no future map/town owner`);
+    if (!Array.isArray(story.chapterWindow)
+        || story.chapterWindow.length !== 2
+        || story.chapterWindow[0] < 1
+        || story.chapterWindow[1] > 7
+        || story.chapterWindow[0] > story.chapterWindow[1]) {
+        push('chapter-window', `${story.id} has an invalid chapter window`);
+    }
+
+    for (const actorId of story.characterIds || []) {
+        if (!StoryActorRegistry[actorId]) push('side-story-actor', `${story.id} references missing actor ${actorId}`);
+        if (MainlineCharacterContracts[actorId]) coveredCoreActors.add(actorId);
+    }
 }
 
-function allQuests() {
-    return Object.values(QuestDatabase).flat();
+for (const actorId of Object.keys(MainlineCharacterContracts)) {
+    if (!coveredCoreActors.has(actorId)) {
+        push('side-story-coverage', `${actorId} has no optional deepening concept`);
+    }
 }
 
-function hasTriggerGate(quest) {
-    const trigger = quest.trigger || {};
-    return Boolean(
-        trigger.type
-        || trigger.afterQuest
-        || trigger.duringQuest
-        || trigger.afterFlag
-        || trigger.interactionId
-        || quest.requiredLevel
-    );
-}
-
-const quests = allQuests();
-const questsById = new Map(quests.map(quest => [quest.id, quest]));
-const townStateFlags = new Set(
-    TownPlaceDatabase.flatMap(place => (place.states || []).map(state => state.flag))
-);
-const sideQuests = quests.filter(quest => sideQuestTypes.has(quest.type));
-
-for (const quest of sideQuests) {
-    const label = `${quest.id} (${quest.name})`;
-    const story = QuestStoryDatabase[quest.id];
-
-    if (!story) {
-        push('story-missing', `${label} has no QuestStoryDatabase entry`);
-        continue;
-    }
-
-    if (!hasTriggerGate(quest)) {
-        push('trigger-missing', `${label} has no trigger, level gate, or interaction gate`);
-    }
-
-    for (const field of storyRequiredFields) {
-        if (!String(story[field] || '').trim()) {
-            push('story-field-missing', `${label} is missing story.${field}`);
-        }
-    }
-
-    if (!story.reportTo?.npcId || !story.reportTo?.name) {
-        push('report-to-missing', `${label} has no story.reportTo npc`);
-    }
-
-    if (!Array.isArray(story.objectives) || story.objectives.length === 0) {
-        push('story-objectives-missing', `${label} has no story-facing objective summary`);
-    }
-
-    if (quest.type === 'commission') {
-        if (!story.characterProfile) {
-            push('character-profile-missing', `${label} has no characterProfile`);
-        } else {
-            for (const field of characterProfileFields) {
-                if (!String(story.characterProfile[field] || '').trim()) {
-                    push('character-profile-field-missing', `${label} is missing characterProfile.${field}`);
-                }
-            }
-            const townState = story.characterProfile.townState;
-            if (townState && !townStateFlags.has(townState)) {
-                push('town-state-unshown', `${label} references ${townState}, but no town place displays it`);
-            }
-        }
-    }
-
-    for (const unlockedId of quest.unlocks || []) {
-        if (!questsById.has(unlockedId)) {
-            push('unlock-missing', `${label} unlocks ${unlockedId}, but that quest does not exist`);
-        }
-    }
-
-    for (const ref of ['afterQuest', 'duringQuest']) {
-        const refId = quest.trigger?.[ref];
-        if (refId && !questsById.has(refId)) {
-            push('trigger-reference-missing', `${label} trigger.${ref} references ${refId}, but that quest does not exist`);
-        }
-    }
+const activeOptionalQuests = [
+    ...(QuestDatabase.commission || []),
+    ...(QuestDatabase.hidden || [])
+];
+if (activeOptionalQuests.length > 0) {
+    push('activation-gate', `${activeOptionalQuests.length} optional quests are active before map ownership is final`);
 }
 
 if (problems.length > 0) {
     console.error(`Side story flow check found ${problems.length} issue(s):`);
-    for (const problem of problems) {
-        console.error(`- [${problem.section}] ${problem.message}`);
-    }
+    for (const problem of problems) console.error(`- [${problem.section}] ${problem.message}`);
     process.exit(1);
 }
 
-console.log(`Side story flow check passed. Checked ${sideQuests.length} side/hidden quests.`);
+console.log(`Side story flow check passed. Checked ${OptionalSideStoryRegistry.length} deferred concepts.`);

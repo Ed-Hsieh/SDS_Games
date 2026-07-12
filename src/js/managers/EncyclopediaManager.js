@@ -454,17 +454,21 @@ function collectItemDropSourceIndex() {
     return index;
 }
 
-const QuestGiverOverrides = {
-    main_001: 'village_elder',
-    main_002: 'town_scholar',
-    main_003: 'town_scholar'
+const QuestArchiveOwners = {
+    story_chapter_01: 'village_elder',
+    story_chapter_02: 'town_scholar',
+    story_chapter_03: 'town_scholar',
+    story_chapter_04: 'standard_bearer_frey',
+    story_chapter_05: 'herbalist',
+    story_chapter_06: 'village_elder',
+    story_chapter_07: 'street_beggar'
 };
 
 const QuestNpcKeywords = [
     { pattern: /書記|學者|手札|資料|見聞/, npcId: 'town_scholar' },
     { pattern: /鍛造|鐵匠|修復|強化/, npcId: 'blacksmith' },
     { pattern: /藥師|藥水|草藥|瓶/, npcId: 'herbalist' },
-    { pattern: /賭場|骰|籌碼|瑪洛|帳本/, npcId: 'accountant_marlo' },
+    { pattern: /賭場|骰|籌碼|帳本/, npcId: 'casino_dealer' },
     { pattern: /暗巷|黑市|流浪|乞丐/, npcId: 'street_beggar' },
     { pattern: /村長|守衛|南門|村莊/, npcId: 'village_elder' }
 ];
@@ -499,7 +503,7 @@ function findQuestTalkTarget(quest = {}) {
 }
 
 function getQuestGiverId(quest = {}) {
-    if (QuestGiverOverrides[quest.id]) return QuestGiverOverrides[quest.id];
+    if (QuestArchiveOwners[quest.id]) return QuestArchiveOwners[quest.id];
     if (quest.npc || quest.client || quest.giver || quest.npcId) {
         return quest.npc || quest.client || quest.giver || quest.npcId;
     }

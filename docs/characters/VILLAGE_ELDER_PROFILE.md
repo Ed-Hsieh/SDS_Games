@@ -1,6 +1,6 @@
 # Village Elder Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -41,10 +41,18 @@ His story is built around a quiet contradiction:
 - Twenty years ago, he was a young militia captain.
 - He and other nearby villages formed a joint force to repel monsters.
 - The early campaign went well enough that people believed they could win.
-- The campaign eventually encountered a boss-level threat that wiped them out in
-  a one-sided slaughter.
-- The exact boss is not assigned yet. Do not silently add a new boss for this.
-- He survived by chance, not because the enemy spared him.
+- The campaign reached the dragon-sealed outer perimeter and mistook containment
+  for another hostile obstruction.
+- The force damaged the sealed line with ordinary tools and armed pressure,
+  creating the scar represented by `seal_scar_shard`.
+- The shard is a wedge of that boundary stone, not a dragon scale or magic key.
+  Human chisel strikes remain on one face, dragon-fire vitrification on the
+  other, and its broken edge still matches the missing section at the scar. He
+  carried it back from the collapse without understanding the full structure.
+- `elder_dragon`, the dragon defense, and curse pressure released through the
+  damaged line destroyed the force in a one-sided slaughter.
+- He survived by chance because retreat, terrain collapse, and separation left
+  him outside the killing center, not because the enemy spared him.
 - He lost his militia, friends, and the young certainty he once carried.
 - After returning, he fell into long depression.
 - His wife later left him. This is background pain, not an active plot branch.
@@ -143,6 +151,8 @@ He knows:
 - The old expedition existed.
 - It was larger and more hopeful than present-day rumor makes it sound.
 - The battle ended in a scale of violence ordinary people could not withstand.
+- The final place contained overwhelming dragon heat, pressure, and a broken
+  boundary, though he did not understand their containment function at the time.
 - Some routes and areas became associated with loss, fear, and taboo afterward.
 - The village is too weak to face the outside head-on.
 
@@ -187,11 +197,18 @@ They both carry the same day, but from opposite sides of the gate.
 Their scenes should have old-friend texture. They can interrupt each other, know
 what the other avoids saying, and disagree without theatrical hostility.
 
-## Relationship With Herbalist
+Accepted Chapter 2 mainline beat: after the recovered-name ledger, 伊萊 says
+that twenty years ago the elder waited outside while he rewrote the missing list
+until dawn. The elder answers with weary humor; 伊萊 then asks him not to make an
+empty chair the only notice of his next departure. The elder does not promise.
+This gives the later first-run empty chair personal history without turning the
+warning into a rescue flag.
 
-The herbalist's father went out with the elder's militia and did not return.
+## Relationship With Mia
 
-The herbalist understands that the elder did not murder her father. Her father
+Mia's father went out with the elder's expedition and did not return.
+
+Mia understands that the elder did not murder her father. Her father
 chose to go. The village believed the campaign was necessary.
 
 But understanding does not remove the thorn.
@@ -223,13 +240,34 @@ The deeper reading should become legible later:
   twenty-year wound behind it.
 - He is not hiding a secret plan; he is trying not to relive a slaughter.
 
-Possible first-run end direction is not final. Current strongest direction:
+Accepted first-run end:
 
-- He may eventually go out to delay or hold back a threat.
-- If he dies, it should be self-redemption and civic duty, not a cheap noble
-  sacrifice.
+- `ch5_s08_expedition_list` makes the old geometry legible. In
+  `ch5_s10_before_dawn`, he leaves before South Gate opens; Chapter 6 begins with
+  the player pursuing him immediately rather than stopping for a town event.
+- He goes because he recognizes that the protagonist is approaching the same kind
+  of sealed outer route that the old expedition damaged twenty years ago.
+- He does not fully understand the dragon clan's role, the Demon King's full
+  truth, or the correct way to pass the sealed route.
+- He carries the `seal_scar_shard` / 封痕碎片 and tries to answer the old
+  expedition's mistake himself by fitting the fragment into the old break.
+- During the pursuit, the audience briefly cuts ahead to him alone. He says
+  `二十年前，是我叫他們跟上。這一次，不該再叫任何人來。` and
+  `如果這真是我們敲下來的……至少讓我親手放回去。` The protagonist does
+  not hear either line; the cutaway establishes motive without revealing the
+  dragon's containment role.
+- A real curse surge arrives while he is touching the line. Pressure from inside
+  and `elder_dragon`'s sealing fire from outside cross through him. He is not
+  tried, singled out for revenge, accepted, or rejected as a messenger; to the
+  dragon he is another armed human creating an immediate containment risk.
+- The player finds his body outside the warning line. The matching shard lies by
+  his hand, and the fire mark continues in a straight seal across the stone
+  behind him. This proves dragon fire killed him but not whether it targeted him
+  or the breach.
+- His death is not for the protagonist personally. It is his final attempt to
+  stop the old expedition from repeating through another young armed outsider.
 - The contrast should be clear: twenty years ago he led others forward; this time
-  he goes last so others can remain behind.
+  he steps forward alone so others do not have to repeat his ignorance.
 
 ## Second Run
 
@@ -241,29 +279,49 @@ The player should recognize that:
 - His distrust of heroic momentum comes from lived trauma.
 - His care for the protagonist is partly fear of repeating himself.
 
-Potential second-run changes:
+Accepted second-run changes:
 
-- The player may present evidence or an inherited object that shows the elder his
-  future choice.
-- Certain warnings can unlock more concrete route information because the player
-  already understands what kind of danger to ask about.
-- If his death is made saveable, the save condition must grow from fair first-run
-  evidence.
-- If his death is not saveable, second-run content should still provide
-  understanding, farewell, or a way to honor what he was trying to protect.
+- The elder's first-run death is saveable in the second run.
+- The player can stop him before he leaves alone by proving they understand the
+  shape of the old mistake.
+- The player needs the elder/scholar truth about the failed expedition and Ailo's
+  Echo Whistle route truth. One proof is not enough.
+- The elder can then give the `seal_scar_shard` willingly instead of leaving it
+  as a corpse-side relic.
+- The second-run dragon approach changes through three observable current-run
+  facts:
+  - the `seal_scar_shard` is placed at the matching break but remains outside;
+  - one covered whistle hole produces an echo along the seal's outside edge;
+  - the weapon is placed down and the player does not cross when the next surge
+    moves the fragment toward the line.
+- The dragon clan does not trust the player or grant passage. It has no current
+  trespass to answer, so it conserves strength for the seal and does not attack.
+  The player must still return for Ailo because neither proof reveals the blind-
+  turn sequence.
+- In the true-ending archive, the elder rejects a heroic correction narrative:
+  `別寫成我終於做對。寫有人攔住我，而我這次肯停。` His endpoint is not
+  vindication. It is accepting that shared responsibility includes allowing
+  another person to stop him.
 
 ## Entrusted Flame
 
 The elder's entrusted flame is not a weapon first. It is the burden of civic
 survival: keep people standing without turning them into sacrifices.
 
-Potential relics, not yet approved:
+Accepted relic:
 
-- A cracked militia badge.
-- The hilt of an old short sword.
-- A worn route seal from the failed expedition.
+- `seal_scar_shard` / 封痕碎片.
 
-Do not choose or implement the relic until his first-run fate is accepted.
+The shard is not a combat charm or generic equipment reward. Its tool marks,
+vitrified face, and matching edge are physical story proof that the expedition
+damaged the dragon-sealed perimeter without understanding it. In the first run,
+it is found after the elder dies. In the second run, he hands it over before
+repeating that death.
+
+The shard alone cannot prevent war. Without Ailo's current-run Echo Whistle
+reaction and the player's visible refusal to cross, it says only "humans know
+they damaged something." Even all three facts open no road; they only remove the
+dragon's immediate reason to attack.
 
 ## Dialogue Voice
 
@@ -301,12 +359,8 @@ Avoid:
 - If town state changes after main quests, he should react in a lived way rather
   than with reward-summary text.
 
-## Open Questions
+## Remaining Open Question
 
-- Which boss-level threat destroyed the old expedition?
-- Does the elder die, survive with guilt, or become saveable in the second run?
-- What is his accepted relic, if any?
-- Which chapter reveals the fullest version of the twenty-year expedition?
 - How much does he know about the Demon King's sleeping nest before the late
   story?
 
@@ -316,5 +370,9 @@ Avoid:
 - Do not make him knowingly send the protagonist to die.
 - Do not reopen the wife subplot without approval.
 - Do not give him full cosmic knowledge.
-- Do not make his death automatic before his belief and chapter placement are
-  settled.
+- Do not make the dragon clan trust him merely because he feels guilty.
+- Do not write dragon dialogue with honor-contract language toward humans; to
+  them humans are small, self-important seal-breakers who caused trouble.
+- Do not make the `seal_scar_shard` alone solve the dragon route.
+- Do not write second-run non-attack as permission, forgiveness, alliance, or a
+  road opened by the dragon.

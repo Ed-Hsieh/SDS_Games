@@ -1,42 +1,3 @@
-export const ZoneProfiles = {
-    low: {
-        id: 'low',
-        name: '第1章路網',
-        dangerLabel: '初段探索',
-        icon: '🌿',
-        summary: '村莊外圍仍有人走動，獵徑、木牌與舊營火讓你能辨認回程方向。',
-        hint: '適合收集基礎材料、觀察怪物痕跡，並開始第一批痕跡鏈。',
-        effectIds: ['open_trail']
-    },
-    medium: {
-        id: 'medium',
-        name: '第2章路網',
-        dangerLabel: '中段探索',
-        icon: '🪵',
-        summary: '潮濕的根系覆住舊路，怪物不再只是巡遊，而像是在守著某些東西。',
-        hint: '補給壓力開始提高，菁英痕跡與特殊素材會更常出現。',
-        effectIds: ['rot_mist']
-    },
-    high: {
-        id: 'high',
-        name: '第3章路網',
-        dangerLabel: '深入探索',
-        icon: '🪨',
-        summary: '霧把遠處的輪廓吞掉，石碑、爪痕與破碎盔甲像是刻意排成一條路。',
-        hint: '這裡的痕跡會開始指向首領與古代封印，但撤退成本也明顯升高。',
-        effectIds: ['thick_fog', 'old_seal']
-    },
-    death: {
-        id: 'death',
-        name: '後期路網',
-        dangerLabel: '終段探索',
-        icon: '🔥',
-        summary: '地面像被高溫燒裂，空氣中有龍焰與深層封印混在一起的味道。',
-        hint: '不會阻止你進入，但普通遭遇都可能接近首領戰壓力。',
-        effectIds: ['scorched_air']
-    }
-};
-
 export const TerrainEffects = {
     open_trail: {
         id: 'open_trail',
@@ -86,171 +47,6 @@ export const TerrainEffects = {
         type: 'attrition',
         summary: '熱浪會消耗裝備與藥水，也會把龍系痕跡保存得更清楚。',
         gameplay: '未來可加速耐久消耗，並提高龍系痕跡與素材收益。'
-    }
-};
-
-export const WorldEncounterProfiles = {
-    south_gate_farmland: {
-        id: 'south_gate_farmland',
-        name: '南門農田',
-        storyNodeId: 'south_gate_farmland',
-        entries: [
-            { id: 'slime', weight: 55 },
-            { id: 'giant_rat', weight: 20 },
-            { id: 'goblin', weight: 10 },
-            { id: 'wild_wolf', weight: 8 },
-            { id: 'poison_spider', weight: 7 }
-        ]
-    },
-    south_gate_farmland_focus: {
-        id: 'south_gate_farmland_focus',
-        name: '史萊姆靠近農田',
-        storyNodeId: 'south_gate_farmland',
-        questIds: ['main_002'],
-        ambientRates: { battle: 0.16, event: 0.025 },
-        entries: [
-            { id: 'slime', weight: 72 },
-            { id: 'giant_rat', weight: 14 },
-            { id: 'goblin', weight: 6 },
-            { id: 'wild_wolf', weight: 5 },
-            { id: 'poison_spider', weight: 3 }
-        ]
-    },
-    rotroot_wolf_track: {
-        id: 'rotroot_wolf_track',
-        name: '腐根溪谷狼跡',
-        storyNodeId: 'rotroot_ravine',
-        entries: [
-            { id: 'wild_wolf', weight: 38 },
-            { id: 'poison_spider', weight: 22 },
-            { id: 'goblin', weight: 16 },
-            { id: 'giant_rat', weight: 14 },
-            { id: 'slime', weight: 10 }
-        ]
-    },
-    rotroot_wolf_track_focus: {
-        id: 'rotroot_wolf_track_focus',
-        name: '狼群靠近腐根溪谷',
-        storyNodeId: 'rotroot_ravine',
-        questIds: ['main_005'],
-        ambientRates: { battle: 0.18, event: 0.035 },
-        entries: [
-            { id: 'wild_wolf', weight: 64 },
-            { id: 'poison_spider', weight: 16 },
-            { id: 'goblin', weight: 10 },
-            { id: 'giant_rat', weight: 7 },
-            { id: 'slime', weight: 3 }
-        ]
-    },
-    blood_moon_track: {
-        id: 'blood_moon_track',
-        name: '月苔坡獸徑',
-        storyNodeId: 'moon_moss_slope',
-        entries: [
-            { id: 'wild_wolf', weight: 34 },
-            { id: 'poison_spider', weight: 22 },
-            { id: 'goblin', weight: 18 },
-            { id: 'giant_rat', weight: 16 },
-            { id: 'slime', weight: 10 }
-        ]
-    },
-    blood_moon_track_focus: {
-        id: 'blood_moon_track_focus',
-        name: '角鹿出沒前的月苔坡',
-        storyNodeId: 'moon_moss_slope',
-        questIds: ['main_006'],
-        ambientRates: { battle: 0.17, event: 0.04 },
-        entries: [
-            { id: 'wild_wolf', weight: 48 },
-            { id: 'poison_spider', weight: 20 },
-            { id: 'goblin', weight: 16 },
-            { id: 'giant_rat', weight: 11 },
-            { id: 'slime', weight: 5 }
-        ]
-    },
-    thorn_glasshouse_track: {
-        id: 'thorn_glasshouse_track',
-        name: '荊棘溫室外圍',
-        storyNodeId: 'thorn_glasshouse_ruin',
-        questIds: ['main_008'],
-        ambientRates: { battle: 0.19, event: 0.045 },
-        entries: [
-            { id: 'poison_spider', weight: 32 },
-            { id: 'treant', weight: 28 },
-            { id: 'shadow_bat', weight: 18 },
-            { id: 'orc_warrior', weight: 14 },
-            { id: 'wild_wolf', weight: 8 }
-        ]
-    },
-    drowned_coast_track: {
-        id: 'drowned_coast_track',
-        name: '沉鐘海岸潮線',
-        storyNodeId: 'drowned_bell_coast',
-        questIds: ['main_009'],
-        ambientRates: { battle: 0.18, event: 0.05 },
-        entries: [
-            { id: 'ghost', weight: 30 },
-            { id: 'ice_elemental', weight: 24 },
-            { id: 'thunder_elemental', weight: 18 },
-            { id: 'skeleton_warrior', weight: 16 },
-            { id: 'shadow_bat', weight: 12 }
-        ]
-    },
-    ancient_tomb_track: {
-        id: 'ancient_tomb_track',
-        name: '掘開古墓墓道',
-        storyNodeId: 'opened_ancient_tomb',
-        questIds: ['main_010'],
-        ambientRates: { battle: 0.2, event: 0.04 },
-        entries: [
-            { id: 'skeleton_warrior', weight: 32 },
-            { id: 'ghost', weight: 24 },
-            { id: 'shadow_soldier', weight: 18 },
-            { id: 'shadow_mage', weight: 14 },
-            { id: 'stone_golem_mini', weight: 12 }
-        ]
-    },
-    obsidian_keep_track: {
-        id: 'obsidian_keep_track',
-        name: '黑曜石要塞外圍',
-        storyNodeId: 'obsidian_keep_gate',
-        questIds: ['main_011'],
-        ambientRates: { battle: 0.2, event: 0.04 },
-        entries: [
-            { id: 'shadow_soldier', weight: 28 },
-            { id: 'shadow_archer', weight: 22 },
-            { id: 'orc_warrior', weight: 18 },
-            { id: 'fire_elemental', weight: 16 },
-            { id: 'shadow_mage', weight: 16 }
-        ]
-    },
-    northern_drake_track: {
-        id: 'northern_drake_track',
-        name: '北境龍哨風雪線',
-        storyNodeId: 'northern_drake_watch',
-        questIds: ['main_012', 'main_013'],
-        ambientRates: { battle: 0.2, event: 0.035 },
-        entries: [
-            { id: 'wyvern', weight: 30 },
-            { id: 'drake', weight: 24 },
-            { id: 'ice_elemental', weight: 18 },
-            { id: 'dragon_knight', weight: 16 },
-            { id: 'thunder_elemental', weight: 12 }
-        ]
-    },
-    abyssal_break_track: {
-        id: 'abyssal_break_track',
-        name: '深淵封印裂口',
-        storyNodeId: 'abyssal_seal_break',
-        questIds: ['main_014', 'main_015'],
-        ambientRates: { battle: 0.22, event: 0.035 },
-        entries: [
-            { id: 'demon_soldier', weight: 32 },
-            { id: 'fire_elemental', weight: 22 },
-            { id: 'shadow_general', weight: 16 },
-            { id: 'demon_general', weight: 14 },
-            { id: 'shadow_mage', weight: 16 }
-        ]
     }
 };
 
@@ -738,7 +534,6 @@ export const WorldLandmarks = [
         effectIds: ['open_trail'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_001', 'main_002'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
         encounterProfileId: 'south_gate_farmland',
@@ -758,7 +553,6 @@ export const WorldLandmarks = [
         effectIds: ['open_trail'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis', 'forest_guardian'],
         clueIds: [],
         regionRadius: 2.2,
@@ -775,7 +569,6 @@ export const WorldLandmarks = [
         effectIds: ['safe_camp'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
         regionRadius: 1.8,
@@ -792,7 +585,6 @@ export const WorldLandmarks = [
         effectIds: ['open_trail'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_003', 'main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
         regionRadius: 1.6,
@@ -809,7 +601,6 @@ export const WorldLandmarks = [
         effectIds: ['lair_pressure'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_004'],
         storyChainIds: ['ambush_mantis'],
         clueIds: [],
         regionRadius: 2,
@@ -826,12 +617,10 @@ export const WorldLandmarks = [
         effectIds: ['safe_camp'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_005'],
         storyChainIds: ['forest_guardian', 'blood_moon_stag'],
         clueIds: [],
         encounterProfileId: 'rotroot_wolf_track',
         focusEncounterProfileId: 'rotroot_wolf_track_focus',
-        focusQuestIds: ['main_005'],
         encounterRadius: 4,
         regionRadius: 2.2,
         mapOffset: { x: -13, y: -2 },
@@ -847,12 +636,10 @@ export const WorldLandmarks = [
         effectIds: ['rot_mist'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_005'],
         storyChainIds: ['forest_guardian'],
         clueIds: [],
         encounterProfileId: 'rotroot_wolf_track',
         focusEncounterProfileId: 'rotroot_wolf_track_focus',
-        focusQuestIds: ['main_005'],
         encounterRadius: 5,
         regionRadius: 3,
         mapOffset: { x: -17, y: -5 },
@@ -868,12 +655,10 @@ export const WorldLandmarks = [
         effectIds: ['thick_fog', 'old_seal'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_007', 'main_010'],
         storyChainIds: ['lich', 'drowned_oracle'],
         clueIds: [],
         encounterProfileId: 'ancient_tomb_track',
         focusEncounterProfileId: 'ancient_tomb_track',
-        focusQuestIds: ['main_010'],
         encounterRadius: 4,
         regionRadius: 2.4,
         mapOffset: { x: -21, y: -8 },
@@ -889,12 +674,10 @@ export const WorldLandmarks = [
         effectIds: ['lair_pressure'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_005'],
         storyChainIds: ['forest_guardian'],
         clueIds: [],
         encounterProfileId: 'rotroot_wolf_track',
         focusEncounterProfileId: 'rotroot_wolf_track_focus',
-        focusQuestIds: ['main_005'],
         encounterRadius: 4,
         regionRadius: 2.6,
         mapOffset: { x: -25, y: -11 },
@@ -910,12 +693,10 @@ export const WorldLandmarks = [
         effectIds: ['rot_mist'],
         visible: 'always',
         chapter: 1,
-        questIds: ['main_006'],
         storyChainIds: ['blood_moon_stag'],
         clueIds: [],
         encounterProfileId: 'blood_moon_track',
         focusEncounterProfileId: 'blood_moon_track_focus',
-        focusQuestIds: ['main_006'],
         encounterRadius: 5,
         regionRadius: 2.8,
         mapOffset: { x: -16, y: -11 },
@@ -931,7 +712,6 @@ export const WorldLandmarks = [
         effectIds: ['rot_mist', 'lair_pressure'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_008'],
         storyChainIds: ['thorn_witch'],
         clueIds: [],
         encounterProfileId: 'thorn_glasshouse_track',
@@ -950,7 +730,6 @@ export const WorldLandmarks = [
         effectIds: ['thick_fog', 'old_seal'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_009'],
         storyChainIds: ['drowned_oracle'],
         clueIds: [],
         encounterProfileId: 'drowned_coast_track',
@@ -969,7 +748,6 @@ export const WorldLandmarks = [
         effectIds: ['old_seal', 'lair_pressure'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_009'],
         storyChainIds: ['drowned_oracle'],
         clueIds: [],
         encounterProfileId: 'drowned_coast_track',
@@ -988,7 +766,6 @@ export const WorldLandmarks = [
         effectIds: ['old_seal', 'lair_pressure'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_010'],
         storyChainIds: ['lich'],
         clueIds: [],
         encounterProfileId: 'ancient_tomb_track',
@@ -1007,7 +784,6 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'lair_pressure'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_011'],
         storyChainIds: ['ash_baron'],
         clueIds: [],
         encounterProfileId: 'obsidian_keep_track',
@@ -1026,7 +802,6 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'old_seal'],
         visible: 'always',
         chapter: 2,
-        questIds: ['main_011'],
         storyChainIds: ['ash_baron'],
         clueIds: [],
         encounterProfileId: 'obsidian_keep_track',
@@ -1045,7 +820,6 @@ export const WorldLandmarks = [
         effectIds: ['thick_fog', 'scorched_air'],
         visible: 'always',
         chapter: 3,
-        questIds: ['main_012'],
         storyChainIds: ['elder_dragon'],
         clueIds: [],
         encounterProfileId: 'northern_drake_track',
@@ -1064,7 +838,6 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'lair_pressure'],
         visible: 'always',
         chapter: 3,
-        questIds: ['main_012', 'main_013'],
         storyChainIds: ['elder_dragon'],
         clueIds: [],
         encounterProfileId: 'northern_drake_track',
@@ -1083,7 +856,6 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'old_seal'],
         visible: 'always',
         chapter: 3,
-        questIds: ['main_014', 'main_015'],
         storyChainIds: ['elder_dragon', 'demon_lord_asariel'],
         clueIds: [],
         encounterProfileId: 'abyssal_break_track',
@@ -1102,7 +874,6 @@ export const WorldLandmarks = [
         effectIds: ['scorched_air', 'old_seal'],
         visible: 'always',
         chapter: 3,
-        questIds: ['main_013'],
         storyChainIds: ['elder_dragon'],
         clueIds: [],
         encounterProfileId: 'northern_drake_track',
@@ -1148,10 +919,6 @@ export const MonsterClueTriggers = [
     },
 ];
 
-export function getZoneProfile(zoneId) {
-    return ZoneProfiles[zoneId] || ZoneProfiles.low;
-}
-
 export function getTerrainEffect(effectId) {
     return TerrainEffects[effectId] || null;
 }
@@ -1166,10 +933,6 @@ export function getLandmarksForZone(zoneId) {
 
 export function getWorldLandmarks() {
     return [...WorldLandmarks];
-}
-
-export function getWorldEncounterProfile(profileId) {
-    return WorldEncounterProfiles[profileId] || null;
 }
 
 export function getClue(clueId) {

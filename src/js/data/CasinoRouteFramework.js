@@ -128,7 +128,7 @@ export const CasinoShowcaseQuestFrame = Object.freeze({
 export const CasinoRouteIntegrationPoints = Object.freeze([
     {
         system: 'town_rebuild',
-        data: 'TownRebuildPlan.casino_showcase_hook',
+        data: 'StorySceneRegistry.ch3_s04_showcase_glass',
         status: CasinoRouteImplementationState.PARTIAL,
         needed: 'Town-state resolver should decide when casino floor and showcase are available.'
     },

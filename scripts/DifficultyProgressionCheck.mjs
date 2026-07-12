@@ -6,7 +6,6 @@
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
-import { ObjectiveType, QuestDatabase } from '../src/js/data/Quests.js';
 import { getMonsterCombatRank } from '../src/js/data/CombatBalance.js';
 import {
     calculateMaxExp,
@@ -494,152 +493,6 @@ function runGateChecks() {
     ];
 }
 
-function addQuestRewardsToState(state, questId) {
-    const quest = Object.values(QuestDatabase)
-        .flat()
-        .find(entry => entry.id === questId);
-    if (!quest) throw new Error(`Unknown quest: ${questId}`);
-
-    const rewards = quest.rewards || {};
-    state.character.gold += Number(rewards.gold) || 0;
-    state.character.exp += Number(rewards.exp) || 0;
-    applyLevelUps(state.character);
-
-    for (const material of rewards.materials || []) {
-        const quantity = Math.max(1, Number(material.quantity) || 1);
-        state.materials[material.id] = (state.materials[material.id] || 0) + quantity;
-        state.questMaterials += quantity;
-    }
-
-    for (const itemId of rewards.items || []) {
-        if (!EquipmentDatabase[itemId]) continue;
-        tryEquip(state, createEquipment(itemId));
-    }
-}
-
-function runGuidedEarlyQuestSimulation() {
-    const totals = {
-        survived: 0,
-        wins: 0,
-        losses: 0,
-        level: 0,
-        equipmentDrops: 0,
-        crafted: 0,
-        dropMaterials: 0,
-        questMaterials: 0,
-        upgradedWeapon: 0,
-        hasArmor: 0,
-        noWeaponBattles: 0
-    };
-
-    const steps = [
-        { questId: 'main_001' },
-        { questId: 'main_002', fights: Array(5).fill('slime') },
-        { questId: 'bounty_002', fights: Array(8).fill('goblin') },
-        { questId: 'main_003' }
-    ];
-
-    for (let i = 0; i < RUNS; i += 1) {
-        const state = createEarlyState(5000 + i);
-        state.character.equipment.weapon = null;
-
-        for (const step of steps) {
-            for (const monsterId of step.fights || []) {
-                runEarlyBattle(state, monsterId);
-                if (state.losses > 0) break;
-            }
-            if (state.losses > 0) break;
-            addQuestRewardsToState(state, step.questId);
-        }
-
-        const weapon = state.character.equipment.weapon;
-        totals.survived += state.losses === 0 ? 1 : 0;
-        totals.wins += state.wins;
-        totals.losses += state.losses;
-        totals.level += state.character.level;
-        totals.equipmentDrops += state.equipmentDrops;
-        totals.crafted += state.crafted;
-        totals.dropMaterials += state.dropMaterials;
-        totals.questMaterials += state.questMaterials;
-        totals.upgradedWeapon += weapon && weapon.id !== 'old_sword' ? 1 : 0;
-        totals.hasArmor += state.character.equipment.armor ? 1 : 0;
-        totals.noWeaponBattles += state.noWeaponBattles;
-    }
-
-    const materialTotal = totals.dropMaterials + totals.questMaterials;
-    return {
-        runs: RUNS,
-        survivalRate: totals.survived / RUNS,
-        avgWins: totals.wins / RUNS,
-        avgLosses: totals.losses / RUNS,
-        avgLevel: totals.level / RUNS,
-        avgEquipmentDrops: totals.equipmentDrops / RUNS,
-        avgCrafted: totals.crafted / RUNS,
-        upgradedWeaponRate: totals.upgradedWeapon / RUNS,
-        armorRate: totals.hasArmor / RUNS,
-        avgDropMaterials: totals.dropMaterials / RUNS,
-        avgQuestMaterials: totals.questMaterials / RUNS,
-        questMaterialShare: materialTotal > 0 ? totals.questMaterials / materialTotal : 0,
-        avgNoWeaponBattles: totals.noWeaponBattles / RUNS
-    };
-}
-
-function runMainQuestExpProgression() {
-    const character = {
-        level: 1,
-        exp: 0,
-        hp: 120,
-        maxHp: 120,
-        equipment: {},
-        activeBuffs: [],
-        unlockedPassiveEffectIds: [],
-        equippedPassiveEffectIds: [],
-        passiveEffectSlots: 1
-    };
-    const rows = [];
-
-    const grantExp = amount => {
-        character.exp += Math.max(0, Number(amount) || 0);
-        applyLevelUps(character);
-    };
-
-    for (const quest of QuestDatabase.main) {
-        const startLevel = character.level;
-        const startExp = character.exp;
-        let objectiveExp = 0;
-        let bossLevel = quest.requiredLevel || 1;
-
-        for (const objective of quest.objectives || []) {
-            if (objective.type !== ObjectiveType.KILL) continue;
-            const monster = MonsterDatabase[objective.target];
-            if (!monster) continue;
-            objectiveExp += (Number(monster.exp) || 0) * Math.max(1, Number(objective.count) || 1);
-            bossLevel = Math.max(bossLevel, Number(monster.level) || bossLevel);
-        }
-
-        grantExp(objectiveExp);
-        const afterObjectiveLevel = character.level;
-        grantExp(quest.rewards?.exp || 0);
-
-        rows.push({
-            questId: quest.id,
-            chapter: quest.chapter || 1,
-            requiredLevel: quest.requiredLevel || 1,
-            bossLevel,
-            startLevel,
-            startExp,
-            objectiveExp,
-            rewardExp: quest.rewards?.exp || 0,
-            afterObjectiveLevel,
-            afterRewardLevel: character.level,
-            remainingExp: character.exp,
-            nextExp: calculateMaxExp(character)
-        });
-    }
-
-    return rows;
-}
-
 function assertRange(issues, label, value, min, max) {
     if (value < min || value > max) {
         issues.push(`${label}: expected ${min}..${max}, got ${value.toFixed(3)}`);
@@ -658,9 +511,7 @@ function validateReport(report) {
     const issues = [];
     const session = report.earlyEconomy.session12;
     const farm = report.earlyEconomy.farm30;
-    const guided = report.guidedEarlyQuest;
     const byKey = Object.fromEntries(report.gates.map(row => [`${row.scenario}:${row.monsterId}`, row]));
-    const mainById = Object.fromEntries(report.mainQuestProgression.map(row => [row.questId, row]));
 
     assertAtLeast(issues, 'early session survival', session.survivalRate, 0.55);
     assertRange(issues, 'early session no-weapon battles', session.avgNoWeaponBattles, 0.8, 4.5);
@@ -668,9 +519,6 @@ function validateReport(report) {
     assertAtLeast(issues, 'farm survival', farm.survivalRate, 0.38);
     assertRange(issues, 'farm repair material blocks', farm.avgRepairMaterialBlocks, 2.0, 9.0);
     assertRange(issues, 'farm broken equipment', farm.avgBrokenEquipment, 2.0, 5.5);
-    assertAtLeast(issues, 'guided early quest survival', guided.survivalRate, 0.60);
-    assertAtLeast(issues, 'guided early quest upgraded weapon rate', guided.upgradedWeaponRate, 0.35);
-    assertAtMost(issues, 'guided early quest material share from quests', guided.questMaterialShare, 0.30);
 
     assertAtLeast(issues, 'lv1 unarmed vs orc warrior ratio', byKey['lv1_unarmed:orc_warrior'].ratio, 2.0);
     assertAtLeast(issues, 'lv1 unarmed vs poison spider ratio', byKey['lv1_unarmed:poison_spider'].ratio, 2.0);
@@ -683,14 +531,6 @@ function validateReport(report) {
     assertAtLeast(issues, 'late epic vs demon lord ratio', byKey['late_epic:demon_lord_asariel'].ratio, 6.0);
     assertAtMost(issues, 'late legendary vs demon general ratio', byKey['late_legendary:demon_general'].ratio, 0.55);
     assertRange(issues, 'late legendary vs demon lord ratio', byKey['late_legendary:demon_lord_asariel'].ratio, 1.0, 2.2);
-
-    assertAtMost(issues, 'main_005 start level before forest guardian', mainById.main_005.startLevel, 5);
-    assertAtMost(issues, 'main_006 start level before blood moon stag', mainById.main_006.startLevel, 7);
-    assertAtMost(issues, 'main_007 start level before chapter 2 gate', mainById.main_007.startLevel, 7);
-    assertRange(issues, 'main_008 main-only sidequest gap', mainById.main_008.requiredLevel - mainById.main_008.startLevel, 1, 4);
-    for (const row of report.mainQuestProgression.filter(entry => entry.requiredLevel >= 8)) {
-        assertAtMost(issues, `${row.questId} main-only level before required gate`, row.startLevel, row.requiredLevel - 1);
-    }
 
     return issues;
 }
@@ -710,14 +550,7 @@ function printTextReport(report) {
         console.log(`${row.scenario} vs ${row.monsterId}: ratio ${row.ratio.toFixed(2)}, TTK ${row.timeToKill.toFixed(1)}s, TTD ${row.timeToDie.toFixed(1)}s, ${row.expectedWinner}`);
     }
     console.log('');
-    console.log(`guided early quest: survival ${formatPercent(report.guidedEarlyQuest.survivalRate)}, level ${report.guidedEarlyQuest.avgLevel.toFixed(1)}, equipment drops ${report.guidedEarlyQuest.avgEquipmentDrops.toFixed(1)}, upgraded weapon ${formatPercent(report.guidedEarlyQuest.upgradedWeaponRate)}, armor ${formatPercent(report.guidedEarlyQuest.armorRate)}, quest material share ${formatPercent(report.guidedEarlyQuest.questMaterialShare)}`);
-    console.log('');
-    console.log('Main quest EXP pacing');
-    for (const row of report.mainQuestProgression) {
-        const gate = row.requiredLevel >= 8 ? ` req ${row.requiredLevel}` : '';
-        const boss = row.bossLevel > 1 ? ` boss ${row.bossLevel}` : '';
-        console.log(`${row.questId}:${gate}${boss} start L${row.startLevel}, objective L${row.afterObjectiveLevel}, reward L${row.afterRewardLevel}, exp ${row.remainingExp}/${row.nextExp}`);
-    }
+    console.log('Quest EXP, item, material, and reward pacing is deferred until map-function ownership is final.');
 }
 
 const report = {
@@ -726,8 +559,10 @@ const report = {
         farm30: runEarlyEconomySimulation(30)
     },
     gates: runGateChecks(),
-    guidedEarlyQuest: runGuidedEarlyQuestSimulation(),
-    mainQuestProgression: runMainQuestExpProgression()
+    deferred: {
+        questRewards: true,
+        reason: 'Map-function ownership is not final.'
+    }
 };
 
 const issues = validateReport(report);

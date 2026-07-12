@@ -4,10 +4,6 @@
  */
 
 import {
-    LowLevelMonster,
-    MediumLevelMonster,
-    HighLevelMonster,
-    DeathLevelMonster,
     AllMonsters,
     TowerMonsters,
     MonsterType
@@ -90,38 +86,24 @@ export function createMonsterInstance(monsterOrId) {
     };
 }
 
-export function createRandomMonsterForZone(zoneType, rng = Math.random) {
-    let candidates = [];
-    switch (zoneType) {
-        case 'low':
-            candidates = LowLevelMonster
-                .filter(monster => Number(monster.level) <= 5)
-                .slice();
-            break;
-        case 'medium':
-            candidates = MediumLevelMonster.slice();
-            break;
-        case 'high':
-            candidates = HighLevelMonster.slice();
-            break;
-        case 'death':
-            candidates = DeathLevelMonster.slice();
-            break;
-        case 'boss':
-            candidates = AllMonsters.filter(m => m.type === MonsterType.BOSS || m.type === MonsterType.WORLD_BOSS);
-            break;
-        default:
-            candidates = LowLevelMonster.slice();
-    }
+export function createRandomMonsterForLevelRange(levelRange = [1, 10], rng = Math.random) {
+    const [rawMin, rawMax] = Array.isArray(levelRange) ? levelRange : [1, 10];
+    const minLevel = Math.max(1, Number(rawMin) || 1);
+    const maxLevel = Math.max(minLevel, Number(rawMax) || minLevel);
+    let candidates = getMonstersByLevelRange(minLevel, maxLevel)
+        .filter(monster => monster.type !== MonsterType.BOSS
+            && monster.type !== MonsterType.WORLD_BOSS
+            && !monster.towerFloor);
 
-    if (!candidates || candidates.length === 0) {
-        candidates = AllMonsters.slice();
+    if (candidates.length === 0) {
+        candidates = AllMonsters.filter(monster => monster.type !== MonsterType.BOSS
+            && monster.type !== MonsterType.WORLD_BOSS
+            && !monster.towerFloor);
     }
+    if (candidates.length === 0) return null;
 
-    const idx = Math.floor(rng() * candidates.length);
-    const chosen = candidates[idx];
-    // Return the raw template so callers (e.g., WorldMap) can instantiate their Monster class
-    return chosen;
+    const index = Math.min(candidates.length - 1, Math.floor(rng() * candidates.length));
+    return candidates[index] || null;
 }
 
 export default {
@@ -130,5 +112,5 @@ export default {
     getTowerMonster,
     getAllTowerMonsters,
     createMonsterInstance,
-    createRandomMonsterForZone
+    createRandomMonsterForLevelRange
 };

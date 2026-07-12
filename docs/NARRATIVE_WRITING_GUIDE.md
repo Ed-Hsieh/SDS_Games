@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-08
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -66,6 +66,53 @@ voice and prose quality; the story bible owns the larger plot architecture.
 - Keep story paragraphs purposeful. A short sharp paragraph is often better than
   a decorative one.
 
+## Runtime Viewpoint Contract
+
+The master story bible is omniscient planning, but shipped scene prose is not an
+unrestricted omniscient narrator. Every runtime scene must declare one of these
+closed viewpoint modes:
+
+- `protagonist_limited`: default playable view. Player-visible narration uses
+  first person `我` and may describe only what the protagonist senses, remembers,
+  does, or reasonably infers.
+- `character_limited:<id>`: the protagonist is absent. The audience follows one
+  named character and receives only that character's current knowledge,
+  perception, spoken self-talk, or internal voice.
+- `split_limited`: the scene cuts between `protagonist_limited` and one explicitly
+  named `character_limited` view, then clearly returns. The metadata must state
+  the order.
+- `witnessed_memory`: the protagonist directly experiences a bounded memory
+  performance. Information shown here may become protagonist knowledge after the
+  memory ends.
+- `audience_montage`: an external montage may show simultaneous places and
+  visible actions, but it cannot expose unspoken motives or hidden cosmology.
+
+Do not use unrestricted omniscience as a shortcut. If no character could know a
+fact yet, keep it in planning notes until a later reveal.
+
+Character-limited tragedy cutaways follow this contract:
+
+1. The first run may leave the protagonist behind so the audience can understand
+   why a character accepts danger or death.
+2. The cutaway reveals motive and immediate perception, not the complete world
+   mechanism or the second-run rescue answer.
+3. Audience knowledge does not automatically become protagonist knowledge. It
+   cannot open an objective, handbook conclusion, dialogue option, or route flag
+   until the protagonist discovers equivalent evidence inside the current run.
+4. Use a visible and audible transition into the cutaway and an equally clear
+   return. Do not let pronouns silently switch owners.
+5. Prefer quiet spoken self-talk when it suits the character. Internal voice is
+   allowed, but it must sound like that character rather than an explanatory
+   narrator.
+6. The second run reveals the missing cause through current-run action, evidence,
+   or witnessed memory. It does not simply replay the first-run cutaway with more
+   exposition.
+
+The current 66-scene review draft still contains second-person `你` as staging
+shorthand. Before runtime migration, convert every `protagonist_limited` player-
+visible narration beat to first-person `我`. Stage actions and metadata may use
+`player` or `protagonist`; NPC dialogue keeps its natural grammatical person.
+
 ## Quest And Objective Clarity
 
 Novelistic prose must still tell the player what to do.
@@ -104,9 +151,110 @@ For quest-opening and quest-report scenes, write in this order:
 4. Put only clear task wording in the objective UI or quest ledger.
 
 Do not write a polished novel draft in a document and then ship only shortened
-NPC instructions. If the scene needs the cracked bell, damp paper, the elder's
-pause, or the scholar's desk to make sense, those details belong in the runtime
-dialogue sequence.
+NPC instructions. If the scene needs the broken road marker, damp paper, the
+elder's pause, or the scholar's desk to make sense, those details belong in the
+runtime dialogue sequence.
+
+## Layered Dialogue Scene Metadata
+
+The current dialogue portraits contain baked-in backgrounds and are temporary.
+The future presentation will compose a scene from independent background,
+character, expression, and UI layers. That runtime and art rebuild is deferred
+until the complete master screenplay is accepted.
+
+While writing the screenplay, each scene must preserve enough intent for that
+later composition. Record these fields at scene level or on the relevant beat:
+
+- `background`: a stable location/state id when known, or a concise working
+  description when the final asset does not exist.
+- `participants`: every visible character required by the scene.
+- `speaker`: the active speaker for a spoken line; narration has no portrait.
+- `expression`: the visible emotional state for the active character when it
+  differs from the carried state.
+- `enter` and `exit`: presentation changes within the scene, separate from
+  durable map or town relocation.
+- `poseOrLightingNote`: optional and used only when a story beat cannot be
+  communicated by the reusable expression set alone.
+- `worldState`: optional broken, recovering, repaired, weather, time, or chapter
+  state when it materially changes the background.
+- `viewpoint`: one closed runtime viewpoint mode. `split_limited` must name the
+  exact order of views.
+- `knowledgeBoundary`: required for `character_limited`, `split_limited`,
+  `witnessed_memory`, and `audience_montage`; state what the audience learns,
+  what the protagonist learns, and what remains hidden.
+- `storyCg`: optional id or working description for a rare full-scene
+  illustration beat. Use it only when the composition itself carries a major
+  story payoff that ordinary dialogue layers cannot replace.
+
+Dialogue art uses one closed vocabulary of at most nine reusable expressions:
+
+- `neutral`: ordinary conversation and listening.
+- `soft`: warmth, affection, tenderness, or quiet reassurance.
+- `pleased`: humor, a smile, satisfaction, or visible relief.
+- `guarded`: caution, seriousness, suspicion, or masking emotion.
+- `resolute`: determination, command, focus, or accepted responsibility.
+- `angry`: hostility, frustration, accusation, or open confrontation.
+- `afraid`: fear, shock, panic, or startled vulnerability.
+- `grieving`: sorrow, crying, mourning, or emotional loss.
+- `hurt`: injury, exhaustion, illness, or physical collapse.
+
+The screenplay may retain more precise semantic emotion words, but those words
+must alias to one of these nine reusable visual slots. Do not add a tenth
+portrait expression; use an existing alias or an approved `storyCg` for a true
+one-off climax. Individual supporting characters may use fewer than nine. Do not
+plan one generated portrait per line.
+
+Rare emotional climaxes may use `storyCg` instead of expanding the closed
+portrait set.
+Accepted future examples include the flower field in Ailo's true-ending memory
+and Frey's final moment holding the standard. A story CG is a one-off full-scene
+illustration, not a dialogue portrait and not a reusable location background.
+Record the need in the script, but do not generate it before the screenplay is
+accepted.
+
+Script completion must not wait for art. Missing backgrounds or expression
+variants remain asset requirements derived from accepted scenes; they are not a
+reason to shorten, rewrite, or postpone the scene.
+
+## Master Screenplay Block Format
+
+Every fully written scene in `docs/MAIN_STORY_BIBLE.md` must use the same block.
+Do not invent a shorter chapter-specific format.
+
+Required metadata:
+
+- `stageClass`: one of `regional_canvas`, `location_scene`, `town_scene`, or
+  `memory_or_ending`.
+- `background`: stable id when accepted, otherwise `working:` plus one concise
+  visual description.
+- `worldState`: chapter, time, weather, damage/recovery state, and run difference
+  only when visible.
+- `viewpoint`: one value from the closed Runtime Viewpoint Contract.
+- `participants`: all visible character ids; narration-only scenes use `none`.
+- `entry`: how the scene begins and which participant is already present.
+- `exit`: how the scene releases control and where the player returns.
+- `objective`: the clear player action opened or completed by the scene.
+- `inputs`: required current-run flags and approved achievement-memory gates.
+- `outputs`: flags, relationship records, handbook entries, town/place states,
+  and service changes caused by the scene.
+- `assetNotes`: reuse, missing background/expression, or deferred CG needs. This
+  field records work; it never authorizes image generation by itself.
+
+After metadata, write one runtime-order table:
+
+| Field | Allowed Content |
+| --- | --- |
+| `Order` | Stable integer sequence inside the scene. |
+| `Condition` | `any`, `first_run`, `second_run`, or one explicit flag/achievement condition. Avoid prose logic. |
+| `Beat` | `narration`, `speaker`, `enter`, `cutaway`, or `exit`. `cutaway` changes viewpoint without ending the scene. |
+| `Speaker` | Character id for `speaker`; `-` for narration and stage actions. The current review draft may use second-person staging shorthand, but final `protagonist_limited` runtime narration must use first-person `我` without imposing a portrait or biography. |
+| `Expression` | One of the nine closed expressions for a visible speaker; `-` for narration, enter, and exit. |
+| `Runtime Text / Stage Action` | Final player-visible prose or a concise entry/exit action. Planning explanation does not belong here. |
+
+Use one row per displayed beat. Do not hide required prose in metadata. Do not
+repeat quest rewards inside dialogue when the visible world change already
+communicates them. Run-specific rows replace or supplement the adjacent `any`
+beat only when the condition is explicit.
 
 ## Character Voice
 
@@ -124,6 +272,40 @@ Every recurring NPC needs a distinct speaking posture.
 ## Side Story Rules
 
 Side stories are allowed to be more adventurous than simple errands.
+
+### Mainline Character Ownership
+
+The main story must make every core character understandable without optional
+content. Side stories deepen a character; they never repair missing mainline
+causality or emotional setup.
+
+Apply the skip test before approving any character route:
+
+> If the player skips every optional side story, can they still understand who
+> this character is, what they fear and want, why they make the decisive choice,
+> and what changed by the end of each run?
+
+If the answer is no, move the required beat into the main screenplay.
+
+Mandatory mainline ownership for a core character includes:
+
+- A lived introduction that is more than a service menu.
+- Core desire, fear, value, and contradiction shown through action.
+- At least one relationship that does not exist only through the protagonist.
+- Every clue required to understand a fixed death, rescue, betrayal, route, or
+  ending.
+- The decisive choice and a visible first-run/second-run endpoint performance.
+
+Optional side stories may own:
+
+- Daily work, friendship, romance, humor, habits, and private memories.
+- Additional relationship warmth or tension.
+- A local town-state or revisit variant that is not required by the main plot.
+- Extra context that changes emotional intensity but not basic comprehension.
+
+Do not hide a rescue condition, route key, villain escalation, or final choice
+inside optional content. Rewards for optional character stories are assigned
+only after their map location and owning system are locked.
 
 Allowed tones include:
 
@@ -156,6 +338,9 @@ Supported scene beats should include:
 - `speaker`: a character line with portrait, name, and role.
 - `enter`: a character temporarily enters the scene presentation.
 - `exit`: a character leaves the scene presentation.
+
+These beats should also carry the layered scene metadata above whenever the
+background, visible participants, or expression changes.
 
 Do not physically move a town or map NPC icon for every scene. Use a temporary
 event stage layer for most appearances:
@@ -200,6 +385,9 @@ Do not:
 Before accepting new narrative copy, check:
 
 - Does the player know what to do?
+- Is the viewpoint declared, and does every fact belong to that viewpoint?
+- If the audience sees something the protagonist does not, is the knowledge
+  boundary explicit and prevented from opening gameplay state early?
 - Does at least one character sound specific?
 - Does the scene include concrete sensory detail?
 - Is there any unnecessary explanation that could be removed?

@@ -1,6 +1,6 @@
 # Blacksmith Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -160,6 +160,12 @@ First-run tone stages:
 He may still work at the forge. The fact that he keeps working is part of the
 pain.
 
+His accepted proactive mainline choice occurs in Chapter 4. When weapon orders
+compete with evacuation fittings, he moves new blades to the back and repairs
+the route boards, hinges, lamp frames, and stretcher clasps first. His line is:
+`今天先修能讓人回來的東西。想要新刃的，等路上的人都回來再排。爐子不是只替會打架的人燒。`
+This keeps him from existing only as a reaction to other characters' losses.
+
 ## Lowest-Point Event
 
 The exact trigger depends on the final fixed first-run death order.
@@ -211,6 +217,14 @@ The same story stage after losses should have a different line shape:
 > "Leave it here. I will fix it. Then you take it and come back with it. That is
 > the whole instruction."
 
+Accepted ending performances:
+
+- First run: `裝備放下。你回來就好。剩下的……今天沒有東西修得好。`
+  He survives, but the forge cannot translate every loss into repair.
+- Second run: `先別把武器放爐邊。前面還有一只漏水的鍋。能排回這種東西，才算真的贏。`
+  Ordinary household work returning to the front of the queue is his proof that
+  the town is alive, not a larger weapon or personal reward.
+
 ## Relationship With The Protagonist
 
 He treats the protagonist like a problem he has decided to maintain.
@@ -257,18 +271,41 @@ Tavi's emotional route directly.
 If Tavi grows in the second run, the blacksmith can notice the lamp is being
 maintained differently.
 
-## Relationship With Herbalist
+## Relationship With Mia
 
-The herbalist handles bodies. The blacksmith handles gear.
+Mia handles bodies. The blacksmith handles gear and unfamiliar tools.
 
 This contrast can support town scenes:
 
-- She tries to keep people breathing.
+- Mia tries to keep people breathing.
 - He tries to make sure their tools do not fail.
 
-If the herbalist disappears or dies in the first run, the blacksmith's caring
-tone should drop sharply because the town has lost one of the few people who
-could mend what he cannot.
+During the Chapter 5 operation, he is Mia's technical assistant, not a
+surgeon. The standard fixed-ratchet forceps is correct for every known fragment.
+伊萊's field summary also reports that four routine samples gathered separately
+by route crews remain intact at ratchet setting two. They are not the fresh
+four-front batch used for the second-run convergence test. When the extracted
+four-element shard contracts and is
+crushed, the failure is new material behavior combined with a summary whose
+tested scope was not kept beside its conclusion, rather than negligence.
+
+Mia asks about post-extraction behavior before the first-run operation. He
+answers truthfully that none of the four existing pages records contraction and
+that no alternative procedure has been tested. She chooses the lowest known
+fixed pressure because the patient cannot wait. This keeps both crafts competent
+while preserving the unprecedented failure.
+
+In the first run, the broken forceps becomes the strongest object of Mia's
+loss. His caring tone drops sharply because the town has lost one of the few
+people who could mend what he cannot. He tells 伊萊 that he would have selected
+the same forceps without the summary, preventing 伊萊 from claiming sole blame
+without denying that the page helped make the procedure feel settled.
+
+In the second run, the protagonist recognizes the ratchet click before departure.
+伊萊 reopens the current-run source pages and rejects the generalized conclusion.
+The blacksmith removes the ratchet, prepares a flexible spider-silk loop, and
+provides a purified slime-gel receiving vessel after a scoped current-run test.
+Mia still owns the procedure and medical judgment.
 
 ## Relationship With Village Elder And Town Scholar
 
@@ -311,15 +348,14 @@ Avoid:
 - His dialogue should have town-state variants keyed to fixed first-run losses
   and second-run rescues.
 - He can comment after boss fights, especially when equipment condition is bad.
+- Chapter 5 uses him as the technical owner of forceps modification and anchor
+  housings without turning the forge into a clinic.
 - He should not become a quest board.
 - He should not require a personal relationship meter to function as village
   temperature.
 
 ## Open Questions
 
-- Which first-run death or disappearance triggers his lowest-point event?
-- Does Frey's flag fitting, Tavi's lamp, or the herbalist's tool become the
-  strongest object in that scene?
 - Which boss-return scenes should have blacksmith variant dialogue?
 - Does saving multiple NPCs in the second run restore specific jokes, or simply
   use a general "warmer village" state?

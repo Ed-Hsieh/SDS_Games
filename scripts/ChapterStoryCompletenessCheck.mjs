@@ -1,98 +1,104 @@
 import { QuestDatabase } from '../src/js/data/Quests.js';
-import { QuestStoryDatabase } from '../src/js/data/QuestStories.js';
-import { TownDialogueDatabase } from '../src/js/data/NPCDialogues.js';
-import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
+import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
+import {
+    MainlineCharacterContracts,
+    StoryActorRegistry
+} from '../src/js/data/StoryActors.js';
+import {
+    StorySceneOrder,
+    StorySceneRegistry
+} from '../src/js/data/StorySceneRegistry.js';
 
 const problems = [];
+const push = (section, message) => problems.push({ section, message });
 
-const minimums = {
-    2: {
-        main: 5,
-        commission: 4,
-        townStates: 6
-    },
-    3: {
-        main: 4,
-        commission: 5,
-        townStates: 8
-    }
-};
+const expectedSceneCounts = Object.freeze({
+    1: 11,
+    2: 8,
+    3: 9,
+    4: 9,
+    5: 11,
+    6: 9,
+    7: 9
+});
 
-const internalFlags = new Set([
-    'metTownScholarForRoute'
-]);
-
-function push(section, message) {
-    problems.push({ section, message });
-}
-
-function allQuests() {
-    return Object.values(QuestDatabase).flat();
-}
-
-const quests = allQuests();
-const townStateFlags = new Set(
-    TownPlaceDatabase.flatMap(place => (place.states || []).map(state => state.flag))
-);
-
-for (const [chapterText, requirement] of Object.entries(minimums)) {
+for (const [chapterText, expectedCount] of Object.entries(expectedSceneCounts)) {
     const chapter = Number(chapterText);
-    const chapterQuests = quests.filter(quest => quest.chapter === chapter);
-    const mainCount = chapterQuests.filter(quest => quest.type === 'main').length;
-    const commissionQuests = chapterQuests.filter(quest => quest.type === 'commission');
-    const commissionCount = commissionQuests.length;
-
-    if (mainCount < requirement.main) {
-        push('chapter-main-count', `chapter ${chapter} has ${mainCount} main quests; expected at least ${requirement.main}`);
+    const sceneIds = StorySceneOrder.filter(sceneId => StorySceneRegistry[sceneId]?.chapter === chapter);
+    if (sceneIds.length !== expectedCount) {
+        push('chapter-scenes', `chapter ${chapter} has ${sceneIds.length} scenes; expected ${expectedCount}`);
     }
 
-    if (commissionCount < requirement.commission) {
-        push('chapter-commission-count', `chapter ${chapter} has ${commissionCount} commissions; expected at least ${requirement.commission}`);
+    const chapterQuests = (QuestDatabase.main || []).filter(quest => quest.chapter === chapter);
+    if (chapterQuests.length !== 1) {
+        push('chapter-quest', `chapter ${chapter} has ${chapterQuests.length} main quest records; expected one`);
+        continue;
     }
 
-    const chapterTownStates = new Set();
-    for (const quest of commissionQuests) {
-        const story = QuestStoryDatabase[quest.id];
-        if (!story) {
-            push('quest-story-missing', `${quest.id} (${quest.name}) has no QuestStoryDatabase entry`);
-            continue;
-        }
-        if (!story.characterProfile) {
-            push('character-profile-missing', `${quest.id} (${quest.name}) has no characterProfile`);
-        }
-        const townState = story.characterProfile?.townState;
-        if (!townState) {
-            push('town-state-missing', `${quest.id} (${quest.name}) has no characterProfile.townState`);
-        } else {
-            chapterTownStates.add(townState);
-            if (!townStateFlags.has(townState)) {
-                push('town-place-state-missing', `${quest.id} (${quest.name}) references ${townState}, but no town place displays it`);
-            }
-        }
+    const quest = chapterQuests[0];
+    const finalSceneId = sceneIds.at(-1);
+    const completionFlag = quest.objectives?.[0]?.completionFlag;
+    if (!quest.autoProgress) push('chapter-quest', `${quest.id} is not screenplay-driven`);
+    if (completionFlag !== `story.scene.${finalSceneId}.complete`) {
+        push('chapter-quest', `${quest.id} does not close on ${finalSceneId}`);
     }
-
-    if (chapterTownStates.size < requirement.townStates) {
-        push('chapter-town-state-count', `chapter ${chapter} has ${chapterTownStates.size} unique commission town states; expected at least ${requirement.townStates}`);
+    if (Object.keys(quest.rewards || {}).length > 0) {
+        push('reward-deferral', `${quest.id} assigns rewards before map ownership is locked`);
     }
 }
 
-for (const [npcId, dialogues] of Object.entries(TownDialogueDatabase)) {
-    for (const dialogue of dialogues) {
-        for (const effect of dialogue.effects || []) {
-            if (effect.type !== 'setFlag' || internalFlags.has(effect.flag)) continue;
-            if (!townStateFlags.has(effect.flag)) {
-                push('dialogue-flag-unshown', `${npcId}.${dialogue.id} sets ${effect.flag}, but no town place displays it`);
-            }
+const requiredProfileFields = [
+    'innerWorld',
+    'past',
+    'arc',
+    'contradiction',
+    'external',
+    'core',
+    'voice',
+    'stages'
+];
+
+for (const [actorId, contract] of Object.entries(MainlineCharacterContracts)) {
+    const actor = StoryActorRegistry[actorId];
+    const profile = CharacterProfileDatabase[actorId];
+    if (!actor) push('character-actor', `${actorId} is missing from StoryActorRegistry`);
+    if (!profile) {
+        push('character-profile', `${actorId} is missing from CharacterProfileDatabase`);
+        continue;
+    }
+    for (const field of requiredProfileFields) {
+        if (!profile[field] || (Array.isArray(profile[field]) && profile[field].length === 0)) {
+            push('character-profile', `${actorId} is missing ${field}`);
         }
     }
+    for (const field of ['fear', 'desire', 'values']) {
+        if (!String(profile.innerWorld?.[field] || '').trim()) {
+            push('character-inner-world', `${actorId} is missing innerWorld.${field}`);
+        }
+    }
+
+    const ownedScenes = [
+        contract.introductionSceneId,
+        ...(contract.decisiveSceneIds || []),
+        contract.endpointSceneIds?.first_run,
+        contract.endpointSceneIds?.second_run
+    ].filter(Boolean);
+    if (ownedScenes.some(sceneId => !StorySceneRegistry[sceneId])) {
+        push('character-mainline', `${actorId} has a mainline contract with a missing scene`);
+    }
+}
+
+if ((QuestDatabase.commission || []).length > 0 || (QuestDatabase.hidden || []).length > 0) {
+    push('side-story-gate', 'Optional character stories became playable before map ownership was approved');
 }
 
 if (problems.length > 0) {
     console.error(`Chapter story completeness check found ${problems.length} issue(s):`);
-    for (const problem of problems) {
-        console.error(`- [${problem.section}] ${problem.message}`);
-    }
+    for (const problem of problems) console.error(`- [${problem.section}] ${problem.message}`);
     process.exit(1);
 }
 
 console.log('Chapter story completeness check passed.');
+console.log(`- chapters: ${Object.keys(expectedSceneCounts).length}`);
+console.log(`- screenplay scenes: ${StorySceneOrder.length}`);
+console.log(`- core character contracts: ${Object.keys(MainlineCharacterContracts).length}`);

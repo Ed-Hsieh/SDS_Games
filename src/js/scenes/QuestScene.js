@@ -14,8 +14,9 @@ import { dialogueManager } from '../managers/DialogueManager.js';
 import GameManager from '../managers/GameManager.js';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { getWorldEventJournalRecords } from '../managers/EventManager.js';
-import { WorldStoryChains, TerrainEffects, ZoneProfiles } from '../data/WorldStories.js';
-import { getTownPlaces } from '../data/TownPlaces.js';
+import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
+import { MonsterDatabase } from '../data/Monsters.js';
+import { getResolvedTownPlaces } from '../managers/TownStateResolver.js';
 import audioManager from '../utils/AudioManager.js';
 
 const HANDBOOK_TABS = {
@@ -435,102 +436,77 @@ export default class QuestScene {
     }
 
     getBossTraceRecords() {
-        return Object.keys(WorldStoryChains)
-            .map(chainId => worldStoryManager.getBossFlowStatus(chainId))
-            .filter(status => status && (
-                status.discoveredClues?.length > 0 ||
-                status.completedProgress > 0 ||
-                status.finalReady
-            ))
-            .sort((a, b) => {
-                const readyDiff = Number(b.finalReady) - Number(a.finalReady);
-                if (readyDiff !== 0) return readyDiff;
-                const progressDiff = (b.discoveredClues.length + b.completedProgress) - (a.discoveredClues.length + a.completedProgress);
-                if (progressDiff !== 0) return progressDiff;
-                return String(a.title).localeCompare(String(b.title), 'zh-Hant');
-            })
-            .map(status => {
-                const required = Math.max(1, (status.requiredClues || 0) + (status.requiredProgress || 0));
-                const current = Math.min(status.discoveredClues.length, status.requiredClues || status.discoveredClues.length) +
-                    Math.min(status.completedProgress || 0, status.requiredProgress || 0);
-                const nextProgress = status.progressMethods?.find(method => !method.completed);
-                const lastClue = status.discoveredClues?.[status.discoveredClues.length - 1];
-                const finalLabel = status.finalTrigger?.label || '確認首領現身方式';
-                const traceType = status.archetype || status.method || '痕跡型';
-                const currentText = status.finalReady
-                    ? `痕跡已足夠清楚。現在可以嘗試「${finalLabel}」。`
-                    : lastClue?.lead || lastClue?.text || status.text || '痕跡還不完整，需要更多現場確認。';
+        const visited = new Set(
+            worldStoryManager.getVisitedLandmarks().map(landmark => landmark.id)
+        );
 
-                return {
-                    key: `boss:${status.id}`,
-                    kind: 'boss',
-                    icon: '🧭',
-                    title: status.title,
-                    typeLabel: traceType,
-                    hideSummaryMeta: true,
-                    summaryLabel: '首領痕跡',
-                    summaryHint: status.finalReady ? '決戰就緒' : '線索未收束',
-                    statusIcon: status.finalReady ? '⚠' : '✎',
-                    statusText: status.finalReady ? '決戰就緒' : `${status.discoveredClues.length} 段痕跡`,
-                    statusTone: status.finalReady ? 'completed' : 'active',
-                    listMeta: [
-                        traceType,
-                        `痕跡 ${status.discoveredClues.length}/${status.requiredClues || '?'}`,
-                        status.finalReady ? finalLabel : nextProgress?.label || '回現場確認'
-                    ],
-                    cues: [
-                        status.finalReady ? '痕跡已收束' : nextProgress ? `下一步：${nextProgress.label}` : '回現場確認',
-                        `行動 ${status.completedProgress || 0}/${status.requiredProgress || '?'}`
-                    ],
-                    current: currentText,
-                    thoughtTitle: status.finalReady
-                        ? `我現在是否可以${finalLabel}？`
-                        : nextProgress
-                            ? `我現在是否該先${nextProgress.label}？`
-                            : '我現在是否該再回現場確認？',
-                    thoughtText: status.finalReady
-                        ? '危險已經收束到一個方向；要不要踏進去，取決於你現在的裝備與狀態。'
-                        : '線索還沒有收束。先補上下一個能確認的行動，讓這條筆記不只是猜測。',
-                    progress: {
-                        current,
-                        required,
-                        percent: Math.min(100, Math.floor((current / required) * 100))
-                    },
-                    sections: [
-                        {
-                            title: `${traceType}輪廓`,
-                            lines: [status.text || '這條痕跡還在整理。']
+        return ChapterRegionOrder.flatMap(regionId => {
+            const region = ChapterRegionRegistry[regionId];
+            return (region?.locationNodes || [])
+                .filter(node => node.bossId)
+                .map(node => {
+                    const sceneId = node.sceneIds?.[0] || null;
+                    const sceneComplete = Boolean(sceneId && GameManager.getFlag(`story.scene.${sceneId}.complete`));
+                    if (!visited.has(node.id) && !sceneComplete) return null;
+
+                    const monster = MonsterDatabase[node.bossId] || {};
+                    const title = monster.name || node.name;
+                    const optionalLabel = node.optional ? '可選首領' : '章節首領';
+                    return {
+                        key: `boss:${region.regionId}:${node.id}`,
+                        kind: 'boss',
+                        icon: monster.icon || '!',
+                        image: monster.image || null,
+                        title,
+                        typeLabel: optionalLabel,
+                        hideSummaryMeta: true,
+                        summaryLabel: '固定地點',
+                        summaryHint: region.title,
+                        statusIcon: sceneComplete ? '✓' : '!',
+                        statusText: sceneComplete ? '已處理' : '已發現',
+                        statusTone: sceneComplete ? 'finished' : 'active',
+                        listMeta: [
+                            `第 ${region.chapter} 章`,
+                            region.title,
+                            node.name
+                        ],
+                        cues: [sceneComplete ? '此處的事件已結束' : '首領位置已確認'],
+                        current: sceneComplete
+                            ? `${node.name}的事件已被寫入當前周目。`
+                            : (node.arrival || node.mapHint || '你已找到首領所在的位置。'),
+                        thoughtTitle: sceneComplete ? '這裡還留下了什麼？' : '現在要踏進去嗎？',
+                        thoughtText: sceneComplete
+                            ? '道路與事件結果已經寫進手札。'
+                            : '位置已經確認；是否進入，取決於目前狀態與準備。',
+                        progress: {
+                            current: sceneComplete ? 1 : 0,
+                            required: 1,
+                            percent: sceneComplete ? 100 : 0
                         },
-                        {
-                            title: '掌握的痕跡',
-                            lines: status.discoveredClues.length > 0
-                                ? status.discoveredClues.map(clue => `${clue.title}：${clue.lead || clue.text}`)
-                                : ['還沒有可靠痕跡。']
-                        },
-                        {
-                            title: status.finalReady ? '可踏入的地方' : '下一步',
-                            lines: [status.finalReady ? finalLabel : nextProgress?.label || '回到冒險區尋找新的痕跡。']
-                        }
-                    ],
-                    route: 'adventure',
-                    routeLabel: '前往冒險區確認痕跡'
-                };
-            });
+                        sections: [
+                            {
+                                title: '所在位置',
+                                lines: [`${region.title}：${node.name}`]
+                            },
+                            {
+                                title: sceneComplete ? '當前結果' : '現場痕跡',
+                                lines: [sceneComplete ? '事件已完成。' : (node.mapHint || '首領仍在固定地點等待。')]
+                            }
+                        ],
+                        route: 'adventure',
+                        routeLabel: sceneComplete ? '回到冒險地圖' : '前往固定地點'
+                    };
+                })
+                .filter(Boolean);
+        });
     }
 
     getWorldNoteRecords() {
         const landmarkRecords = worldStoryManager.getVisitedLandmarks()
             .sort((a, b) => (Number(a.chapter) || 0) - (Number(b.chapter) || 0) || String(a.name).localeCompare(String(b.name), 'zh-Hant'))
             .map(landmark => {
-                const zones = (landmark.zones || [])
-                    .map(zoneId => ZoneProfiles[zoneId]?.name || zoneId)
-                    .filter(Boolean);
-                const effects = (landmark.effectIds || [])
-                    .map(effectId => TerrainEffects[effectId])
-                    .filter(Boolean);
-                const storyChains = (landmark.storyChainIds || [])
-                    .map(chainId => WorldStoryChains[chainId]?.title)
-                    .filter(Boolean);
+                const region = getChapterRegion(landmark.chapter);
+                const regionTitle = region?.title || `第 ${landmark.chapter || '?'} 章`;
 
                 return {
                     key: `landmark:${landmark.id}`,
@@ -541,14 +517,14 @@ export default class QuestScene {
                     summaryMode: 'compact',
                     hideSummaryMeta: true,
                     summaryLabel: '地點札記',
-                    summaryHint: zones[0] || `第 ${landmark.chapter || '?'} 章`,
+                    summaryHint: regionTitle,
                     statusIcon: '✓',
                     statusText: '已造訪',
                     statusTone: 'finished',
                     listMeta: [
                         `第 ${landmark.chapter || '?'} 章`,
-                        zones.join(' / ') || '未知區域',
-                        effects[0]?.name || storyChains[0] || '已造訪'
+                        regionTitle,
+                        landmark.kind || '已造訪'
                     ],
                     current: landmark.repeat || landmark.arrival || landmark.mapHint || '你在這裡留下了一段地點紀錄。',
                     sections: [
@@ -558,13 +534,11 @@ export default class QuestScene {
                         },
                         {
                             title: '環境特徵',
-                            lines: effects.length > 0
-                                ? effects.map(effect => `${effect.name}：${effect.summary}`)
-                                : ['沒有特別標記的地形。']
+                            lines: [landmark.mapHint || landmark.repeat || '這個地點仍保留未確認的細節。']
                         },
                         {
-                            title: '牽動的線',
-                            lines: storyChains.length > 0 ? storyChains : ['這裡暫時只是一段單純的旅途記憶。']
+                            title: '所屬路線',
+                            lines: [regionTitle]
                         }
                     ],
                     route: 'adventure',
@@ -575,7 +549,7 @@ export default class QuestScene {
         const clueRecords = worldStoryManager.getDiscoveredClues()
             .sort((a, b) => (Number(a.notebookIndex) || 0) - (Number(b.notebookIndex) || 0))
             .map(clue => {
-                const chainTitle = WorldStoryChains[clue.chainId]?.title || '未歸檔痕跡';
+                const chainTitle = worldStoryManager.getBossFlowStatus(clue.chainId)?.title || '未歸檔痕跡';
                 return {
                     key: `world-clue:${clue.id}`,
                     kind: 'world',
@@ -857,11 +831,10 @@ export default class QuestScene {
     }
 
     getTownMemoryRecords() {
-        const townRecords = getTownPlaces()
+        const townRecords = getResolvedTownPlaces()
             .flatMap(place => (place.states || [])
-                .filter(state => GameManager.getFlag(state.flag))
                 .map(state => ({
-                    key: `town:${place.id}:${state.flag}`,
+                    key: `town:${place.id}:${state.id || state.flag || state.title}`,
                     kind: 'town',
                     icon: place.icon || '🏘️',
                     title: state.title,

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDS 戰鬥垂直切片</title>
+    <link rel="stylesheet" href="src/style/combat-vfx-lab.css?v=20260711n">
+</head>
+<body>
+    <main class="vfx-lab" id="vfx-lab" data-lab-mode="combat">
+        <section class="battle-preview" id="battle-preview" aria-label="戰鬥實戰模擬" tabindex="0">
+            <img
+                class="battle-background"
+                id="battle-background"
+                src="src/assets/images/art/scenes/world/landmarks/obsidian_keep_gate.webp"
+                alt="黑曜要塞入口"
+            >
+            <div class="battle-grade" aria-hidden="true"></div>
+            <canvas class="vfx-canvas vfx-canvas-rear" id="vfx-canvas-rear" aria-hidden="true"></canvas>
+
+            <header class="enemy-hud" aria-label="敵人狀態">
+                <div class="enemy-identity">
+                    <span class="enemy-class" id="enemy-class">精英 · 魔族</span>
+                    <h1 id="enemy-name">黑鐵先鋒</h1>
+                </div>
+                <div class="enemy-vitals">
+                    <div class="enemy-level">LV. <strong id="enemy-level">42</strong></div>
+                    <div class="health-track enemy-health-track" aria-label="敵人生命值">
+                        <div class="health-loss" id="enemy-health-loss"></div>
+                        <div class="health-fill" id="enemy-health-fill"></div>
+                    </div>
+                    <div class="health-value"><span id="enemy-hp">1840</span> / <span id="enemy-max-hp">1840</span></div>
+                </div>
+            </header>
+
+            <div class="enemy-intent" id="enemy-intent" hidden>
+                <div class="intent-head">
+                    <span id="intent-state">蓄勢</span>
+                    <strong id="intent-name">裂甲三連爪</strong>
+                    <time id="intent-time">0.72s</time>
+                </div>
+                <div class="intent-track" aria-label="怪物攻擊預告">
+                    <div class="intent-fill" id="intent-fill"></div>
+                </div>
+                <div class="break-head">
+                    <span>破勢</span>
+                    <strong id="break-value">48 / 48</strong>
+                </div>
+                <div class="break-track" aria-label="破勢值">
+                    <div class="break-fill" id="break-fill"></div>
+                </div>
+            </div>
+
+            <div class="enemy-stage" id="enemy-stage">
+                <div class="enemy-aura" id="enemy-aura" aria-hidden="true"></div>
+                <img
+                    class="enemy-visual"
+                    id="enemy-visual"
+                    src="src/assets/images/art/entities/monsters/demon_general.webp"
+                    alt="黑鐵先鋒"
+                >
+            </div>
+
+            <canvas class="vfx-canvas vfx-canvas-front" id="vfx-canvas-front" aria-hidden="true"></canvas>
+            <div class="screen-flash" id="screen-flash" aria-hidden="true"></div>
+            <div class="damage-vignette" id="damage-vignette" aria-hidden="true"></div>
+            <div class="skill-banner" id="skill-banner" aria-live="polite">
+                <span id="skill-source">MONSTER</span>
+                <strong id="skill-name">煉獄重壓</strong>
+            </div>
+            <div class="float-layer" id="float-layer" aria-live="polite"></div>
+
+            <div class="combat-result" id="combat-result" hidden>
+                <span id="combat-result-kicker">BATTLE COMPLETE</span>
+                <strong id="combat-result-title">勝利</strong>
+                <button id="combat-result-restart" type="button">重新交戰</button>
+            </div>
+
+            <div class="battle-feed" id="battle-feed" aria-live="polite">
+                <span class="feed-label">交戰</span>
+                <strong id="battle-feed-text">等待交戰指令</strong>
+            </div>
+
+            <div class="combat-status-dock" aria-label="戰鬥狀態效果">
+                <div class="status-lane player-status-strip" aria-label="玩家增益狀態">
+                    <span class="status-label">BUFF</span>
+                    <div class="buff-list" id="player-buff-list"></div>
+                </div>
+                <div class="status-lane enemy-status-strip" aria-label="敵人減益狀態">
+                    <span class="status-label">DEBUFF</span>
+                    <div class="enemy-status-row" id="enemy-status-row" aria-live="polite"></div>
+                </div>
+            </div>
+
+            <footer class="player-hud" aria-label="玩家戰鬥狀態">
+                <section class="rhythm-control rhythm-control-main" aria-label="主武器節奏環">
+                    <header class="rhythm-control-head"><span>主武器</span><kbd>LMB</kbd></header>
+                    <div class="combat-rhythm-ring rhythm-ring" id="lab-main-rhythm-ring" data-rhythm-mode="ring">
+                        <div class="zone-miss" aria-hidden="true"></div>
+                        <div class="hit-zone" id="lab-main-hit-zone" aria-hidden="true"></div>
+                        <div class="crit-zone" id="lab-main-crit-zone" aria-hidden="true"></div>
+                        <div class="rhythm-needle" id="lab-main-rhythm-needle" aria-hidden="true">
+                            <i class="needle-beam"></i>
+                            <i class="needle-tip"></i>
+                        </div>
+                        <div class="rhythm-ring-core">
+                            <img id="lab-main-rhythm-icon" src="src/assets/images/art/items/equipment/frostbite_dueling_blade.webp" alt="">
+                            <strong id="lab-main-rhythm-name">霜吻決鬥刃</strong>
+                            <span id="lab-main-rhythm-state">READY</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="player-vitals">
+                    <div class="player-vitals-head">
+                        <span>生命</span>
+                        <strong><span id="player-hp">368</span> / <span id="player-max-hp">420</span></strong>
+                    </div>
+                    <div class="health-track player-health-track" aria-label="玩家生命值">
+                        <div class="health-loss" id="player-health-loss"></div>
+                        <div class="health-fill" id="player-health-fill"></div>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action potion-action" id="use-potion" type="button">
+                            <span class="control-key">SPACE</span>
+                            <span class="combat-item-icon quick-item-icon">
+                                <img
+                                    src="src/assets/images/art/items/consumables/health_potion_s.webp"
+                                    alt="生命藥水"
+                                >
+                                <i class="cooldown-mask" id="potion-cooldown-mask" aria-hidden="true"></i>
+                            </span>
+                            <span>生命藥水</span>
+                            <strong id="potion-count">5</strong>
+                        </button>
+                        <button class="quick-action quick-action-danger" id="flee-battle" type="button">
+                            <span class="control-key">F</span>
+                            <span class="quick-action-symbol flee-symbol" aria-hidden="true">↗</span>
+                            <span>撤離</span>
+                        </button>
+                    </div>
+                </div>
+
+                <section class="rhythm-control rhythm-control-offhand" aria-label="副武器節奏環">
+                    <header class="rhythm-control-head"><span>副武器</span><kbd>RMB</kbd></header>
+                    <div class="combat-rhythm-ring rhythm-ring offhand-rhythm-ring" id="lab-offhand-rhythm-ring" data-rhythm-mode="ring">
+                        <div class="zone-miss" aria-hidden="true"></div>
+                        <div class="hit-zone" id="lab-offhand-hit-zone" aria-hidden="true"></div>
+                        <div class="crit-zone" id="lab-offhand-crit-zone" aria-hidden="true"></div>
+                        <div class="rhythm-needle" id="lab-offhand-rhythm-needle" aria-hidden="true">
+                            <i class="needle-beam"></i>
+                            <i class="needle-tip"></i>
+                        </div>
+                        <div class="rhythm-ring-core">
+                            <img id="lab-offhand-rhythm-icon" src="src/assets/images/art/items/equipment/hydra_spine_spear.webp" alt="">
+                            <strong id="lab-offhand-rhythm-name">九頭脊槍</strong>
+                            <span id="lab-offhand-rhythm-state">WAIT</span>
+                        </div>
+                    </div>
+                </section>
+            </footer>
+        </section>
+
+        <aside class="effect-console" aria-label="戰鬥與特效控制儀表板">
+            <header class="console-header">
+                <div>
+                    <span class="console-kicker">COMBAT VERTICAL SLICE</span>
+                    <h2>戰鬥回饋驗收</h2>
+                </div>
+                <button class="console-reset" id="reset-stage" type="button">重置</button>
+            </header>
+
+            <div class="console-scroll">
+                <section class="console-section combat-flow-section">
+                    <div class="mode-switch" role="group" aria-label="驗收模式">
+                        <button class="is-active" type="button" data-lab-mode="combat">實戰模擬</button>
+                        <button type="button" data-lab-mode="effects">單項特效</button>
+                    </div>
+                    <div class="session-row">
+                        <div class="session-state">
+                            <span>流程</span>
+                            <strong id="session-state">待機</strong>
+                        </div>
+                        <button class="session-action" id="toggle-combat" type="button">開始交戰</button>
+                    </div>
+                    <label class="range-field tempo-field">
+                        <span>戰鬥節奏</span>
+                        <input id="tempo-control" type="range" min="70" max="150" value="100" step="5">
+                        <strong id="tempo-value">100%</strong>
+                    </label>
+                </section>
+
+                <section class="console-section">
+                    <div class="section-heading">
+                        <h3>測試對象</h3>
+                        <span id="frame-rate">60 FPS</span>
+                    </div>
+                    <label class="select-field">
+                        <span>怪物</span>
+                        <select id="monster-select">
+                            <option value="demon">黑鐵先鋒</option>
+                            <option value="mantis">伏獵螳螂</option>
+                            <option value="golem">晶礦巨像</option>
+                        </select>
+                    </label>
+                </section>
+
+                <section class="console-section combat-only-section">
+                    <div class="section-heading">
+                        <h3>測試增益</h3>
+                        <span>套用／刷新</span>
+                    </div>
+                    <div class="buff-test-grid">
+                        <button type="button" data-add-buff="power">
+                            <img src="src/assets/images/art/items/equipment/elemental_badge.webp" alt="">
+                            <span><strong>元素增幅</strong><small>傷害提升</small></span>
+                        </button>
+                        <button type="button" data-add-buff="guard">
+                            <img src="src/assets/images/art/items/equipment/cave_ward_shield.webp" alt="">
+                            <span><strong>礦燈護壁</strong><small>承傷降低</small></span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="console-section manual-vfx-section" data-manual-vfx>
+                    <div class="section-heading">
+                        <h3>玩家攻擊</h3>
+                        <span>單項播放</span>
+                    </div>
+                    <div class="effect-grid effect-grid-two">
+                        <button type="button" data-effect="sword">劍 · 弧斬</button>
+                        <button type="button" data-effect="dagger">匕首 · 連斬</button>
+                        <button type="button" data-effect="heavy">重武器 · 震擊</button>
+                        <button type="button" data-effect="lance">槍矛 · 穿刺</button>
+                        <button type="button" data-effect="focus">法器 · 共鳴</button>
+                        <button type="button" data-effect="critical">暴擊回饋</button>
+                    </div>
+                </section>
+
+                <section class="console-section manual-vfx-section" data-manual-vfx>
+                    <div class="section-heading">
+                        <h3>怪物攻擊</h3>
+                        <span>單項播放</span>
+                    </div>
+                    <div class="effect-grid effect-grid-two">
+                        <button type="button" data-effect="claw">三連爪擊</button>
+                        <button type="button" data-effect="crush">沉重砸擊</button>
+                        <button type="button" data-effect="projectile">魔能投射</button>
+                        <button type="button" data-effect="breath">吐息射線</button>
+                        <button type="button" data-effect="curse">暗影詛咒</button>
+                        <button type="button" data-effect="boss-phase">Boss 階段</button>
+                    </div>
+                </section>
+
+                <section class="console-section">
+                    <div class="section-heading">
+                        <h3>元素附著</h3>
+                        <span id="element-label">無屬性</span>
+                    </div>
+                    <div class="element-strip" id="element-strip">
+                        <button class="element-swatch is-active" type="button" data-element="neutral" title="無屬性" aria-label="無屬性"></button>
+                        <button class="element-swatch element-fire" type="button" data-element="fire" title="火" aria-label="火元素"></button>
+                        <button class="element-swatch element-ice" type="button" data-element="ice" title="冰" aria-label="冰元素"></button>
+                        <button class="element-swatch element-thunder" type="button" data-element="thunder" title="雷" aria-label="雷元素"></button>
+                        <button class="element-swatch element-poison" type="button" data-element="poison" title="毒" aria-label="毒元素"></button>
+                        <button class="element-swatch element-shadow" type="button" data-element="shadow" title="暗影" aria-label="暗影屬性"></button>
+                        <button class="element-swatch element-glimmer" type="button" data-element="glimmer" title="微光" aria-label="微光屬性"></button>
+                    </div>
+                </section>
+
+                <section class="console-section">
+                    <div class="section-heading">
+                        <h3>輸出設定</h3>
+                        <span id="intensity-value">100%</span>
+                    </div>
+                    <label class="range-field">
+                        <span>特效強度</span>
+                        <input id="intensity-control" type="range" min="40" max="160" value="100" step="5">
+                    </label>
+                    <label class="range-field">
+                        <span>粒子密度</span>
+                        <input id="density-control" type="range" min="35" max="180" value="100" step="5">
+                    </label>
+                    <div class="toggle-list">
+                        <label><input id="toggle-shake" type="checkbox" checked><span>畫面震動</span></label>
+                        <label><input id="toggle-hitstop" type="checkbox" checked><span>命中停頓</span></label>
+                        <label><input id="toggle-numbers" type="checkbox" checked><span>傷害數字</span></label>
+                    </div>
+                </section>
+
+                <section class="console-section console-section-final manual-vfx-section" data-manual-vfx>
+                    <button class="demo-action" id="play-showcase" type="button">播放完整展示</button>
+                    <button class="clear-action" id="clear-effects" type="button">清除畫面特效</button>
+                </section>
+            </div>
+        </aside>
+    </main>
+
+    <script type="module" src="src/js/scenes/CombatVfxLab.js?v=20260711p"></script>
+</body>
+</html>

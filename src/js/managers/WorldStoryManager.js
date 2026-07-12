@@ -5,7 +5,6 @@ import {
     getMonsterClueTriggers,
     getStoryChain,
     getTerrainEffect,
-    getZoneProfile,
     WorldClues,
     WorldLandmarks,
     WorldStoryChains
@@ -16,6 +15,11 @@ import {
     getStoryEventRules
 } from '../data/StoryProgressMap.js';
 import { BossMonsterIds } from '../data/Monsters.js';
+import {
+    findChapterLocation,
+    getAllChapterLocations,
+    getChapterRegion
+} from '../data/ChapterRegionRegistry.js';
 
 const BossTemplateIdSet = new Set(Array.isArray(BossMonsterIds) ? BossMonsterIds : []);
 const ManualTriggerBossIds = new Set(['ambush_mantis', 'forest_guardian', 'blood_moon_stag']);
@@ -29,6 +33,11 @@ function clampStage(stages, clueCount) {
 }
 
 class WorldStoryManager {
+    getRuntimeLandmark(landmarkId, chapter = null) {
+        return getLandmark(landmarkId)
+            || findChapterLocation(landmarkId, chapter || Number(GameManager.getFlag?.('story.chapter')) || 1);
+    }
+
     getClueFlag(clueId) {
         return `world.clue.${clueId}`;
     }
@@ -382,7 +391,7 @@ class WorldStoryManager {
     }
 
     visitLandmark(landmarkId, context = {}) {
-        const landmark = getLandmark(landmarkId);
+        const landmark = this.getRuntimeLandmark(landmarkId, context.chapter);
         if (!landmark) {
             return {
                 success: false,
@@ -608,7 +617,9 @@ class WorldStoryManager {
     }
 
     getVisitedLandmarks() {
-        return WorldLandmarks
+        const locations = [...WorldLandmarks, ...getAllChapterLocations()];
+        const uniqueLocations = [...new Map(locations.map(landmark => [landmark.id, landmark])).values()];
+        return uniqueLocations
             .filter(landmark => GameManager.getFlag(this.getLandmarkVisitedFlag(landmark.id)))
             .map(landmark => ({ ...landmark }));
     }
@@ -783,10 +794,14 @@ class WorldStoryManager {
     }
 
     getNarrative(context = {}) {
-        const zone = getZoneProfile(context.zoneId);
-        const landmark = context.landmarkId ? getLandmark(context.landmarkId) : null;
+        const chapter = Number(context.chapter)
+            || Number(GameManager.getFlag?.('story.chapter'))
+            || 1;
+        const region = getChapterRegion(chapter);
+        const landmark = context.landmarkId
+            ? this.getRuntimeLandmark(context.landmarkId, chapter)
+            : null;
         const effects = [
-            ...(zone.effectIds || []),
             ...(landmark?.effectIds || [])
         ].map(getTerrainEffect).filter(Boolean);
         const stories = landmark?.storyChainIds?.length
@@ -794,10 +809,10 @@ class WorldStoryManager {
             : this.getActiveStorySummaries(2);
 
         return {
-            title: landmark?.name || zone.name,
-            subtitle: landmark ? landmark.mapHint : `${zone.dangerLabel}｜${zone.hint}`,
-            description: landmark?.arrival || zone.summary,
-            zone,
+            title: landmark?.name || region?.title || `第 ${chapter} 章`,
+            subtitle: landmark ? landmark.mapHint : `第 ${chapter} 章手工路線`,
+            description: landmark?.arrival || `沿著「${region?.title || `第 ${chapter} 章`}」的固定路線前進。`,
+            region,
             landmark,
             effects,
             stories

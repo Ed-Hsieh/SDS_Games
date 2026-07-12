@@ -106,13 +106,11 @@ export const PassiveCombatEffectUnlockSources = {
         sourceText: '初始戰術；也可透過銳利專注手記補登'
     },
     heavy_grip: {
-        questIds: ['commission_blacksmith_chimney'],
-        sourceText: '協助鐵匠鋪重新穩住爐火後解鎖'
+        sourceText: '等待鍍造功能與地圖來源定案'
     },
     guard_memory: {
         itemIds: ['guard_memory_manual'],
-        questIds: ['main_001'],
-        sourceText: '完成村長的近郊確認，或取得守勢記憶手記'
+        sourceText: '取得守勢記憶手記'
     },
     quick_rhythm: {
         itemIds: ['quick_rhythm_manual'],
@@ -124,8 +122,8 @@ export const PassiveCombatEffectUnlockSources = {
     },
     venom_resolve: {
         questIds: ['dungeon_jungle_002'],
-        flags: ['dungeon.jungle.cleared', 'town.apothecary.understands_thorn_trade'],
-        sourceText: '迷霧叢林通關，或藥師辨認荊棘交易後解鎖'
+        flags: ['dungeon.jungle.cleared'],
+        sourceText: '迷霧叢林通關後解鎖'
     },
     frost_pacing: {
         questIds: ['dungeon_snow_002'],
@@ -138,27 +136,22 @@ export const PassiveCombatEffectUnlockSources = {
         sourceText: '煉獄深淵通關後解鎖'
     },
     swamp_pathfinding: {
-        questIds: ['main_008'],
         itemIds: ['thorn_trade_bead'],
-        flags: ['town.apothecary.understands_thorn_trade'],
-        sourceText: '荊棘女巫線、荊棘交換珠，或藥師交易規則調查後解鎖'
+        sourceText: '取得荊棘交換珠後解鎖'
     },
     ruin_literacy: {
         questIds: ['dungeon_ruins_002'],
         itemIds: ['julian_margin_notes'],
-        flags: ['dungeon.ruins.cleared', 'town.scholar.julian_margin_read'],
-        sourceText: '遠古遺跡通關，或取得朱利安邊註後解鎖'
+        flags: ['dungeon.ruins.cleared'],
+        sourceText: '遠古遺跡通關，或取得遺跡邊註後解鎖'
     },
     field_medic: {
         itemIds: ['field_medic_notes', 'last_soup_ladle'],
-        flags: ['town.apothecary.stock_basic_potion'],
-        sourceText: '取得野戰醫術手記、最後一鍋湯杓，或藥師補上基礎藥水供應後解鎖'
+        sourceText: '取得野戰醫術手記或最後一鍋湯杓後解鎖'
     },
     boss_composure: {
-        questIds: ['main_012'],
         itemIds: ['living_index', 'retreat_rollcall'],
-        flags: ['town.scholar.last_index_bound'],
-        sourceText: '第三章進入龍巢之路，或取得活索引、撤退點名冊後解鎖'
+        sourceText: '取得活索引或撤退點名冊後解鎖'
     }
 };
 

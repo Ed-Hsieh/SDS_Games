@@ -1,6 +1,6 @@
 # Standard Bearer Frey Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -22,7 +22,8 @@ and town-state data are rewritten.
 - Primary systems touched later: south gate staging, route safety, fog direction,
   watchpost and lamplight logic, Tavi side story, first-run route tragedy,
   second-run rescue branch
-- Canon status: in progress, accepted as a major route-safety and emotional NPC
+- Canon status: accepted for Chapter 1-4 setup, first-run death, second-run
+  rescue, and elder/Frey aftermath; visual production remains deferred
 
 ## Core Identity
 
@@ -118,6 +119,12 @@ This event defines Frey's belief:
 
 > I was once saved by a flag in the mist. If someone else is lost, I will be the
 > foolish person who keeps waving one until they find their way home.
+
+Accepted screenplay placement: Chapter 3 `Lamp Oil In Fog`. The old patrol flag
+base at the rear-marker route prompts Frey to name the childhood mist before the
+Gray Ridge crisis. Tavi remembers clinging to her and being unable to make his
+legs move. The audience therefore knows what the flag means before her first-run
+death rather than learning it as posthumous exposition.
 
 ## Personality
 
@@ -226,15 +233,25 @@ place he needs to stand.
 
 First-run chain:
 
-1. A major route crisis or boss-related event creates a situation where a light,
-   direction marker, or watch position must be held.
+1. In Chapter 4, Ancient Titan movement breaks the planned Gray Ridge causeway
+   evacuation route while ash-heavy wind hides the rear group. Front flag and
+   rear lamp markers must both remain visible.
 2. Tavi knows he should act, but the danger is real and he freezes.
 3. Frey sees this and steps into the role.
-4. She raises the flag so the protagonist or others can see the way through fog,
-   chaos, or darkness.
-5. The protagonist follows the flag and reaches the necessary place.
-6. Only after arriving does the protagonist realize Frey is already dead, still
-   holding or having fixed the flag in place.
+4. She returns from the front marker and fixes the ordinary South Gate patrol
+   flag into the cracked center span so the rear group can see the crossing.
+5. The protagonist cannot replace either marker: Titan movement traps them at a
+   central civilian footbridge that will collapse if released before the last
+   evacuee crosses.
+6. The evacuation completes. When the protagonist finally moves toward Frey,
+   the span rises between them and the Titan foundation opens.
+7. The audience receives one Frey-limited close-up across the raised span. She
+   quietly connects the present flag to the childhood mist rescue and says:
+   `小時候，是那面旗把我們帶回去。這一次，換我把它留到最後。`
+   The protagonist cannot hear this line and gains no rescue state from it.
+8. Only afterward does the protagonist reach Frey dead beside the fixed flag. The
+   dedicated first-run CG may show her final moment holding it, but the reusable
+   route background must still carry the physical aftermath.
 
 Her death completes her belief:
 
@@ -269,13 +286,18 @@ Future knowledge helps, but the emotional key is Tavi.
 
 Second-run chain:
 
-1. The player knows the route crisis or attack is coming.
-2. The player completes Tavi's side route before the crisis.
-3. Tavi faces his dependency on Frey and admits why he became the lamplighter.
-4. At the crisis, Frey prepares to step into the fatal role again.
-5. Tavi acts first. He is still afraid, but he raises the light and holds the
-   position.
-6. Frey no longer has to sacrifice herself.
+1. `旗沒有回來` makes the player recognize that the Gray Ridge evacuation needs
+   two visible markers rather than one heroic replacement.
+2. The player completes Tavi's wind-guard repair and rear-marker rehearsal before
+   the crisis.
+3. Tavi faces his dependency on Frey and admits that he took the lamp only to
+   remain where her flag could see him. Frey tells him to stand where she cannot
+   stand so she can depend on his light in return.
+4. At the crisis, Frey sees the rear group disappear and prepares to return.
+5. Tavi acts first. He is still afraid, but lights the repaired rear marker before
+   the ground break reaches him.
+6. Frey sees his light, remains at the front flag, and both groups cross. Neither
+   has to replace the other.
 
 This saves Frey and changes her.
 
@@ -299,6 +321,12 @@ Her new belief:
 
 > I do not have to hold the flag alone. A road home needs both the one who stands
 > forward and the one who keeps the light.
+
+Accepted Chapter 4 aftermath: Frey admits that seeing Tavi's rear light first
+made her want to call him out of danger rather than trust the signal. The elder
+says he thinks the same thing whenever the young leave South Gate. She recognizes
+that his caution grew from remembered absences, while he warns her not to turn
+fear into either paralysis or another one-person route.
 
 ## Entrusted Flame
 
@@ -353,15 +381,12 @@ Avoid:
 
 ## Open Questions
 
-- Which chapter contains Frey's first-run death?
-- Which exact route, watchpost, boss event, or fog crisis requires the flag?
-- What is the exact visual staging of the death scene?
-  - Holding the flag while dead?
-  - Flag fixed into the ground or structure?
-  - Body beside the flag?
-- Does the flag have a final damaged state after the first run?
-- What does saving Frey change in town state, south gate morale, and Tavi's later
-  role?
+- What exact damage state does the recovered flag and clasp retain after the
+  first run?
+- Does the second-run shared flag/lamp route produce a story relic, or is the
+  living pair at South Gate the complete reward?
+- Which later Chapter 5-7 gate line, if any, is still needed after the accepted
+  elder/Frey Chapter 4 aftermath already resolves the core lesson?
 
 ## Do Not Do
 

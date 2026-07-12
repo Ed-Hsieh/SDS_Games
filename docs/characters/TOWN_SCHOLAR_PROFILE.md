@@ -1,6 +1,6 @@
 # Town Scholar Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -15,7 +15,7 @@ quest clues, and multi-speaker scenes are rewritten.
 ## Runtime Mapping
 
 - Runtime id: `town_scholar`
-- Accepted name in discussion: 伊萊
+- Accepted display name: 伊萊
 - Current role label: scholar / clerk / records keeper
 - Current portrait path: `src/assets/images/art/characters/portraits/town_scholar.webp`
 - Primary systems touched later: traveler handbook, encyclopedia framing,
@@ -176,9 +176,15 @@ Their tension is quiet:
 - 伊萊 fears handing people the paper that sends them out.
 - Both are trying to protect the protagonist in different ways.
 
-## Relationship With Herbalist
+The accepted Chapter 2 ledger scene makes this friendship visible without a
+flashback. 伊萊 remembers writing inside while the elder waited outside until
+dawn, then asks him not to announce another solitary departure through an empty
+chair. The elder answers with old-friend humor but does not promise. This line
+must remain mandatory mainline setup for the Chapter 5 empty-chair payoff.
 
-伊萊 knows the herbalist's father appears in the old expedition records.
+## Relationship With Mia
+
+伊萊 knows Mia's father appears in the old expedition records.
 
 He may have handled paperwork connected to the father's departure, missing
 status, or funeral absence. This does not make him responsible, but it means her
@@ -187,9 +193,16 @@ family wound is not theoretical to him.
 If their scenes touch the old lists, write them with restraint. A name on a page
 can be heavier than a speech.
 
+Their Chapter 5 relationship must also carry a present-tense consequence. Mia
+trusts 伊萊's work because he normally states what a page can and cannot prove.
+That trust is why his shortened handling summary matters: it does not order her
+to use a tool, but it removes one ordinary reason to question the standard
+procedure. Her death therefore strikes both his affection for her and the value
+he assigns to useful paperwork.
+
 ## First Run
 
-In the first run, 伊萊 should begin as warm support.
+In the first run, 伊萊 begins as warm support.
 
 He helps the protagonist by searching old paperwork:
 
@@ -201,19 +214,35 @@ He helps the protagonist by searching old paperwork:
 - Missing-person lists.
 - Internal village records.
 
-He does not know the outside truth. He offers the best possible clue from a
-nearly blank puzzle.
+He does not know the outside truth. During Chapters 1-4, his incomplete records
+remain useful because he states their limits and compares them with current
+evidence.
 
-Accepted first-run pain:
+His accepted first-run pain occurs in Chapter 5:
 
-- He provides a reasonable piece of information that is no longer safe enough.
-- The clue may contribute to the protagonist being poisoned or endangered.
-- That danger may become one cause in the herbalist's first-run tragedy.
-- 伊萊 did not make a reckless mistake.
-- He did not lie.
-- He used what he had, and it still hurt someone.
+- Mia reads patient symptoms, the blacksmith reads damaged gear, and 伊萊
+  reads route timing. Together they identify the four fronts as one rhythm.
+- Four source pages correctly show that small fire, ice, thunder, and poison
+  residues previously collected separately by route crews remain intact under a
+  standard extraction forceps at ratchet setting two. They are distinct from the
+  fresh front samples the protagonist can later gather for a combined test.
+- Because a field team cannot consult four ledgers during an emergency, he
+  compresses their common result into one line: `標準二格固定可安全處理`.
+- The source pages say `分離樣本`. The summary line does not keep that scope
+  beside its conclusion. No record describes a combined four-element shard, so
+  the omission feels practical rather than dangerous before the Boss exists.
+- The blacksmith's technically sound tool and 伊萊's concise summary together
+  make the known procedure feel settled. Mia saves the protagonist, but the
+  forceps crushes the contracting extracted shard and the point-blank release
+  kills her.
+- At the aftermath table, the field summary lies beside the broken forceps.
+  伊萊 sees `安全` in his own handwriting and understands that four accurate
+  facts became one untested conclusion when he removed their boundary.
 
-After this, he becomes deeply affected.
+He is not a reckless killer, did not hide a warning, and is not the sole cause.
+The blacksmith states that he would have selected the same forceps without the
+summary. Even so, 伊萊's writing is a real causal contribution; removing it would
+thin his arc back into passive regret.
 
 He does not quit. He does not collapse theatrically. He keeps sitting at the desk
 and keeps helping.
@@ -222,6 +251,11 @@ But he is lower.
 
 - His jokes fade.
 - His hands slow over certain names.
+- He removes `安全通路` from the expedition form and writes only `最後可證實位置`.
+- He will not write `安全` unless the sample, method, and limit can fit beside it.
+- He spends the night after Mia's death reconstructing every omitted scope in
+  the handling pages. This is why he notices the elder's first-run departure only
+  after the chair, scar shard, repaired boots, and provisions are already gone.
 - He still speaks gently, but the air around him feels tired.
 - He seems close to being unable to continue, yet continues anyway.
 
@@ -229,31 +263,44 @@ This is his first-run tragedy: not death, but a living collapse of confidence.
 
 ## Second Run
 
-The second-run solution should not rely on a freeform player-question system.
-The game does not currently support that style.
+The second-run solution does not rely on a freeform player-question system or an
+inherited physical item.
 
-Second-run changes should trigger from evidence:
+Accepted evidence chain:
 
-- The player carries or unlocks `藥師手記`.
-- The player obtains the needed medicine early.
-- The player brings a future-informed clue to the same story beat.
-- 伊萊 sees the evidence and searches a different kind of document.
-
-Instead of only checking an old road, he may check:
-
-- Later repair notes.
-- Failed delivery records.
-- Unfinished missing-person reports.
-- Marginal warnings.
-- Records filed after the original route stopped being safe.
-
-This lets him help prevent the chain that led to the herbalist's first-run
-tragedy.
+- Achievement memory `醒來時，水已經涼了` preserves the forceps ratchet click.
+- When the blacksmith tests the standard tool before the Elemental Lord route,
+  the protagonist recognizes the sound and asks what the handling summary
+  actually proves.
+- 伊萊 reopens the four current-run source pages and states that they prove only
+  separated-residue safety, not the behavior of a converged object. He refuses
+  to sign the generalized summary.
+- Fresh residues from all four fronts are brought together in the current run;
+  these are not the older routine samples summarized on the first-run page.
+  伊萊 records how the combined sample contracts under contact and keeps
+  `交會樣本`, the tested method, and the unproven limits on the same line.
+- The blacksmith removes the ratchet and prepares a spider-silk loop; purified
+  slime gel receives the residue without crushing it.
+- Mia remains the operator and makes the medical decision. 伊萊's role is
+  evidence scope, timing, comparison, and an honest written handling record.
+- The same Boss injury and operation occur. The pressure-free procedure keeps the
+  shard intact and Mia survives.
+- Because the scoped page is completed before nightfall, 伊萊 also has time to
+  notice the elder clearing the scar-shard record and pass the preparation clues
+  to the protagonist before dawn.
+- He survives the true ending. At the final archive table, the elder asks that
+  the record say he was stopped and agreed to stop. 伊萊 answers:
+  `我會寫得更麻煩一點：我們終於沒有讓一個人替所有人負責。` This is his
+  final character answer: honest records preserve shared action instead of
+  turning one survivor, hero, or victim into the whole explanation.
 
 Second-run emotional meaning:
 
 - He learns that his paperwork does not only close the books on the dead.
-- With the right evidence, it can still help the living avoid a repeated loss.
+- With present-run evidence gathered early enough, it can still help the living
+  avoid a repeated loss.
+- His correction is not to stop summarizing. It is to make uncertainty usable
+  instead of silently editing it out.
 - He does not become a prophet. He remains an ordinary clerk whose ordinary work
   finally reaches the right page.
 
@@ -325,22 +372,19 @@ Avoid:
   repair note, missing-person entry, supply order, or a mismatch between old
   paperwork and current evidence.
 - His first-run emotional decline should be reflected in dialogue and town-humanity
-  records after the poisoning and herbalist chain.
+  records after Mia's operation.
+- The first-run field summary, source pages, and broken forceps are scene props,
+  not inventory rewards or inherited second-run objects.
 - Second-run evidence triggers should change his lookup path without requiring
   freeform questions.
 
 ## Open Questions
 
-- Which exact first-run clue from 伊萊 contributes to the protagonist's poisoning
-  or danger?
-- Which document type prevents that chain in the second run?
-- Does he ever see the herbalist notebook, or does the player act on it before
-  returning to him?
-- Which chapter reveals the full old expedition list?
-- Does the list contain any later NPC family connections beyond the herbalist's
-  father?
-- Does 伊萊 survive to the ending as a witness, or face a later archive-related
-  crisis?
+- Does the expedition list contain any later NPC family connections beyond
+  Mia's father?
+- Final clothing, habitual hand movement, and layered-expression details remain
+  for the dialogue-art pass. No personal relic or additional archive crisis is
+  required for his completed base-campaign arc.
 
 ## Do Not Do
 
@@ -349,4 +393,8 @@ Avoid:
 - Do not make him withhold clear objectives for fake mystery.
 - Do not add stolen documents or hidden sabotage without a complete future payoff.
 - Do not make him responsible for the old expedition.
+- Do not erase his Chapter 5 causal contribution by describing him as a purely
+  passive observer who only understands the contraction after Mia dies.
+- Do not turn the shortened summary into fraud, stupidity, or sole blame. Its
+  danger comes from a reasonable field format crossing an untested boundary.
 - Do not kill him simply to raise stakes.

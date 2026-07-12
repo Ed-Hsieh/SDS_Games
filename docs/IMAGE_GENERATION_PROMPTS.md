@@ -455,11 +455,11 @@ Negative constraints: no text, no labels, no numbers, no watermark, no UI frame,
 
 Reference examples:
 
-- `src/assets/images/art/scenes/town/places-full/crossroads.webp`
-- `src/assets/images/art/scenes/town/places-full/forge.webp`
-- `src/assets/images/art/scenes/town/places-full/market.webp`
-- `src/assets/images/art/scenes/town/places-full/casino.webp`
-- `src/assets/images/art/scenes/town/places-full/gate.webp`
+- `src/assets/images/art/scenes/town/locations/crossroads.webp`
+- `src/assets/images/art/scenes/town/locations/forge.webp`
+- `src/assets/images/art/scenes/town/locations/market.webp`
+- `src/assets/images/art/scenes/town/locations/casino.webp`
+- `src/assets/images/art/scenes/town/locations/gate.webp`
 
 ## Casino Scenes And Showcase Items
 
@@ -536,11 +536,11 @@ Negative constraints: no text, no labels, no numbers, no watermark, no UI frame.
 
 Reference examples:
 
-- `src/assets/images/art/scenes/dungeons/full/dungeon_cave.webp`
-- `src/assets/images/art/scenes/dungeons/full/dungeon_snow.webp`
-- `src/assets/images/art/scenes/dungeons/full/dungeon_ruins.webp`
-- `src/assets/images/art/scenes/dungeons/full/dungeon_hell.webp`
-- `src/assets/images/art/scenes/dungeons/full/dungeon_radiant_corridor.webp`
+- `src/assets/images/art/scenes/dungeons/areas/dungeon_cave.webp`
+- `src/assets/images/art/scenes/dungeons/areas/dungeon_snow.webp`
+- `src/assets/images/art/scenes/dungeons/areas/dungeon_ruins.webp`
+- `src/assets/images/art/scenes/dungeons/areas/dungeon_hell.webp`
+- `src/assets/images/art/scenes/dungeons/areas/dungeon_radiant_corridor.webp`
 
 ## World Landmarks
 
@@ -573,10 +573,10 @@ Negative constraints: no text, no labels, no numbers, no watermark, no UI frame,
 
 Reference examples:
 
-- `src/assets/images/art/scenes/world/landmarks-full/silver_snare_pass.webp`
-- `src/assets/images/art/scenes/world/landmarks-full/drowned_bell_coast.webp`
-- `src/assets/images/art/scenes/world/landmarks-full/obsidian_keep_gate.webp`
-- `src/assets/images/art/scenes/world/landmarks-full/south_gate_farmland.webp`
+- `src/assets/images/art/scenes/world/landmarks/silver_snare_pass.webp`
+- `src/assets/images/art/scenes/world/landmarks/drowned_bell_coast.webp`
+- `src/assets/images/art/scenes/world/landmarks/obsidian_keep_gate.webp`
+- `src/assets/images/art/scenes/world/landmarks/south_gate_farmland.webp`
 
 ## Quality Checklist
 

@@ -4,255 +4,442 @@ Last updated: 2026-07-09
 
 ## Purpose
 
-This file is the in-progress character dossier for `street_beggar`. It records
-the accepted direction for the beggar as an outside survivor from a lost
-settlement, while keeping his original identity, madness logic, disappearance
-timing, and final route unresolved.
+This file is the accepted character dossier for `street_beggar`. It records his
+real identity, wife, first-run disappearance route, second-run rescue route, and
+the emotional meaning of the Echo Whistle event.
 
 Runtime JS/data remains the source of truth for shipped behavior. This file owns
-the current discussion checkpoint until the beggar's full route is accepted and
-runtime dialogue is rewritten.
+the accepted narrative direction until playable quest dialogue, route events,
+memory scenes, and handbook records are rewritten.
 
 ## Runtime Mapping
 
 - Runtime id: `street_beggar`
 - Current role label: street beggar / outsider / low-place witness
+- True name: Ailo
+- Wife: Neelu
 - Current portrait path: `src/assets/images/art/characters/portraits/street_beggar.webp`
-- Primary systems touched later: rumor route, underside information, second-run
-  reinterpretation, possible black-market or casino-adjacent observation,
-  external lost-settlement clues
-- Canon status: in progress, not final
+- Future memory-scene needs: young Ailo image, Neelu image, ruined mountain
+  flower-field memory scene, Echo Whistle item art if not already present
+- Primary systems touched later: second-run clue reveal, mountain route opening,
+  protagonist run-memory tool, achievement unlock, optional handbook memory
+- Canon status: accepted character core, runtime route not implemented
 
 ## Accepted Direction
 
-The beggar is an outsider from a lost settlement beyond the current village.
+Ailo is accepted as an outside survivor from a destroyed mountain-side village.
+He is not a prophet, immortal, secret villain, or omniscient lore machine.
 
-He is not part of the village's shared civic memory. Nobody clearly knows when he
-arrived, how he arrived, or what his life looked like before he became the person
-sleeping near walls, corners, ash, and discarded things.
+The final route direction is:
 
-This matters because:
+- First run: Ailo appears as a funny but uncomfortable street beggar, steals the
+  Echo Whistle after the player briefly obtains it, opens the old mountain road
+  alone, disappears, and dies off-screen.
+- Second run: the player understands the Echo Whistle and Ailo's intention,
+  accompanies him, prevents the first-run death route, and sees the memory event
+  with Neelu.
+- Emotional core: the route begins as a private promise between Ailo and Neelu
+  and becomes mainline-relevant because the old road opens the Demon King's
+  mountain-side route.
 
-- The village elder should not automatically know his full background.
-- The clerk's local records should not fully explain him.
-- He can carry the feeling that the disaster has already consumed places beyond
-  the player's starting town.
+## Core Identity
 
-He is not currently defined as a prophet, secret immortal, hidden villain, or
-omniscient lore machine.
+The beggar's real name is Ailo.
 
-## Core Function
+The player should not learn this name from ordinary town records or first-run
+dialogue. His name is revealed in the second-run memory event when Neelu calls
+him by name. That moment should be the first time the player sees him as a young
+man rather than only as the street beggar.
 
-He is the person nobody fully treats as a person.
+Ailo came from a mountain-side village near the place where the Demon King or
+main disaster later fell. The village was not a hidden order, ancient temple, or
+special bloodline community. It was a small settlement of ordinary gatherers and
+hunters who knew the mountain, side paths, weather, echoes, and safe routes.
 
-People walk past him. Some give leftovers. Some avoid the smell. Some assume
-anything he says is nonsense.
+The village is now destroyed. Its residents are dead, scattered, or unrecorded.
+The old ways of passing through the mountain paths have been forgotten by almost
+everyone.
 
-This lets him occupy a narrative position no other core NPC has:
+## First Impression
 
-- The elder sees duty.
-- The herbalist sees wounds.
-- The clerk sees paperwork.
-- The blacksmith sees tools and returned objects.
-- Frey sees direction.
-- Tavi sees light and fear.
-- The beggar sees discarded things, ignored movements, and what people reveal
-  when they think no one important is watching.
+Ailo should first read as funny but uncomfortable.
 
-He should not become a generic clue vendor. His value comes from being low enough
-in the social order that truth falls near him without anyone noticing.
+His comedy is mixed, not theatrical slapstick:
 
-## Madness Direction
+- He speaks in warped comparisons.
+- He treats garbage, cloth, dead grass, or random scraps as if they were someone.
+- He can be rude to important people and familiar with strangers.
+- He often seems to misunderstand what matters.
+- He should make the player smile uneasily before the player realizes anything is
+  wrong.
 
-The beggar is allowed to be erratic, broken, and strange.
+The first run should let many players dismiss him as flavor, street weirdness, or
+tragic nonsense. The later turn is that his words were not clean prophecy; they
+were broken memory.
 
-However, his madness must have logic.
+## Neelu
 
-Do not write him as "crazy because horror happened." That is too thin for the
-current story tone.
+Neelu was Ailo's wife.
 
-The accepted design requirement:
+She was not a secret sage, chosen guardian, hidden royal, or lore machine. She
+was an ordinary woman who loved Ailo. Her importance comes from the life they had
+together, not from a grand title.
 
-> His mind should have broken because the rules he used to understand the world
-> were dismantled by the disaster.
+Neelu's warmth is important. In the final memory scene, she should not condemn
+Ailo for failing to save her. She receives his grief gently. Her role is to let
+the player understand that Ailo's madness came from love, injury, and unfinished
+promise, not from melodrama for its own sake.
 
-His madness should grow from a collapse of meaning, not from a jump scare.
+## The Flower-Field Promise
 
-Possible broken rules, not yet accepted as final:
+Ailo and Neelu first confirmed their feelings at a mountain-side flower field
+with a distant view.
 
-- Roads should lead somewhere.
-- Names should point to one person.
-- Dead people should not keep calling from the mist.
-- A bell or flag should help people gather.
-- A guide, messenger, or traveler should be able to trust repeated routes.
+This place was not originally a dungeon, a shrine, or a heroic destination. It
+was simply a place with personal meaning: a view above the village, flowers near
+the mountain, and enough quiet for two ordinary people to say what they felt.
 
-The exact rule that broke him still needs discussion.
+Their key promise:
 
-## How He Treats People
+> "以後再一起來看一次。"
 
-He does not care whether people believe him.
+The English design meaning is: "Let's come see it together again someday."
 
-He is not trying to win an argument, prove a theory, or convince the village to
-honor him. He speaks strangely to everyone with the same lack of social respect:
+This sentence should feel ordinary when heard in memory. Its power comes from
+how ordinary it was before the disaster. After Neelu dies, Ailo's damaged mind
+preserves only the broken shape of that promise.
 
-- Elder.
-- Herbalist.
-- Clerk.
-- Casino owner.
-- Protagonist.
-- Any other resident.
+His first-run warped version:
 
-This is not because he is wise above society. It is because his inner world no
-longer arranges people by their village role.
+> "我得送她去看花。"
 
-He should feel like he sees the same crack running through everyone.
+The player should not understand this line at first. It should sound as if he is
+talking to garbage, a ghost, or an imaginary companion. The second run reveals
+that it is the broken remains of the flower-field promise.
 
-## Relationship With The Protagonist
+## The Garbage He Calls Her
 
-He may treat the protagonist as "the real protagonist" or "the one the story
-follows," but this must not become a fourth-wall joke.
+Ailo does not carry one fixed "wife token" in the first run.
 
-The working logic, not fully accepted:
+He may pick up different scraps, garbage, cloth, dead flowers, broken wood, or
+other discarded objects and treat them as "her." This is intentionally unstable.
+The point is not that the object is secretly important. The object is garbage.
 
-- He has seen many armed people enter disaster and fail to return.
-- The protagonist enters danger and returns repeatedly.
-- To the beggar, this makes the protagonist different from ordinary people in
-  the mist.
-- He may believe events, roads, deaths, or "the page" gather around the
-  protagonist.
+Design rules:
 
-Possible tone:
+- Do not turn the garbage into a key item.
+- Do not make it a hidden relic.
+- Do not make the object itself solve the mystery.
+- The important content is Ailo's broken speech and the later memory reveal.
 
-- He does not call the protagonist a chosen hero.
-- He speaks as if the protagonist is the person the road keeps writing around.
-- His wording can sound like madness on first read and become more meaningful in
-  the second run.
+This preserves the uncomfortable first impression: the player sees a man
+addressing trash with tenderness, and only much later understands what his mind
+is trying to hold.
 
-The reason he singles out the protagonist remains unresolved.
+## Disaster And Injury
 
-## First Run Direction
+The mountain-side village was destroyed when the Demon King or final-disaster
+pressure fell into the region.
 
-The beggar should be easy to ignore in the first run.
+The exact boss staging can be decided later by the mainline route, but the
+accepted emotional truth is:
 
-The player may read him as:
+- Ailo and Neelu were ordinary people caught in a disaster too large for them.
+- Their village was slaughtered or wiped out.
+- They attempted to escape.
+- Neelu died while Ailo was present.
+- Neelu actively sacrificed herself so Ailo could live and continue toward their
+  promise.
 
-- Flavor.
-- A strange rumor source.
-- Someone damaged by poverty or fear.
-- A person saying odd things that do not yet matter.
+The current accepted death shape:
 
-He should still give fair surface information. Not every line should be a riddle.
-Some lines can be concrete:
+- During the escape, Neelu pushes Ailo down a valley or mountain drop so he
+  survives the immediate slaughter.
+- Ailo lives, but suffers head trauma from the fall.
+- His mind breaks from both the physical injury and the trauma of seeing Neelu
+  sacrifice herself.
+- Afterward, he no longer retains the full chain of cause and effect. He retains
+  fragments: Neelu, the mountain, the flowers, the road, and the need to bring
+  "her" there.
 
-- Someone passed through an alley at night.
-- A place no longer has familiar sounds.
-- A smell changed after the mist came.
-- Someone threw away a letter, bottle, tool, or scrap.
+This means Ailo is not "crazy because horror happened." His madness has a
+concrete basis:
 
-First-run fate direction:
+- Fall injury.
+- Grief.
+- Survivor shock.
+- Fragmented memory.
+- An unfinished promise that became the last stable shape inside him.
 
-- Downfall should be disappearance, not confirmed death.
-- His disappearance should fit his identity: someone without stable records can
-  vanish without the village knowing how to mourn him.
-- The exact timing is not accepted yet.
+## Echo Whistle
 
-## Second Run Direction
+The route-opening item is called the Echo Whistle.
 
-In the second run, the player should have a stronger reason to listen.
+The Echo Whistle is not Neelu's keepsake. It has no direct emotional tie to her.
+It is not a divine relic, legendary key, or magical artifact.
 
-The goal is not to make him suddenly normal. He remains erratic and difficult to
-read. The change is that the player now has enough context to understand that
-some of his broken images were first-run clues.
+It is a practical local tool once used by mountain villagers, hunters, and
+gatherers to find or confirm hidden mountain paths. In fog, broken terrain, or
+dangerous cliff routes, a person could use the whistle at a known point and
+listen for the returning echo. The echo indicated which apparent dead end,
+side-cut, or hidden route was safe.
 
-Second-run value can include:
+The important logic:
 
-- Reinterpreting old lines.
-- Identifying overlooked movements or objects.
-- Connecting the starting village to an outside lost settlement.
-- Giving the player a way to recognize danger before it becomes obvious.
+- Outsiders can possess the whistle without understanding it.
+- Ailo once belonged to the local mountain village, so his body and broken memory
+  still know the whistle matters.
+- He may not be able to explain why he needs it.
+- His obsession with finding it is one of the remaining traces of his old life.
 
-No second-run rescue condition is accepted yet.
+The Echo Whistle is the tool that lets the old mountain road be found again.
+Opening that road is already enough to connect Ailo's route to the main story.
+
+## Old Mountain Road
+
+The old road had two meanings before the disaster:
+
+- It was a practical local route used by villagers to avoid unsafe main roads.
+- It was also the route Ailo and Neelu once used to reach the flower-field view.
+
+The road disappeared from common use because the village was destroyed and the
+people who knew how to use it were gone. It is not primarily hidden by a grand
+spell or locked by a formal seal. It is a lost human route: when the people who
+knew the way died, the road was effectively erased.
+
+The Echo Whistle lets the route be found again.
 
 ## Possible Origin Models Under Discussion
 
-These are not final canon. They are preserved so future discussion does not
-restart from zero.
+Earlier origin models are now resolved.
 
-### Model A: Lost-Settlement Survivor
+Accepted:
 
-Accepted as broad direction.
+- Ailo came from a destroyed mountain-side village near the Demon King's fall
+  region.
+- The village was a gathering and hunting settlement, not an ancient hidden
+  order.
+- His route connects to the main story through the mountain road and Echo
+  Whistle, not through secret status or chosen blood.
 
-He came from a settlement outside the current village that has been lost,
-swallowed, or cut off by the expanding disaster.
+Rejected as primary direction:
 
-Open questions:
+- Casino or debt ruin as the root of his madness.
+- Hidden prophet, immortal witness, or mastermind identity.
+- A fixed sacred relic held by Ailo as the key to the story.
 
-- Which region or route was that settlement connected to?
-- Did he escape alone?
-- Was he already broken before reaching the current village?
+Still implementation-dependent:
 
-### Model B: Route Guide Whose World Broke
+- The exact facial anatomy and final composition of young Ailo, Neelu, and the
+  memory scene. Neelu's dye-mender occupation and visual anchors are accepted.
 
-Promising, but not accepted.
+Accepted placement is now fixed: the Elemental Lord pressure shift exposes the
+Echo Whistle cache late in Chapter 5; Chapter 6 establishes that the broad route
+cannot be used; Chapter 6-to-7 opens Ailo's old local road.
 
-He may once have been a guide, messenger, courier, or path-worker whose life
-depended on trusting roads, route markers, names, bells, or repeated paths.
+Mandatory early mainline breadcrumbs are also fixed:
 
-His madness would then come from a disaster where every correct rule failed:
+- Chapter 1: Ailo listens to rope and broken wood, then says the road has lost
+  its mouth and the flowers cannot hear.
+- Chapter 2: he separates the white-petaled, pale-green-centered flower from
+  dye-capable packing leaves and says the useless flower must be kept because
+  `她` said so.
+- Chapter 3: old command fragments sound like broken route instructions to him.
+- Chapter 4: after the Titan shifts the retaining wall, he hears a lower road
+  opening and names a missing whistle and a woman who complained that he blew it
+  too quickly.
+- Chapter 5: seeing the Echo Whistle turns these repeated fragments into one
+  visible practical reaction.
 
-- The right road returned to the wrong place.
-- Familiar signals lied.
-- Names and voices became unreliable.
-- People followed the correct path and still vanished.
+These beats are mandatory because the final old road and disappearance belong
+to the main plot. Optional Ailo side stories may add tenderness or strange daily
+behavior, but cannot carry any clue required to understand why he takes the
+whistle.
 
-This model is useful because it creates a dark mirror of Frey and Tavi:
+## First Run Route
 
-- Frey believes a flag can bring people home.
-- Tavi must learn to hold a lamp while afraid.
-- The beggar may be what remains when direction itself betrays someone.
+The first run is single-line and should not fully explain Ailo.
 
-This model requires more discussion before acceptance.
+Accepted first-run sequence:
 
-### Model C: Casino Or Debt Ruin
+1. The protagonist reaches the Demon King's mountain or the mountain-side route
+   connected to the final pressure.
+2. The protagonist finds that there is no usable path forward.
+3. A fixed mainline event, battle, or route objective gives the protagonist the
+   Echo Whistle for a short time.
+4. The protagonist does not understand the whistle's connection to Ailo.
+5. Ailo brushes past the protagonist and steals the Echo Whistle.
+6. A dialogue selection UI may appear, but no real conversation happens.
+7. The player later checks the inventory and discovers that the Echo Whistle is
+   gone.
+8. On the old road, a short audience-only Ailo cutaway shows him using the
+   whistle correctly and repeating that `她還在等`. It reveals an unfinished
+   promise, not the woman's identity, his name, their marriage, or the fall.
+9. Returning to the protagonist shows only fresh route traces and blood.
+10. Ailo is gone.
+11. Neither protagonist nor audience sees Ailo die or finds a body.
 
-Rejected as primary direction for now.
+The protagonist cannot confirm that Ailo opened the road and gains no route fact
+from the cutaway. The audience understands that the apparent theft served a
+promise rather than profit. The second run explains the connection in full and
+lets protagonist knowledge catch up through accompaniment.
 
-It could connect him to casino or black-market systems, but it risks making him
-only a victim of greed instead of a witness to external disaster. Keep as a later
-minor echo only if the casino owner route needs it.
+First-run emotional target:
 
-## Fate Direction
+- Early: the player dismisses him.
+- Middle/late: his words start feeling less random.
+- Mountain route: the road opens and he vanishes.
+- Retrospective feeling: shock that his nonsense was pointing at something real.
 
-Current best fate: disappearance.
+## First Run Death Direction
 
-Why it fits:
+Ailo dies in the first run, but neither the player nor the protagonist sees the
+death or body. The player may see his earlier solitary climb through the accepted
+character-limited cutaway.
 
-- He entered the village without a clear record.
-- He lives at the edge of people's attention.
-- He may vanish the way discarded truths vanish.
-- Confirmed death would make him too settled.
+The confirmed first-run clue should be the Echo Whistle's aftermath:
 
-Disappearance should not become random. It needs a later clue, object, or line
-that lets the second run reinterpret what happened.
+- The whistle was used.
+- The road was opened.
+- Ailo is missing.
+- The mountain-side route implies someone went ahead alone.
+- A white-petaled, pale-green-centered flower is left at the promise field.
+- Bloody handprints continue upward to the old escape cliff and end at a fresh
+  break above the obscured valley.
+
+Do not show his corpse. His first-run disappearance should preserve the feeling
+that the player understood too late. His fatal mistake is now concrete: head
+trauma reversed Neelu's last direction. She told him to go down and live; he
+keeps climbing back toward the old cliff because he believes she is still above.
+
+## Second Run Route
+
+In the second run, the player gains a special run-memory tool or equivalent
+second-run awareness that makes old clues legible.
+
+The second run does not need to give the player a normal material reward. Its
+purpose is understanding and rescue.
+
+Accepted second-run sequence:
+
+1. The protagonist again reaches the Echo Whistle point.
+2. The player now understands that Ailo intends to steal the whistle and go alone.
+3. Instead of letting him vanish into the first-run death route, the player can
+   see through his intention.
+4. The player chooses to accompany him.
+5. Ailo and the protagonist use the Echo Whistle to find the old mountain road.
+6. They reach the ruined promise place.
+7. The full memory event plays and restores the direction of Neelu's last order:
+   down meant survival, not an instruction to climb back for her.
+8. Ailo no longer continues alone toward the broken upper cliff and does not die
+   on this route.
+
+The rescue should come from understanding, not from combat reward pressure.
+
+## Memory Event Structure
+
+The complete Ailo and Neelu event should play like a memory, not an exposition
+lecture.
+
+Visual direction:
+
+- Old photograph filter.
+- Soft fading transitions.
+- Young Ailo visible.
+- Neelu visible.
+- The ruined present and the remembered flower field can overlap or dissolve
+  into each other.
+
+Neelu accepted character anchor:
+
+- Mountain-village dye-mender (`山村染補師`): repairs household cloth and
+  seasonally gathers dye plants and dye flowers as one craft.
+- Dark hair tied with faded green cloth, dye-stained fingertips, practical
+  mountain clothing, and a mending needle at the collar.
+- Wants one visit to the flower field with no work, basket, or hurry attached.
+- Separates one white-petaled, pale-green-centered flower from the dye pile
+  because it produces no useful color. Ailo keeps it precisely because it does
+  not need to be useful. This is the final letter's visual anchor.
+- Fears ordinary promises will always be delayed until `later` disappears.
+- Warm, direct, lightly amused, and practical; never prophetic or supernatural.
+- Exact facial anatomy waits for the later art pass, but the occupation,
+  practical mountain clothing, faded green hair cloth, dye-stained fingertips,
+  and collar needle are accepted.
+
+Accepted scene beats:
+
+1. Young Ailo and Neelu at the mountain-side flower field, where they first
+   confirm their feelings.
+2. The ordinary village life before the disaster: hunters, gathering paths,
+   mountain weather, and small human routine.
+3. The Demon King or final-disaster pressure falls into the region.
+4. Escape and slaughter: Ailo and Neelu run from the destroyed village.
+5. Neelu pushes Ailo down the mountain or valley so he survives.
+6. Present Ailo reaches the ruined promise place with the protagonist.
+7. The memory opens fully: Neelu calls him "Ailo," receives his grief, and speaks
+   the original promise again. She also corrects his fatal route inversion: she
+   told him to go down so he would live, not to return upward and die looking for
+   her.
+
+The emotional focus should be Ailo's longing and regret. He can express years of
+confusion, grief, and self-hatred, but Neelu's response should be gentle. She
+does not need to explain the main plot. She needs to restore the human meaning of
+the promise.
+
+The player then wakes.
+
+## After Rescue
+
+After the second-run rescue and memory event, Ailo disappears from the town
+again. His final location remains unknown.
+
+He should not become a service NPC, shopkeeper, reward vendor, or normal town
+resident. His closure is quiet.
+
+Later, the player receives an unsigned letter.
+
+The letter contains no explanation and no signature. It contains the same
+white-petaled, pale-green-centered flower separated from the dye pile in memory.
+No tooltip or dialogue explains it; recognition carries the meaning.
+
+This confirms Ailo survived somewhere without forcing him back into ordinary
+town life.
+
+## Achievement
+
+Completing the second-run rescue can unlock an achievement only.
+
+Accepted achievement name:
+
+> 回聲盡頭，花仍會開
+
+No combat item, currency, equipment, or system reward is required. The event's
+reward is emotional resolution and the route knowledge already tied into the
+main story.
 
 ## Dialogue Voice
 
-He can be:
+Ailo can be:
 
 - Ragged.
 - Abrupt.
 - Strange.
 - Equal-opportunity disrespectful.
+- Funny in an uncomfortable way.
+- Tender toward the garbage he mistakes for "her."
 - Concrete in sensory fragments.
-- Sometimes funny in an uncomfortable way.
 
 He should not speak only in polished riddles.
 
-Good line shape:
+Good first-run line shape:
 
-- A dirty, tactile detail.
-- A warped comparison.
-- A line that sounds absurd until later context arrives.
+- Dirty, tactile detail.
+- Warped comparison.
+- A line that sounds absurd until the flower-field memory gives it shape.
+
+Accepted recurring line direction:
+
+- "我得送她去看花。"
 
 Avoid:
 
@@ -264,32 +451,37 @@ Avoid:
 
 ## Story-System Notes
 
-- He can support underside information and rumor logic.
-- He should not replace the clerk's document-search role.
-- He should not replace the casino owner's greed route.
-- His clues should come from discarded objects, overheard movement, street-level
-  observation, and trauma-fractured memory.
-- If his origin requires a new lost settlement or route, the resource gate must
-  be followed before adding locations, monsters, items, or assets.
+- Ailo's route opens an old mountain road and therefore legitimately touches the
+  mainline route.
+- The Echo Whistle should be removed from the player's first-run inventory after
+  Ailo steals it.
+- The first run should not explain his full motive.
+- The second run should let the player understand and accompany him.
+- The route can support handbook memory records later, but should not become a
+  checklist-heavy quest.
+- Future implementation likely touches route events, inventory events, special
+  second-run recognition, memory-scene presentation, and achievement unlock.
+- Asset work is deferred. Do not generate young Ailo, Neelu, or memory-scene art
+  until the user resumes image generation.
 
-## Open Questions
+## Open Implementation Questions
 
-- What was he before becoming a beggar?
-- Which lost settlement did he come from?
-- What specific rule of the world broke his mind?
-- What did he do during the disaster, and what guilt or shame did he carry?
-- Why does he treat the protagonist as the one the story follows?
-- When does he disappear in the first run?
-- What clue lets the second run reinterpret his disappearance?
-- Does he connect to a later chapter, the black mist, the casino, the black
-  market, or an external route?
+- Which exact chapter or mountain approach first gives the Echo Whistle?
+- Which fixed event or battle grants the Echo Whistle before Ailo steals it?
+- What is the exact UI text when the silent brush-past interaction happens?
+- What does the unsigned flower letter look like in the mailbox or reward UI?
+- What exact flower visually represents the memory?
+- How does the second-run special tool label Ailo's intention without over-
+  explaining him?
 
 ## Do Not Do
 
-- Do not make him omniscient.
-- Do not make him crazy for no reason.
-- Do not make him a hidden mastermind.
-- Do not add a new settlement, monster, material, item, or location for him
-  without resource-gate approval.
-- Do not make every line a riddle.
-- Do not finalize the route-guide model until the user accepts it.
+- Do not make Ailo omniscient.
+- Do not make the garbage a secret key.
+- Do not make the Echo Whistle Neelu's keepsake.
+- Do not make the Echo Whistle a legendary artifact.
+- Do not show Ailo's corpse in the first run.
+- Do not turn the second-run rescue into a material reward route.
+- Do not make Neelu a hidden sage or chosen person.
+- Do not explain all final-boss lore through Ailo.
+- Do not add new assets for this route until image generation resumes.

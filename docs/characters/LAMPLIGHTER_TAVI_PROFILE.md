@@ -1,6 +1,6 @@
 # Lamplighter Tavi Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 ## Purpose
 
@@ -21,8 +21,9 @@ and town-state data are rewritten.
   `src/assets/images/art/characters/portraits/lamplighter_tavi.webp`
 - Primary systems touched later: lamplight, watchposts, fog-route safety,
   south gate crisis, Frey rescue condition, second-run side story
-- Canon status: in progress, accepted as the emotional key to Frey's second-run
-  survival
+- Canon status: accepted as the emotional key to Frey's second-run survival;
+  Chapter 3 rehearsal, core admission, and Chapter 4 crisis are approved while
+  visual production remains deferred
 
 ## Core Identity
 
@@ -71,6 +72,12 @@ The same event shaped them differently:
 - Tavi saw the same fog and kept the fear.
 
 He remembers being saved, but he also remembers being helpless.
+
+Accepted screenplay placement: Chapter 3 `Lamp Oil In Fog`. Frey names the old
+mist route while asking him to walk to the far marker. Tavi admits that she saw
+the rescue flag first while he only remembers clinging to her and forgetting how
+to move. The first run then shows him repeat that avoidance; the second run lets
+him cross the same low route before the crisis.
 
 ## Why He Became Lamplighter
 
@@ -141,20 +148,26 @@ him become able to stand in his own role.
 
 Accepted direction: Tavi fails at the critical moment in the first run.
 
-This failure should happen during a major route crisis, boss-related event, or
-fog attack where the danger is real.
+This failure happens during the Chapter 4 Gray Ridge causeway evacuation caused
+by Ancient Titan movement. Ash-heavy wind hides the rear group, and the rear
+marker must be lit before the ground break reaches it.
 
 First-run chain:
 
-1. A position must be lit, held, or reached.
+1. Tavi is assigned the rear causeway marker while Frey carries the front flag.
 2. Tavi understands that this is his responsibility.
-3. He sees the danger clearly.
-4. He freezes.
-5. He wants to move, but his body does not obey.
-6. Frey steps into the gap.
-7. Frey raises the flag and dies holding the direction for the protagonist or
-   others.
-8. Tavi survives and is devastated.
+3. His earlier note identified the need for a wind guard, but because he never
+   stood at the far marker the forge lacks lamp-frame, intake, and fastener
+   measurements. No safe guard exists in the first run.
+4. He sees the danger clearly.
+5. He freezes.
+6. He wants to move, but his body does not obey.
+7. Frey sees the rear group lose direction and returns into the gap.
+8. Frey fixes the flag into the cracked center span and dies keeping the crossing
+   visible.
+9. The protagonist is physically committed to holding the central civilian
+   footbridge and cannot substitute for either marker.
+10. Tavi survives and is devastated.
 
 He did not choose Frey's death. He did not run because he did not care.
 
@@ -184,42 +197,40 @@ nothing.
 Accepted direction: Tavi's second-run side route is the condition that can save
 Frey.
 
-Second-run knowledge can reveal where the attack or route crisis will happen,
-but preventing the tragedy requires Tavi's emotional change.
+Second-run achievement memory reveals that Gray Ridge needs two visible markers,
+but preventing the tragedy still requires Tavi's emotional change.
 
 Second-run route shape:
 
-1. The player carries future knowledge that a crisis is coming.
-2. The player engages Tavi before the event.
+1. `旗沒有回來` makes the player insist on a wind guard and rear-marker rehearsal.
+2. The player engages Tavi before the Gray Ridge evacuation.
 3. Tavi is forced to face why he became lamplighter.
-4. He admits his dependence on Frey.
-5. He says, directly or indirectly, that he never wanted to stand behind while
-   she carried everything.
-6. When the crisis comes, Frey prepares to sacrifice herself as in the first run.
-7. Tavi acts first.
-8. He is still terrified, but he holds the lamp in the dangerous place.
-9. Frey no longer needs to die.
+4. He personally walks the far-marker route and records the exact guard
+   dimensions so the blacksmith can build a part that does not choke the flame.
+5. He admits he took the lamp only to remain where Frey's flag could see him.
+6. Frey tells him not to stand only beside her, but to stand where she cannot and
+   let her see his light in return.
+7. When the rear group disappears, Frey prepares to return as in the first run.
+8. Tavi acts first.
+9. He is still terrified, but lights the repaired marker before the break reaches
+   him and stays until the crossing answers.
+10. Frey no longer needs to die.
 
 This route saves both characters in different ways.
 
-## Core Confession Or Admission
+## Core Admission
 
 Tavi's second-run breakthrough does not need to be a romantic confession.
 
 It should be a plain, awkward admission of dependence and love-like loyalty.
 
-Possible emotional shape:
+Accepted emotional shape:
 
-> I did not become the lamplighter because I was brave. I only wanted to stand
-> where your flag could see my light.
+> 我不是因為想守路才拿這盞燈。我只是想站在妳的旗還看得見我的地方。
 
-Or even simpler:
+Frey's accepted answer:
 
-> I was never trying to guard the road. I was trying not to let you stand there
-> alone.
-
-The exact runtime line should be rewritten later in the game's prose style, but
-the meaning should stay.
+> 那就別只站在我旁邊。去站我不能站的位置，讓我也看得見你。
 
 ## Tavi's Growth
 
@@ -309,21 +320,16 @@ Avoid:
 - Tavi should connect to night patrols, fog visibility, watchposts, and route
   safety.
 - His side route is required for Frey's second-run survival.
-- The first-run crisis location is not yet fixed.
+- The first-run crisis is fixed at the Chapter 4 Gray Ridge causeway.
 - The lamp should be ordinary in art and wording.
 - If gameplay uses watchposts or light mechanics, Tavi's emotional route can
   provide the narrative reason those systems matter.
 
 ## Open Questions
 
-- Which chapter contains the route crisis where Tavi freezes?
-- Is the dangerous position a watchpost, south gate lamp, mountain road marker,
-  boss arena edge, or another route node?
-- What exact second-run action helps Tavi speak honestly to Frey?
-- Does the player accompany Tavi through the childhood mist route again?
-- Does Tavi's growth unlock a town-state change, watchpost improvement, or route
-  safety improvement?
-- What is Tavi's final state if Frey is saved?
+- Beyond Frey's survival, which later route-safety change is visible without
+  overstating Tavi's competence?
+- What ordinary South Gate duty does Tavi hold in the true ending?
 
 ## Do Not Do
 

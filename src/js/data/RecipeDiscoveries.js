@@ -29,9 +29,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'monster_blueprint_drop'
     },
     greater_health_potion: {
-        source: '任務獎勵',
-        clue: '完成城鎮委託後，藥師會交出一份更穩定的高階藥劑比例。',
-        interactionId: 'main_002'
+        source: '待配置',
+        clue: '等待米婭的配方研究與市集藥品庫存連動定案。',
+        interactionId: null
     },
 
     guardian_armor: {

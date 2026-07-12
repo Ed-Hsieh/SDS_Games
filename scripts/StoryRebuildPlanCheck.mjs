@@ -4,7 +4,8 @@ import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
 import { StoryProgressRules } from '../src/js/data/StoryProgressMap.js';
-import { getLandmark, WorldStoryChains, ZoneProfiles } from '../src/js/data/WorldStories.js';
+import { WorldStoryChains } from '../src/js/data/WorldStories.js';
+import { findChapterLocation } from '../src/js/data/ChapterRegionRegistry.js';
 import {
     MaterialClassificationPolicy,
     ResourceExpansionRequirement,
@@ -78,6 +79,27 @@ function auditNarrativeTarget() {
         addIssue('narrative-target', 'Central mystery and final truth are required before runtime quest rewrite.');
     }
 
+    const externalPolicy = StoryRebuildNarrativeTarget.secondRunExternalBossPolicy;
+    if (!externalPolicy || externalPolicy.requiredForTrueEnding !== false) {
+        addIssue('external-boss-policy', 'Second-run external Bosses must remain optional for the true ending.');
+    }
+    if (externalPolicy?.status !== 'paused' || !externalPolicy?.resumeGate) {
+        addIssue('external-boss-policy', 'External Boss expansion must stay paused behind the first-run completion gate.', {
+            status: externalPolicy?.status,
+            resumeGate: externalPolicy?.resumeGate
+        });
+    }
+    if (externalPolicy?.unlock !== 'first_run_false_ending_achievement') {
+        addIssue('external-boss-policy', 'External Boss interpretation must unlock from the first-run false ending.', {
+            unlock: externalPolicy?.unlock
+        });
+    }
+    for (const bossId of ['ash_baron', 'aurora_archon']) {
+        if (!externalPolicy?.acceptedBaseGameFirstResolutions?.includes(bossId)) {
+            addIssue('external-boss-policy', 'Accepted external Boss is missing from the base-game second-run policy.', { bossId });
+        }
+    }
+
     if (!Array.isArray(StoryRebuildNarrativeTarget.chapterTargets) || StoryRebuildNarrativeTarget.chapterTargets.length !== 7) {
         addIssue('narrative-target', 'Narrative target must cover seven chapters.', {
             chapters: StoryRebuildNarrativeTarget.chapterTargets?.length || 0
@@ -113,10 +135,10 @@ function auditNarrativeTarget() {
             });
         }
 
-        if (chapter.alternateBossId && !MonsterDatabase[chapter.alternateBossId]) {
-            addIssue('narrative-target', 'Alternate boss id does not exist in MonsterDatabase.', {
+        if (chapter.secondRunExternalHookId && !MonsterDatabase[chapter.secondRunExternalHookId]) {
+            addIssue('narrative-target', 'Second-run external Boss hook does not exist in MonsterDatabase.', {
                 chapter: chapter.chapter,
-                bossId: chapter.alternateBossId
+                bossId: chapter.secondRunExternalHookId
             });
         }
     }
@@ -151,7 +173,7 @@ function auditNarrativeTarget() {
         }
 
         for (const landmarkId of node.landmarkIds || []) {
-            if (!getLandmark(landmarkId)) {
+            if (!findChapterLocation(landmarkId)) {
                 addIssue('chapter-one-node', 'Chapter 1 story node references missing landmark.', {
                     nodeId: node.id,
                     landmarkId
@@ -170,8 +192,6 @@ function auditNarrativeTarget() {
 
 function auditLegacyPresence() {
     const legacyZoneRules = findLegacyZoneRules();
-    const legacyZoneProfiles = Object.keys(ZoneProfiles || {})
-        .filter(zoneId => ['low', 'medium', 'high', 'death'].includes(zoneId));
 
     if (legacyZoneRules.length > 0) {
         addWarning('legacy-presence', 'Old zone story rules are still present and should be retargeted during the route rewrite.', {
@@ -180,16 +200,14 @@ function auditLegacyPresence() {
         });
     }
 
-    if (legacyZoneProfiles.length > 0) {
-        addWarning('legacy-presence', 'Old zone profiles are still present and should be removed after chapter route replacement.', {
-            zoneIds: legacyZoneProfiles
+    const main = QuestDatabase.main || [];
+    if (main.length !== 7 || main.some(quest => !quest.id.startsWith('story_chapter_'))) {
+        addIssue('legacy-presence', 'Main quest records do not match the seven scene-driven chapter records.', {
+            questIds: main.map(quest => quest.id)
         });
     }
-
-    if (countMainQuests() > 0) {
-        addWarning('legacy-presence', 'Playable main quests still exist. Treat them as scaffolding until accepted story beats replace them.', {
-            count: countMainQuests()
-        });
+    if (main.some(quest => Object.keys(quest.rewards || {}).length > 0)) {
+        addIssue('reward-deferral', 'A chapter quest received rewards before map-function allocation.');
     }
 }
 

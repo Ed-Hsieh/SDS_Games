@@ -12,9 +12,11 @@ export const StoryRebuildMode = Object.freeze({
 
 export const StoryRebuildStatus = Object.freeze({
     KEEP: 'keep',
+    REPLACED: 'replaced',
     REWRITE: 'rewrite',
     REMOVE: 'remove',
-    REVIEW: 'review'
+    REVIEW: 'review',
+    PAUSED: 'paused'
 });
 
 export const StoryRebuildFoundation = Object.freeze({
@@ -61,15 +63,42 @@ export const StoryRebuildFoundation = Object.freeze({
 });
 
 export const StoryRebuildNarrativeTarget = Object.freeze({
-    centralMystery: 'The damaged town is part of an old route-seal network. The broken bell in the square is the visible wound, and exploration rebuilds the map of what failed.',
+    centralMystery: 'The damaged town sits near the safest remaining approach to the mountain-side disaster zone. Its roads, watchposts, old camps, and records preserve traces of the old sealed perimeter.',
     finalTruth: 'Demon Lord Asariel is the final pressure, but the disaster was made possible by broken routes, hidden bargains, fear, and abandoned records. The player must rebuild combat strength and information strength together.',
+    acceptedCausalTimeline: Object.freeze({
+        demonKingMountainIntent: 'The Demon King sought the mountain convergence because controlling it would let his power recover and spread through the region.',
+        ancientConflict: 'The dragon clan fought to preserve its territory rather than save humanity. Both sides were severely wounded, and the Demon King fell near the mountain village without dying.',
+        emergencyContainment: 'The dragon clan sealed the broad approaches and held the Demon King body in dormancy. The seal restrains the body but cannot stop all curse seepage through existing physical and human channels.',
+        mountainVillageLoss: 'The fall destroyed Ailo and Neelu village. Neelu pushed Ailo down a mountain or valley drop, saving him but leaving him with head trauma, grief, fragmented memory, and the unfinished flower-field promise.',
+        oldExpedition: 'Twenty years ago, a strong human joint expedition cleared outer threats, mistook the dragon containment for an obstruction, damaged the sealed line, and was destroyed by elder_dragon, dragon defense, and the released curse pressure.',
+        elderSurvival: 'The future village elder survived by chance through retreat, terrain collapse, and separation. He was not spared and returned without understanding the dragon containment role.',
+        presentSurge: 'The human-made seal scar widened for twenty years while the Demon King recovered, causing the present route failures, mutations, and elemental instability.',
+        firstRunError: 'The player defeats real threats but repeats the expedition armed push, defeats or kills elder_dragon, removes the living containment authority, and then wins a hollow physical victory over the Demon King.',
+        secondRunCorrection: 'The player preserves elder_dragon, uses seal_scar_shard and Echo Whistle route meaning to open non-war passage, enters through the narrow human route, and defeats the Demon King while dragon containment remains active.',
+        echoWhistlePlacement: 'The Echo Whistle enters the mainline before the Chapter 6 dragon confrontation so both run outcomes remain causally possible.'
+    }),
     finalBossId: 'demon_lord_asariel',
-    lateRadiantPressureId: 'aurora_archon',
+    secondRunExternalBossPolicy: Object.freeze({
+        status: StoryRebuildStatus.PAUSED,
+        unlock: 'first_run_false_ending_achievement',
+        rollout: 'staggered_across_second_run',
+        requiredForTrueEnding: false,
+        physicalPersistence: 'current_run_only',
+        resumeGate: 'complete_and_validate_first_run_story_systems_and_required_art_then_audit_persistent_evidence_flags',
+        acceptedBaseGameFirstResolutions: [
+            'ash_baron',
+            'expedition_supreme_commander_pending_design',
+            'prologue_overcap_demon_pending_design',
+            'aurora_archon',
+            'void_revelation_pending_route'
+        ],
+        dlcBoundary: 'DLC extends the post-reveal light, Void, and tower world; it does not own the first Ash Baron resolution, radiant trial, Void revelation, or prologue revenge.'
+    }),
     chapterTargets: [
         {
             chapter: 1,
             levelRange: [1, 10],
-            title: '不響的鐘 / The Bell That Would Not Ring',
+            title: '南門以外 / Beyond The South Gate',
             bossId: 'forest_guardian',
             earlyThreatId: 'ambush_mantis',
             focus: 'Broken town, south gate, first route investigation, early equipment pressure.'
@@ -93,7 +122,7 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
             levelRange: [31, 40],
             title: '石心與灰雨 / Stone Heart, Ash Rain',
             bossId: 'ancient_titan',
-            alternateBossId: 'ash_baron',
+            secondRunExternalHookId: 'ash_baron',
             focus: 'Stone routes, forge weight, and regional instability.'
         },
         {
@@ -106,16 +135,18 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
         {
             chapter: 6,
             levelRange: [51, 60],
-            title: '龍看見舊約 / The Dragon Remembers The Pact',
+            title: '龍守封痕 / The Dragon Guards The Scar',
             bossId: 'elder_dragon',
-            focus: 'Dragon route pressure, high-tier preparation, and the old pact reveal.'
+            dialogueActorId: 'elder_dragon',
+            reuseBossArtForDialogue: true,
+            focus: 'Dragon route pressure, high-tier preparation, and the old seal-scar reveal.'
         },
         {
             chapter: 7,
             levelRange: [61, 70],
-            title: '裂鐘回聲 / Echoes Of The Broken Bell',
+            title: '墜落之地 / Where The Demon Fell',
             bossId: 'demon_lord_asariel',
-            focus: 'Final town network test, forbidden shortcuts, and void/light pressure.'
+            focus: 'Final town network test, glimmer true-kill preparation, and optional exits into second-run external stories.'
         }
     ],
     chapterOneRuntimeTarget: {
@@ -126,9 +157,9 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
         implementationGate: 'Do not rewrite playable quests until Chapter 1 dialogue, route nodes, boss clues, town state, and reward gates are accepted.',
         storyNodes: [
             {
-                id: 'ch1_elder_bell_square',
+                id: 'ch1_elder_south_gate_square',
                 npcIds: ['village_elder'],
-                purpose: 'The elder frames the problem as lost roads and a town signal that no longer answers.',
+                purpose: 'The elder frames the problem as lost roads and a town that no longer knows which paths still answer.',
                 systemOutput: ['unlock_town_scholar']
             },
             {
@@ -157,15 +188,15 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
                 systemOutput: ['unlock_early_boss_trace']
             },
             {
-                id: 'ch1_forest_signal',
+                id: 'ch1_forest_route_wound',
                 bossId: 'forest_guardian',
-                purpose: 'Evidence reframes the forest as a wounded responder to the broken bell-route signal.',
+                purpose: 'Evidence reframes the forest as a wounded responder to old route damage and perimeter pressure.',
                 systemOutput: ['open_chapter_boss_convergence']
             },
             {
                 id: 'ch1_after_forest_guardian',
                 npcIds: ['village_elder', 'town_scholar'],
-                purpose: 'The town is not safe, but roads, monsters, and the broken bell are now connected.',
+                purpose: 'The town is not safe, but roads, monsters, and old route damage are now connected.',
                 systemOutput: ['seed_chapter_2', 'controlled_town_recovery']
             }
         ]
@@ -232,35 +263,35 @@ export const MaterialClassificationPolicy = Object.freeze({
 export const StoryRebuildCleanupCandidates = Object.freeze([
     {
         id: 'legacy_main_quest_chain',
-        status: StoryRebuildStatus.REWRITE,
+        status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
-        ownerPaths: ['src/js/data/Quests.js', 'src/js/data/QuestStories.js', 'src/js/data/NPCDialogues.js'],
-        reason: 'Existing main quests were built as playable scaffolding and no longer satisfy the new suspense-led story direction.',
-        safeWhen: 'Central mystery, Chapter 1 scenes, and reward gates are approved.'
+        ownerPaths: ['src/js/data/StorySceneRegistry.js', 'src/js/data/Quests.js', 'src/js/data/QuestStories.js'],
+        reason: 'The fifteen legacy main quests were removed. Seven reward-free chapter records now mirror the 66-scene screenplay.',
+        safeWhen: 'Already replaced; do not restore main_001 through main_015.'
     },
     {
         id: 'legacy_quest_spine_framework',
-        status: StoryRebuildStatus.REVIEW,
+        status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
-        ownerPaths: ['src/js/data/QuestSpineFramework.js', 'docs/CHAPTER_QUEST_FRAMEWORK.md'],
-        reason: 'The spine may still be useful structurally, but its plot is not final canon after the clean reset decision.',
-        safeWhen: 'Seven chapter promises have been rewritten in the story bible.'
+        ownerPaths: ['src/js/data/StorySceneRegistry.js', 'src/js/data/ChapterRegionRegistry.js'],
+        reason: 'Scene order and location binding now come directly from the screenplay and handcrafted region registry.',
+        safeWhen: 'Already replaced; do not recreate QuestSpineFramework.js.'
     },
     {
         id: 'legacy_chapter_one_route_plan',
-        status: StoryRebuildStatus.REVIEW,
+        status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
-        ownerPaths: ['src/js/data/ChapterOneRoutePlan.js', 'src/js/data/WorldStories.js'],
-        reason: 'The route tech is useful, but specific clue order and plot content must follow the new Chapter 1 script.',
-        safeWhen: 'Chapter 1 route scenes and boss convergence are approved.'
+        ownerPaths: ['src/js/data/ChapterRegionRegistry.js', 'src/js/utils/WorldMap.js'],
+        reason: 'All seven chapters now use authored route topology, fixed locations, and fixed Boss convergence.',
+        safeWhen: 'Already replaced; do not recreate ChapterOneRoutePlan.js or ChapterMapFramework.js.'
     },
     {
         id: 'legacy_zone_identity',
-        status: StoryRebuildStatus.REMOVE,
+        status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
         ownerPaths: ['src/js/data/WorldStories.js', 'src/js/data/StoryProgressMap.js', 'src/js/scenes/AdventureScene.js'],
-        reason: 'The old low/medium/high/death map identity conflicts with chapter routes, watchposts, and fog/fatigue exploration.',
-        safeWhen: 'All route objectives and DEV test buttons use chapter or route-node ids.'
+        reason: 'Player-facing map identity now comes from seven chapter regions, fixed nodes, and scene bindings. EventManager may retain private selection tiers until encounter rewards are allocated.',
+        safeWhen: 'Already replaced; route objectives, handbook entries, and DEV map controls use chapter or route-node ids.'
     },
     {
         id: 'relationship_talk_count_depth',
@@ -285,6 +316,14 @@ export const StoryRebuildCleanupCandidates = Object.freeze([
         ownerPaths: ['src/js/data/Materials.js', 'src/js/data/Items.js', 'src/js/data/Recipes.js', 'src/js/data/Quests.js'],
         reason: 'Some records called materials may be service objects, tokens, relics, or one-off story objects.',
         safeWhen: 'Material schema and recipe tree are approved.'
+    },
+    {
+        id: 'legacy_external_boss_routes',
+        status: StoryRebuildStatus.REWRITE,
+        priority: 'P1',
+        ownerPaths: ['src/js/data/WorldStories.js', 'src/js/data/Monsters.js', 'src/js/data/Dungeons.js'],
+        reason: 'Ash Baron still uses an old chapter route and placeholder Lv40 rewards, while formal light and Void records lack the approved staggered second-run external-story ownership.',
+        safeWhen: 'Each external Boss has an approved story cause, second-run unlock, authored map branch, optional true-ending boundary, current-run acquisition path, and reward specification.'
     }
 ]);
 

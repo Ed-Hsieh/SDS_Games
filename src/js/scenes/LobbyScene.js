@@ -619,6 +619,15 @@ export default class LobbyScene {
     openTownNpc(npcId) {
         if (!npcId) return;
 
+        const storySceneId = dialogueManager.getNextStorySceneForActor(npcId, {
+            stageClass: 'town_scene'
+        });
+        if (storySceneId) {
+            this.openStoryScene(storySceneId);
+            this.renderWorldStage();
+            return;
+        }
+
         const dialogues = dialogueManager.getAvailableDialogues(npcId);
         if (dialogues.length > 1) {
             const npc = getTownNPC(npcId);
@@ -634,6 +643,14 @@ export default class LobbyScene {
         this.renderTownDialogueModal(outcome);
 
         this.renderWorldStage();
+    }
+
+    openStoryScene(sceneId, options = {}) {
+        const outcome = dialogueManager.startStoryScene(sceneId, options);
+        if (!outcome?.success) return outcome;
+        this.renderTownDialogueModal(outcome);
+        this.renderWorldStage();
+        return outcome;
     }
 
     renderTownDialogueTopicModal(npc, topics = []) {
@@ -726,7 +743,11 @@ export default class LobbyScene {
             narrativeTitle = null,
             narrativeSummary = null,
             route = null,
-            routeLabel = '前往'
+            routeLabel = '前往',
+            sceneId = null,
+            background = null,
+            viewpoint = null,
+            knowledgeBoundary = null
         } = outcome;
         this.activeTownTopic = null;
         const visibleLines = lines.filter(line => line?.text);
@@ -747,6 +768,11 @@ export default class LobbyScene {
             routeLabel,
             narrativeTitle,
             narrativeSummary,
+            storySceneId: sceneId,
+            storySceneCompleted: false,
+            background,
+            viewpoint,
+            knowledgeBoundary,
             notebookHint: null,
             notebookHintResolved: false,
             tone: outcome.tone || (outcome.success ? 'discovery' : 'ambient'),
@@ -766,6 +792,12 @@ export default class LobbyScene {
         }
         this.dom.townDialogueCard?.classList.remove('is-topic-mode');
         this.dom.townDialogueCard?.classList.toggle('is-multi-speaker', this.activeTownDialogue.isMultiSpeaker);
+        this.dom.townDialogueCard?.classList.toggle('is-story-scene', Boolean(sceneId));
+        if (this.dom.townDialogueCard) {
+            this.dom.townDialogueCard.dataset.storySceneId = sceneId || '';
+            this.dom.townDialogueCard.dataset.storyBackground = background || '';
+            this.dom.townDialogueCard.dataset.storyViewpoint = viewpoint || '';
+        }
         if (this.dom.townDialogueLines) this.dom.townDialogueLines.innerHTML = '';
         if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.innerHTML = '';
         if (this.dom.townDialogueLines) this.dom.townDialogueLines.hidden = false;
@@ -1016,6 +1048,11 @@ export default class LobbyScene {
             this.logTownDialogueSummary(dialogue);
             dialogue.effectsLogged = true;
             this.scrollTownDialogueLinesToEnd();
+        }
+
+        if (finished && dialogue.storySceneId && !dialogue.storySceneCompleted) {
+            dialogueManager.completeStoryScene(dialogue.storySceneId);
+            dialogue.storySceneCompleted = true;
         }
 
         if (this.dom.townDialogueDone) {
@@ -1711,6 +1748,12 @@ export default class LobbyScene {
         if (!dialogue) return;
 
         const line = dialogue.lines?.[dialogue.currentIndex] || {};
+        if (this.dom.townDialogueCard) {
+            this.dom.townDialogueCard.dataset.storyExpression = line.expression || '';
+            this.dom.townDialogueCard.dataset.storyBeat = line.beat || '';
+            this.dom.townDialogueCard.dataset.storyBackground = line.background || dialogue.background || '';
+            this.dom.townDialogueCard.dataset.storyViewpoint = line.viewpoint || dialogue.viewpoint || '';
+        }
         if (line.isNarration) {
             const npc = dialogue.npc || {};
             if (this.dom.townDialogueAvatar) {
@@ -1824,9 +1867,7 @@ export default class LobbyScene {
     }
 
     shouldShowTownPlaceCard(place = {}) {
-        if (!place?.id) return false;
-        if (place.id === 'gate') return true;
-        return (place.residents || []).length > 0;
+        return Boolean(place?.id);
     }
 
     getTownPlaceReadyCount(place) {
@@ -1854,7 +1895,9 @@ export default class LobbyScene {
         }
 
         (place.states || []).forEach((state, index) => {
-            if (!state?.flag || !GameManager.getFlag(state.flag)) return;
+            const resolvedVisible = state?.runtimeVisibility === 'visible';
+            const legacyFlagVisible = Boolean(state?.flag && GameManager.getFlag(state.flag));
+            if (!resolvedVisible && !legacyFlagVisible) return;
             const title = state.title || `${placeName}的變化`;
             const text = String(state.text || '').trim();
             if (!text) return;

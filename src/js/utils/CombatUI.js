@@ -92,20 +92,23 @@ function getCombatEffectAssetId(effect = {}) {
         freeze: 'freeze',
         frozen: 'freeze',
         armor_break: 'armor_break',
+        armorbreak: 'armor_break',
         defense_down: 'armor_break',
         attack_speed_down: 'attack_speed_down',
         slow: 'attack_speed_down',
+        stun: 'stun',
         attack_up: 'attack_up',
         atk_up: 'attack_up',
+        attackspeed: 'attack_speed_up',
         defense_up: 'defense_up',
         def_up: 'defense_up',
+        hpregen: 'health_regen',
         lifesteal: 'lifesteal',
         life_steal: 'lifesteal',
         counter: 'counter',
         double_strike: 'double_strike',
-        poison_resist: 'poison_resist',
-        cold_resist: 'cold_resist',
-        dragon_burn: 'dragon_burn'
+        fatigueweakness: 'fatigue_weakness',
+        void: 'void'
     };
     return map[raw] || raw;
 }
@@ -393,14 +396,15 @@ function getMonsterStatusEffects(monster) {
 }
 
 function renderMonsterStatusIndicators(root, monster) {
-    const host = find(root, '.monster-info, .tower-monster-card');
+    const host = find(root, '#enemy-status-indicators, .monster-info, .tower-monster-card');
     if (!host) return;
 
-    let row = host.querySelector('.monster-status-effects');
+    let row = host.matches?.('.monster-status-effects') ? host : host.querySelector('.monster-status-effects');
     const effects = getMonsterStatusEffects(monster);
 
     if (effects.length === 0) {
-        row?.remove();
+        if (row && row !== host) row.remove();
+        else if (row) row.replaceChildren();
         return;
     }
 

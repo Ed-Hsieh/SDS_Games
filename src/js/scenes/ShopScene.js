@@ -3,7 +3,6 @@
  * Market supply-line scene: shelves, NPC orders, exchanges, and selling.
  */
 import GameManager from '../managers/GameManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import {
     MarketSceneAssets,
@@ -234,11 +233,6 @@ export default class ShopScene {
             return;
         }
 
-        if (action === 'upgrade-backpack') {
-            this.handleBackpackUpgrade();
-            return;
-        }
-
         if (action === 'complete') {
             const entry = this.entryIndex.get(button.dataset.entryId);
             if (entry) this.completeSupplyEntry(entry);
@@ -378,8 +372,8 @@ export default class ShopScene {
         const cards = this.getPreparationCards();
         return `
             <div class="supply-empty-state market-prep-intro">
-                <strong>出門前先看一眼</strong>
-                <p>市集不只賣東西。它會把你目前可能缺的補給、誘餌、情報與材料缺口攤開，避免走到半路才想起來少帶一件麻煩。</p>
+                <strong>公開庫存</strong>
+                <p>來路、批次與數量都寫在貨架前。</p>
             </div>
             <div class="market-prep-grid">
                 ${cards.map(card => this.renderPreparationCard(card)).join('')}
@@ -388,190 +382,23 @@ export default class ShopScene {
     }
 
     getPreparationCards() {
-        const flags = GameManager.state?.flags || {};
-        const count = itemId => this.getItemCount(itemId);
-        const cards = [];
-
-        cards.push({
-            label: '基礎補給',
-            title: count('health_potion_s') >= 2 ? '藥水還夠撐一段路' : '先補兩瓶小型生命藥水',
-            copy: count('health_potion_s') >= 2
-                ? `背包與倉庫共有 ${count('health_potion_s')} 瓶小型生命藥水。要深入前可以再檢查一次。`
-                : '近郊任務、初階副本與地圖事件都會消耗續航，先去藥棚補齊最實在。',
-            vendorId: 'apothecary_assistant',
-            panel: 'shelf',
-            tone: count('health_potion_s') >= 2 ? 'ready' : 'warning'
-        });
-
-        cards.push(...this.getQuestMaterialPrepCards().slice(0, 2));
-
-        if (
-            flags['world.clue.silk_tripwire']
-            || flags['world.clue.snapped_bait_hook']
-            || flags['world.story.ambush_mantis.progress.craft_bait_hook']
-            || flags['market.merchant.silver_thread_supply']
-        ) {
-            cards.push({
-                label: '首領準備',
-                title: count('silver_thread_bait') > 0 ? '銀絲誘餌已備妥' : '銀鐮伏獵者需要誘餌',
-                copy: count('silver_thread_bait') > 0
-                    ? '只要到銀絲最密的伏道設下誘餌，就能把那東西從暗處拉出來。'
-                    : '奧托能用蜘蛛絲與鐵片試作誘餌，讓 BOSS 觸發從隨機危險變成可控行動。',
+        const potionCount = this.getItemCount('health_potion_s');
+        return [
+            {
+                label: '基礎補給',
+                title: potionCount >= 2 ? '藥水足夠目前路程' : '補足公開基礎藥品',
+                copy: potionCount >= 2
+                    ? `背包與倉庫共有 ${potionCount} 瓶小型生命藥水。`
+                    : '市集維持公開基礎藥品供應，庫存不依附任何一位角色的存亡。',
                 vendorId: 'merchant',
-                panel: count('silver_thread_bait') > 0 ? 'shelf' : 'orders',
-                tone: count('silver_thread_bait') > 0 ? 'ready' : 'warning'
-            });
-        }
-
-        if (
-            flags['town.apothecary.understands_thorn_trade']
-            || flags['world.story.thorn_witch.progress.deliver_herbs']
-            || flags['dungeon.jungle.cleared']
-        ) {
-            cards.push({
-                label: '毒霧對策',
-                title: count('antidote') > 0 ? '解毒劑可上路' : '叢林與毒蛛線需要解毒劑',
-                copy: count('antidote') > 0
-                    ? `目前有 ${count('antidote')} 份解毒劑，適合處理迷霧叢林、毒蛛與荊棘相關路線。`
-                    : '藥棚已能處理荊棘與毒霧規律，可以直接購買或用毒腺調配。',
-                vendorId: 'apothecary_assistant',
-                panel: count('poison_gland') > 0 ? 'exchange' : 'shelf',
-                tone: count('antidote') > 0 ? 'ready' : 'warning'
-            });
-        }
-
-        cards.push({
-            label: '材料整理',
-            title: '把多餘材料轉成可用缺口',
-            copy: '柏恩能把鐵礦石拆成鐵片，也能整理南門修補料。這不會取代鍛造，但能救缺一兩個材料的尷尬。',
-            vendorId: 'tinker',
-            panel: count('iron_ore') > 0 ? 'exchange' : 'orders',
-            tone: 'info'
-        });
-
-        cards.push({
-            label: '情報與戰術',
-            title: flags['town.casino.false_odds_exposed'] ? '進階戰術手記已流入市集' : '先整理剪報，情報才會變成商品',
-            copy: flags['town.casino.false_odds_exposed']
-                ? '米菈手上開始有攻擊節奏與致命判讀手記，適合在第二章後調整戰鬥手感。'
-                : '材料索引、路線註記與手札情報會讓市集逐步長出更有用的貨架。',
-            vendorId: 'rumor_broker',
-            panel: flags['town.casino.false_odds_exposed'] ? 'shelf' : 'orders',
-            tone: flags['town.casino.false_odds_exposed'] ? 'ready' : 'info'
-        });
-
-        if (flags.secretShopUnlocked || flags['world.clue.ash_ledger_page'] || flags['market.black_market.coal_token_traded']) {
-            cards.push({
-                label: '黑市捷徑',
-                title: flags['market.black_market.coal_token_traded'] ? '煤印已經到手' : '灰燼帳冊可換成走私煤印',
-                copy: flags['market.black_market.coal_token_traded']
-                    ? '煤印會讓灰燼男爵線少走一段彎路，但代價已被記在暗巷裡。'
-                    : '如果你已讀到灰燼帳冊缺頁，門縫掌櫃會賣出一枚不該存在的煤印。',
-                vendorId: 'black_market',
-                panel: 'exchange',
-                tone: flags['market.black_market.coal_token_traded'] ? 'ready' : 'warning'
-            });
-        }
-
-        return cards.slice(0, 6);
+                panel: 'shelf',
+                tone: potionCount >= 2 ? 'ready' : 'warning'
+            }
+        ];
     }
 
     getQuestMaterialPrepCards() {
-        const activeQuests = questManager.getActiveQuests?.() || [];
-        const needsByItem = new Map();
-        const marketGuides = {
-            slime_jelly: {
-                vendorId: 'apothecary_assistant',
-                panel: 'shelf',
-                title: '藥師要凝膠，先補藥再出門',
-                copy: missing => `這個任務還缺 ${missing} 份史萊姆凝膠。凝膠要去南門外找史萊姆，出門前先把生命藥水補齊。`
-            },
-            beast_hide: {
-                vendorId: 'tinker',
-                panel: 'orders',
-                title: '獸皮正在被委託需要',
-                copy: missing => `這個任務還缺 ${missing} 張獸皮。先別把獸皮拿去賣掉；柏恩也能提醒哪些皮料該留給南門。`
-            },
-            iron_ore: {
-                vendorId: 'tinker',
-                panel: 'orders',
-                title: '鐵礦石先別急著拆成鐵片',
-                copy: missing => `這個任務還缺 ${missing} 個鐵礦石。若要拆成鐵片，先確認任務數量已經夠了。`
-            },
-            poison_gland: {
-                vendorId: 'apothecary_assistant',
-                panel: 'exchange',
-                title: '毒腺任務進行中，也該備解毒劑',
-                copy: missing => `這個任務還缺 ${missing} 份毒腺。叢林線容易把補給拖乾，藥棚能把多餘毒腺調成解毒劑。`
-            },
-            spider_silk: {
-                vendorId: 'merchant',
-                panel: 'orders',
-                title: '蜘蛛絲能做成銀絲誘餌',
-                copy: missing => `這個任務還缺 ${missing} 份蜘蛛絲。如果銀鐮伏獵者線也在推進，奧托能把蜘蛛絲變成可控誘餌。`
-            },
-            map_fragment: {
-                vendorId: 'rumor_broker',
-                panel: 'exchange',
-                title: '地圖碎片可以換成路線註記',
-                copy: missing => `這個任務還缺 ${missing} 張地圖碎片。米菈能把多餘碎片整理成更明確的路線註記。`
-            }
-        };
-
-        activeQuests.forEach(quest => {
-            (quest.objectives || []).forEach((objective, index) => {
-                if (objective.type !== ObjectiveType.COLLECT) return;
-                const target = objective.target;
-                const guide = marketGuides[target];
-                if (!target || !guide) return;
-
-                const progress = quest.state?.progress?.[index] || {};
-                const required = Number(progress.required ?? objective.count) || 0;
-                const current = Number(progress.current) || 0;
-                const missing = Math.max(0, required - current);
-                if (missing <= 0) return;
-
-                const item = getMarketItem(target);
-                const existing = needsByItem.get(target) || {
-                    target,
-                    item,
-                    guide,
-                    missing: 0,
-                    owned: this.getItemCount(target),
-                    questNames: []
-                };
-                existing.missing += missing;
-                if (!existing.questNames.includes(quest.name)) existing.questNames.push(quest.name);
-                needsByItem.set(target, existing);
-            });
-        });
-
-        return [...needsByItem.values()]
-            .map(need => ({
-                ...need,
-                realShortage: Math.max(0, need.missing - need.owned)
-            }))
-            .sort((a, b) => {
-                if (b.realShortage !== a.realShortage) return b.realShortage - a.realShortage;
-                if (b.missing !== a.missing) return b.missing - a.missing;
-                return a.target.localeCompare(b.target);
-            })
-            .map(need => {
-                const inventoryText = need.realShortage > 0
-                    ? `目前只有 ${need.owned}/${need.missing}，還差 ${need.realShortage}。`
-                    : `目前已有 ${need.owned}/${need.missing}，重點是別誤賣或誤拆。`;
-                const actionText = need.realShortage > 0
-                    ? need.guide.copy(need.realShortage)
-                    : `${need.item?.name || need.target} 已能滿足任務需求，回報前先保留在背包或倉庫。`;
-                return {
-                    label: need.realShortage > 0 ? '任務缺口' : '材料保留',
-                    title: need.realShortage > 0 ? need.guide.title : `${need.item?.name || need.target} 已夠，先別亂用`,
-                    copy: `${inventoryText}${actionText} 目前關聯：${need.questNames.slice(0, 2).join('、')}。`,
-                    vendorId: need.guide.vendorId,
-                    panel: need.guide.panel,
-                    tone: need.realShortage > 0 ? 'warning' : 'ready'
-                };
-            });
+        return [];
     }
 
     renderPreparationCard(card = {}) {
@@ -650,7 +477,6 @@ export default class ShopScene {
     renderOrders(vendor) {
         const entries = vendor.orders || [];
         const cards = entries.map(entry => this.renderSupplyEntryCard(entry, 'order'));
-        if (vendor.id === 'tinker') cards.unshift(this.renderBackpackUpgradeCard());
         if (cards.length === 0) return this.renderEmpty('沒有新的訂單', '這條供應線目前沒有需要你處理的委託。');
         return cards.join('');
     }
@@ -659,60 +485,6 @@ export default class ShopScene {
         const entries = vendor.exchanges || [];
         if (entries.length === 0) return this.renderEmpty('沒有交換項目', '這個人物目前沒有開出材料交換。');
         return entries.map(entry => this.renderSupplyEntryCard(entry, 'exchange')).join('');
-    }
-
-    renderBackpackUpgradeCard() {
-        const status = GameManager.getInventoryUpgradeStatus?.();
-        if (!status) return '';
-
-        const { current, next, requirements, canUpgrade } = status;
-        const capacity = GameManager.state.inventoryCapacity || current?.capacity || 10;
-        const blockedLabel = next ? '材料不足' : '已達最大';
-        return `
-            <article class="supply-card supply-contract backpack-upgrade-section ${!next ? 'is-completed' : ''}">
-                <div class="supply-card-copy contract-copy">
-                    <span>修補匠委託</span>
-                    <h3>背包擴充</h3>
-                    <p>讓修補匠把目前的${escapeHtml(current?.label || '行囊')}加固改造。背包限制外出拾取量，倉庫仍保留城鎮素材。</p>
-                    <div class="contract-flow">
-                        <div>
-                            <b>需要</b>
-                            ${this.renderBackpackRequirementList(requirements, next)}
-                        </div>
-                        <div>
-                            <b>回饋</b>
-                            <span class="contract-token is-reward">
-                                <span class="contract-token-icon">＋</span>
-                                ${next ? `容量 ${capacity} → ${next.capacity}` : `容量 ${capacity}`}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="supply-card-side">
-                    <strong>${escapeHtml(current?.label || '行囊')}</strong>
-                    <button type="button" data-supply-action="upgrade-backpack" ${next && canUpgrade ? '' : 'disabled'}>
-                        ${next && canUpgrade ? '委託擴充' : blockedLabel}
-                    </button>
-                </div>
-            </article>
-        `;
-    }
-
-    renderBackpackRequirementList(requirements = [], next = null) {
-        if (!next) return '<span class="contract-token is-ready">已擴充到最大</span>';
-        if (!requirements.length) return '<span class="contract-token is-ready">無</span>';
-
-        return requirements.map(requirement => {
-            const item = this.resolveItem(requirement.id);
-            const owned = Math.max(0, Number(requirement.owned) || 0);
-            const need = Math.max(1, Number(requirement.quantity) || 1);
-            return `
-                <span class="contract-token ${owned >= need ? 'is-ready' : 'is-missing'}">
-                    ${this.renderItemIcon(item, 'contract-token-icon')}
-                    ${escapeHtml(item?.name || requirement.id)} ${owned}/${need}
-                </span>
-            `;
-        }).join('');
     }
 
     renderShelfCard(entry) {
@@ -1066,34 +838,6 @@ export default class ShopScene {
         this.closeItemModal();
         audioManager.play('coin', { throttleKey: 'market-sell-success', throttleMs: 180 });
         this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
-    }
-
-    handleBackpackUpgrade() {
-        const status = GameManager.getInventoryUpgradeStatus?.();
-        if (!status?.next) {
-            audioManager.play('toast-warning', { throttleKey: 'market-backpack-max', throttleMs: 180 });
-            this.showFeedback('背包已滿階', '目前行囊容量已擴充到最大。', 'info');
-            return;
-        }
-
-        if (!status.canUpgrade) {
-            audioManager.play('toast-warning', { throttleKey: 'market-backpack-materials', throttleMs: 180 });
-            this.showFeedback('材料不足', '先收集需要的素材，再回市集找修補匠擴充。', 'warning');
-            return;
-        }
-
-        const success = GameManager.upgradeInventoryCapacity?.();
-        if (!success) {
-            audioManager.play('toast-error', { throttleKey: 'market-backpack-failed', throttleMs: 180 });
-            this.showFeedback('擴充失敗', '材料狀態剛剛改變，請重新確認委託需求。', 'error');
-            this.renderCurrentPanel();
-            return;
-        }
-
-        audioManager.play('reward', { throttleKey: 'market-backpack-success', throttleMs: 180 });
-        this.showFeedback('背包已擴充', `容量提升到 ${GameManager.state.inventoryCapacity} 格。`, 'success');
-        this.renderCurrentPanel();
-        this.renderPlayerInventory(GameManager.state.inventory || []);
     }
 
     completeSupplyEntry(entry) {

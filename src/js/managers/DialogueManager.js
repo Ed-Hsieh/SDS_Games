@@ -10,6 +10,7 @@ import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
+import { storySceneManager } from './StorySceneManager.js';
 
 class DialogueManager {
     constructor() {
@@ -439,6 +440,34 @@ class DialogueManager {
         }
     }
 
+    startStoryScene(sceneId, context = {}) {
+        return storySceneManager.startScene(sceneId, context);
+    }
+
+    completeStoryScene(sceneId, options = {}) {
+        return storySceneManager.completeScene(sceneId, options);
+    }
+
+    beginStoryEncounter(encounterId) {
+        return storySceneManager.beginEncounter(encounterId);
+    }
+
+    resolveStoryEncounter(encounterId, result = {}) {
+        return storySceneManager.resolveEncounter(encounterId, result);
+    }
+
+    getPendingStoryEncounter() {
+        return storySceneManager.getPendingEncounter();
+    }
+
+    getNextStorySceneForActor(actorId, options = {}) {
+        return storySceneManager.getNextAvailableSceneForActor(actorId, options);
+    }
+
+    getNextStorySceneId() {
+        return storySceneManager.getNextAvailableSceneId();
+    }
+
     startDialogue(npcId, context = {}) {
         const npc = getTownNPC(npcId);
         if (!npc) {
@@ -513,9 +542,17 @@ class DialogueManager {
 
     resolveLine(line = {}, npc = {}, participantMap = {}) {
         const actorId = line.actorId || line.npcId || null;
+        const presentation = {
+            beat: line.beat || 'speaker',
+            expression: line.expression || null,
+            expressionLayer: line.expressionLayer || null,
+            background: line.background || null,
+            viewpoint: line.viewpoint || null
+        };
         if (actorId && participantMap[actorId]) {
             const participant = participantMap[actorId];
             return {
+                ...presentation,
                 actorId,
                 speaker: line.name || line.speakerName || participant.name || '居民',
                 avatar: line.avatar || participant.avatar || '•',
@@ -527,6 +564,7 @@ class DialogueManager {
 
         if (line.speaker === 'player' || actorId === 'player') {
             return {
+                ...presentation,
                 actorId: 'player',
                 speaker: '玩家',
                 avatar: '你',
@@ -538,6 +576,7 @@ class DialogueManager {
 
         if (line.speaker === 'narration' || actorId === 'narration') {
             return {
+                ...presentation,
                 actorId: 'narration',
                 speaker: '',
                 avatar: '',
@@ -550,6 +589,7 @@ class DialogueManager {
 
         if (line.speaker === 'system' || actorId === 'system') {
             return {
+                ...presentation,
                 actorId: 'system',
                 speaker: line.name || '系統',
                 avatar: line.avatar || '!',
@@ -561,6 +601,7 @@ class DialogueManager {
 
         if (line.speaker && line.speaker !== 'npc') {
             return {
+                ...presentation,
                 actorId: actorId || line.speaker,
                 speaker: line.name || line.speaker,
                 avatar: line.avatar || '•',
@@ -571,6 +612,7 @@ class DialogueManager {
         }
 
         return {
+            ...presentation,
             actorId: npc.id || 'npc',
             speaker: line.name || npc.name,
             avatar: line.avatar || npc.avatar,

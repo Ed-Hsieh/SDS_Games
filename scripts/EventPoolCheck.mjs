@@ -1,12 +1,13 @@
 import { EventDatabase, EventRole, getEventChapterRange, getEventsForZone } from '../src/js/data/Events.js';
-import { WorldLandmarks, ZoneProfiles } from '../src/js/data/WorldStories.js';
+import { WorldLandmarks } from '../src/js/data/WorldStories.js';
 import { getEventForZone } from '../src/js/managers/EventManager.js';
 
 const problems = [];
 const warnings = [];
 
 const landmarkById = new Map(WorldLandmarks.map(landmark => [landmark.id, landmark]));
-const zoneIds = Object.keys(ZoneProfiles);
+// These are internal event-selection tiers, not player-facing map regions.
+const zoneIds = ['low', 'medium', 'high', 'death'];
 const locationBoundRoles = new Set([
     EventRole.STORY_SEED,
     EventRole.SIDE_STORY,
