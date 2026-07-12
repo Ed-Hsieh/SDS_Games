@@ -5,7 +5,7 @@
 import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
 import { affixManager } from '../managers/AffixManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js?v=equipment-atlas-20260605b';
 import { MaterialDatabase, getMaterial } from '../managers/MaterialManager.js';
 import { getRecipeBlueprintInfo, isRecipeBlueprintKnown } from '../managers/BlueprintManager.js';

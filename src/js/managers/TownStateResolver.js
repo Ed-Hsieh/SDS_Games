@@ -5,7 +5,7 @@
  */
 
 import GameManager from './GameManager.js';
-import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
+import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js?v=dialogue-flow-20260712w';
 import { getStorySceneCompleteFlag } from '../data/StoryStateContract.js';
 
 export const TownVisibility = Object.freeze({

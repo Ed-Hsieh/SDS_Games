@@ -2,13 +2,13 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js?v=achievements-codex-sort-20260630a';
+import LobbyScene from './scenes/LobbyScene.js?v=ui-convergence-20260712y';
 import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
 import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
 import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
-import QuestScene from './scenes/QuestScene.js?v=beta-convergence-20260625d';
-import EncyclopediaScene from './scenes/EncyclopediaScene.js?v=achievements-codex-sort-20260630a';
-import { DungeonScene } from './scenes/DungeonScene.js?v=resource-pressure-20260629';
+import QuestScene from './scenes/QuestScene.js?v=mia-layer-test-20260712x';
+import EncyclopediaScene from './scenes/EncyclopediaScene.js?v=ui-convergence-20260712y';
+import { DungeonScene } from './scenes/DungeonScene.js?v=dialogue-flow-20260712w';
 import towerScene from './scenes/TowerScene.js';
 import GameManager from './managers/GameManager.js';
 // 導入共用的節奏條系統
@@ -19,7 +19,7 @@ import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 
-const APP_ASSET_VERSION = 'overworld-prototype-20260712e';
+const APP_ASSET_VERSION = 'ui-convergence-20260712y';
 
 class App {
     constructor() {

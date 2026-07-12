@@ -4,7 +4,7 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { casinoManager } from '../managers/CasinoManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import audioManager from '../utils/AudioManager.js';

@@ -1,11 +1,41 @@
 import GameManager from '../managers/GameManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
+import CombatFlowController from '../managers/CombatFlowController.js?v=dialogue-flow-20260712w';
+import {
+    createLocationEncounter,
+    resolveEncounterDrop,
+    settleEncounterVictory
+} from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
+import AdventurePanelsController from '../components/AdventurePanelsController.js';
 import WorldMap from '../utils/WorldMap.js';
 import {
     OverworldMapConfig,
     SecondRunOvercapBossReserves
 } from '../data/OverworldMapRegistry.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import { storySceneManager } from '../managers/StorySceneManager.js?v=mia-layer-test-20260712x';
+import { storyJournalManager } from '../managers/StoryJournalManager.js';
+import {
+    PROLOGUE_TUTORIAL_OUTCOME_FLAG,
+    PROLOGUE_TUTORIAL_RESOLVED_FLAG,
+    PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
+} from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
+
+const THREE_LANDMARK_IDS = Object.freeze([
+    'south_gate_farmland',
+    'hunter_boardwalk',
+    'old_campfire_site'
+]);
+
+const LANDMARK_STORY_SCENES = Object.freeze({
+    silver_snare_pass: 'ch1_s07_silver_snare',
+    rotroot_ravine: 'ch1_s09_rotroot_approach',
+    old_wolf_den: 'ch1_s10_forest_guardian',
+    mist_tablet_hill: 'ch2_s04_mist_and_tomb_route',
+    moon_moss_slope: 'ch2_s05_blood_moon_hunt',
+    opened_ancient_tomb: 'ch2_s06_keeper_of_names',
+    north_checkpoint_marker: 'ch2_s08_shadow_at_the_checkpoint'
+});
 
 const MOVE_REPEAT_MS = 80;
 
@@ -35,7 +65,12 @@ export default class AdventureScene {
         this.lastMoveAt = 0;
         this.regionToastTimer = 0;
         this.modalOpen = false;
+        this.modalConfirmHandler = null;
+        this.panels = null;
+        this.combat = null;
         this.showOvercapReserves = false;
+        this.activeMapStory = null;
+        this.storyCombatResolution = null;
         this.devMode = new URLSearchParams(window.location.search).has('map-test');
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
@@ -50,14 +85,68 @@ export default class AdventureScene {
         }
 
         this.worldMap = new WorldMap(GameManager.getCharacter(), 1280, 720);
+        this.panels = new AdventurePanelsController(this.container, {
+            onPlayerStateChange: () => this.renderPlayerStats()
+        });
+        this.combat = new CombatFlowController(this.container, {
+            scene: { type: 'overworld', id: this.worldMap.config.id },
+            settleVictory: encounter => encounter?.context?.prologueTutorial
+                ? { exp: 0, gold: 0, drops: [] }
+                : settleEncounterVictory(encounter),
+            resolveDrop: (drop, decision) => resolveEncounterDrop(drop, decision),
+            isSceneComplete: encounter => Boolean(encounter?.storyBoss),
+            onBattleStateChange: (result) => {
+                if (result === 'victory' && this.activeEncounter?.storyBoss?.bossId) {
+                    GameManager.setFlag(`boss.${this.activeEncounter.storyBoss.bossId}.defeated`, true);
+                }
+                const storyContract = this.activeEncounter?.storyContract;
+                if (storyContract && result === 'victory') {
+                    this.storyCombatResolution = storySceneManager.resolveEncounter(storyContract.id, { victory: true });
+                }
+                this.renderPlayerStats();
+            },
+            onReturnToScene: (phase, completedEncounter) => {
+                if (completedEncounter?.context?.prologueTutorial) {
+                    this.resolvePrologueTutorial('victory');
+                    return;
+                }
+                this.worldMap.suppressEncounters(4);
+                this.activeEncounter = null;
+                this.renderPlayerStats();
+                this.canvas?.focus();
+            },
+            onSceneComplete: () => {
+                this.worldMap.suppressEncounters(4);
+                this.activeEncounter = null;
+                this.renderPlayerStats();
+                this.canvas?.focus();
+                const resolution = this.storyCombatResolution;
+                this.storyCombatResolution = null;
+                if (resolution?.presentation) {
+                    window.setTimeout(() => this.showStoryPresentation(resolution.presentation), 60);
+                }
+            },
+            onDefeat: completedEncounter => {
+                if (completedEncounter?.context?.prologueTutorial) {
+                    this.resolvePrologueTutorial('defeat');
+                    return;
+                }
+                const storyContract = this.activeEncounter?.storyContract;
+                if (storyContract) storySceneManager.resolveEncounter(storyContract.id, { victory: false });
+                GameManager.restoreCharacterAtHome('battle-defeat');
+                this.app?.navigateTo?.('lobby');
+            }
+        });
         window.currentAdventureScene = this;
         this.bindEvents();
+        this.panels.init();
         this.handleResize();
         this.renderPlayerStats();
         this.renderBossReserveList();
         await this.loadMapAssets();
         this.updateLocationUi({ forceToast: true });
         this.requestRender();
+        this.tryStartPendingFieldStory();
     }
 
     cacheDom() {
@@ -69,6 +158,7 @@ export default class AdventureScene {
         this.playerLevel = this.container.querySelector('#adv-player-level');
         this.playerHp = this.container.querySelector('#adv-player-hp');
         this.playerGold = this.container.querySelector('#adv-player-gold');
+        this.playerFatigue = this.container.querySelector('#adv-player-fatigue');
         this.locationHint = this.container.querySelector('#map-location-hint');
         this.locationHintTitle = this.container.querySelector('#map-location-hint-title');
         this.locationHintText = this.container.querySelector('#map-location-hint-text');
@@ -92,10 +182,11 @@ export default class AdventureScene {
         window.addEventListener('resize', this.handleResize);
 
         this.container.querySelector('#btn-return-to-lobby')?.addEventListener('click', () => {
+            GameManager.restoreCharacterAtHome('adventure-return');
             this.app?.navigateTo?.('lobby');
         });
         this.container.querySelector('#map-landmark-close')?.addEventListener('click', () => this.closeModal());
-        this.container.querySelector('#map-landmark-confirm')?.addEventListener('click', () => this.closeModal());
+        this.container.querySelector('#map-landmark-confirm')?.addEventListener('click', () => this.confirmModal());
         this.modal?.addEventListener('click', event => {
             if (event.target === this.modal) this.closeModal();
         });
@@ -112,6 +203,8 @@ export default class AdventureScene {
         window.removeEventListener('resize', this.handleResize);
         if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
         if (this.regionToastTimer) window.clearTimeout(this.regionToastTimer);
+        this.panels?.destroy?.();
+        this.combat?.destroy?.();
         if (window.currentAdventureScene === this) delete window.currentAdventureScene;
     }
 
@@ -148,15 +241,34 @@ export default class AdventureScene {
 
     handleKeyDown(event) {
         if (event.defaultPrevented) return;
+        if (this.combat?.isActive()) return;
         const tagName = event.target?.tagName?.toLowerCase();
         if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return;
 
-        if (event.key === 'Escape' && this.modalOpen) {
+        if (event.key === 'Escape') {
+            if (this.modalOpen) {
+                event.preventDefault();
+                this.closeModal();
+                return;
+            }
+            if (this.panels?.isOpen()) {
+                event.preventDefault();
+                this.panels.closeDrawers();
+                return;
+            }
+        }
+        if (this.modalOpen || this.panels?.isOpen()) return;
+
+        if (event.key.toLowerCase() === 'q') {
             event.preventDefault();
-            this.closeModal();
+            this.panels?.toggleDrawer('quest');
             return;
         }
-        if (this.modalOpen) return;
+        if (event.key.toLowerCase() === 'b') {
+            event.preventDefault();
+            this.panels?.toggleDrawer('inventory');
+            return;
+        }
 
         if (event.key.toLowerCase() === 'f' || event.key === 'Enter') {
             event.preventDefault();
@@ -193,15 +305,26 @@ export default class AdventureScene {
         }
         if (result.type !== 'moved') return;
 
+        GameManager.consumeAdventureFatigue(result.habitat?.fatigueCost || 1);
         if (result.enteredHabitat) this.showRegionToast(result.habitat);
         this.updateLocationUi();
+        this.renderPlayerStats();
         this.requestRender();
+
+        if (!result.interaction) {
+            const encounter = this.worldMap.rollEncounter();
+            if (encounter) this.beginEncounter(encounter);
+        }
     }
 
     interact() {
         const entry = this.worldMap.getNearbyInteraction();
         if (!entry) return;
         const firstDiscovery = this.worldMap.discoverLandmark(entry);
+        storyJournalManager.recordLocationDiscoveries(entry.id, {
+            chapter: this.worldMap.getCurrentTile()?.chapter,
+            firstDiscovery
+        });
 
         if (entry.kind === 'route_gate') {
             this.openModal({
@@ -210,23 +333,29 @@ export default class AdventureScene {
                 text: firstDiscovery ? entry.blockedText : entry.repeatText,
                 image: this.images.get(`gate-blocked:${entry.id}`)
             });
-        } else {
+        } else if (!this.tryStartLandmarkStory(entry)) {
+            const authoredStoryBoss = Boolean(entry.bossId && LANDMARK_STORY_SCENES[entry.id]);
             this.openModal({
                 kicker: entry.bossId ? '劇情交會地' : '地標已記錄',
                 title: entry.name,
                 text: firstDiscovery ? entry.firstText : (entry.repeatText || entry.firstText),
-                image: this.images.get(`landmark:${entry.id}`)
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: authoredStoryBoss ? '收起手札' : entry.bossId ? '進入戰鬥' : '繼續探索',
+                onConfirm: entry.bossId && !authoredStoryBoss ? () => this.beginBossEncounter(entry) : null
             });
         }
         this.updateLocationUi();
         this.requestRender();
     }
 
-    openModal({ kicker, title, text, image }) {
+    openModal({ kicker, title, text, image, actionLabel = '繼續探索', onConfirm = null }) {
         if (!this.modal) return;
         this.modalKicker.textContent = kicker || '地標';
         this.modalTitle.textContent = title || '';
         this.modalText.textContent = text || '';
+        const confirm = this.container.querySelector('#map-landmark-confirm');
+        if (confirm) confirm.textContent = actionLabel;
+        this.modalConfirmHandler = onConfirm;
         if (image?.src) {
             this.modalImage.style.backgroundImage = `url("${image.src}")`;
             this.modalImage.classList.add('has-image');
@@ -243,7 +372,152 @@ export default class AdventureScene {
         if (!this.modal) return;
         this.modal.hidden = true;
         this.modalOpen = false;
+        this.modalConfirmHandler = null;
         this.canvas?.focus();
+    }
+
+    confirmModal() {
+        const handler = this.modalConfirmHandler;
+        if (handler && handler() === false) return;
+        this.closeModal();
+    }
+
+    tryStartPendingFieldStory() {
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        if (nextSceneId === 'ch1_s01_road_collapse') {
+            if (!GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)) {
+                this.beginPrologueTutorialEncounter();
+            } else {
+                this.finishPrologueTransition();
+            }
+            return true;
+        }
+        if (nextSceneId === 'ch1_s06_three_landmarks' && this.hasThreeLandmarkEvidence()) {
+            this.startMapStoryScene(nextSceneId);
+            return true;
+        }
+        return false;
+    }
+
+    hasThreeLandmarkEvidence() {
+        return THREE_LANDMARK_IDS.every(id => this.worldMap.discoveredLandmarks.has(id));
+    }
+
+    tryStartLandmarkStory(entry) {
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        if (nextSceneId === 'ch1_s06_three_landmarks'
+            && THREE_LANDMARK_IDS.includes(entry.id)
+            && this.hasThreeLandmarkEvidence()) {
+            return this.startMapStoryScene(nextSceneId, { entry });
+        }
+
+        const sceneId = LANDMARK_STORY_SCENES[entry.id];
+        if (!sceneId || storySceneManager.isSceneComplete(sceneId)) return false;
+
+        const optionalBloodMoon = sceneId === 'ch2_s05_blood_moon_hunt';
+        if (optionalBloodMoon) {
+            if (!storySceneManager.isSceneComplete('ch2_s04_mist_and_tomb_route')) return false;
+            return this.startMapStoryScene(sceneId, { entry, force: true });
+        }
+        if (sceneId !== nextSceneId) return false;
+        return this.startMapStoryScene(sceneId, { entry });
+    }
+
+    startMapStoryScene(sceneId, options = {}) {
+        const outcome = storySceneManager.startScene(sceneId, { force: Boolean(options.force) });
+        if (!outcome?.success) return false;
+        this.showStoryPresentation(outcome, options);
+        return true;
+    }
+
+    showStoryPresentation(outcome, options = {}) {
+        const lines = (outcome.lines || []).filter(line => line?.text);
+        if (!lines.length) return false;
+        this.activeMapStory = {
+            sceneId: outcome.sceneId,
+            scene: outcome.scene,
+            encounter: outcome.encounter,
+            lines,
+            index: 0,
+            entry: options.entry || this.worldMap.getNearbyInteraction() || null
+        };
+        this.renderMapStoryLine();
+        return true;
+    }
+
+    renderMapStoryLine() {
+        const story = this.activeMapStory;
+        const line = story?.lines?.[story.index];
+        if (!story || !line) return;
+        const image = story.entry?.id ? this.images.get(`landmark:${story.entry.id}`) : null;
+        const finalLine = story.index >= story.lines.length - 1;
+        this.openModal({
+            kicker: `第 ${story.scene.chapter} 章 · ${line.isNarration ? '事件' : line.role || '對話'}`,
+            title: line.isNarration ? story.scene.objective : (line.speaker || '旅途紀錄'),
+            text: line.text,
+            image,
+            actionLabel: finalLine ? (story.encounter ? '進入戰鬥' : '記入手札') : '繼續',
+            onConfirm: () => this.advanceMapStory()
+        });
+    }
+
+    advanceMapStory() {
+        const story = this.activeMapStory;
+        if (!story) return true;
+        if (story.index < story.lines.length - 1) {
+            story.index += 1;
+            this.renderMapStoryLine();
+            return false;
+        }
+
+        const completion = storySceneManager.completeScene(story.sceneId);
+        const entry = story.entry;
+        this.activeMapStory = null;
+        this.closeModal();
+        if (completion?.transition === 'encounter_required') {
+            const started = storySceneManager.beginEncounter(completion.encounter.id);
+            if (started?.success && entry) {
+                this.beginBossEncounter(entry, { storyContract: started.encounter });
+            }
+        }
+        this.updateLocationUi();
+        this.requestRender();
+        return false;
+    }
+
+    beginPrologueTutorialEncounter() {
+        const habitat = this.worldMap.getCurrentHabitat() || {
+            id: 'prologue_south_road',
+            name: '南門外斷路',
+            chapter: 1,
+            threat: 'overcap'
+        };
+        return this.beginEncounter({
+            monsterId: 'demon_general',
+            targetLevel: 70,
+            habitat
+        }, { prologueTutorial: true });
+    }
+
+    resolvePrologueTutorial(outcome = 'defeat') {
+        if (GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)) return;
+        GameManager.setFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG, true);
+        GameManager.setFlag(PROLOGUE_TUTORIAL_OUTCOME_FLAG, outcome);
+        const character = GameManager.getCharacter();
+        if (character) character.hp = 1;
+        GameManager.notify('all');
+        this.activeEncounter = null;
+        window.setTimeout(() => this.finishPrologueTransition(), 80);
+    }
+
+    finishPrologueTransition() {
+        if (!storySceneManager.isSceneComplete('ch1_s01_road_collapse')) {
+            const started = storySceneManager.startScene('ch1_s01_road_collapse', { force: true });
+            if (started?.success) storySceneManager.completeScene('ch1_s01_road_collapse');
+        }
+        GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, true);
+        GameManager.restoreCharacterAtHome('prologue-rescue');
+        window.setTimeout(() => this.app?.navigateTo?.('lobby'), 80);
     }
 
     showInteractionHint(entry, overrideText = '') {
@@ -289,6 +563,42 @@ export default class AdventureScene {
         if (this.playerLevel) this.playerLevel.textContent = character?.level ?? 1;
         if (this.playerHp) this.playerHp.textContent = `${character?.hp ?? 0}/${character?.maxHp ?? 0}`;
         if (this.playerGold) this.playerGold.textContent = character?.gold ?? 0;
+        const fatigue = GameManager.getAdventureFatigueStatus({ recover: true });
+        if (this.playerFatigue) this.playerFatigue.textContent = `${fatigue.current}/${fatigue.max}`;
+    }
+
+    beginEncounter(sample, options = {}) {
+        if (this.combat?.isActive()) return false;
+        this.panels?.closeDrawers();
+        const encounter = createLocationEncounter(sample, this.worldMap.getCurrentTile());
+        if (!encounter) return false;
+        if (options.storyBoss) encounter.storyBoss = options.storyBoss;
+        if (options.storyContract) encounter.storyContract = options.storyContract;
+        if (options.prologueTutorial) {
+            encounter.context = { ...(encounter.context || {}), prologueTutorial: true };
+            encounter.canFlee = false;
+            encounter.defeatActionLabel = '失去意識';
+            encounter.victoryActionLabel = '結束交鋒';
+            encounter.visual.name = '無名魔將';
+            encounter.visual.className = '序章超格 BOSS · 魔族將軍';
+            encounter.visual.feed = '那道身影並未追擊。他只用一擊確認你是否值得記住。';
+            encounter.monster.exp = 0;
+            encounter.monster.gold = 0;
+            encounter.monster.drops = [];
+            encounter.monster.equipmentDrops = [];
+        }
+        this.activeEncounter = encounter;
+        return this.combat.start(encounter);
+    }
+
+    beginBossEncounter(entry, options = {}) {
+        const monster = MonsterManager.getMonster(entry.bossId);
+        if (!monster) return false;
+        return this.beginEncounter({
+            monsterId: entry.bossId,
+            targetLevel: monster.level,
+            habitat: this.worldMap.getCurrentHabitat()
+        }, { storyBoss: entry, storyContract: options.storyContract || null });
     }
 
     handleDevAction(action) {
@@ -337,6 +647,11 @@ export default class AdventureScene {
             case 'sample-monster':
                 this.sampleMonsterForTest();
                 break;
+            case 'force-encounter': {
+                const encounter = this.worldMap.rollEncounter(Math.random, { force: true });
+                if (encounter) this.beginEncounter(encounter);
+                break;
+            }
             case 'toggle-reserves':
                 this.showOvercapReserves = !this.showOvercapReserves;
                 this.setDevStatus(this.showOvercapReserves ? '顯示目前已定位的預留點' : '隱藏預留點');
@@ -358,12 +673,12 @@ export default class AdventureScene {
         const monster = MonsterManager.getMonster(result.monsterId);
         const image = await loadImage(getGeneratedMonsterImage(result.monsterId));
         if (this.devSample) {
-            this.devSample.textContent = `${result.habitat.name}：${monster?.name || result.monsterId}`;
+            this.devSample.textContent = `${result.habitat.name}：Lv.${result.targetLevel} ${monster?.name || result.monsterId}`;
         }
         this.openModal({
             kicker: '當地怪物抽樣',
             title: monster?.name || result.monsterId,
-            text: `這次抽樣只使用「${result.habitat.name}」的怪物池，不會從整個章節混抽。`,
+            text: `這次抽樣只使用「${result.habitat.name}」的怪物池，並依地點強度調整為 Lv.${result.targetLevel}。`,
             image
         });
     }

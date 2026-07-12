@@ -162,11 +162,20 @@ function findTooltipTarget(node) {
 }
 
 if (typeof document !== 'undefined') {
-    document.addEventListener('pointerover', event => {
+    const handleTooltipEnter = event => {
         if (event.pointerType === 'touch') return;
         const target = findTooltipTarget(event.target);
         if (!target || target === activeTarget) return;
         showTooltip(target, event);
+    };
+    document.addEventListener('pointerover', handleTooltipEnter);
+    document.addEventListener('mouseover', handleTooltipEnter);
+
+    document.addEventListener('focusin', event => {
+        const target = findTooltipTarget(event.target);
+        if (!target || target === activeTarget) return;
+        const rect = target.getBoundingClientRect();
+        showTooltip(target, { clientX: rect.right, clientY: rect.top, pointerType: 'keyboard' });
     });
 
     document.addEventListener('pointermove', event => {
@@ -179,6 +188,11 @@ if (typeof document !== 'undefined') {
         if (!activeTarget) return;
         const nextTarget = event.relatedTarget;
         if (nextTarget && activeTarget.contains(nextTarget)) return;
+        hideTooltip();
+    });
+
+    document.addEventListener('focusout', event => {
+        if (!activeTarget || event.relatedTarget === activeTarget) return;
         hideTooltip();
     });
 
@@ -209,12 +223,56 @@ export function attachItemTooltip(element, item, options = {}) {
     if (!element || !item) return element;
     element.dataset.itemTooltip = 'true';
     element.__itemTooltipPayload = { item, options };
+    try {
+        element.dataset.itemTooltipPayload = JSON.stringify({ item, options });
+    } catch (error) {
+        console.warn('[ItemTooltip] Failed to serialize attached tooltip payload:', error);
+    }
+
+    if (!element.__itemTooltipHandlers) {
+        const enter = event => {
+            if (event.pointerType === 'touch' || activeTarget === element) return;
+            showTooltip(element, event);
+        };
+        const leave = event => {
+            if (event.relatedTarget && element.contains(event.relatedTarget)) return;
+            if (activeTarget === element) hideTooltip();
+        };
+        const focus = () => {
+            if (activeTarget === element) return;
+            const rect = element.getBoundingClientRect();
+            showTooltip(element, {
+                clientX: rect.right,
+                clientY: rect.top,
+                pointerType: 'keyboard'
+            });
+        };
+        const blur = () => {
+            if (activeTarget === element) hideTooltip();
+        };
+
+        element.addEventListener('mouseenter', enter);
+        element.addEventListener('mouseleave', leave);
+        element.addEventListener('focus', focus);
+        element.addEventListener('blur', blur);
+        element.__itemTooltipHandlers = { enter, leave, focus, blur };
+    }
+
     return element;
 }
 
 export function detachItemTooltip(element) {
     if (!element) return;
+    const handlers = element.__itemTooltipHandlers;
+    if (handlers) {
+        element.removeEventListener('mouseenter', handlers.enter);
+        element.removeEventListener('mouseleave', handlers.leave);
+        element.removeEventListener('focus', handlers.focus);
+        element.removeEventListener('blur', handlers.blur);
+        delete element.__itemTooltipHandlers;
+    }
     delete element.dataset.itemTooltip;
+    delete element.dataset.itemTooltipPayload;
     delete element.__itemTooltipPayload;
 }
 

@@ -85,15 +85,11 @@
                     </div>
                     <div class="traveler-handbook-actions">
                         <button class="traveler-handbook-action" data-route="quest" type="button">
-                            <span class="traveler-handbook-action-icon" aria-hidden="true">
-                                <img src="/src/assets/images/art/ui/icons/quest_open_book.webp" alt="">
-                            </span>
+                            <span class="traveler-handbook-action-icon" aria-hidden="true">錄</span>
                             <b>線索</b>
                         </button>
                         <button class="traveler-handbook-action" data-route="encyclopedia" type="button">
-                            <span class="traveler-handbook-action-icon" aria-hidden="true">
-                                <img src="/src/assets/images/art/ui/icons/encyclopedia_tome.webp" alt="">
-                            </span>
+                            <span class="traveler-handbook-action-icon" aria-hidden="true">典</span>
                             <b>百科</b>
                         </button>
                     </div>
@@ -220,13 +216,13 @@
                         </section>
                     </section>
 
-                    <section class="lobby-prep-pane is-active" data-prep-pane="inventory" role="tabpanel">
+                    <section class="lobby-prep-pane is-active lobby-field-pack-pane" id="lobby-field-pack-pane" data-prep-pane="inventory" role="tabpanel">
                         <div class="storage-section inventory-section" aria-label="背包">
                             <div class="storage-section-head storage-section-meta">
                                 <span>容量</span>
                                 <strong><span id="inventory-used">0</span> / <span id="inventory-max">10</span></strong>
                             </div>
-                            <div class="inventory-list" id="inventory-list"></div>
+                            <div class="inventory-list field-inventory-grid" id="inventory-list"></div>
                         </div>
                     </section>
 
@@ -252,7 +248,7 @@
                                     <button class="warehouse-filter" data-filter="material" type="button">⛏️</button>
                                 </div>
                             </div>
-                            <div class="warehouse-list" id="warehouse-list"></div>
+                            <div class="warehouse-list field-inventory-grid" id="warehouse-list"></div>
                         </div>
                     </section>
 

@@ -11,14 +11,18 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
-import { dialogueManager } from '../managers/DialogueManager.js';
-import { questManager } from '../managers/QuestManager.js';
+import { dialogueManager } from '../managers/DialogueManager.js?v=mia-layer-test-20260712x';
+import {
+    PROLOGUE_TUTORIAL_RESOLVED_FLAG,
+    PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
+} from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
+import { questManager } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
-import { getTownPlace } from '../data/TownPlaces.js';
+import { getTownPlace } from '../data/TownPlaces.js?v=dialogue-flow-20260712w';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
-import { getResolvedTownPlace, getResolvedTownPlaces } from '../managers/TownStateResolver.js';
+import { getResolvedTownPlace, getResolvedTownPlaces } from '../managers/TownStateResolver.js?v=dialogue-flow-20260712w';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -92,6 +96,7 @@ export default class LobbyScene {
 
             // Force initial UI update with current state
             this.updateUI(GameManager.state, 'all');
+            this.openInitialStoryFlow();
         } catch (error) {
             console.error('Error initializing Lobby Scene:', error);
         }
@@ -166,6 +171,7 @@ export default class LobbyScene {
             warehouseList: this.container.querySelector('#warehouse-list'),
             warehouseCount: this.container.querySelector('#warehouse-count'),
             inventoryList: this.container.querySelector('#inventory-list'),
+            lobbyInventoryPane: this.container.querySelector('#lobby-field-pack-pane'),
             inventoryUsed: this.container.querySelector('#inventory-used'),
             inventoryMax: this.container.querySelector('#inventory-max'),
             
@@ -321,8 +327,10 @@ export default class LobbyScene {
         }
 
         // Inventory event delegation: single click handler for performance
+        if (this.dom.lobbyInventoryPane) {
+            this.dom.lobbyInventoryPane.addEventListener('click', (e) => this.onInventoryClick(e));
+        }
         if (this.dom.inventoryList) {
-            this.dom.inventoryList.addEventListener('click', (e) => this.onInventoryClick(e));
             // virtualization: update visible items on scroll
             this.dom.inventoryList.addEventListener('scroll', () => {
                 if (this._invUpdateRAF) return;
@@ -341,8 +349,7 @@ export default class LobbyScene {
         const instanceId = itemEl.dataset.instanceId;
         if (!instanceId) return;
 
-        // Find the stack in GameManager state
-        const stack = GameManager.state.inventory.find(s => s.instanceId === instanceId);
+        const stack = GameManager.state.inventory.find(entry => entry.instanceId === instanceId);
         if (stack) this.showItemModal(stack, 'inventory');
     }
 
@@ -645,9 +652,34 @@ export default class LobbyScene {
         this.renderWorldStage();
     }
 
+    openInitialStoryFlow() {
+        const sceneId = dialogueManager.getNextStorySceneId();
+        if (sceneId === 'ch1_s01_road_collapse') {
+            window.setTimeout(() => {
+                if (this.activeTownDialogue || !this.dom?.townDialogueModal?.hidden) return;
+                this.app?.navigateTo?.('adventure');
+            }, 120);
+            return;
+        }
+        if (sceneId !== 'ch1_s02_wake_under_bitter_bottles'
+            || !GameManager.getFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG)) return;
+        window.setTimeout(() => {
+            if (this.activeTownDialogue || !this.dom?.townDialogueModal?.hidden) return;
+            this.enterTownPlace('mia_workroom');
+            this.openStoryScene(sceneId);
+        }, 120);
+    }
+
     openStoryScene(sceneId, options = {}) {
         const outcome = dialogueManager.startStoryScene(sceneId, options);
         if (!outcome?.success) return outcome;
+        const enrichActor = actor => {
+            const npc = getTownNPC(actor?.id || actor?.actorId);
+            return npc ? { ...npc, ...actor, portrait: actor?.portrait || npc.portrait } : actor;
+        };
+        outcome.npc = enrichActor(outcome.npc);
+        outcome.participants = (outcome.participants || []).map(enrichActor);
+        outcome.lines = (outcome.lines || []).map(line => enrichActor(line));
         this.renderTownDialogueModal(outcome);
         this.renderWorldStage();
         return outcome;
@@ -1053,6 +1085,9 @@ export default class LobbyScene {
         if (finished && dialogue.storySceneId && !dialogue.storySceneCompleted) {
             dialogueManager.completeStoryScene(dialogue.storySceneId);
             dialogue.storySceneCompleted = true;
+            if (dialogue.storySceneId === 'ch1_s02_wake_under_bitter_bottles') {
+                GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false);
+            }
         }
 
         if (this.dom.townDialogueDone) {
@@ -1274,6 +1309,9 @@ export default class LobbyScene {
 
         GameManager.resetSaveData();
         this.updateUI(GameManager.state, 'all');
+        if (!GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)) {
+            window.setTimeout(() => this.app?.navigateTo?.('adventure'), 120);
+        }
         this.pushTownNarrative('進度重置', '已重置為新遊戲狀態。需要保留時請再匯出 JSON 存檔。', 'warning');
     }
 
@@ -2285,30 +2323,41 @@ export default class LobbyScene {
         const container = this.dom.inventoryList;
         container.innerHTML = '';
 
-        if (!inventory.length) {
-            container.innerHTML = '<div class="empty-hint inventory-grid-empty">背包空空如也...</div>';
-            return;
-        }
+        const capacity = Math.max(5, Number(GameManager.state.inventoryCapacity) || inventory.length || 5);
+        const slotCount = Math.ceil(Math.max(capacity, inventory.length) / 5) * 5;
+        const slots = Array.from({ length: slotCount }, (_, index) => inventory[index] || null);
 
-        inventory.forEach(stack => {
+        slots.forEach(stack => {
+            if (!stack) {
+                const emptySlot = document.createElement('button');
+                emptySlot.type = 'button';
+                emptySlot.disabled = true;
+                emptySlot.className = 'field-item-cell is-empty';
+                emptySlot.setAttribute('aria-label', '空白欄位');
+                container.appendChild(emptySlot);
+                return;
+            }
             const item = stack.item || {};
             const quantity = Math.max(1, Number(stack.quantity) || 1);
             const rarity = item.rarity || 'common';
             const itemEl = document.createElement('button');
             itemEl.type = 'button';
-            itemEl.className = `item-card inventory-item lobby-inventory-cell rarity-frame rarity-${rarity}`;
+            itemEl.className = `inventory-item field-item-cell rarity-frame rarity-${rarity}`;
             itemEl.dataset.instanceId = stack.instanceId || '';
-            itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
+            itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊查看與操作`);
 
             const iconHTML = getItemVisualHtml(item, '📦');
 
             itemEl.innerHTML = `
                 <div class="item-icon">${iconHTML}</div>
-                ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
-                <div class="item-name">${escapeHtml(item.name || '未知')}</div>
+                ${quantity > 1 ? `<span class="quantity-badge">${quantity}</span>` : ''}
             `;
 
-            attachItemTooltip(itemEl, item, { quantity, hint: '點擊開啟操作' });
+            attachItemTooltip(itemEl, item, { quantity, hint: '點擊查看與操作' });
+            itemEl.dataset.itemTooltipPayload = JSON.stringify({
+                item,
+                options: { quantity, hint: '點擊查看與操作' }
+            });
             container.appendChild(itemEl);
         });
     }
@@ -2373,15 +2422,14 @@ export default class LobbyScene {
         const rarity = item.rarity || 'common';
         const itemEl = document.createElement('button');
         itemEl.type = 'button';
-        itemEl.className = `item-card warehouse-item lobby-inventory-cell rarity-frame rarity-${rarity}`;
+        itemEl.className = `warehouse-item field-item-cell rarity-frame rarity-${rarity}`;
         itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
 
         const iconHTML = getItemVisualHtml(item, '📦');
 
         itemEl.innerHTML = `
             <div class="item-icon">${iconHTML}</div>
-            ${quantity > 1 ? `<span class="quantity-badge">x${quantity}</span>` : ''}
-            <div class="item-name">${escapeHtml(item.name || '未知')}</div>
+            ${quantity > 1 ? `<span class="quantity-badge">${quantity}</span>` : ''}
         `;
 
         attachItemTooltip(itemEl, item, { quantity, hint: '點擊開啟操作' });

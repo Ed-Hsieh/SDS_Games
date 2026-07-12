@@ -95,18 +95,42 @@ export const StoryEncounterContracts = Object.freeze({
     })
 });
 
+export const StoryRouteEncounterContracts = Object.freeze({
+    ch1_s07_silver_snare: contract({
+        id: 'route_ch1_ambush_mantis',
+        sceneId: 'ch1_s07_silver_snare',
+        monsterId: 'ambush_mantis',
+        regionId: 'chapter_01_south_gate',
+        locationId: 'silver_snare_pass',
+        combatStartBeatIndex: 3,
+        postBattleBeatIndex: 4
+    }),
+    ch2_s05_blood_moon_hunt: contract({
+        id: 'route_ch2_blood_moon_stag',
+        sceneId: 'ch2_s05_blood_moon_hunt',
+        monsterId: 'blood_moon_stag',
+        regionId: 'chapter_02_broken_evacuations',
+        locationId: 'moon_moss_slope',
+        combatStartBeatIndex: 5,
+        postBattleBeatIndex: 6
+    })
+});
+
 export function getStoryRunCondition(runNumber = 1) {
     return Number(runNumber) >= 2 ? 'second_run' : 'first_run';
 }
 
 export function getStoryEncounterContract(sceneId, runNumber = 1) {
-    const entry = StoryEncounterContracts[sceneId] || null;
+    const entry = StoryEncounterContracts[sceneId] || StoryRouteEncounterContracts[sceneId] || null;
     if (!entry) return null;
     return entry.runConditions.includes(getStoryRunCondition(runNumber)) ? entry : null;
 }
 
 export function getStoryEncounterContractById(encounterId, runNumber = 1) {
-    const entry = Object.values(StoryEncounterContracts).find(candidate => candidate.id === encounterId) || null;
+    const entry = [
+        ...Object.values(StoryEncounterContracts),
+        ...Object.values(StoryRouteEncounterContracts)
+    ].find(candidate => candidate.id === encounterId) || null;
     if (!entry) return null;
     return entry.runConditions.includes(getStoryRunCondition(runNumber)) ? entry : null;
 }

@@ -5,7 +5,7 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { questManager, QuestStatus } from '../managers/QuestManager.js';
+import { questManager, QuestStatus } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { QuestDatabase, QuestRewardItems, getQuestById } from '../data/Quests.js';
 import { MaterialDatabase } from '../data/Materials.js';

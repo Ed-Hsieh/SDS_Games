@@ -37,6 +37,7 @@ import {
 } from '../data/RecipeSeries.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getRecipeBlueprintFlag, getRecipeSeriesFlag } from './BlueprintManager.js';
+import { storyJournalManager } from './StoryJournalManager.js';
 
 const REVEAL_ALL_FLAG = 'encyclopedia.revealAll';
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
@@ -315,6 +316,10 @@ export function markBlueprintKnown(recipeId) {
     if (!recipeId) return;
     setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`, true);
     notifyFlags();
+}
+
+export function getDiscoveryEntries() {
+    return storyJournalManager.getCatalogEntries();
 }
 
 export function getMonsterEntries() {

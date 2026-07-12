@@ -5,7 +5,7 @@
  */
 
 import GameManager from './GameManager.js';
-import { questManager, QuestStatus } from './QuestManager.js';
+import { questManager, QuestStatus } from './QuestManager.js?v=dialogue-flow-20260712w';
 import { getQuestById } from '../data/Quests.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';

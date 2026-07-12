@@ -2,18 +2,17 @@
  * QuestScene.js
  * 任務冊場景 - 顯示任務列表、接取/放棄/完成任務
  */
-import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js';
+import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { getMaterial } from '../managers/MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { getQuestStory } from '../data/QuestStories.js';
+import { getQuestStory } from '../data/QuestStories.js?v=dialogue-flow-20260712w';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
 import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
-import { dialogueManager } from '../managers/DialogueManager.js';
+import { dialogueManager } from '../managers/DialogueManager.js?v=mia-layer-test-20260712x';
 import GameManager from '../managers/GameManager.js';
-import { worldStoryManager } from '../managers/WorldStoryManager.js';
-import { getWorldEventJournalRecords } from '../managers/EventManager.js';
+import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { getResolvedTownPlaces } from '../managers/TownStateResolver.js';
@@ -437,7 +436,9 @@ export default class QuestScene {
 
     getBossTraceRecords() {
         const visited = new Set(
-            worldStoryManager.getVisitedLandmarks().map(landmark => landmark.id)
+            storyJournalManager.getRecords()
+                .map(record => record.locationId || record.meta?.locationId)
+                .filter(Boolean)
         );
 
         return ChapterRegionOrder.flatMap(regionId => {
@@ -502,132 +503,47 @@ export default class QuestScene {
     }
 
     getWorldNoteRecords() {
-        const landmarkRecords = worldStoryManager.getVisitedLandmarks()
-            .sort((a, b) => (Number(a.chapter) || 0) - (Number(b.chapter) || 0) || String(a.name).localeCompare(String(b.name), 'zh-Hant'))
-            .map(landmark => {
-                const region = getChapterRegion(landmark.chapter);
-                const regionTitle = region?.title || `第 ${landmark.chapter || '?'} 章`;
+        const kindLabels = {
+            clue: '現場線索',
+            boss: '首領結論',
+            relationship: '人物紀錄',
+            town: '城鎮變化',
+            conclusion: '章節結論',
+            event: '劇情事件'
+        };
 
-                return {
-                    key: `landmark:${landmark.id}`,
-                    kind: 'world',
-                    icon: landmark.icon || '🗺️',
-                    title: landmark.name,
-                    typeLabel: '世界見聞',
-                    summaryMode: 'compact',
-                    hideSummaryMeta: true,
-                    summaryLabel: '地點札記',
-                    summaryHint: regionTitle,
-                    statusIcon: '✓',
-                    statusText: '已造訪',
-                    statusTone: 'finished',
-                    listMeta: [
-                        `第 ${landmark.chapter || '?'} 章`,
-                        regionTitle,
-                        landmark.kind || '已造訪'
-                    ],
-                    current: landmark.repeat || landmark.arrival || landmark.mapHint || '你在這裡留下了一段地點紀錄。',
-                    sections: [
-                        {
-                            title: '地點印象',
-                            lines: [landmark.arrival || landmark.mapHint || '此處仍缺少初次到達文字。']
-                        },
-                        {
-                            title: '環境特徵',
-                            lines: [landmark.mapHint || landmark.repeat || '這個地點仍保留未確認的細節。']
-                        },
-                        {
-                            title: '所屬路線',
-                            lines: [regionTitle]
-                        }
-                    ],
-                    route: 'adventure',
-                    routeLabel: '回到冒險地圖'
-                };
-            });
-
-        const clueRecords = worldStoryManager.getDiscoveredClues()
-            .sort((a, b) => (Number(a.notebookIndex) || 0) - (Number(b.notebookIndex) || 0))
-            .map(clue => {
-                const chainTitle = worldStoryManager.getBossFlowStatus(clue.chainId)?.title || '未歸檔痕跡';
-                return {
-                    key: `world-clue:${clue.id}`,
-                    kind: 'world',
-                    icon: '✦',
-                    title: clue.title,
-                    typeLabel: '現場紀錄',
-                    summaryMode: 'compact',
-                    hideSummaryMeta: true,
-                    summaryLabel: '現場札記',
-                    summaryHint: `線索 ${clue.notebookIndex}`,
-                    statusIcon: '✎',
-                    statusText: `線索 ${clue.notebookIndex}`,
-                    statusTone: 'active',
-                    listMeta: [
-                        `線索 ${clue.notebookIndex}`,
-                        clue.source || '現場',
-                        chainTitle
-                    ],
-                    current: clue.text || clue.lead || '這段紀錄還需要補上內容。',
-                    sections: [
-                        {
-                            title: '看見的事',
-                            lines: [clue.text || '沒有留下原始文字。']
-                        },
-                        {
-                            title: '記下的方向',
-                            lines: [clue.lead || chainTitle || '這段見聞還沒有被串回更大的脈絡。']
-                        }
-                    ],
-                    route: 'adventure',
-                    routeLabel: '回到冒險地圖'
-                };
-            });
-
-        const eventRecords = getWorldEventJournalRecords()
-            .map((entry, index) => ({
-                key: `world-event:${entry.key || `${entry.eventId}:${index}`}`,
+        return storyJournalManager.getRecords().map(record => {
+            const isFieldRecord = Boolean(record.locationId || record.meta?.locationId);
+            const typeLabel = kindLabels[record.kind] || '旅途發現';
+            return {
+                key: `story-discovery:${record.id}`,
                 kind: 'world',
-                icon: entry.icon || '✦',
-                title: entry.title || '旅途事件',
-                typeLabel: '旅途事件',
+                icon: record.icon || '✦',
+                title: record.title,
+                typeLabel,
                 summaryMode: 'compact',
                 hideSummaryMeta: true,
-                summaryLabel: '旅途片段',
-                summaryHint: entry.roleLabel || entry.zoneLabel || '已記錄',
+                summaryLabel: `第 ${record.chapter} 章`,
+                summaryHint: record.sourceLabel,
                 statusIcon: '✎',
-                statusText: entry.count > 1 ? `${entry.roleLabel || '已記錄'} x${entry.count}` : entry.roleLabel || '已記錄',
-                statusTone: entry.role === 'pressure' ? 'active' : 'available',
+                statusText: `紀錄 ${record.notebookIndex}`,
+                statusTone: record.kind === 'boss' || record.kind === 'conclusion' ? 'finished' : 'active',
                 listMeta: [
-                    entry.zoneLabel || '未知地帶',
-                    entry.choiceText || '未記錄選擇',
-                    entry.resultSummary || '沒有明顯變化'
+                    `第 ${record.chapter} 章`,
+                    record.sourceLabel,
+                    typeLabel
                 ],
-                current: entry.description || '你在旅途中遇到一段值得回頭看的小事。',
+                current: record.observation,
+                thoughtTitle: '目前能得出的結論',
+                thoughtText: record.inference,
                 sections: [
-                    {
-                        title: '當時的選擇',
-                        lines: [
-                            entry.choiceText || '沒有記下選擇。',
-                            entry.intent || '沒有留下選擇意圖。'
-                        ]
-                    },
-                    {
-                        title: '遭遇之後',
-                        lines: (entry.resultMessages || []).length > 0
-                            ? entry.resultMessages
-                            : [entry.resultSummary || '沒有明顯變化。']
-                    },
-                    {
-                        title: '下次路過',
-                        lines: [entry.reflection || '這段經驗先放在手札裡，等到相似的路口再翻出來。']
-                    }
+                    { title: '親眼確認', lines: [record.observation] },
+                    { title: '手札推論', lines: [record.inference || '目前沒有足夠證據繼續推論。'] }
                 ],
-                route: 'adventure',
-                routeLabel: '回到冒險地圖'
-            }));
-
-        return [...eventRecords, ...clueRecords, ...landmarkRecords];
+                route: isFieldRecord ? 'adventure' : 'lobby',
+                routeLabel: isFieldRecord ? '回到冒險地圖' : '回到城鎮'
+            };
+        });
     }
 
     getRelationshipRecords() {
@@ -1557,6 +1473,14 @@ export default class QuestScene {
                 };
             }
 
+            const activeStoryStep = this.getActiveStoryStep(story);
+            if (activeStoryStep) {
+                return {
+                    title: activeStoryStep.title,
+                    description: activeStoryStep.description
+                };
+            }
+
             switch (nextObjective?.type) {
                 case ObjectiveType.KILL:
                     return {
@@ -1670,10 +1594,18 @@ export default class QuestScene {
     }
 
     getStoryObjectiveText(story, index) {
+        const activeStoryStep = this.getActiveStoryStep(story);
+        if (index === 0 && activeStoryStep?.objective) return activeStoryStep.objective;
         const entry = story?.objectives?.[index];
         if (typeof entry === 'string') return entry;
         if (entry && typeof entry.text === 'string') return entry.text;
         return '';
+    }
+
+    getActiveStoryStep(story = null) {
+        return (story?.steps || []).find(step => (
+            !step.completeFlag || !GameManager.getFlag(step.completeFlag)
+        )) || null;
     }
 
     getObjectiveText(obj) {

@@ -14,6 +14,14 @@ export const QuestStoryDatabase = {
         completed: '森林守衛倒下後，道路變得可讀；城鎮只恢復這一章真正接回來的功能。',
         finished: '第一章完成。市場仍要等一條真實補給路。',
         route: 'adventure',
+        steps: [
+            {
+                completeFlag: 'story.scene.ch1_s03_broken_crossroads.complete',
+                title: '我得先去裂痕廣場找村長。',
+                description: '米婭要我醒來後別急著再上路。先到裂痕廣場，讓村長知道南門外發生了什麼。',
+                objective: '前往裂痕廣場，尋找村長。'
+            }
+        ],
         objectives: ['完成 ch1_s01 至 ch1_s11 的主線演出。']
     },
     story_chapter_02: {
@@ -116,7 +124,8 @@ export function getQuestStory(questData, state = null) {
         reportTitle: story.reportTitle || null,
         reportSummary: story.reportSummary || null,
         reportLines: Array.isArray(story.reportLines) ? story.reportLines : null,
-        reportMessage: story.reportMessage || null
+        reportMessage: story.reportMessage || null,
+        steps: Array.isArray(story.steps) ? story.steps : []
     };
 }
 

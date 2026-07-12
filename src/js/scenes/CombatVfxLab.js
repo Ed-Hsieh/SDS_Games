@@ -210,9 +210,10 @@ const PHASE_LABELS = Object.freeze({
     [CombatSessionPhase.ESCAPED]: '已撤離'
 });
 
-class CombatVfxLab {
-    constructor(root) {
+export class CombatVfxLab {
+    constructor(root, options = {}) {
         this.root = root;
+        this.options = options;
         this.stage = root.querySelector('#battle-preview');
         this.enemyStage = root.querySelector('#enemy-stage');
         this.enemyVisual = root.querySelector('#enemy-visual');
@@ -228,13 +229,13 @@ class CombatVfxLab {
         this.buffList = root.querySelector('#player-buff-list');
         this.settings = { shake: true, hitStop: true, numbers: true };
         this.labMode = 'combat';
-        this.currentMonsterId = 'demon';
+        this.currentMonsterId = options.monster?.id || 'demon';
         this.currentElement = 'neutral';
         this.uiTimers = new Set();
         this.showcaseTimers = new Set();
         this.showcaseRunning = false;
         this.lastHealth = { player: null, monster: null };
-        this.rhythmCharacter = createRhythmCharacter();
+        this.rhythmCharacter = options.rhythmCharacter || createRhythmCharacter();
 
         this.engine = new CombatVfxEngine({
             rearCanvas: root.querySelector('#vfx-canvas-rear'),
@@ -252,36 +253,58 @@ class CombatVfxLab {
         this.handleKeyboard = this.handleKeyboard.bind(this);
         this.handleStageMouseDown = this.handleStageMouseDown.bind(this);
         this.handleContextMenu = this.handleContextMenu.bind(this);
+        this.handlePotionClick = event => {
+            event.stopPropagation();
+            this.activatePotion();
+        };
+        this.handleFleeClick = event => {
+            event.stopPropagation();
+            this.activateFlee();
+        };
+        this.handleResultClick = () => {
+            if (this.options.onResultAction) this.options.onResultAction(this.session.getSnapshot());
+            else this.restartCombat();
+        };
 
         this.bindControls();
         this.applyLoadoutVisual();
         this.applyMonsterVisual();
         this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
         this.setMode('combat', { announce: false });
-        this.setFeed('等待交戰指令');
+        this.setFeed(this.getMonsterConfig().feed || '等待交戰指令');
+        if (options.autoStart) this.session.start();
+    }
+
+    getMonsterConfig() {
+        return this.options.monster || MONSTERS[this.currentMonsterId] || MONSTERS.demon;
+    }
+
+    getLoadout() {
+        return this.options.loadout || LOADOUT;
     }
 
     buildSessionConfig() {
-        const monster = MONSTERS[this.currentMonsterId];
+        const monster = this.getMonsterConfig();
+        const player = this.options.player || {};
         return {
             player: {
-                name: '玩家',
-                maxHp: 420,
-                hp: 368,
-                potions: 5,
-                potionHeal: 118,
-                potionCooldown: 1.2,
-                buffs: [BUFF_LIBRARY.power, BUFF_LIBRARY.guard]
+                name: player.name || '玩家',
+                maxHp: player.maxHp || 420,
+                hp: player.hp || player.maxHp || 420,
+                potions: player.potions ?? 5,
+                potionHeal: player.potionHeal || 118,
+                potionCooldown: player.potionCooldown || 1.2,
+                buffs: player.buffs || []
             },
             monster: {
-                id: this.currentMonsterId,
+                id: monster.id || this.currentMonsterId,
                 name: monster.name,
                 maxHp: monster.maxHp,
                 initialDelay: monster.initialDelay,
                 interruptedDelay: monster.interruptedDelay,
                 attacks: monster.attacks
             },
-            loadout: LOADOUT,
+            loadout: this.getLoadout(),
             tempo: Number(this.root.querySelector('#tempo-control')?.value || 100) / 100
         };
     }
@@ -321,11 +344,13 @@ class CombatVfxLab {
             ['offhand', '#lab-offhand-rhythm-icon', '#lab-offhand-rhythm-name']
         ];
         slots.forEach(([slot, ringIconSelector, ringNameSelector]) => {
-            const weapon = LOADOUT[slot];
+            const weapon = this.getLoadout()[slot];
             const ringIcon = this.root.querySelector(ringIconSelector);
             if (ringIcon) {
-                ringIcon.src = weapon.icon;
+                if (weapon.icon) ringIcon.src = weapon.icon;
+                else ringIcon.removeAttribute('src');
                 ringIcon.alt = '';
+                ringIcon.hidden = !weapon.icon;
             }
             const ringName = this.root.querySelector(ringNameSelector);
             if (ringName) ringName.textContent = weapon.name;
@@ -375,20 +400,14 @@ class CombatVfxLab {
         this.stage.addEventListener('mousedown', this.handleStageMouseDown);
         this.stage.addEventListener('contextmenu', this.handleContextMenu);
 
-        this.root.querySelector('#use-potion').addEventListener('click', event => {
-            event.stopPropagation();
-            this.activatePotion();
-        });
-        this.root.querySelector('#flee-battle').addEventListener('click', event => {
-            event.stopPropagation();
-            this.activateFlee();
-        });
+        this.root.querySelector('#use-potion')?.addEventListener('click', this.handlePotionClick);
+        this.root.querySelector('#flee-battle')?.addEventListener('click', this.handleFleeClick);
 
         this.root.querySelectorAll('[data-lab-mode]').forEach(button => {
             button.addEventListener('click', () => this.setMode(button.dataset.labMode));
         });
-        this.root.querySelector('#toggle-combat').addEventListener('click', () => this.toggleCombat());
-        this.root.querySelector('#combat-result-restart').addEventListener('click', () => this.restartCombat());
+        this.root.querySelector('#toggle-combat')?.addEventListener('click', () => this.toggleCombat());
+        this.root.querySelector('#combat-result-restart')?.addEventListener('click', this.handleResultClick);
 
         this.root.querySelectorAll('[data-add-buff]').forEach(button => {
             button.addEventListener('click', () => {
@@ -403,26 +422,26 @@ class CombatVfxLab {
         this.root.querySelectorAll('[data-element]').forEach(button => {
             button.addEventListener('click', () => this.setElement(button.dataset.element));
         });
-        this.root.querySelector('#monster-select').addEventListener('change', event => {
+        this.root.querySelector('#monster-select')?.addEventListener('change', event => {
             this.setMonster(event.target.value);
         });
 
         const tempo = this.root.querySelector('#tempo-control');
-        tempo.addEventListener('input', () => {
+        tempo?.addEventListener('input', () => {
             const value = Number(tempo.value);
             this.session.setTempo(value / 100);
             this.root.querySelector('#tempo-value').textContent = `${value}%`;
         });
 
         const intensity = this.root.querySelector('#intensity-control');
-        intensity.addEventListener('input', () => {
+        intensity?.addEventListener('input', () => {
             const value = Number(intensity.value);
             this.engine.setIntensity(value / 100);
             this.root.querySelector('#intensity-value').textContent = `${value}%`;
         });
 
         const density = this.root.querySelector('#density-control');
-        density.addEventListener('input', () => {
+        density?.addEventListener('input', () => {
             this.engine.setDensity(Number(density.value) / 100);
         });
 
@@ -430,14 +449,14 @@ class CombatVfxLab {
         this.bindToggle('#toggle-hitstop', 'hitStop');
         this.bindToggle('#toggle-numbers', 'numbers');
 
-        this.root.querySelector('#play-showcase').addEventListener('click', () => this.playShowcase());
-        this.root.querySelector('#clear-effects').addEventListener('click', () => this.clearEffects());
-        this.root.querySelector('#reset-stage').addEventListener('click', () => this.resetStage());
+        this.root.querySelector('#play-showcase')?.addEventListener('click', () => this.playShowcase());
+        this.root.querySelector('#clear-effects')?.addEventListener('click', () => this.clearEffects());
+        this.root.querySelector('#reset-stage')?.addEventListener('click', () => this.resetStage());
     }
 
     bindToggle(selector, setting) {
         const input = this.root.querySelector(selector);
-        input.addEventListener('change', () => {
+        input?.addEventListener('change', () => {
             this.settings[setting] = input.checked;
         });
     }
@@ -473,7 +492,8 @@ class CombatVfxLab {
 
     activateWeapon(slot) {
         if (this.labMode !== 'combat') {
-            this.triggerManualEffect(slot === 'main' ? LOADOUT.main.effect : LOADOUT.offhand.effect);
+            const loadout = this.getLoadout();
+            this.triggerManualEffect(slot === 'main' ? loadout.main.effect : loadout.offhand.effect);
             return;
         }
 
@@ -486,7 +506,7 @@ class CombatVfxLab {
         const rhythm = slot === 'main' ? this.mainRhythmSystem : this.offhandRhythmSystem;
         const judgement = rhythm?.judgeHit?.() || { type: 'inactive' };
         if (judgement.type === 'cooldown') {
-            this.setFeed(`${LOADOUT[slot].name}仍在回復`);
+            this.setFeed(`${this.getLoadout()[slot].name}仍在回復`);
             return;
         }
         if (judgement.type === 'inactive') {
@@ -521,8 +541,13 @@ class CombatVfxLab {
     }
 
     activateFlee() {
-        if (this.labMode === 'combat') this.session.flee();
-        else this.playFleeFeedback();
+        if (this.labMode === 'combat') {
+            if (this.options.canFlee && !this.options.canFlee()) {
+                this.setFeed(this.options.fleeRejectedText || '這場戰鬥無法撤離。');
+                return;
+            }
+            this.session.flee();
+        } else this.playFleeFeedback();
     }
 
     setMode(mode, { announce = true } = {}) {
@@ -579,7 +604,7 @@ class CombatVfxLab {
     }
 
     applyMonsterVisual() {
-        const config = MONSTERS[this.currentMonsterId];
+        const config = this.getMonsterConfig();
         this.root.querySelector('#enemy-name').textContent = config.name;
         this.root.querySelector('#enemy-class').textContent = config.className;
         this.root.querySelector('#enemy-level').textContent = config.level;
@@ -595,7 +620,8 @@ class CombatVfxLab {
         if (!ELEMENT_LABELS[element]) return;
         this.currentElement = element;
         this.engine.setElement(element);
-        this.root.querySelector('#element-label').textContent = ELEMENT_LABELS[element];
+        const label = this.root.querySelector('#element-label');
+        if (label) label.textContent = ELEMENT_LABELS[element];
         this.root.querySelectorAll('[data-element]').forEach(button => {
             button.classList.toggle('is-active', button.dataset.element === element);
         });
@@ -606,6 +632,7 @@ class CombatVfxLab {
     }
 
     handleCombatEvent(event) {
+        this.options.onCombatEvent?.(event);
         const immediate = event.type === 'session:configured' || event.type === 'battle:reset';
         if (immediate) this.resetRhythmSystems();
         this.syncRhythmPhase(event.snapshot.phase);
@@ -668,6 +695,7 @@ class CombatVfxLab {
             this.handleRejectedAction(event);
         } else if (event.type === 'battle:end') {
             this.showResult(event.result);
+            this.options.onBattleEnd?.(event);
         }
     }
 
@@ -773,8 +801,10 @@ class CombatVfxLab {
     }
 
     renderSessionState(phase) {
-        this.root.querySelector('#session-state').textContent = PHASE_LABELS[phase] || phase;
+        const state = this.root.querySelector('#session-state');
+        if (state) state.textContent = PHASE_LABELS[phase] || phase;
         const button = this.root.querySelector('#toggle-combat');
+        if (!button) return;
         if (phase === CombatSessionPhase.RUNNING) button.textContent = '暫停';
         else if (phase === CombatSessionPhase.PAUSED) button.textContent = '繼續交戰';
         else if (phase === CombatSessionPhase.IDLE) button.textContent = '開始交戰';
@@ -863,9 +893,13 @@ class CombatVfxLab {
         this.root.querySelector('#combat-result-kicker').textContent = result[0];
         this.root.querySelector('#combat-result-title').textContent = result[1];
         this.resultPanel.hidden = false;
+        const action = this.root.querySelector('#combat-result-restart');
+        if (action && this.options.resultActionLabels) {
+            action.textContent = this.options.resultActionLabels[phase] || '返回地圖';
+        }
         if (phase === CombatSessionPhase.VICTORY) {
             this.flash('rgba(227, 197, 116, 0.32)');
-            this.setFeed(`${MONSTERS[this.currentMonsterId].name}已被擊破`);
+            this.setFeed(`${this.getMonsterConfig().name}已被擊破`);
         } else if (phase === CombatSessionPhase.DEFEAT) {
             this.restartClass(this.damageVignette, 'is-active', 900);
             this.setFeed('玩家失去戰鬥能力');
@@ -1033,7 +1067,8 @@ class CombatVfxLab {
         this.clearEffects();
         this.currentElement = 'neutral';
         this.engine.setElement('neutral');
-        this.root.querySelector('#element-label').textContent = ELEMENT_LABELS.neutral;
+        const elementLabel = this.root.querySelector('#element-label');
+        if (elementLabel) elementLabel.textContent = ELEMENT_LABELS.neutral;
         this.root.querySelectorAll('[data-element]').forEach(button => {
             button.classList.toggle('is-active', button.dataset.element === 'neutral');
         });
@@ -1041,7 +1076,22 @@ class CombatVfxLab {
         this.lastHealth = { player: null, monster: null };
         this.session.configure(this.buildSessionConfig());
         this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
-        this.setFeed(MONSTERS[this.currentMonsterId].feed);
+        this.setFeed(this.getMonsterConfig().feed);
+    }
+
+    destroy() {
+        document.removeEventListener('keydown', this.handleKeyboard);
+        this.stage?.removeEventListener('mousedown', this.handleStageMouseDown);
+        this.stage?.removeEventListener('contextmenu', this.handleContextMenu);
+        this.root.querySelector('#use-potion')?.removeEventListener('click', this.handlePotionClick);
+        this.root.querySelector('#flee-battle')?.removeEventListener('click', this.handleFleeClick);
+        this.root.querySelector('#combat-result-restart')?.removeEventListener('click', this.handleResultClick);
+        this.unsubscribeSession?.();
+        this.session?.destroy?.();
+        this.mainRhythmSystem?.stop?.();
+        this.offhandRhythmSystem?.stop?.();
+        this.clearEffects();
+        this.engine?.destroy?.();
     }
 }
 

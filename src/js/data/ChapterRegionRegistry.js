@@ -114,7 +114,7 @@ export const ChapterRegionRegistry = Object.freeze({
             location('south_gate_farmland', '南門農田', RegionLocationKind.LANDMARK, 9, 17, { legacyLandmarkId: 'south_gate_farmland', sceneIds: ['ch1_s06_three_landmarks'] }),
             location('hunter_boardwalk', '獵人棧道', RegionLocationKind.LANDMARK, 15, 12, { legacyLandmarkId: 'hunter_boardwalk', sceneIds: ['ch1_s06_three_landmarks'] }),
             location('old_campfire_site', '舊營火點', RegionLocationKind.CAMP, 15, 23, { legacyLandmarkId: 'old_campfire_site', sceneIds: ['ch1_s06_three_landmarks'] }),
-            location('silver_snare_pass', '銀絲伏道', RegionLocationKind.SIDE_ROUTE, 27, 15, { legacyLandmarkId: 'silver_snare_pass', sceneIds: ['ch1_s07_silver_snare'], optional: true, bossId: 'ambush_mantis' }),
+            location('silver_snare_pass', '銀絲伏道', RegionLocationKind.SIDE_ROUTE, 27, 15, { legacyLandmarkId: 'silver_snare_pass', sceneIds: ['ch1_s07_silver_snare'], bossId: 'ambush_mantis' }),
             location('rotroot_ravine', '腐根溪谷', RegionLocationKind.LANDMARK, 28, 14, { legacyLandmarkId: 'rotroot_ravine', sceneIds: ['ch1_s09_rotroot_approach'] }),
             location('old_wolf_den', '古樹根心', RegionLocationKind.BOSS_ARENA, 42, 10, { legacyLandmarkId: 'old_wolf_den', sceneIds: ['ch1_s10_forest_guardian'], bossId: 'forest_guardian' })
         ]),
@@ -378,6 +378,13 @@ export function findChapterLocation(locationId, chapter = null) {
 
 export function getAllChapterLocations() {
     return [...LocationIndex.values()];
+}
+
+export function isOptionalStoryScene(sceneId) {
+    if (!sceneId) return false;
+    return [...LocationIndex.values()].some(node =>
+        node.optional && (node.sceneIds || []).includes(sceneId)
+    );
 }
 
 export function getLocationProgressTargets(locationId, chapter) {

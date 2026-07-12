@@ -4,7 +4,7 @@
  * (從 scenes/QuestSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
-import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js';
+import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js?v=dialogue-flow-20260712w';
 import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 import { getMaterial } from './MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -12,7 +12,7 @@ import { unlockRecipesForInteraction } from './BlueprintManager.js';
 import { markItemKnown } from './EncyclopediaManager.js';
 import { worldStoryManager } from './WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
-import { getQuestStory } from '../data/QuestStories.js';
+import { getQuestStory } from '../data/QuestStories.js?v=dialogue-flow-20260712w';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 
 class QuestManager {
@@ -49,6 +49,11 @@ class QuestManager {
     syncStoryChapterQuests() {
         const run = Math.max(1, Number(GameManager.getFlag?.('story.run')) || 1);
         let activeAssigned = false;
+        let progressionBlocked = false;
+
+        for (const questId of Object.keys(this.questStates)) {
+            if (!getQuestById(questId)) delete this.questStates[questId];
+        }
 
         for (const quest of QuestDatabase.main || []) {
             if (!quest.autoProgress) continue;
@@ -56,6 +61,17 @@ class QuestManager {
             const completionFlag = objective?.completionFlag;
             const complete = Boolean(completionFlag && GameManager.getFlag?.(completionFlag));
             const required = Math.max(1, Number(objective?.count) || 1);
+
+            if (progressionBlocked || (quest.unlockFlag && !GameManager.getFlag?.(quest.unlockFlag))) {
+                this.questStates[quest.id] = {
+                    status: QuestStatus.LOCKED,
+                    progress: [],
+                    startTime: null,
+                    storyRun: run
+                };
+                progressionBlocked = true;
+                continue;
+            }
 
             if (complete) {
                 this.questStates[quest.id] = {
@@ -674,10 +690,11 @@ class QuestManager {
         this.syncStoryChapterQuests();
         return Object.entries(this.questStates)
             .filter(([_, state]) => state.status === QuestStatus.ACTIVE)
-            .map(([questId, state]) => ({
-                ...getQuestById(questId),
-                state
-            }));
+            .map(([questId, state]) => {
+                const quest = getQuestById(questId);
+                return quest ? { ...quest, state } : null;
+            })
+            .filter(Boolean);
     }
 
     /**
@@ -701,10 +718,11 @@ class QuestManager {
         this.syncStoryChapterQuests();
         return Object.entries(this.questStates)
             .filter(([_, state]) => state.status === QuestStatus.COMPLETED)
-            .map(([questId, state]) => ({
-                ...getQuestById(questId),
-                state
-            }));
+            .map(([questId, state]) => {
+                const quest = getQuestById(questId);
+                return quest ? { ...quest, state } : null;
+            })
+            .filter(Boolean);
     }
 
     /**

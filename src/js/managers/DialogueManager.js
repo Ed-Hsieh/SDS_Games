@@ -4,13 +4,13 @@
  */
 
 import GameManager from './GameManager.js';
-import { questManager } from './QuestManager.js';
+import { questManager } from './QuestManager.js?v=dialogue-flow-20260712w';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
-import { storySceneManager } from './StorySceneManager.js';
+import { storySceneManager } from './StorySceneManager.js?v=mia-layer-test-20260712x';
 
 class DialogueManager {
     constructor() {

@@ -1,0 +1,143 @@
+.inventory-list.field-inventory-grid,
+.adventure-inventory-list.field-inventory-grid,
+.warehouse-list.field-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    align-content: start;
+    gap: 7px;
+    min-height: 0;
+    padding-right: 2px;
+    overflow-y: auto;
+}
+
+.field-inventory-grid .field-item-cell {
+    position: relative;
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 1;
+    place-items: center;
+    padding: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(218, 207, 174, 0.16);
+    border-radius: 5px;
+    background: rgba(9, 13, 13, 0.78);
+    color: #e8e4d8;
+    cursor: pointer;
+    transform: none;
+}
+
+.field-inventory-grid .field-item-cell::before {
+    display: none;
+}
+
+.field-inventory-grid .field-item-cell:hover,
+.field-inventory-grid .field-item-cell:focus-visible,
+.field-inventory-grid .field-item-cell.is-selected {
+    border-color: rgba(216, 185, 104, 0.72);
+    background: rgba(35, 34, 27, 0.92);
+    outline: none;
+    transform: none;
+}
+
+.field-inventory-grid .field-item-cell.is-empty {
+    cursor: default;
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.field-inventory-grid .item-icon {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    place-items: center;
+    background: none;
+}
+
+.field-inventory-grid .item-icon img {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    object-fit: contain;
+}
+
+.field-inventory-grid .item-name {
+    display: none;
+}
+
+.field-inventory-grid .quantity-badge {
+    position: absolute;
+    right: 5px;
+    bottom: 4px;
+    min-width: 20px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    background: rgba(8, 11, 11, 0.9);
+    color: #f1dda0;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.field-inventory-grid .rarity-uncommon { border-color: rgba(102, 177, 126, 0.45); }
+.field-inventory-grid .rarity-rare { border-color: rgba(92, 153, 201, 0.5); }
+.field-inventory-grid .rarity-epic { border-color: rgba(163, 111, 190, 0.52); }
+.field-inventory-grid .rarity-legendary { border-color: rgba(220, 173, 74, 0.64); }
+
+.lobby-field-pack-pane.is-active,
+.lobby-field-pack-pane .inventory-section {
+    min-height: 0;
+    height: 100%;
+}
+
+.lobby-field-pack-pane .inventory-section {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+}
+
+.lobby-field-pack-pane .storage-section-head {
+    padding: 10px 4px;
+}
+
+.lobby-field-pack-pane .field-inventory-grid {
+    align-content: start;
+    min-height: 0;
+    padding: 8px 0;
+    overflow-y: auto;
+}
+
+.warehouse-prep-pane.is-active,
+.warehouse-prep-pane .warehouse-info {
+    min-height: 0;
+    height: 100%;
+}
+
+.warehouse-prep-pane .warehouse-info {
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    background: transparent;
+}
+
+.warehouse-prep-pane .field-inventory-grid {
+    align-content: start;
+    min-height: 0;
+    padding: 8px 0;
+    overflow-y: auto;
+}
+
+.warehouse-prep-pane .inventory-grid-empty {
+    grid-column: 1 / -1;
+    padding: 28px 12px;
+    color: rgba(229, 232, 229, 0.5);
+    text-align: center;
+}

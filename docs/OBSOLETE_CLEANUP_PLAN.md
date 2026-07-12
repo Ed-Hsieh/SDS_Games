@@ -1,6 +1,6 @@
 # Obsolete Cleanup Plan
 
-Last updated: 2026-07-09
+Last updated: 2026-07-13
 
 This plan records obsolete project pieces that are still present after the docs and
 image-prompt standard were consolidated. It is a cleanup plan, not an instruction
@@ -23,43 +23,50 @@ These are cleanup candidates for the accepted narrative reset. Do not remove all
 of them in one risky pass; remove each layer when its replacement story or schema
 is approved.
 
-### Planned: Current Main Quest Chain As Canon
+### Completed: Current Main Quest Chain Replacement
 
 Current status:
 
-- `src/js/data/Quests.js`, `src/js/data/QuestStories.js`, and
-  `src/js/data/NPCDialogues.js` still contain playable scaffolding.
-- The chain should be rewritten after the central mystery, Chapter 1 scenes,
-  objective flow, and reward gates are approved.
+- The old fifteen-part main quest chain is removed as canonical progression.
+- `src/js/data/Quests.js` and `src/js/data/QuestStories.js` now expose seven
+  reward-free, scene-driven chapter records.
+- `src/js/data/NPCDialogues.js` remains for ordinary topic dialogue; mandatory
+  screenplay scenes are owned by `StorySceneRegistry.js` and
+  `StorySceneManager.js`.
 
 Validation:
 
-- Run `scripts/StoryRebuildPlanCheck.mjs`.
-- Run quest, town, and data consistency checks after the replacement lands.
+- Run `scripts/StoryRuntimeCheck.mjs`.
+- Run `scripts/DataConsistencyCheck.mjs`.
 
-### Planned: Legacy Quest And Route Spine
+### Completed: Legacy Quest And Route Spine
 
 Current status:
 
-- `src/js/data/QuestSpineFramework.js` and `src/js/data/ChapterOneRoutePlan.js`
-  may still provide useful structure, but their plot content is not final canon.
-- Old low/medium/high/death route identity still appears in route, story, and DEV
-  test code and should be retargeted to chapter or route-node ids.
+- `src/js/data/QuestSpineFramework.js` and
+  `src/js/data/ChapterOneRoutePlan.js` are removed and must not be recreated.
+- `ChapterRegionRegistry.js` owns all seven handcrafted chapter regions and
+  their scene bindings.
+- Remaining `low / medium / high` strings in `Events.js` are legacy event-zone
+  classifications, not the active adventure-map route identity. Review them only
+  during an event-system rewrite.
 
 Validation:
 
-- Search for `low`, `medium`, `high`, and `death` only in route identity contexts.
-- Run `scripts/StoryRebuildPlanCheck.mjs`.
+- Confirm the removed framework files do not exist.
+- Run `scripts/StoryRuntimeCheck.mjs` and `scripts/DataConsistencyCheck.mjs`.
 
-### Planned: Relationship And Dialogue Patch Layers
+### In Progress: Relationship And Dialogue Patch Layers
 
 Current status:
 
-- `src/js/scenes/QuestScene.js` still has relationship depth behavior that can
-  drift into artificial familiarity labels.
-- `src/js/managers/DialogueManager.js` still has generic request/report dialogue
-  bridges that should be replaced by explicit character scripts when quests are
-  rebuilt.
+- Mandatory screenplay dialogue now comes from `StorySceneRegistry.js` and the
+  layered presentation path in `DialogueManager.js`.
+- `QuestScene.js` and `NPCDialogues.js` still own optional topic/report behavior
+  and must not override mainline character arcs or reintroduce talk-count-based
+  relationship progression.
+- Finish this cleanup only after the Chapter 1-2 no-skip playthrough confirms
+  which ordinary dialogue bridges remain useful.
 
 Validation:
 
@@ -195,8 +202,12 @@ Recommended action:
 
 ## Recommended Cleanup Sequence
 
-1. Remove the old image sheet/crop pipeline.
-2. Update tool UI links and any script references to the removed pipeline.
-3. Run reference scans and validation.
-4. Clean compatibility exports and legacy drop/effect wrappers during focused schema
-   passes.
+1. Finish the Chapter 1-2 scene and dialogue playthrough before removing any
+   remaining dialogue bridge.
+2. Audit the one unreferenced reserve image,
+   `characters/reserve/apothecary_assistant.webp`, during the next approved asset
+   cleanup; do not mix it with the 20 registered but currently reserved monster
+   images.
+3. Clean drop compatibility only during the later reward/item schema pass.
+4. Revisit `Events.js` zone classification only when the event system is rebuilt.
+5. Run reference scans and validation after each focused removal.

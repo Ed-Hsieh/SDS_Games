@@ -47,7 +47,12 @@ export const CodexTypeText = {
     normal: '普通怪物',
     elite: '精英怪物',
     boss: '首領',
-    world_boss: '世界首領'
+    world_boss: '世界首領',
+    clue: '線索',
+    relationship: '人物紀錄',
+    town: '城鎮變化',
+    event: '劇情事件',
+    conclusion: '章節結論'
 };
 
 const EquipmentTypes = new Set([
@@ -64,7 +69,8 @@ const SOURCE_TEXT = {
     casino: '賭場',
     shop: '市集',
     monster: '怪物掉落',
-    recipe: '鍛造圖紙'
+    recipe: '鍛造圖紙',
+    storyDiscovery: '劇情發現'
 };
 
 function normalizeType(type) {

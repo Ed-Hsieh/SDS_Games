@@ -7,7 +7,7 @@ import GameManager from './GameManager.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { weightedPick } from '../utils/WeightedPick.js';
-import { questManager, QuestStatus } from './QuestManager.js';
+import { questManager, QuestStatus } from './QuestManager.js?v=dialogue-flow-20260712w';
 import { QuestDatabase, getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';

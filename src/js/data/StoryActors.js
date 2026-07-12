@@ -16,26 +16,34 @@ export const StoryExpressionIds = Object.freeze([
     'hurt'
 ]);
 
+const portrait = actorId => `src/assets/images/art/characters/portraits/${actorId}.webp`;
+
 export const StoryActorRegistry = Object.freeze({
-    village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', nameStatus: 'unresolved_personal_name' },
-    town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記' },
-    herbalist: { id: 'herbalist', name: '米婭', role: '藥師與配方研究者' },
-    standard_bearer_frey: { id: 'standard_bearer_frey', name: '芙蕾', role: '巡線持旗者' },
-    lamplighter_tavi: { id: 'lamplighter_tavi', name: '塔維', role: '巡線點燈人' },
-    blacksmith: { id: 'blacksmith', name: '鐵匠', role: '城鎮鐵匠', nameStatus: 'unresolved_personal_name' },
+    village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', portrait: portrait('village_elder'), nameStatus: 'unresolved_personal_name' },
+    town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記', portrait: portrait('town_scholar') },
+    herbalist: {
+        id: 'herbalist',
+        name: '米婭',
+        role: '藥師與配方研究者',
+        portrait: 'src/assets/images/art/characters/dialogue/herbalist/neutral.png'
+    },
+    standard_bearer_frey: { id: 'standard_bearer_frey', name: '芙蕾', role: '巡線持旗者', portrait: portrait('standard_bearer_frey') },
+    lamplighter_tavi: { id: 'lamplighter_tavi', name: '塔維', role: '巡線點燈人', portrait: portrait('lamplighter_tavi') },
+    blacksmith: { id: 'blacksmith', name: '鐵匠', role: '城鎮鐵匠', portrait: portrait('blacksmith'), nameStatus: 'unresolved_personal_name' },
     street_beggar: {
         id: 'street_beggar',
         name: '艾洛',
         concealedName: '乞丐',
         revealFlag: 'story.ailo.name_revealed',
-        role: '失去舊路的人'
+        role: '失去舊路的人',
+        portrait: portrait('street_beggar')
     },
     young_ailo: { id: 'young_ailo', name: '艾洛', role: '記憶中的山村居民' },
     neelu: { id: 'neelu', name: '妮露', role: '山村染補師' },
-    casino_owner: { id: 'casino_owner', name: '維斯珀', role: '賭場主人' },
-    casino_dealer: { id: 'casino_dealer', name: '洛恩', role: '賭場荷官' },
-    merchant: { id: 'merchant', name: '商人', role: '市集交易者' },
-    black_market: { id: 'black_market', name: '黑市商人', role: '禁用品交易者' },
+    casino_owner: { id: 'casino_owner', name: '維斯珀', role: '賭場主人', portrait: portrait('casino_owner') },
+    casino_dealer: { id: 'casino_dealer', name: '洛恩', role: '賭場荷官', portrait: portrait('casino_dealer') },
+    merchant: { id: 'merchant', name: '商人', role: '市集交易者', portrait: portrait('merchant') },
+    black_market: { id: 'black_market', name: '黑市商人', role: '禁用品交易者', portrait: portrait('black_market') },
     elder_dragon: { id: 'elder_dragon', name: '龍族長者', role: '封痕守線者' },
     demon_lord_asariel: { id: 'demon_lord_asariel', name: '魔王赫爾薩恩', role: '墜落的魔王' },
     lich: { id: 'lich', name: '守名者赫恩', role: '守名巫妖' },

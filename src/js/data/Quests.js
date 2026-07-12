@@ -51,6 +51,7 @@ export const QuestDatabase = {
             name: '南門以外',
             type: QuestType.MAIN,
             chapter: 1,
+            unlockFlag: 'story.scene.ch1_s02_wake_under_bitter_bottles.complete',
             icon: 'I',
             description: '確認南門外三處證據、銀絲伏道與森林反應，讓第一條回城路重新可讀。',
             objectives: [

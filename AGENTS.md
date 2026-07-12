@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-11
+Last updated: 2026-07-13
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -182,14 +182,26 @@ The new `art` folder is the active runtime asset source through
 `AssetManifest.js`. Do not reintroduce `art-v2` fallback behavior; unfinished
 assets should be listed as gaps and regenerated into `art`.
 
-Image generation is paused during the current town-rebuild documentation pass.
-Use `docs/ART_STYLE_GUIDE.md` for style direction and current example paths.
-Use `docs/IMAGE_GENERATION_PROMPTS.md` for prompt templates and category
-standards when image work resumes.
+Image work is active only for approved first-run scene presentation. Connect and
+reuse existing maps, town locations, landmarks, Boss art, equipment, materials,
+and portraits before generating replacements. The immediate art scope is missing
+Chapter 1-2 backgrounds and the expression layers actually requested by their
+scripts. Use `docs/ART_STYLE_GUIDE.md` and `docs/IMAGE_GENERATION_PROMPTS.md`.
+
+Current measured gaps:
+
+- Chapter 1-2 require 34 actor-expression combinations; only Mia neutral exists.
+- Asset coverage has zero missing physical files for existing mappings.
+- 49 crafted-result items and 33 casino special items have no image mapping.
+- 26 unique images have specification warnings; four dungeon Boss images are
+  only 512 pixels.
+- `characters/reserve/apothecary_assistant.webp` is the only fully unreferenced
+  runtime art file. Registered but currently reserved monsters are not automatic
+  deletion candidates.
 
 ## Current Review Gate
 
-As of 2026-07-11, the user has authorized the first four foundation tasks:
+As of 2026-07-13, the current review gate is the Chapter 1-2 vertical slice:
 
 - Mainline scenes must make nine core characters complete; side stories only
   deepen them. `MainlineCharacterContracts` locks introductions, decisive scenes,
@@ -205,18 +217,32 @@ As of 2026-07-11, the user has authorized the first four foundation tasks:
   compatibility files are removed.
 - Seven optional character stories are registered but remain deferred, skip-safe,
   and reward-free until their map or town owner is finalized.
+- Chapter 1 contains 11 scenes and Chapter 2 contains 8. Their town entry points,
+  map bindings, two route Bosses, two mainline Bosses, combat handoff, post-battle
+  continuation, and chapter flags exist, but they still require one complete
+  no-skip browser playthrough.
+- The new game tutorial defeat and Mia wake-up transition are connected.
+- Lobby backpack, warehouse, item actions, and character preparation now share
+  the adventure UI language. The encyclopedia no longer exposes a duplicate
+  `Discovery` tab.
+- Mia neutral proves the intended half-body visual direction only. The layered
+  dialogue system is not yet correctly integrated into all town and field
+  mainline scenes. Treat dialogue runtime integration as `in_progress`, not done.
+- Chapter 1-2 causal structure is provisionally complete, but its player-facing
+  text still needs a focused voice, prose, pacing, and transition rewrite against
+  `docs/NARRATIVE_WRITING_GUIDE.md` and the accepted character records.
 
 The runtime foundation is reviewable, not immutable. If the user revises a scene,
 edit the story bible and recompile the authoritative registry; do not add a second
 story path as a workaround.
 
 Do not begin reward, material, equipment, or stock-layer assignment before the
-map-function review. First-run screenplay, runtime, and required-art completion
-are the only active delivery scope. Second-run external Boss expansion, second-
-run gameplay implementation, combat redesign, the tower rewrite, post-reveal
-DLC, and mobile UI remain paused. Image production resumes only for approved
-first-run backgrounds, half-body expression layers, and critical CGs after the
-matching first-run scenes lock.
+map-function review. First revise Chapter 1-2 text, correctly integrate the
+layered dialogue runtime, bind approved scene assets, lock expression
+assignments, add audio, and complete an end-to-end playthrough; then apply the
+same pattern to Chapters 3-7. Second-run external Boss expansion, second-run
+gameplay, final combat balance, tower rewrite, post-reveal DLC, and mobile UI
+remain paused.
 
 ## Verification
 

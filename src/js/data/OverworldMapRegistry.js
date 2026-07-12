@@ -45,6 +45,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 1,
         name: '南門荒地',
         rect: Object.freeze({ x: 0, y: 0, width: 11, height: 32 }),
+        levelRange: Object.freeze([1, 2]),
+        threat: 'low',
+        encounterRate: 0.07,
+        safeSteps: 7,
+        fatigueCost: 1,
         monsterIds: Object.freeze(['slime', 'goblin', 'giant_rat'])
     }),
     Object.freeze({
@@ -52,6 +57,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 1,
         name: '荒廢農田',
         rect: Object.freeze({ x: 11, y: 0, width: 13, height: 32 }),
+        levelRange: Object.freeze([2, 4]),
+        threat: 'low',
+        encounterRate: 0.085,
+        safeSteps: 6,
+        fatigueCost: 1,
         monsterIds: Object.freeze(['slime', 'goblin', 'wild_wolf', 'giant_rat'])
     }),
     Object.freeze({
@@ -59,6 +69,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 1,
         name: '濕地林緣',
         rect: Object.freeze({ x: 24, y: 0, width: 11, height: 32 }),
+        levelRange: Object.freeze([4, 6]),
+        threat: 'guarded',
+        encounterRate: 0.1,
+        safeSteps: 5,
+        fatigueCost: 1,
         monsterIds: Object.freeze(['wild_wolf', 'poison_spider', 'treant', 'shadow_bat'])
     }),
     Object.freeze({
@@ -66,6 +81,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 1,
         name: '腐根林地',
         rect: Object.freeze({ x: 35, y: 0, width: 13, height: 32 }),
+        levelRange: Object.freeze([7, 10]),
+        threat: 'dangerous',
+        encounterRate: 0.12,
+        safeSteps: 4,
+        fatigueCost: 2,
         monsterIds: Object.freeze(['treant', 'wild_wolf', 'orc_warrior', 'stone_golem_mini'])
     }),
     Object.freeze({
@@ -73,6 +93,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 2,
         name: '斷裂撤離路',
         rect: Object.freeze({ x: 48, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([11, 13]),
+        threat: 'guarded',
+        encounterRate: 0.09,
+        safeSteps: 6,
+        fatigueCost: 2,
         monsterIds: Object.freeze(['skeleton_warrior', 'ghost', 'glimmer_sprite'])
     }),
     Object.freeze({
@@ -80,6 +105,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 2,
         name: '霧碑丘地',
         rect: Object.freeze({ x: 60, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([13, 15]),
+        threat: 'guarded',
+        encounterRate: 0.1,
+        safeSteps: 5,
+        fatigueCost: 2,
         monsterIds: Object.freeze(['ghost', 'glimmer_sprite', 'rune_wisp'])
     }),
     Object.freeze({
@@ -87,6 +117,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 2,
         name: '月苔坡',
         rect: Object.freeze({ x: 72, y: 0, width: 10, height: 15 }),
+        levelRange: Object.freeze([15, 17]),
+        threat: 'dangerous',
+        encounterRate: 0.105,
+        safeSteps: 5,
+        fatigueCost: 2,
         monsterIds: Object.freeze(['glimmer_sprite', 'ghost', 'rune_wisp'])
     }),
     Object.freeze({
@@ -94,6 +129,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 2,
         name: '掘開古墓地',
         rect: Object.freeze({ x: 72, y: 15, width: 24, height: 17 }),
+        levelRange: Object.freeze([17, 19]),
+        threat: 'dangerous',
+        encounterRate: 0.125,
+        safeSteps: 4,
+        fatigueCost: 2,
         monsterIds: Object.freeze(['skeleton_warrior', 'stone_golem', 'ghost', 'rune_wisp'])
     }),
     Object.freeze({
@@ -101,6 +141,11 @@ export const OverworldHabitats = Object.freeze([
         chapter: 2,
         name: '古墓北脊',
         rect: Object.freeze({ x: 82, y: 0, width: 14, height: 15 }),
+        levelRange: Object.freeze([19, 20]),
+        threat: 'severe',
+        encounterRate: 0.14,
+        safeSteps: 4,
+        fatigueCost: 3,
         monsterIds: Object.freeze(['skeleton_warrior', 'stone_golem', 'rune_wisp'])
     })
 ]);
@@ -155,6 +200,16 @@ export const OverworldLandmarks = Object.freeze([
         firstText: '銀絲在林間收緊，伏獵者只會在劇情啟動後現身。'
     }),
     landmark({
+        id: 'rotroot_ravine',
+        name: '腐根溪谷',
+        x: 35,
+        y: 19,
+        imageId: 'rotroot_ravine',
+        storyFlag: 'story.ch1.silver_snare_cleared',
+        firstText: '發黑樹皮沿著溪谷向北收縮，森林深處的根心正承受不屬於此地的壓力。',
+        repeatText: '黑根仍向北收縮，手札已把方向與古樹根心連在一起。'
+    }),
+    landmark({
         id: 'old_wolf_den',
         name: '古樹根心',
         x: 42,
@@ -191,6 +246,16 @@ export const OverworldLandmarks = Object.freeze([
         storyFlag: 'story.ch2.lich_active',
         bossId: 'lich',
         firstText: '古墓入口只有在第二章主線收束時顯露真正的守墓者。'
+    }),
+    landmark({
+        id: 'north_checkpoint_marker',
+        name: '北向廢棄關卡',
+        x: 93,
+        y: 25,
+        imageId: 'cut_roadsign',
+        storyFlag: 'boss.lich.defeated',
+        firstText: '找回的路牌被影子守著。牠們保持人類隊列的間距，並不像聚集在一起的魔物。',
+        repeatText: '影子的站位仍像一條沒有收到撤回命令的巡查線。'
     })
 ]);
 

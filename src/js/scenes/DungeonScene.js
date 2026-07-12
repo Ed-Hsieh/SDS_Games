@@ -15,7 +15,7 @@ import GameManager from '../managers/GameManager.js';
 import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js';
+import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
@@ -25,23 +25,9 @@ import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import {
-    renderCombatMonster,
-    renderCombatPlayer,
-    renderCombatBuffIndicators,
-    clearCombatActionCooldown,
-    isCombatActionCooling,
-    startCombatActionCooldown,
-    showCombatDamageNumber,
-    showCombatPlayerHitFeedback,
-    showCombatKillFreeze
-} from '../utils/CombatUI.js';
-
-// Preload FightManager engine
-let FightManager = null;
-const FightManagerReady = import('../managers/FightManager.js')
-    .then(mod => { FightManager = mod; return mod; })
-    .catch(err => { console.error('Failed to preload FightManager:', err); return null; });
+import CombatFlowController from '../managers/CombatFlowController.js?v=dialogue-flow-20260712w';
+import { createCombatEncounter, resolveEncounterDrop } from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
+import { ensureCombatStage } from '../components/CombatStageView.js';
 
 const MATERIAL_TREASURE_CHANCE_MULTIPLIER = 0.58;
 
@@ -55,6 +41,7 @@ class DungeonSceneClass {
         // 戰鬥狀態
         this.isInCombat = false;
         this.currentMonster = null;
+        this.combatFlow = null;
         this.stepCount = 0;
         this.mechanicState = this.createInitialMechanicState();
         
@@ -96,6 +83,17 @@ class DungeonSceneClass {
         
         // 緩存 DOM
         this.cacheElements();
+        ensureCombatStage(this.container);
+        this.combatFlow = new CombatFlowController(this.container, {
+            scene: { type: 'dungeon', id: dungeonType },
+            settleVictory: encounter => this.settleDungeonVictory(encounter),
+            resolveDrop: (drop, decision) => resolveEncounterDrop(drop, decision),
+            isSceneComplete: encounter => Boolean(encounter?.monster?.isBoss),
+            exitOnSceneComplete: true,
+            onReturnToScene: () => this.finishDungeonCombatReturn(),
+            onSceneComplete: () => this.finishDungeonScene(),
+            onDefeat: () => this.finishDungeonDefeat()
+        });
         
         // 初始化 Canvas
         const canvasReady = this.initCanvas();
@@ -195,31 +193,7 @@ class DungeonSceneClass {
             mapCanvas: document.getElementById('dungeon-canvas'),
             
             // 訊息日誌
-            messageLog: document.getElementById('combat-log'),
-            
-            // 戰鬥 UI - 使用冒險戰鬥同一套 battle-* 結構
-            combatOverlay: document.getElementById('combat-overlay'),
-            monsterIcon: document.getElementById('battle-monster-icon'),
-            monsterName: document.getElementById('battle-monster-name'),
-            monsterLevel: document.getElementById('battle-monster-level'),
-            monsterHp: document.getElementById('battle-monster-hp-text'),
-            monsterHpBar: document.getElementById('battle-monster-hp-bar'),
-            monsterAtk: document.getElementById('battle-monster-atk'),
-            monsterDef: document.getElementById('battle-monster-def'),
-            hudPlayerLevel: document.getElementById('hud-player-level'),
-            hudPlayerName: document.getElementById('hud-player-name'),
-            hudHpBar: document.getElementById('hud-hp-bar'),
-            hudHpText: document.getElementById('hud-hp-text'),
-            buffIndicators: document.getElementById('buff-indicators'),
-            weaponIcon: document.getElementById('weapon-icon'),
-            weaponName: document.getElementById('weapon-name'),
-            weaponDamage: document.getElementById('weapon-damage'),
-            potionQuantity: document.getElementById('potion-quantity'),
-            
-            // 行動按鈕
-            btnAttack: document.getElementById('action-weapon') || document.getElementById('btn-attack'),
-            btnItem: document.getElementById('action-potion') || document.getElementById('btn-item'),
-            btnFlee: document.getElementById('action-flee') || document.getElementById('btn-flee'),
+            messageLog: document.getElementById('dungeon-message-log'),
             btnExit: document.getElementById('btn-exit'),
             
             // 層級完成
@@ -235,9 +209,6 @@ class DungeonSceneClass {
         // 驗證必要元素
         if (!this.dom.mapCanvas) {
             console.error('[DungeonScene] 找不到 canvas 元素 #dungeon-canvas');
-        }
-        if (!this.dom.combatOverlay) {
-            console.warn('[DungeonScene] 找不到戰鬥遮罩 #combat-overlay');
         }
     }
     
@@ -282,11 +253,6 @@ class DungeonSceneClass {
         this.boundKeyHandler = (e) => this.handleKeyPress(e);
         document.addEventListener('keydown', this.boundKeyHandler);
         
-        // 戰鬥按鈕
-        this.dom.btnAttack?.addEventListener('click', () => this.playerAttack());
-        this.dom.btnItem?.addEventListener('click', () => this.playerUseItem());
-        this.dom.btnFlee?.addEventListener('click', () => this.playerFlee());
-        
         // 離開按鈕
         this.dom.btnExit?.addEventListener('click', () => this.exitDungeon());
         
@@ -326,14 +292,8 @@ class DungeonSceneClass {
             document.removeEventListener('keydown', this.boundKeyHandler);
             this.boundKeyHandler = null;
         }
-        try {
-            if (this._engine && typeof this._engine.stopAutoAttack === 'function') {
-                this._engine.stopAutoAttack();
-            }
-        } catch (e) {
-            console.warn('[DungeonScene] Failed to stop fight engine during destroy:', e);
-        }
-        this._engine = null;
+        this.combatFlow?.destroy?.();
+        this.combatFlow = null;
         this.isInCombat = false;
         this.currentMonster = null;
         this.dom.devCombatControls?.remove?.();
@@ -352,16 +312,6 @@ class DungeonSceneClass {
         const key = e.key.toLowerCase();
 
         if (this.isInCombat) {
-            if (key === 'a' || e.code === 'Space') {
-                e.preventDefault();
-                this.playerAttack();
-            } else if (key === 'd') {
-                e.preventDefault();
-                this.playerUseItem();
-            } else if (key === 'f') {
-                e.preventDefault();
-                this.playerFlee();
-            }
             return;
         }
         
@@ -1127,457 +1077,107 @@ class DungeonSceneClass {
             this.addMessage('副本戰鬥資料缺失，無法開始戰鬥。', 'error');
             return;
         }
-        
+
         this.currentMonster = monster;
         this.isInCombat = true;
-        
-        this.showBattleModal();
-
         const prefix = monster.isBoss ? '👑 Boss: ' : monster.isElite ? '⭐ 精英: ' : '';
         this.addMessage(`⚔️ 遭遇 ${prefix}${monster.name}！`, 'combat');
-        
         if (monster.special) {
             this.addMessage(`💡 ${monster.special}`, 'info');
         }
 
-        // Initialize FightManager engine and start monster auto-attack
-        try {
-            // Disable attack button until engine ready
-            try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
-            if (FightManager && FightManager.BattleController) {
-                this._engine = new FightManager.BattleController(GameManager.getCharacter(), this.currentMonster);
-                    if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
-                    try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
-                    try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
-                    this.configureFightEngineCallbacks(this._engine);
-            } else {
-                FightManagerReady.then(mod => {
-                    if (mod && mod.BattleController) {
-                        this._engine = new mod.BattleController(GameManager.getCharacter(), this.currentMonster);
-                            if (typeof this._engine.startAutoAttack === 'function') this._engine.startAutoAttack();
-                            try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = false; } catch (e) {}
-                            try { if (this._engine && typeof this._engine.beginBattle === 'function') this._engine.beginBattle(); } catch (e) {}
-                            this.configureFightEngineCallbacks(this._engine);
-                    }
-                }).catch(err => console.warn('Failed to initialize FightManager engine for dungeon:', err));
+        const dungeonData = DungeonDatabase[this.dungeonType];
+        const encounter = createCombatEncounter(monster, {
+            areaName: dungeonData.name,
+            background: getGeneratedDungeonImage(this.dungeonType),
+            backgroundAlt: dungeonData.name,
+            className: `${monster.isBoss ? 'Boss' : monster.isElite ? '菁英' : '副本遭遇'} · ${dungeonData.name}`,
+            feed: `${monster.name}封住了第 ${this.currentFloor} 層的前路。`,
+            canFlee: !monster.isBoss,
+            fleeRejectedText: 'Boss 戰無法撤離。',
+            victoryActionLabel: monster.isBoss ? '完成副本並返回大廳' : '收下戰利品並返回副本',
+            escapeActionLabel: '返回副本',
+            context: {
+                dungeonType: this.dungeonType,
+                floor: this.currentFloor,
+                monsterType
             }
-        } catch (e) {
-            console.warn('Error initializing dungeon fight engine:', e);
-        }
-    }
-
-    configureFightEngineCallbacks(engine) {
-        if (!engine) return;
-
-        engine._onAutoAttack = (res) => {
-            if (!res) return;
-            try {
-                if (res.stunned) {
-                    this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法行動。`, 'info');
-                    this.updateMonsterDisplay();
-                } else if (res.dodged) {
-                    this.addMessage(`${this.currentMonster.name} 攻擊落空。`, 'info');
-                } else if (typeof res.damage === 'number') {
-                    this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-                    this.showPlayerHitFeedback(res.damage || 0);
-                }
-                if (res.reflectedDamage > 0) {
-                    this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
-                    this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
-                    this.updateMonsterDisplay();
-                }
-                if (res.revived) {
-                    this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
-                    this.updateBattlePlayerDisplay();
-                }
-                this.updateUI();
-                this.updateBattlePlayerDisplay();
-                if (res.playerHp !== undefined && res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
-                if (this.isCurrentMonsterDefeated()) this.endBattle(true);
-            } catch (e) {
-                console.warn('Dungeon auto-attack UI handler failed:', e);
-            }
-        };
-
-        engine._onStatusApplied = (events = []) => {
-            events.forEach(event => this.addCombatStatusMessage(event));
-            this.updateMonsterDisplay();
-            this.updateBattlePlayerDisplay();
-        };
-
-        engine._onStatusTick = (events = []) => {
-            events.forEach(event => {
-                if (event.type === 'poison') {
-                    this.addMessage(`☠️ 毒素累積 +${event.amount}（目前 ${event.accumulated || event.afterAccumulated || 0}）`, 'player-action');
-                    this.showMonsterDamageNumber(event.amount, false, 'statusPoison', `☠️ 毒素 ${event.accumulated || event.afterAccumulated || 0}`);
-                } else if (event.type === 'void') {
-                    this.addMessage(`◈ 虛空吞噬造成 ${event.damage || event.amount || 0} 傷害，回復 ${event.healAmount || 0} 生命`, 'player-action');
-                    this.showMonsterDamageNumber(event.damage || event.amount || 0, false, 'dot', `◈ 虛空 -${event.damage || event.amount || 0}`);
-                    if ((event.healAmount || 0) > 0) {
-                        this.showMonsterDamageNumber(event.healAmount, false, 'lifesteal', `◈ 吞噬 +${event.healAmount}`);
-                    }
-                    this.updateUI();
-                    this.updateBattlePlayerDisplay();
-                } else if (event.type === 'hpRegen') {
-                    this.addMessage(`💚 裝備效果恢復 ${event.amount} 生命`, 'success');
-                    this.showMonsterDamageNumber(event.amount, false, 'lifesteal', `💚 回復 +${event.amount}`);
-                    this.updateUI();
-                    this.updateBattlePlayerDisplay();
-                }
-                this.updateMonsterDisplay();
-                if (event.targetDefeated) this.endBattle(true);
-            });
-        };
-    }
-
-    addCombatStatusMessage(effect) {
-        if (!effect) return;
-        const monsterName = this.currentMonster?.name || '敵人';
-        const messages = {
-            stun: `⚡ ${monsterName} 陷入暈眩，短時間無法行動。`,
-            slow: `❄️ ${monsterName} 被冰霜拖慢，攻擊頻率降低 ${Math.round(effect.percent || 0)}%。`,
-            poison: `☠️ ${monsterName} 毒素開始累積，每秒 +${effect.accumulatePerSecond || 0}。`,
-            void: `◈ ${monsterName} 被虛空吞噬，每秒受到 ${effect.damagePerSecond || 0} 傷害並轉為生命回復。`,
-            attackSpeed: `✨ 你的攻擊節奏加快，目前攻速提升 ${Math.round(effect.totalPercent || effect.percent || 0)}%。`,
-            hpRegen: `💚 裝備效果正在恢復生命。`
-        };
-        const typeMap = { stun: 'statusStun', slow: 'statusSlow', poison: 'statusPoison', void: 'dot', attackSpeed: 'statusBuff', hpRegen: 'lifesteal' };
-        const labelMap = {
-            stun: '⚡ 暈眩',
-            slow: `❄️ 緩速 ${Math.round(effect.percent || 0)}%`,
-            poison: `☠️ 毒素 +${effect.accumulatePerSecond || 0}/秒`,
-            void: `◈ 虛空 ${effect.damagePerSecond || 0}/秒`,
-            attackSpeed: `✨ 攻速 +${Math.round(effect.totalPercent || effect.percent || 0)}%`,
-            hpRegen: '💚 回復'
-        };
-        this.showMonsterDamageNumber(0, false, typeMap[effect.type] || 'status', labelMap[effect.type] || '狀態');
-        this.addMessage(messages[effect.type] || `${monsterName} 受到狀態影響。`, 'player-action');
-    }
-    
-    showBattleModal() {
-        // 統一使用 combat-overlay
-        if (this.dom.combatOverlay) {
-            this.clearActionCooldowns();
-            if (this.dom.messageLog) this.dom.messageLog.innerHTML = '';
-            this.dom.combatOverlay.classList.remove('hidden');
-        } else {
-            console.warn('[DungeonScene] 找不到戰鬥遮罩元素');
-        }
-        this.updateMonsterDisplay();
-        this.updateBattlePlayerDisplay();
-    }
-    
-    hideBattleModal() {
-        this.clearActionCooldowns();
-        if (this.dom.combatOverlay) {
-            this.dom.combatOverlay.classList.add('hidden');
-        }
-    }
-
-    clearActionCooldowns() {
-        [this.dom.btnAttack, this.dom.btnItem, this.dom.btnFlee]
-            .filter(Boolean)
-            .forEach(card => clearCombatActionCooldown(card));
-    }
-    
-    updateMonsterDisplay() {
-        if (!this.currentMonster) return;
-        renderCombatMonster(this.dom.combatOverlay || document, this.currentMonster);
-    }
-
-    isCurrentMonsterDefeated() {
-        if (!this.currentMonster) return false;
-        const hp = this.currentMonster.hp ?? this.currentMonster.currentHp ?? 0;
-        return hp <= 0;
-    }
-
-    updateBattlePlayerDisplay() {
-        const char = GameManager.getCharacter();
-        if (!char) return;
-
-        renderCombatPlayer(this.dom.combatOverlay || document, char, {
-            inventory: GameManager.state.inventory,
-            fallbackName: '冒險者'
         });
-    }
-
-    renderBuffIndicators(char) {
-        renderCombatBuffIndicators(this.dom.buffIndicators, char);
-    }
-    
-    playerAttack() {
-        if (!this.isInCombat || !this.currentMonster) return;
-        if (isCombatActionCooling(this.dom.btnAttack)) return;
-
-        if (!this._engine) {
-            console.error('Fight engine not initialized; cannot perform player attack.');
-            return;
-        }
-
-        audioManager.play('attack-swing', { throttleKey: 'dungeon-attack-swing', throttleMs: 80 });
-        // For dungeon simple action, treat as a normal hit
-        const res = this._engine.playerAttack('hit');
-        if (!res) return;
-        const attackCooldown = this._engine.getPlayerActionCooldownSeconds?.()
-            || GameManager.getCharacter()?.getAttackInterval?.()
-            || 1;
-        startCombatActionCooldown(this.dom.btnAttack, attackCooldown);
-
-        const applyRes = res.applyRes || {};
-        if (res.destroyedWeapon) this.addMessage('⚠️ 你的武器被破壞了！', 'warning');
-
-        if (applyRes && typeof applyRes.finalDamage === 'number') {
-            const doubleStrikeDamage = Math.max(0, Number(applyRes.doubleStrike?.finalDamage) || 0);
-            const profileStrikeDamage = Math.max(0, Number(applyRes.profileStrike?.finalDamage) || 0);
-            const primaryDamage = Math.max(0, applyRes.finalDamage - doubleStrikeDamage - profileStrikeDamage);
-            this.addMessage(`⚔️ 造成 ${applyRes.finalDamage} 點傷害`, 'player-action');
-            this.showMonsterDamageNumber(primaryDamage || applyRes.finalDamage, Boolean(res.computeRes?.isCrit));
-            if (applyRes.poisonExecuted) {
-                this.showMonsterDamageNumber(applyRes.poisonAccumulated || 0, false, 'statusPoison', '☠️ 毒素處決');
-            }
-            if (profileStrikeDamage > 0) {
-                this.addMessage(`⚡ ${applyRes.profileStrike?.label || '武器追擊'} 追加 ${profileStrikeDamage} 點傷害`, 'player-action');
-                this.showMonsterDamageNumber(profileStrikeDamage, false, 'doubleStrike', `${applyRes.profileStrike?.label || '武器追擊'} -${profileStrikeDamage}`);
-            }
-            if (doubleStrikeDamage > 0) {
-                this.addMessage(`⚡ 雙重打擊追加 ${doubleStrikeDamage} 點傷害`, 'player-action');
-                this.showMonsterDamageNumber(doubleStrikeDamage, false, 'doubleStrike', `⚡ 連擊 -${doubleStrikeDamage}`);
-            }
-            this.updateMonsterDisplay();
-        }
-
-        if (applyRes && applyRes.lifestealRecovered > 0) {
-            this.addMessage(`💚 吸取 ${applyRes.lifestealRecovered} 生命`, 'success');
-            this.showMonsterDamageNumber(applyRes.lifestealRecovered, false, 'lifesteal', `❤ 吸血 +${applyRes.lifestealRecovered}`);
-            this.updateUI();
-            this.updateBattlePlayerDisplay();
-        }
-
-        this.updateBattlePlayerDisplay();
-
-        // Check monster death
-        if (this.currentMonster.hp <= 0) {
-            // Stop engine auto-attack and end battle
-            try { if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack(); } catch (e) {}
-            this.endBattle(true);
-            return;
-        }
-    }
-    
-    playerUseItem() {
-        if (!this.isInCombat) return;
-        if (isCombatActionCooling(this.dom.btnItem)) return;
-
-        const stack = this.findConsumableStack();
-        if (!stack) {
-            this.addMessage('背包中沒有可用補給。', 'warning');
-            return;
-        }
-
-        const itemName = stack.item?.name || '補給品';
-        const success = GameManager.useConsumable(stack.instanceId, false);
-        if (!success) {
-            this.addMessage('這個道具目前無法在戰鬥中使用。', 'warning');
-            return;
-        }
-
-        this.addMessage(`使用 ${itemName}，角色狀態已更新。`, 'success');
-        audioManager.play('heal', { throttleKey: 'dungeon-use-item', throttleMs: 180 });
-        startCombatActionCooldown(this.dom.btnItem, 1);
-        this.updateUI();
-        this.updateBattlePlayerDisplay();
-        GameManager.markSaveDirty?.('dungeon-use-item');
-    }
-    
-    playerFlee() {
-        if (!this.isInCombat) return;
-        if (isCombatActionCooling(this.dom.btnFlee)) return;
-        
-        if (this.currentMonster.isBoss) {
-            this.addMessage('👑 無法從 Boss 戰中逃跑！', 'danger');
-            return;
-        }
-
-        startCombatActionCooldown(this.dom.btnFlee, 1);
-        audioManager.play('flee', { throttleKey: 'dungeon-flee', throttleMs: 180 });
-        const fleeChance = this.getDungeonFleeChance();
-        if (Math.random() < fleeChance) {
-            this.applyDungeonRetreatCost();
-            this.addMessage(`成功撤退。當前撤退成功率 ${Math.round(fleeChance * 100)}%。`, 'success');
-            try { if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack(); } catch (e) {}
-            this.endBattle(false, true);
-        } else {
-            this.addMessage(`撤退失敗。當前撤退成功率 ${Math.round(fleeChance * 100)}%。`, 'danger');
-            if (this._engine && typeof this._engine.monsterAttack === 'function') {
-                const res = this._engine.monsterAttack();
-                if (res?.stunned) {
-                    this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法追擊。`, 'info');
-                    this.updateMonsterDisplay();
-                } else if (res && typeof res.damage === 'number') {
-                    this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-                    this.showPlayerHitFeedback(res.damage || 0);
-                }
-                if (res?.reflectedDamage > 0) {
-                    this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
-                    this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
-                    this.updateMonsterDisplay();
-                }
-                if (res?.revived) {
-                    this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
-                    this.updateBattlePlayerDisplay();
-                }
-                this.updateUI();
-                this.updateBattlePlayerDisplay();
-                if (res && res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
-                if (this.isCurrentMonsterDefeated()) this.endBattle(true);
-            } else {
-                // Engine not present — log error
-                console.error('Fight engine not initialized; cannot perform monster attack after failed flee.');
-            }
-        }
-    }
-
-    getDungeonFleeChance() {
-        let chance = 0.5;
-        if (this.dungeonType === 'jungle') {
-            chance = this.mechanicState.markers >= this.getMarkerRequired() ? 0.55 : 0.35;
-        } else if (this.dungeonType === 'hell') {
-            chance = 0.38;
-        } else if (this.dungeonType === 'snow' && this.mechanicState.cold >= 60) {
-            chance = 0.42;
-        } else if (this.dungeonType === 'ruins' && !this.mechanicState.tabletDecoded) {
-            chance = 0.44;
-        }
-
-        chance += this.getPassiveCombatBonus('fleeChanceBonus');
-        if (this.hasEquipmentSpecial('moveSpeed')) chance += 0.1;
-        return Math.max(0.15, Math.min(0.8, chance));
-    }
-
-    applyDungeonRetreatCost() {
-        if (this.dungeonType !== 'jungle') return;
-
-        const char = GameManager.getCharacter();
-        const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.08));
-        this.applyDungeonDamage(damage, '毒沼撤退成本', 'warning');
-        this.addMessage('毒沼地形讓撤退變得沉重。', 'warning');
-    }
-    
-    monsterAttack() {
-        if (!this.isInCombat || !this.currentMonster) return;
-
-        if (!this._engine) {
-            console.error('Fight engine not initialized; cannot perform monster attack.');
-            return;
-        }
-
-        const res = this._engine.monsterAttack();
-        if (!res) return;
-
-        if (res.stunned) {
-            this.addMessage(`⚡ ${this.currentMonster.name} 被暈眩，這次無法行動。`, 'info');
-            this.updateMonsterDisplay();
-        } else if (res && typeof res.damage === 'number') {
-            this.addMessage(`💥 ${this.currentMonster.name} 造成 ${res.damage} 點傷害`, 'enemy-action');
-            this.showPlayerHitFeedback(res.damage);
-        }
-        if (res.reflectedDamage > 0) {
-            this.addMessage(`🛡 反傷造成 ${res.reflectedDamage} 點傷害`, 'player-action');
-            this.showMonsterDamageNumber(res.reflectedDamage, false, 'reflect', `🛡 反傷 -${res.reflectedDamage}`);
-            this.updateMonsterDisplay();
-        }
-        if (res.revived) {
-            this.showMonsterDamageNumber(0, false, 'revive', '✨ 復甦');
-            this.updateBattlePlayerDisplay();
-        }
-
-        if (res && res.playerHp !== undefined) {
-            this.updateUI();
-            this.updateBattlePlayerDisplay();
-            if (res.playerHp <= 0 && !res.revived) this.handlePlayerDeath();
-            if (this.isCurrentMonsterDefeated()) this.endBattle(true);
-        }
-    }
-
-    showMonsterDamageNumber(damage, isCrit = false, type = null, label = null) {
-        showCombatDamageNumber(this.dom.combatOverlay, damage, {
-            type: type || (damage <= 0 ? 'block' : isCrit ? 'critical' : 'normal'),
-            isCrit,
-            label
-        });
-    }
-
-    showPlayerHitFeedback(damage = 0) {
-        showCombatPlayerHitFeedback(this.dom.combatOverlay, GameManager.getCharacter(), damage);
-    }
-    
-    endBattle(victory, fled = false) {
-        if (victory) {
-            const m = this.currentMonster;
-            const gold = Array.isArray(m.gold)
-                ? m.gold[0] + Math.floor(Math.random() * (m.gold[1] - m.gold[0]))
-                : Number(m.gold) || 0;
-            const char = GameManager.getCharacter();
-            const rewardEffects = getRewardEffectTotals(char);
-            const finalGold = Math.floor(gold * (1 + (rewardEffects.goldBonus || 0) / 100));
-            const exp = Math.floor((m.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
-            
-            this.addMessage(`🎉 擊敗 ${m.name}！`, 'success');
-            this.addMessage(`💰 +${finalGold} 金幣  ⭐ +${exp} 經驗`, 'reward');
-            
-            GameManager.addGold(finalGold);
-            char.exp += exp;
-            char.checkLevelUp();
-            markMonsterKnown(m, { dungeonId: this.dungeonType });
-
-            const blueprintUnlocks = rollRecipeBlueprintDrops({
-                monster: m,
-                dungeonId: this.dungeonType
-            });
-            blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
-            if (blueprintUnlocks.length > 0) {
-                for (const unlock of blueprintUnlocks) {
-                    this.addMessage(`📜 取得製作圖：${unlock.series?.name || unlock.recipe.name}`, 'reward');
-                }
-                showGlobalToast('取得製作圖', blueprintUnlocks.map(unlock => unlock.series?.name || unlock.recipe.name).join('、'), 'success');
-            }
-
-            GameManager.markSaveDirty?.('dungeon-battle-victory');
-            GameManager.notify?.('all');
-            
-            this.dungeonMap.clearMonster();
-            
-            if (m.isBoss) {
-                this.handleBossVictory();
-            }
-        }
-        
-        // Stop engine auto-attack if running
-        try {
-            if (this._engine && typeof this._engine.stopAutoAttack === 'function') this._engine.stopAutoAttack();
-        } catch (e) {
-            console.warn('Error stopping dungeon engine auto-attack:', e);
-        }
-
-        this.isInCombat = false;
-        audioManager.restoreSceneBgm();
-        try { if (this.dom && this.dom.btnAttack) this.dom.btnAttack.disabled = true; } catch (e) {}
-
-        const finishBattleCleanup = () => {
+        if (!this.combatFlow?.start(encounter)) {
+            this.isInCombat = false;
             this.currentMonster = null;
-            this.hideBattleModal();
-            this.renderMap();
-            this.updateUI();
-        };
-
-        if (victory && !fled) {
-            showCombatKillFreeze(this.dom.combatOverlay);
-            setTimeout(finishBattleCleanup, 360);
-        } else {
-            finishBattleCleanup();
+            audioManager.restoreSceneBgm();
+            this.addMessage('戰鬥介面無法啟動。', 'error');
         }
     }
-    
+
+    settleDungeonVictory(encounter) {
+        const monster = encounter.monster;
+        const gold = Array.isArray(monster.gold)
+            ? monster.gold[0] + Math.floor(Math.random() * (monster.gold[1] - monster.gold[0]))
+            : Number(monster.gold) || 0;
+        const character = GameManager.getCharacter();
+        const rewardEffects = getRewardEffectTotals(character);
+        const finalGold = Math.floor(gold * (1 + (rewardEffects.goldBonus || 0) / 100));
+        const exp = Math.floor((monster.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
+
+        GameManager.addGold(finalGold);
+        character.exp += exp;
+        character.checkLevelUp();
+        markMonsterKnown(monster, { dungeonId: this.dungeonType });
+
+        const blueprintUnlocks = rollRecipeBlueprintDrops({
+            monster,
+            dungeonId: this.dungeonType
+        });
+        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
+
+        this.dungeonMap.clearMonster();
+        GameManager.markSaveDirty?.('dungeon-battle-victory');
+        GameManager.notify?.('all');
+        this.addMessage(`擊敗 ${monster.name}，取得 ${finalGold} 金幣與 ${exp} 經驗。`, 'reward');
+
+        return {
+            gold: finalGold,
+            exp,
+            rows: blueprintUnlocks.map(unlock => ({
+                label: '製作圖',
+                value: unlock.series?.name || unlock.recipe?.name || unlock.recipeId
+            }))
+        };
+    }
+
+    finishDungeonCombatReturn() {
+        this.isInCombat = false;
+        this.currentMonster = null;
+        audioManager.restoreSceneBgm();
+        this.renderMap();
+        this.updateUI();
+    }
+
+    finishDungeonScene() {
+        this.isInCombat = false;
+        this.handleBossVictory();
+        this.currentMonster = null;
+        audioManager.restoreSceneBgm();
+        this.exitDungeon();
+    }
+
+    finishDungeonDefeat() {
+        const dungeonData = DungeonDatabase[this.dungeonType];
+        const character = GameManager.getCharacter();
+        character.hp = Math.max(1, Math.floor(character.maxHp * 0.3));
+        character.currentHP = character.hp;
+        GameManager.setFlag?.('death.pendingPenalty', true);
+        GameManager.setFlag?.('death.lastReason', 'dungeon-death');
+        GameManager.requestTownNarrativeReset?.('death_return');
+        GameManager.markSaveDirty?.('dungeon-death-return');
+        GameManager.notify?.('all');
+        showGlobalToast('戰敗回城', `你倒在 ${dungeonData?.name || '副本'}，已被送回大廳。`, 'warning');
+        this.destroy();
+        window.location.hash = '#lobby';
+    }
+
     handleBossVictory() {
         const dungeonData = DungeonDatabase[this.dungeonType];
         questManager.updateProgress(ObjectiveType.DUNGEON_BOSS, `${this.dungeonType}_boss`, 1);
@@ -1608,10 +1208,7 @@ class DungeonSceneClass {
             this.addMessage(dungeonData.challenge.completion, 'reward');
         }
         
-        setTimeout(() => {
-            showGlobalToast('副本通關', `恭喜通關 ${dungeonData.name}！`, 'success');
-            this.exitDungeon();
-        }, 2000);
+        showGlobalToast('副本通關', `恭喜通關 ${dungeonData.name}！`, 'success');
     }
 
     awardDungeonBossTreasures(dungeonData) {
@@ -1638,38 +1235,7 @@ class DungeonSceneClass {
     handlePlayerDeath() {
         this.addMessage('💀 你被擊敗了...', 'danger');
         audioManager.play('defeat', { throttleKey: 'dungeon-defeat', throttleMs: 600 });
-        audioManager.restoreSceneBgm();
-        this.isInCombat = false;
-        this.hideBattleModal();
-        
-        setTimeout(() => {
-            const dungeonData = DungeonDatabase[this.dungeonType];
-            
-            const char = GameManager.getCharacter();
-            char.hp = Math.max(1, Math.floor(char.maxHp * 0.3));
-            char.currentHP = char.hp;
-            GameManager.setFlag?.('death.pendingPenalty', true);
-            GameManager.setFlag?.('death.lastReason', 'dungeon-death');
-            GameManager.requestTownNarrativeReset?.('death_return');
-            GameManager.markSaveDirty?.('dungeon-death-return');
-            GameManager.notify?.('all');
-            showGlobalToast('戰敗回城', `你倒在 ${dungeonData?.name || '副本'}，已被送回大廳。死亡懲罰規則保留待定。`, 'warning');
-            this.destroy();
-            window.location.hash = '#lobby';
-            return;
-            const currentGold = GameManager.getGold?.() ?? GameManager.state?.character?.gold ?? 0;
-            const penalty = Math.floor(currentGold * 0.1);
-            GameManager.removeGold(penalty);
-            GameManager.markSaveDirty?.('dungeon-death');
-            GameManager.notify?.('all');
-            showGlobalToast(
-                '副本失敗',
-                `你在 ${dungeonData.name} 第 ${this.currentFloor} 層被擊敗，損失 ${penalty} 金幣。`,
-                'warning'
-            );
-            
-            this.exitDungeon();
-        }, 1500);
+        this.finishDungeonDefeat();
     }
     
     checkPlayerDeath() {
@@ -2082,7 +1648,6 @@ class DungeonSceneClass {
         if (this.dom.playerLevel) this.dom.playerLevel.textContent = char.level || 1;
         if (this.dom.playerHp) this.dom.playerHp.textContent = `${char.hp || 0}/${char.maxHp || 100}`;
         if (this.dom.playerHpBar) this.dom.playerHpBar.style.width = `${((char.hp || 0) / (char.maxHp || 100)) * 100}%`;
-        this.updateBattlePlayerDisplay();
         
         this.updateMechanicPanel();
     }

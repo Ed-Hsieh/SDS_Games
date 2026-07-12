@@ -17,7 +17,7 @@ import {
     isMonsterKnown,
     setEncyclopediaRevealAll,
     unlockAllEncyclopediaEntries
-} from '../managers/EncyclopediaManager.js';
+} from '../managers/EncyclopediaManager.js?v=story-ch2-20260712p';
 import {
     CodexCategoryId,
     applyCodexClass,
@@ -27,7 +27,7 @@ import {
     getReadableCodexRarity,
     getReadableCodexType,
     getReadableSourceType
-} from '../data/CodexCatalogClasses.js';
+} from '../data/CodexCatalogClasses.js?v=ui-convergence-20260712y';
 import {
     buildItemStatChipsHtml,
     escapeHtml,
@@ -104,7 +104,8 @@ function getSearchText(entry = {}) {
             source.npcName,
             source.description
         ]),
-        ...(entry.usageRefs || []).flatMap(usage => [usage.type, usage.label, usage.id])
+        ...(entry.usageRefs || []).flatMap(usage => [usage.type, usage.label, usage.id]),
+        ...(entry.codexLinks || []).flatMap(link => [link.category, link.id, link.label])
     ].join(' ').toLowerCase();
 }
 
@@ -240,7 +241,7 @@ export default class EncyclopediaScene {
     }
 
     updateFromFlags(_state, type) {
-        if (type === 'flags' || type === 'all') this.render();
+        if (type === 'flags' || type === 'story-journal' || type === 'all') this.render();
     }
 
     getEntriesForCategory(categoryId = this.activeTab) {
@@ -331,6 +332,9 @@ export default class EncyclopediaScene {
             const revealAll = isEncyclopediaRevealAll();
             this.dom.revealButton.classList.toggle('is-active', revealAll);
             this.dom.revealButton.textContent = `顯示全部：${revealAll ? '開' : '關'}`;
+        }
+        if (this.dom.unlockAllButton) {
+            this.dom.unlockAllButton.hidden = false;
         }
 
         if (this.dom.summary) {

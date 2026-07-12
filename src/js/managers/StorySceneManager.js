@@ -10,13 +10,13 @@ import {
     StorySceneOrder,
     getStoryScene
 } from '../data/StorySceneRegistry.js';
-import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js';
+import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js?v=mia-layer-test-20260712x';
 import {
     applyStorySceneEffects,
     clearCurrentRunStoryFlags,
     getStoryEncounterVictoryFlag,
     getStorySceneCompleteFlag
-} from '../data/StoryStateContract.js';
+} from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
 import {
     StoryEncounterPhase,
     StoryEncounterTransition,
@@ -25,6 +25,8 @@ import {
     getStoryEncounterContractById,
     hasPostBattlePresentation
 } from '../data/StoryEncounterContracts.js';
+import { isOptionalStoryScene } from '../data/ChapterRegionRegistry.js';
+import { storyJournalManager } from './StoryJournalManager.js';
 
 export const StoryRun = Object.freeze({
     FIRST: 1,
@@ -111,13 +113,19 @@ class StorySceneManager {
     getPreviousAvailableSceneId(sceneId) {
         const order = this.getAvailableSceneOrder();
         const index = order.indexOf(sceneId);
-        return index > 0 ? order[index - 1] : null;
+        for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+            if (!isOptionalStoryScene(order[cursor])) return order[cursor];
+        }
+        return null;
     }
 
     getNextAvailableSceneAfter(sceneId) {
         const order = this.getAvailableSceneOrder();
         const index = order.indexOf(sceneId);
-        return index >= 0 ? (order[index + 1] || null) : null;
+        for (let cursor = index + 1; cursor < order.length; cursor += 1) {
+            if (!isOptionalStoryScene(order[cursor])) return order[cursor];
+        }
+        return null;
     }
 
     canStartScene(sceneId, { force = false } = {}) {
@@ -152,6 +160,7 @@ class StorySceneManager {
             actorId: actor?.id || null,
             speaker: actor?.name || '',
             role: actor?.role || '',
+            portrait: actor?.portrait || null,
             isNarration: beat.beat !== 'speaker',
             expression: beat.expression,
             expressionLayer: actor ? getStoryExpressionLayer(actor.id, expression) : null,
@@ -287,6 +296,9 @@ class StorySceneManager {
             this.getRunNumber(),
             (flag, value) => GameManager.setFlag?.(flag, value)
         );
+        const discoveries = storyJournalManager.recordSceneDiscoveries(sceneId, {
+            runNumber: this.getRunNumber()
+        });
         GameManager.markSaveDirty?.('story-scene-complete');
         return {
             success: true,
@@ -295,6 +307,7 @@ class StorySceneManager {
             transition: StoryEncounterTransition.SCENE_COMPLETED,
             nextSceneId: this.getNextAvailableSceneAfter(sceneId),
             appliedEffects,
+            discoveries,
             outputDescription: scene.outputsRaw
         };
     }
@@ -374,7 +387,9 @@ class StorySceneManager {
     }
 
     getNextAvailableSceneId() {
-        return this.getAvailableSceneOrder().find(sceneId => !this.isSceneComplete(sceneId)) || null;
+        return this.getAvailableSceneOrder().find(sceneId =>
+            !isOptionalStoryScene(sceneId) && !this.isSceneComplete(sceneId)
+        ) || null;
     }
 
     getNextAvailableSceneForActor(actorId, { stageClass = null } = {}) {
@@ -404,6 +419,7 @@ class StorySceneManager {
         GameManager.setFlag?.('story.activeSceneId', null);
         GameManager.setFlag?.('story.activeScenePhase', null);
         GameManager.setFlag?.('story.lastSceneId', null);
+        storyJournalManager.resetForRun(StoryRun.SECOND);
         GameManager.markSaveDirty?.('story-second-run');
         return { success: true, sceneId: StorySceneOrder[0], clearedFlags };
     }
@@ -440,6 +456,7 @@ class StorySceneManager {
         this.pendingEncounter = null;
         this.runNumber = StoryRun.FIRST;
         this.currentChapter = 1;
+        storyJournalManager.resetForRun(StoryRun.FIRST);
     }
 }
 

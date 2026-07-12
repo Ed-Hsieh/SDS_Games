@@ -4,7 +4,10 @@
  * resident, action, or state they control; TownStateResolver evaluates them.
  */
 
-const townScene = id => `src/assets/images/art/scenes/town/locations/${id}.webp`;
+const TOWN_SCENE_ALIASES = Object.freeze({
+    mia_workroom: 'handbook'
+});
+const townScene = id => `src/assets/images/art/scenes/town/locations/${TOWN_SCENE_ALIASES[id] || id}.webp`;
 const portrait = id => `src/assets/images/art/characters/portraits/${id}.webp`;
 const sceneComplete = sceneId => ({ sceneComplete: sceneId });
 
@@ -228,7 +231,7 @@ export const TownPlaceDatabase = [
         sceneImage: townScene('gate'),
         scenePosition: '50% 55%',
         description: '破旗與低燈分別守著前後方向。這裡不保證路安全，只確認出去與回來的人仍能彼此看見。',
-        when: sceneComplete('ch1_s04_elder_to_scholar'),
+        when: sceneComplete('ch1_s01_road_collapse'),
         residents: [
             {
                 npcId: 'standard_bearer_frey',

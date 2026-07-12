@@ -7,6 +7,7 @@
     <div id="dungeon-container" class="dungeon-container">
         <div class="dungeon-map-area">
             <canvas id="dungeon-canvas" width="800" height="500"></canvas>
+            <div class="dungeon-message-log" id="dungeon-message-log" aria-live="polite"></div>
 
             <div class="dungeon-hud">
                 <div class="hud-section">
@@ -30,118 +31,6 @@
                     <span id="mechanic-status" class="hud-value">副本機制</span>
                 </div>
                 <button id="btn-exit" class="btn-exit">🚪 離開</button>
-            </div>
-        </div>
-
-        <div id="combat-overlay" class="combat-overlay battle-modal dungeon-combat-overlay hidden">
-            <div class="modal-content battle-content dungeon-battle-content">
-                <div class="battle-header dungeon-battle-header">
-                    <div class="combat-card-glow"></div>
-                    <div class="monster-display">
-                        <div class="monster-avatar-frame">
-                            <div class="avatar-hexagon">
-                                <div class="monster-icon" id="battle-monster-icon">👾</div>
-                            </div>
-                            <div class="avatar-glow"></div>
-                        </div>
-                        <div class="monster-info">
-                            <div class="monster-name-bar">
-                                <div>
-                                    <div class="dungeon-battle-kicker">副本遭遇</div>
-                                    <div class="monster-name" id="battle-monster-name">敵人</div>
-                                </div>
-                                <div class="monster-level">等級 <span id="battle-monster-level">1</span></div>
-                            </div>
-                            <div class="monster-hp-container">
-                                <div class="hp-bar-track">
-                                    <div class="hp-bar-fill" id="battle-monster-hp-bar" style="width: 100%;">
-                                        <div class="hp-bar-shine"></div>
-                                        <div class="hp-bar-liquid"></div>
-                                    </div>
-                                </div>
-                                <div class="hp-text" id="battle-monster-hp-text">100/100</div>
-                            </div>
-                            <div class="monster-stats">
-                                <span class="stat-badge stat-atk"><span class="stat-icon">⚔️</span><span id="battle-monster-atk">0</span></span>
-                                <span class="stat-badge stat-def"><span class="stat-icon">🛡️</span><span id="battle-monster-def">0</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="battle-body dungeon-battle-body">
-                    <div class="dungeon-combat-feed" id="combat-log" aria-live="polite"></div>
-
-                    <div class="combat-panel-bottom dungeon-combat-panel-bottom">
-                        <div class="player-info-bar">
-                            <div class="info-identity">
-                                <div class="info-level">等級 <span id="hud-player-level">1</span></div>
-                                <div class="info-name" id="hud-player-name">冒險者</div>
-                            </div>
-                            <div class="info-vital-bars">
-                                <div class="vital-row">
-                                    <span class="vital-label">生命</span>
-                                    <div class="vital-bar-track">
-                                        <div class="vital-bar-fill hp-fill" id="hud-hp-bar" style="width: 100%;"></div>
-                                    </div>
-                                    <span class="vital-text" id="hud-hp-text">100/100</span>
-                                </div>
-                            </div>
-                            <div class="buff-indicators" id="buff-indicators"></div>
-                        </div>
-
-                        <div class="action-deck dungeon-action-deck">
-                            <button class="action-card weapon-card" id="action-weapon" type="button">
-                                <div class="card-header">
-                                    <span class="card-key">[A]</span>
-                                    <span class="card-title">攻擊</span>
-                                </div>
-                                <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                                <div class="card-body-row">
-                                    <div>
-                                        <div class="card-icon" id="weapon-icon">⚔️</div>
-                                        <div class="card-name" id="weapon-name">武器</div>
-                                    </div>
-                                    <div>
-                                        <span class="stat-label">傷害</span>
-                                        <span class="stat-value" id="weapon-damage">0</span>
-                                    </div>
-                                </div>
-                            </button>
-
-                            <button class="action-card potion-card" id="action-potion" type="button">
-                                <div class="card-header">
-                                    <span class="card-key">[D]</span>
-                                    <span class="card-title">道具</span>
-                                </div>
-                                <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                                <div class="card-body-row">
-                                    <div>
-                                        <div class="card-icon" id="potion-icon">🎒</div>
-                                        <div class="card-name" id="potion-name">背包道具</div>
-                                    </div>
-                                    <span class="stat-label">補給</span>
-                                    <span class="stat-value" id="potion-quantity">可用</span>
-                                </div>
-                            </button>
-
-                            <button class="action-card flee-card" id="action-flee" type="button">
-                                <div class="card-header">
-                                    <span class="card-key">[F]</span>
-                                    <span class="card-title">撤退</span>
-                                </div>
-                                <span class="action-cooldown-ring" aria-hidden="true"><span class="action-cooldown-value">0</span></span>
-                                <div class="card-body-row">
-                                    <div class="card-icon">🏃</div>
-                                    <div>
-                                        <div class="card-name">逃跑</div>
-                                        <div class="card-subtitle">Boss 戰不可撤退</div>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -191,7 +80,7 @@
 
         <div class="control-hints">
             <span>移動：WASD / 方向鍵</span>
-            <span>戰鬥：A 攻擊、D 道具、F 撤退</span>
+            <span>戰鬥：滑鼠左／右鍵、空白鍵藥水、F 撤退</span>
             <span class="mechanic-hint">副本機制會依區域變化</span>
         </div>
     </div>

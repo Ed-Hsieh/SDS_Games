@@ -35,6 +35,7 @@ export default class WorldMap {
         this.exploredCells = new Set();
         this.discoveredLandmarks = new Set();
         this.travelStep = 0;
+        this.stepsSinceEncounter = 0;
 
         this.restoreState();
         this.revealAroundPlayer(DEFAULT_REVEAL_RADIUS, { save: false });
@@ -57,6 +58,7 @@ export default class WorldMap {
             this.discoveredLandmarks = new Set(state.discoveredLandmarks);
         }
         this.travelStep = Math.max(0, Number(state.travelStep) || 0);
+        this.stepsSinceEncounter = Math.max(0, Number(state.stepsSinceEncounter) || 0);
     }
 
     saveState() {
@@ -65,6 +67,7 @@ export default class WorldMap {
             worldId: this.config.id,
             playerPos: { ...this.playerPos },
             travelStep: this.travelStep,
+            stepsSinceEncounter: this.stepsSinceEncounter,
             exploredCells: [...this.exploredCells],
             discoveredLandmarks: [...this.discoveredLandmarks]
         };
@@ -174,6 +177,7 @@ export default class WorldMap {
         this.playerPos = target;
         this.playerFacing = { x: stepX, y: stepY };
         this.travelStep += 1;
+        this.stepsSinceEncounter += 1;
         this.revealAroundPlayer(DEFAULT_REVEAL_RADIUS, { save: false });
         this.updateCamera();
         this.saveState();
@@ -252,10 +256,35 @@ export default class WorldMap {
         const pool = habitat?.monsterIds || [];
         if (!pool.length) return null;
         const roll = Math.max(0, Math.min(0.999999, Number(rng()) || 0));
+        const [minLevel = 1, maxLevel = minLevel] = habitat.levelRange || [];
+        const levelRoll = Math.max(0, Math.min(0.999999, Number(rng()) || 0));
         return {
             habitat,
-            monsterId: pool[Math.floor(roll * pool.length)]
+            monsterId: pool[Math.floor(roll * pool.length)],
+            targetLevel: minLevel + Math.floor(levelRoll * (maxLevel - minLevel + 1))
         };
+    }
+
+    rollEncounter(rng = Math.random, options = {}) {
+        const habitat = this.getCurrentHabitat();
+        if (!habitat?.monsterIds?.length) return null;
+        const safeSteps = Math.max(0, Number(habitat.safeSteps) || 0);
+        if (!options.force && this.stepsSinceEncounter < safeSteps) return null;
+
+        const rate = Math.max(0, Math.min(1, Number(habitat.encounterRate) || 0));
+        if (!options.force && rng() > rate) return null;
+
+        const encounter = this.sampleCurrentMonster(rng);
+        if (!encounter) return null;
+        this.stepsSinceEncounter = 0;
+        this.saveState();
+        return encounter;
+    }
+
+    suppressEncounters(steps = 4) {
+        const safeSteps = Math.max(0, Math.floor(Number(steps) || 0));
+        this.stepsSinceEncounter = -safeSteps;
+        this.saveState();
     }
 
     teleportTo(x, y) {

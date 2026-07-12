@@ -57,7 +57,63 @@ export function getStoryEncounterVictoryFlag(encounterId) {
     return `story.encounter.${encounterId}.victory`;
 }
 
+export const PROLOGUE_TUTORIAL_RESOLVED_FLAG = 'story.prologue.tutorialResolved';
+export const PROLOGUE_TUTORIAL_OUTCOME_FLAG = 'story.prologue.tutorialOutcome';
+export const PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG = 'story.prologue.wakeDialoguePending';
+
 const SceneEffects = Object.freeze({
+    ch1_s04_elder_to_scholar: {
+        first_run: { flags: { 'story.handbook.active': true } },
+        second_run: { flags: { 'story.handbook.active': true } }
+    },
+    ch1_s06_three_landmarks: {
+        first_run: { flags: { 'story.ch1.three_landmarks_complete': true, 'story.ch1.silver_snare_active': true } },
+        second_run: { flags: { 'story.ch1.three_landmarks_complete': true, 'story.ch1.silver_snare_active': true } }
+    },
+    ch1_s07_silver_snare: {
+        first_run: { flags: { 'story.ch1.silver_snare_cleared': true } },
+        second_run: { flags: { 'story.ch1.silver_snare_cleared': true } }
+    },
+    ch1_s08_cold_forge_smoke: {
+        first_run: { flags: { 'town.blacksmith.forge_open': true } },
+        second_run: { flags: { 'town.blacksmith.forge_open': true } }
+    },
+    ch1_s09_rotroot_approach: {
+        first_run: { flags: { 'story.ch1.forest_guardian_active': true } },
+        second_run: { flags: { 'story.ch1.forest_guardian_active': true } }
+    },
+    ch1_s10_forest_guardian: {
+        first_run: { flags: { 'boss.forest_guardian.defeated': true } },
+        second_run: { flags: { 'boss.forest_guardian.defeated': true } }
+    },
+    ch1_s11_roads_breathe_again: {
+        first_run: { flags: { 'map.gates.rotroot_broken_bridge.open': true, 'story.chapter_02.open': true } },
+        second_run: { flags: { 'map.gates.rotroot_broken_bridge.open': true, 'story.chapter_02.open': true } }
+    },
+    ch2_s03_ledger_that_would_not_close: {
+        first_run: { flags: { 'story.ch2.route_investigation_active': true } },
+        second_run: { flags: { 'story.ch2.route_investigation_active': true } }
+    },
+    ch2_s04_mist_and_tomb_route: {
+        first_run: { flags: { 'story.ch2.lich_active': true } },
+        second_run: { flags: { 'story.ch2.lich_active': true } }
+    },
+    ch2_s05_blood_moon_hunt: {
+        first_run: { flags: { 'boss.blood_moon_stag.defeated': true } },
+        second_run: { flags: { 'boss.blood_moon_stag.defeated': true, 'story.execution.life_seed_intact': true } }
+    },
+    ch2_s06_keeper_of_names: {
+        first_run: { flags: { 'boss.lich.defeated': true, 'story.ch2.lich_phylactery_recovered': true } },
+        second_run: { flags: { 'boss.lich.defeated': true, 'story.ch2.lich_phylactery_recovered': true, 'story.execution.glimmer_shard_reserved': true } }
+    },
+    ch2_s07_names_return_to_town: {
+        first_run: { flags: { 'town.market.public_medicine': true } },
+        second_run: { flags: { 'town.market.public_medicine': true } }
+    },
+    ch2_s08_shadow_at_the_checkpoint: {
+        first_run: { flags: { 'story.chapter_03.open': true } },
+        second_run: { flags: { 'story.chapter_03.open': true } }
+    },
     ch4_s06_flag_returns: {
         first_run: {
             flags: {
@@ -157,10 +213,14 @@ export function applyStorySceneEffects(sceneId, runNumber, setFlag) {
 }
 
 const CurrentRunStoryPrefixes = Object.freeze([
+    'story.prologue.',
     'story.scene.',
     'story.encounter.',
     'story.fate.',
-    'story.ailo.'
+    'story.ailo.',
+    'story.ch1.',
+    'story.ch2.',
+    'story.execution.'
 ]);
 
 const CurrentRunStoryKeys = Object.freeze([
