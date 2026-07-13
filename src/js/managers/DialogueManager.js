@@ -498,15 +498,15 @@ class DialogueManager {
             };
         }
 
-        this.markSeen(npcId, dialogue.id);
         const participants = this.getDialogueParticipants(dialogue, npc);
         const participantMap = this.getParticipantMap(participants);
         const lines = (dialogue.lines || []).map(line => this.resolveLine(line, npc, participantMap));
-        const effectMessages = this.applyEffects(dialogue.effects || [], {
+        const effectContext = {
             ...context,
             npcId,
             dialogueId: dialogue.id
-        });
+        };
+        const pendingEffects = [...(dialogue.effects || [])];
 
         return {
             success: true,
@@ -515,13 +515,34 @@ class DialogueManager {
             topic: this.getDialogueTopic(dialogue),
             participants,
             lines,
-            effectMessages,
+            effectMessages: [],
+            pendingEffects,
+            pendingSeen: { npcId, dialogueId: dialogue.id },
+            effectContext,
+            effectsCommitted: false,
             narrativeTitle: dialogue.narrativeTitle || null,
-            narrativeSummary: this.resolveDialogueNarrativeSummary(npc, dialogue, effectMessages),
+            narrativeSummary: this.resolveDialogueNarrativeSummary(npc, dialogue, []),
             tone: dialogue.tone || 'ambient',
             route: dialogue.route || npc.route || null,
             routeLabel: dialogue.routeLabel || npc.routeLabel || '前往'
         };
+    }
+
+    commitDialogue(outcome = {}) {
+        if (outcome.effectsCommitted) return outcome.effectMessages || [];
+        if (outcome.pendingSeen?.npcId && outcome.pendingSeen?.dialogueId) {
+            this.markSeen(outcome.pendingSeen.npcId, outcome.pendingSeen.dialogueId);
+        }
+        outcome.effectMessages = this.applyEffects(outcome.pendingEffects || [], outcome.effectContext || {});
+        outcome.effectsCommitted = true;
+        if (!outcome.narrativeSummary) {
+            outcome.narrativeSummary = this.resolveDialogueNarrativeSummary(
+                outcome.npc || {},
+                outcome.dialogue || {},
+                outcome.effectMessages
+            );
+        }
+        return outcome.effectMessages;
     }
 
     resolveDialogueNarrativeSummary(npc, dialogue = {}, effectMessages = []) {

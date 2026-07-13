@@ -2112,6 +2112,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
+| 0 | any | narration | - | - | 王國的巡查令在外套內袋磨著肋骨。這片邊境已錯過數次稅簿與信使回報，我奉命確認道路為何失去消息，以及還有沒有人能把答覆送出去。 |
 | 1 | any | narration | - | - | 南路沒有風，草卻一叢接一叢向北伏倒。泥上的爪印彼此重疊，像原本互不相近的東西忽然都在追同一條路。 |
 | 2 | any | narration | - | - | 路肩裂開一線黑色。細根在土下鼓動，前方的動靜也同時停了。 |
 | 3 | any | exit | - | - | 收起事件層，進入開場途中遭遇。 |
@@ -2247,27 +2248,20 @@ descriptive outputs until the complete screenplay is accepted.
 - `worldState`: Chapter 1 route survey; fog density rises with travel time
 - `viewpoint`: `protagonist_limited`
 - `participants`: none
-- `entry`: three black square `?` markers are visible only when fog permits
-- `exit`: after all three records, the return segment becomes active
-- `objective`: inspect physical evidence at all three landmarks
+- `entry`: each landmark has already presented and recorded its own evidence; the third record opens an in-field comparison
+- `exit`: the survey closes and the altered return route becomes active
+- `objective`: compare the three pieces of evidence and return with the unresolved pattern
 - `inputs`: South Gate departure; traveler handbook
 - `outputs`: farmland footprint, hunter-boardwalk silver thread, and old-campfire black-root entries; return-route trigger
 - `assetNotes`: each discovered location needs a full scene image later; no image or name appears before contact
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 迷霧裡的三個位置只顯示成黑色方框與白色問號。道路不替你說明那裡有什麼。 |
-| 2 | any | enter | - | - | 接觸 `south_gate_farmland`；切入田埂全圖場景。 |
-| 3 | any | narration | - | - | 人的靴印在半乾的泥裡折返，獸爪卻從四個方向踩進同一條溝。沒有追逐痕跡，像牠們同時改了目的地。 |
-| 4 | any | narration | - | - | 手札記下：田埂仍有人走過；怪物移動方向異常一致。地標由 `?` 轉為已發現圖示。 |
-| 5 | any | enter | - | - | 接觸 `hunter_boardwalk`；切入棧道全圖場景。 |
-| 6 | any | narration | - | - | 護欄內側黏著幾縷銀亮細線。它們沒有築巢，而是繞過木樁，剛好掠過旅人膝高的位置。 |
-| 7 | any | narration | - | - | 一處繩結被重新打過，結口朝向回城的方向。手札記下：有東西正在學習人的回程路線。 |
-| 8 | any | enter | - | - | 接觸 `old_campfire_site`；切入舊營火地全圖場景。 |
-| 9 | any | narration | - | - | 表層灰燼受潮，底下卻留著不自然的餘溫。黑色細根穿過火坑，沒有被燒斷，只在北側留下焦亮的汁痕。 |
-| 10 | second_run | narration | - | - | 記憶讓這道北向痕跡格外刺眼，但它仍不足以說明山上沉睡著什麼。你只能把現況如實記下。 |
-| 11 | any | narration | - | - | 三處記錄完成。回程線在手札上亮起，獵人棧道的銀線卻已不在原來的位置。 |
-| 12 | any | exit | - | - | 返回區域 Canvas；啟動固定銀索伏擊路段。 |
+| 1 | any | narration | - | - | 三頁紀錄沒有指向同一種怪物。田埂留下突然改向的獸爪，棧道有人為回程準備的銀線，冷灰下則有仍在向北收縮的根。 |
+| 2 | any | narration | - | - | 我把觀察與猜測分開寫下。能確定的只有一件事：這三處不是三場互不相干的麻煩。 |
+| 3 | second_run | narration | - | - | 記憶知道北方藏著什麼，此刻的證據卻還不夠。我沒有替這一頁補上答案。 |
+| 4 | any | narration | - | - | 我收起手札。來時看過的那段銀線，已經不在原來的位置。 |
+| 5 | any | exit | - | - | Return to the regional canvas and activate the fixed silver-snare route. |
 
 ### `ch1_s07_silver_snare`
 
@@ -2298,30 +2292,35 @@ descriptive outputs until the complete screenplay is accepted.
 
 - `stageClass`: `town_scene`
 - `background`: existing forge scene in cold-to-relit transition
-- `worldState`: Chapter 1; bellows linkage jammed; basic furnace recoverable
+- `worldState`: Chapter 1 return; route evidence under review; bellows linkage jammed; basic furnace recoverable
 - `viewpoint`: `protagonist_limited`
-- `participants`: blacksmith
-- `entry`: protagonist brings damaged gear and silver-thread evidence to the cold forge
-- `exit`: forge action surface opens only after the story repair completes
-- `objective`: help reset the bellows and make the first equipment repair possible
+- `participants`: village elder, town scholar, blacksmith
+- `entry`: protagonist reports the three records and Ambush Mantis evidence before taking damaged gear to the forge
+- `exit`: forge actions open and the evidence-backed forest route becomes the next objective
+- `objective`: report the evidence, restore damaged equipment, and decide whether the shared residue justifies entering the forest
 - `inputs`: Ambush Mantis cleared; protagonist equipment damaged
-- `outputs`: basic repair and starter crafting opened; blacksmith relationship seed; silver-thread source contextualized
+- `outputs`: three clues synthesized; forest investigation chosen; basic repair and starter crafting opened; blacksmith relationship seed
 - `assetNotes`: reuse forge background with cold/relit state treatment; no apprentice asset or new NPC
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。 |
-| 2 | any | enter | - | - | Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。 |
-| 3 | any | speaker | `blacksmith` | `guarded` | 米婭放你出來，不代表你該把自己磨成第二件廢鐵。武器給我。 |
-| 4 | any | narration | - | - | 他扯了扯回收的銀線，確認韌度，再指向脫槽的風箱接帶。 |
-| 5 | any | speaker | `blacksmith` | `neutral` | 爐子沒死，關節卡了。你拉住那邊，我把線穿回去。別鬆手，鬆了它先打我，再打你。 |
-| 6 | any | narration | - | - | 風箱第一次完整抬起時，冷灰往煙道深處退了一截。第二次，火星終於咬住煤面。 |
-| 7 | any | speaker | `blacksmith` | `pleased` | 看吧，還會喘。比你剛送來的裝備有出息。 |
-| 8 | second_run | narration | - | - | 他的大嗓門仍在。記憶知道這間鋪子日後會只剩一聲沉默的錘響，但現在火才剛回來。 |
-| 9 | any | speaker | `blacksmith` | `resolute` | 基本修補我能做。更好的東西得等路、料和圖都回來。別拿金幣問爐子為什麼不吃空氣。 |
-| 10 | any | narration | - | - | 他把修好的裝備推回來，手指停在那塊染血的護面上。 |
-| 11 | any | speaker | `blacksmith` | `soft` | 下次把人帶回來。裝備怎樣都行。 |
-| 12 | any | exit | - | - | Basic forge actions unlock; protagonist returns to crossroads with forest route objective. |
+| 1 | any | narration | - | - | 南門在我身後重新落閂。公務室裡，伊萊把三頁紀錄排開，又在旁邊留了一塊位置給伏獵者身上的銀線與黑褐樹脂。 |
+| 2 | any | speaker | `town_scholar` | `guarded` | 腳印告訴我們牠們改了方向，銀線告訴我們有東西學會守回程，樹脂則把兩件事接回那道黑根。這還不是答案，但已經不是巧合。 |
+| 3 | any | speaker | `village_elder` | `guarded` | 你親眼走過。告訴我，你認為該停在這裡，還是沿著根往林子裡查？ |
+| 4 | any | narration | - | - | 我指向三頁上共同朝北的痕跡。伏獵者會死，陷阱也能拆掉；只要地下那股壓力還在，下一種東西仍會學會利用它。 |
+| 5 | any | speaker | `village_elder` | `resolute` | 那就查到能證明它從哪裡來為止。先把裝備處理好。我不會一面叫你別逞強，一面把你拿去餵林子。 |
+| 6 | any | narration | - | - | 鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。 |
+| 7 | any | enter | - | - | Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。 |
+| 8 | any | speaker | `blacksmith` | `guarded` | 米婭放你出來，不代表你該把自己磨成第二件廢鐵。武器給我。 |
+| 9 | any | narration | - | - | 他扯了扯回收的銀線，確認韌度，再指向脫槽的風箱接帶。 |
+| 10 | any | speaker | `blacksmith` | `neutral` | 爐子沒死，關節卡了。你拉住那邊，我把線穿回去。別鬆手，鬆了它先打我，再打你。 |
+| 11 | any | narration | - | - | 風箱第一次完整抬起時，冷灰往煙道深處退了一截。第二次，火星終於咬住煤面。 |
+| 12 | any | speaker | `blacksmith` | `pleased` | 看吧，還會喘。比你剛送來的裝備有出息。 |
+| 13 | second_run | narration | - | - | 他的大嗓門仍在。記憶知道這間鋪子日後會只剩一聲沉默的錘響，但現在火才剛回來。 |
+| 14 | any | speaker | `blacksmith` | `resolute` | 基本修補我能做。更好的東西得等路、料和圖都回來。別拿金幣問爐子為什麼不吃空氣。 |
+| 15 | any | narration | - | - | 他把修好的裝備推回來，手指停在那塊染血的護面上。 |
+| 16 | any | speaker | `blacksmith` | `soft` | 下次把人帶回來。裝備怎樣都行。 |
+| 17 | any | exit | - | - | Basic forge actions unlock; protagonist returns to crossroads with forest route objective. |
 
 ### `ch1_s09_rotroot_approach`
 

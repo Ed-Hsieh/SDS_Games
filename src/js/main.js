@@ -18,6 +18,7 @@ import './components/ItemDetailModal.js';
 import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
+import storyDialogueController from './managers/StoryDialogueController.js';
 
 const APP_ASSET_VERSION = 'ui-convergence-20260712y';
 
@@ -86,6 +87,7 @@ class App {
         const loadToken = ++this.sceneLoadToken;
         const viewName = this.dungeonRoutes[sceneName] ? 'dungeon' : sceneName;
         const previousSceneName = this.currentSceneName || null;
+        storyDialogueController.resetForSceneChange();
 
         if (
             sceneName === 'lobby'
@@ -199,6 +201,7 @@ function bootstrapApp() {
     if (window.gameApp) return;
 
     audioManager.installGlobalHooks();
+    storyDialogueController.mount();
 
     // 先還原本機存檔再進場景；主檔損壞時自動回退備份。
     const restore = GameManager.loadFromLocalStorage();

@@ -168,7 +168,7 @@ export const OverworldLandmarks = Object.freeze([
         x: 15,
         y: 16,
         imageId: 'south_gate_farmland',
-        firstText: '田埂上的腳印在濕泥裡失去方向，像有人走到一半才發現道路已經不在原處。',
+        firstText: '田埂沒有荒到認不出路。半乾的泥裡，一串靴印走到水溝前又折回；獸爪則從四面踩進同一條溝，彼此沒有追逐。\n\n我蹲下比對深淺。人還走過這裡，怪物卻像在同一刻換了方向。',
         repeatText: '腳印仍留在原地。這裡屬於南門荒廢農田。'
     }),
     landmark({
@@ -177,7 +177,7 @@ export const OverworldLandmarks = Object.freeze([
         x: 28,
         y: 8,
         imageId: 'hunter_boardwalk',
-        firstText: '棧道的繩結被重新打過，銀色纖維留在斷木之間。',
+        firstText: '濕木踩下去時發出空響，護欄內側黏著幾縷銀亮細線。它們繞過木樁，停在旅人膝後的高度。\n\n一處繩結被重新打過，結口朝著回城方向。這不是遺落的獵具。有人，或某種東西，在試著讀懂折返的人。',
         repeatText: '濕木仍承受得住重量，但更深處的繩結並非獵人留下。'
     }),
     landmark({
@@ -186,7 +186,7 @@ export const OverworldLandmarks = Object.freeze([
         x: 29,
         y: 24,
         imageId: 'old_campfire_site',
-        firstText: '灰燼早已冷透，焦痕卻比附近的天候更新。',
+        firstText: '表層灰燼濕冷，手指撥開後，底下卻冒出一點不合時節的餘溫。黑色細根穿過火坑，焦亮汁痕一路留在北側。\n\n營火早就熄了。這道傷比營火更新，而且仍在往前。',
         repeatText: '營火沒有再燃起，旅人手札保留了灰燼的位置。'
     }),
     landmark({

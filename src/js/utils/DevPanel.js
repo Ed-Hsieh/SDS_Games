@@ -34,6 +34,8 @@ import {
     getTotalDef
 } from '../models/CharacterLogic.js';
 import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
+import storyDialogueController from '../managers/StoryDialogueController.js';
+import { getStoryActor } from '../data/StoryActors.js?v=mia-layer-test-20260712x';
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
 const DEV_SOURCE = 'boss_test_panel';
@@ -242,6 +244,7 @@ class DevPanel {
             ['town', '章節/城鎮'],
             ['dungeon', '副本'],
             ['effects', '裝備效果'],
+            ['dialogue', '對話'],
             ['validation', '驗證'],
             ['save', '存檔']
         ];
@@ -317,6 +320,7 @@ class DevPanel {
             town: () => this.renderTown(),
             dungeon: () => this.renderDungeon(),
             effects: () => this.renderEffects(),
+            dialogue: () => this.renderDialogue(),
             validation: () => this.renderValidation(),
             save: () => this.renderSave()
         };
@@ -663,6 +667,68 @@ class DevPanel {
         `;
     }
 
+    renderDialogue() {
+        return `
+            <div class="dev-card">
+                <h4>統一對話介面</h4>
+                <p class="dev-muted">直接預覽正式介面，不推進任務、旗標或 NPC 對話紀錄。</p>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="dialogue-preview" data-mode="single">單人對話</button>
+                    <button class="dev-act" type="button" data-dev="dialogue-preview" data-mode="multi">多人切換</button>
+                    <button class="dev-act" type="button" data-dev="dialogue-preview" data-mode="narration">連續旁白</button>
+                    <button class="dev-act" type="button" data-dev="dialogue-preview" data-mode="blackout">黑畫面</button>
+                    <button class="dev-act" type="button" data-dev="dialogue-preview" data-mode="choice">選項</button>
+                </div>
+            </div>
+        `;
+    }
+
+    previewDialogue(mode = 'single') {
+        const elder = getStoryActor('village_elder') || {};
+        const mia = getStoryActor('herbalist') || {};
+        const scholar = getStoryActor('town_scholar') || {};
+        this.toggle(false);
+
+        if (mode === 'choice') {
+            storyDialogueController.choose({
+                title: '現在想談什麼？',
+                name: elder.name,
+                role: elder.role,
+                portrait: elder.portrait,
+                closable: true,
+                choices: [
+                    { id: 'route', label: '詢問斷路', summary: '確認南門外還能通行的方向。' },
+                    { id: 'town', label: '詢問城鎮', summary: '了解最近失蹤的人與物資狀況。' }
+                ]
+            });
+            return;
+        }
+
+        const participants = [elder, mia, scholar];
+        const linesByMode = {
+            single: [
+                { beat: 'speaker', actorId: elder.id, speaker: elder.name, role: elder.role, text: '先別急著答應。南門外的路，已經不是你在公會地圖上看見的樣子。' }
+            ],
+            multi: [
+                { beat: 'speaker', actorId: elder.id, speaker: elder.name, role: elder.role, text: '昨夜又少了一盞燈。' },
+                { beat: 'speaker', actorId: scholar.id, speaker: scholar.name, role: scholar.role, text: '不是熄了。巡線簿上少了一個回來簽名的人。' },
+                { beat: 'speaker', actorId: mia.id, speaker: mia.name, role: mia.role, text: '我去準備解毒劑。你們先把他可能走過的路找出來。' }
+            ],
+            narration: [
+                { beat: 'narration', isNarration: true, text: '雨水沿著門框落下。一下。又一下。' },
+                { beat: 'narration', isNarration: true, text: '屋內有苦藥、濕木與燈油的味道。遠處傳來鐘聲，隔著霧，像從很深的井底撞上來。' }
+            ],
+            blackout: [
+                { beat: 'narration', isNarration: true, visualMode: 'blackout', text: '我聽見金屬斷裂。接著，膝蓋碰到泥地。' },
+                { beat: 'speaker', actorId: mia.id, speaker: mia.name, role: mia.role, visualMode: 'blackout', text: '別睡。看著我。' }
+            ]
+        };
+        storyDialogueController.play({
+            participants: mode === 'single' ? [elder] : participants,
+            lines: linesByMode[mode] || linesByMode.single
+        }, { closable: true });
+    }
+
     renderValidation() {
         const combatState = this.getCombatValidationState();
         const monsterOptions = Object.values(MonsterDatabase)
@@ -840,6 +906,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'add-item-warehouse': () => this.addItem(true),
             'run-current-combat-validation': () => this.runCombatValidation('current'),
             'run-combat-validation': () => this.runCombatValidation('configured'),
+            'dialogue-preview': () => this.previewDialogue(data.mode),
             'fatigue-full': () => {
                 const status = GameManager.getAdventureFatigueStatus?.({ recover: false });
                 GameManager.restoreAdventureFatigue?.(status?.max || 9999);

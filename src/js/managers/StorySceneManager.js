@@ -161,10 +161,10 @@ class StorySceneManager {
             speaker: actor?.name || '',
             role: actor?.role || '',
             portrait: actor?.portrait || null,
-            isNarration: beat.beat !== 'speaker',
+            isNarration: beat.beat === 'narration',
             expression: beat.expression,
             expressionLayer: actor ? getStoryExpressionLayer(actor.id, expression) : null,
-            background: scene.background,
+            background: beat.background || scene.background,
             viewpoint: scene.viewpoint
         };
     }
@@ -200,9 +200,9 @@ class StorySceneManager {
             } : null,
             npc: lead,
             participants,
-            lines: beats,
+            lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
             effectMessages: [],
-            narrativeTitle: scene.id,
+            narrativeTitle: scene.title || scene.id,
             narrativeSummary: scene.objective,
             tone: scene.stageClass,
             route: null,

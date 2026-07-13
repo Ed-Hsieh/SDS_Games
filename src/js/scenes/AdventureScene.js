@@ -20,6 +20,7 @@ import {
     PROLOGUE_TUTORIAL_RESOLVED_FLAG,
     PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
 } from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
+import storyDialogueController from '../managers/StoryDialogueController.js';
 
 const THREE_LANDMARK_IDS = Object.freeze([
     'south_gate_farmland',
@@ -69,7 +70,6 @@ export default class AdventureScene {
         this.panels = null;
         this.combat = null;
         this.showOvercapReserves = false;
-        this.activeMapStory = null;
         this.storyCombatResolution = null;
         this.devMode = new URLSearchParams(window.location.search).has('map-test');
 
@@ -241,6 +241,7 @@ export default class AdventureScene {
 
     handleKeyDown(event) {
         if (event.defaultPrevented) return;
+        if (storyDialogueController.isOpen()) return;
         if (this.combat?.isActive()) return;
         const tagName = event.target?.tagName?.toLowerCase();
         if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') return;
@@ -326,12 +327,32 @@ export default class AdventureScene {
             firstDiscovery
         });
 
+        const completesChapterOneSurvey = firstDiscovery
+            && THREE_LANDMARK_IDS.includes(entry.id)
+            && this.hasThreeLandmarkEvidence()
+            && storySceneManager.getNextAvailableSceneId() === 'ch1_s06_three_landmarks';
+
         if (entry.kind === 'route_gate') {
             this.openModal({
                 kicker: firstDiscovery ? '道路障礙已發現' : '道路仍然中斷',
                 title: entry.name,
                 text: firstDiscovery ? entry.blockedText : entry.repeatText,
                 image: this.images.get(`gate-blocked:${entry.id}`)
+            });
+        } else if (firstDiscovery && THREE_LANDMARK_IDS.includes(entry.id)) {
+            this.openModal({
+                kicker: '現場調查',
+                title: entry.name,
+                text: entry.firstText,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: completesChapterOneSurvey ? '整理三處紀錄' : '記入手札',
+                onConfirm: completesChapterOneSurvey
+                    ? () => {
+                        this.closeModal();
+                        this.startMapStoryScene('ch1_s06_three_landmarks', { entry });
+                        return false;
+                    }
+                    : null
             });
         } else if (!this.tryStartLandmarkStory(entry)) {
             const authoredStoryBoss = Boolean(entry.bossId && LANDMARK_STORY_SCENES[entry.id]);
@@ -386,9 +407,15 @@ export default class AdventureScene {
         const nextSceneId = storySceneManager.getNextAvailableSceneId();
         if (nextSceneId === 'ch1_s01_road_collapse') {
             if (!GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)) {
-                this.beginPrologueTutorialEncounter();
+                const opening = storySceneManager.startScene(nextSceneId, { force: true });
+                if (opening?.success) {
+                    this.showStoryPresentation({
+                        ...opening,
+                        lines: opening.lines.filter(line => line.presentationPhase === 'pre_battle')
+                    }, { completionAction: 'prologue_combat' });
+                }
             } else {
-                this.finishPrologueTransition();
+                this.showPrologueRescueStory();
             }
             return true;
         }
@@ -405,12 +432,6 @@ export default class AdventureScene {
 
     tryStartLandmarkStory(entry) {
         const nextSceneId = storySceneManager.getNextAvailableSceneId();
-        if (nextSceneId === 'ch1_s06_three_landmarks'
-            && THREE_LANDMARK_IDS.includes(entry.id)
-            && this.hasThreeLandmarkEvidence()) {
-            return this.startMapStoryScene(nextSceneId, { entry });
-        }
-
         const sceneId = LANDMARK_STORY_SCENES[entry.id];
         if (!sceneId || storySceneManager.isSceneComplete(sceneId)) return false;
 
@@ -433,47 +454,36 @@ export default class AdventureScene {
     showStoryPresentation(outcome, options = {}) {
         const lines = (outcome.lines || []).filter(line => line?.text);
         if (!lines.length) return false;
-        this.activeMapStory = {
+        const story = {
             sceneId: outcome.sceneId,
             scene: outcome.scene,
             encounter: outcome.encounter,
             lines,
-            index: 0,
-            entry: options.entry || this.worldMap.getNearbyInteraction() || null
+            entry: options.entry || this.worldMap.getNearbyInteraction() || null,
+            completionAction: options.completionAction || 'complete_scene'
         };
-        this.renderMapStoryLine();
+        const image = story.entry?.id ? this.images.get(`landmark:${story.entry.id}`) : null;
+        storyDialogueController.play({ ...outcome, lines }, {
+            closable: false,
+            backgroundImage: image?.src || ''
+        }).then(result => {
+            if (result.status === 'complete') this.completeStoryPresentation(story);
+        });
         return true;
     }
 
-    renderMapStoryLine() {
-        const story = this.activeMapStory;
-        const line = story?.lines?.[story.index];
-        if (!story || !line) return;
-        const image = story.entry?.id ? this.images.get(`landmark:${story.entry.id}`) : null;
-        const finalLine = story.index >= story.lines.length - 1;
-        this.openModal({
-            kicker: `第 ${story.scene.chapter} 章 · ${line.isNarration ? '事件' : line.role || '對話'}`,
-            title: line.isNarration ? story.scene.objective : (line.speaker || '旅途紀錄'),
-            text: line.text,
-            image,
-            actionLabel: finalLine ? (story.encounter ? '進入戰鬥' : '記入手札') : '繼續',
-            onConfirm: () => this.advanceMapStory()
-        });
-    }
-
-    advanceMapStory() {
-        const story = this.activeMapStory;
-        if (!story) return true;
-        if (story.index < story.lines.length - 1) {
-            story.index += 1;
-            this.renderMapStoryLine();
-            return false;
+    completeStoryPresentation(story) {
+        if (story.completionAction === 'prologue_combat') {
+            this.beginPrologueTutorialEncounter();
+            return;
         }
 
         const completion = storySceneManager.completeScene(story.sceneId);
         const entry = story.entry;
-        this.activeMapStory = null;
-        this.closeModal();
+        if (story.completionAction === 'prologue_rescue') {
+            this.finishPrologueTransition();
+            return;
+        }
         if (completion?.transition === 'encounter_required') {
             const started = storySceneManager.beginEncounter(completion.encounter.id);
             if (started?.success && entry) {
@@ -482,7 +492,6 @@ export default class AdventureScene {
         }
         this.updateLocationUi();
         this.requestRender();
-        return false;
     }
 
     beginPrologueTutorialEncounter() {
@@ -507,14 +516,22 @@ export default class AdventureScene {
         if (character) character.hp = 1;
         GameManager.notify('all');
         this.activeEncounter = null;
-        window.setTimeout(() => this.finishPrologueTransition(), 80);
+        window.setTimeout(() => this.showPrologueRescueStory(), 80);
+    }
+
+    showPrologueRescueStory() {
+        const outcome = storySceneManager.startScene('ch1_s01_road_collapse', { force: true });
+        if (!outcome?.success) {
+            this.finishPrologueTransition();
+            return;
+        }
+        this.showStoryPresentation({
+            ...outcome,
+            lines: outcome.lines.filter(line => line.presentationPhase === 'post_battle')
+        }, { completionAction: 'prologue_rescue' });
     }
 
     finishPrologueTransition() {
-        if (!storySceneManager.isSceneComplete('ch1_s01_road_collapse')) {
-            const started = storySceneManager.startScene('ch1_s01_road_collapse', { force: true });
-            if (started?.success) storySceneManager.completeScene('ch1_s01_road_collapse');
-        }
         GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, true);
         GameManager.restoreCharacterAtHome('prologue-rescue');
         window.setTimeout(() => this.app?.navigateTo?.('lobby'), 80);

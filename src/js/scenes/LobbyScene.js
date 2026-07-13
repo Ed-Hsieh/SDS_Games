@@ -23,6 +23,7 @@ import { getTownNPC } from '../data/NPCDialogues.js';
 import { getTownPlace } from '../data/TownPlaces.js?v=dialogue-flow-20260712w';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
 import { getResolvedTownPlace, getResolvedTownPlaces } from '../managers/TownStateResolver.js?v=dialogue-flow-20260712w';
+import storyDialogueController from '../managers/StoryDialogueController.js';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -42,11 +43,7 @@ export default class LobbyScene {
         this.handleWorldRoute = this.handleWorldRoute.bind(this);
         this.handleTownStageClick = this.handleTownStageClick.bind(this);
         this.handleTownNpc = this.handleTownNpc.bind(this);
-        this.handleTownTopicClick = this.handleTownTopicClick.bind(this);
-        this.handleTownDialogueAdvance = this.handleTownDialogueAdvance.bind(this);
-        this.handleTownDialogueModeToggle = this.handleTownDialogueModeToggle.bind(this);
         this.handleQuestEvent = this.handleQuestEvent.bind(this);
-        this.closeTownDialogue = this.closeTownDialogue.bind(this);
         this.openAchievementModal = this.openAchievementModal.bind(this);
         this.closeAchievementModal = this.closeAchievementModal.bind(this);
         this.handleSaveExport = this.handleSaveExport.bind(this);
@@ -67,10 +64,6 @@ export default class LobbyScene {
         this.selectedItemSource = null; // 'warehouse' or 'inventory'
         this.selectedPassiveSlot = 0;
         this.activeTownPlaceId = null;
-        this.activeTownDialogue = null;
-        this.activeTownTopic = null;
-        this.townDialogueTypeTimer = null;
-        this.townDialogueAutoTimer = null;
         this.fatigueTimer = null;
 
         this.narrativeLines = [];
@@ -119,17 +112,6 @@ export default class LobbyScene {
             townPlaceActions: this.container.querySelector('#town-place-actions'),
             townPlaceResidentCount: this.container.querySelector('#town-place-resident-count'),
             townPlaceActionCount: this.container.querySelector('#town-place-action-count'),
-            townDialogueModal: this.container.querySelector('#town-dialogue-modal'),
-            townDialogueCard: this.container.querySelector('.town-dialogue-card'),
-            townDialogueClose: this.container.querySelector('#town-dialogue-close'),
-            townDialogueMode: this.container.querySelector('#town-dialogue-mode'),
-            townDialogueDone: this.container.querySelector('#town-dialogue-done'),
-            townDialogueAvatar: this.container.querySelector('#town-dialogue-avatar'),
-            townDialogueRole: this.container.querySelector('#town-dialogue-role'),
-            townDialogueName: this.container.querySelector('#town-dialogue-name'),
-            townDialogueTopics: this.container.querySelector('#town-dialogue-topics'),
-            townDialogueLines: this.container.querySelector('#town-dialogue-lines'),
-            townDialogueEffects: this.container.querySelector('#town-dialogue-effects'),
             achievementModal: this.container.querySelector('#achievement-modal'),
             achievementClose: this.container.querySelector('#achievement-close'),
             achievementList: this.container.querySelector('#achievement-list'),
@@ -206,14 +188,6 @@ export default class LobbyScene {
 
         this.dom.worldStage?.addEventListener('click', this.handleTownStageClick);
 
-        this.dom.townDialogueClose?.addEventListener('click', this.closeTownDialogue);
-        this.dom.townDialogueMode?.addEventListener('click', this.handleTownDialogueModeToggle);
-        this.dom.townDialogueDone?.addEventListener('click', this.closeTownDialogue);
-        this.dom.townDialogueTopics?.addEventListener('click', this.handleTownTopicClick);
-        this.dom.townDialogueCard?.addEventListener('click', this.handleTownDialogueAdvance);
-        this.dom.townDialogueModal?.addEventListener('click', event => {
-            if (event.target === this.dom.townDialogueModal) this.closeTownDialogue();
-        });
         this.dom.achievementClose?.addEventListener('click', this.closeAchievementModal);
         this.dom.achievementModal?.addEventListener('click', event => {
             if (event.target === this.dom.achievementModal) this.closeAchievementModal();
@@ -623,7 +597,7 @@ export default class LobbyScene {
         GameManager.markSaveDirty?.('town-place-return-consumed');
     }
 
-    openTownNpc(npcId) {
+    async openTownNpc(npcId) {
         if (!npcId) return;
 
         const storySceneId = dialogueManager.getNextStorySceneForActor(npcId, {
@@ -638,8 +612,21 @@ export default class LobbyScene {
         const dialogues = dialogueManager.getAvailableDialogues(npcId);
         if (dialogues.length > 1) {
             const npc = getTownNPC(npcId);
-            this.renderTownDialogueTopicModal(npc, dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue)));
-            this.renderWorldStage();
+            const selection = await storyDialogueController.choose({
+                title: '現在想談什麼？',
+                choices: dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue)),
+                portrait: npc?.portrait || npc?.image || '',
+                name: npc?.name || '居民',
+                role: npc?.role || npc?.location || '',
+                backgroundImage: this.getTownDialogueBackground(),
+                closable: true
+            });
+            if (selection.status !== 'selected') return;
+            const outcome = dialogueManager.startDialogue(npcId, {
+                source: 'lobby',
+                dialogueId: selection.choiceId
+            });
+            this.playTownDialogueOutcome(outcome);
             return;
         }
 
@@ -647,7 +634,7 @@ export default class LobbyScene {
             source: 'lobby',
             dialogueId: dialogues[0]?.id || null
         });
-        this.renderTownDialogueModal(outcome);
+        this.playTownDialogueOutcome(outcome);
 
         this.renderWorldStage();
     }
@@ -656,7 +643,7 @@ export default class LobbyScene {
         const sceneId = dialogueManager.getNextStorySceneId();
         if (sceneId === 'ch1_s01_road_collapse') {
             window.setTimeout(() => {
-                if (this.activeTownDialogue || !this.dom?.townDialogueModal?.hidden) return;
+                if (storyDialogueController.isOpen()) return;
                 this.app?.navigateTo?.('adventure');
             }, 120);
             return;
@@ -664,7 +651,7 @@ export default class LobbyScene {
         if (sceneId !== 'ch1_s02_wake_under_bitter_bottles'
             || !GameManager.getFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG)) return;
         window.setTimeout(() => {
-            if (this.activeTownDialogue || !this.dom?.townDialogueModal?.hidden) return;
+            if (storyDialogueController.isOpen()) return;
             this.enterTownPlace('mia_workroom');
             this.openStoryScene(sceneId);
         }, 120);
@@ -680,560 +667,43 @@ export default class LobbyScene {
         outcome.npc = enrichActor(outcome.npc);
         outcome.participants = (outcome.participants || []).map(enrichActor);
         outcome.lines = (outcome.lines || []).map(line => enrichActor(line));
-        this.renderTownDialogueModal(outcome);
+        this.playTownDialogueOutcome(outcome);
+        return outcome;
+    }
+
+    getTownDialogueBackground() {
+        const place = getTownPlace(this.activeTownPlaceId);
+        return place?.sceneImage || place?.cardImage || '';
+    }
+
+    async playTownDialogueOutcome(outcome) {
+        if (!outcome?.success || !outcome?.npc) return outcome;
+        const result = await storyDialogueController.play(outcome, {
+            closable: !outcome.sceneId,
+            backgroundImage: this.getTownDialogueBackground()
+        });
+        if (result.status !== 'complete') return outcome;
+
+        if (outcome.sceneId) {
+            dialogueManager.completeStoryScene(outcome.sceneId);
+            if (outcome.sceneId === 'ch1_s02_wake_under_bitter_bottles') {
+                GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false);
+            }
+        } else {
+            dialogueManager.commitDialogue(outcome);
+        }
+
+        if (outcome.narrativeSummary) {
+            this.pushTownNarrative(
+                outcome.narrativeTitle || '交談片刻',
+                outcome.narrativeSummary,
+                outcome.tone || 'discovery'
+            );
+        }
         this.renderWorldStage();
         return outcome;
     }
 
-    renderTownDialogueTopicModal(npc, topics = []) {
-        if (!this.dom?.townDialogueModal || !npc) return;
-
-        this.clearTownDialogueTimers();
-        this.activeTownDialogue = null;
-        this.activeTownTopic = {
-            npcId: npc.id,
-            npc,
-            topics
-        };
-
-        if (this.dom.townDialogueAvatar) this.dom.townDialogueAvatar.innerHTML = this.renderTownDialogueAvatar(npc);
-        if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
-        if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
-        if (this.dom.townDialogueLines) {
-            this.dom.townDialogueLines.innerHTML = '';
-            this.dom.townDialogueLines.hidden = true;
-        }
-        if (this.dom.townDialogueEffects) {
-            this.dom.townDialogueEffects.innerHTML = '';
-            this.dom.townDialogueEffects.hidden = true;
-        }
-        if (this.dom.townDialogueMode) this.dom.townDialogueMode.hidden = true;
-        if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
-        if (this.dom.townDialogueTopics) {
-            this.dom.townDialogueTopics.hidden = false;
-            const categoryOrder = ['report', 'main', 'side', 'function', 'chat'];
-            const groups = categoryOrder
-                .map(category => ({
-                    category,
-                    label: topics.find(topic => topic.category === category)?.categoryLabel || '',
-                    topics: topics.filter(topic => (topic.category || 'chat') === category)
-                }))
-                .filter(group => group.topics.length > 0);
-
-            this.dom.townDialogueTopics.innerHTML = `
-                <div class="town-topic-intro">
-                    <span>現在可以談的事</span>
-                    <strong>${escapeHtml(npc.name || '居民')} 正等你先開口。</strong>
-                </div>
-                ${groups.map(group => `
-                    <div class="town-topic-group is-${escapeHtml(group.category)}">
-                        <div class="town-topic-group-label">${escapeHtml(group.label)}</div>
-                        <div class="town-topic-list">
-                            ${group.topics.map(topic => `
-                                <button class="town-topic-option is-${escapeHtml(topic.type || 'status')}" data-dialogue-topic-id="${escapeHtml(topic.id)}" type="button">
-                                    <span class="town-topic-icon">${escapeHtml(topic.icon || '•')}</span>
-                                    <span class="town-topic-copy">
-                                        <strong>${escapeHtml(topic.label || topic.title || '話題')}</strong>
-                                        <small>${escapeHtml(topic.summary || '選擇這個話題。')}</small>
-                                    </span>
-                                </button>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('')}
-            `;
-        }
-
-        this.dom.townDialogueCard?.classList.add('is-topic-mode');
-        this.dom.townDialogueCard?.classList.remove('is-multi-speaker');
-        this.dom.townDialogueModal.hidden = false;
-        audioManager.play('book-open', { throttleKey: 'town-dialogue-topic-open', throttleMs: 180 });
-        this.dom.townDialogueTopics?.querySelector('button')?.focus?.();
-    }
-
-    handleTownTopicClick(event) {
-        const option = event.target?.closest?.('[data-dialogue-topic-id]');
-        if (!option || !this.activeTownTopic?.npcId) return;
-
-        const outcome = dialogueManager.startDialogue(this.activeTownTopic.npcId, {
-            source: 'lobby',
-            dialogueId: option.dataset.dialogueTopicId
-        });
-        this.activeTownTopic = null;
-        this.renderTownDialogueModal(outcome);
-        this.renderWorldStage();
-    }
-
-    renderTownDialogueModal(outcome) {
-        if (!this.dom?.townDialogueModal || !outcome?.npc) return;
-
-        const {
-            npc,
-            participants = [],
-            lines = [],
-            effectMessages = [],
-            narrativeTitle = null,
-            narrativeSummary = null,
-            route = null,
-            routeLabel = '前往',
-            sceneId = null,
-            background = null,
-            viewpoint = null,
-            knowledgeBoundary = null
-        } = outcome;
-        this.activeTownTopic = null;
-        const visibleLines = lines.filter(line => line?.text);
-        const resolvedLines = visibleLines.length > 0 ? visibleLines : [{
-            speaker: npc.name || '居民',
-            avatar: npc.avatar || '💬',
-            portrait: npc.portrait || npc.image || '',
-            role: npc.role || npc.location || '城鎮居民',
-            text: '他暫時沒有新的話要說。'
-        }];
-        this.activeTownDialogue = {
-            npc,
-            participants,
-            isMultiSpeaker: this.isMultiSpeakerDialogue(participants, resolvedLines),
-            lines: resolvedLines,
-            effectMessages,
-            route,
-            routeLabel,
-            narrativeTitle,
-            narrativeSummary,
-            storySceneId: sceneId,
-            storySceneCompleted: false,
-            background,
-            viewpoint,
-            knowledgeBoundary,
-            notebookHint: null,
-            notebookHintResolved: false,
-            tone: outcome.tone || (outcome.success ? 'discovery' : 'ambient'),
-            currentIndex: 0,
-            currentText: '',
-            isTyping: false,
-            lineComplete: false,
-            renderedIndexes: new Set(),
-            effectsLogged: false
-        };
-
-        this.syncTownDialogueModeButton();
-        this.syncTownDialogueSpeakerHeader();
-        if (this.dom.townDialogueTopics) {
-            this.dom.townDialogueTopics.innerHTML = '';
-            this.dom.townDialogueTopics.hidden = true;
-        }
-        this.dom.townDialogueCard?.classList.remove('is-topic-mode');
-        this.dom.townDialogueCard?.classList.toggle('is-multi-speaker', this.activeTownDialogue.isMultiSpeaker);
-        this.dom.townDialogueCard?.classList.toggle('is-story-scene', Boolean(sceneId));
-        if (this.dom.townDialogueCard) {
-            this.dom.townDialogueCard.dataset.storySceneId = sceneId || '';
-            this.dom.townDialogueCard.dataset.storyBackground = background || '';
-            this.dom.townDialogueCard.dataset.storyViewpoint = viewpoint || '';
-        }
-        if (this.dom.townDialogueLines) this.dom.townDialogueLines.innerHTML = '';
-        if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.innerHTML = '';
-        if (this.dom.townDialogueLines) this.dom.townDialogueLines.hidden = false;
-        if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.hidden = false;
-        if (this.dom.townDialogueMode) this.dom.townDialogueMode.hidden = false;
-        if (this.dom.townDialogueDone) this.dom.townDialogueDone.hidden = true;
-
-        this.dom.townDialogueModal.hidden = false;
-        audioManager.play('dialogue-open', { throttleKey: 'town-dialogue-open', throttleMs: 180 });
-        this.startTownDialogueLine();
-        this.dom.townDialogueCard?.focus?.();
-    }
-
-    clearTownDialogueTimers() {
-        if (this.townDialogueTypeTimer) {
-            clearTimeout(this.townDialogueTypeTimer);
-            this.townDialogueTypeTimer = null;
-        }
-        if (this.townDialogueAutoTimer) {
-            clearTimeout(this.townDialogueAutoTimer);
-            this.townDialogueAutoTimer = null;
-        }
-    }
-
-    getCurrentTownDialogueLine() {
-        const dialogue = this.activeTownDialogue;
-        return dialogue?.lines?.[dialogue.currentIndex] || null;
-    }
-
-    startTownDialogueLine() {
-        const dialogue = this.activeTownDialogue;
-        const line = this.getCurrentTownDialogueLine();
-        if (!dialogue || !line) return;
-
-        this.clearTownDialogueTimers();
-        this.syncTownDialogueSpeakerHeader();
-        dialogue.currentText = '';
-        dialogue.isTyping = true;
-        dialogue.lineComplete = false;
-        this.renderTownDialogueLines();
-        this.renderTownDialogueActions(false);
-
-        const fullText = line.text || '';
-        if (!fullText) {
-            this.completeTownDialogueLine();
-            return;
-        }
-
-        const typeNext = () => {
-            if (this.activeTownDialogue !== dialogue || this.dom?.townDialogueModal?.hidden) return;
-            const activeLine = this.getCurrentTownDialogueLine();
-            const text = activeLine?.text || '';
-
-            if (dialogue.currentText.length >= text.length) {
-                this.completeTownDialogueLine();
-                return;
-            }
-
-            const remaining = text.length - dialogue.currentText.length;
-            const chunkSize = remaining > 24 ? 2 : 1;
-            dialogue.currentText = text.slice(0, dialogue.currentText.length + chunkSize);
-            this.renderTownDialogueLines();
-            audioManager.play('type', { throttleKey: 'town-dialogue-type', throttleMs: 38 });
-
-            const lastChar = dialogue.currentText.at(-1) || '';
-            const delay = /[，。！？、；：]/.test(lastChar) ? 110 : 28;
-            this.townDialogueTypeTimer = setTimeout(typeNext, delay);
-        };
-
-        typeNext();
-    }
-
-    renderTownDialogueLines() {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue || !this.dom?.townDialogueLines) return;
-
-        for (let index = 0; index <= dialogue.currentIndex; index += 1) {
-            if (!dialogue.renderedIndexes.has(index)) {
-                this.appendTownDialogueLine(index);
-            }
-        }
-
-        this.updateTownDialogueLineState();
-        this.dom.townDialogueLines.scrollTop = this.dom.townDialogueLines.scrollHeight;
-    }
-
-    appendTownDialogueLine(index) {
-        const dialogue = this.activeTownDialogue;
-        const line = dialogue?.lines?.[index];
-        if (!dialogue || !line || !this.dom?.townDialogueLines) return;
-
-        const article = document.createElement('article');
-        article.className = 'town-dialogue-line is-new';
-        if (line.isNarration) article.classList.add('is-narration');
-        article.dataset.lineIndex = String(index);
-
-        const icon = document.createElement('div');
-        icon.className = 'town-dialogue-line-icon';
-        icon.innerHTML = line.isNarration ? '' : this.renderTownDialogueAvatar(dialogue.npc, line);
-
-        const copy = document.createElement('div');
-        copy.className = 'town-dialogue-line-copy';
-
-        const speaker = document.createElement('strong');
-        speaker.textContent = line.isNarration ? '' : (line.speaker || dialogue.npc.name || '居民');
-        if (line.isNarration) speaker.hidden = true;
-
-        const paragraph = document.createElement('p');
-        const text = document.createElement('span');
-        text.className = 'town-dialogue-text';
-        text.textContent = index === dialogue.currentIndex ? dialogue.currentText : (line.text || '');
-        paragraph.appendChild(text);
-
-        if (!line.isNarration) copy.appendChild(speaker);
-        copy.appendChild(paragraph);
-        if (!line.isNarration) article.appendChild(icon);
-        article.appendChild(copy);
-        this.dom.townDialogueLines.appendChild(article);
-        dialogue.renderedIndexes.add(index);
-
-        setTimeout(() => {
-            article.classList.remove('is-new');
-        }, 320);
-    }
-
-    updateTownDialogueLineState() {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue || !this.dom?.townDialogueLines) return;
-
-        this.dom.townDialogueLines.querySelectorAll('.town-dialogue-line').forEach(article => {
-            const index = Number(article.dataset.lineIndex);
-            const line = dialogue.lines[index];
-            const isCurrent = index === dialogue.currentIndex;
-            const text = article.querySelector('.town-dialogue-text');
-            const paragraph = article.querySelector('p');
-
-            article.classList.toggle('is-current', isCurrent);
-            article.classList.toggle('is-past', index < dialogue.currentIndex);
-            article.classList.toggle('is-typing', isCurrent && dialogue.isTyping);
-            if (text) {
-                text.textContent = isCurrent ? dialogue.currentText : (line?.text || '');
-            }
-
-            let cursor = article.querySelector('.town-dialogue-cursor');
-            if (isCurrent && dialogue.isTyping) {
-                if (!cursor && paragraph) {
-                    cursor = document.createElement('span');
-                    cursor.className = 'town-dialogue-cursor';
-                    cursor.setAttribute('aria-hidden', 'true');
-                    paragraph.appendChild(cursor);
-                }
-            } else {
-                cursor?.remove();
-            }
-        });
-    }
-
-    completeTownDialogueLine(scheduleAuto = true) {
-        const dialogue = this.activeTownDialogue;
-        const line = this.getCurrentTownDialogueLine();
-        if (!dialogue || !line) return;
-
-        if (this.townDialogueTypeTimer) {
-            clearTimeout(this.townDialogueTypeTimer);
-            this.townDialogueTypeTimer = null;
-        }
-
-        dialogue.currentText = line.text || '';
-        dialogue.isTyping = false;
-        dialogue.lineComplete = true;
-        this.renderTownDialogueLines();
-
-        const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
-        if (finished) {
-            this.renderTownDialogueActions(true);
-            return;
-        }
-
-        this.renderTownDialogueActions(false);
-        if (scheduleAuto && this.isTownDialogueAutoPlayEnabled()) {
-            this.townDialogueAutoTimer = setTimeout(() => {
-                this.advanceTownDialogueLine();
-            }, this.getTownDialogueAutoDelay(line));
-        }
-    }
-
-    getTownDialogueAutoDelay(line = {}) {
-        const length = String(line.text || '').length;
-        const base = line.isNarration ? 1400 : 900;
-        return Math.min(4200, base + length * 24);
-    }
-
-    advanceTownDialogueLine() {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue || this.dom?.townDialogueModal?.hidden) return;
-
-        this.clearTownDialogueTimers();
-        const finished = dialogue.currentIndex >= dialogue.lines.length - 1;
-        if (finished) {
-            this.renderTownDialogueActions(true);
-            return;
-        }
-
-        dialogue.currentIndex += 1;
-        audioManager.play('page', { throttleKey: 'town-dialogue-next-line', throttleMs: 120 });
-        this.startTownDialogueLine();
-    }
-
-    finishTownDialogue({ revealAll = false } = {}) {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue) return;
-
-        this.clearTownDialogueTimers();
-
-        if (revealAll) {
-            dialogue.currentIndex = Math.max(0, dialogue.lines.length - 1);
-            const finalLine = this.getCurrentTownDialogueLine();
-            dialogue.currentText = finalLine?.text || '';
-            dialogue.renderedIndexes = new Set();
-            if (this.dom.townDialogueLines) this.dom.townDialogueLines.innerHTML = '';
-        } else {
-            const line = this.getCurrentTownDialogueLine();
-            dialogue.currentText = line?.text || '';
-        }
-
-        dialogue.isTyping = false;
-        dialogue.lineComplete = true;
-        this.renderTownDialogueLines();
-        this.renderTownDialogueActions(true);
-    }
-
-    renderTownDialogueActions(finished) {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue) return;
-
-        if (this.dom.townDialogueEffects) {
-            if (finished && !dialogue.notebookHintResolved) {
-                dialogue.notebookHint = this.resolveTownDialogueNotebookHint(dialogue);
-                dialogue.notebookHintResolved = true;
-            }
-            const effectEntries = finished ? this.getTownDialogueEffectEntries(dialogue) : [];
-            this.dom.townDialogueEffects.innerHTML = finished
-                ? effectEntries.map(entry => this.renderTownDialogueEffectEntry(entry)).join('')
-                : '';
-        }
-
-        if (finished && !dialogue.effectsLogged) {
-            this.logTownDialogueSummary(dialogue);
-            dialogue.effectsLogged = true;
-            this.scrollTownDialogueLinesToEnd();
-        }
-
-        if (finished && dialogue.storySceneId && !dialogue.storySceneCompleted) {
-            dialogueManager.completeStoryScene(dialogue.storySceneId);
-            dialogue.storySceneCompleted = true;
-            if (dialogue.storySceneId === 'ch1_s02_wake_under_bitter_bottles') {
-                GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false);
-            }
-        }
-
-        if (this.dom.townDialogueDone) {
-            this.dom.townDialogueDone.hidden = !finished;
-        }
-        this.syncTownDialogueModeButton();
-
-        if (finished) {
-            this.scrollTownDialogueLinesToEnd();
-        }
-    }
-
-    logTownDialogueSummary(dialogue) {
-        const summary = dialogue?.narrativeSummary;
-        if (!summary) return;
-
-        const title = dialogue.narrativeTitle
-            || (dialogue.effectMessages?.length ? '交談後的紀錄' : '交談片刻');
-        this.pushTownNarrative(title, summary, 'discovery');
-    }
-
-    getTownDialogueEffectEntries(dialogue) {
-        const entries = (dialogue.effectMessages || []).map(message => ({
-            ...this.classifyTownDialogueEffect(message),
-            message
-        }));
-        if (dialogue.notebookHint) {
-            entries.push({
-                type: 'hint',
-                icon: '✎',
-                label: '手札',
-                message: dialogue.notebookHint
-            });
-        }
-        return entries;
-    }
-
-    classifyTownDialogueEffect(message = '') {
-        const text = String(message || '');
-        if (/^收穫整理[:：]/.test(text)) {
-            return { type: 'reward', icon: '◇', label: '收穫' };
-        }
-        if (/旅人手札新增|手札新增|線索/.test(text)) {
-            return { type: 'notebook', icon: '✦', label: '手札' };
-        }
-        if (/首領痕跡|最終觸發/.test(text)) {
-            return { type: 'boss', icon: '⌖', label: '首領' };
-        }
-        if (/^接下來[:：]/.test(text)) {
-            return { type: 'next', icon: '➜', label: '接下來' };
-        }
-        if (/歸檔|紀錄|回報/.test(text)) {
-            return { type: 'archive', icon: '✓', label: '歸檔' };
-        }
-        return { type: 'effect', icon: '•', label: '更新' };
-    }
-
-    renderTownDialogueEffectEntry(entry = {}) {
-        const type = entry.type || 'effect';
-        const message = String(entry.message || '');
-        const label = entry.label || (type === 'hint' ? '手札' : '更新');
-        const icon = entry.icon || (type === 'hint' ? '✎' : '•');
-        const cleanedMessage = message
-            .replace(/^收穫整理[:：]\s*/, '')
-            .replace(/^接下來[:：]\s*/, '');
-
-        return `
-            <article class="town-dialogue-effect is-${escapeHtml(type)}">
-                <span class="town-dialogue-effect-icon">${escapeHtml(icon)}</span>
-                <span class="town-dialogue-effect-copy">
-                    <b>${escapeHtml(label)}</b>
-                    <small>${escapeHtml(cleanedMessage)}</small>
-                </span>
-            </article>
-        `;
-    }
-
-    resolveTownDialogueNotebookHint(dialogue) {
-        const messages = dialogue?.effectMessages || [];
-        if (messages.length === 0) return null;
-
-        const looksLikeStoryUpdate = dialogue.route === 'quest'
-            || messages.some(message => /線索|紀錄|任務|聽聞/.test(String(message)));
-        if (!looksLikeStoryUpdate) return null;
-
-        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
-            GameManager.state.ui = {};
-        }
-
-        const now = Date.now();
-        const lastShownAt = Number(GameManager.state.ui.lastNotebookHintAt) || 0;
-        if (now - lastShownAt < 120000) return null;
-
-        GameManager.state.ui.lastNotebookHintAt = now;
-        GameManager.markSaveDirty?.('notebook-hint');
-        return '任務冊已更新。需要確認下一步時，回到廣場翻開任務冊。';
-    }
-
-    scrollTownDialogueLinesToEnd() {
-        const lines = this.dom?.townDialogueLines;
-        if (!lines) return;
-
-        const scroll = () => {
-            lines.scrollTop = lines.scrollHeight;
-        };
-        scroll();
-        requestAnimationFrame(scroll);
-    }
-
-    handleTownDialogueAdvance(event) {
-        if (event?.target?.closest?.('button')) return;
-        if (this.activeTownTopic) return;
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue || this.dom?.townDialogueModal?.hidden) return;
-
-        if (dialogue.isTyping) {
-            this.completeTownDialogueLine(this.isTownDialogueAutoPlayEnabled());
-            return;
-        }
-
-        if (dialogue.lineComplete && dialogue.currentIndex < dialogue.lines.length - 1) {
-            this.advanceTownDialogueLine();
-        }
-    }
-
-    closeTownDialogue() {
-        if (!this.dom?.townDialogueModal) return;
-        if (this.activeTownTopic) {
-            this.clearTownDialogueTimers();
-        } else if (this.activeTownDialogue && !this.activeTownDialogue.effectsLogged) {
-            this.finishTownDialogue({ revealAll: true });
-        } else {
-            this.clearTownDialogueTimers();
-        }
-        audioManager.play('book-close', { throttleKey: 'town-dialogue-close', throttleMs: 180 });
-        this.dom.townDialogueModal.hidden = true;
-        this.dom.townDialogueCard?.classList.remove('is-topic-mode');
-        this.dom.townDialogueCard?.classList.remove('is-multi-speaker');
-        this.activeTownDialogue = null;
-        this.activeTownTopic = null;
-        if (this.dom.townDialogueTopics) this.dom.townDialogueTopics.hidden = true;
-        if (this.dom.townDialogueLines) this.dom.townDialogueLines.hidden = false;
-        if (this.dom.townDialogueEffects) this.dom.townDialogueEffects.hidden = false;
-        if (this.dom.townDialogueMode) this.dom.townDialogueMode.hidden = false;
-        this.renderWorldStage();
-    }
 
     async handleSaveExport() {
         try {
@@ -1345,52 +815,6 @@ export default class LobbyScene {
         this.consumeHandbookRouteIntent();
     }
 
-    isTownDialogueAutoPlayEnabled() {
-        return Boolean(GameManager.state?.ui?.dialogueAutoPlay);
-    }
-
-    setTownDialogueAutoPlay(enabled) {
-        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
-            GameManager.state.ui = {};
-        }
-        GameManager.state.ui.dialogueAutoPlay = Boolean(enabled);
-        GameManager.markSaveDirty?.('dialogue-auto-play');
-        this.syncTownDialogueModeButton();
-    }
-
-    syncTownDialogueModeButton() {
-        const button = this.dom?.townDialogueMode;
-        if (!button) return;
-        const enabled = this.isTownDialogueAutoPlayEnabled();
-        button.textContent = enabled ? '自動播放' : '手動閱讀';
-        button.setAttribute('aria-pressed', String(enabled));
-        button.classList.toggle('is-active', enabled);
-    }
-
-    handleTownDialogueModeToggle(event) {
-        event?.stopPropagation?.();
-        const nextValue = !this.isTownDialogueAutoPlayEnabled();
-        this.setTownDialogueAutoPlay(nextValue);
-
-        if (this.townDialogueAutoTimer) {
-            clearTimeout(this.townDialogueAutoTimer);
-            this.townDialogueAutoTimer = null;
-        }
-
-        const dialogue = this.activeTownDialogue;
-        const line = this.getCurrentTownDialogueLine();
-        const canAdvance = nextValue
-            && dialogue
-            && line
-            && dialogue.lineComplete
-            && dialogue.currentIndex < dialogue.lines.length - 1
-            && !this.dom?.townDialogueModal?.hidden;
-        if (canAdvance) {
-            this.townDialogueAutoTimer = setTimeout(() => {
-                this.advanceTownDialogueLine();
-            }, this.getTownDialogueAutoDelay(line));
-        }
-    }
 
     consumeHandbookRouteIntent() {
         const intent = GameManager.state?.ui?.handbookRouteIntent;
@@ -1764,59 +1188,6 @@ export default class LobbyScene {
         return escapeHtml(entry.icon || npc.avatar || fallbackIcon);
     }
 
-    renderTownDialogueAvatar(npc = {}, line = {}, fallbackIcon = '•') {
-        const image = line.portrait || line.image || npc.portrait || npc.image;
-        const label = line.speaker || npc.name || '';
-        if (image) {
-            return `<img src="${escapeHtml(image)}" alt="${escapeHtml(label)}" loading="lazy">`;
-        }
-        return escapeHtml(line.avatar || npc.avatar || fallbackIcon);
-    }
-
-    isMultiSpeakerDialogue(participants = [], lines = []) {
-        const actorIds = new Set(lines
-            .filter(line => !line.isNarration && line.actorId !== 'system')
-            .map(line => line.actorId || line.speaker)
-            .filter(Boolean));
-        return participants.length > 1 || actorIds.size > 1;
-    }
-
-    syncTownDialogueSpeakerHeader() {
-        const dialogue = this.activeTownDialogue;
-        if (!dialogue) return;
-
-        const line = dialogue.lines?.[dialogue.currentIndex] || {};
-        if (this.dom.townDialogueCard) {
-            this.dom.townDialogueCard.dataset.storyExpression = line.expression || '';
-            this.dom.townDialogueCard.dataset.storyBeat = line.beat || '';
-            this.dom.townDialogueCard.dataset.storyBackground = line.background || dialogue.background || '';
-            this.dom.townDialogueCard.dataset.storyViewpoint = line.viewpoint || dialogue.viewpoint || '';
-        }
-        if (line.isNarration) {
-            const npc = dialogue.npc || {};
-            if (this.dom.townDialogueAvatar) {
-                this.dom.townDialogueAvatar.innerHTML = this.renderTownDialogueAvatar(npc);
-            }
-            if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = npc.role || npc.location || '城鎮居民';
-            if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = npc.name || '居民';
-            return;
-        }
-        const speaker = {
-            ...dialogue.npc,
-            ...line,
-            name: line.speaker || dialogue.npc?.name || '居民',
-            role: line.role || dialogue.npc?.role || dialogue.npc?.location || '城鎮居民'
-        };
-        const roleText = dialogue.isMultiSpeaker
-            ? `${speaker.role || '城鎮居民'} · 多人對話`
-            : (speaker.role || '城鎮居民');
-
-        if (this.dom.townDialogueAvatar) {
-            this.dom.townDialogueAvatar.innerHTML = this.renderTownDialogueAvatar(dialogue.npc, speaker);
-        }
-        if (this.dom.townDialogueRole) this.dom.townDialogueRole.textContent = roleText;
-        if (this.dom.townDialogueName) this.dom.townDialogueName.textContent = speaker.name || '居民';
-    }
 
     renderTownPlaceActions(actions = []) {
         const list = this.dom.townPlaceActions;
@@ -1999,7 +1370,6 @@ export default class LobbyScene {
             clearInterval(this.fatigueTimer);
             this.fatigueTimer = null;
         }
-        this.clearTownDialogueTimers();
         document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
     }
 
@@ -2034,10 +1404,6 @@ export default class LobbyScene {
     handlePassiveEffectKeydown(event) {
         if (event.key === 'Escape' && this.dom?.achievementModal && !this.dom.achievementModal.hidden) {
             this.closeAchievementModal();
-            return;
-        }
-        if (event.key === 'Escape' && this.dom?.townDialogueModal && !this.dom.townDialogueModal.hidden) {
-            this.closeTownDialogue();
             return;
         }
         if (event.key === 'Escape' && this.dom?.prepModal?.classList.contains('active')) {

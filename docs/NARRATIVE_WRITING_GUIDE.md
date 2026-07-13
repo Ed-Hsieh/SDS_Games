@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-10
+Last updated: 2026-07-13
 
 ## Purpose
 
@@ -38,12 +38,13 @@ voice and prose quality; the story bible owns the larger plot architecture.
 - Runtime narrative prose uses first-person perspective by default. Write as
   `我`, not as an external narrator saying `你`, unless the line is direct NPC
   speech.
-- Keep each paragraph or runtime narration beat to two to four sentences.
-  Alternate longer sensory sentences with very short beats to create pauses and
-  pressure.
-- Use uneven sentence rhythm. Mix long sensory sentences with very short beats.
-  Short Chinese beats of three to five characters are welcome when they create
-  pressure.
+- Paragraph and sentence length follow the dramatic need. Do not enforce a
+  fixed two-to-four-sentence paragraph, and do not insert short sentences merely
+  to satisfy a rhythm formula.
+- Vary rhythm deliberately. Action and danger may tighten into short lines;
+  discovery, intimacy, grief, and observation may breathe through longer
+  sentences. A short line earns its place by changing pressure, focus, or
+  meaning.
 - Use concrete images and sensory details: sound, hand movement, light, mud,
   metal, cloth, smell, breath, wet paper, old wood, dust. Prefer these over
   abstract praise, abstract emotion, or explanatory mood labels.
@@ -65,6 +66,62 @@ voice and prose quality; the story bible owns the larger plot architecture.
   Each place should have its own trace, sound, smell, or human residue.
 - Keep story paragraphs purposeful. A short sharp paragraph is often better than
   a decorative one.
+
+## Storytelling Craft Prompt
+
+Use this reusable prompt before drafting or revising player-facing story text.
+It adapts the practical principles in StorytellingDB's `Storytelling 101` to the
+current game and does not replace the accepted screenplay causality.
+
+> 把這個場景寫成玩家能親身走進去的黑暗奇幻小說。不得改動已定案的
+> 劇情事件、角色知識邊界、目標、世界規則與結果。動筆前先確認場景的
+> 戲劇目的：視角人物此刻想得到什麼、什麼正在阻礙他、結束前發生了
+> 什麼實質變化、哪個問題會把讀者帶往下一幕。所有行動都必須承接前因，
+> 不能因為任務需要或巧合而突然發生。讓空間、天候、聲音、氣味、觸感、
+> 工具與人留下的痕跡真正限制或推動人物；場景不是背景板。透過選擇、
+> 反應、迴避、沉默與每個人不同的說話方式呈現性格，不要直接解釋角色。
+> 場景容許時，把外在危機和人物自身或關係中的壓力疊在一起。重要情緒
+> 要用行為與感官證據讓玩家看見；只有不值得停留的轉場與背景資訊才概述。
+> 節奏服從意義：動作可以壓縮，後果可以停留，句子與段落可以自由伸縮，
+> 不遵守固定格式。維持既定視角，只揭露該視角有可能知道的事。場景應在
+> 真正的變化、決定、發現、代價或更尖銳的未知之後結束。保留言外之意；
+> 角色不會方便地說出全部想法，旁白也不替故事宣布主題。刪除重複已知
+> 資訊、只為顯得文藝、或無法推動劇情、人物、環境、衝突與後續回收的句子。
+
+Revision questions:
+
+- Can the scene's immediate desire and resistance be named in one sentence?
+- Does each beat follow from the previous beat, or does the plot simply order it
+  to happen?
+- What is observably different at the end of the scene?
+- Does the protagonist make, refuse, or prepare a meaningful choice?
+- Is the setting changing what people can do, rather than only decorating them?
+- Are important feelings visible in action, voice, silence, or physical detail?
+- Does dialogue contain personality, friction, misunderstanding, concealment, or
+  subtext instead of clean exposition?
+- Is exposition arriving because the present action needs it?
+- Does the final beat open a relevant question or consequence without using an
+  artificial cliffhanger?
+- Can any sentence, paragraph, title, or sensory image be removed with no loss?
+
+## Title Rules
+
+Story titles are promises and memory anchors, not database labels.
+
+- Title the dramatic object, choice, wound, contradiction, or unanswered image
+  the player will remember. Prefer a concrete noun or action over an abstract
+  mood.
+- A title may withhold meaning, but the scene must eventually make that meaning
+  legible. Mystery is not permission for unrelated poetic wording.
+- Avoid titles that merely restate the objective, chapter number, location name,
+  system function, or outcome.
+- Avoid interchangeable fantasy phrases built from words such as darkness,
+  fate, oath, burial, awakening, echo, or scar unless that exact image is present
+  and causally important in the scene.
+- Read the title after the scene. If it could label three other scenes without
+  changing meaning, replace it.
+- Runtime ids remain stable technical identifiers. A player-facing title may be
+  revised without renaming the id.
 
 ## Runtime Viewpoint Contract
 
@@ -148,6 +205,13 @@ For quest-opening and quest-report scenes, write in this order:
      be said by the NPC.
    - Keep narration and dialogue in the same runtime sequence so the player
      experiences the complete scene inside the game.
+   - Consecutive narration, action, and scene-description beats form one
+     continuous prose block. They may contain paragraph breaks, but the player
+     does not click between them. Character speech remains one deliberate line
+     at a time so speaker changes and reactions retain timing.
+   - Split a narration block only when control, viewpoint, location, visible
+     participant state, or dramatic time genuinely changes. Do not split it to
+     manufacture rhythm in the UI.
 4. Put only clear task wording in the objective UI or quest ledger.
 
 Do not write a polished novel draft in a document and then ship only shortened
