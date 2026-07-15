@@ -20,7 +20,7 @@ import {
     PROLOGUE_TUTORIAL_RESOLVED_FLAG,
     PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
 } from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
-import storyDialogueController from '../managers/StoryDialogueController.js';
+import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 
 const THREE_LANDMARK_IDS = Object.freeze([
     'south_gate_farmland',

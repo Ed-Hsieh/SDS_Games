@@ -226,6 +226,24 @@
     overflow: hidden;
 }
 
+.story-dialogue-copy::after {
+    content: '';
+    position: absolute;
+    z-index: 2;
+    right: 14px;
+    bottom: 0;
+    left: 0;
+    height: 24px;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(10, 20, 30, 0.94));
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.story-dialogue-box.has-more-copy .story-dialogue-copy::after {
+    opacity: 1;
+}
+
 .story-dialogue-copy p {
     width: 100%;
     height: 100%;
@@ -252,14 +270,12 @@
 }
 
 .story-dialogue-cursor {
-    position: absolute;
-    right: 22px;
-    bottom: 4px;
-    display: block;
-    width: 7px;
-    height: 20px;
+    display: inline-block;
+    width: 3px;
+    height: 1em;
     margin-left: 5px;
     background: #e4c46f;
+    vertical-align: -0.14em;
     animation: story-dialogue-blink 720ms steps(1) infinite;
 }
 
@@ -293,6 +309,40 @@
 .story-dialogue-auto.is-active {
     border-color: rgba(222, 190, 111, 0.68);
     color: #f1d486;
+}
+
+.story-dialogue-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 28px;
+    margin-left: auto;
+    padding: 2px 9px;
+    border: 0;
+    background: transparent;
+    color: #e4c46f;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+}
+
+.story-dialogue-read-more[hidden] {
+    display: none;
+}
+
+.story-dialogue-read-more i {
+    font-size: 15px;
+    font-style: normal;
+    animation: story-dialogue-next 850ms ease-in-out infinite alternate;
+}
+
+.story-dialogue-read-more:hover,
+.story-dialogue-read-more:focus-visible {
+    color: #f4dda0;
+}
+
+.story-dialogue-read-more:not([hidden]) ~ .story-dialogue-progress {
+    margin-left: 0;
 }
 
 .story-dialogue-progress {
@@ -363,6 +413,10 @@
 .story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-copy {
     min-height: 22px;
     overflow: visible;
+}
+
+.story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-copy::after {
+    display: none;
 }
 
 .story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-copy p {

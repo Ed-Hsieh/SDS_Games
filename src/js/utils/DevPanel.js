@@ -35,7 +35,7 @@ import {
     getTotalDef
 } from '../models/CharacterLogic.js';
 import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
-import storyDialogueController from '../managers/StoryDialogueController.js';
+import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];

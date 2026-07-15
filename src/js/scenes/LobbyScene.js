@@ -28,7 +28,7 @@ import {
     getResolvedTownPlaces,
     getTownOverviewPresentation
 } from '../managers/TownStateResolver.js?v=town-art-binding-20260715a';
-import storyDialogueController from '../managers/StoryDialogueController.js';
+import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 
 const AchievementPlaceholders = [

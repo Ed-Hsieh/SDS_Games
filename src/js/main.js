@@ -2,7 +2,7 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js?v=town-art-binding-20260715a';
+import LobbyScene from './scenes/LobbyScene.js?v=dialogue-read-cue-20260715b';
 import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
 import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
 import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
@@ -17,10 +17,10 @@ import './utils/ItemTooltip.js';
 import './components/ItemDetailModal.js';
 import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
-import { initDevPanel } from './utils/DevPanel.js';
-import storyDialogueController from './managers/StoryDialogueController.js';
+import { initDevPanel } from './utils/DevPanel.js?v=dialogue-read-cue-20260715b';
+import storyDialogueController from './managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 
-const APP_ASSET_VERSION = 'ui-convergence-20260712y';
+const APP_ASSET_VERSION = 'dialogue-read-cue-20260715b';
 
 class App {
     constructor() {

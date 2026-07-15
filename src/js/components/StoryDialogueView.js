@@ -26,6 +26,7 @@ export default class StoryDialogueView {
         this.renderedLineKey = null;
         this.copyScrollTimer = null;
         this.copyTargetScroll = 0;
+        this.copyTyping = false;
         this.updateScopeBounds = this.updateScopeBounds.bind(this);
         this.handleCopyWheel = this.handleCopyWheel.bind(this);
         this.handleCopyScroll = this.handleCopyScroll.bind(this);
@@ -45,11 +46,14 @@ export default class StoryDialogueView {
                         <span></span>
                     </header>
                     <div class="story-dialogue-copy">
-                        <p></p><i class="story-dialogue-cursor" aria-hidden="true"></i>
+                        <p><span class="story-dialogue-text"></span><i class="story-dialogue-cursor" aria-hidden="true"></i></p>
                     </div>
                     <div class="story-dialogue-choices" hidden></div>
                     <footer class="story-dialogue-controls">
                         <button class="story-dialogue-auto" type="button" aria-pressed="false">自動閱讀</button>
+                        <button class="story-dialogue-read-more" type="button" hidden>
+                            <span>下方還有內容</span><i aria-hidden="true">↓</i>
+                        </button>
                         <span class="story-dialogue-progress"></span>
                         <span class="story-dialogue-next" aria-hidden="true">▼</span>
                     </footer>
@@ -64,10 +68,12 @@ export default class StoryDialogueView {
         this.name = this.nameplate.querySelector('strong');
         this.role = this.nameplate.querySelector('span');
         this.copy = this.root.querySelector('.story-dialogue-copy p');
+        this.copyText = this.copy.querySelector('.story-dialogue-text');
         this.cursor = this.root.querySelector('.story-dialogue-cursor');
         this.choices = this.root.querySelector('.story-dialogue-choices');
         this.closeButton = this.root.querySelector('.story-dialogue-close');
         this.autoButton = this.root.querySelector('.story-dialogue-auto');
+        this.readMoreButton = this.root.querySelector('.story-dialogue-read-more');
         this.progress = this.root.querySelector('.story-dialogue-progress');
         this.next = this.root.querySelector('.story-dialogue-next');
 
@@ -80,6 +86,7 @@ export default class StoryDialogueView {
         });
         this.closeButton.addEventListener('click', () => this.handlers.close?.());
         this.autoButton.addEventListener('click', () => this.handlers.toggleAuto?.());
+        this.readMoreButton.addEventListener('click', () => this.scrollCopyByLine());
         this.choices.addEventListener('click', event => {
             const option = event.target.closest('[data-story-choice-id]');
             if (option) this.handlers.choose?.(option.dataset.storyChoiceId);
@@ -116,14 +123,17 @@ export default class StoryDialogueView {
         clearTimeout(this.copyScrollTimer);
         this.copyScrollTimer = null;
         this.copyTargetScroll = 0;
+        this.copyTyping = false;
         this.renderedLineKey = null;
         this.cast.innerHTML = '';
         this.choices.innerHTML = '';
         this.choices.hidden = true;
-        this.copy.textContent = '';
+        this.copyText.textContent = '';
         this.backdrop.style.backgroundImage = '';
         this.backdrop.style.backgroundPosition = '';
         this.overlay.dataset.visualMode = 'scene';
+        this.box.classList.remove('has-more-copy');
+        this.readMoreButton.hidden = true;
     }
 
     getCopyLineHeight() {
@@ -137,6 +147,22 @@ export default class StoryDialogueView {
         this.copyTargetScroll = target;
         if (Math.abs(this.copy.scrollTop - target) < 0.5) return;
         this.copy.scrollTo({ top: target, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    scrollCopyByLine() {
+        const lineHeight = this.getCopyLineHeight();
+        const maxScroll = Math.max(0, this.copy.scrollHeight - this.copy.clientHeight);
+        const target = Math.min(maxScroll, this.copy.scrollTop + lineHeight);
+        this.copyTargetScroll = target;
+        this.copy.scrollTo({ top: target, behavior: 'smooth' });
+    }
+
+    updateCopyOverflowState() {
+        const maxScroll = Math.max(0, this.copy.scrollHeight - this.copy.clientHeight);
+        const hasMore = maxScroll > 1 && this.copy.scrollTop < maxScroll - 2;
+        this.box.classList.toggle('has-more-copy', hasMore);
+        this.readMoreButton.hidden = !hasMore;
+        this.next.hidden = this.copyTyping || hasMore;
     }
 
     handleCopyWheel(event) {
@@ -157,10 +183,12 @@ export default class StoryDialogueView {
     }
 
     handleCopyScroll() {
+        this.updateCopyOverflowState();
         clearTimeout(this.copyScrollTimer);
         this.copyScrollTimer = window.setTimeout(() => {
             this.copyScrollTimer = null;
             this.snapCopyToLine();
+            this.updateCopyOverflowState();
         }, 90);
     }
 
@@ -226,11 +254,12 @@ export default class StoryDialogueView {
         this.nameplate.hidden = Boolean(line.isNarration);
         this.name.textContent = line.speaker || '';
         this.role.textContent = line.role || '';
-        this.copy.textContent = text || '';
+        this.copyText.textContent = text || '';
         this.copy.classList.toggle('is-prose', Boolean(line.isNarration));
+        this.copyTyping = typing;
         this.cursor.hidden = !typing;
-        this.next.hidden = typing;
         this.progress.textContent = `${Math.min(index + 1, total)} / ${total}`;
+        this.updateCopyOverflowState();
         this.renderCast(participants, line, hidesCast);
     }
 
@@ -283,10 +312,13 @@ export default class StoryDialogueView {
         this.nameplate.hidden = !name;
         this.name.textContent = name;
         this.role.textContent = role;
-        this.copy.textContent = title;
+        this.copyText.textContent = title;
         this.copy.classList.remove('is-prose');
+        this.copyTyping = false;
         this.cursor.hidden = true;
         this.next.hidden = true;
+        this.readMoreButton.hidden = true;
+        this.box.classList.remove('has-more-copy');
         this.progress.textContent = '';
         const characterImage = standing || portrait;
         const facingClass = shouldMirrorStanding('left', standingFacing) ? ' is-mirrored' : '';
