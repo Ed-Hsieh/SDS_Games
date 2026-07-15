@@ -36,21 +36,42 @@ function parseMetadata(block) {
 
 function parseBeats(block, sceneId) {
     const beats = [];
-    for (const line of block.split(/\r?\n/)) {
+    const lines = block.split(/\r?\n/);
+    const headerLine = lines.find(line => /^\|\s*Order\s*\|/.test(line));
+    const headers = headerLine
+        ? headerLine.slice(1, -1).split('|').map(cell => cell.trim())
+        : [];
+    const column = label => headers.indexOf(label);
+    const orderColumn = column('Order');
+    const conditionColumn = column('Condition');
+    const beatColumn = column('Beat');
+    const speakerColumn = column('Speaker');
+    const expressionColumn = column('Expression');
+    const phaseColumn = column('Presentation Phase');
+    const visualColumn = column('Visual Mode');
+    const textColumn = column('Runtime Text / Stage Action');
+
+    for (const line of lines) {
         if (!/^\|\s*\d+\s*\|/.test(line)) continue;
         const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
-        if (cells.length < 6) {
+        if (cells.length < headers.length || textColumn < 0) {
             throw new Error(`Malformed beat row in ${sceneId}: ${line}`);
         }
-        const [order, condition, beat, speaker, expression, ...textCells] = cells;
-        beats.push({
-            order: Number(order),
-            condition: stripTicks(condition),
-            beat: stripTicks(beat),
+        const speaker = cells[speakerColumn];
+        const expression = cells[expressionColumn];
+        const phase = phaseColumn >= 0 ? stripTicks(cells[phaseColumn]) : '';
+        const visualMode = visualColumn >= 0 ? stripTicks(cells[visualColumn]) : '';
+        const entry = {
+            order: Number(cells[orderColumn]),
+            condition: stripTicks(cells[conditionColumn]),
+            beat: stripTicks(cells[beatColumn]),
             actorId: stripTicks(speaker) === '-' ? null : stripTicks(speaker),
             expression: stripTicks(expression) === '-' ? null : stripTicks(expression),
-            text: textCells.join('|').trim()
-        });
+            text: cells.slice(textColumn).join('|').trim()
+        };
+        if (phase && phase !== '-') entry.presentationPhase = phase;
+        if (visualMode && visualMode !== '-') entry.visualMode = visualMode;
+        beats.push(entry);
     }
 
     if (!beats.length || beats.some((entry, index) => entry.order !== index + 1)) {
@@ -68,6 +89,7 @@ const scenes = matches.map((match, index) => {
 
     return {
         id,
+        ...(metadata.title ? { title: metadata.title } : {}),
         chapter: Number(match[2]),
         chapterOrder: Number(match[3]),
         stageClass: metadata.stageClass,

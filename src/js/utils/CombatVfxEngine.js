@@ -145,11 +145,11 @@ export default class CombatVfxEngine {
     }
 
     get enemyPoint() {
-        return { x: this.width * 0.515, y: this.height * 0.465 };
+        return { x: this.width * 0.515, y: this.height * 0.43 };
     }
 
     get playerPoint() {
-        return { x: this.width * 0.5, y: this.height * 0.84 };
+        return { x: this.width * 0.5, y: this.height * 0.79 };
     }
 
     resize() {
@@ -460,7 +460,7 @@ export default class CombatVfxEngine {
     }
 
     monsterClaw() {
-        const center = { x: this.width * 0.5, y: this.height * 0.58 };
+        const center = this.playerPoint;
         [-54, 0, 54].forEach((offset, index) => {
             this.addEffect('claw', {
                 point: { x: center.x + offset, y: center.y },
@@ -473,7 +473,7 @@ export default class CombatVfxEngine {
     }
 
     monsterCrush() {
-        const point = { x: this.width * 0.5, y: this.height * 0.7 };
+        const point = this.playerPoint;
         this.addEffect('vertical-crush', {
             point,
             duration: 700,
@@ -504,8 +504,8 @@ export default class CombatVfxEngine {
     }
 
     monsterProjectile() {
-        const start = { x: this.width * 0.52, y: this.height * 0.38 };
-        const end = { x: this.width * 0.5, y: this.height * 0.82 };
+        const start = this.enemyPoint;
+        const end = this.playerPoint;
         this.addEffect('projectile', {
             start,
             end,
@@ -517,8 +517,8 @@ export default class CombatVfxEngine {
     }
 
     monsterBreath() {
-        const start = { x: this.width * 0.52, y: this.height * 0.38 };
-        const end = { x: this.width * 0.5, y: this.height * 0.91 };
+        const start = this.enemyPoint;
+        const end = this.playerPoint;
         this.addEffect('breath', {
             start,
             end,

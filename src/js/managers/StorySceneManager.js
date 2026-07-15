@@ -10,7 +10,7 @@ import {
     StorySceneOrder,
     getStoryScene
 } from '../data/StorySceneRegistry.js';
-import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js?v=mia-layer-test-20260712x';
+import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js?v=chapter1-art-20260713a';
 import {
     applyStorySceneEffects,
     clearCurrentRunStoryFlags,
@@ -31,6 +31,16 @@ import { storyJournalManager } from './StoryJournalManager.js';
 export const StoryRun = Object.freeze({
     FIRST: 1,
     SECOND: 2
+});
+
+const CHAPTER_ONE_SCENE_BACKGROUNDS = Object.freeze({
+    ch1_s01_road_collapse: 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp',
+    ch1_s02_wake_under_bitter_bottles: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp',
+    ch1_s03_broken_crossroads: 'src/assets/images/art/scenes/town/locations/crossroads-broken.webp',
+    ch1_s04_elder_to_scholar: 'src/assets/images/art/scenes/town/locations/handbook.webp',
+    ch1_s05_south_gate_introduction: 'src/assets/images/art/scenes/town/locations/gate-broken.webp',
+    ch1_s08_cold_forge_smoke: 'src/assets/images/art/scenes/town/locations/forge-cold.webp',
+    ch1_s11_roads_breathe_again: 'src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp'
 });
 
 class StorySceneManager {
@@ -155,16 +165,20 @@ class StorySceneManager {
     resolveBeat(beat, scene) {
         const actor = this.resolveActor(beat.actorId);
         const expression = beat.expression || 'neutral';
+        const backgroundImage = CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || null;
         return {
             ...beat,
             actorId: actor?.id || null,
             speaker: actor?.name || '',
             role: actor?.role || '',
             portrait: actor?.portrait || null,
+            standing: actor?.standing || null,
+            standingFacing: actor?.standingFacing || 'center',
             isNarration: beat.beat === 'narration',
             expression: beat.expression,
             expressionLayer: actor ? getStoryExpressionLayer(actor.id, expression) : null,
             background: beat.background || scene.background,
+            backgroundImage,
             viewpoint: scene.viewpoint
         };
     }
@@ -207,7 +221,8 @@ class StorySceneManager {
             tone: scene.stageClass,
             route: null,
             routeLabel: null,
-            background: scene.background,
+            background: CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || scene.background,
+            backgroundImage: CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || null,
             worldState: scene.worldState,
             viewpoint: scene.viewpoint,
             knowledgeBoundary: scene.knowledgeBoundary
@@ -390,17 +405,6 @@ class StorySceneManager {
         return this.getAvailableSceneOrder().find(sceneId =>
             !isOptionalStoryScene(sceneId) && !this.isSceneComplete(sceneId)
         ) || null;
-    }
-
-    getNextAvailableSceneForActor(actorId, { stageClass = null } = {}) {
-        if (!actorId) return null;
-        const sceneId = this.getNextAvailableSceneId();
-        const scene = getStoryScene(sceneId);
-        if (!scene || (stageClass && scene.stageClass !== stageClass)) return null;
-        const participates = scene.beats.some(beat =>
-            beat.actorId === actorId && this.matchesBeatCondition(beat.condition)
-        );
-        return participates ? sceneId : null;
     }
 
     beginSecondRun() {

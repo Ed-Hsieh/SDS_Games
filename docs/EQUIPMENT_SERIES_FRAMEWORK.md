@@ -18,10 +18,10 @@ direction before those systems are rewritten.
 - Shadow and glimmer foreshadow those later affinities without naturally
   upgrading into them. Every physical external-story item is reacquired inside
   the current run; only achievement meaning persists across runs.
-- Ash Baron, the expedition supreme commander, radiant Bosses, Void Bosses, and
-  the planned prologue overcap demon are base-game second-run chase sources, not
-  mainline convergence. Later DLC extends the light/Void and tower ecosystem
-  after their first optional resolution.
+- The prologue stag rematch, 無名之咒, the expedition supreme commander, Ash
+  Baron, 熵, the light trial, and the Void Boss are base-game second-run chase
+  sources, not mainline convergence. Later DLC extends the light/Void and tower
+  ecosystem after their first optional resolution.
 
 ## Core Rules
 

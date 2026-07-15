@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -87,10 +87,10 @@ agent sessions should read this file before editing content or asset systems.
   affinity ceiling of shadow and glimmer. Formal light/Void creatures,
   materials, equipment, affinities, and combat routes may appear only in
   optional second-run external stories and must never gate the true ending.
-  Ash Baron, the expedition supreme commander, and the planned prologue
-  overcap demon belong to that base-game second-run Boss layer. DLC extends the
-  light/Void and tower world after those reveals instead of owning their first
-  resolution.
+  Ash Baron, the expedition supreme commander, and the hidden rematch with the
+  prologue's curse-maddened stag belong to that base-game second-run Boss layer.
+  DLC extends the light/Void and tower world after those reveals instead of
+  owning their first resolution.
 
 ## Current Documentation Authority
 
@@ -190,7 +190,16 @@ scripts. Use `docs/ART_STYLE_GUIDE.md` and `docs/IMAGE_GENERATION_PROMPTS.md`.
 
 Current measured gaps:
 
-- Chapter 1-2 require 34 actor-expression combinations; only Mia neutral exists.
+- The repository contains 31 half-body `*-standing.webp` files. Across the
+  complete first run, 26 of 53 required human actor-expression combinations have
+  physical files and 27 remain. Chapter 1 is 23/23; Chapter 2 is 13/21 by file
+  coverage. Only the Chapter 1 set is fully registered in `StoryActors.js`.
+  Static Boss dialogue reuses approved full Boss art and is excluded from those
+  counts.
+- The remaining first-run narrative-art ledger contains 59 images: 27 expression
+  layers, five Chapter 3-7 overworld canvases, eight town state backgrounds,
+  fifteen field/location backgrounds, two mandatory CGs, and two story-object
+  icons. Exact ids and scene ownership are in `docs/ART_STYLE_GUIDE.md`.
 - Asset coverage has zero missing physical files for existing mappings.
 - 49 crafted-result items and 33 casino special items have no image mapping.
 - 26 unique images have specification warnings; four dungeon Boss images are

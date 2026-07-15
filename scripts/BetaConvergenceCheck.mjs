@@ -168,17 +168,10 @@ function auditTravelerJournal() {
 }
 
 function auditStoryContent() {
-    const main = Array.isArray(QuestDatabase.main) ? QuestDatabase.main : [];
-    const expectedMainCounts = { 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1 };
-    for (const [chapter, expected] of Object.entries(expectedMainCounts)) {
-        const actual = main.filter(quest => Number(quest.chapter) === Number(chapter)).length;
-        if (actual !== expected) {
-            addIssue('story-content', 'Scene-driven main quest count changed from the accepted seven-chapter spine.', {
-                chapter: Number(chapter),
-                expected,
-                actual
-            });
-        }
+    if (Object.hasOwn(QuestDatabase, 'main')) {
+        addIssue('story-content', 'Legacy chapter quest wrappers returned after story guidance consolidation.', {
+            questIds: (Reflect.get(QuestDatabase, 'main') || []).map(quest => quest.id)
+        });
     }
 
     if (StorySceneOrder.length !== 66) {
@@ -205,7 +198,9 @@ function auditStoryContent() {
         }
     }
 
-    summary.mainStoryChapters = expectedMainCounts;
+    summary.mainStoryChapters = new Set(
+        StorySceneOrder.map(sceneId => Number(sceneId.match(/^ch(\d+)_/)?.[1])).filter(Boolean)
+    ).size;
     summary.screenplayScenes = StorySceneOrder.length;
     summary.mainlineCharacterContracts = Object.keys(MainlineCharacterContracts).length;
     summary.deferredOptionalSideStories = OptionalSideStoryRegistry.length;

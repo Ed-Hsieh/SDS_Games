@@ -360,10 +360,24 @@ export const SecondRunExternalBossFramework = Object.freeze({
     resumeGate: 'complete_and_validate_first_run_story_systems_and_required_art_then_audit_persistent_evidence_flags',
     tracks: Object.freeze([
         Object.freeze({
-            key: 'prologue_overcap_demon',
+            key: 'prologue_blood_moon_stag',
+            runtimeBossId: 'blood_moon_stag',
+            window: 'opening_seed_then_second_run_hidden_rematch',
+            purpose: 'Revisit the opening charge route and identify the curse-maddened beast behind the silhouette.',
+            status: 'identity_accepted_route_paused'
+        }),
+        Object.freeze({
+            key: 'nameless_curse',
             runtimeBossId: null,
-            window: 'opening_seed_then_ch6_ch7_rematch',
-            purpose: 'Turn the tutorial defeat into a personal second-run revenge route.',
+            window: 'ch2_ch3',
+            purpose: 'Give the erased dead a curse-compressed body without reducing them to one honored corpse or generic undead ruler.',
+            status: 'concept_accepted_route_paused'
+        }),
+        Object.freeze({
+            key: 'expedition_supreme_commander',
+            runtimeBossId: null,
+            window: 'ch5_ch6',
+            purpose: 'Reveal the expedition history that mandatory records can only approach from outside.',
             status: 'pending_story_design'
         }),
         Object.freeze({
@@ -374,18 +388,18 @@ export const SecondRunExternalBossFramework = Object.freeze({
             status: 'legacy_runtime_requires_rewrite'
         }),
         Object.freeze({
-            key: 'expedition_supreme_commander',
+            key: 'entropy_balance_external',
             runtimeBossId: null,
-            window: 'ch5_ch6',
-            purpose: 'Reveal the expedition history that mandatory records can only approach from outside.',
-            status: 'pending_story_design'
+            window: 'after_ch5_elemental_lord',
+            purpose: 'Manifest the violent balancing response left when four ordinary elements lose mutual restraint.',
+            status: 'concept_accepted_route_paused'
         }),
         Object.freeze({
-            key: 'radiant_corridor_external',
+            key: 'light_trial_external',
             runtimeBossId: 'aurora_archon',
-            window: 'late_second_run_level_70',
-            purpose: 'Introduce formal light as a rhythm trial without replacing glimmer in the true ending.',
-            status: 'existing_runtime_requires_story_unlock'
+            window: 'ch6',
+            purpose: 'Introduce formal light and a weapon-form-neutral method for revealing the Chapter 7 Void target.',
+            status: 'concept_accepted_existing_runtime_requires_story_unlock'
         }),
         Object.freeze({
             key: 'void_revelation_external',

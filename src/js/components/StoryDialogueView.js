@@ -6,10 +6,29 @@ function resolveImage(source = '') {
     return /^(?:https?:|blob:|data:|\/)/.test(value) ? value : `/${value}`;
 }
 
+function resolveLayerImage(layer) {
+    if (!layer) return '';
+    if (typeof layer === 'string') return layer;
+    return layer.image || layer.path || '';
+}
+
+function shouldMirrorStanding(side, facing = 'center') {
+    return (side === 'left' && facing === 'left')
+        || (side === 'right' && facing === 'right');
+}
+
 export default class StoryDialogueView {
     constructor(root) {
         this.root = root;
         this.handlers = {};
+        this.scopeElement = null;
+        this.scopeResizeObserver = null;
+        this.renderedLineKey = null;
+        this.copyScrollTimer = null;
+        this.copyTargetScroll = 0;
+        this.updateScopeBounds = this.updateScopeBounds.bind(this);
+        this.handleCopyWheel = this.handleCopyWheel.bind(this);
+        this.handleCopyScroll = this.handleCopyScroll.bind(this);
         this.renderShell();
     }
 
@@ -52,6 +71,9 @@ export default class StoryDialogueView {
         this.progress = this.root.querySelector('.story-dialogue-progress');
         this.next = this.root.querySelector('.story-dialogue-next');
 
+        this.copy.addEventListener('wheel', this.handleCopyWheel, { passive: false });
+        this.copy.addEventListener('scroll', this.handleCopyScroll, { passive: true });
+
         this.overlay.addEventListener('click', event => {
             if (event.target.closest('button')) return;
             this.handlers.advance?.();
@@ -80,7 +102,8 @@ export default class StoryDialogueView {
         this.handlers = handlers;
     }
 
-    show({ closable = false, autoPlay = false } = {}) {
+    show({ closable = false, autoPlay = false, scopeElement = null } = {}) {
+        this.setScope(scopeElement);
         this.root.hidden = false;
         this.closeButton.hidden = !closable;
         this.setAutoPlay(autoPlay);
@@ -89,12 +112,93 @@ export default class StoryDialogueView {
 
     hide() {
         this.root.hidden = true;
+        this.clearScope();
+        clearTimeout(this.copyScrollTimer);
+        this.copyScrollTimer = null;
+        this.copyTargetScroll = 0;
+        this.renderedLineKey = null;
         this.cast.innerHTML = '';
         this.choices.innerHTML = '';
         this.choices.hidden = true;
         this.copy.textContent = '';
         this.backdrop.style.backgroundImage = '';
+        this.backdrop.style.backgroundPosition = '';
         this.overlay.dataset.visualMode = 'scene';
+    }
+
+    getCopyLineHeight() {
+        return Number.parseFloat(getComputedStyle(this.copy).lineHeight) || 37;
+    }
+
+    snapCopyToLine({ smooth = true } = {}) {
+        const lineHeight = this.getCopyLineHeight();
+        const maxScroll = Math.max(0, this.copy.scrollHeight - this.copy.clientHeight);
+        const target = Math.min(maxScroll, Math.round(this.copy.scrollTop / lineHeight) * lineHeight);
+        this.copyTargetScroll = target;
+        if (Math.abs(this.copy.scrollTop - target) < 0.5) return;
+        this.copy.scrollTo({ top: target, behavior: smooth ? 'smooth' : 'auto' });
+    }
+
+    handleCopyWheel(event) {
+        if (this.copy.scrollHeight <= this.copy.clientHeight || !event.deltaY) return;
+        event.preventDefault();
+
+        const lineHeight = this.getCopyLineHeight();
+        const maxScroll = Math.max(0, this.copy.scrollHeight - this.copy.clientHeight);
+        const wheelLines = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+            ? Math.max(1, Math.round(Math.abs(event.deltaY)))
+            : Math.min(4, Math.max(1, Math.ceil(Math.abs(event.deltaY) / 70)));
+        const base = Math.abs(this.copy.scrollTop - this.copyTargetScroll) <= lineHeight * 1.5
+            ? this.copyTargetScroll
+            : Math.round(this.copy.scrollTop / lineHeight) * lineHeight;
+        const target = Math.min(maxScroll, Math.max(0, base + Math.sign(event.deltaY) * wheelLines * lineHeight));
+        this.copyTargetScroll = target;
+        this.copy.scrollTo({ top: target, behavior: 'smooth' });
+    }
+
+    handleCopyScroll() {
+        clearTimeout(this.copyScrollTimer);
+        this.copyScrollTimer = window.setTimeout(() => {
+            this.copyScrollTimer = null;
+            this.snapCopyToLine();
+        }, 90);
+    }
+
+    setScope(scopeElement = null) {
+        this.clearScope();
+        if (!(scopeElement instanceof HTMLElement) || !scopeElement.isConnected) return;
+
+        this.scopeElement = scopeElement;
+        this.root.dataset.scope = 'element';
+        this.updateScopeBounds();
+        window.addEventListener('resize', this.updateScopeBounds);
+        if ('ResizeObserver' in window) {
+            this.scopeResizeObserver = new ResizeObserver(this.updateScopeBounds);
+            this.scopeResizeObserver.observe(scopeElement);
+        }
+    }
+
+    updateScopeBounds() {
+        if (!this.scopeElement?.isConnected) return;
+        const rect = this.scopeElement.getBoundingClientRect();
+        this.root.style.inset = 'auto';
+        this.root.style.left = `${Math.round(rect.left)}px`;
+        this.root.style.top = `${Math.round(rect.top)}px`;
+        this.root.style.width = `${Math.round(rect.width)}px`;
+        this.root.style.height = `${Math.round(rect.height)}px`;
+    }
+
+    clearScope() {
+        window.removeEventListener('resize', this.updateScopeBounds);
+        this.scopeResizeObserver?.disconnect();
+        this.scopeResizeObserver = null;
+        this.scopeElement = null;
+        delete this.root.dataset.scope;
+        this.root.style.removeProperty('left');
+        this.root.style.removeProperty('top');
+        this.root.style.removeProperty('width');
+        this.root.style.removeProperty('height');
+        this.root.style.removeProperty('inset');
     }
 
     setAutoPlay(enabled) {
@@ -103,12 +207,22 @@ export default class StoryDialogueView {
         this.autoButton.textContent = enabled ? '自動播放中' : '自動閱讀';
     }
 
-    renderLine({ line, text, participants = [], index = 0, total = 1, typing = false, backgroundImage = '' }) {
+    renderLine({ line, text, participants = [], index = 0, total = 1, typing = false, backgroundImage = '', backgroundPosition = 'center' }) {
+        const lineKey = `${index}:${line.order ?? ''}:${line.actorId ?? ''}:${line.text ?? ''}`;
+        if (lineKey !== this.renderedLineKey) {
+            this.renderedLineKey = lineKey;
+            clearTimeout(this.copyScrollTimer);
+            this.copyScrollTimer = null;
+            this.copy.scrollTop = 0;
+            this.copyTargetScroll = 0;
+        }
         const visualMode = line.visualMode || (line.isNarration ? 'narration' : 'speaker');
         const isBlackout = visualMode === 'blackout';
+        const hidesCast = isBlackout || visualMode === 'eyes-closing';
         this.overlay.dataset.visualMode = visualMode;
         const resolvedBackground = resolveImage(line.backgroundImage || backgroundImage);
         this.backdrop.style.backgroundImage = !isBlackout && resolvedBackground ? `url("${resolvedBackground}")` : '';
+        this.backdrop.style.backgroundPosition = line.backgroundPosition || backgroundPosition || 'center';
         this.nameplate.hidden = Boolean(line.isNarration);
         this.name.textContent = line.speaker || '';
         this.role.textContent = line.role || '';
@@ -117,7 +231,7 @@ export default class StoryDialogueView {
         this.cursor.hidden = !typing;
         this.next.hidden = typing;
         this.progress.textContent = `${Math.min(index + 1, total)} / ${total}`;
-        this.renderCast(participants, line, isBlackout);
+        this.renderCast(participants, line, hidesCast);
     }
 
     renderCast(participants = [], line = {}, hidden = false) {
@@ -128,29 +242,44 @@ export default class StoryDialogueView {
         const activeId = line.actorId || null;
         const usable = participants
             .filter(actor => actor?.id || actor?.actorId)
-            .filter(actor => actor.portrait || actor.image || actor.expressionLayer || actor.id === activeId);
+            .filter(actor => actor.standing || actor.portrait || actor.image || resolveLayerImage(actor.expressionLayer) || actor.id === activeId);
         const visible = usable.slice(0, 4);
         this.cast.innerHTML = visible.map((actor, index) => {
             const actorId = actor.id || actor.actorId;
             const isActive = actorId === activeId;
             const side = index % 2 === 0 ? 'left' : 'right';
             const slot = Math.floor(index / 2);
+            const lineExpression = resolveLayerImage(line.expressionLayer);
+            const actorExpression = resolveLayerImage(actor.expressionLayer);
+            const expressionScale = isActive
+                ? (line.expressionLayer?.scale || actor.expressionLayer?.scale || 1)
+                : (actor.expressionLayer?.scale || 1);
+            const expressionOffsetY = isActive
+                ? (line.expressionLayer?.offsetY || actor.expressionLayer?.offsetY || 0)
+                : (actor.expressionLayer?.offsetY || 0);
+            const standingScale = Number((isActive ? line.standingScale : null) ?? actor.standingScale) || 1;
+            const standingOffsetY = Number((isActive ? line.standingOffsetY : null) ?? actor.standingOffsetY) || 0;
+            const resolvedScale = standingScale * (Number(expressionScale) || 1);
+            const resolvedOffsetY = standingOffsetY + (Number(expressionOffsetY) || 0);
+            const facing = (isActive ? line.standingFacing : '') || actor.standingFacing || 'center';
+            const facingClass = shouldMirrorStanding(side, facing) ? ' is-mirrored' : '';
             const image = isActive
-                ? (line.expressionLayer || line.portrait || actor.expressionLayer || actor.portrait || actor.image)
-                : (actor.portrait || actor.image || actor.expressionLayer);
+                ? (lineExpression || line.standing || actorExpression || actor.standing || line.portrait || actor.portrait || actor.image)
+                : (actorExpression || actor.standing || actor.portrait || actor.image);
             if (!image) return '';
             return `
-                <figure class="story-dialogue-actor ${isActive ? 'is-active' : 'is-inactive'}" data-side="${side}" data-slot="${slot}">
+                <figure class="story-dialogue-actor ${isActive ? 'is-active' : 'is-inactive'}${facingClass}" data-side="${side}" data-slot="${slot}" style="--story-actor-scale: ${resolvedScale}; --story-actor-offset-y: ${resolvedOffsetY}%">
                     <img src="${escapeHtml(resolveImage(image))}" alt="${escapeHtml(actor.name || line.speaker || '')}">
                 </figure>
             `;
         }).join('');
     }
 
-    renderChoices({ title = '選擇話題', choices = [], portrait = '', name = '', role = '', backgroundImage = '' }) {
+    renderChoices({ title = '選擇話題', choices = [], standing = '', standingFacing = 'center', standingScale = 1, standingOffsetY = 0, portrait = '', name = '', role = '', backgroundImage = '', backgroundPosition = 'center' }) {
         this.overlay.dataset.visualMode = 'choice';
         const resolvedBackground = resolveImage(backgroundImage);
         this.backdrop.style.backgroundImage = resolvedBackground ? `url("${resolvedBackground}")` : '';
+        this.backdrop.style.backgroundPosition = backgroundPosition || 'center';
         this.nameplate.hidden = !name;
         this.name.textContent = name;
         this.role.textContent = role;
@@ -159,9 +288,11 @@ export default class StoryDialogueView {
         this.cursor.hidden = true;
         this.next.hidden = true;
         this.progress.textContent = '';
-        this.cast.innerHTML = portrait ? `
-            <figure class="story-dialogue-actor is-active" data-side="left" data-slot="0">
-                <img src="${escapeHtml(resolveImage(portrait))}" alt="${escapeHtml(name)}">
+        const characterImage = standing || portrait;
+        const facingClass = shouldMirrorStanding('left', standingFacing) ? ' is-mirrored' : '';
+        this.cast.innerHTML = characterImage ? `
+            <figure class="story-dialogue-actor is-active${facingClass}" data-side="left" data-slot="0" style="--story-actor-scale: ${Number(standingScale) || 1}; --story-actor-offset-y: ${Number(standingOffsetY) || 0}%">
+                <img src="${escapeHtml(resolveImage(characterImage))}" alt="${escapeHtml(name)}">
             </figure>
         ` : '';
         this.choices.hidden = false;

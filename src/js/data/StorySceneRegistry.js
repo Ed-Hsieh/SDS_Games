@@ -39,7 +39,7 @@ export const StorySceneOrder = Object.freeze([
     "ch2_s02_name_under_basket",
     "ch2_s03_ledger_that_would_not_close",
     "ch2_s04_mist_and_tomb_route",
-    "ch2_s05_blood_moon_hunt",
+    "ch2_s05_moon_moss_trace",
     "ch2_s06_keeper_of_names",
     "ch2_s07_names_return_to_town",
     "ch2_s08_shadow_at_the_checkpoint",
@@ -111,7 +111,7 @@ export const StorySceneOrderByChapter = Object.freeze({
         "ch2_s02_name_under_basket",
         "ch2_s03_ledger_that_would_not_close",
         "ch2_s04_mist_and_tomb_route",
-        "ch2_s05_blood_moon_hunt",
+        "ch2_s05_moon_moss_trace",
         "ch2_s06_keeper_of_names",
         "ch2_s07_names_return_to_town",
         "ch2_s08_shadow_at_the_checkpoint"
@@ -182,35 +182,26 @@ export const StorySceneRegistry = Object.freeze({
         "chapter": 1,
         "chapterOrder": 1,
         "stageClass": "regional_canvas",
-        "background": "working: south road outside town, broken verge and blackened root pressure",
-        "worldState": "Chapter 1 opening; overcast; town still out of sight behind the bend",
+        "background": "south-road-broken.webp; south road outside town, broken verge, blackened roots, steep downhill shoulder",
+        "worldState": "Chapter 1 opening; overcast; protagonist already wounded by abnormal lesser monsters; town remains out of sight behind the bend",
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "Mia enters only after the opening encounter",
-        "entry": "player control begins on the south road; the event layer interrupts when route behavior changes",
+        "entry": "player reaches the last south-road bend with a damaged guild-issued hunting blade and torn field leathers; the event layer interrupts when the mist stops moving",
         "exit": "fade through loss of consciousness into Mia's workroom",
-        "objective": "survive the opening encounter and reach shelter",
+        "objective": "break through the unknown giant and reach the reported village",
         "inputsRaw": "new game or new-run Chapter 1 start",
-        "outputsRaw": "protagonist wounded but alive; Mia opening rescue; workroom opening state",
-        "assetNotes": "missing regional opening background; reuse Mia's current portrait until layered expressions exist",
+        "outputsRaw": "opening rhythm tutorial completed; guild-issued hunting blade broken and field leathers ruined; protagonist thrown down the slope, poisoned, and found alive by Mia; workroom opening state",
+        "assetNotes": "use `south-road-broken.webp`; conceal the stag image as a silhouette; after the downhill impact, close the visible scene with the `eyes-closing` transition before the post-impact blackout; neither state uses a protagonist portrait",
         "beats": [
-            {
-                "order": 0,
-                "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "presentationPhase": "pre_battle",
-                "text": "王國的巡查令在外套內袋磨著肋骨。這片邊境已錯過數次稅簿與信使回報，我奉命確認道路為何失去消息，以及還有沒有人能把答覆送出去。"
-            },
             {
                 "order": 1,
                 "condition": "any",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "presentationPhase": "pre_battle",
-                "text": "南路沒有風，草卻一叢接一叢向北伏倒。泥上的爪印彼此重疊，像原本互不相近的東西忽然都在追同一條路。"
+                "text": "三天前，冒險者公會把一張失聯調查委託推到我面前。目的地是南境一座偏遠小鎮；稅簿一個月沒送到，兩名信使也沒有回來。我要確認商路、找出斷訊原因，再把答覆帶回去。",
+                "presentationPhase": "pre_battle"
             },
             {
                 "order": 2,
@@ -218,24 +209,26 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "presentationPhase": "pre_battle",
-                "text": "路肩裂開一線黑色。細根在土下鼓動，前方的動靜也同時停了。"
+                "text": "報酬高得不像普通巡查。委託紙只寫了路遠，沒提黑霧，也沒提沿路那些枯得不像活物的東西。",
+                "presentationPhase": "pre_battle"
             },
             {
                 "order": 3,
                 "condition": "any",
-                "beat": "exit",
+                "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "收起事件層，進入開場途中遭遇。"
+                "text": "我在南路外圍已經放倒三隻枯瘦的東西。公會制式獵刀崩了一角，公會外勤皮甲的左肩也被抓開；傷口又冷又麻，草葉擦過靴面時全朝同一個方向伏倒。北方。",
+                "presentationPhase": "pre_battle"
             },
             {
                 "order": 4,
                 "condition": "any",
-                "beat": "enter",
+                "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "戰鬥結束後重新開啟事件層；鏡頭停在路面與主角失去力氣的手。"
+                "text": "霧停了。兩道巨角先從灰白裡抬起，接著才是比馬背更高的肩胛；牠胸前的毛被黑根黏成硬塊，每一次喘息都帶著腐葉與鐵鏽的味道。",
+                "presentationPhase": "pre_battle"
             },
             {
                 "order": 5,
@@ -243,47 +236,46 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "presentationPhase": "post_battle",
-                "visualMode": "blackout",
-                "text": "傷口沒有立刻流出多少血，麻木卻沿著手臂往上爬。遠處的南門只剩一小塊灰色輪廓。"
+                "text": "牠沒有看路。只看我。",
+                "presentationPhase": "pre_battle"
             },
             {
                 "order": 6,
                 "condition": "any",
-                "beat": "narration",
+                "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "presentationPhase": "post_battle",
-                "visualMode": "blackout",
-                "text": "腳步從城鎮方向逼近。有人先按住你的手，阻止你去摸傷口。"
+                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即觸發不可打斷的斷坡衝撞。"
             },
             {
                 "order": 7,
                 "condition": "any",
-                "beat": "enter",
+                "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "Mia 進入近景，跪在主角身側，先檢查瞳孔與呼吸。"
+                "text": "巨角撞上刀脊。金屬的低鳴貼著掌骨鑽進來；刀身折斷，視野也從上下兩端猛地闔上。",
+                "presentationPhase": "post_battle",
+                "visualMode": "eyes-closing"
             },
             {
                 "order": 8,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "herbalist",
-                "expression": "resolute",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "天空翻了半圈。我摔出路肩，碎石一路撞著背脊，濕土灌進領口。",
                 "presentationPhase": "post_battle",
-                "visualMode": "blackout",
-                "text": "手離開那裡。能聽見就眨一下眼。"
+                "visualMode": "blackout"
             },
             {
                 "order": 9,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "herbalist",
-                "expression": "guarded",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "坡頂傳來一聲嘶鳴。那頭巨影沒有追來，只在霧裡踩碎石塊，聲音越來越遠。",
                 "presentationPhase": "post_battle",
-                "visualMode": "blackout",
-                "text": "很好。現在別證明你能站。活著就夠了。"
+                "visualMode": "blackout"
             },
             {
                 "order": 10,
@@ -291,17 +283,49 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
+                "text": "枯枝忽然連響幾聲。腳步很急，卻沒有亂；有人跪進濕土，先按住我伸向傷口的手。",
                 "presentationPhase": "post_battle",
-                "visualMode": "blackout",
-                "text": "苦澀的氣味壓過潮土。布帶收緊時，黑色的細根仍在道路另一側朝北顫動。"
+                "visualMode": "blackout"
             },
             {
                 "order": 11,
                 "condition": "any",
-                "beat": "exit",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "resolute",
+                "text": "手別動。碎片還卡在裡面。",
+                "presentationPhase": "post_battle",
+                "visualMode": "blackout"
+            },
+            {
+                "order": 12,
+                "condition": "any",
+                "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "Mia 扶住主角；畫面失焦並轉入工作間。"
+                "text": "她撐開我的眼皮，又俐落地探過頸側。藥草、冷水，還有被急促呼吸壓住的一點汗味。",
+                "presentationPhase": "post_battle",
+                "visualMode": "blackout"
+            },
+            {
+                "order": 13,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "guarded",
+                "text": "聽得見，就眨一下眼。很好。剩下的交給我。",
+                "presentationPhase": "post_battle",
+                "visualMode": "blackout"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "苦藥壓過嘴裡的血味。她朝城門方向喊了兩個名字；布帶勒緊胸口以前，聲音已經沉了下去。",
+                "presentationPhase": "post_battle",
+                "visualMode": "blackout"
             }
         ]
     },
@@ -780,7 +804,7 @@ export const StorySceneRegistry = Object.freeze({
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "none",
-        "entry": "the third survey location has just been recorded; the protagonist compares all three field notes in place",
+        "entry": "each landmark has already presented and recorded its own evidence; the third record opens an in-field comparison",
         "exit": "the survey closes and the altered return route becomes active",
         "objective": "compare the three pieces of evidence and return with the unresolved pattern",
         "inputsRaw": "South Gate departure; traveler handbook",
@@ -924,8 +948,8 @@ export const StorySceneRegistry = Object.freeze({
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "village elder, town scholar, blacksmith",
-        "entry": "the protagonist returns through South Gate and reports the three records and Ambush Mantis evidence in the civic room",
-        "exit": "the forge action surface opens and the evidence-backed forest route becomes the next objective",
+        "entry": "protagonist reports the three records and Ambush Mantis evidence before taking damaged gear to the forge",
+        "exit": "forge actions open and the evidence-backed forest route becomes the next objective",
         "objective": "report the evidence, restore damaged equipment, and decide whether the shared residue justifies entering the forest",
         "inputsRaw": "Ambush Mantis cleared; protagonist equipment damaged",
         "outputsRaw": "three clues synthesized; forest investigation chosen; basic repair and starter crafting opened; blacksmith relationship seed",
@@ -937,7 +961,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "background": "working: civic room desk with three field records and recovered silver thread",
                 "text": "南門在我身後重新落閂。公務室裡，伊萊把三頁紀錄排開，又在旁邊留了一塊位置給伏獵者身上的銀線與黑褐樹脂。"
             },
             {
@@ -946,7 +969,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "guarded",
-                "background": "working: civic room desk with three field records and recovered silver thread",
                 "text": "腳印告訴我們牠們改了方向，銀線告訴我們有東西學會守回程，樹脂則把兩件事接回那道黑根。這還不是答案，但已經不是巧合。"
             },
             {
@@ -955,7 +977,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "guarded",
-                "background": "working: civic room desk with three field records and recovered silver thread",
                 "text": "你親眼走過。告訴我，你認為該停在這裡，還是沿著根往林子裡查？"
             },
             {
@@ -964,7 +985,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "background": "working: civic room desk with three field records and recovered silver thread",
                 "text": "我指向三頁上共同朝北的痕跡。伏獵者會死，陷阱也能拆掉；只要地下那股壓力還在，下一種東西仍會學會利用它。"
             },
             {
@@ -973,7 +993,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "resolute",
-                "background": "working: civic room desk with three field records and recovered silver thread",
                 "text": "那就查到能證明它從哪裡來為止。先把裝備處理好。我不會一面叫你別逞強，一面把你拿去餵林子。"
             },
             {
@@ -982,7 +1001,6 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "background": "existing forge scene in cold-to-relit transition",
                 "text": "鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。"
             },
             {
@@ -1855,26 +1873,26 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "Open tomb reliquary and `keeper_of_names` Boss convergence; optional Blood Moon branch remains available before commitment."
+                "text": "Open the tomb reliquary and `keeper_of_names` Boss convergence; the moon-moss side route remains an optional observation."
             }
         ]
     },
-    "ch2_s05_blood_moon_hunt": {
-        "id": "ch2_s05_blood_moon_hunt",
+    "ch2_s05_moon_moss_trace": {
+        "id": "ch2_s05_moon_moss_trace",
         "chapter": 2,
         "chapterOrder": 5,
         "stageClass": "location_scene",
-        "background": "moon-moss slope crossing into the broken-horn migration ground",
-        "worldState": "Chapter 2 optional branch; blood-moon migration pressure; no sacred or divine framing",
+        "background": "moon-moss slope beside the reopened evacuation road",
+        "worldState": "Chapter 2 optional environmental branch; displaced wildlife has crossed the road and moved on",
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
-        "participantsRaw": "none; Blood Moon Stag uses full Boss presentation",
-        "entry": "first run opens as an optional dangerous track; second run marks it mandatory through `未竟的弒王",
-        "exit": "migration ground quiets and Life Seed handling resolves before return to the tomb route",
-        "objective": "defeat the Blood Moon Stag; in the second run preserve its Life Seed intact",
-        "inputsRaw": "Chapter 2 regional route open; second-run true-kill achievement when applicable",
-        "outputsRaw": "ordinary Life Seed in first run; `life_seed_intact` current-run execution anchor in second run",
-        "assetNotes": "reuse approved Blood Moon Stag Boss art; no Mia rescue connection or new material art",
+        "participantsRaw": "none",
+        "entry": "the optional moon-moss path becomes reachable after the mist-tablet route is understood",
+        "exit": "the player records the westbound trace and returns to the tomb route",
+        "objective": "inspect the repeated hoof marks without turning the side route into another Boss arena",
+        "inputsRaw": "Chapter 2 regional route open",
+        "outputsRaw": "moon-moss route observation only; no item, reward, Boss flag, or cross-run execution state",
+        "assetNotes": "reuse the moon-moss slope location background; do not show or identify the prologue giant",
         "beats": [
             {
                 "order": 1,
@@ -1882,79 +1900,31 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "月苔坡的草不是被踩倒，而是沿著同一條遷徙線反覆長回。斷角、舊蹄印與新蹄印疊在一起，年份彼此咬合。"
+                "text": "月苔全朝同一邊伏倒。泥裡疊著深淺不同的蹄印，新的壓過舊的，卻沒有一枚轉向古墓。"
             },
             {
                 "order": 2,
-                "condition": "first_run",
+                "condition": "any",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "這是一條可避開的危險支路。手札只知道血月鹿會在此更換角質與生命組織，不知道那份再生與最終敵人有何關係。"
+                "text": "斷角留下的刮痕很高。那頭大型生物曾在這裡停留，後來沿西坡離開，只剩草葉摩擦的細響。"
             },
             {
                 "order": 3,
-                "condition": "second_run",
+                "condition": "any",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "`未竟的弒王` 讓你理解第一輪缺少的不是更大傷害，而是把借來的生命逼回一具可死之身的辦法。這次必須取得完整種核。"
+                "text": "這不是另一場狩獵。你記下方向、步距與日期，沒有替看不見的東西取名。"
             },
             {
                 "order": 4,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "黑鹿從林線走出。舊傷在血色月光下閉合，脫落的組織又被胸腔深處的搏動拉回。牠不是神使，只是一頭把古老週期活得太久的獸。"
-            },
-            {
-                "order": 5,
-                "condition": "any",
-                "beat": "enter",
-                "actorId": null,
-                "expression": null,
-                "text": "Blood Moon Stag 進入滿版 Boss 演出；切入戰鬥。"
-            },
-            {
-                "order": 6,
-                "condition": "any",
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "收起事件層，進入 Blood Moon Stag 戰鬥。"
-            },
-            {
-                "order": 7,
-                "condition": "any",
-                "beat": "enter",
-                "actorId": null,
-                "expression": null,
-                "text": "戰鬥結束；鏡頭落在胸腔內仍有節律的種核。"
-            },
-            {
-                "order": 8,
-                "condition": "first_run",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你依普通素材方式取下生命種子。它仍有價值，但完整週期被切斷，沒有顯示更深用途。"
-            },
-            {
-                "order": 9,
-                "condition": "second_run",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你沒有切開種核。沿著自然脫離的膜層整體取下後，搏動仍保持原來節律。當前周目的完整生命種子被封存為最終身體錨。"
-            },
-            {
-                "order": 10,
-                "condition": "any",
-                "beat": "exit",
-                "actorId": null,
-                "expression": null,
-                "text": "Return to Chapter 2 route; mark branch cleared and reopen tomb convergence."
+                "text": "Record the moon-moss trace and return to the opened-tomb route without combat or reward."
             }
         ]
     },

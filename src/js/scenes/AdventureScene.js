@@ -13,7 +13,7 @@ import {
     SecondRunOvercapBossReserves
 } from '../data/OverworldMapRegistry.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
-import { storySceneManager } from '../managers/StorySceneManager.js?v=mia-layer-test-20260712x';
+import { storySceneManager } from '../managers/StorySceneManager.js?v=chapter1-art-20260713a';
 import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import {
     PROLOGUE_TUTORIAL_OUTCOME_FLAG,
@@ -33,7 +33,7 @@ const LANDMARK_STORY_SCENES = Object.freeze({
     rotroot_ravine: 'ch1_s09_rotroot_approach',
     old_wolf_den: 'ch1_s10_forest_guardian',
     mist_tablet_hill: 'ch2_s04_mist_and_tomb_route',
-    moon_moss_slope: 'ch2_s05_blood_moon_hunt',
+    moon_moss_slope: 'ch2_s05_moon_moss_trace',
     opened_ancient_tomb: 'ch2_s06_keeper_of_names',
     north_checkpoint_marker: 'ch2_s08_shadow_at_the_checkpoint'
 });
@@ -86,7 +86,10 @@ export default class AdventureScene {
 
         this.worldMap = new WorldMap(GameManager.getCharacter(), 1280, 720);
         this.panels = new AdventurePanelsController(this.container, {
-            onPlayerStateChange: () => this.renderPlayerStats()
+            onPlayerStateChange: () => this.renderPlayerStats(),
+            getStoryHintContext: () => ({
+                discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])]
+            })
         });
         this.combat = new CombatFlowController(this.container, {
             scene: { type: 'overworld', id: this.worldMap.config.id },
@@ -241,6 +244,7 @@ export default class AdventureScene {
 
     handleKeyDown(event) {
         if (event.defaultPrevented) return;
+        if (event.ctrlKey || event.altKey || event.metaKey) return;
         if (storyDialogueController.isOpen()) return;
         if (this.combat?.isActive()) return;
         const tagName = event.target?.tagName?.toLowerCase();
@@ -322,6 +326,7 @@ export default class AdventureScene {
         const entry = this.worldMap.getNearbyInteraction();
         if (!entry) return;
         const firstDiscovery = this.worldMap.discoverLandmark(entry);
+        this.panels?.renderQuestTracker();
         storyJournalManager.recordLocationDiscoveries(entry.id, {
             chapter: this.worldMap.getCurrentTile()?.chapter,
             firstDiscovery
@@ -435,8 +440,8 @@ export default class AdventureScene {
         const sceneId = LANDMARK_STORY_SCENES[entry.id];
         if (!sceneId || storySceneManager.isSceneComplete(sceneId)) return false;
 
-        const optionalBloodMoon = sceneId === 'ch2_s05_blood_moon_hunt';
-        if (optionalBloodMoon) {
+        const optionalMoonMossTrace = sceneId === 'ch2_s05_moon_moss_trace';
+        if (optionalMoonMossTrace) {
             if (!storySceneManager.isSceneComplete('ch2_s04_mist_and_tomb_route')) return false;
             return this.startMapStoryScene(sceneId, { entry, force: true });
         }
@@ -465,7 +470,7 @@ export default class AdventureScene {
         const image = story.entry?.id ? this.images.get(`landmark:${story.entry.id}`) : null;
         storyDialogueController.play({ ...outcome, lines }, {
             closable: false,
-            backgroundImage: image?.src || ''
+            backgroundImage: image?.src || outcome.backgroundImage || ''
         }).then(result => {
             if (result.status === 'complete') this.completeStoryPresentation(story);
         });
@@ -479,6 +484,7 @@ export default class AdventureScene {
         }
 
         const completion = storySceneManager.completeScene(story.sceneId);
+        this.panels?.renderQuestTracker();
         const entry = story.entry;
         if (story.completionAction === 'prologue_rescue') {
             this.finishPrologueTransition();
@@ -502,8 +508,8 @@ export default class AdventureScene {
             threat: 'overcap'
         };
         return this.beginEncounter({
-            monsterId: 'demon_general',
-            targetLevel: 70,
+            monsterId: 'blood_moon_stag',
+            targetLevel: 15,
             habitat
         }, { prologueTutorial: true });
     }
@@ -595,10 +601,75 @@ export default class AdventureScene {
             encounter.context = { ...(encounter.context || {}), prologueTutorial: true };
             encounter.canFlee = false;
             encounter.defeatActionLabel = '失去意識';
-            encounter.victoryActionLabel = '結束交鋒';
-            encounter.visual.name = '無名魔將';
-            encounter.visual.className = '序章超格 BOSS · 魔族將軍';
-            encounter.visual.feed = '那道身影並未追擊。他只用一擊確認你是否值得記住。';
+            encounter.victoryActionLabel = '繼續前進';
+            encounter.visual.name = '迷霧中的巨影';
+            encounter.visual.className = '未知巨獸 · 異常個體';
+            encounter.visual.level = '??';
+            encounter.visual.maxHp = 1200;
+            encounter.visual.background = 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp';
+            encounter.visual.backgroundAlt = '黑根蔓延的南路斷坡';
+            encounter.visual.visualScale = '1.08';
+            encounter.visual.concealIdentity = true;
+            encounter.visual.feed = '霧裡的巨角壓低了。牠沒有退路，也沒有理智。';
+            encounter.visual.initialDelay = 2.2;
+            encounter.visual.attacks = [
+                {
+                    id: 'prologue_stag_rake',
+                    name: '裂土踏擊',
+                    effect: 'crush',
+                    damage: 14,
+                    telegraph: 1.45,
+                    impactDelay: 0.3,
+                    recovery: 1.7,
+                    breakThreshold: 180
+                },
+                {
+                    id: 'prologue_stag_sweep',
+                    name: '亂角橫掃',
+                    effect: 'claw',
+                    damage: 18,
+                    telegraph: 1.65,
+                    impactDelay: 0.28,
+                    recovery: 1.8,
+                    breakThreshold: 220
+                },
+                {
+                    id: 'prologue_stag_charge',
+                    name: '斷坡衝撞',
+                    effect: 'crush',
+                    damage: 999,
+                    telegraph: 2.1,
+                    impactDelay: 0.42,
+                    recovery: 2,
+                    breakThreshold: 999
+                }
+            ];
+            encounter.player.hp = Math.min(encounter.player.maxHp, 72);
+            encounter.player.potions = 1;
+            encounter.player.potionHeal = 30;
+            encounter.loadout.main = {
+                ...encounter.loadout.main,
+                id: 'prologue_hunter_blade',
+                name: '公會制式獵刀',
+                damage: 9,
+                cooldown: 0.9,
+                windup: 0.09,
+                breakPower: 10,
+                critDamage: 1.5,
+                enabled: true,
+                triggerBuff: null
+            };
+            encounter.loadout.offhand = {
+                ...encounter.loadout.offhand,
+                id: 'prologue_empty_offhand',
+                name: '空手',
+                enabled: false,
+                triggerBuff: null
+            };
+            encounter.context.prologueIssuedGear = Object.freeze({
+                weapon: '公會制式獵刀',
+                armor: '公會外勤皮甲'
+            });
             encounter.monster.exp = 0;
             encounter.monster.gold = 0;
             encounter.monster.drops = [];

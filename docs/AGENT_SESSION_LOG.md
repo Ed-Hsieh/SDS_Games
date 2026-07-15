@@ -1,6 +1,6 @@
 # Agent Session Log
 
-Last updated: 2026-07-13
+Last updated: 2026-07-14
 
 ## Current Direction
 
@@ -82,7 +82,13 @@ The intended delivery order is now:
   Owner file(s): `src/js/managers/DialogueManager.js`, `src/js/scenes/LobbyScene.js`, `src/css/ui-foundation.css`, `src/js/data/StoryActors.js`
   Source of truth: `docs/NARRATIVE_WRITING_GUIDE.md`, `src/js/data/StorySceneRegistry.js`
   Validation: pending complete Chapter 1-2 multi-speaker browser flow
-  Notes: A Mia half-body visual prototype exists, but the layered dialogue system is not yet correctly integrated into the mainline scene flow and must not be treated as complete.
+  Notes: Chapter 1 now has all 23 required actor-expression combinations as physical files, but the layered dialogue system still requires complete mainline integration and browser validation.
+
+- [in_progress] [P0] [town-art] Establish the accepted frontier-town image language
+  Owner file(s): `src/assets/images/art/scenes/backgrounds/`, `src/assets/images/art/scenes/town/locations/`, `src/js/data/AssetManifest.js`
+  Source of truth: `docs/ART_STYLE_GUIDE.md`, `src/js/data/StorySceneRegistry.js`
+  Validation: pending per-image visual review and Chapter 1-2 runtime binding
+  Notes: Six town images are generated; `town-overview-recovery` is the approved topology/style master, while all six remain unbound until the batch is reviewed.
 
 ## Current Runtime Status
 
@@ -108,10 +114,11 @@ The intended delivery order is now:
   than final asset paths. Existing Chapter 1-2 maps and landmark images must be
   connected before generating replacements. Dedicated Mia workroom and north
   checkpoint presentation remain clear first-pass gaps.
-- Chapter 1-2 scripts use 34 actor-expression combinations across nine actors.
-  Only `characters/dialogue/herbalist/neutral.png` exists, leaving 33 expression
-  layers to produce or deliberately alias within the closed nine-expression
-  vocabulary.
+- The complete first run uses 53 human actor-expression combinations after
+  excluding static Boss presentation. Twenty-six have physical files and 27
+  remain. Chapter 1 is 23/23; Chapter 2 is 13/21 by file coverage. Only the
+  Chapter 1 set is fully registered in `StoryActors.js`; the eight missing
+  Chapter 2 files and every later scene id are listed in `ART_STYLE_GUIDE.md`.
 - The dialogue presentation currently does not reliably assemble the intended
   full-screen background, half-body participants, speaker focus, expression,
   and dialogue box for every mainline scene. Do not generate the remaining
@@ -131,6 +138,11 @@ The intended delivery order is now:
 - Reward assignment, material/drop tuning, encounter balance, and final combat
   values are still intentionally deferred. Existing values should not be treated
   as approved balance.
+- Six first-run town backgrounds now exist as review assets:
+  `town-overview-broken`, `town-overview-recovery`, `civic-room-working`,
+  `market-closed`, `market-sparse`, and `gate-working`. They are registered in
+  `AssetManifest.js` but deliberately do not replace current scene bindings until
+  the user completes visual review.
 
 ## Next Good Step
 
@@ -154,11 +166,11 @@ Finish the Chapter 1-2 vertical slice before extending the remaining chapters:
   Validation: manual Chapter 1-2 scene-by-scene browser audit
   Notes: Reuse approved maps, town scenes, landmark images, and Boss art first; record only genuinely missing backgrounds for generation.
 
-- [planned] [P0] [dialogue-art] Produce the missing Chapter 1-2 expression layers
+- [in_progress] [P0] [dialogue-art] Produce the missing Chapter 1-2 expression layers
   Owner file(s): `src/assets/images/art/characters/dialogue/`, `src/js/data/StoryActors.js`
   Source of truth: expressions used by `src/js/data/StorySceneRegistry.js`
   Validation: transparent-layer visual check in all five dialogue positions
-  Notes: Keep half-body composition and the closed nine-expression vocabulary; do not create new emotion ids.
+  Notes: Chapter 1 is complete. Generate only the eight listed Chapter 2 combinations next, preserving stable anchors and the closed nine-expression vocabulary.
 
 - [planned] [P0] [playthrough] Validate the complete Chapter 1-2 route without developer skips
   Owner file(s): `src/js/scenes/AdventureScene.js`, `src/js/scenes/LobbyScene.js`, `src/js/managers/StorySceneManager.js`, `src/js/managers/SceneCombatFlow.js`
@@ -237,8 +249,8 @@ Out of scope:
 - Tower rewrite, formal light/Void DLC, and post-reveal content.
 - Mobile interface work.
 - Deleting reserved monster art without a separate role audit.
-- Generating all 33 remaining Chapter 1-2 expression layers before the revised
-  text and expression assignments are approved.
+- Generating all 59 remaining first-run narrative images as one unreviewed batch;
+  use the chapter-scoped order in `ART_STYLE_GUIDE.md`.
 
 ## Verification Commands
 

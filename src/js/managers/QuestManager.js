@@ -36,72 +36,8 @@ class QuestManager {
         // 事件監聽器
         this.listeners = [];
         
-        // 初始化
-        this.init();
         GameManager.subscribe(this.handleGameStateUpdate);
         GameManager.registerSaveSystem('quests', this);
-    }
-
-    init() {
-        this.syncStoryChapterQuests();
-    }
-
-    syncStoryChapterQuests() {
-        const run = Math.max(1, Number(GameManager.getFlag?.('story.run')) || 1);
-        let activeAssigned = false;
-        let progressionBlocked = false;
-
-        for (const questId of Object.keys(this.questStates)) {
-            if (!getQuestById(questId)) delete this.questStates[questId];
-        }
-
-        for (const quest of QuestDatabase.main || []) {
-            if (!quest.autoProgress) continue;
-            const objective = quest.objectives?.[0];
-            const completionFlag = objective?.completionFlag;
-            const complete = Boolean(completionFlag && GameManager.getFlag?.(completionFlag));
-            const required = Math.max(1, Number(objective?.count) || 1);
-
-            if (progressionBlocked || (quest.unlockFlag && !GameManager.getFlag?.(quest.unlockFlag))) {
-                this.questStates[quest.id] = {
-                    status: QuestStatus.LOCKED,
-                    progress: [],
-                    startTime: null,
-                    storyRun: run
-                };
-                progressionBlocked = true;
-                continue;
-            }
-
-            if (complete) {
-                this.questStates[quest.id] = {
-                    status: QuestStatus.FINISHED,
-                    progress: [{ type: objective.type, target: objective.target, current: required, required }],
-                    startTime: null,
-                    storyRun: run
-                };
-                continue;
-            }
-
-            if (!activeAssigned) {
-                const existing = this.questStates[quest.id];
-                this.questStates[quest.id] = {
-                    status: QuestStatus.ACTIVE,
-                    progress: [{ type: objective.type, target: objective.target, current: 0, required }],
-                    startTime: existing?.storyRun === run ? existing.startTime : Date.now(),
-                    storyRun: run
-                };
-                activeAssigned = true;
-                continue;
-            }
-
-            this.questStates[quest.id] = {
-                status: QuestStatus.LOCKED,
-                progress: [],
-                startTime: null,
-                storyRun: run
-            };
-        }
     }
 
     // ==================== 任務管理 ====================
@@ -163,11 +99,6 @@ class QuestManager {
         const state = this.questStates[questId];
         if (!state || state.status !== QuestStatus.ACTIVE) {
             return { success: false, message: '任務未在進行中' };
-        }
-
-        // 主線任務不可放棄
-        if (quest.type === QuestType.MAIN) {
-            return { success: false, message: '主線任務無法放棄' };
         }
 
         // 重置為可接取（如果可重複）或鎖定
@@ -426,9 +357,6 @@ class QuestManager {
     }
 
     handleGameStateUpdate(state, type) {
-        if (type === 'all' || type === 'flags') {
-            this.syncStoryChapterQuests();
-        }
         if (type === 'all' || type === 'gold') {
             this.checkHiddenQuestTriggers('gold', Number(state?.character?.gold ?? GameManager.getGold()) || 0);
         }
@@ -645,9 +573,7 @@ class QuestManager {
      * 獲取所有可見任務（按類型分類）
      */
     getVisibleQuests() {
-        this.syncStoryChapterQuests();
         const result = {
-            main: [],
             bounty: [],
             commission: [],
             hidden: []
@@ -665,9 +591,6 @@ class QuestManager {
             };
 
             switch (quest.type) {
-                case QuestType.MAIN:
-                    result.main.push(questWithState);
-                    break;
                 case QuestType.BOUNTY:
                     result.bounty.push(questWithState);
                     break;
@@ -687,7 +610,6 @@ class QuestManager {
      * 獲取進行中的任務
      */
     getActiveQuests() {
-        this.syncStoryChapterQuests();
         return Object.entries(this.questStates)
             .filter(([_, state]) => state.status === QuestStatus.ACTIVE)
             .map(([questId, state]) => {
@@ -701,7 +623,6 @@ class QuestManager {
      * 獲取已解鎖但尚未接取的任務
      */
     getAvailableQuests() {
-        this.syncStoryChapterQuests();
         return Object.entries(this.questStates)
             .filter(([_, state]) => state.status === QuestStatus.AVAILABLE)
             .map(([questId, state]) => {
@@ -715,7 +636,6 @@ class QuestManager {
      * 獲取待回報的任務
      */
     getCompletedQuests() {
-        this.syncStoryChapterQuests();
         return Object.entries(this.questStates)
             .filter(([_, state]) => state.status === QuestStatus.COMPLETED)
             .map(([questId, state]) => {
@@ -819,6 +739,10 @@ class QuestManager {
     deserialize(data) {
         this.questStates = data?.questStates || {};
         for (const [questId, state] of Object.entries(this.questStates)) {
+            if (!getQuestById(questId)) {
+                delete this.questStates[questId];
+                continue;
+            }
             if (state?.status === QuestStatus.FINISHED) {
                 GameManager.state.flags[`quest.${questId}.finished`] = true;
             }
@@ -834,7 +758,6 @@ class QuestManager {
             totalGambleProfit: 0,
             ...(data?.stats || {})
         };
-        this.syncStoryChapterQuests();
     }
 }
 

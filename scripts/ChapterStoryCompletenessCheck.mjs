@@ -1,4 +1,3 @@
-import { QuestDatabase } from '../src/js/data/Quests.js';
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import {
     MainlineCharacterContracts,
@@ -8,6 +7,7 @@ import {
     StorySceneOrder,
     StorySceneRegistry
 } from '../src/js/data/StorySceneRegistry.js';
+import { QuestDatabase } from '../src/js/data/Quests.js';
 
 const problems = [];
 const push = (section, message) => problems.push({ section, message });
@@ -29,22 +29,6 @@ for (const [chapterText, expectedCount] of Object.entries(expectedSceneCounts)) 
         push('chapter-scenes', `chapter ${chapter} has ${sceneIds.length} scenes; expected ${expectedCount}`);
     }
 
-    const chapterQuests = (QuestDatabase.main || []).filter(quest => quest.chapter === chapter);
-    if (chapterQuests.length !== 1) {
-        push('chapter-quest', `chapter ${chapter} has ${chapterQuests.length} main quest records; expected one`);
-        continue;
-    }
-
-    const quest = chapterQuests[0];
-    const finalSceneId = sceneIds.at(-1);
-    const completionFlag = quest.objectives?.[0]?.completionFlag;
-    if (!quest.autoProgress) push('chapter-quest', `${quest.id} is not screenplay-driven`);
-    if (completionFlag !== `story.scene.${finalSceneId}.complete`) {
-        push('chapter-quest', `${quest.id} does not close on ${finalSceneId}`);
-    }
-    if (Object.keys(quest.rewards || {}).length > 0) {
-        push('reward-deferral', `${quest.id} assigns rewards before map ownership is locked`);
-    }
 }
 
 const requiredProfileFields = [

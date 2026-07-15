@@ -30,7 +30,7 @@ function hasEntries(value) {
 }
 
 function countMainQuests() {
-    return Array.isArray(QuestDatabase.main) ? QuestDatabase.main.length : 0;
+    return Object.values(QuestDatabase).flat().filter(quest => quest?.type === 'main').length;
 }
 
 function countStoryQuests() {
@@ -200,14 +200,10 @@ function auditLegacyPresence() {
         });
     }
 
-    const main = QuestDatabase.main || [];
-    if (main.length !== 7 || main.some(quest => !quest.id.startsWith('story_chapter_'))) {
-        addIssue('legacy-presence', 'Main quest records do not match the seven scene-driven chapter records.', {
-            questIds: main.map(quest => quest.id)
+    if (Object.hasOwn(QuestDatabase, 'main')) {
+        addIssue('legacy-presence', 'Legacy main quest wrappers must not coexist with the screenplay.', {
+            questIds: (Reflect.get(QuestDatabase, 'main') || []).map(quest => quest.id)
         });
-    }
-    if (main.some(quest => Object.keys(quest.rewards || {}).length > 0)) {
-        addIssue('reward-deferral', 'A chapter quest received rewards before map-function allocation.');
     }
 }
 

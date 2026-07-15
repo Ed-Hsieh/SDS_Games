@@ -145,15 +145,7 @@ export const StoryDiscoveryRegistry = Object.freeze({
         title: '反覆長回的遷徙線', kind: 'clue', icon: '✦',
         sourceLabel: '月苔坡',
         observation: '新舊蹄印沿同一條線重疊，月苔在血月週期中反覆長回。',
-        inference: '血月鹿的再生是自然週期被延長，不是神聖啟示。'
-    }),
-    ch2_blood_moon_stag: discovery({
-        id: 'ch2_blood_moon_stag', chapter: 2, order: 260, sceneId: 'ch2_s05_blood_moon_hunt',
-        title: '活得太久的週期', kind: 'boss', icon: '!', rarity: 'rare',
-        sourceLabel: '月苔坡',
-        observation: '血月鹿會把脫落組織拉回胸腔深處的節律。第一輪只能取得普通生命種子。',
-        inference: '這是可避開的支路；它的完整用途目前仍不知道。',
-        codexLinks: [{ category: 'monsters', id: 'world:blood_moon_stag', label: '血月鹿' }]
+        inference: '有大型生物被環境異變迫使遷徙，但留下的痕跡不足以確認牠的身分。'
     }),
     ch2_keeper_of_names: discovery({
         id: 'ch2_keeper_of_names', chapter: 2, order: 270, sceneId: 'ch2_s06_keeper_of_names',

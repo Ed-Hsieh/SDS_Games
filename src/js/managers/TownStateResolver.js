@@ -5,8 +5,9 @@
  */
 
 import GameManager from './GameManager.js';
-import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js?v=dialogue-flow-20260712w';
+import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js?v=town-art-binding-20260715a';
 import { getStorySceneCompleteFlag } from '../data/StoryStateContract.js';
+import { getGeneratedBackgroundImage } from '../data/AssetManifest.js';
 
 export const TownVisibility = Object.freeze({
     VISIBLE: 'visible',
@@ -19,6 +20,13 @@ export const TownRuntimeStage = Object.freeze({
     RECOVERY_NETWORK: 'recovery_network',
     REGIONAL_PRESSURE: 'regional_pressure',
     ENDGAME: 'endgame'
+});
+
+const TownOverviewByStage = Object.freeze({
+    [TownRuntimeStage.BROKEN_TOWN]: 'town-overview-broken',
+    [TownRuntimeStage.RECOVERY_NETWORK]: 'town-overview-recovery',
+    [TownRuntimeStage.REGIONAL_PRESSURE]: 'town-overview-recovery',
+    [TownRuntimeStage.ENDGAME]: 'town-overview-recovery'
 });
 
 function hasFlag(flag) {
@@ -82,15 +90,22 @@ export function resolveTownPlace(place, options = {}) {
     const runtimeVisibility = resolveVisibility(place);
     if (runtimeVisibility === TownVisibility.HIDDEN && !options.includeHidden) return null;
 
+    const states = resolveStates(place.states || [], options);
+    const activeSceneState = [...states]
+        .reverse()
+        .find(state => state.runtimeVisibility === TownVisibility.VISIBLE && state.sceneImage);
+
     return {
         ...place,
+        sceneImage: activeSceneState?.sceneImage || place.sceneImage,
+        cardImage: activeSceneState?.cardImage || activeSceneState?.sceneImage || place.cardImage,
         residents: (place.residents || [])
             .map(resident => resolveEntry(resident, options))
             .filter(Boolean),
         actions: (place.actions || [])
             .map(action => resolveEntry(action, options))
             .filter(Boolean),
-        states: resolveStates(place.states || [], options),
+        states,
         runtimeVisibility,
         runtimeStage: getTownRuntimeStage()
     };
@@ -112,6 +127,16 @@ export function getTownRuntimeStage() {
     if (chapter <= 3) return TownRuntimeStage.RECOVERY_NETWORK;
     if (chapter <= 5) return TownRuntimeStage.REGIONAL_PRESSURE;
     return TownRuntimeStage.ENDGAME;
+}
+
+export function getTownOverviewPresentation() {
+    const stage = getTownRuntimeStage();
+    const assetId = TownOverviewByStage[stage];
+    return {
+        stage,
+        assetId,
+        image: getGeneratedBackgroundImage(assetId)
+    };
 }
 
 export function getTownRuntimeSummary() {

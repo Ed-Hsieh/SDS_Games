@@ -8,7 +8,7 @@ import { createRuntimeItem } from '../models/ItemFactory.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { weightedPick } from '../utils/WeightedPick.js';
 import { questManager, QuestStatus } from './QuestManager.js?v=dialogue-flow-20260712w';
-import { QuestDatabase, getQuestById } from '../data/Quests.js';
+import { getQuestById } from '../data/Quests.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 import { getWorldEventReflectionByRole } from '../data/CharacterProfiles.js';
@@ -444,18 +444,7 @@ function tuneEventResults(results = [], eventObj = {}, options = {}) {
 }
 
 export function getCurrentStoryChapter() {
-    const mainQuests = Array.isArray(QuestDatabase.main) ? QuestDatabase.main : [];
-    let chapter = 1;
-
-    for (const quest of mainQuests) {
-        const questChapter = normalizeChapter(quest.chapter);
-        const state = questManager.getQuestState(quest.id);
-        if (state?.status && state.status !== QuestStatus.LOCKED) {
-            chapter = Math.max(chapter, questChapter);
-        }
-    }
-
-    return chapter;
+    return normalizeChapter(GameManager.getFlag('story.chapter') || 1);
 }
 
 function getEventChapter(options = {}) {

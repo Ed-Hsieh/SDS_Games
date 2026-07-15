@@ -459,16 +459,6 @@ function collectItemDropSourceIndex() {
     return index;
 }
 
-const QuestArchiveOwners = {
-    story_chapter_01: 'village_elder',
-    story_chapter_02: 'town_scholar',
-    story_chapter_03: 'town_scholar',
-    story_chapter_04: 'standard_bearer_frey',
-    story_chapter_05: 'herbalist',
-    story_chapter_06: 'village_elder',
-    story_chapter_07: 'street_beggar'
-};
-
 const QuestNpcKeywords = [
     { pattern: /書記|學者|手札|資料|見聞/, npcId: 'town_scholar' },
     { pattern: /鍛造|鐵匠|修復|強化/, npcId: 'blacksmith' },
@@ -508,7 +498,6 @@ function findQuestTalkTarget(quest = {}) {
 }
 
 function getQuestGiverId(quest = {}) {
-    if (QuestArchiveOwners[quest.id]) return QuestArchiveOwners[quest.id];
     if (quest.npc || quest.client || quest.giver || quest.npcId) {
         return quest.npc || quest.client || quest.giver || quest.npcId;
     }
@@ -532,7 +521,6 @@ function getQuestGiverPresentation(quest = {}) {
 
 function getReadableQuestSourceType(type) {
     const labels = {
-        main: '主線任務',
         bounty: '懸賞',
         commission: '委託',
         hidden: '隱藏任務'

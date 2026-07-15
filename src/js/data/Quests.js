@@ -5,7 +5,6 @@
 
 // 任務類型
 export const QuestType = {
-    MAIN: 'main',           // 主線任務
     BOUNTY: 'bounty',       // 懸賞任務（狩獵）
     COMMISSION: 'commission', // 委託任務（NPC）
     HIDDEN: 'hidden'        // 隱藏任務
@@ -44,144 +43,6 @@ import { ItemRarity, ItemType, EquipmentType, AffixStat } from '../models/Enums.
  * 任務資料庫
  */
 export const QuestDatabase = {
-    // ==================== 主線任務 ====================
-    main: [
-        {
-            id: 'story_chapter_01',
-            name: '南門以外',
-            type: QuestType.MAIN,
-            chapter: 1,
-            unlockFlag: 'story.scene.ch1_s02_wake_under_bitter_bottles.complete',
-            icon: 'I',
-            description: '確認南門外三處證據、銀絲伏道與森林反應，讓第一條回城路重新可讀。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_01_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch1_s11_roads_breathe_again.complete',
-                    description: '完成第一章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_02',
-            name: '斷路上的藥味',
-            type: QuestType.MAIN,
-            chapter: 2,
-            icon: 'II',
-            description: '沿舊撤離路找回失蹤者的名字，處理赫恩與被錯置的亡者職責。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_02_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch2_s08_shadow_at_the_checkpoint.complete',
-                    description: '完成第二章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_03',
-            name: '影子仍守夜',
-            type: QuestType.MAIN,
-            chapter: 3,
-            icon: 'III',
-            description: '辨認仍在執行舊命令的人類影子，並關閉凱德倫的左線命令。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_03_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch3_s09_temptation_and_orders.complete',
-                    description: '完成第三章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_04',
-            name: '石心與灰雨',
-            type: QuestType.MAIN,
-            chapter: 4,
-            icon: 'IV',
-            description: '在灰脊撤離中維持前旗與後燈，阻止遠古泰坦再次抬升道路。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_04_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch4_s09_four_elements_one_report.complete',
-                    description: '完成第四章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_05',
-            name: '元素失衡',
-            type: QuestType.MAIN,
-            chapter: 5,
-            icon: 'V',
-            description: '追查四條元素前線的共同壓力，完成米婭手術與二十年前遠征真相。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_05_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch5_s11_town_loses_its_voice.complete',
-                    description: '完成第五章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_06',
-            name: '龍守封痕',
-            type: QuestType.MAIN,
-            chapter: 6,
-            icon: 'VI',
-            description: '理解龍族守線與人類誤觸封痕的差別，並在回城後收束維斯珀賭局。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_06_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch6_s09_the_old_note_answers.complete',
-                    description: '完成第六章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        },
-        {
-            id: 'story_chapter_07',
-            name: '墜落之地',
-            type: QuestType.MAIN,
-            chapter: 7,
-            icon: 'VII',
-            description: '沿回聲哨找到舊山路、花田與魔王墜落地，完成當前周目的結局。',
-            objectives: [
-                {
-                    type: ObjectiveType.CUSTOM,
-                    target: 'chapter_07_screenplay',
-                    count: 1,
-                    completionFlag: 'story.scene.ch7_s09_first_or_second_epilogue.complete',
-                    description: '完成第七章主線場景'
-                }
-            ],
-            rewards: {},
-            autoProgress: true
-        }
-    ],
-
     // ==================== 懸賞任務 ====================
     bounty: [
         {
@@ -1280,13 +1141,4 @@ export function getQuestById(questId) {
         if (quest) return quest;
     }
     return null;
-}
-
-/**
- * 獲取所有可用的初始任務
- */
-export function getInitialQuests() {
-    return [
-        QuestDatabase.main[0]
-    ];
 }

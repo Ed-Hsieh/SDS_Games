@@ -2,11 +2,11 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js?v=ui-convergence-20260712y';
+import LobbyScene from './scenes/LobbyScene.js?v=town-art-binding-20260715a';
 import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
 import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
 import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
-import QuestScene from './scenes/QuestScene.js?v=mia-layer-test-20260712x';
+import QuestScene from './scenes/QuestScene.js?v=chapter1-art-20260713a';
 import EncyclopediaScene from './scenes/EncyclopediaScene.js?v=ui-convergence-20260712y';
 import { DungeonScene } from './scenes/DungeonScene.js?v=dialogue-flow-20260712w';
 import towerScene from './scenes/TowerScene.js';

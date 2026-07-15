@@ -45,6 +45,7 @@ import {
     SecondRunOvercapBossReserves,
     getOverworldHabitatAt
 } from '../src/js/data/OverworldMapRegistry.js';
+import { getStoryObjectiveHint } from '../src/js/data/StoryObjectiveHints.js';
 
 const errors = [];
 const warnings = [];
@@ -510,12 +511,51 @@ function validateTownAndCharacters() {
 }
 
 function validateQuests() {
-    if ((QuestDatabase.main || []).length !== 7) error('main-quests', `Expected seven chapter quests, got ${QuestDatabase.main?.length}`);
-    for (const quest of QuestDatabase.main || []) {
-        if (!quest.autoProgress) error('main-quests', `${quest.id} is not scene-driven`);
-        if (Object.keys(quest.rewards || {}).length > 0) error('reward-deferral', `${quest.id} contains rewards before map-function allocation`);
-        const objective = quest.objectives?.[0];
-        if (!objective?.completionFlag?.startsWith('story.scene.')) error('main-quests', `${quest.id} does not complete from a scene flag`);
+    if (Object.hasOwn(QuestDatabase, 'main')) error('main-quests', 'Legacy main quest group must remain removed');
+}
+
+function validateStoryObjectiveHints() {
+    for (const sceneId of StorySceneOrder) {
+        const hint = getStoryObjectiveHint(sceneId);
+        if (!hint?.title?.trim()) error('objective-hint', `${sceneId} has no tracker title`);
+        if (!hint?.text?.trim()) error('objective-hint', `${sceneId} has no tracker instruction`);
+    }
+
+    const survey = getStoryObjectiveHint('ch1_s06_three_landmarks', {
+        discoveredLandmarkIds: ['south_gate_farmland', 'hunter_boardwalk']
+    });
+    if (!survey?.text.includes('2/3')) {
+        error('objective-hint', 'Chapter 1 survey hint does not reflect discovered landmark progress');
+    }
+    if (StorySceneRegistry.ch2_s05_blood_moon_hunt) {
+        error('objective-hint', 'Removed Chapter 2 Blood Moon Stag route remains in the scene registry');
+    }
+    if (!StorySceneRegistry.ch2_s05_moon_moss_trace) {
+        error('objective-hint', 'Chapter 2 moon-moss observation scene is missing');
+    }
+    for (const sceneId of [
+        'ch1_s02_wake_under_bitter_bottles',
+        'ch1_s03_broken_crossroads',
+        'ch1_s04_elder_to_scholar',
+        'ch1_s05_south_gate_introduction',
+        'ch1_s08_cold_forge_smoke',
+        'ch1_s11_roads_breathe_again',
+        'ch2_s01_empty_crates',
+        'ch2_s02_name_under_basket',
+        'ch2_s03_ledger_that_would_not_close',
+        'ch2_s07_names_return_to_town'
+    ]) {
+        const hint = getStoryObjectiveHint(sceneId);
+        if (!hint?.placeId || !hint?.actorId) error('objective-entry', `${sceneId} has no explicit town entry contract`);
+    }
+
+    const scholarHandoff = getStoryObjectiveHint('ch1_s04_elder_to_scholar');
+    if (scholarHandoff?.actorId !== 'town_scholar' || scholarHandoff?.placeId !== 'handbook') {
+        error('objective-entry', 'Chapter 1 scholar handoff must only target the scholar at the handbook');
+    }
+    const southGate = getStoryObjectiveHint('ch1_s05_south_gate_introduction');
+    if (southGate?.placeId !== 'gate') {
+        error('objective-entry', 'Chapter 1 south-gate introduction targets an unknown town place');
     }
 }
 
@@ -529,6 +569,7 @@ validateEncounterGateLifecycle();
 validateTwoRunLifecycle();
 validateTownAndCharacters();
 validateQuests();
+validateStoryObjectiveHints();
 
 console.log('Story runtime summary:');
 console.log(`- screenplay scenes: ${StorySceneOrder.length}`);
@@ -538,7 +579,7 @@ console.log(`- deferred optional side stories: ${OptionalSideStoryRegistry.lengt
 console.log(`- chapter regions: ${ChapterRegionOrder.length}`);
 console.log(`- mainline encounter contracts: ${Object.keys(StoryEncounterContracts).length}`);
 console.log(`- active town places: ${TownPlaceDatabase.length}`);
-console.log(`- scene-driven main quests: ${QuestDatabase.main.length}`);
+console.log(`- legacy main quest group: ${Object.hasOwn(QuestDatabase, 'main') ? 'present' : 'removed'}`);
 
 if (warnings.length > 0) {
     console.log('\nWarnings:');

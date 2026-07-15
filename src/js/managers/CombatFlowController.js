@@ -1,5 +1,5 @@
 import GameManager from './GameManager.js';
-import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=dialogue-flow-20260712w';
+import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260713b';
 import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
@@ -50,6 +50,8 @@ export default class CombatFlowController {
         this.encounter = null;
         this.result = null;
         this.activePotion = null;
+        this.tutorialPanel = null;
+        this.tutorialState = null;
         this.handleRewardClick = this.handleRewardClick.bind(this);
         this.rewardsPanel?.addEventListener('click', this.handleRewardClick);
         this.ensureStylesheet();
@@ -60,7 +62,7 @@ export default class CombatFlowController {
         const link = document.createElement('link');
         link.id = 'scene-combat-vfx-style';
         link.rel = 'stylesheet';
-        link.href = 'src/style/combat-vfx-lab.css?v=dialogue-flow-20260712w';
+        link.href = 'src/style/combat-vfx-lab.css?v=20260714a';
         document.head.appendChild(link);
         this.ownsStylesheet = true;
     }
@@ -76,14 +78,20 @@ export default class CombatFlowController {
         this.result = null;
         this.rewards = null;
         this.activePotion = findHealingPotion();
-        encounter.player.potions = Math.max(0, Number(this.activePotion?.quantity) || 0);
+        const isPrologueTutorial = Boolean(encounter.context?.prologueTutorial);
+        encounter.player.potions = isPrologueTutorial
+            ? Math.max(1, Number(encounter.player.potions) || 0)
+            : Math.max(0, Number(this.activePotion?.quantity) || 0);
         encounter.player.potionHeal = Math.max(1, Number(this.activePotion?.item?.effect?.hp) || 30);
 
         const potionImage = this.combatRoot.querySelector('#adventure-combat-potion-icon');
         const potionName = this.combatRoot.querySelector('#adventure-combat-potion-name');
         if (potionImage) potionImage.src = getGeneratedItemImage(this.activePotion?.item || { id: 'health_potion_s', type: 'potion' });
-        if (potionName) potionName.textContent = this.activePotion?.item?.name || '生命藥水';
+        if (potionName) potionName.textContent = isPrologueTutorial
+            ? '應急藥劑'
+            : (this.activePotion?.item?.name || '沒有補給');
         if (this.rewardsPanel) this.rewardsPanel.innerHTML = '';
+        this.setupTutorial(isPrologueTutorial);
 
         this.overlay.hidden = false;
         const character = GameManager.getCharacter();
@@ -97,7 +105,11 @@ export default class CombatFlowController {
             loadout: encounter.loadout,
             rhythmCharacter: createRhythmCharacter(character, offhand),
             autoStart: true,
+            startMonsterPaused: isPrologueTutorial,
             canFlee: () => encounter.canFlee !== false,
+            onWeaponAttempt: () => this.handleTutorialWeaponAttempt(),
+            onPotionAttempt: () => this.handleTutorialPotionAttempt(),
+            onFleeAttempt: () => this.handleTutorialFleeAttempt(),
             fleeRejectedText: encounter.fleeRejectedText || '這場戰鬥無法撤離。',
             resultActionLabels: {
                 [CombatSessionPhase.VICTORY]: encounter.victoryActionLabel || '收下戰利品並繼續',
@@ -123,28 +135,146 @@ export default class CombatFlowController {
         } else if (event.type === 'monster:hit') {
             GameManager.reduceArmorDurability();
         }
+        this.updateTutorial(event);
         this.options.onCombatEvent?.(event, this.encounter);
+    }
+
+    setupTutorial(enabled) {
+        this.tutorialPanel?.remove();
+        this.tutorialPanel = null;
+        this.tutorialState = enabled ? { stage: 'attack', complete: false } : null;
+        if (!enabled) return;
+
+        const stage = this.combatRoot?.querySelector('#battle-preview');
+        if (!stage) return;
+        const panel = document.createElement('aside');
+        panel.className = 'combat-tutorial-prompt';
+        panel.setAttribute('aria-live', 'polite');
+        panel.innerHTML = '<span>戰鬥教學</span><strong></strong><small></small>';
+        stage.appendChild(panel);
+        this.tutorialPanel = panel;
+        this.setTutorialPrompt('在青綠色命中區或金黃色暴擊區出手。', '滑鼠左鍵 · 命中或暴擊');
+    }
+
+    setTutorialPrompt(message, control = '') {
+        if (!this.tutorialPanel) return;
+        const copy = this.tutorialPanel.querySelector('strong');
+        const key = this.tutorialPanel.querySelector('small');
+        if (copy) copy.textContent = message;
+        if (key) key.textContent = control;
+        this.tutorialPanel.classList.remove('is-current');
+        void this.tutorialPanel.offsetWidth;
+        this.tutorialPanel.classList.add('is-current');
+    }
+
+    updateTutorial(event) {
+        if (!this.tutorialState || !event) return;
+
+        if (this.tutorialState.stage === 'attack' && event.type === 'player:miss') {
+            this.setTutorialPrompt('這次揮空了。等節奏環恢復，再打出命中或暴擊。', '青綠色命中 · 金黃色暴擊');
+            return;
+        }
+
+        if (this.tutorialState.stage === 'attack' && event.type === 'player:hit') {
+            this.tutorialState.stage = 'potion';
+            this.setTutorialPrompt('命中成立。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
+            return;
+        }
+
+        if (this.tutorialState.stage === 'potion' && event.type === 'player:potion') {
+            this.tutorialState.stage = 'flee';
+            this.setTutorialPrompt('補給已使用。現在嘗試離開戰鬥。', 'F · 嘗試撤離');
+            return;
+        }
+
+        if (event.type === 'monster:telegraph' && event.attack?.id === 'prologue_stag_charge') {
+            this.setTutorialPrompt('退路斷了。巨影壓低了角。', '劇情戰鬥');
+            return;
+        }
+
+        if (event.type === 'battle:end') {
+            this.tutorialPanel?.classList.add('is-complete');
+        }
+    }
+
+    handleTutorialFleeAttempt() {
+        if (!this.tutorialState) return false;
+        if (this.tutorialState.stage !== 'flee') {
+            const prompts = {
+                attack: ['先打出一次命中或暴擊。', '滑鼠左鍵 · 命中或暴擊'],
+                potion: ['先喝下應急藥劑。', '空白鍵 · 使用藥水']
+            };
+            const [message, control] = prompts[this.tutorialState.stage] || prompts.attack;
+            this.setTutorialPrompt(message, control);
+            return true;
+        }
+
+        this.tutorialState.stage = 'complete';
+        this.tutorialState.complete = true;
+        this.setTutorialPrompt('你轉身尋找退路。山坡卻先一步裂開。', '撤離失敗');
+        this.lab?.forceMonsterAttack('prologue_stag_charge');
+        return true;
+    }
+
+    handleTutorialPotionAttempt() {
+        if (!this.tutorialState) return false;
+        if (this.tutorialState.stage === 'potion') return false;
+        if (this.tutorialState.stage === 'attack') {
+            this.setTutorialPrompt('先打出一次命中或暴擊，再處理傷勢。', '滑鼠左鍵 · 命中或暴擊');
+        } else if (this.tutorialState.stage === 'flee') {
+            this.setTutorialPrompt('補給已經用過。現在嘗試撤離。', 'F · 嘗試撤離');
+        }
+        return true;
+    }
+
+    handleTutorialWeaponAttempt() {
+        if (!this.tutorialState || this.tutorialState.stage === 'attack') return false;
+        if (this.tutorialState.stage === 'potion') {
+            this.setTutorialPrompt('攻擊已經完成。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
+        } else if (this.tutorialState.stage === 'flee') {
+            this.setTutorialPrompt('補給已使用。現在嘗試撤離。', 'F · 嘗試撤離');
+        }
+        return true;
     }
 
     handleBattleEnd(event) {
         const character = GameManager.getCharacter();
         character.hp = Math.max(0, Number(event.snapshot?.player?.hp) || 0);
         this.result = event.result;
+        const isPrologueDefeat = event.result === CombatSessionPhase.DEFEAT
+            && Boolean(this.encounter?.context?.prologueTutorial);
 
         if (event.result === CombatSessionPhase.VICTORY) {
             this.rewards = this.options.settleVictory?.(this.encounter, event) || { rows: [] };
         } else if (event.result === CombatSessionPhase.DEFEAT) {
             character.hp = 1;
             GameManager.notify('all');
-            this.rewards = { rows: [{ label: '失去戰鬥能力', value: '將返回村落' }] };
+            this.rewards = this.encounter?.context?.prologueTutorial
+                ? { rows: [
+                    { label: this.encounter.context.prologueIssuedGear?.weapon || '公會制式獵刀', value: '斷裂' },
+                    { label: this.encounter.context.prologueIssuedGear?.armor || '公會外勤皮甲', value: '撕裂' },
+                    { label: '去向', value: '跌落斷坡' }
+                ] }
+                : { rows: [{ label: '失去戰鬥能力', value: '將返回村落' }] };
         } else {
             GameManager.notify('all');
             this.rewards = { rows: [{ label: '撤離成功', value: '沒有取得戰利品' }] };
         }
 
         this.flow.beginSettlement(event.result, this.rewards);
-        this.renderRewards(this.rewards);
         this.options.onBattleStateChange?.(event.result, this.rewards, this.flow.getSnapshot());
+
+        if (isPrologueDefeat) {
+            const completedEncounter = this.encounter;
+            queueMicrotask(() => {
+                if (this.encounter === completedEncounter && this.result === event.result) {
+                    this.finish(event.result);
+                }
+            });
+            return;
+        }
+
+        this.renderRewards(this.rewards);
     }
 
     renderRewards(rewards = {}) {
@@ -219,6 +349,9 @@ export default class CombatFlowController {
 
         this.lab?.destroy?.();
         this.lab = null;
+        this.tutorialPanel?.remove();
+        this.tutorialPanel = null;
+        this.tutorialState = null;
         this.overlay.hidden = true;
         const completedEncounter = this.encounter;
         const completedRewards = this.rewards;
@@ -238,6 +371,9 @@ export default class CombatFlowController {
     destroy() {
         this.lab?.destroy?.();
         this.lab = null;
+        this.tutorialPanel?.remove();
+        this.tutorialPanel = null;
+        this.tutorialState = null;
         if (this.overlay) this.overlay.hidden = true;
         this.rewardsPanel?.removeEventListener('click', this.handleRewardClick);
         if (this.ownsStylesheet) document.querySelector('#scene-combat-vfx-style')?.remove();

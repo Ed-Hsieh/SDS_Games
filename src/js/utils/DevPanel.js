@@ -22,6 +22,7 @@ import {
     TownVisibility
 } from '../managers/TownStateResolver.js';
 import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
+import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { resolveItemById, resolveItemRecord } from './ItemResolver.js';
 import { escapeHtml, formatAffixStats } from './ItemDisplay.js';
 import { showGlobalToast } from './UIFeedback.js';
@@ -35,7 +36,7 @@ import {
 } from '../models/CharacterLogic.js';
 import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import storyDialogueController from '../managers/StoryDialogueController.js';
-import { getStoryActor } from '../data/StoryActors.js?v=mia-layer-test-20260712x';
+import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
 const DEV_SOURCE = 'boss_test_panel';
@@ -445,7 +446,6 @@ class DevPanel {
 
     renderQuests() {
         const groups = [
-            ['主線', QuestDatabase.main],
             ['懸賞', QuestDatabase.bounty],
             ['委託', QuestDatabase.commission],
             ['隱藏', QuestDatabase.hidden || []]
@@ -471,23 +471,10 @@ class DevPanel {
 
     renderChapterOne() {
         const region = getChapterRegion(1);
-        const questRows = QuestDatabase.main
-            .filter(quest => quest.chapter === 1)
-            .map(quest => {
-                const state = questManager.getQuestState(quest.id);
-                const status = state?.status || 'locked';
-                const progress = Array.isArray(state?.progress) && state.progress.length > 0
-                    ? state.progress.map(item => `${item.current}/${item.required} ${item.target}`).join('｜')
-                    : '尚無進度';
-                return `
-                    <div class="dev-row">
-                        <small style="flex:1">${escapeHtml(quest.id)}｜${escapeHtml(quest.name || quest.id)}｜${escapeHtml(status)}｜${escapeHtml(progress)}</small>
-                        <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="${escapeHtml(quest.id)}">解鎖</button>
-                        <button class="dev-act" type="button" data-dev="quest-accept" data-quest-id="${escapeHtml(quest.id)}">接取</button>
-                        <button class="dev-act" type="button" data-dev="quest-fill" data-quest-id="${escapeHtml(quest.id)}">填滿</button>
-                    </div>
-                `;
-            }).join('');
+        const directive = storyGuidanceManager.getCurrent();
+        const questRows = directive
+            ? `<div class="dev-row"><small style="flex:1">${escapeHtml(directive.sceneId)}｜${escapeHtml(directive.title)}｜${escapeHtml(directive.text)}</small></div>`
+            : '<small class="dev-muted">主線已沒有下一個場景</small>';
 
         const routeCards = (() => {
             const nodes = (region?.locationNodes || []).filter(node => node.kind !== 'entry');
@@ -570,9 +557,7 @@ class DevPanel {
     }
 
     renderTown() {
-        const mains = QuestDatabase.main;
-        const finished = mains.filter(quest => questManager.getQuestState(quest.id)?.status === QuestStatus.FINISHED);
-        const chapter = finished.reduce((max, quest) => Math.max(max, quest.chapter), mains.some(q => questManager.getQuestState(q.id)?.status !== 'locked') ? 1 : 0);
+        const chapter = Math.max(1, Number(GameManager.getFlag('story.chapter')) || 1);
         const townSummary = getTownRuntimeSummary();
         const visiblePlaceNames = townSummary.visiblePlaces.map(place => place.name || place.id).join('、') || '無';
         const hiddenPlaceNames = townSummary.hiddenPlaces.map(place => `${place.name || place.id}${place.hiddenReason ? `：${place.hiddenReason}` : ''}`).join('\n') || '無';
@@ -589,7 +574,7 @@ class DevPanel {
         return `
             <div class="dev-card">
                 <h4>章節狀態</h4>
-                <small>主線完成 ${finished.length}/${mains.length}，目前章節進度約：第 ${Math.max(1, chapter)} 章｜城鎮階段：${escapeHtml(townSummary.stage)}</small>
+                <small>目前主線：第 ${chapter} 章｜城鎮階段：${escapeHtml(townSummary.stage)}</small>
                 <div class="dev-row">
                     <button class="dev-act" type="button" data-dev="town-reset-initial">第一章初始城鎮</button>
                     <button class="dev-act" type="button" data-dev="town-open-recovery">第一章回復網路</button>
@@ -648,6 +633,13 @@ class DevPanel {
             : [];
         return `
             <div class="dev-card">
+                <h4>特效畫面測試</h4>
+                <div class="dev-row">
+                    <small class="dev-muted">獨立開啟玩家、怪物與元素特效測試場，不影響目前遊戲進度。</small>
+                    <button class="dev-act" type="button" data-dev="open-vfx-lab">開啟測試場</button>
+                </div>
+            </div>
+            <div class="dev-card">
                 <h4>目前裝備</h4>
                 ${slots.map(slot => {
                     const item = char.equipment?.[slot];
@@ -694,6 +686,10 @@ class DevPanel {
                 title: '現在想談什麼？',
                 name: elder.name,
                 role: elder.role,
+                standing: elder.standing,
+                standingFacing: elder.standingFacing,
+                standingScale: elder.standingScale,
+                standingOffsetY: elder.standingOffsetY,
                 portrait: elder.portrait,
                 closable: true,
                 choices: [
@@ -906,6 +902,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'add-item-warehouse': () => this.addItem(true),
             'run-current-combat-validation': () => this.runCombatValidation('current'),
             'run-combat-validation': () => this.runCombatValidation('configured'),
+            'open-vfx-lab': () => window.open('combat-vfx-lab.html', '_blank', 'noopener,noreferrer'),
             'dialogue-preview': () => this.previewDialogue(data.mode),
             'fatigue-full': () => {
                 const status = GameManager.getAdventureFatigueStatus?.({ recover: false });

@@ -1,6 +1,6 @@
 # SDS Games Development Docs
 
-Last updated: 2026-07-11
+Last updated: 2026-07-14
 
 This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
 data files remain the source of truth for shipped behavior; these documents keep
@@ -46,8 +46,9 @@ the design direction readable for future Codex sessions.
   stable first-run achievements/evidence flags without rewriting first-run core.
 - Combat redesign is paused.
 - Tower rewrite is paused.
-- Image generation is paused. Missing art can be listed, but should not be filled
-  during this town-rebuild documentation pass.
+- First-run story image work is active and follows the concrete ledger in
+  `ART_STYLE_GUIDE.md`. Second-run external story art, tower art, DLC light/Void
+  art, and unapproved catalog expansion remain paused.
 
 ## Runtime Story Foundation
 

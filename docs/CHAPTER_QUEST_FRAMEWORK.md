@@ -213,8 +213,9 @@ Before runtime rewrite, verify:
 - External routes are staggered across the second run so replay is not limited
   to revised dialogue on identical geography. Exact route stories and authored
   map branches must be approved before placement.
-- `ash_baron`, the expedition supreme commander, the planned prologue overcap
-  demon, radiant Bosses, and Void Bosses belong to this optional layer.
+- The accepted chapter identities are the prologue stag rematch, 無名之咒, the
+  expedition supreme commander, `ash_baron`, 熵, the Chapter 6 light trial, and
+  the Chapter 7 Void Boss. Their routes, rewards, combat, and art remain paused.
 - Light/Void routes and their physical rewards may be discovered only in the
   current second run. They never replace the Life Seed, Ancient Rune, Forest
   Essence, and glimmer true-kill chain.

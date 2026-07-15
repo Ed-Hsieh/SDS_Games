@@ -104,15 +104,6 @@ export const StoryRouteEncounterContracts = Object.freeze({
         locationId: 'silver_snare_pass',
         combatStartBeatIndex: 3,
         postBattleBeatIndex: 4
-    }),
-    ch2_s05_blood_moon_hunt: contract({
-        id: 'route_ch2_blood_moon_stag',
-        sceneId: 'ch2_s05_blood_moon_hunt',
-        monsterId: 'blood_moon_stag',
-        regionId: 'chapter_02_broken_evacuations',
-        locationId: 'moon_moss_slope',
-        combatStartBeatIndex: 5,
-        postBattleBeatIndex: 6
     })
 });
 

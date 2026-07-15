@@ -146,13 +146,13 @@ export const ChapterRegionRegistry = Object.freeze({
         locationNodes: Object.freeze([
             location('evacuation_road_entry', '斷裂撤離路', RegionLocationKind.ENTRY, 3, 18),
             location('mist_tablet_hill', '霧碑丘', RegionLocationKind.LANDMARK, 12, 18, { legacyLandmarkId: 'mist_tablet_hill', sceneIds: ['ch2_s04_mist_and_tomb_route'] }),
-            location('moon_moss_slope', '月苔坡', RegionLocationKind.SIDE_ROUTE, 17, 9, { legacyLandmarkId: 'moon_moss_slope', sceneIds: ['ch2_s05_blood_moon_hunt'], optional: true, bossId: 'blood_moon_stag' }),
+            location('moon_moss_slope', '月苔坡', RegionLocationKind.SIDE_ROUTE, 17, 9, { legacyLandmarkId: 'moon_moss_slope', sceneIds: ['ch2_s05_moon_moss_trace'], optional: true }),
             location('opened_ancient_tomb', '掘開古墓', RegionLocationKind.BOSS_ARENA, 41, 14, { legacyLandmarkId: 'opened_ancient_tomb', sceneIds: ['ch2_s06_keeper_of_names'], bossId: 'lich' }),
             location('north_checkpoint_marker', '北向廢棄關卡', RegionLocationKind.STORY_TRANSITION, 45, 24, { sceneIds: ['ch2_s08_shadow_at_the_checkpoint'] })
         ]),
         sceneBindings: Object.freeze([
             binding('ch2_s04_mist_and_tomb_route', 'regional_canvas', 'opened_tomb_road', RegionSceneTrigger.SEGMENT_ENTER),
-            binding('ch2_s05_blood_moon_hunt', 'location_scene', 'moon_moss_slope', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch2_s05_moon_moss_trace', 'location_scene', 'moon_moss_slope', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch2_s06_keeper_of_names', 'location_scene', 'opened_ancient_tomb', RegionSceneTrigger.BOSS_CONVERGENCE),
             binding('ch2_s08_shadow_at_the_checkpoint', 'regional_canvas', 'north_checkpoint_exit', RegionSceneTrigger.RETURN_ROUTE)
         ]),

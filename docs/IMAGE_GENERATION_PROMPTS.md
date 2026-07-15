@@ -1,14 +1,15 @@
 # Image Generation Prompt Standards
 
-Last updated: 2026-07-05
+Last updated: 2026-07-14
 
 This is the authoritative prompt standard for future SDS_Games image generation.
 Use this file together with `ART_STYLE_GUIDE.md`. Old sheet-generation prompts,
 old art-v2 crop instructions, and generated queue markdown were removed so future
 agents do not inherit the wrong pipeline.
 
-Image generation is currently paused. When the user resumes image work, generate
-from this standard.
+First-run story image work is active. Generate only approved entries from the
+`ART_STYLE_GUIDE.md` first-run asset ledger. Second-run external stories, tower
+art, DLC light/Void art, and unapproved catalog expansion remain paused.
 
 ## Global Rules
 

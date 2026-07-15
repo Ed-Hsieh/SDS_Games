@@ -2,7 +2,6 @@ import { ChapterRegionOrder, ChapterRegionRegistry } from '../src/js/data/Chapte
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import { OptionalSideStoryRegistry, OptionalSideStoryStatus } from '../src/js/data/OptionalSideStoryRegistry.js';
 import { QuestDatabase } from '../src/js/data/Quests.js';
-import { getQuestStory } from '../src/js/data/QuestStories.js';
 import { MainlineCharacterContracts } from '../src/js/data/StoryActors.js';
 import { StorySceneOrder, StorySceneRegistry } from '../src/js/data/StorySceneRegistry.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
@@ -43,29 +42,13 @@ function auditMainlineExperience() {
         }
     }
 
-    const main = QuestDatabase.main || [];
-    if (main.length !== 7) addIssue('主線任務不是每章一筆', { actual: main.length });
-    for (let chapter = 1; chapter <= 7; chapter += 1) {
-        const quests = main.filter(quest => quest.chapter === chapter);
-        if (quests.length !== 1) continue;
-        const quest = quests[0];
-        const story = getQuestStory(quest, { status: 'active' });
-        if (!quest.autoProgress) addIssue('主線任務仍需手動接取或回報', { questId: quest.id });
-        if (!quest.objectives?.[0]?.completionFlag?.startsWith('story.scene.')) {
-            addIssue('主線任務沒有由場景旗標推進', { questId: quest.id });
-        }
-        if (Object.keys(quest.rewards || {}).length > 0) {
-            addIssue('地圖功能未定案前主線已配置獎勵', { questId: quest.id });
-        }
-        for (const field of ['available', 'active', 'completed', 'finished', 'location']) {
-            if (!hasText(story?.[field])) addIssue('章節任務缺少玩家可讀摘要', { questId: quest.id, field });
-        }
-    }
+    const main = Object.values(QuestDatabase).flat().filter(quest => quest?.type === 'main');
+    if (main.length > 0) addIssue('舊章節任務外殼仍存在', { actual: main.length });
 
     summary.mainline = {
         scenes: StorySceneOrder.length,
         stageCounts,
-        chapterQuests: main.length
+        legacyChapterQuests: main.length
     };
 }
 

@@ -1,7 +1,8 @@
 import GameManager from '../managers/GameManager.js';
-import { questManager, QuestStatus, QuestType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
+import { questManager, QuestStatus } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
+import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 
 const SLOT_LABELS = Object.freeze({
     weapon: '主武器',
@@ -160,8 +161,16 @@ export default class AdventurePanelsController {
     }
 
     renderQuestTracker() {
+        if (!this.trackerName || !this.trackerProgress) return;
+        const directive = storyGuidanceManager.getCurrent(this.options.getStoryHintContext?.() || {});
+        if (directive) {
+            this.trackerName.textContent = directive.title;
+            this.trackerProgress.textContent = directive.text;
+            return;
+        }
+
         const activeQuests = questManager.getActiveQuests();
-        const active = activeQuests.find(quest => quest.type === QuestType.MAIN) || activeQuests[0];
+        const active = activeQuests[0];
         if (!active) {
             this.trackerName.textContent = '目前沒有追蹤任務';
             this.trackerProgress.textContent = '探索地圖並調查地標。';

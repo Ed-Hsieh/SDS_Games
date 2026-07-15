@@ -98,9 +98,9 @@ const SceneEffects = Object.freeze({
         first_run: { flags: { 'story.ch2.lich_active': true } },
         second_run: { flags: { 'story.ch2.lich_active': true } }
     },
-    ch2_s05_blood_moon_hunt: {
-        first_run: { flags: { 'boss.blood_moon_stag.defeated': true } },
-        second_run: { flags: { 'boss.blood_moon_stag.defeated': true, 'story.execution.life_seed_intact': true } }
+    ch2_s05_moon_moss_trace: {
+        first_run: { flags: { 'story.ch2.moon_moss_trace_recorded': true } },
+        second_run: { flags: { 'story.ch2.moon_moss_trace_recorded': true } }
     },
     ch2_s06_keeper_of_names: {
         first_run: { flags: { 'boss.lich.defeated': true, 'story.ch2.lich_phylactery_recovered': true } },

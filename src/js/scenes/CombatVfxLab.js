@@ -1,6 +1,6 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
 import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260711l';
-import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260711p';
+import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260713a';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 
@@ -222,7 +222,6 @@ export class CombatVfxLab {
         this.damageVignette = root.querySelector('#damage-vignette');
         this.skillBanner = root.querySelector('#skill-banner');
         this.floatLayer = root.querySelector('#float-layer');
-        this.feedText = root.querySelector('#battle-feed-text');
         this.statusRow = root.querySelector('#enemy-status-row');
         this.intentPanel = root.querySelector('#enemy-intent');
         this.resultPanel = root.querySelector('#combat-result');
@@ -272,7 +271,10 @@ export class CombatVfxLab {
         this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
         this.setMode('combat', { announce: false });
         this.setFeed(this.getMonsterConfig().feed || '等待交戰指令');
-        if (options.autoStart) this.session.start();
+        if (options.autoStart) {
+            this.session.start();
+            if (options.startMonsterPaused) this.session.setMonsterFlowPaused(true);
+        }
     }
 
     getMonsterConfig() {
@@ -498,6 +500,7 @@ export class CombatVfxLab {
         }
 
         const snapshot = this.session.getSnapshot();
+        if (this.options.onWeaponAttempt?.(slot, snapshot) === true) return;
         if (snapshot.phase !== CombatSessionPhase.RUNNING || snapshot.cooldowns[slot] > 0.001) {
             this.session.playerAttack(slot);
             return;
@@ -531,6 +534,7 @@ export class CombatVfxLab {
 
     activatePotion() {
         if (this.labMode === 'combat') {
+            if (this.options.onPotionAttempt?.(this.session.getSnapshot()) === true) return;
             this.session.usePotion();
             return;
         }
@@ -542,12 +546,21 @@ export class CombatVfxLab {
 
     activateFlee() {
         if (this.labMode === 'combat') {
+            if (this.options.onFleeAttempt?.(this.session.getSnapshot()) === true) return;
             if (this.options.canFlee && !this.options.canFlee()) {
                 this.setFeed(this.options.fleeRejectedText || '這場戰鬥無法撤離。');
                 return;
             }
             this.session.flee();
         } else this.playFleeFeedback();
+    }
+
+    setMonsterFlowPaused(paused) {
+        return this.session.setMonsterFlowPaused(paused);
+    }
+
+    forceMonsterAttack(attackId) {
+        return this.session.forceMonsterAttack(attackId);
     }
 
     setMode(mode, { announce = true } = {}) {
@@ -605,6 +618,7 @@ export class CombatVfxLab {
 
     applyMonsterVisual() {
         const config = this.getMonsterConfig();
+        this.root.classList.toggle('is-unknown-monster', Boolean(config.concealIdentity));
         this.root.querySelector('#enemy-name').textContent = config.name;
         this.root.querySelector('#enemy-class').textContent = config.className;
         this.root.querySelector('#enemy-level').textContent = config.level;
@@ -676,6 +690,10 @@ export class CombatVfxLab {
             this.showSkill('MONSTER', event.attack.name);
             this.restartClass(this.enemyStage, 'is-casting', Math.ceil(event.attack.telegraph * 1000));
             this.setFeed(`${event.snapshot.monster.name}正在準備「${event.attack.name}」`);
+        } else if (event.type === 'monster:flow-paused') {
+            this.setFeed('敵方行動暫停，等待完成教學指令');
+        } else if (event.type === 'monster:flow-resumed') {
+            this.setFeed('敵方恢復行動');
         } else if (event.type === 'monster:attack-release') {
             this.playMonsterEffect(event.attack.effect);
             if (event.attack.effect === 'claw') this.restartClass(this.enemyStage, 'is-lunging', 650);
@@ -712,6 +730,7 @@ export class CombatVfxLab {
 
     renderSnapshot(snapshot, { immediate = false } = {}) {
         this.stage.dataset.phase = snapshot.phase;
+        this.stage.dataset.enemyFlow = snapshot.monsterFlowPaused ? 'paused' : 'active';
         this.renderHealth('monster', snapshot.monster.hp, snapshot.monster.maxHp, immediate);
         this.renderHealth('player', snapshot.player.hp, snapshot.player.maxHp, immediate);
         this.root.querySelector('#enemy-hp').textContent = snapshot.monster.hp;
@@ -934,7 +953,18 @@ export class CombatVfxLab {
         if (critical) number.classList.add('is-critical');
         if (playerDamage) number.classList.add('is-player-damage');
         if (heal) number.classList.add('is-heal');
-        const base = target === 'enemy' ? { x: 51.5, y: 43 } : { x: 50, y: 77 };
+        number.classList.add(target === 'enemy' ? 'is-enemy-target' : 'is-player-target');
+        number.dataset.target = target;
+        const targetPoint = target === 'enemy'
+            ? {
+                x: this.engine.enemyPoint.x + this.engine.width * 0.12,
+                y: this.engine.enemyPoint.y - this.engine.height * 0.07
+            }
+            : this.engine.playerPoint;
+        const base = {
+            x: targetPoint.x / Math.max(1, this.engine.width) * 100,
+            y: targetPoint.y / Math.max(1, this.engine.height) * 100
+        };
         number.style.left = `${base.x + (Math.random() - 0.5) * 7}%`;
         number.style.top = `${base.y + (Math.random() - 0.5) * 4}%`;
         const sign = heal ? '+' : (amount > 0 ? '−' : '');
@@ -960,7 +990,7 @@ export class CombatVfxLab {
     }
 
     setFeed(text) {
-        this.feedText.textContent = text;
+        this.options.onFeed?.(text);
     }
 
     flash(color) {

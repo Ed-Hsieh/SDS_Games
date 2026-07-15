@@ -4,10 +4,7 @@
  * resident, action, or state they control; TownStateResolver evaluates them.
  */
 
-const TOWN_SCENE_ALIASES = Object.freeze({
-    mia_workroom: 'handbook'
-});
-const townScene = id => `src/assets/images/art/scenes/town/locations/${TOWN_SCENE_ALIASES[id] || id}.webp`;
+const townScene = id => `src/assets/images/art/scenes/town/locations/${id}.webp`;
 const portrait = id => `src/assets/images/art/characters/portraits/${id}.webp`;
 const sceneComplete = sceneId => ({ sceneComplete: sceneId });
 
@@ -18,8 +15,8 @@ export const TownPlaceDatabase = [
         icon: '#',
         tag: '城鎮中樞',
         mapClass: 'town-place-crossroads',
-        cardImage: townScene('crossroads'),
-        sceneImage: townScene('crossroads'),
+        cardImage: townScene('crossroads-broken'),
+        sceneImage: townScene('crossroads-broken'),
         scenePosition: '50% 56%',
         description: '火盆燒得很低，泡過雨的公告紙貼在裂牆旁。每次有人從路上回來，廣場都先安靜一瞬。',
         when: { always: true },
@@ -59,6 +56,13 @@ export const TownPlaceDatabase = [
                 when: sceneComplete('ch1_s03_broken_crossroads'),
                 title: '南路的斷裂有了名字',
                 text: '村長沒有把黑根與失聯寫成勝利口號，只把下一個需要確認的人與地方圈出來。'
+            },
+            {
+                id: 'first_recovery',
+                when: sceneComplete('ch1_s11_roads_breathe_again'),
+                sceneImage: townScene('crossroads-recovery-1'),
+                title: '路上重新有了回聲',
+                text: '鐵匠鋪升起一線煙。空著的邊棚旁多了兩箱貨，還遠遠稱不上熱鬧。'
             },
             {
                 id: 'names_returned',
@@ -156,8 +160,8 @@ export const TownPlaceDatabase = [
         icon: '?',
         tag: '手札、百科與證據',
         mapClass: 'town-place-handbook',
-        cardImage: townScene('handbook'),
-        sceneImage: townScene('handbook'),
+        cardImage: townScene('civic-room-working'),
+        sceneImage: townScene('civic-room-working'),
         scenePosition: '50% 56%',
         description: '伊萊把濕紙、樣本、路線與不知道如何分類的人命放在同一張桌上，直到上下文重新接回來。',
         when: sceneComplete('ch1_s03_broken_crossroads'),
@@ -227,8 +231,8 @@ export const TownPlaceDatabase = [
         icon: '>',
         tag: '出發與回城',
         mapClass: 'town-place-gate',
-        cardImage: townScene('gate'),
-        sceneImage: townScene('gate'),
+        cardImage: townScene('gate-broken'),
+        sceneImage: townScene('gate-broken'),
         scenePosition: '50% 55%',
         description: '破旗與低燈分別守著前後方向。這裡不保證路安全，只確認出去與回來的人仍能彼此看見。',
         when: sceneComplete('ch1_s01_road_collapse'),
@@ -278,6 +282,13 @@ export const TownPlaceDatabase = [
                 text: '芙蕾負責讓人看見方向；塔維把燈留在回頭時仍能找到的位置。'
             },
             {
+                id: 'working_gate',
+                when: sceneComplete('ch2_s08_shadow_at_the_checkpoint'),
+                sceneImage: townScene('gate-working'),
+                title: '門上的工作沒有停',
+                text: '補過的門板重新承住巡防交接。旗與燈仍在各自的位置上。'
+            },
+            {
                 id: 'flag_did_not_return',
                 when: {
                     all: [
@@ -307,8 +318,8 @@ export const TownPlaceDatabase = [
         icon: '+',
         tag: '修復與鍛造',
         mapClass: 'town-place-forge',
-        cardImage: townScene('forge'),
-        sceneImage: townScene('forge'),
+        cardImage: townScene('forge-cold'),
+        sceneImage: townScene('forge-cold'),
         scenePosition: '50% 58%',
         description: '爐子先替鍋、門閂、擔架扣與回城工具生火，武器排在能讓人回來的東西後面。',
         when: sceneComplete('ch1_s07_silver_snare'),
@@ -339,6 +350,7 @@ export const TownPlaceDatabase = [
             {
                 id: 'fire_returns',
                 when: sceneComplete('ch1_s08_cold_forge_smoke'),
+                sceneImage: townScene('forge'),
                 title: '第一爐先修回城的東西',
                 text: '風箱重新咬住火。最先進爐的不是新劍，而是鍋底、門鉸與壞掉的扣件。'
             },
@@ -399,12 +411,14 @@ export const TownPlaceDatabase = [
             {
                 id: 'empty_crates',
                 when: sceneComplete('ch2_s01_empty_crates'),
+                sceneImage: townScene('market-closed'),
                 title: '空箱先證明路真的斷了',
                 text: '貨印與最後搬運位置被攤在棚下。商人第一次有了可以追查、而不是只能抱怨的缺口。'
             },
             {
                 id: 'public_medicine',
                 when: sceneComplete('ch2_s07_names_return_to_town'),
+                sceneImage: townScene('market-sparse'),
                 title: '藥品回到公開貨架',
                 text: '米婭核對配方批次，商人負責價格與數量。基礎醫藥不會因她的個人命運消失。'
             }

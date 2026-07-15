@@ -10,13 +10,14 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 import { getQuestStory } from '../data/QuestStories.js?v=dialogue-flow-20260712w';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
 import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
-import { dialogueManager } from '../managers/DialogueManager.js?v=mia-layer-test-20260712x';
+import { dialogueManager } from '../managers/DialogueManager.js?v=chapter1-art-20260713a';
 import GameManager from '../managers/GameManager.js';
 import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { getResolvedTownPlaces } from '../managers/TownStateResolver.js';
 import audioManager from '../utils/AudioManager.js';
+import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 
 const HANDBOOK_TABS = {
     commissions: {
@@ -259,7 +260,7 @@ export default class QuestScene {
         if (tabId === 'commissions') {
             const activeCount = questManager.getActiveQuests().length + questManager.getCompletedQuests().length;
             const completed = questManager.getCompletedQuests().length;
-            return `${records.length} 件委託 · ${activeCount} 追蹤中 · ${completed} 待回報`;
+            return `${records.length} 筆紀錄 · ${activeCount} 件委託追蹤中 · ${completed} 件待回報`;
         }
 
         const tab = HANDBOOK_TABS[tabId] || HANDBOOK_TABS.commissions;
@@ -268,7 +269,7 @@ export default class QuestScene {
 
     updateHandbookCounts() {
         const counts = {
-            commissions: this.getStoryQuestList().length,
+            commissions: this.getHandbookRecords('commissions').length,
             boss: this.getBossTraceRecords().length,
             world: this.getWorldNoteRecords().length,
             relationships: this.getRelationshipRecords().length,
@@ -293,12 +294,45 @@ export default class QuestScene {
                 return this.getTownMemoryRecords();
             case 'commissions':
             default:
-                return this.getStoryQuestList().map(quest => ({
+                return [
+                    this.getCurrentMainlineRecord(),
+                    ...this.getStoryQuestList().map(quest => ({
                     key: `quest:${quest.id}`,
                     kind: 'quest',
                     quest
-                }));
+                    }))
+                ].filter(Boolean);
         }
+    }
+
+    getCurrentMainlineRecord() {
+        const directive = storyGuidanceManager.getCurrent();
+        if (!directive) return null;
+        const region = getChapterRegion(directive.chapter);
+        const destination = directive.placeId
+            ? (getResolvedTownPlaces().find(place => place.id === directive.placeId)?.name || '城鎮')
+            : (region?.title || '冒險地圖');
+
+        return {
+            key: `mainline:${directive.sceneId}`,
+            kind: 'mainline',
+            icon: String(directive.chapter),
+            title: directive.title,
+            typeLabel: `第 ${directive.chapter} 章`,
+            statusIcon: '!',
+            statusText: '目前主線',
+            statusTone: 'active',
+            summaryMode: 'compact',
+            summaryLabel: region?.title || `第 ${directive.chapter} 章`,
+            summaryHint: destination,
+            current: directive.text,
+            listMeta: [destination, directive.targetType === 'town' ? '城鎮' : '野外'],
+            sections: [{ title: '下一步', lines: [directive.text] }],
+            route: directive.route,
+            routeLabel: directive.targetType === 'town' ? `返回${destination}` : '前往冒險地圖',
+            routeDescription: directive.text,
+            npcId: directive.actorId || ''
+        };
     }
 
     createQuestListItem(quest) {
@@ -1022,6 +1056,11 @@ export default class QuestScene {
         const hasRouteAction = Boolean(record.route);
 
         switch (record.kind) {
+            case 'mainline':
+                return {
+                    objectivesTitle: '目前方向',
+                    showRewards: false
+                };
             case 'relationship':
                 return {
                     objectivesTitle: '人物側記',
@@ -1695,7 +1734,6 @@ export default class QuestScene {
 
     getTypeText(type) {
         const texts = {
-            [QuestType.MAIN]: '主脈絡',
             [QuestType.BOUNTY]: '城鎮聽聞',
             [QuestType.COMMISSION]: '人物請託',
             [QuestType.HIDDEN]: '未明'

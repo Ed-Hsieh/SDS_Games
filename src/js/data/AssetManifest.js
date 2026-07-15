@@ -125,7 +125,8 @@ const ART_READY = Object.freeze({
         'treant', 'void_walker', 'wild_wolf', 'wyvern'
     ]),
     townLocations: readySet([
-        'alley', 'casino', 'crossroads', 'forge', 'gate', 'handbook', 'market'
+        'alley', 'casino', 'civic-room-working', 'crossroads', 'forge', 'gate',
+        'gate-working', 'handbook', 'market', 'market-closed', 'market-sparse'
     ]),
     dungeonAreas: readySet([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle',
@@ -147,7 +148,8 @@ const ART_READY = Object.freeze({
     combatEffects: readySet([]),
     backgrounds: readySet([
         'casino-game-table', 'casino-hall',
-        'casino-prize-wall', 'town-overview'
+        'casino-prize-wall', 'town-overview', 'town-overview-broken',
+        'town-overview-recovery'
     ])
 });
 

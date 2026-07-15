@@ -136,6 +136,7 @@ export default class RealtimeCombatSession {
         this.pendingPlayerAttacks = [];
         this.monsterIntent = null;
         this.pendingMonsterImpact = null;
+        this.monsterFlowPaused = Boolean(config.monsterFlowPaused);
         this.nextMonsterActionIn = this.config.monster.initialDelay;
         this.monsterAttackIndex = 0;
         this.emit('session:configured');
@@ -203,6 +204,7 @@ export default class RealtimeCombatSession {
             cooldowns: { ...this.cooldowns },
             monsterIntent: intent,
             pendingMonsterImpact,
+            monsterFlowPaused: this.monsterFlowPaused,
             nextMonsterActionIn: this.nextMonsterActionIn,
             pendingPlayerAttacks: this.pendingPlayerAttacks.map(entry => ({
                 slot: entry.slot,
@@ -322,6 +324,7 @@ export default class RealtimeCombatSession {
 
     updateMonsterFlow(delta) {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
+        if (this.monsterFlowPaused) return;
         const scaledDelta = delta * this.config.tempo;
 
         if (this.pendingMonsterImpact) {
@@ -485,11 +488,31 @@ export default class RealtimeCombatSession {
         return true;
     }
 
-    beginMonsterIntent() {
+    setMonsterFlowPaused(paused) {
+        const next = Boolean(paused);
+        if (this.monsterFlowPaused === next) return false;
+        this.monsterFlowPaused = next;
+        this.emit(next ? 'monster:flow-paused' : 'monster:flow-resumed');
+        return true;
+    }
+
+    forceMonsterAttack(attackId) {
+        if (this.phase !== CombatSessionPhase.RUNNING) return false;
+        const attack = this.config.monster.attacks.find(entry => entry.id === attackId);
+        if (!attack) return false;
+        this.monsterFlowPaused = false;
+        this.monsterIntent = null;
+        this.pendingMonsterImpact = null;
+        this.nextMonsterActionIn = 0;
+        this.beginMonsterIntent(attack);
+        return true;
+    }
+
+    beginMonsterIntent(forcedAttack = null) {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
         const attacks = this.config.monster.attacks;
-        const attack = attacks[this.monsterAttackIndex % attacks.length];
-        this.monsterAttackIndex += 1;
+        const attack = forcedAttack || attacks[this.monsterAttackIndex % attacks.length];
+        if (!forcedAttack) this.monsterAttackIndex += 1;
         this.monsterIntent = {
             attack: { ...attack },
             total: attack.telegraph,

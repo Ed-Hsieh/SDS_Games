@@ -145,6 +145,70 @@ button {
     display: none;
 }
 
+.combat-tutorial-prompt {
+    position: absolute;
+    left: 50%;
+    bottom: 202px;
+    z-index: 24;
+    display: grid;
+    width: min(560px, calc(100% - 96px));
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    min-height: 54px;
+    padding: 10px 14px;
+    border: 1px solid rgba(210, 174, 102, 0.5);
+    border-radius: 4px;
+    background: rgba(8, 10, 9, 0.92);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.42);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.combat-tutorial-prompt span {
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.combat-tutorial-prompt strong {
+    min-width: 0;
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.combat-tutorial-prompt small {
+    color: var(--player-bright);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.combat-tutorial-prompt.is-current {
+    animation: tutorial-prompt-in 180ms ease-out;
+}
+
+.combat-tutorial-prompt.is-complete {
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+.vfx-lab.is-unknown-monster .enemy-visual {
+    filter: brightness(0.42) saturate(0.5) contrast(1.28);
+}
+
+@keyframes tutorial-prompt-in {
+    from {
+        opacity: 0.35;
+        transform: translate(-50%, 5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
 .intent-head,
 .break-head {
     display: grid;
@@ -308,7 +372,7 @@ button {
     mix-blend-mode: lighten;
     -webkit-mask-image: radial-gradient(ellipse 72% 82% at 50% 52%, #000 48%, rgba(0, 0, 0, 0.94) 67%, transparent 100%);
     mask-image: radial-gradient(ellipse 72% 82% at 50% 52%, #000 48%, rgba(0, 0, 0, 0.94) 67%, transparent 100%);
-    transform: translateY(3.5%) scale(1.01);
+    transform: translateY(0) scale(1.01);
     transform-origin: 52% 70%;
     will-change: transform, filter;
 }
@@ -680,29 +744,22 @@ button {
     color: #f07763;
 }
 
+.float-number.is-enemy-target {
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.9), 0 0 16px currentColor;
+}
+
+.float-number.is-player-target {
+    text-align: left;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.96), 0 0 18px currentColor;
+}
+
 .float-number.is-heal {
     color: #91d5a2;
 }
 
-.battle-feed {
-    position: absolute;
-    bottom: 137px;
-    left: 50%;
-    z-index: 17;
-    display: flex;
-    align-items: center;
-    max-width: 38%;
-    min-height: 28px;
-    gap: 10px;
-    color: rgba(238, 233, 220, 0.76);
-    font-size: 12px;
-    transform: translateX(-50%);
-    pointer-events: none;
-}
-
 .combat-status-dock {
     position: absolute;
-    bottom: 182px;
+    bottom: 171px;
     left: 50%;
     z-index: 21;
     display: grid;
@@ -798,21 +855,6 @@ button {
     border-radius: 5px;
     color: rgba(238, 233, 220, 0.35);
     font-size: 9px;
-}
-
-.feed-label {
-    padding: 3px 7px;
-    border-left: 2px solid var(--gold);
-    color: var(--gold);
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.battle-feed strong {
-    overflow: hidden;
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .player-hud {
@@ -1615,10 +1657,6 @@ button {
 
     .enemy-stage {
         inset: 68px 0 112px;
-    }
-
-    .battle-feed {
-        bottom: 150px;
     }
 
     .combat-rhythm-ring {

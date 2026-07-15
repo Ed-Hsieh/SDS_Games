@@ -86,10 +86,12 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
         physicalPersistence: 'current_run_only',
         resumeGate: 'complete_and_validate_first_run_story_systems_and_required_art_then_audit_persistent_evidence_flags',
         acceptedBaseGameFirstResolutions: [
-            'ash_baron',
+            'prologue_blood_moon_stag_route_paused',
+            'nameless_curse_route_paused',
             'expedition_supreme_commander_pending_design',
-            'prologue_overcap_demon_pending_design',
-            'aurora_archon',
+            'ash_baron',
+            'entropy_balance_route_paused',
+            'light_trial_aurora_archon_route_paused',
             'void_revelation_pending_route'
         ],
         dlcBoundary: 'DLC extends the post-reveal light, Void, and tower world; it does not own the first Ash Baron resolution, radiant trial, Void revelation, or prologue revenge.'

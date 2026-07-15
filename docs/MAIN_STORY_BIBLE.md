@@ -634,16 +634,27 @@ materially different, but never become a true-ending requirement.
 - The twenty-year expedition's supreme commander is reserved as a separate
   overcap Boss identity. Kaedren does not fill this role. The commander's name,
   transformed state, location, and reward remain intentionally undefined.
-- The planned prologue tutorial antagonist is a unique high-rank demon and a
-  future member of this layer. It defeats the trained royal frontier inspector,
-  destroys the starting equipment, and later supports an optional second-run
-  revenge route. Its exact identity, weapon, reason for appearing, and rematch
-  timing remain under user review. Only its first-run tutorial identity and
-  fixed-loss staging belong to the active first-run pass; do not design or
-  implement its second-run revenge route yet.
-- `aurora_archon`, `radiant_keeper`, `mirror_seraph`, and the Radiant Corridor
-  provide the first optional formal-light route. `abyssal_seraph`, the unnamed
-  contract creditor, and the rebuilt tower provide later Void interpretation.
+- Chapter 1's opening overcap identity is accepted as `blood_moon_stag`, shown
+  only as `迷霧中的巨影` during the first run. It is an ancient migratory beast
+  driven mad by expanding curse pressure, not a Demon King emissary. Its charge
+  breaks the protagonist's guild-issued hunting blade and throws them down the south-road
+  slope, physically ending the encounter where Mia can find them. Only this
+  first-run identity and fixed-loss staging belong to the active pass; its
+  later hidden rematch remains paused.
+- Chapter 2's reserved external identity is `無名之咒`: the curse-compressed
+  remains of many dead people whose individual names and routes were lost. It
+  must not be framed as a giant elephant, a single honored corpse, or a generic
+  undead king. Its final body, route, reward, combat, and art remain paused.
+- Chapter 5's reserved external identity is `熵`: a balancing response that
+  emerges only after the four-element Boss dies and fire, ice, thunder, and
+  poison lose their mutual restraint. It is not a fifth element and must not
+  retroactively cause the Elemental Lord. Its final body, route, reward, combat,
+  and art remain paused.
+- Chapter 6 owns the first optional formal-light Boss route and a current-run
+  light weapon answer; Chapter 7 owns the paired Void Boss route. Light must
+  reveal, anchor, or make the Void target interactable rather than acting as a
+  flat damage multiplier, and the reward must not force one weapon form. These
+  routes remain optional and never gate the true ending.
 - External stories unlock from first-run evidence plus achievement meaning, but
   all physical clues, tools, and rewards are reacquired in the current run.
 - Routes are staggered rather than dumped after the ending. Exact chapter
@@ -765,9 +776,10 @@ external Boss feel like a missing mainline chapter.
   and the first handbook route become active. Shared water and reserved beds
   remain scarce, while the relit forge first receives pots, hinges, and a cart
   wheel before weapons.
-- Second-run addition: no fate is changed yet. `未竟的弒王` makes the Moon Moss
-  traces relevant to the later true-kill route without tying Life Seed to
-  Mia's survival.
+- Second-run addition: memory identifies the opening giant as
+  `blood_moon_stag`. Following its charge route instead of being thrown from it
+  opens the hidden rematch; its intact Life Seed remains an execution anchor and
+  has no role in Mia's survival.
 
 #### Chapter 2 - 斷路上的藥味 / Medicine On The Broken Road (Lv11-20)
 
@@ -790,9 +802,10 @@ external Boss feel like a missing mainline chapter.
   medicine is visibly wrapped and received by residents, and the handbook gains
   named evacuation records. Mia checks the authorization batch, then leaves all
   prices and transactions to the merchant.
-- Second-run addition: `blood_moon_stag` becomes a mandatory true-kill memory
-  route. Its intact Life Seed is reserved only as the body anchor for the final
-  execution.
+- Paused external layer: `無名之咒` grows from bodies whose names, funeral
+  records, and evacuation routes were compressed into one anonymous command.
+  This is a chapter-two consequence and interpretation route, not a replacement
+  for Hern's first-run convergence.
 
 #### Chapter 3 - 影子仍守夜 / Shadows Still Keep Watch (Lv21-30)
 
@@ -873,6 +886,10 @@ external Boss feel like a missing mainline chapter.
   return, save Mia during the same surgery, stop the elder at the gate,
   receive the scar shard alive, and approach Ailo after the whistle cache is
   exposed.
+- Paused external layer: `熵` appears after the Elemental Lord's death removes
+  the restraint among four ordinary elements. It is a balancing mechanism made
+  violent by the sudden vacancy, not a new affinity and not the cause of Mia's
+  operation crisis.
 
 #### Chapter 6 - 龍守封痕 / The Dragon Guards The Scar (Lv51-60)
 
@@ -943,7 +960,7 @@ inside that class and must record their internal transition during full scriptin
 | Stage Class | Bound Scene Ids | Count |
 | --- | --- | ---: |
 | `regional_canvas` | `ch1_s01_road_collapse`, `ch1_s06_three_landmarks`, `ch1_s09_rotroot_approach`, `ch2_s04_mist_and_tomb_route`, `ch2_s08_shadow_at_the_checkpoint`, `ch3_s03_lamp_oil_in_fog`, `ch4_s01_road_moves_underfoot`, `ch4_s04_gray_ridge_evacuates`, `ch5_s03_elemental_convergence`, `ch5_s05_fourfold_shrapnel`, `ch6_s01_northern_drake_watch`, `ch6_s05_after_the_broad_road`, `ch7_s01_narrow_human_road` | 13 |
-| `location_scene` | `ch1_s07_silver_snare`, `ch1_s10_forest_guardian`, `ch2_s05_blood_moon_hunt`, `ch2_s06_keeper_of_names`, `ch3_s01_dead_checkpoint`, `ch3_s06_drowned_voice`, `ch3_s07_old_command_post`, `ch3_s08_shadow_commander`, `ch4_s03_thorn_value_rule`, `ch4_s05_body_locks`, `ch4_s06_flag_returns`, `ch4_s07_titan_rises`, `ch5_s04_elemental_lord`, `ch5_s09_whistle_cache`, `ch6_s02_scar_aftermath`, `ch6_s03_stop_before_the_line`, `ch6_s04_dragon_convergence`, `ch6_s09_the_old_note_answers`, `ch7_s02_ruined_flower_field`, `ch7_s04_three_anchor_check`, `ch7_s05_fall_site_audience`, `ch7_s06_combat_body_falls`, `ch7_s07_last_core` | 23 |
+| `location_scene` | `ch1_s07_silver_snare`, `ch1_s10_forest_guardian`, `ch2_s05_moon_moss_trace`, `ch2_s06_keeper_of_names`, `ch3_s01_dead_checkpoint`, `ch3_s06_drowned_voice`, `ch3_s07_old_command_post`, `ch3_s08_shadow_commander`, `ch4_s03_thorn_value_rule`, `ch4_s05_body_locks`, `ch4_s06_flag_returns`, `ch4_s07_titan_rises`, `ch5_s04_elemental_lord`, `ch5_s09_whistle_cache`, `ch6_s02_scar_aftermath`, `ch6_s03_stop_before_the_line`, `ch6_s04_dragon_convergence`, `ch6_s09_the_old_note_answers`, `ch7_s02_ruined_flower_field`, `ch7_s04_three_anchor_check`, `ch7_s05_fall_site_audience`, `ch7_s06_combat_body_falls`, `ch7_s07_last_core` | 23 |
 | `town_scene` | `ch1_s02_wake_under_bitter_bottles`, `ch1_s03_broken_crossroads`, `ch1_s04_elder_to_scholar`, `ch1_s05_south_gate_introduction`, `ch1_s08_cold_forge_smoke`, `ch1_s11_roads_breathe_again`, `ch2_s01_empty_crates`, `ch2_s02_name_under_basket`, `ch2_s03_ledger_that_would_not_close`, `ch2_s07_names_return_to_town`, `ch3_s02_shadows_count_names`, `ch3_s04_showcase_glass`, `ch3_s05_blank_creditor_trace`, `ch3_s09_temptation_and_orders`, `ch4_s02_fourfold_countergear`, `ch4_s08_returned_objects`, `ch4_s09_four_elements_one_report`, `ch5_s01_four_fronts_converge`, `ch5_s02_forge_contracts`, `ch5_s06_mia_operation`, `ch5_s07_after_the_ratchet`, `ch5_s08_expedition_list`, `ch5_s10_before_dawn`, `ch6_s06_settlement_throw`, `ch6_s07_house_changes_seats`, `ch6_s08_brush_past_or_invitation` | 26 |
 | `memory_or_ending` | `ch5_s11_town_loses_its_voice`, `ch7_s03_echo_memory`, `ch7_s08_return_to_town`, `ch7_s09_first_or_second_epilogue` | 4 |
 
@@ -974,7 +991,7 @@ fail on missing, duplicated, or unplaced ids.
 | `ch2_s02_name_under_basket` | Mia's herb workroom | A name beneath an old herb basket connects Mia's family loss to the expedition and evacuation years. | Relationship deepens through shared work and the way Mia still looks up at every passing footstep. | The protagonist understands the emotional weight but gains no false foreknowledge about her later surgery. | `Name Under The Herb Basket`; Mia/伊萊 tension becomes visible without ending her ordinary work. | Mia's father record enters the handbook and town relationships. |
 | `ch2_s03_ledger_that_would_not_close` | Scholar desk | 伊萊 and the elder compare evacuation lists, funeral tags, and one route instruction that was once correct. | The document is accepted as useful evidence. | The protagonist notices the missing revision layer but cannot yet prove the later terrain change. | `Ledger That Would Not Close`; elder guilt remains restrained. | Ancient tomb and mist-tablet route open. |
 | `ch2_s04_mist_and_tomb_route` | `mist_tablet_hill`, `opened_ancient_tomb` | Funeral markers point toward a route whose dead still try to complete evacuation. | Horror and investigation converge. | Memory highlights that names, not necromancy alone, are binding the dead. | Mia names the human cost; blacksmith supplies practical anti-undead preparation. | Lich phylactery clues gathered. |
-| `ch2_s05_blood_moon_hunt` | `moon_moss_slope`, `broken_horn_camp` | Blood Moon Stag follows an ancient migration cycle across newly readable paths. | Optional exploration Boss; Life Seed is a valuable ordinary material with no final-use explanation. | `未竟的弒王` makes this a mandatory true-kill route. The player preserves an intact Life Seed as a current-run execution key. | Builds the final body anchor without owning any part of Mia's rescue. | `life_seed_intact` execution state; normal `life_seed` economy remains separate. |
+| `ch2_s05_moon_moss_trace` | `moon_moss_slope` | Repeated hoof marks cross the reopened route, but the animal itself has already moved west. | Optional environmental evidence only; no Boss, reward, or required detour. | The same current-run trace remains environmental evidence; paused second-run Boss work does not enter this scene. | Establishes that large wildlife is being displaced without identifying the prologue attacker. | Moon-moss route observation only. |
 | `ch2_s06_keeper_of_names` | Opened tomb reliquary | Hern's records reveal that he bound tags, bodies, and route duty together when burial became impossible. | Player reads him as a tragic Lich after the battle. | Same battle; achievement memory makes the glimmer-bearing residue worth reserving. | 伊萊 confronts the danger of records surviving context. | `lich` defeated; `lich_phylactery` and reserved `glimmer_shard` acquired. |
 | `ch2_s07_names_return_to_town` | Civic room | The dead are re-entered into an honest ledger rather than praised as a faceless sacrifice. | 伊萊's confidence grows because his records solved a real crisis; finite medicine visibly reaches waiting residents. | His confidence is tempered by the protagonist's insistence on revision dates. | Elder/Mia share the unresolved name; elder/伊萊 expose the old pattern of one waiting outside while the other writes; Ailo recognizes the useless dye flower. | Evacuation record closes; the market stocks Mia-authorized medicine; elder/Ilai friendship and Ailo flower breadcrumbs enter the mainline. |
 | `ch2_s08_shadow_at_the_checkpoint` | Northbound road marker | A recovered route sign is found guarded by shadows using an old human formation. | New threat teaser. | The order pattern is immediately disturbing but still lacks a commander identity. | Tavi is assigned later lamp work; Frey volunteers for route marking. | Chapter 3 shadow investigation opens. |
@@ -2098,35 +2115,39 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s01_road_collapse`
 
+- `title`: 南路沒有風
 - `stageClass`: `regional_canvas`
-- `background`: `working: south road outside town, broken verge and blackened root pressure`
-- `worldState`: Chapter 1 opening; overcast; town still out of sight behind the bend
+- `background`: `south-road-broken.webp; south road outside town, broken verge, blackened roots, steep downhill shoulder`
+- `worldState`: Chapter 1 opening; overcast; protagonist already wounded by abnormal lesser monsters; town remains out of sight behind the bend
 - `viewpoint`: `protagonist_limited`
 - `participants`: Mia enters only after the opening encounter
-- `entry`: player control begins on the south road; the event layer interrupts when route behavior changes
+- `entry`: player reaches the last south-road bend with a damaged guild-issued hunting blade and torn field leathers; the event layer interrupts when the mist stops moving
 - `exit`: fade through loss of consciousness into Mia's workroom
-- `objective`: survive the opening encounter and reach shelter
+- `objective`: break through the unknown giant and reach the reported village
 - `inputs`: new game or new-run Chapter 1 start
-- `outputs`: protagonist wounded but alive; Mia opening rescue; workroom opening state
-- `assetNotes`: missing regional opening background; reuse Mia's current portrait until layered expressions exist
+- `outputs`: opening rhythm tutorial completed; guild-issued hunting blade broken and field leathers ruined; protagonist thrown down the slope, poisoned, and found alive by Mia; workroom opening state
+- `assetNotes`: use `south-road-broken.webp`; conceal the stag image as a silhouette; after the downhill impact, close the visible scene with the `eyes-closing` transition before the post-impact blackout; neither state uses a protagonist portrait
 
-| Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
-| ---: | --- | --- | --- | --- | --- |
-| 0 | any | narration | - | - | 王國的巡查令在外套內袋磨著肋骨。這片邊境已錯過數次稅簿與信使回報，我奉命確認道路為何失去消息，以及還有沒有人能把答覆送出去。 |
-| 1 | any | narration | - | - | 南路沒有風，草卻一叢接一叢向北伏倒。泥上的爪印彼此重疊，像原本互不相近的東西忽然都在追同一條路。 |
-| 2 | any | narration | - | - | 路肩裂開一線黑色。細根在土下鼓動，前方的動靜也同時停了。 |
-| 3 | any | exit | - | - | 收起事件層，進入開場途中遭遇。 |
-| 4 | any | enter | - | - | 戰鬥結束後重新開啟事件層；鏡頭停在路面與主角失去力氣的手。 |
-| 5 | any | narration | - | - | 傷口沒有立刻流出多少血，麻木卻沿著手臂往上爬。遠處的南門只剩一小塊灰色輪廓。 |
-| 6 | any | narration | - | - | 腳步從城鎮方向逼近。有人先按住你的手，阻止你去摸傷口。 |
-| 7 | any | enter | - | - | Mia 進入近景，跪在主角身側，先檢查瞳孔與呼吸。 |
-| 8 | any | speaker | `herbalist` | `resolute` | 手離開那裡。能聽見就眨一下眼。 |
-| 9 | any | speaker | `herbalist` | `guarded` | 很好。現在別證明你能站。活著就夠了。 |
-| 10 | any | narration | - | - | 苦澀的氣味壓過潮土。布帶收緊時，黑色的細根仍在道路另一側朝北顫動。 |
-| 11 | any | exit | - | - | Mia 扶住主角；畫面失焦並轉入工作間。 |
+| Order | Condition | Beat | Speaker | Expression | Presentation Phase | Visual Mode | Runtime Text / Stage Action |
+| ---: | --- | --- | --- | --- | --- | --- | --- |
+| 1 | any | narration | - | - | `pre_battle` | - | 三天前，冒險者公會把一張失聯調查委託推到我面前。目的地是南境一座偏遠小鎮；稅簿一個月沒送到，兩名信使也沒有回來。我要確認商路、找出斷訊原因，再把答覆帶回去。 |
+| 2 | any | narration | - | - | `pre_battle` | - | 報酬高得不像普通巡查。委託紙只寫了路遠，沒提黑霧，也沒提沿路那些枯得不像活物的東西。 |
+| 3 | any | narration | - | - | `pre_battle` | - | 我在南路外圍已經放倒三隻枯瘦的東西。公會制式獵刀崩了一角，公會外勤皮甲的左肩也被抓開；傷口又冷又麻，草葉擦過靴面時全朝同一個方向伏倒。北方。 |
+| 4 | any | narration | - | - | `pre_battle` | - | 霧停了。兩道巨角先從灰白裡抬起，接著才是比馬背更高的肩胛；牠胸前的毛被黑根黏成硬塊，每一次喘息都帶著腐葉與鐵鏽的味道。 |
+| 5 | any | narration | - | - | `pre_battle` | - | 牠沒有看路。只看我。 |
+| 6 | any | exit | - | - | - | - | 收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即觸發不可打斷的斷坡衝撞。 |
+| 7 | any | narration | - | - | `post_battle` | `eyes-closing` | 巨角撞上刀脊。金屬的低鳴貼著掌骨鑽進來；刀身折斷，視野也從上下兩端猛地闔上。 |
+| 8 | any | narration | - | - | `post_battle` | `blackout` | 天空翻了半圈。我摔出路肩，碎石一路撞著背脊，濕土灌進領口。 |
+| 9 | any | narration | - | - | `post_battle` | `blackout` | 坡頂傳來一聲嘶鳴。那頭巨影沒有追來，只在霧裡踩碎石塊，聲音越來越遠。 |
+| 10 | any | narration | - | - | `post_battle` | `blackout` | 枯枝忽然連響幾聲。腳步很急，卻沒有亂；有人跪進濕土，先按住我伸向傷口的手。 |
+| 11 | any | speaker | `herbalist` | `resolute` | `post_battle` | `blackout` | 手別動。碎片還卡在裡面。 |
+| 12 | any | narration | - | - | `post_battle` | `blackout` | 她撐開我的眼皮，又俐落地探過頸側。藥草、冷水，還有被急促呼吸壓住的一點汗味。 |
+| 13 | any | speaker | `herbalist` | `guarded` | `post_battle` | `blackout` | 聽得見，就眨一下眼。很好。剩下的交給我。 |
+| 14 | any | narration | - | - | `post_battle` | `blackout` | 苦藥壓過嘴裡的血味。她朝城門方向喊了兩個名字；布帶勒緊胸口以前，聲音已經沉了下去。 |
 
 ### `ch1_s02_wake_under_bitter_bottles`
 
+- `title`: 苦瓶底下的水
 - `stageClass`: `town_scene`
 - `background`: `working: Mia's herb workroom / opening_care`
 - `worldState`: Chapter 1 morning after rescue; shelves sparse; one long-closed inner window
@@ -2156,6 +2177,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s03_broken_crossroads`
 
+- `title`: 回程板上的空行
 - `stageClass`: `town_scene`
 - `background`: existing town crossroads scene, future broken-state full background
 - `worldState`: Chapter 1 broken town; forge cold; stalls empty; South Gate traffic sparse
@@ -2185,6 +2207,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s04_elder_to_scholar`
 
+- `title`: 三個沒有名字的地點
 - `stageClass`: `town_scene`
 - `background`: working civic room connected to 伊萊's damp-paper desk
 - `worldState`: Chapter 1; repair notices and missing-person lists interrupt ordinary records
@@ -2214,6 +2237,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s05_south_gate_introduction`
 
+- `title`: 出去一行，回來一行
 - `stageClass`: `town_scene`
 - `background`: existing South Gate scene, future broken-state full background
 - `worldState`: Chapter 1 daylight; damaged gate; patrol flag visible; lamp unlit but maintained
@@ -2243,6 +2267,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s06_three_landmarks`
 
+- `title`: 泥、銀線與冷灰
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted Chapter 1 canvas with three fixed discovery nodes
 - `worldState`: Chapter 1 route survey; fog density rises with travel time
@@ -2265,6 +2290,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s07_silver_snare`
 
+- `title`: 箭頭轉向灌木
 - `stageClass`: `location_scene`
 - `background`: working `silver_snare_pass` with cut road sign and taut silver thread
 - `worldState`: Chapter 1 return route; fog rising; route behind player partially closed
@@ -2290,6 +2316,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s08_cold_forge_smoke`
 
+- `title`: 冷爐重新喘氣
 - `stageClass`: `town_scene`
 - `background`: existing forge scene in cold-to-relit transition
 - `worldState`: Chapter 1 return; route evidence under review; bellows linkage jammed; basic furnace recoverable
@@ -2324,6 +2351,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s09_rotroot_approach`
 
+- `title`: 根脈向北
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted route from `broken_horn_camp` into `rotroot_ravine`
 - `worldState`: Chapter 1 forest pressure; bark damage and northbound root pulse intensify
@@ -2348,6 +2376,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s10_forest_guardian`
 
+- `title`: 守門者不是傷口
 - `stageClass`: `location_scene`
 - `background`: working ancient root heart within the old wolf-den route
 - `worldState`: Chapter 1 Boss convergence; roots constricted by external black pressure
@@ -2373,6 +2402,7 @@ descriptive outputs until the complete screenplay is accepted.
 
 ### `ch1_s11_roads_breathe_again`
 
+- `title`: 第一批送進爐火的東西
 - `stageClass`: `town_scene`
 - `background`: town crossroads in first recovery state, with South Gate, forge smoke, and empty market edge visible in sequence
 - `worldState`: Chapter 1 close; nearby roads readable but unsafe; market still lacks a supply route
@@ -2525,34 +2555,28 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 | 7 | second_run | narration | - | - | 記憶讓你先看名字，再看屍體。綁住牠們的不是單純死氣，而是「尚未送達」的職責。 |
 | 8 | any | narration | - | - | 墓內每隔一段便有一只空釘孔。某件承載所有葬牌的核心物被移進更深處，死者的路也跟著它移動。 |
 | 9 | any | narration | - | - | 手札追加：運貨人並未被單一怪物獵殺；他們走入一條仍在執行舊撤離程序的死路。 |
-| 10 | any | exit | - | - | Open tomb reliquary and `keeper_of_names` Boss convergence; optional Blood Moon branch remains available before commitment. |
+| 10 | any | exit | - | - | Open the tomb reliquary and `keeper_of_names` Boss convergence; the moon-moss side route remains an optional observation. |
 
-### `ch2_s05_blood_moon_hunt`
+### `ch2_s05_moon_moss_trace`
 
 - `stageClass`: `location_scene`
-- `background`: moon-moss slope crossing into the broken-horn migration ground
-- `worldState`: Chapter 2 optional branch; blood-moon migration pressure; no sacred or divine framing
+- `background`: moon-moss slope beside the reopened evacuation road
+- `worldState`: Chapter 2 optional environmental branch; displaced wildlife has crossed the road and moved on
 - `viewpoint`: `protagonist_limited`
-- `participants`: none; Blood Moon Stag uses full Boss presentation
-- `entry`: first run opens as an optional dangerous track; second run marks it mandatory through `未竟的弒王`
-- `exit`: migration ground quiets and Life Seed handling resolves before return to the tomb route
-- `objective`: defeat the Blood Moon Stag; in the second run preserve its Life Seed intact
-- `inputs`: Chapter 2 regional route open; second-run true-kill achievement when applicable
-- `outputs`: ordinary Life Seed in first run; `life_seed_intact` current-run execution anchor in second run
-- `assetNotes`: reuse approved Blood Moon Stag Boss art; no Mia rescue connection or new material art
+- `participants`: none
+- `entry`: the optional moon-moss path becomes reachable after the mist-tablet route is understood
+- `exit`: the player records the westbound trace and returns to the tomb route
+- `objective`: inspect the repeated hoof marks without turning the side route into another Boss arena
+- `inputs`: Chapter 2 regional route open
+- `outputs`: moon-moss route observation only; no item, reward, Boss flag, or cross-run execution state
+- `assetNotes`: reuse the moon-moss slope location background; do not show or identify the prologue giant
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 月苔坡的草不是被踩倒，而是沿著同一條遷徙線反覆長回。斷角、舊蹄印與新蹄印疊在一起，年份彼此咬合。 |
-| 2 | first_run | narration | - | - | 這是一條可避開的危險支路。手札只知道血月鹿會在此更換角質與生命組織，不知道那份再生與最終敵人有何關係。 |
-| 3 | second_run | narration | - | - | `未竟的弒王` 讓你理解第一輪缺少的不是更大傷害，而是把借來的生命逼回一具可死之身的辦法。這次必須取得完整種核。 |
-| 4 | any | narration | - | - | 黑鹿從林線走出。舊傷在血色月光下閉合，脫落的組織又被胸腔深處的搏動拉回。牠不是神使，只是一頭把古老週期活得太久的獸。 |
-| 5 | any | enter | - | - | Blood Moon Stag 進入滿版 Boss 演出；切入戰鬥。 |
-| 6 | any | exit | - | - | 收起事件層，進入 Blood Moon Stag 戰鬥。 |
-| 7 | any | enter | - | - | 戰鬥結束；鏡頭落在胸腔內仍有節律的種核。 |
-| 8 | first_run | narration | - | - | 你依普通素材方式取下生命種子。它仍有價值，但完整週期被切斷，沒有顯示更深用途。 |
-| 9 | second_run | narration | - | - | 你沒有切開種核。沿著自然脫離的膜層整體取下後，搏動仍保持原來節律。當前周目的完整生命種子被封存為最終身體錨。 |
-| 10 | any | exit | - | - | Return to Chapter 2 route; mark branch cleared and reopen tomb convergence. |
+| 1 | any | narration | - | - | 月苔全朝同一邊伏倒。泥裡疊著深淺不同的蹄印，新的壓過舊的，卻沒有一枚轉向古墓。 |
+| 2 | any | narration | - | - | 斷角留下的刮痕很高。那頭大型生物曾在這裡停留，後來沿西坡離開，只剩草葉摩擦的細響。 |
+| 3 | any | narration | - | - | 這不是另一場狩獵。你記下方向、步距與日期，沒有替看不見的東西取名。 |
+| 4 | any | exit | - | - | Record the moon-moss trace and return to the opened-tomb route without combat or reward. |
 
 ### `ch2_s06_keeper_of_names`
 

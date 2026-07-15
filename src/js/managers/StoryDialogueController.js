@@ -49,10 +49,15 @@ class StoryDialogueController {
                 complete: false,
                 closable: Boolean(options.closable),
                 backgroundImage: options.backgroundImage || '',
+                backgroundPosition: options.backgroundPosition || 'center',
                 resolve
             };
             this.view.hideChoices();
-            this.view.show({ closable: this.session.closable, autoPlay: this.autoPlay });
+            this.view.show({
+                closable: this.session.closable,
+                autoPlay: this.autoPlay,
+                scopeElement: options.scopeElement
+            });
             audioManager.play('dialogue-open', { throttleKey: 'story-dialogue-open', throttleMs: 180 });
             this.startCurrentLine();
         });
@@ -63,7 +68,11 @@ class StoryDialogueController {
         this.finishSession({ status: 'replaced' });
         return new Promise(resolve => {
             this.session = { type: 'choice', closable: config.closable !== false, resolve };
-            this.view.show({ closable: this.session.closable, autoPlay: this.autoPlay });
+            this.view.show({
+                closable: this.session.closable,
+                autoPlay: this.autoPlay,
+                scopeElement: config.scopeElement
+            });
             this.view.renderChoices(config);
         });
     }
@@ -107,7 +116,8 @@ class StoryDialogueController {
             index: session.index,
             total: session.lines.length,
             typing: session.typing,
-            backgroundImage: session.backgroundImage
+            backgroundImage: session.backgroundImage,
+            backgroundPosition: session.backgroundPosition
         });
     }
 

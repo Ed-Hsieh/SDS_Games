@@ -7,10 +7,10 @@ import GameManager from './GameManager.js';
 import { questManager } from './QuestManager.js?v=dialogue-flow-20260712w';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
-import { getQuestById, QuestStatus, QuestType } from '../data/Quests.js';
+import { getQuestById, QuestStatus } from '../data/Quests.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
-import { storySceneManager } from './StorySceneManager.js?v=mia-layer-test-20260712x';
+import { storySceneManager } from './StorySceneManager.js?v=chapter1-art-20260713a';
 
 class DialogueManager {
     constructor() {
@@ -310,7 +310,6 @@ class DialogueManager {
             .map(questId => getQuestById(questId))
             .filter(Boolean);
 
-        if (quests.some(quest => quest.type === QuestType.MAIN)) return 'main';
         if (quests.length > 0) return 'side';
         if (type === 'request' || type === 'discovery') return 'town';
         if (type === 'destination' || type === 'guidance') return 'function';
@@ -320,7 +319,6 @@ class DialogueManager {
     getDialogueCategoryLabel(category = 'chat') {
         return {
             report: '回報',
-            main: '主線',
             side: '支線',
             town: '城鎮',
             function: '功能',
@@ -460,10 +458,6 @@ class DialogueManager {
         return storySceneManager.getPendingEncounter();
     }
 
-    getNextStorySceneForActor(actorId, options = {}) {
-        return storySceneManager.getNextAvailableSceneForActor(actorId, options);
-    }
-
     getNextStorySceneId() {
         return storySceneManager.getNextAvailableSceneId();
     }
@@ -568,6 +562,7 @@ class DialogueManager {
             expression: line.expression || null,
             expressionLayer: line.expressionLayer || null,
             background: line.background || null,
+            backgroundImage: line.backgroundImage || null,
             viewpoint: line.viewpoint || null
         };
         if (actorId && participantMap[actorId]) {
@@ -578,6 +573,8 @@ class DialogueManager {
                 speaker: line.name || line.speakerName || participant.name || '居民',
                 avatar: line.avatar || participant.avatar || '•',
                 portrait: line.portrait || line.image || participant.portrait || participant.image || '',
+                standing: line.standing || participant.standing || '',
+                standingFacing: line.standingFacing || participant.standingFacing || 'center',
                 role: line.role || participant.role || participant.location || '城鎮居民',
                 text: line.text || ''
             };
@@ -638,6 +635,8 @@ class DialogueManager {
             speaker: line.name || npc.name,
             avatar: line.avatar || npc.avatar,
             portrait: line.portrait || line.image || npc.portrait || npc.image || '',
+            standing: line.standing || npc.standing || '',
+            standingFacing: line.standingFacing || npc.standingFacing || 'center',
             role: line.role || npc.role || npc.location || '城鎮居民',
             text: line.text || ''
         };

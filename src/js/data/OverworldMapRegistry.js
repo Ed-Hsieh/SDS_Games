@@ -284,21 +284,22 @@ export const OverworldRouteGates = Object.freeze([
 export const SecondRunOvercapBossReserves = Object.freeze([
     Object.freeze({
         chapter: 1,
-        key: 'prologue_overcap_demon',
-        workingName: '斷界魔將',
-        anchor: '村落南方的開場崩落道路',
+        key: 'prologue_blood_moon_stag',
+        workingName: '迷霧中的巨影',
+        runtimeBossId: 'blood_moon_stag',
+        anchor: '南路斷坡與開場衝撞留下的角痕',
         mapPlan: Object.freeze({ column: 1, row: 6 }),
-        revealWindow: '第二輪第六至第七章',
-        purpose: '讓開場必敗成為後期可追索的復仇戰。'
+        revealWindow: '第二輪；路線與挑戰時機暫緩',
+        purpose: '讓玩家循著開場的衝撞路徑辨認受詛咒影響的血月角鹿。'
     }),
     Object.freeze({
         chapter: 2,
-        key: 'burial_name_colossus',
-        workingName: '葬名巨像',
+        key: 'nameless_curse',
+        workingName: '無名之咒',
         anchor: '掘開古墓北側、撤離名冊未曾記錄的埋葬盆地',
         mapPlan: Object.freeze({ column: 5, row: 6 }),
         revealWindow: '第二輪第二至第三章',
-        purpose: '深化撤離者姓名被抹去與古墓被錯誤使用的歷史。'
+        purpose: '讓大量遺體與遺失姓名被壓成同一個詛咒，而不是再造一位亡者之王。'
     }),
     Object.freeze({
         chapter: 3,
@@ -321,22 +322,22 @@ export const SecondRunOvercapBossReserves = Object.freeze([
     }),
     Object.freeze({
         chapter: 5,
-        key: 'radiant_corridor_external',
-        workingName: '極光執政官',
-        runtimeBossId: 'aurora_archon',
-        anchor: '四象高原東北方、只有第二輪才顯形的黎明迴廊',
+        key: 'entropy_balance_external',
+        workingName: '熵',
+        anchor: '元素領主死亡後失去互相制衡的四象高原',
         mapPlan: Object.freeze({ column: 7, row: 1 }),
-        revealWindow: '第二輪後期 Lv70',
-        purpose: '由微光痕跡引出正式光明與抗塔裝備來源。'
+        revealWindow: '第二輪第五章後；路線暫緩',
+        purpose: '呈現四項能量失衡後出現的暴烈平衡機制；熵不是第五元素。'
     }),
     Object.freeze({
         chapter: 6,
-        key: 'seal_scar_devourer',
-        workingName: '噬封古獸',
-        anchor: '龍族警戒線外側、被封痕熱流掩住的死亡凹地',
+        key: 'light_trial_external',
+        workingName: '光明試煉者',
+        runtimeBossId: 'aurora_archon',
+        anchor: '龍族守線之外、由微光痕跡顯露的黎明迴廊',
         mapPlan: Object.freeze({ column: 3, row: 1 }),
         revealWindow: '第二輪第六章',
-        purpose: '讓玩家在不攻擊龍族的前提下，處理長年啃食封痕的外部威脅。'
+        purpose: '完成正式光明路線，讓玩家以自己選擇的武器形式取得對抗虛空的方法。'
     }),
     Object.freeze({
         chapter: 7,
@@ -345,7 +346,7 @@ export const SecondRunOvercapBossReserves = Object.freeze([
         anchor: '真結局後由賭場契約打開的獨立空間，不佔普通地表',
         mapPlan: Object.freeze({ layer: 'contract_void_pocket' }),
         revealWindow: '第二輪真結局後',
-        purpose: '揭露債主與虛空宇宙觀，作為後續塔與 DLC 的接口。'
+        purpose: '用第六章取得的光明揭露並錨定虛空目標，再銜接賭場債主、塔與 DLC。'
     })
 ]);
 

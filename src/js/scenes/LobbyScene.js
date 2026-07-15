@@ -11,7 +11,7 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
-import { dialogueManager } from '../managers/DialogueManager.js?v=mia-layer-test-20260712x';
+import { dialogueManager } from '../managers/DialogueManager.js?v=chapter1-art-20260713a';
 import {
     PROLOGUE_TUTORIAL_RESOLVED_FLAG,
     PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
@@ -20,10 +20,16 @@ import { questManager } from '../managers/QuestManager.js?v=dialogue-flow-202607
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
-import { getTownPlace } from '../data/TownPlaces.js?v=dialogue-flow-20260712w';
+import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
+import { getTownPlace } from '../data/TownPlaces.js?v=town-art-binding-20260715a';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
-import { getResolvedTownPlace, getResolvedTownPlaces } from '../managers/TownStateResolver.js?v=dialogue-flow-20260712w';
+import {
+    getResolvedTownPlace,
+    getResolvedTownPlaces,
+    getTownOverviewPresentation
+} from '../managers/TownStateResolver.js?v=town-art-binding-20260715a';
 import storyDialogueController from '../managers/StoryDialogueController.js';
+import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -101,6 +107,7 @@ export default class LobbyScene {
             townNarrativeTitle: this.container.querySelector('#town-narrative-title'),
             townDialogueStream: this.container.querySelector('#town-dialogue-stream'),
             worldStage: this.container.querySelector('#world-stage'),
+            worldStageBackdrop: this.container.querySelector('.world-stage-backdrop'),
             worldStoryLog: this.container.querySelector('#world-story-log'),
             townPlaceMap: this.container.querySelector('#town-place-map'),
             townPlaceView: this.container.querySelector('#town-place-view'),
@@ -600,11 +607,9 @@ export default class LobbyScene {
     async openTownNpc(npcId) {
         if (!npcId) return;
 
-        const storySceneId = dialogueManager.getNextStorySceneForActor(npcId, {
-            stageClass: 'town_scene'
-        });
-        if (storySceneId) {
-            this.openStoryScene(storySceneId);
+        const directive = storyGuidanceManager.getCurrent();
+        if (directive?.stageClass === 'town_scene' && directive.actorId === npcId) {
+            this.openStoryScene(directive.sceneId);
             this.renderWorldStage();
             return;
         }
@@ -612,13 +617,20 @@ export default class LobbyScene {
         const dialogues = dialogueManager.getAvailableDialogues(npcId);
         if (dialogues.length > 1) {
             const npc = getTownNPC(npcId);
+            const actor = getStoryActor(npcId, { isFlagSet: flag => GameManager.getFlag(flag) });
             const selection = await storyDialogueController.choose({
                 title: '現在想談什麼？',
                 choices: dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue)),
+                standing: actor?.standing || '',
+                standingFacing: actor?.standingFacing || 'center',
+                standingScale: actor?.standingScale || 1,
+                standingOffsetY: actor?.standingOffsetY || 0,
                 portrait: npc?.portrait || npc?.image || '',
                 name: npc?.name || '居民',
                 role: npc?.role || npc?.location || '',
                 backgroundImage: this.getTownDialogueBackground(),
+                backgroundPosition: this.getTownDialogueBackgroundPosition(),
+                scopeElement: this.getTownDialogueScopeElement(),
                 closable: true
             });
             if (selection.status !== 'selected') return;
@@ -660,33 +672,65 @@ export default class LobbyScene {
     openStoryScene(sceneId, options = {}) {
         const outcome = dialogueManager.startStoryScene(sceneId, options);
         if (!outcome?.success) return outcome;
-        const enrichActor = actor => {
-            const npc = getTownNPC(actor?.id || actor?.actorId);
-            return npc ? { ...npc, ...actor, portrait: actor?.portrait || npc.portrait } : actor;
-        };
-        outcome.npc = enrichActor(outcome.npc);
-        outcome.participants = (outcome.participants || []).map(enrichActor);
-        outcome.lines = (outcome.lines || []).map(line => enrichActor(line));
         this.playTownDialogueOutcome(outcome);
         return outcome;
     }
 
+    enrichDialogueActor(actor) {
+        if (!actor) return actor;
+        const actorId = actor.id || actor.actorId;
+        const npc = getTownNPC(actorId);
+        const storyActor = getStoryActor(actorId, { isFlagSet: flag => GameManager.getFlag(flag) });
+        if (!npc && !storyActor) return actor;
+        return {
+            ...npc,
+            ...storyActor,
+            ...actor,
+            portrait: actor.portrait || storyActor?.portrait || npc?.portrait || npc?.image || '',
+            standing: actor.standing || storyActor?.standing || ''
+        };
+    }
+
+    enrichDialoguePresentation(outcome) {
+        return {
+            ...outcome,
+            npc: this.enrichDialogueActor(outcome.npc),
+            participants: (outcome.participants || []).map(actor => this.enrichDialogueActor(actor)),
+            lines: (outcome.lines || []).map(line => this.enrichDialogueActor(line))
+        };
+    }
+
     getTownDialogueBackground() {
-        const place = getTownPlace(this.activeTownPlaceId);
+        const place = getResolvedTownPlace(this.activeTownPlaceId) || getTownPlace(this.activeTownPlaceId);
         return place?.sceneImage || place?.cardImage || '';
+    }
+
+    getTownDialogueBackgroundPosition() {
+        const place = getResolvedTownPlace(this.activeTownPlaceId) || getTownPlace(this.activeTownPlaceId);
+        return place?.scenePosition || 'center';
+    }
+
+    getTownDialogueScopeElement() {
+        const placeView = this.dom.townPlaceView;
+        if (placeView && !placeView.hidden && placeView.isConnected) return placeView;
+        return this.dom.worldStage;
     }
 
     async playTownDialogueOutcome(outcome) {
         if (!outcome?.success || !outcome?.npc) return outcome;
-        const result = await storyDialogueController.play(outcome, {
-            closable: !outcome.sceneId,
-            backgroundImage: this.getTownDialogueBackground()
+        const presentation = this.enrichDialoguePresentation(outcome);
+        const usesFullViewport = presentation.lines.some(line => line.visualMode === 'blackout');
+        const result = await storyDialogueController.play(presentation, {
+            closable: !presentation.sceneId,
+            backgroundImage: this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: usesFullViewport ? null : this.getTownDialogueScopeElement()
         });
-        if (result.status !== 'complete') return outcome;
+        if (result.status !== 'complete') return presentation;
 
-        if (outcome.sceneId) {
-            dialogueManager.completeStoryScene(outcome.sceneId);
-            if (outcome.sceneId === 'ch1_s02_wake_under_bitter_bottles') {
+        if (presentation.sceneId) {
+            dialogueManager.completeStoryScene(presentation.sceneId);
+            if (presentation.sceneId === 'ch1_s02_wake_under_bitter_bottles') {
                 GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false);
             }
         } else {
@@ -701,7 +745,7 @@ export default class LobbyScene {
             );
         }
         this.renderWorldStage();
-        return outcome;
+        return presentation;
     }
 
 
@@ -1037,9 +1081,11 @@ export default class LobbyScene {
         view.hidden = true;
         delete view.dataset.placeId;
         map.innerHTML = '';
+        this.applyTownOverviewImage();
 
         getResolvedTownPlaces().filter(place => this.shouldShowTownPlaceCard(place)).forEach(place => {
             const readyCount = this.getTownPlaceReadyCount(place);
+            const hasStoryObjective = this.hasPendingTownStoryAtPlace(place);
             const button = document.createElement('button');
             button.type = 'button';
             button.className = `town-place-card ${place.mapClass || ''}${readyCount > 0 ? ' is-ready' : ''}`;
@@ -1051,10 +1097,9 @@ export default class LobbyScene {
             if (place.scenePosition) {
                 button.style.setProperty('--town-place-card-image-position', place.scenePosition);
             }
-
-            const alertText = readyCount > 0
-                ? `${readyCount} 個動向`
-                : '';
+            const alertText = hasStoryObjective
+                ? '主線'
+                : (readyCount > 0 ? `${readyCount} 個動向` : '');
 
             button.innerHTML = `
                 <span class="town-place-card-copy">
@@ -1073,6 +1118,15 @@ export default class LobbyScene {
         if (this.dom.townNarrativeTitle) {
             this.dom.townNarrativeTitle.textContent = this.getTownTitle();
         }
+    }
+
+    applyTownOverviewImage() {
+        const backdrop = this.dom?.worldStageBackdrop;
+        if (!backdrop) return;
+
+        const overview = getTownOverviewPresentation();
+        backdrop.dataset.townStage = overview.stage;
+        backdrop.style.setProperty('--town-overview-image', this.formatSceneAssetUrl(overview.image));
     }
 
     renderTownPlaceView(place) {
@@ -1162,18 +1216,20 @@ export default class LobbyScene {
             const label = resident.label || npc.name || '居民';
             const role = resident.role || npc.role || npc.location || '城鎮居民';
             const hasFreshDialogue = dialogueManager.hasFreshDialogue(resident.npcId);
+            const hasStoryObjective = this.hasPendingTownStoryForResident(resident.npcId);
+            const isReady = hasFreshDialogue || hasStoryObjective;
             const iconHTML = this.renderTownEntryIcon(resident, npc, '💬');
             button.type = 'button';
-            button.className = `town-place-entry town-place-resident${hasFreshDialogue ? ' is-ready' : ''}`;
+            button.className = `town-place-entry town-place-resident${isReady ? ' is-ready' : ''}`;
             button.dataset.npcId = resident.npcId;
-            button.setAttribute('aria-label', `${label}，${role}`);
+            button.setAttribute('aria-label', `${label}，${role}${hasStoryObjective ? '，主線可推進' : ''}`);
             this.applyTownPlaceEntryPosition(button, resident, index, 'resident');
             button.innerHTML = `
                 <span class="town-place-entry-icon">${iconHTML}</span>
                 <span class="town-place-entry-copy">
                     <strong>${escapeHtml(label)}</strong>
                 </span>
-                <span class="town-place-entry-mark">${hasFreshDialogue ? '新' : ''}</span>
+                <span class="town-place-entry-mark">${hasStoryObjective ? '!' : (hasFreshDialogue ? '新' : '')}</span>
             `;
             list.appendChild(button);
         });
@@ -1281,12 +1337,23 @@ export default class LobbyScene {
 
     getTownPlaceReadyCount(place) {
         const residentReady = (place?.residents || [])
-            .filter(resident => resident?.npcId && dialogueManager.hasFreshDialogue(resident.npcId))
+            .filter(resident => resident?.npcId && (
+                dialogueManager.hasFreshDialogue(resident.npcId)
+                || this.hasPendingTownStoryForResident(resident.npcId)
+            ))
             .length;
         const interactionReady = (place?.actions || [])
             .filter(action => action?.type === 'interaction' && action.id && !worldInteractionManager.hasResolved(action.id))
             .length;
         return residentReady + interactionReady;
+    }
+
+    hasPendingTownStoryForResident(npcId) {
+        return storyGuidanceManager.isActorTarget(npcId);
+    }
+
+    hasPendingTownStoryAtPlace(place = {}) {
+        return storyGuidanceManager.isPlaceTarget(place.id);
     }
 
     syncTownPlaceNarrative(place = {}) {

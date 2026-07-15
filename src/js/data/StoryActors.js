@@ -1,7 +1,8 @@
 /**
  * StoryActors.js
- * Accepted screenplay identities used by layered story scenes. Image layers are
- * intentionally unresolved until the final art pass.
+ * Accepted screenplay identities used by layered story scenes. Chapter 1-2
+ * actors share stable standing anchors. Expression art is declared explicitly
+ * so the dialogue renderer never probes missing files.
  */
 
 export const StoryExpressionIds = Object.freeze([
@@ -17,33 +18,82 @@ export const StoryExpressionIds = Object.freeze([
 ]);
 
 const portrait = actorId => `src/assets/images/art/characters/portraits/${actorId}.webp`;
+const standing = actorId => `src/assets/images/art/characters/dialogue/${actorId}/neutral-standing.webp`;
+const expressionStanding = (actorId, expression) => (
+    `src/assets/images/art/characters/dialogue/${actorId}/${expression}-standing.webp`
+);
+
+// Generated expression layers share a canvas, but their visible alpha bounds
+// vary slightly. Keep each actor anchored to the neutral layer's apparent size.
+const StoryExpressionScale = Object.freeze({
+    village_elder: Object.freeze({ guarded: { scale: 1.023, offsetY: -2.304 }, resolute: { scale: 1.007, offsetY: -0.615 } }),
+    town_scholar: Object.freeze({ pleased: { scale: 1.12, offsetY: -11.835 } }),
+    herbalist: Object.freeze({ pleased: { scale: 1.005, offsetY: -0.449 }, resolute: { scale: 1.025, offsetY: -2.442 }, soft: { scale: 1.017, offsetY: -1.6 } }),
+    standard_bearer_frey: Object.freeze({ pleased: { scale: 1.021, offsetY: -2.036 }, soft: { scale: 1.004, offsetY: -0.429 } }),
+    lamplighter_tavi: Object.freeze({ guarded: { scale: 1.035, offsetY: -3.372 } }),
+    blacksmith: Object.freeze({ guarded: { scale: 1.038, offsetY: -3.636 }, pleased: { scale: 1.027, offsetY: -2.56 } }),
+    street_beggar: Object.freeze({ guarded: { scale: 1.008, offsetY: -0.743 } })
+});
+
+// Neutral standing files share a 1024x1536 canvas, but the generated figures
+// occupy different widths inside it. Normalize the apparent half-body size
+// here; expression corrections above remain small deltas on top of this base.
+const StoryStandingPresentation = Object.freeze({
+    black_market: Object.freeze({ standingScale: 1.071, standingOffsetY: -0.8 }),
+    blacksmith: Object.freeze({ standingScale: 1, standingOffsetY: 0 }),
+    casino_dealer: Object.freeze({ standingScale: 1.067, standingOffsetY: -0.2 }),
+    casino_owner: Object.freeze({ standingScale: 1, standingOffsetY: 0 }),
+    herbalist: Object.freeze({ standingScale: 1.343, standingOffsetY: -3.1 }),
+    lamplighter_tavi: Object.freeze({ standingScale: 1.182, standingOffsetY: -1.1 }),
+    merchant: Object.freeze({ standingScale: 1, standingOffsetY: 0 }),
+    neelu: Object.freeze({ standingScale: 1.385, standingOffsetY: -4.4 }),
+    standard_bearer_frey: Object.freeze({ standingScale: 1.095, standingOffsetY: -0.8 }),
+    street_beggar: Object.freeze({ standingScale: 1, standingOffsetY: 0 }),
+    town_scholar: Object.freeze({ standingScale: 1.154, standingOffsetY: -2.4 }),
+    village_elder: Object.freeze({ standingScale: 1, standingOffsetY: 0 }),
+    young_ailo: Object.freeze({ standingScale: 1, standingOffsetY: 0 })
+});
+
+export const StoryExpressionCoverage = Object.freeze({
+    village_elder: Object.freeze(['neutral', 'guarded', 'resolute']),
+    town_scholar: Object.freeze(['neutral', 'pleased', 'guarded']),
+    herbalist: Object.freeze(['neutral', 'soft', 'pleased', 'guarded', 'resolute']),
+    standard_bearer_frey: Object.freeze(['neutral', 'soft', 'pleased', 'resolute']),
+    lamplighter_tavi: Object.freeze(['neutral', 'soft', 'guarded']),
+    blacksmith: Object.freeze(['neutral', 'soft', 'pleased', 'guarded', 'resolute']),
+    street_beggar: Object.freeze(['neutral', 'guarded'])
+});
 
 export const StoryActorRegistry = Object.freeze({
-    village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', portrait: portrait('village_elder'), nameStatus: 'unresolved_personal_name' },
-    town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記', portrait: portrait('town_scholar') },
+    village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', portrait: portrait('village_elder'), standing: standing('village_elder'), standingFacing: 'center', nameStatus: 'unresolved_personal_name' },
+    town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記', portrait: portrait('town_scholar'), standing: standing('town_scholar'), standingFacing: 'right' },
     herbalist: {
         id: 'herbalist',
         name: '米婭',
         role: '藥師與配方研究者',
-        portrait: 'src/assets/images/art/characters/dialogue/herbalist/neutral.png'
+        portrait: 'src/assets/images/art/characters/dialogue/herbalist/neutral.png',
+        standing: standing('herbalist'),
+        standingFacing: 'right'
     },
-    standard_bearer_frey: { id: 'standard_bearer_frey', name: '芙蕾', role: '巡線持旗者', portrait: portrait('standard_bearer_frey') },
-    lamplighter_tavi: { id: 'lamplighter_tavi', name: '塔維', role: '巡線點燈人', portrait: portrait('lamplighter_tavi') },
-    blacksmith: { id: 'blacksmith', name: '鐵匠', role: '城鎮鐵匠', portrait: portrait('blacksmith'), nameStatus: 'unresolved_personal_name' },
+    standard_bearer_frey: { id: 'standard_bearer_frey', name: '芙蕾', role: '巡線持旗者', portrait: portrait('standard_bearer_frey'), standing: standing('standard_bearer_frey'), standingFacing: 'left' },
+    lamplighter_tavi: { id: 'lamplighter_tavi', name: '塔維', role: '巡線點燈人', portrait: portrait('lamplighter_tavi'), standing: standing('lamplighter_tavi'), standingFacing: 'left' },
+    blacksmith: { id: 'blacksmith', name: '鐵匠', role: '城鎮鐵匠', portrait: portrait('blacksmith'), standing: standing('blacksmith'), standingFacing: 'right', nameStatus: 'unresolved_personal_name' },
     street_beggar: {
         id: 'street_beggar',
         name: '艾洛',
         concealedName: '乞丐',
         revealFlag: 'story.ailo.name_revealed',
         role: '失去舊路的人',
-        portrait: portrait('street_beggar')
+        portrait: portrait('street_beggar'),
+        standing: standing('street_beggar'),
+        standingFacing: 'left'
     },
-    young_ailo: { id: 'young_ailo', name: '艾洛', role: '記憶中的山村居民' },
-    neelu: { id: 'neelu', name: '妮露', role: '山村染補師' },
-    casino_owner: { id: 'casino_owner', name: '維斯珀', role: '賭場主人', portrait: portrait('casino_owner') },
-    casino_dealer: { id: 'casino_dealer', name: '洛恩', role: '賭場荷官', portrait: portrait('casino_dealer') },
-    merchant: { id: 'merchant', name: '商人', role: '市集交易者', portrait: portrait('merchant') },
-    black_market: { id: 'black_market', name: '黑市商人', role: '禁用品交易者', portrait: portrait('black_market') },
+    young_ailo: { id: 'young_ailo', name: '艾洛', role: '記憶中的山村居民', standing: standing('young_ailo'), standingFacing: 'right' },
+    neelu: { id: 'neelu', name: '妮露', role: '山村染補師', standing: standing('neelu'), standingFacing: 'right' },
+    casino_owner: { id: 'casino_owner', name: '維斯珀', role: '賭場主人', portrait: portrait('casino_owner'), standing: standing('casino_owner'), standingFacing: 'left' },
+    casino_dealer: { id: 'casino_dealer', name: '洛恩', role: '賭場荷官', portrait: portrait('casino_dealer'), standing: standing('casino_dealer'), standingFacing: 'right' },
+    merchant: { id: 'merchant', name: '商人', role: '市集交易者', portrait: portrait('merchant'), standing: standing('merchant'), standingFacing: 'left' },
+    black_market: { id: 'black_market', name: '黑市商人', role: '禁用品交易者', portrait: portrait('black_market'), standing: standing('black_market'), standingFacing: 'left' },
     elder_dragon: { id: 'elder_dragon', name: '龍族長者', role: '封痕守線者' },
     demon_lord_asariel: { id: 'demon_lord_asariel', name: '魔王赫爾薩恩', role: '墜落的魔王' },
     lich: { id: 'lich', name: '守名者赫恩', role: '守名巫妖' },
@@ -138,15 +188,21 @@ export function getStoryActor(actorId, { isFlagSet = () => false } = {}) {
     const name = actor.revealFlag && !isFlagSet(actor.revealFlag)
         ? (actor.concealedName || actor.name)
         : actor.name;
-    return { ...actor, name };
+    return { ...actor, ...(StoryStandingPresentation[actorId] || {}), name };
 }
 
 export function getStoryExpressionLayer(actorId, expression = 'neutral') {
     if (!StoryActorRegistry[actorId] || !StoryExpressionIds.includes(expression)) return null;
+    if (!StoryExpressionCoverage[actorId]?.includes(expression)) return null;
+    const presentation = StoryExpressionScale[actorId]?.[expression] || {};
     return {
         actorId,
         expression,
-        status: 'missing_until_art_pass',
-        image: null
+        status: 'ready',
+        scale: presentation.scale || 1,
+        offsetY: presentation.offsetY || 0,
+        image: expression === 'neutral'
+            ? standing(actorId)
+            : expressionStanding(actorId, expression)
     };
 }

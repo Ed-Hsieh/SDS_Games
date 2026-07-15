@@ -7497,162 +7497,6 @@ body {
     overflow: hidden;
 }
 
-.world-stage-town {
-    position: absolute !important;
-    inset: 0;
-    width: auto !important;
-    height: auto !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    border-radius: 14px !important;
-    border-color: rgba(220, 201, 154, 0.2) !important;
-    background: #10161a !important;
-}
-
-.world-stage-town .world-stage-backdrop {
-    height: 100%;
-    background:
-        radial-gradient(circle at 18% 20%, rgba(255, 232, 172, 0.24), transparent 13%),
-        radial-gradient(circle at 82% 24%, rgba(126, 178, 158, 0.18), transparent 18%),
-        linear-gradient(180deg, #314e56 0%, #253940 34%, #182423 62%, #12191b 100%) !important;
-}
-
-.world-stage-town .world-stage-backdrop::before {
-    content: '';
-    position: absolute;
-    inset: 7% 5% 8%;
-    border: 1px solid rgba(220, 201, 154, 0.12);
-    border-radius: 26px;
-    background:
-        linear-gradient(18deg, transparent 0 36%, rgba(222, 196, 139, 0.11) 36% 42%, transparent 42% 100%),
-        linear-gradient(154deg, transparent 0 42%, rgba(222, 196, 139, 0.1) 42% 48%, transparent 48% 100%),
-        radial-gradient(ellipse at 50% 58%, rgba(217, 184, 112, 0.18), transparent 35%),
-        rgba(8, 14, 14, 0.24);
-    box-shadow:
-        inset 0 0 80px rgba(0, 0, 0, 0.34),
-        0 22px 60px rgba(0, 0, 0, 0.2);
-}
-
-.world-stage-town .world-stage-backdrop::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background:
-        radial-gradient(ellipse at 50% 110%, rgba(0, 0, 0, 0.42), transparent 54%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 32%, rgba(0, 0, 0, 0.22));
-}
-
-.world-stage-town .town-sky {
-    inset: 0 0 48%;
-    background:
-        radial-gradient(circle at 17% 23%, rgba(255, 236, 179, 0.42), transparent 10%),
-        linear-gradient(180deg, rgba(99, 147, 159, 0.42), rgba(39, 67, 74, 0.02)) !important;
-}
-
-.world-stage-town .town-roofs {
-    left: 7%;
-    right: 7%;
-    top: 22%;
-    height: 24%;
-    opacity: 0.82;
-    filter: drop-shadow(0 20px 28px rgba(0, 0, 0, 0.28));
-    background:
-        linear-gradient(135deg, transparent 0 18%, rgba(126, 65, 55, 0.84) 18% 34%, transparent 34% 100%),
-        linear-gradient(48deg, transparent 0 60%, rgba(96, 67, 45, 0.78) 60% 77%, transparent 77% 100%),
-        linear-gradient(90deg, rgba(28, 41, 40, 0.92) 0 25%, transparent 25% 34%, rgba(31, 43, 42, 0.94) 34% 61%, transparent 61% 72%, rgba(34, 46, 43, 0.93) 72% 100%) !important;
-}
-
-.world-stage-town .town-plaza {
-    left: 9%;
-    right: 9%;
-    bottom: 10%;
-    height: 45%;
-    border-radius: 44% 44% 18px 18px / 16% 16% 18px 18px;
-    border-color: rgba(220, 201, 154, 0.14);
-    background:
-        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 66px),
-        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 46px),
-        linear-gradient(90deg, rgba(220, 201, 154, 0.08), rgba(120, 185, 141, 0.045), rgba(118, 184, 216, 0.055)),
-        rgba(9, 15, 15, 0.42) !important;
-}
-
-.world-stage-town .town-road-main {
-    left: 42%;
-    bottom: -8%;
-    width: 18%;
-    height: 60%;
-    background: linear-gradient(90deg, rgba(222, 196, 139, 0.18), rgba(222, 196, 139, 0.04)) !important;
-}
-
-.world-stage-town .town-road-side {
-    left: 20%;
-    top: 56%;
-    width: 60%;
-    height: 13%;
-    background: linear-gradient(90deg, rgba(222, 196, 139, 0.11), rgba(222, 196, 139, 0.035)) !important;
-}
-
-.world-stage-town .world-hotspot,
-.world-stage-town .world-route {
-    width: clamp(74px, 9vw, 104px);
-    min-height: 52px;
-    padding: 6px 7px;
-    border-radius: 12px;
-    border-color: rgba(220, 201, 154, 0.28);
-    background:
-        linear-gradient(180deg, rgba(255, 247, 230, 0.08), rgba(38, 24, 14, 0.1)),
-        rgba(6, 10, 12, 0.48);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
-    backdrop-filter: blur(5px);
-}
-
-.world-stage-town .world-hotspot:hover,
-.world-stage-town .world-route:hover,
-.world-stage-town .world-hotspot:focus-visible,
-.world-stage-town .world-route:focus-visible {
-    border-color: rgba(233, 189, 101, 0.72);
-    background:
-        linear-gradient(180deg, rgba(233, 189, 101, 0.12), rgba(19, 13, 8, 0.22)),
-        rgba(8, 13, 15, 0.72);
-}
-
-.world-stage-town .hotspot-icon {
-    width: 34px;
-    height: 30px;
-    display: grid;
-    place-items: center;
-    border-radius: 9px;
-    background: rgba(255, 255, 255, 0.07);
-    font-size: 19px;
-}
-
-.world-stage-town .hotspot-label {
-    font-size: 12px;
-    color: rgba(255, 247, 230, 0.88);
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
-}
-
-.world-stage-town .npc-hotspot {
-    border-color: rgba(233, 189, 101, 0.34);
-}
-
-.world-stage-town .world-route {
-    border-color: rgba(132, 186, 198, 0.26);
-}
-
-.world-stage-town .hotspot-elder { left: 49%; top: 21%; --hotspot-x: -50%; }
-.world-stage-town .hotspot-board { left: 12%; top: 31%; }
-.world-stage-town .hotspot-herbalist { right: 12%; top: 32%; }
-.world-stage-town .hotspot-shop { left: 11%; bottom: 26%; }
-.world-stage-town .hotspot-blacksmith-npc { left: 27%; bottom: 17%; }
-.world-stage-town .hotspot-forge { left: 23%; bottom: 8%; }
-.world-stage-town .hotspot-beggar { left: 35%; bottom: 31%; }
-.world-stage-town .hotspot-gamble { left: 50%; bottom: 25%; --hotspot-x: -50%; }
-.world-stage-town .hotspot-scholar { right: 35%; bottom: 31%; }
-.world-stage-town .hotspot-tower { right: 9%; bottom: 24%; }
-.world-stage-town .hotspot-gate { left: 50%; top: 40%; --hotspot-x: -50%; }
-
 .town-hud {
     position: absolute;
     z-index: 8;
@@ -8222,91 +8066,6 @@ body {
         grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
     }
 }
-
-/* Lobby layout pass: reduce panel weight, move story away from the bottom map area. */
-.world-stage-town .world-hotspot,
-.world-stage-town .world-route {
-    width: auto !important;
-    min-width: 64px;
-    min-height: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none;
-}
-
-.world-stage-town .world-hotspot:hover,
-.world-stage-town .world-route:hover,
-.world-stage-town .world-hotspot:focus-visible,
-.world-stage-town .world-route:focus-visible {
-    background: transparent !important;
-}
-
-.world-stage-town .hotspot-icon {
-    width: 46px;
-    height: 46px;
-    border: 1px solid rgba(220, 201, 154, 0.28);
-    border-radius: 14px;
-    background:
-        linear-gradient(180deg, rgba(255, 247, 230, 0.11), rgba(255, 247, 230, 0.035)),
-        rgba(5, 9, 11, 0.58);
-    box-shadow:
-        0 12px 22px rgba(0, 0, 0, 0.24),
-        inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(4px);
-}
-
-.world-stage-town .world-hotspot:hover .hotspot-icon,
-.world-stage-town .world-route:hover .hotspot-icon,
-.world-stage-town .world-hotspot:focus-visible .hotspot-icon,
-.world-stage-town .world-route:focus-visible .hotspot-icon {
-    border-color: rgba(233, 189, 101, 0.78);
-    background:
-        linear-gradient(180deg, rgba(233, 189, 101, 0.18), rgba(255, 247, 230, 0.045)),
-        rgba(8, 12, 14, 0.72);
-}
-
-.world-stage-town .hotspot-label {
-    max-width: 96px;
-    padding: 3px 8px;
-    border: 1px solid rgba(220, 201, 154, 0.2);
-    border-radius: 999px;
-    background: rgba(5, 8, 10, 0.48);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(5px);
-    white-space: nowrap;
-}
-
-.world-stage-town .npc-hotspot .hotspot-icon {
-    border-color: rgba(233, 189, 101, 0.38);
-}
-
-.world-stage-town .world-route .hotspot-icon {
-    border-color: rgba(132, 186, 198, 0.34);
-}
-
-.world-stage-town .npc-hotspot.is-ready::after {
-    top: -1px;
-    right: calc(50% - 26px);
-}
-
-.world-stage-town .hotspot-elder { left: 50%; top: 20%; --hotspot-x: -50%; }
-.world-stage-town .hotspot-board { left: 30%; top: 34%; }
-.world-stage-town .hotspot-herbalist { right: 20%; top: 34%; }
-.world-stage-town .hotspot-gate { left: 50%; top: 43%; --hotspot-x: -50%; }
-.world-stage-town .hotspot-beggar { left: 32%; bottom: 35%; }
-.world-stage-town .hotspot-scholar { right: 36%; bottom: 35%; }
-.world-stage-town .hotspot-gamble { left: 50%; bottom: 27%; --hotspot-x: -50%; }
-.world-stage-town .hotspot-shop { left: 20%; bottom: 25%; }
-.world-stage-town .hotspot-blacksmith-npc { left: 31%; bottom: 20%; }
-.world-stage-town .hotspot-forge { left: 20%; bottom: 12%; }
-.world-stage-town .hotspot-tower { right: 11%; bottom: 24%; }
 
 .town-narrative-whisper {
     left: 22px;
@@ -11843,91 +11602,6 @@ body {
     border-radius: inherit;
 }
 
-/* Large generated scene backgrounds */
-.world-stage-town .world-stage-backdrop {
-    position: relative;
-    overflow: hidden;
-    background:
-        linear-gradient(180deg, rgba(4, 8, 13, 0.18), rgba(4, 8, 13, 0.52)),
-        radial-gradient(ellipse at 50% 78%, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.36)),
-        url("/src/assets/images/art/scenes/backgrounds/town-overview.webp") center / cover no-repeat !important;
-}
-
-.world-stage-town .world-stage-backdrop::before {
-    inset: 0 !important;
-    border: 0 !important;
-    border-radius: inherit !important;
-    background:
-        radial-gradient(ellipse at 52% 52%, rgba(255, 232, 172, 0.06), transparent 34%),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.32), transparent 22%, transparent 72%, rgba(0, 0, 0, 0.28)) !important;
-    box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.42) !important;
-}
-
-.world-stage-town .world-stage-backdrop::after {
-    background:
-        radial-gradient(ellipse at 50% 114%, rgba(0, 0, 0, 0.52), transparent 54%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 34%, rgba(0, 0, 0, 0.18)) !important;
-}
-
-.world-stage-town .town-sky,
-.world-stage-town .town-roofs,
-.world-stage-town .town-plaza,
-.world-stage-town .town-road {
-    display: none !important;
-}
-
-.town-place-card {
-    isolation: isolate;
-    overflow: hidden;
-    background:
-        linear-gradient(180deg, rgba(8, 12, 16, 0.62), rgba(8, 12, 16, 0.78)),
-        rgba(8, 12, 16, 0.76) !important;
-}
-
-.town-place-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(5, 8, 12, 0.22), rgba(5, 8, 12, 0.78)),
-        var(--town-place-card-image);
-    background-size: cover;
-    background-position: var(--town-place-card-image-position, center);
-    opacity: 0;
-    transform: scale(1.04);
-    transition: opacity 160ms ease, transform 220ms ease;
-}
-
-.town-place-card:hover::before,
-.town-place-card:focus-visible::before {
-    opacity: 1;
-    transform: scale(1);
-}
-
-.town-place-card:hover,
-.town-place-card:focus-visible {
-    border-color: rgba(233, 189, 101, 0.82) !important;
-    box-shadow:
-        0 18px 36px rgba(0, 0, 0, 0.4),
-        0 0 0 1px rgba(233, 189, 101, 0.18) !important;
-}
-
-.town-place-card > * {
-    position: relative;
-    z-index: 1;
-}
-
-.town-place-crossroads { --place-x: 50%; --place-y: 50%; }
-.town-place-market { --place-x: 18%; --place-y: 54%; }
-.town-place-forge { --place-x: 20%; --place-y: 78%; }
-.town-place-handbook { --place-x: 75%; --place-y: 36%; }
-.town-place-alley { --place-x: 43%; --place-y: 78%; }
-.town-place-casino { --place-x: 76%; --place-y: 70%; }
-.town-place-tower { --place-x: 58%; --place-y: 23%; }
-.town-place-gate { --place-x: 53%; --place-y: 84%; }
-
 .event-icon,
 .story-event-icon {
     overflow: hidden;
@@ -12095,62 +11769,6 @@ body {
 .reward-icon img {
     object-fit: contain;
 }
-
-/* Town navigation polish: keep exits unique, prevent place chips from colliding. */
-.town-place-card {
-    width: clamp(132px, 15.5%, 176px) !important;
-    min-height: 58px;
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px !important;
-    text-align: left;
-}
-
-.town-place-card-copy {
-    min-width: 0;
-}
-
-.town-place-card-copy small {
-    display: block;
-    color: rgba(233, 189, 101, 0.86);
-    font-size: 11px;
-    font-weight: 900;
-    line-height: 1.1;
-}
-
-.town-place-card-copy strong {
-    display: block;
-    margin-top: 4px;
-    overflow: hidden;
-    color: #fff7e6;
-    font-size: 18px;
-    line-height: 1.12;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.town-place-card-signal {
-    align-self: center;
-    max-width: 62px;
-    padding: 4px 7px;
-    border: 1px solid rgba(233, 189, 101, 0.24);
-    border-radius: 999px;
-    background: rgba(233, 189, 101, 0.1);
-    color: rgba(255, 247, 230, 0.82);
-    font-size: 10.5px;
-    font-weight: 900;
-    line-height: 1.1;
-    text-align: center;
-}
-
-.town-place-crossroads { --place-x: 50%; --place-y: 49%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-market { --place-x: 20%; --place-y: 55%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-forge { --place-x: 22%; --place-y: 80%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-handbook { --place-x: 75%; --place-y: 36%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-alley { --place-x: 39%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-casino { --place-x: 75%; --place-y: 72%; --place-tx: -50%; --place-ty: -50%; }
 
 /* Casino rework: chips, prize pools, and cashier flow. */
 .casino-rework {
@@ -13637,9 +13255,6 @@ body {
         min-height: 520px;
     }
 }
-.town-place-tower { --place-x: 60%; --place-y: 22%; --place-tx: -50%; --place-ty: -50%; }
-.town-place-gate { --place-x: 55%; --place-y: 87%; --place-tx: -50%; --place-ty: -50%; }
-
 .town-right-rail {
     grid-template-rows: minmax(104px, auto) minmax(0, 1fr) !important;
 }
@@ -16041,25 +15656,6 @@ body {
     .town-narrative-whisper .world-log-message {
         font-size: 13px !important;
         line-height: 1.48 !important;
-    }
-
-    .town-place-map {
-        inset: 4% 4% 6% !important;
-    }
-
-    .town-place-card {
-        width: clamp(100px, 13%, 132px) !important;
-        min-height: 62px !important;
-        padding: 8px 9px !important;
-    }
-
-    .town-place-card-copy strong {
-        font-size: 15px !important;
-    }
-
-    .town-place-card-copy small,
-    .town-place-card-signal {
-        font-size: 10px !important;
     }
 
     .town-place-view {
@@ -19938,15 +19534,6 @@ body {
     font-size: 11px !important;
     font-weight: 900 !important;
 }
-
-.town-place-crossroads { --place-x: 50% !important; --place-y: 48% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-gate { --place-x: 51% !important; --place-y: 83% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-handbook { --place-x: 76% !important; --place-y: 40% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-market { --place-x: 20% !important; --place-y: 52% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-forge { --place-x: 24% !important; --place-y: 78% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-alley { --place-x: 41% !important; --place-y: 71% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-casino { --place-x: 73% !important; --place-y: 72% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
-.town-place-tower { --place-x: 60% !important; --place-y: 23% !important; --place-tx: -50% !important; --place-ty: -50% !important; }
 
 /* Desktop preparation UI: one visual language for lobby and adventure. */
 .lobby-prep-content .character-prep-pane {
