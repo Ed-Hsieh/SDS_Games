@@ -35,6 +35,9 @@ function getActionButtons(stack) {
     if (type === 'armor' || type === 'accessory') {
         return `<button type="button" data-inventory-action="equip" data-slot="${type}" data-instance-id="${escapeHtml(stack.instanceId)}">裝備</button>`;
     }
+    if (stack?.item?.useContext === 'adventure_map' && stack?.item?.useAction === 'return_to_town') {
+        return `<button type="button" data-inventory-action="context-use" data-instance-id="${escapeHtml(stack.instanceId)}">點燃狼煙</button>`;
+    }
     if (stack?.item?.effect || stack?.item?.buff) {
         return `<button type="button" data-inventory-action="use" data-instance-id="${escapeHtml(stack.instanceId)}">使用</button>`;
     }
@@ -123,6 +126,9 @@ export default class AdventurePanelsController {
         const instanceId = action.dataset.instanceId;
         if (action.dataset.inventoryAction === 'equip') {
             GameManager.equipItemToSlot(instanceId, action.dataset.slot);
+        } else if (action.dataset.inventoryAction === 'context-use') {
+            const stack = (GameManager.getInventory() || []).find(entry => entry.instanceId === instanceId);
+            if (this.options.onUseContextItem?.(stack)) return;
         } else if (action.dataset.inventoryAction === 'use') {
             GameManager.useConsumable(instanceId);
         }

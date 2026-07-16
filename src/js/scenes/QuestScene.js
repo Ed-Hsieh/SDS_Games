@@ -319,7 +319,7 @@ export default class QuestScene {
             icon: String(directive.chapter),
             title: directive.title,
             typeLabel: `第 ${directive.chapter} 章`,
-            statusIcon: '!',
+            statusIcon: '',
             statusText: '目前主線',
             statusTone: 'active',
             summaryMode: 'compact',
@@ -435,7 +435,7 @@ export default class QuestScene {
             <div class="quest-item-info">
                 <div class="quest-item-name">${escapeHtml(record.title)}</div>
                 <div class="quest-item-status">
-                    <span class="status-icon">${escapeHtml(record.statusIcon || '✎')}</span>
+                    ${record.statusIcon ? `<span class="status-icon">${escapeHtml(record.statusIcon)}</span>` : ''}
                     <span class="status-text">${escapeHtml(record.statusText || '已記錄')}</span>
                 </div>
                 <div class="quest-item-meta">
@@ -1004,6 +1004,8 @@ export default class QuestScene {
         this.dom.detailPlaceholder.classList.add('hidden');
         this.dom.detailContent.classList.remove('hidden');
         this.dom.detailContent.classList.toggle('is-relationship-detail', record.kind === 'relationship');
+        const detailHeader = this.dom.detailContent.querySelector('.detail-header');
+        if (detailHeader) detailHeader.hidden = record.kind === 'relationship';
         this.dom.detailContent.dataset.status = record.statusTone || 'active';
         if (record.progress) {
             this.dom.detailContent.style.setProperty('--quest-progress', `${record.progress.percent || 0}%`);
@@ -1348,6 +1350,8 @@ export default class QuestScene {
         this.dom.detailPlaceholder.classList.add('hidden');
         this.dom.detailContent.classList.remove('hidden');
         this.dom.detailContent.classList.remove('is-relationship-detail');
+        const detailHeader = this.dom.detailContent.querySelector('.detail-header');
+        if (detailHeader) detailHeader.hidden = false;
         this.dom.detailActions.hidden = false;
         this.dom.detailContent.dataset.status = state.status;
         this.dom.detailContent.style.setProperty('--quest-progress', `${progressInfo.percent}%`);

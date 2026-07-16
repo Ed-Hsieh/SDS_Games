@@ -21,6 +21,8 @@ import {
     PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
 } from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
 import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
+import { isDevModeEnabled } from '../utils/DevMode.js';
+import { ItemUseAction, ItemUseContext } from '../data/UtilityItems.js';
 
 const THREE_LANDMARK_IDS = Object.freeze([
     'south_gate_farmland',
@@ -71,11 +73,13 @@ export default class AdventureScene {
         this.combat = null;
         this.showOvercapReserves = false;
         this.storyCombatResolution = null;
-        this.devMode = new URLSearchParams(window.location.search).has('map-test');
+        this.devMode = isDevModeEnabled()
+            || new URLSearchParams(window.location.search).has('map-test');
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.renderFrame = this.renderFrame.bind(this);
+        this.handleDevReturnToLobby = this.handleDevReturnToLobby.bind(this);
     }
 
     async init() {
@@ -87,6 +91,7 @@ export default class AdventureScene {
         this.worldMap = new WorldMap(GameManager.getCharacter(), 1280, 720);
         this.panels = new AdventurePanelsController(this.container, {
             onPlayerStateChange: () => this.renderPlayerStats(),
+            onUseContextItem: stack => this.useContextItem(stack),
             getStoryHintContext: () => ({
                 discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])]
             })
@@ -176,18 +181,19 @@ export default class AdventureScene {
         this.devPanel = this.container.querySelector('#map-test-panel');
         this.devBossList = this.container.querySelector('#map-test-boss-list');
         this.devSample = this.container.querySelector('#map-test-sample');
+        this.devReturnButton = this.container.querySelector('#btn-return-to-lobby');
 
         if (this.devPanel) this.devPanel.hidden = !this.devMode;
+        if (this.devReturnButton) this.devReturnButton.hidden = !this.devMode;
     }
 
     bindEvents() {
         window.addEventListener('keydown', this.handleKeyDown);
         window.addEventListener('resize', this.handleResize);
 
-        this.container.querySelector('#btn-return-to-lobby')?.addEventListener('click', () => {
-            GameManager.restoreCharacterAtHome('adventure-return');
-            this.app?.navigateTo?.('lobby');
-        });
+        if (this.devMode) {
+            this.devReturnButton?.addEventListener('click', this.handleDevReturnToLobby);
+        }
         this.container.querySelector('#map-landmark-close')?.addEventListener('click', () => this.closeModal());
         this.container.querySelector('#map-landmark-confirm')?.addEventListener('click', () => this.confirmModal());
         this.modal?.addEventListener('click', event => {
@@ -204,11 +210,42 @@ export default class AdventureScene {
     cleanup() {
         window.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('resize', this.handleResize);
+        this.devReturnButton?.removeEventListener('click', this.handleDevReturnToLobby);
         if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
         if (this.regionToastTimer) window.clearTimeout(this.regionToastTimer);
         this.panels?.destroy?.();
         this.combat?.destroy?.();
         if (window.currentAdventureScene === this) delete window.currentAdventureScene;
+    }
+
+    handleDevReturnToLobby() {
+        if (!this.devMode) return;
+        this.returnToTown('adventure-dev-return', { restore: true });
+    }
+
+    returnToTown(reason, options = {}) {
+        if (options.restore) GameManager.restoreCharacterAtHome(reason);
+        else {
+            GameManager.requestTownNarrativeReset(reason);
+            GameManager.markSaveDirty(reason);
+        }
+        this.app?.navigateTo?.('lobby');
+    }
+
+    useContextItem(stack) {
+        if (!stack || this.combat?.isActive()) return false;
+        const item = stack.item || {};
+        if (item.useContext !== ItemUseContext.ADVENTURE_MAP
+            || item.useAction !== ItemUseAction.RETURN_TO_TOWN) return false;
+        const consumed = GameManager.consumeContextItem(
+            stack.instanceId,
+            ItemUseContext.ADVENTURE_MAP,
+            ItemUseAction.RETURN_TO_TOWN
+        );
+        if (!consumed) return false;
+        this.panels?.closeDrawers();
+        this.returnToTown('adventure-wolf-smoke');
+        return true;
     }
 
     async loadMapAssets() {
@@ -222,6 +259,12 @@ export default class AdventureScene {
         for (const gate of OverworldMapConfig.routeGates) {
             assetEntries.push([`gate-blocked:${gate.id}`, gate.blockedImage]);
             assetEntries.push([`gate-repaired:${gate.id}`, gate.repairedImage]);
+        }
+        if (OverworldMapConfig.townReturn?.image) {
+            assetEntries.push([
+                `landmark:${OverworldMapConfig.townReturn.id}`,
+                OverworldMapConfig.townReturn.image
+            ]);
         }
 
         await Promise.all(assetEntries.map(async ([key, src]) => {
@@ -325,6 +368,21 @@ export default class AdventureScene {
     interact() {
         const entry = this.worldMap.getNearbyInteraction();
         if (!entry) return;
+        if (entry.kind === 'town_return') {
+            this.openModal({
+                kicker: '回程',
+                title: entry.name,
+                text: entry.text,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: '返回城鎮',
+                onConfirm: () => {
+                    this.closeModal();
+                    this.returnToTown('adventure-walk-return');
+                    return false;
+                }
+            });
+            return;
+        }
         const firstDiscovery = this.worldMap.discoverLandmark(entry);
         this.panels?.renderQuestTracker();
         storyJournalManager.recordLocationDiscoveries(entry.id, {
@@ -859,6 +917,7 @@ export default class AdventureScene {
 
     renderLandmarks(ctx, time) {
         const entries = [
+            ...(this.worldMap.getTownReturn() ? [this.worldMap.getTownReturn()] : []),
             ...this.worldMap.getActiveLandmarks(),
             ...this.worldMap.getVisibleRouteGates()
         ];

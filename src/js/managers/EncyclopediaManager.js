@@ -11,6 +11,7 @@ import { RecipeDatabase } from '../data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../data/RecipeDiscoveries.js';
 import { EquipmentDatabase } from '../data/Equipment.js';
 import { MaterialDatabase } from '../data/Materials.js';
+import { ItemDatabase } from '../data/UtilityItems.js';
 import { QuestDatabase, QuestRewardItems } from '../data/Quests.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import {
@@ -65,6 +66,7 @@ const TypeLabels = {
 };
 
 const ItemSourceLabels = {
+    item: '一般物品',
     equipment: '裝備資料',
     material: '素材資料',
     questReward: '任務獎勵',
@@ -82,6 +84,7 @@ const ElementLabels = {
 };
 
 const ReadableItemSourceLabels = {
+    item: '一般物品',
     equipment: '裝備資料',
     material: '素材資料',
     questReward: '任務獎勵',
@@ -700,7 +703,7 @@ function addItemEntry(index, rawItem, sourceType) {
     if (!id) return;
     if (rawItem.codexHidden || rawItem.codexCategory === 'achievement') return;
     if (rawItem.passiveEffectId) return;
-    const exposeSourceCard = !['equipment', 'material', 'shop'].includes(sourceType);
+    const exposeSourceCard = !['equipment', 'material', 'item', 'shop'].includes(sourceType);
 
     const source = {
         type: sourceType,
@@ -770,6 +773,10 @@ export function getItemEntries() {
 
     for (const [id, item] of Object.entries(MaterialDatabase || {})) {
         addItemEntry(index, { ...item, id: item.id || id }, 'material');
+    }
+
+    for (const [id, item] of Object.entries(ItemDatabase || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'item');
     }
 
     for (const [id, item] of Object.entries(MarketItemCatalog || {})) {

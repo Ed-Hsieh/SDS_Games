@@ -1,5 +1,6 @@
 import {
     getGeneratedLandmarkImage,
+    getGeneratedTownPlaceImage,
     getGeneratedWorldMapImage
 } from './AssetManifest.js';
 
@@ -360,6 +361,16 @@ export const OverworldMapConfig = Object.freeze({
     habitats: OverworldHabitats,
     landmarks: OverworldLandmarks,
     routeGates: OverworldRouteGates,
+    townReturn: Object.freeze({
+        kind: 'town_return',
+        id: 'south_gate_entry',
+        name: '南門入口',
+        x: 3,
+        y: 17,
+        interactionRadius: 1,
+        image: getGeneratedTownPlaceImage('gate'),
+        text: '沿著南門殘階往回走，就能回到城鎮。'
+    }),
     secondRunBossReserves: SecondRunOvercapBossReserves
 });
 

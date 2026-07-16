@@ -355,13 +355,10 @@
     position: absolute;
     left: var(--place-x, 50%);
     top: var(--place-y, 50%);
-    width: clamp(132px, 15.5%, 176px);
-    min-height: 58px;
-    padding: 10px 12px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 10px;
-    align-items: center;
+    width: clamp(124px, 14.5%, 158px);
+    height: 62px;
+    padding: 8px 10px;
+    display: block;
     color: var(--text);
     border: 1px solid rgba(237, 242, 244, 0.18);
     border-radius: 10px;
@@ -438,10 +435,15 @@
 
 .town-place-card-copy small {
     display: block;
+    min-height: 12px;
+    padding-right: 54px;
+    overflow: hidden;
     color: rgba(233, 189, 101, 0.86);
     font-size: 11px;
     font-weight: 900;
     line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .town-place-card-copy strong {
@@ -457,7 +459,9 @@
 }
 
 .town-place-card-signal {
-    align-self: center;
+    position: absolute;
+    top: 8px;
+    right: 9px;
     max-width: 62px;
     padding: 4px 7px;
     border-radius: 999px;
@@ -468,6 +472,7 @@
     font-weight: 900;
     line-height: 1.1;
     text-align: center;
+    white-space: nowrap;
 }
 
 .town-place-crossroads { --place-x: 50%; --place-y: 48%; --place-tx: -50%; --place-ty: -50%; }
@@ -486,8 +491,8 @@
     }
 
     .town-place-card {
-        width: clamp(100px, 13%, 132px);
-        min-height: 62px;
+        width: clamp(120px, 13%, 132px);
+        height: 58px;
         padding: 8px 9px;
     }
 
@@ -766,7 +771,6 @@
     width: max-content;
     min-width: 132px;
     max-width: 220px;
-    min-width: 0;
     min-height: 58px;
     padding: 8px 9px;
     display: grid;
@@ -826,12 +830,15 @@
 }
 
 .town-place-entry-copy strong {
+    display: -webkit-box;
+    overflow: hidden;
     color: #fff7e6;
     font-size: 15px;
     line-height: 1.12;
-    white-space: nowrap;
-    overflow: visible;
-    text-overflow: clip;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .town-place-entry-mark {

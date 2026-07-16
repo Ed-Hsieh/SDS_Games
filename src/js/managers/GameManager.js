@@ -15,6 +15,10 @@ import {
     getPassiveCombatEffectUnlockSource
 } from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
+import { ItemDatabase } from '../data/UtilityItems.js';
+
+const WOLF_SMOKE_TEST_GRANT_FLAG = 'test.wolfSmokeGranted';
+const WOLF_SMOKE_CODEX_FLAG = 'encyclopedia.item.wolf_smoke';
 
 export const INVENTORY_UPGRADE_TIERS = [
     {
@@ -130,6 +134,9 @@ class GameManager {
         // this.state.character.equip(leatherArmor);
         
         this.addToInventory(new Consumable('health_potion_s', '小型生命藥水', ItemType.POTION, ItemRarity.COMMON, '🧪', '恢復少量生命值。', 20, { hp: 30 }), 3);
+        this.addToInventory(ItemDatabase.wolf_smoke, 1);
+        this.state.flags[WOLF_SMOKE_TEST_GRANT_FLAG] = true;
+        this.state.flags[WOLF_SMOKE_CODEX_FLAG] = true;
         
         // const coin = new Item('ancient_coin', '古代錢幣', ItemType.KEY, ItemRarity.LEGENDARY, '💸', '一枚古老的錢幣，似乎隱藏著秘密。', 500);
         // coin.isSecretKey = true;
@@ -184,6 +191,7 @@ class GameManager {
 
     loadSaveData(saveData) {
         const result = this.saveManager.loadSaveData(saveData);
+        this.ensureWolfSmokeTestGrant();
         const syncResult = this.syncPassiveCombatEffectUnlocks('load-save');
         if (syncResult.changed) this.notify('all');
         return result;
@@ -214,7 +222,25 @@ class GameManager {
     }
 
     loadFromLocalStorage() {
-        return this.saveManager.loadFromLocalStorage();
+        const result = this.saveManager.loadFromLocalStorage();
+        this.ensureWolfSmokeTestGrant();
+        return result;
+    }
+
+    ensureWolfSmokeTestGrant() {
+        if (this.state.flags?.[WOLF_SMOKE_TEST_GRANT_FLAG]) return false;
+        const alreadyOwned = [...(this.state.inventory || []), ...(this.state.warehouse || [])]
+            .some(stack => stack?.item?.id === ItemDatabase.wolf_smoke.id && Number(stack.quantity) > 0);
+        if (!alreadyOwned && !this.addToInventory(ItemDatabase.wolf_smoke, 1)) {
+            const item = createRuntimeItem(ItemDatabase.wolf_smoke);
+            ensureInstanceId(item);
+            this.state.inventory.push({ item, quantity: 1, instanceId: item.instanceId });
+            this.notify('inventory');
+        }
+        this.state.flags[WOLF_SMOKE_TEST_GRANT_FLAG] = true;
+        this.state.flags[WOLF_SMOKE_CODEX_FLAG] = true;
+        this.markSaveDirty('wolf-smoke-test-grant');
+        return true;
     }
 
     hasLocalSave() {
@@ -1273,6 +1299,21 @@ class GameManager {
         }
         
         this.notify('all');
+        return true;
+    }
+
+    consumeContextItem(instanceId, context, action) {
+        const stack = this.state.inventory.find(entry => entry.instanceId === instanceId);
+        if (!stack) return false;
+        if (stack.item?.useContext !== context || stack.item?.useAction !== action) return false;
+
+        stack.quantity -= 1;
+        if (stack.quantity <= 0) {
+            const index = this.state.inventory.findIndex(entry => entry.instanceId === instanceId);
+            if (index >= 0) this.state.inventory.splice(index, 1);
+        }
+        this.markSaveDirty(`context-item:${action}`);
+        this.notify('inventory');
         return true;
     }
 

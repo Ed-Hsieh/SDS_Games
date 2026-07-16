@@ -7,7 +7,8 @@ import {
 } from '../data/OverworldMapRegistry.js';
 
 const MAP_STATE_VERSION = 2;
-const DEFAULT_REVEAL_RADIUS = 3;
+// Radius 1 reveals the player's cell and its eight neighboring cells.
+const DEFAULT_REVEAL_RADIUS = 1;
 
 function cellKey(x, y) {
     return `${x},${y}`;
@@ -209,12 +210,17 @@ export default class WorldMap {
         return this.config.landmarks.filter(entry => this.isLandmarkAvailable(entry));
     }
 
+    getTownReturn() {
+        return this.config.townReturn || null;
+    }
+
     getVisibleRouteGates() {
         return this.config.routeGates.filter(gate => !this.isGateOpen(gate));
     }
 
     getNearbyInteraction() {
         const candidates = [
+            ...(this.getTownReturn() ? [this.getTownReturn()] : []),
             ...this.getVisibleRouteGates(),
             ...this.getActiveLandmarks()
         ]
@@ -235,6 +241,8 @@ export default class WorldMap {
 
     isLandmarkDiscovered(entry) {
         return Boolean(entry?.id) && (
+            entry.kind === 'town_return'
+            ||
             this.discoveredLandmarks.has(entry.id)
             || Boolean(entry.discoveryFlag && GameManager.getFlag(entry.discoveryFlag))
         );

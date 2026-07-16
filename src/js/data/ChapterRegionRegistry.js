@@ -79,7 +79,7 @@ function region(config) {
         cameraBounds,
         fogMask: Object.freeze({
             persistence: 'current_run',
-            initialRevealRadius: 2,
+            initialRevealRadius: 1,
             discoveredMarker: 'location_thumbnail',
             undiscoveredMarker: 'black_question_square'
         })

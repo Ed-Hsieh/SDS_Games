@@ -3,6 +3,7 @@ import { EquipmentDatabase } from '../data/Equipment.js';
 import { QuestRewardItems } from '../data/Quests.js';
 import { TowerBossEquipment } from '../data/BossEquipment.js';
 import { ShopData, SecretShopItems } from '../data/Items.js';
+import { ItemDatabase } from '../data/UtilityItems.js';
 
 function cloneItemData(item) {
     if (!item) return null;
@@ -35,11 +36,12 @@ export function resolveItemRecord(itemId, options = {}) {
 
     const preferBossEquipment = options.preferBossEquipment === true;
     const order = options.order || (preferBossEquipment
-        ? ['questReward', 'material', 'bossEquipment', 'equipment', 'shop']
-        : ['questReward', 'material', 'equipment', 'bossEquipment', 'shop']);
+        ? ['questReward', 'item', 'material', 'bossEquipment', 'equipment', 'shop']
+        : ['questReward', 'item', 'material', 'equipment', 'bossEquipment', 'shop']);
 
     const resolvers = {
         questReward: () => QuestRewardItems[itemId] || null,
+        item: () => ItemDatabase[itemId] || null,
         material: () => MaterialDatabase[itemId] || null,
         equipment: () => EquipmentDatabase[itemId] || null,
         bossEquipment: () => findBossEquipment(itemId),

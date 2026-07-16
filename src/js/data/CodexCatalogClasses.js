@@ -25,6 +25,7 @@ export const CodexRarityText = {
 };
 
 export const CodexTypeText = {
+    item: '物品',
     [EquipmentType.WEAPON]: '武器',
     [EquipmentType.ARMOR]: '防具',
     [EquipmentType.EQUIPMENT]: '防具',

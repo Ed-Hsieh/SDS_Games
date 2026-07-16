@@ -1,0 +1,1145 @@
+/*
+ * Traveler handbook styles.
+ * This is the only visual owner for the quest ledger / clue handbook.
+ * Shared controls, rarity colors, and icon primitives remain in ui-foundation.css.
+ */
+
+/* Quest */
+.quest-board-container {
+    min-height: 0;
+}
+
+.quest-story-ledger {
+    min-height: 66px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--ui-border);
+    background: rgba(15, 23, 42, 0.62);
+}
+
+.quest-story-ledger h2 {
+    margin: 3px 0 0;
+    color: var(--ui-text);
+    font-size: 22px;
+    line-height: 1.15;
+}
+
+.ledger-kicker {
+    color: var(--ui-accent);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.ledger-summary {
+    flex: 0 0 auto;
+    max-width: 42%;
+    color: var(--ui-text-muted);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: right;
+}
+
+.quest-tabs.handbook-tabs {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px !important;
+    padding: 10px 20px !important;
+    border-bottom: 1px solid var(--ui-border);
+    background: rgba(10, 14, 22, 0.82) !important;
+}
+
+.quest-tabs.handbook-tabs .quest-tab {
+    min-width: 0;
+    min-height: 42px;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 12px !important;
+    border-radius: 8px !important;
+}
+
+.quest-tabs.handbook-tabs .quest-tab .tab-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.quest-tabs.handbook-tabs .quest-tab .badge {
+    min-width: 24px;
+    height: 22px;
+    display: inline-grid;
+    place-items: center;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ui-text);
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.quest-tabs.handbook-tabs .quest-tab.active .badge {
+    background: rgba(125, 211, 252, 0.18);
+    color: var(--ui-accent);
+}
+
+.quest-main-panel {
+    min-height: 0;
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+}
+
+.quest-detail-panel {
+    overflow-x: hidden;
+}
+
+.quest-dialogue-box,
+.detail-header,
+.reward-item,
+.objective-item {
+    min-width: 0;
+}
+
+.dialogue-bubble,
+.quest-title-group,
+.objective-text {
+    min-width: 0;
+}
+
+.quest-actions {
+    align-items: center;
+}
+
+.quest-board-container .quest-actions[hidden],
+.scene-quest .quest-actions[hidden] {
+    display: none !important;
+}
+
+.quest-btn {
+    flex: 1 1 180px;
+    justify-content: center;
+}
+
+.handbook-record-item .quest-item-icon {
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 20px;
+}
+
+.handbook-section-item {
+    align-items: flex-start !important;
+}
+
+.handbook-section-item .objective-icon {
+    margin-top: 3px;
+    color: var(--ui-accent);
+}
+
+.handbook-section-item .objective-text {
+    display: grid;
+    gap: 6px;
+}
+
+.handbook-section-item .objective-text strong {
+    color: var(--ui-text);
+    font-size: 15px;
+    line-height: 1.35;
+}
+
+.handbook-section-item .objective-text small {
+    display: block;
+    color: var(--ui-text-muted);
+    font-size: 13px;
+    line-height: 1.55;
+}
+
+.handbook-record-footnote {
+    min-height: 44px;
+    align-items: center;
+}
+
+.handbook-record-footnote .reward-value {
+    display: grid;
+    align-items: start;
+    gap: 3px;
+}
+
+.handbook-record-footnote .reward-value small {
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--ui-text-muted);
+}
+
+.scene-quest .quest-board-container {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    overflow: hidden;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(233, 189, 101, 0.12), transparent 32%),
+        linear-gradient(180deg, rgba(44, 30, 17, 0.88), rgba(8, 11, 14, 0.94)),
+        rgba(7, 10, 12, 0.96);
+    box-shadow:
+        0 22px 52px rgba(0, 0, 0, 0.36),
+        inset 0 1px 0 rgba(255, 244, 214, 0.06);
+}
+
+.scene-quest .quest-story-ledger {
+    min-height: 72px;
+    padding: 15px 22px;
+    border-bottom-color: rgba(223, 190, 121, 0.2);
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.045), rgba(255, 244, 214, 0.012)),
+        rgba(4, 7, 9, 0.28);
+}
+
+.scene-quest .ledger-kicker {
+    color: rgba(233, 189, 101, 0.94);
+}
+
+.scene-quest .ledger-summary {
+    padding: 6px 10px;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 999px;
+    background: rgba(3, 6, 8, 0.3);
+    color: rgba(255, 247, 230, 0.72);
+}
+
+.scene-quest .quest-tabs.handbook-tabs {
+    padding: 0 20px !important;
+    gap: 2px !important;
+    border-bottom-color: rgba(223, 190, 121, 0.18) !important;
+    background: rgba(3, 6, 8, 0.3) !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab {
+    min-height: 46px;
+    border-radius: 9px 9px 0 0 !important;
+    border-color: rgba(223, 190, 121, 0.12) !important;
+    border-bottom-color: transparent !important;
+    background: rgba(255, 244, 214, 0.035) !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab:hover,
+.scene-quest .quest-tabs.handbook-tabs .quest-tab.active {
+    border-color: rgba(233, 189, 101, 0.42) !important;
+    border-bottom-color: rgba(3, 6, 8, 0.82) !important;
+    background:
+        linear-gradient(180deg, rgba(233, 189, 101, 0.14), rgba(6, 10, 14, 0.62)) !important;
+    color: #ffe8aa !important;
+}
+
+.scene-quest .quest-main-panel {
+    gap: 0;
+    min-height: 0;
+    background: rgba(3, 6, 8, 0.18);
+}
+
+.scene-quest .quest-list-panel {
+    min-height: 0;
+    border-right: 1px solid rgba(223, 190, 121, 0.16) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.03), transparent),
+        rgba(2, 5, 7, 0.22);
+}
+
+.scene-quest .quest-list-header {
+    border-bottom-color: rgba(223, 190, 121, 0.14) !important;
+}
+
+.scene-quest .quest-list {
+    padding: 12px;
+    gap: 9px;
+}
+
+.scene-quest .quest-list-item {
+    position: relative;
+    min-height: 76px;
+    padding: 12px !important;
+    border-color: rgba(223, 190, 121, 0.13) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.055), transparent 42%),
+        rgba(5, 9, 12, 0.52) !important;
+    overflow: hidden;
+}
+
+.scene-quest .quest-list-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
+    background: rgba(132, 186, 198, 0.42);
+}
+
+.scene-quest .quest-list-item.active::before {
+    background: rgba(125, 211, 252, 0.86);
+}
+
+.scene-quest .quest-list-item.completed::before {
+    background: rgba(74, 222, 128, 0.86);
+}
+
+.scene-quest .quest-list-item.selected,
+.scene-quest .quest-list-item:hover {
+    border-color: rgba(233, 189, 101, 0.42) !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.12), transparent 48%),
+        rgba(8, 13, 17, 0.72) !important;
+}
+
+.scene-quest .quest-item-icon,
+.scene-quest .handbook-record-item .quest-item-icon,
+.quest-board-container .quest-item-icon,
+.quest-board-container .handbook-record-item .quest-item-icon {
+    width: 46px;
+    height: 46px;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 9px;
+    background:
+        radial-gradient(circle at 50% 30%, rgba(233, 189, 101, 0.16), transparent 58%),
+        rgba(3, 6, 8, 0.44);
+}
+
+.scene-quest .quest-item-name {
+    color: rgba(255, 247, 230, 0.94) !important;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+.scene-quest .quest-item-status {
+    color: rgba(233, 189, 101, 0.9);
+    font-weight: 850;
+}
+
+.scene-quest .quest-item-meta span {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(255, 244, 214, 0.045);
+}
+
+.scene-quest .quest-progress-bar,
+.scene-quest .quest-note-meter,
+.scene-quest .objective-meter {
+    border: 1px solid rgba(223, 190, 121, 0.14);
+    background: rgba(0, 0, 0, 0.36);
+}
+
+.scene-quest .quest-detail-panel {
+    min-height: 0;
+    padding: 18px;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(255, 244, 214, 0.01)),
+        rgba(4, 7, 9, 0.32);
+}
+
+.scene-quest .detail-placeholder {
+    border: 1px dashed rgba(223, 190, 121, 0.22);
+    border-radius: 12px;
+    background: rgba(3, 6, 8, 0.24);
+}
+
+.scene-quest .detail-header {
+    padding: 0 0 14px;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.16);
+}
+
+.scene-quest .quest-icon,
+.quest-board-container .quest-icon {
+    width: 58px;
+    height: 58px;
+    border: 1px solid rgba(223, 190, 121, 0.24);
+    border-radius: 10px;
+    background:
+        radial-gradient(circle at 50% 35%, rgba(233, 189, 101, 0.16), transparent 58%),
+        rgba(3, 6, 8, 0.46);
+}
+
+.scene-quest .quest-type-badge {
+    border-color: rgba(233, 189, 101, 0.3) !important;
+    background: rgba(49, 31, 18, 0.42) !important;
+    color: rgba(233, 189, 101, 0.96) !important;
+}
+
+.scene-quest .quest-dialogue-box,
+.scene-quest .objective-item,
+.scene-quest .reward-item,
+.scene-quest .quest-note-current,
+.scene-quest .quest-note-next {
+    border-color: rgba(223, 190, 121, 0.15) !important;
+    border-radius: 9px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.42) !important;
+}
+
+.scene-quest .dialogue-bubble {
+    background: rgba(3, 6, 8, 0.34) !important;
+    border-color: rgba(223, 190, 121, 0.12) !important;
+}
+
+.scene-quest .quest-objectives h4,
+.scene-quest .quest-rewards h4 {
+    color: rgba(233, 189, 101, 0.94) !important;
+    font-size: 13px;
+    letter-spacing: 0;
+}
+
+:where(.scene-quest, .quest-board-container) .detail-content.is-relationship-detail .detail-header {
+    margin-bottom: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .detail-content.is-relationship-detail .quest-detail-summary {
+    display: block;
+    margin-bottom: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-card {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 1fr);
+    gap: 14px;
+    padding: 14px;
+    border: 2px solid rgba(223, 190, 121, 0.28);
+    border-radius: 9px;
+    background:
+        linear-gradient(135deg, rgba(233, 189, 101, 0.13), rgba(132, 186, 198, 0.045) 54%),
+        rgba(12, 13, 12, 0.68);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-portrait {
+    width: 150px;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border: 2px solid rgba(223, 190, 121, 0.38);
+    border-radius: 9px;
+    background:
+        radial-gradient(circle at 50% 28%, rgba(233, 189, 101, 0.28), transparent 58%),
+        rgba(18, 15, 10, 0.72);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 244, 214, 0.08),
+        0 0 22px rgba(233, 189, 101, 0.08);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-portrait img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-copy {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-kicker {
+    color: rgba(233, 189, 101, 0.78);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row strong {
+    color: rgba(255, 247, 230, 0.96);
+    font-size: 22px;
+    line-height: 1.15;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-name-row span,
+:where(.scene-quest, .quest-board-container) .relationship-lore-head span {
+    padding: 3px 8px;
+    border: 1px solid rgba(233, 189, 101, 0.2);
+    border-radius: 999px;
+    background: rgba(49, 31, 18, 0.34);
+    color: rgba(233, 189, 101, 0.88);
+    font-size: 11px;
+    font-weight: 850;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-profile-copy p {
+    margin: 0;
+    color: rgba(255, 247, 230, 0.76);
+    line-height: 1.55;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 10px;
+    border: 1px solid rgba(223, 190, 121, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 244, 214, 0.045);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row span {
+    color: rgba(255, 247, 230, 0.58);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row strong {
+    color: rgba(255, 232, 170, 0.96);
+    font-size: 13px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-feeling-row small {
+    color: rgba(255, 247, 230, 0.58);
+    font-size: 12px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card {
+    min-width: 0;
+    min-height: 118px;
+    padding: 12px;
+    border: 1px solid rgba(223, 190, 121, 0.15);
+    border-radius: 9px;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.04), rgba(255, 244, 214, 0.012)),
+        rgba(3, 6, 8, 0.46);
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card.is-locked {
+    border-style: dashed;
+    opacity: 0.68;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-head strong {
+    color: rgba(255, 247, 230, 0.94);
+    font-size: 14px;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card p {
+    margin: 6px 0 0;
+    color: rgba(255, 247, 230, 0.7);
+    line-height: 1.52;
+}
+
+:where(.scene-quest, .quest-board-container) .relationship-lore-card.is-locked p {
+    color: rgba(255, 247, 230, 0.5);
+}
+
+.scene-quest .quest-footer {
+    border-top: 1px solid rgba(223, 190, 121, 0.18);
+    background: rgba(3, 6, 8, 0.44) !important;
+}
+
+/* Traveler handbook icon sizing and generated art placement. */
+.scene-quest .quest-item-icon,
+.scene-quest .handbook-record-item .quest-item-icon,
+.quest-board-container .quest-item-icon,
+.quest-board-container .handbook-record-item .quest-item-icon {
+    width: var(--ui-icon-lg) !important;
+    height: var(--ui-icon-lg) !important;
+    min-width: var(--ui-icon-lg) !important;
+    max-width: var(--ui-icon-lg) !important;
+    flex: 0 0 var(--ui-icon-lg) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 20px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-icon,
+.quest-board-container .quest-icon {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 26px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-note-avatar,
+.scene-quest .reward-icon,
+.scene-quest .objective-icon,
+.quest-board-container .quest-note-avatar,
+.quest-board-container .reward-icon,
+.quest-board-container .objective-icon {
+    width: var(--ui-icon-sm) !important;
+    height: var(--ui-icon-sm) !important;
+    min-width: var(--ui-icon-sm) !important;
+    max-width: var(--ui-icon-sm) !important;
+    flex: 0 0 var(--ui-icon-sm) !important;
+    display: grid !important;
+    place-items: center;
+    overflow: hidden;
+    font-size: 16px !important;
+    line-height: 1;
+}
+
+.scene-quest .quest-item-icon img,
+.scene-quest .quest-icon img,
+.scene-quest .quest-note-avatar img,
+.scene-quest .reward-icon img,
+.scene-quest .objective-icon img,
+.scene-quest .handbook-list-image,
+.scene-quest .handbook-detail-image,
+.scene-quest .handbook-avatar-image,
+.quest-board-container .quest-item-icon img,
+.quest-board-container .quest-icon img,
+.quest-board-container .quest-note-avatar img,
+.quest-board-container .reward-icon img,
+.quest-board-container .objective-icon img,
+.quest-board-container .handbook-list-image,
+.quest-board-container .handbook-detail-image,
+.quest-board-container .handbook-avatar-image {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: contain !important;
+    object-position: center;
+    border-radius: inherit;
+}
+
+/* Structural rules retained from the removed legacy quest scene. */
+.quest-board-container {
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    overflow: hidden;
+}
+
+.quest-main-panel {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.quest-list-panel,
+.quest-detail-panel {
+    min-width: 0;
+    min-height: 0;
+}
+
+.quest-list-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.quest-list-header,
+.detail-header,
+.quest-dialogue-box,
+.quest-list-item,
+.objective-item,
+.reward-item,
+.quest-actions,
+.quest-footer {
+    display: flex;
+    align-items: center;
+}
+
+.quest-list-header,
+.quest-footer {
+    justify-content: space-between;
+}
+
+.quest-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    align-content: start;
+    overflow-y: auto;
+}
+
+.quest-list-item {
+    width: 100%;
+    min-width: 0;
+    gap: 12px;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.quest-item-info,
+.quest-title-group,
+.dialogue-bubble,
+.objective-text {
+    min-width: 0;
+}
+
+.quest-item-info,
+.quest-title-group,
+.dialogue-bubble,
+.objective-text {
+    flex: 1 1 auto;
+}
+
+.quest-detail-panel {
+    overflow: hidden auto;
+}
+
+.detail-placeholder {
+    min-height: 100%;
+    display: grid;
+    place-items: center;
+    align-content: center;
+}
+
+.detail-content.hidden,
+.quest-btn.hidden {
+    display: none !important;
+}
+
+.detail-content.is-relationship-detail > .detail-header[hidden] {
+    display: none !important;
+}
+
+.detail-header,
+.quest-dialogue-box,
+.objective-item,
+.reward-item,
+.quest-actions {
+    gap: 12px;
+}
+
+.quest-actions {
+    flex-wrap: wrap;
+}
+
+.rewards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.quest-footer {
+    gap: 16px;
+}
+
+.quest-list-header h3,
+.quest-empty p,
+.npc-name,
+.objective-text,
+.objective-progress,
+.summary-item {
+    color: rgba(255, 247, 230, 0.84);
+}
+
+.quest-empty {
+    min-height: 180px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 10px;
+    padding: 24px;
+    color: rgba(255, 247, 230, 0.48);
+    text-align: center;
+}
+
+.quest-empty p,
+.quest-list-header h3 {
+    margin: 0;
+}
+
+.objectives-list {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.objective-item.completed .objective-text {
+    opacity: 0.68;
+    text-decoration: line-through;
+}
+
+.objective-progress {
+    flex: 0 0 auto;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.npc-name {
+    display: block;
+    margin-bottom: 6px;
+    color: rgba(233, 189, 101, 0.94);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.quest-summary,
+.summary-item {
+    display: flex;
+    align-items: center;
+}
+
+.quest-summary {
+    gap: 18px;
+}
+
+.summary-item {
+    gap: 7px;
+    font-size: 13px;
+}
+
+.quest-type-badge.type-MAIN {
+    --quest-type-color: #e9bd65;
+}
+
+.quest-type-badge.type-BOUNTY {
+    --quest-type-color: #f6c453;
+}
+
+.quest-type-badge.type-COMMISSION {
+    --quest-type-color: #84bac6;
+}
+
+.quest-type-badge.type-HIDDEN {
+    --quest-type-color: #b99ad6;
+}
+
+.quest-type-badge:is(.type-MAIN, .type-BOUNTY, .type-COMMISSION, .type-HIDDEN) {
+    border-color: color-mix(in srgb, var(--quest-type-color) 44%, transparent) !important;
+    color: var(--quest-type-color) !important;
+}
+
+/* Traveler handbook phase one skin. */
+.quest-board-container {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid rgba(223, 190, 121, 0.28) !important;
+    border-radius: 10px !important;
+    background:
+        linear-gradient(90deg, rgba(50, 31, 19, 0.96) 0 32px, rgba(122, 84, 45, 0.72) 33px 38px, transparent 39px),
+        radial-gradient(circle at 22% 12%, rgba(233, 189, 101, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(18, 15, 12, 0.96), rgba(4, 8, 10, 0.97)) !important;
+    box-shadow:
+        0 26px 58px rgba(0, 0, 0, 0.42),
+        inset 0 1px 0 rgba(255, 244, 214, 0.08),
+        inset 0 0 0 1px rgba(255, 244, 214, 0.035);
+}
+
+.quest-board-container::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    z-index: 0;
+    pointer-events: none;
+    border: 1px solid rgba(223, 190, 121, 0.16);
+    border-radius: 8px;
+    box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.34),
+        inset 0 0 42px rgba(0, 0, 0, 0.28);
+}
+
+.quest-board-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        linear-gradient(180deg, rgba(5, 7, 9, 0.32), rgba(5, 7, 9, 0.78)),
+        url("../assets/images/art/scenes/town/locations/handbook.webp") center / cover no-repeat;
+    opacity: 0.2;
+    mix-blend-mode: screen;
+}
+
+.quest-board-container > * {
+    position: relative;
+    z-index: 1;
+}
+
+.scene-quest .quest-story-ledger,
+.quest-board-container .quest-story-ledger {
+    min-height: 72px;
+    margin: 16px 16px 0 52px;
+    padding: 13px 18px !important;
+    border: 1px solid rgba(223, 190, 121, 0.18);
+    border-radius: 8px;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.07), rgba(255, 244, 214, 0.018)),
+        rgba(4, 7, 9, 0.54) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.07);
+}
+
+.quest-board-container .ledger-kicker {
+    color: rgba(233, 189, 101, 0.95) !important;
+    letter-spacing: 0 !important;
+}
+
+.quest-board-container .ledger-summary {
+    border-radius: 4px !important;
+    background: rgba(3, 6, 8, 0.48) !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs,
+.quest-board-container .quest-tabs.handbook-tabs {
+    margin-left: 52px;
+    margin-right: 16px;
+    padding: 0 12px !important;
+    gap: 4px !important;
+    align-items: end;
+    border-bottom: 1px solid rgba(223, 190, 121, 0.18) !important;
+    background: transparent !important;
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab,
+.quest-board-container .quest-tabs.handbook-tabs .quest-tab {
+    min-height: 42px !important;
+    padding: 0 13px !important;
+    border: 1px solid rgba(223, 190, 121, 0.14) !important;
+    border-bottom-color: rgba(223, 190, 121, 0.08) !important;
+    border-radius: 6px 6px 0 0 !important;
+    background:
+        linear-gradient(180deg, rgba(97, 64, 35, 0.88), rgba(23, 18, 14, 0.92)) !important;
+    color: rgba(237, 242, 244, 0.76) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 244, 214, 0.08);
+}
+
+.scene-quest .quest-tabs.handbook-tabs .quest-tab:hover,
+.scene-quest .quest-tabs.handbook-tabs .quest-tab.active,
+.quest-board-container .quest-tabs.handbook-tabs .quest-tab:hover,
+.quest-board-container .quest-tabs.handbook-tabs .quest-tab.active {
+    transform: translateY(1px);
+    border-color: rgba(233, 189, 101, 0.48) !important;
+    border-bottom-color: rgba(4, 7, 9, 0.82) !important;
+    background:
+        linear-gradient(180deg, rgba(153, 105, 50, 0.94), rgba(8, 12, 15, 0.96)) !important;
+    color: #ffe8aa !important;
+}
+
+.quest-board-container .quest-tabs.handbook-tabs .quest-tab .badge {
+    border-radius: 999px;
+    background: rgba(3, 6, 8, 0.52) !important;
+}
+
+.scene-quest .quest-main-panel,
+.quest-board-container .quest-main-panel {
+    margin: 0 4px 0 40px;
+    padding: 12px !important;
+    gap: 12px !important;
+    background: rgba(3, 6, 8, 0.18) !important;
+}
+
+.scene-quest .quest-list-panel,
+.scene-quest .quest-detail-panel,
+.quest-board-container .quest-list-panel,
+.quest-board-container .quest-detail-panel {
+    border: 1px solid rgba(223, 190, 121, 0.18) !important;
+    border-radius: 8px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.05), rgba(255, 244, 214, 0.012)),
+        rgba(5, 8, 10, 0.7) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 244, 214, 0.06),
+        inset 0 -18px 40px rgba(0, 0, 0, 0.12);
+}
+
+.scene-quest .quest-list-panel,
+.quest-board-container .quest-list-panel {
+    border-right: 1px solid rgba(223, 190, 121, 0.18) !important;
+}
+
+.quest-board-container .quest-list-header,
+.quest-board-container .detail-header {
+    border-bottom: 1px solid rgba(223, 190, 121, 0.16) !important;
+}
+
+.quest-board-container .quest-list {
+    padding: 10px !important;
+    gap: 8px !important;
+}
+
+.quest-board-container .quest-list-item,
+.quest-board-container .handbook-record-item,
+.quest-board-container .objective-item,
+.quest-board-container .reward-item,
+.quest-board-container .quest-note-current,
+.quest-board-container .quest-note-next,
+.quest-board-container .quest-dialogue-box {
+    border: 1px solid rgba(223, 190, 121, 0.15) !important;
+    border-radius: 6px !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.06), transparent 56%),
+        rgba(3, 6, 8, 0.48) !important;
+}
+
+.quest-board-container .quest-list-item.selected,
+.quest-board-container .quest-list-item:hover,
+.quest-board-container .handbook-record-item.selected,
+.quest-board-container .handbook-record-item:hover {
+    border-color: rgba(233, 189, 101, 0.44) !important;
+    background:
+        linear-gradient(90deg, rgba(233, 189, 101, 0.12), rgba(132, 186, 198, 0.045)),
+        rgba(8, 12, 15, 0.72) !important;
+}
+
+.quest-board-container .quest-item-icon,
+.quest-board-container .handbook-record-item .quest-item-icon,
+.quest-board-container .quest-icon,
+.quest-board-container .quest-note-avatar,
+.quest-board-container .reward-icon,
+.quest-board-container .objective-icon {
+    flex: 0 0 auto;
+    overflow: hidden;
+    border: 1px solid rgba(223, 190, 121, 0.24) !important;
+    border-radius: 6px !important;
+    background:
+        radial-gradient(circle at 50% 35%, rgba(233, 189, 101, 0.16), transparent 62%),
+        rgba(3, 6, 8, 0.64) !important;
+}
+
+.quest-board-container .quest-item-icon,
+.quest-board-container .handbook-record-item .quest-item-icon {
+    width: 44px !important;
+    height: 44px !important;
+}
+
+.quest-board-container .quest-icon {
+    width: 56px !important;
+    height: 56px !important;
+}
+
+.quest-board-container .quest-note-avatar,
+.quest-board-container .reward-icon,
+.quest-board-container .objective-icon {
+    width: 34px !important;
+    height: 34px !important;
+}
+
+.quest-board-container .quest-item-icon img,
+.quest-board-container .quest-icon img,
+.quest-board-container .quest-note-avatar img,
+.quest-board-container .reward-icon img,
+.quest-board-container .objective-icon img,
+.quest-board-container .handbook-list-image,
+.quest-board-container .handbook-detail-image,
+.quest-board-container .handbook-avatar-image {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+}
+
+.quest-board-container .quest-type-badge,
+.quest-board-container .quest-item-meta span,
+.quest-board-container .handbook-tag {
+    border: 1px solid rgba(223, 190, 121, 0.16) !important;
+    border-radius: 999px !important;
+    background: rgba(3, 6, 8, 0.42) !important;
+    color: rgba(255, 247, 230, 0.7) !important;
+}
+
+.quest-board-container .quest-footer {
+    min-width: 0;
+    margin: 0 4px 10px 40px;
+    padding: 9px 12px !important;
+    overflow: hidden;
+    border-top: 1px solid rgba(223, 190, 121, 0.18) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.035), rgba(3, 6, 8, 0.52)) !important;
+}
+
+.quest-board-container .quest-footer .btn,
+.quest-board-container .quest-action-btn,
+.quest-board-container .footer-btn {
+    flex: 0 0 auto;
+    min-width: 112px;
+    min-height: 36px;
+    justify-content: center;
+    white-space: nowrap;
+    border: 1px solid rgba(223, 190, 121, 0.22) !important;
+    border-radius: 4px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 244, 214, 0.12), rgba(255, 244, 214, 0.02)),
+        linear-gradient(135deg, rgba(44, 30, 18, 0.96), rgba(8, 12, 15, 0.96)) !important;
+    color: rgba(255, 247, 230, 0.88) !important;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.quest-board-container .quest-footer .quest-summary {
+    min-width: 0;
+    margin-left: auto;
+    gap: 12px;
+}
+
+.quest-board-container .quest-footer .summary-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    .scene-quest .quest-story-ledger,
+    .quest-board-container .quest-story-ledger {
+        min-height: 78px;
+        margin: 12px 12px 0 48px;
+        padding: 11px 14px !important;
+    }
+
+    .scene-quest .quest-tabs.handbook-tabs,
+    .quest-board-container .quest-tabs.handbook-tabs {
+        margin-left: 48px;
+        margin-right: 12px;
+        padding: 0 !important;
+    }
+
+    .scene-quest .quest-main-panel,
+    .quest-board-container .quest-main-panel {
+        margin: 0 0 0 36px;
+        padding: 12px !important;
+        grid-template-columns: minmax(250px, 1fr) minmax(0, 0.72fr);
+    }
+
+    .quest-board-container .quest-footer {
+        margin: 0 0 8px 36px;
+    }
+}

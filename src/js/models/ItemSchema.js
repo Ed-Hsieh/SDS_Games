@@ -194,6 +194,9 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.stats) item.stats = cloneData(itemData.stats);
     if (itemData.buff) item.buff = cloneData(itemData.buff);
     if (itemData.passiveEffectId) item.passiveEffectId = itemData.passiveEffectId;
+    if (itemData.catalogId) item.catalogId = itemData.catalogId;
+    if (itemData.useContext) item.useContext = itemData.useContext;
+    if (itemData.useAction) item.useAction = itemData.useAction;
 
     for (const key of ['hp', 'exp']) {
         const value = itemData[key] ?? stats[key];

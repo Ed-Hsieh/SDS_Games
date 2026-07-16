@@ -94,7 +94,11 @@ for (const file of [
     path.join(root, 'src/css/scenes.css'),
     path.join(root, 'src/css/ui-foundation.css'),
     path.join(root, 'src/style/hall.css'),
-    path.join(root, 'src/style/marketplace.css')
+    path.join(root, 'src/style/marketplace.css'),
+    path.join(root, 'src/style/quest-handbook.css'),
+    path.join(root, 'src/style/encyclopedia.css'),
+    path.join(root, 'src/style/inventory-grid.css'),
+    path.join(root, 'src/style/story-dialogue.css')
 ]) {
     if (!fs.existsSync(file)) continue;
     const source = read(file).replace(/\/\*[\s\S]*?\*\//g, '');
@@ -114,10 +118,28 @@ const indexHtml = path.join(root, 'index.html');
 if (fs.existsSync(indexHtml)) {
     const cssLinks = [...read(indexHtml).matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match => match[1]);
     const normalizedCssLinks = cssLinks.map(link => link.split('?')[0]);
-    if (!normalizedCssLinks.includes('src/css/ui-foundation.css')) {
+    const foundationPath = 'src/css/ui-foundation.css';
+    const foundationIndex = normalizedCssLinks.indexOf(foundationPath);
+    if (foundationIndex < 0) {
         push('ui-foundation', 'index.html should load src/css/ui-foundation.css');
-    } else if (normalizedCssLinks[normalizedCssLinks.length - 1] !== 'src/css/ui-foundation.css') {
-        push('ui-foundation', 'src/css/ui-foundation.css should be the final stylesheet so layout fixes win');
+    } else {
+        const scopedOwners = [
+            'src/style/quest-handbook.css',
+            'src/style/encyclopedia.css',
+            'src/style/inventory-grid.css',
+            'src/style/story-dialogue.css'
+        ];
+        for (const ownerPath of scopedOwners) {
+            const ownerIndex = normalizedCssLinks.indexOf(ownerPath);
+            if (ownerIndex < 0) {
+                push('scoped-css-owner', `index.html should load ${ownerPath}`);
+            } else if (ownerIndex < foundationIndex) {
+                push('scoped-css-owner', `${ownerPath} should load after ${foundationPath}`);
+            }
+            if (normalizedCssLinks.lastIndexOf(ownerPath) !== ownerIndex) {
+                push('scoped-css-owner', `${ownerPath} should be loaded exactly once`);
+            }
+        }
     }
 }
 

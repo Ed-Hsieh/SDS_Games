@@ -21,7 +21,7 @@ import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '
 import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
 import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
-import { getTownPlace } from '../data/TownPlaces.js?v=town-art-binding-20260715a';
+import { getTownPlace, getTownPlaceDisplay } from '../data/TownPlaces.js?v=town-place-label-20260716a';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
 import {
     getResolvedTownPlace,
@@ -1099,15 +1099,18 @@ export default class LobbyScene {
             }
             const alertText = hasStoryObjective
                 ? '主線'
-                : (readyCount > 0 ? `${readyCount} 個動向` : '');
+                : (readyCount > 0 ? `${readyCount} 動向` : '');
+            const placeDisplay = getTownPlaceDisplay(place);
 
             button.innerHTML = `
                 <span class="town-place-card-copy">
-                    <small>${escapeHtml(place.tag || '場所')}</small>
-                    <strong>${escapeHtml(place.name || '未命名場所')}</strong>
+                    <small>${escapeHtml(placeDisplay.tag)}</small>
+                    <strong>${escapeHtml(placeDisplay.name)}</strong>
                 </span>
                 ${alertText ? `<span class="town-place-card-signal">${escapeHtml(alertText)}</span>` : ''}
             `;
+            button.title = placeDisplay.fullName;
+            button.setAttribute('aria-label', `${placeDisplay.fullName}${alertText ? `，${alertText}` : ''}`);
             button.addEventListener('click', event => {
                 event.stopPropagation();
                 this.enterTownPlace(place.id);
@@ -1138,10 +1141,11 @@ export default class LobbyScene {
         view.hidden = false;
         view.dataset.placeId = place.id || '';
         this.applyTownPlaceScene(view, place);
+        const placeDisplay = getTownPlaceDisplay(place);
 
         if (this.dom.townPlaceIcon) this.dom.townPlaceIcon.innerHTML = this.renderTownPlaceCardIcon(place);
-        if (this.dom.townPlaceTag) this.dom.townPlaceTag.textContent = place.tag || '場所';
-        if (this.dom.townPlaceName) this.dom.townPlaceName.textContent = place.name || '未命名場所';
+        if (this.dom.townPlaceTag) this.dom.townPlaceTag.textContent = placeDisplay.tag;
+        if (this.dom.townPlaceName) this.dom.townPlaceName.textContent = placeDisplay.name;
         if (this.dom.townPlaceDescription) {
             this.dom.townPlaceDescription.textContent = '';
             this.dom.townPlaceDescription.hidden = true;

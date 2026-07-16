@@ -1,0 +1,656 @@
+/*
+ * Encyclopedia styles.
+ * This is the only layout owner for the encyclopedia scene.
+ * Shared rarity and generated-image primitives remain in ui-foundation.css.
+ */
+
+.encyclopedia-scene {
+    height: 100dvh;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+    padding: 20px;
+    color: var(--text, #edf2f4);
+    background:
+        linear-gradient(180deg, rgba(14, 19, 25, 0.96), rgba(8, 11, 15, 0.98)),
+        #0e1319;
+}
+
+.codex-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: min(1440px, calc(100vw - 48px));
+    max-width: 1440px;
+    margin: 0 auto 16px;
+}
+
+.codex-header h1 {
+    margin: 2px 0 0;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: 0;
+}
+
+.codex-kicker {
+    color: rgba(233, 189, 101, 0.9);
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.codex-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.codex-header-actions .is-active {
+    border-color: rgba(120, 185, 141, 0.8);
+}
+
+.codex-shell {
+    display: grid;
+    grid-template-columns: minmax(360px, 440px) minmax(0, 1fr);
+    gap: 24px;
+    width: min(1440px, calc(100vw - 48px));
+    max-width: 1440px;
+    margin: 0 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.codex-browser,
+.codex-detail {
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    border: 1px solid rgba(237, 242, 244, 0.12);
+    border-radius: 8px;
+    background: rgba(13, 18, 24, 0.82);
+}
+
+.codex-browser {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.codex-tabs {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+    min-width: 0;
+    overflow: hidden;
+    padding: 9px 10px;
+    border-bottom: 1px solid rgba(237, 242, 244, 0.1);
+}
+
+.codex-tab {
+    min-width: 0;
+    width: 100%;
+    min-height: 38px;
+    border: 1px solid rgba(237, 242, 244, 0.12);
+    border-radius: 5px;
+    color: rgba(237, 242, 244, 0.78);
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0 6px;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 0;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.codex-tab.active {
+    color: #0d1218;
+    border-color: rgba(233, 189, 101, 0.9);
+    background: rgba(233, 189, 101, 0.92);
+}
+
+.encyclopedia-scene .codex-list-row:hover {
+    border-color: var(--rarity-border, var(--ui-border)) !important;
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.035), var(--rarity-soft, rgba(255, 255, 255, 0.035))) !important;
+    box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--rarity-border, rgba(255, 255, 255, 0.16)) 20%, transparent),
+        0 0 18px color-mix(in srgb, var(--rarity-border, rgba(255, 255, 255, 0.16)) 18%, transparent) !important;
+}
+
+.encyclopedia-scene .codex-list-row.active,
+.encyclopedia-scene .codex-list-row.active:hover {
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, color-mix(in srgb, var(--rarity-border) 18%, rgba(255, 255, 255, 0.04)), rgba(255, 255, 255, 0.06)) !important;
+}
+
+.codex-tools {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(84px, 104px) minmax(110px, 132px) 38px;
+    gap: 8px;
+    min-width: 0;
+    padding: 10px;
+    border-bottom: 1px solid rgba(237, 242, 244, 0.1);
+}
+
+.codex-tools input,
+.codex-tools select,
+.codex-sort-direction {
+    min-width: 0;
+    height: 38px;
+    border: 1px solid rgba(237, 242, 244, 0.14);
+    border-radius: 6px;
+    color: var(--text, #edf2f4);
+    background: rgba(4, 7, 10, 0.72);
+    padding: 0 10px;
+    font: inherit;
+}
+
+.codex-sort-direction {
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: rgba(233, 189, 101, 0.94);
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.codex-summary {
+    padding: 8px 12px;
+    color: rgba(237, 242, 244, 0.68);
+    font-size: 13px;
+    font-weight: 800;
+    border-bottom: 1px solid rgba(237, 242, 244, 0.1);
+}
+
+.codex-list {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 8px;
+}
+
+.codex-list-empty {
+    min-height: 132px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+.codex-list-row {
+    width: 100%;
+    min-height: 62px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    color: var(--text, #edf2f4);
+    background: rgba(255, 255, 255, 0.045);
+    text-align: left;
+    cursor: pointer;
+}
+
+.codex-list-row.active {
+    background: color-mix(in srgb, var(--rarity-border) 18%, rgba(255, 255, 255, 0.06));
+}
+
+.codex-row-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.24);
+    font-size: 23px;
+}
+
+.codex-row-main {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.codex-row-main strong,
+.codex-row-main small,
+.codex-row-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.codex-row-main strong {
+    font-size: 15px;
+}
+
+.codex-row-main small,
+.codex-row-meta {
+    color: rgba(237, 242, 244, 0.64);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.codex-detail {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 16px;
+}
+
+.codex-detail-head {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.codex-portrait {
+    width: 100px;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.045);
+    font-size: 50px;
+}
+
+.codex-detail h2 {
+    margin: 4px 0 8px;
+    font-size: 28px;
+    line-height: 1.08;
+    letter-spacing: 0;
+}
+
+.codex-detail p {
+    max-width: 80ch;
+    margin: 0;
+    color: rgba(237, 242, 244, 0.74);
+    line-height: 1.55;
+}
+
+.codex-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.codex-stat {
+    min-height: 64px;
+    display: grid;
+    align-content: center;
+    gap: 4px;
+    border: 1px solid rgba(237, 242, 244, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.codex-stat span {
+    color: rgba(237, 242, 244, 0.58);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.codex-stat strong {
+    font-size: 18px;
+    line-height: 1.15;
+}
+
+.codex-section {
+    margin-top: 16px;
+}
+
+.codex-section h3 {
+    margin: 0 0 8px;
+    font-size: 17px;
+    letter-spacing: 0;
+}
+
+.codex-drop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+    justify-content: start;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.codex-drop-token {
+    width: 100%;
+    max-width: 320px;
+    min-width: 0;
+    min-height: 62px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 9px;
+    align-items: center;
+    border-radius: 8px;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.codex-drop-icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.24);
+    font-size: 22px;
+}
+
+.codex-drop-info {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.codex-drop-info strong,
+.codex-drop-info span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.codex-drop-info span {
+    color: rgba(237, 242, 244, 0.66);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.codex-source-list {
+    display: grid;
+    gap: 8px;
+}
+
+.codex-source-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+}
+
+.codex-source-card {
+    min-width: 0;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    border-radius: 8px;
+    padding: 8px;
+    color: var(--text, #edf2f4);
+    background: rgba(255, 255, 255, 0.045);
+    text-align: left;
+}
+
+.codex-source-card:is(button) {
+    cursor: pointer;
+}
+
+.codex-source-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.28);
+    color: rgba(233, 189, 101, 0.92);
+    font-size: 22px;
+}
+
+.codex-source-icon img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
+
+.codex-source-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.codex-source-copy strong,
+.codex-source-copy small {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.codex-source-copy small {
+    color: rgba(237, 242, 244, 0.66);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.encyclopedia-scene .codex-drop-token,
+.encyclopedia-scene .codex-source-card {
+    color: rgba(255, 247, 230, 0.92) !important;
+    text-align: left;
+}
+
+.encyclopedia-scene .codex-drop-info strong,
+.encyclopedia-scene .codex-source-copy strong {
+    color: rgba(255, 247, 230, 0.94) !important;
+}
+
+.encyclopedia-scene .codex-drop-info span,
+.encyclopedia-scene .codex-source-copy small {
+    color: rgba(213, 235, 239, 0.72) !important;
+}
+
+.codex-source-card.is-quest-source {
+    grid-template-columns: 52px minmax(0, 1fr);
+    min-height: 86px;
+    cursor: default;
+}
+
+.codex-source-card.is-quest-source .codex-source-icon {
+    width: 52px;
+    height: 52px;
+}
+
+.codex-source-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid rgba(237, 242, 244, 0.1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.codex-source-row span,
+.codex-source-row strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.codex-source-row strong {
+    color: rgba(233, 189, 101, 0.9);
+}
+
+.codex-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.codex-pill {
+    border: 1px solid rgba(237, 242, 244, 0.12);
+    border-radius: 999px;
+    padding: 6px 10px;
+    color: rgba(237, 242, 244, 0.82);
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.codex-pill.muted,
+.codex-empty {
+    color: rgba(237, 242, 244, 0.54);
+}
+
+.codex-empty {
+    padding: 14px;
+    font-weight: 800;
+}
+
+.codex-empty.compact {
+    border: 1px solid rgba(237, 242, 244, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.codex-skill-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 320px));
+    justify-content: start;
+    gap: 8px;
+}
+
+.codex-skill-card {
+    min-width: 0;
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.045);
+}
+
+.codex-skill-head {
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 8px;
+}
+
+.codex-skill-icon {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 7px;
+    background: rgba(0, 0, 0, 0.26);
+    color: rgba(233, 189, 101, 0.94);
+    font-size: 21px;
+}
+
+.codex-skill-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.codex-skill-copy strong,
+.codex-skill-copy small,
+.codex-skill-rows span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.codex-skill-copy small {
+    color: rgba(237, 242, 244, 0.62);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.codex-skill-card p {
+    margin: 0 0 8px;
+    color: rgba(237, 242, 244, 0.72);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.codex-skill-rows {
+    display: grid;
+    gap: 5px;
+}
+
+.codex-skill-rows span {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border-top: 1px solid rgba(237, 242, 244, 0.08);
+    padding-top: 5px;
+    color: rgba(237, 242, 244, 0.74);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.codex-skill-rows b {
+    color: rgba(237, 242, 244, 0.52);
+    font-weight: 800;
+}
+
+@media (max-width: 980px) {
+    .codex-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .codex-header-actions {
+        justify-content: flex-start;
+    }
+
+    .codex-shell {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        width: min(1440px, calc(100vw - 48px));
+    }
+
+    .codex-browser {
+        max-height: 48dvh;
+    }
+
+    .codex-stat-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .encyclopedia-scene {
+        padding: 12px;
+    }
+
+    .codex-header-actions,
+    .codex-tools,
+    .codex-detail-head {
+        grid-template-columns: 1fr;
+    }
+
+    .codex-header-actions {
+        display: grid;
+    }
+
+    .codex-detail-head {
+        text-align: center;
+    }
+
+    .codex-portrait {
+        margin: 0 auto;
+    }
+
+    .codex-stat-grid,
+    .codex-drop-grid,
+    .codex-skill-grid {
+        grid-template-columns: 1fr;
+    }
+}

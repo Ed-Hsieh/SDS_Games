@@ -12,8 +12,10 @@ export const TownPlaceDatabase = [
     {
         id: 'crossroads',
         name: '裂痕廣場',
+        displayName: '裂痕廣場',
         icon: '#',
         tag: '城鎮中樞',
+        displayTag: '城鎮中樞',
         mapClass: 'town-place-crossroads',
         cardImage: townScene('crossroads-broken'),
         sceneImage: townScene('crossroads-broken'),
@@ -97,8 +99,10 @@ export const TownPlaceDatabase = [
     {
         id: 'mia_workroom',
         name: '米婭的藥草工作室',
+        displayName: '藥草工作室',
         icon: '+',
         tag: '研究與人際',
+        displayTag: '藥草研究',
         mapClass: 'town-place-mia-workroom',
         cardImage: townScene('mia_workroom'),
         sceneImage: townScene('mia_workroom'),
@@ -157,8 +161,10 @@ export const TownPlaceDatabase = [
     {
         id: 'handbook',
         name: '檔案室',
+        displayName: '檔案室',
         icon: '?',
         tag: '手札、百科與證據',
+        displayTag: '手札百科',
         mapClass: 'town-place-handbook',
         cardImage: townScene('civic-room-working'),
         sceneImage: townScene('civic-room-working'),
@@ -228,8 +234,10 @@ export const TownPlaceDatabase = [
     {
         id: 'gate',
         name: '南門殘階',
+        displayName: '南門殘階',
         icon: '>',
         tag: '出發與回城',
+        displayTag: '城鎮出口',
         mapClass: 'town-place-gate',
         cardImage: townScene('gate-broken'),
         sceneImage: townScene('gate-broken'),
@@ -315,8 +323,10 @@ export const TownPlaceDatabase = [
     {
         id: 'forge',
         name: '冷爐鐵匠鋪',
+        displayName: '冷爐鐵匠鋪',
         icon: '+',
         tag: '修復與鍛造',
+        displayTag: '修復鍛造',
         mapClass: 'town-place-forge',
         cardImage: townScene('forge-cold'),
         sceneImage: townScene('forge-cold'),
@@ -376,8 +386,10 @@ export const TownPlaceDatabase = [
     {
         id: 'market',
         name: '市集邊棚',
+        displayName: '市集邊棚',
         icon: '$',
         tag: '公開交易',
+        displayTag: '公開交易',
         mapClass: 'town-place-market',
         cardImage: townScene('market'),
         sceneImage: townScene('market'),
@@ -427,8 +439,10 @@ export const TownPlaceDatabase = [
     {
         id: 'casino',
         name: '玻璃櫃賭場',
+        displayName: '玻璃櫃賭場',
         icon: '$',
         tag: '票券、誘惑與契約',
+        displayTag: '票券契約',
         mapClass: 'town-place-casino',
         cardImage: townScene('casino'),
         sceneImage: townScene('casino'),
@@ -500,8 +514,10 @@ export const TownPlaceDatabase = [
     {
         id: 'alley',
         name: '背巷黑市',
+        displayName: '背巷黑市',
         icon: '*',
         tag: '第三方來源與代價',
+        displayTag: '黑市交易',
         mapClass: 'town-place-alley',
         cardImage: townScene('alley'),
         sceneImage: townScene('alley'),
@@ -555,4 +571,15 @@ export function getTownPlaces() {
 
 export function getTownPlace(placeId) {
     return TownPlaceDatabase.find(place => place.id === placeId) || null;
+}
+
+export function getTownPlaceDisplay(place = {}) {
+    const fullName = place.name || '未命名場所';
+    const fullTag = place.tag || '場所';
+    return {
+        name: place.displayName || fullName,
+        tag: place.displayTag || fullTag,
+        fullName,
+        fullTag
+    };
 }
