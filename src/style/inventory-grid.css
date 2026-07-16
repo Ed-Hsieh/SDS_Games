@@ -10,6 +10,17 @@
     overflow-y: auto;
 }
 
+.lobby-satchel-drawer .inventory-list.field-inventory-grid,
+.lobby-satchel-drawer .warehouse-list.field-inventory-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    grid-auto-rows: auto !important;
+    align-content: start;
+    justify-content: stretch;
+    gap: 7px !important;
+    margin-top: 0;
+    padding: 8px 0 !important;
+}
+
 .field-inventory-grid .field-item-cell {
     position: relative;
     display: grid;
@@ -26,9 +37,11 @@
     color: #e8e4d8;
     cursor: pointer;
     transform: none;
+    box-shadow: none !important;
 }
 
-.field-inventory-grid .field-item-cell::before {
+.field-inventory-grid .field-item-cell::before,
+.field-inventory-grid .field-item-cell::after {
     display: none;
 }
 
@@ -44,6 +57,7 @@
 .field-inventory-grid .field-item-cell.is-empty {
     cursor: default;
     background: rgba(255, 255, 255, 0.018);
+    opacity: 1;
 }
 
 .field-inventory-grid .item-icon {
@@ -82,10 +96,10 @@
     line-height: 1;
 }
 
-.field-inventory-grid .rarity-uncommon { border-color: rgba(102, 177, 126, 0.45); }
-.field-inventory-grid .rarity-rare { border-color: rgba(92, 153, 201, 0.5); }
-.field-inventory-grid .rarity-epic { border-color: rgba(163, 111, 190, 0.52); }
-.field-inventory-grid .rarity-legendary { border-color: rgba(220, 173, 74, 0.64); }
+.field-inventory-grid .field-item-cell[data-rarity="uncommon"] { border-color: rgba(102, 177, 126, 0.45); }
+.field-inventory-grid .field-item-cell[data-rarity="rare"] { border-color: rgba(92, 153, 201, 0.5); }
+.field-inventory-grid .field-item-cell[data-rarity="epic"] { border-color: rgba(163, 111, 190, 0.52); }
+.field-inventory-grid .field-item-cell[data-rarity="legendary"] { border-color: rgba(220, 173, 74, 0.64); }
 
 .lobby-field-pack-pane.is-active,
 .lobby-field-pack-pane .inventory-section {

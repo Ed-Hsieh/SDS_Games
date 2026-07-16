@@ -1750,6 +1750,15 @@ export default class LobbyScene {
         // Lobby inventory is rendered as a compact icon grid.
     }
 
+    createEmptyStorageCell() {
+        const emptySlot = document.createElement('button');
+        emptySlot.type = 'button';
+        emptySlot.disabled = true;
+        emptySlot.className = 'field-item-cell is-empty';
+        emptySlot.setAttribute('aria-label', '空白欄位');
+        return emptySlot;
+    }
+
     renderLobbyInventoryGrid(inventory = []) {
         if (!this.dom.inventoryList) return;
 
@@ -1762,12 +1771,7 @@ export default class LobbyScene {
 
         slots.forEach(stack => {
             if (!stack) {
-                const emptySlot = document.createElement('button');
-                emptySlot.type = 'button';
-                emptySlot.disabled = true;
-                emptySlot.className = 'field-item-cell is-empty';
-                emptySlot.setAttribute('aria-label', '空白欄位');
-                container.appendChild(emptySlot);
+                container.appendChild(this.createEmptyStorageCell());
                 return;
             }
             const item = stack.item || {};
@@ -1775,7 +1779,8 @@ export default class LobbyScene {
             const rarity = item.rarity || 'common';
             const itemEl = document.createElement('button');
             itemEl.type = 'button';
-            itemEl.className = `inventory-item field-item-cell rarity-frame rarity-${rarity}`;
+            itemEl.className = 'inventory-item field-item-cell';
+            itemEl.dataset.rarity = rarity;
             itemEl.dataset.instanceId = stack.instanceId || '';
             itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊查看與操作`);
 
@@ -1826,27 +1831,16 @@ export default class LobbyScene {
                 : `${filteredItems.length} / ${totalItems} 件`;
         }
 
-        // Chunked rendering using PerformanceUtils
         const container = this.dom.warehouseList;
         container.innerHTML = '';
-        if (!filteredItems || filteredItems.length === 0) {
-            container.innerHTML = '<div class="empty-hint inventory-grid-empty">倉庫空空如也...</div>';
-            return;
-        }
+        const fragment = document.createDocumentFragment();
+        filteredItems.forEach(stack => fragment.appendChild(this.createWarehouseItemElement(stack)));
 
-        // Use processInChunks to avoid long main-thread tasks
-        if (window.PerformanceUtils && typeof window.PerformanceUtils.processInChunks === 'function') {
-            window.PerformanceUtils.processInChunks(filteredItems, (stack) => {
-                container.appendChild(this.createWarehouseItemElement(stack));
-            }, {chunkSize: 40}).then(() => {
-                // done
-            });
-        } else {
-            // Fallback synchronous render
-            filteredItems.forEach(stack => {
-                container.appendChild(this.createWarehouseItemElement(stack));
-            });
+        const slotCount = Math.ceil(Math.max(10, filteredItems.length) / 5) * 5;
+        for (let index = filteredItems.length; index < slotCount; index += 1) {
+            fragment.appendChild(this.createEmptyStorageCell());
         }
+        container.appendChild(fragment);
     }
 
     createWarehouseItemElement(stack) {
@@ -1855,7 +1849,8 @@ export default class LobbyScene {
         const rarity = item.rarity || 'common';
         const itemEl = document.createElement('button');
         itemEl.type = 'button';
-        itemEl.className = `warehouse-item field-item-cell rarity-frame rarity-${rarity}`;
+        itemEl.className = 'warehouse-item field-item-cell';
+        itemEl.dataset.rarity = rarity;
         itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊開啟操作`);
 
         const iconHTML = getItemVisualHtml(item, '📦');

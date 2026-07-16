@@ -2,7 +2,7 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js?v=dialogue-read-cue-20260715b';
+import LobbyScene from './scenes/LobbyScene.js?v=satchel-grid-20260716a';
 import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
 import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
 import ForgeScene from './scenes/ForgeScene.js?v=beta-convergence-20260625d';
