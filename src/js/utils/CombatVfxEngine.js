@@ -270,6 +270,34 @@ export default class CombatVfxEngine {
         }
     }
 
+    emitInwardMotes(point, options = {}) {
+        const count = Math.round((options.count || 20) * this.density);
+        const colors = options.colors || [this.palette.primary, this.palette.secondary];
+        const minRadius = options.minRadius || 55;
+        const maxRadius = options.maxRadius || 125;
+        for (let index = 0; index < count; index += 1) {
+            const angle = Math.random() * TAU;
+            const radius = lerp(minRadius, maxRadius, Math.random());
+            const speed = lerp(options.speedMin || 55, options.speedMax || 135, Math.random());
+            this.addParticle({
+                x: point.x + Math.cos(angle) * radius,
+                y: point.y + Math.sin(angle) * radius * 0.78,
+                vx: -Math.cos(angle) * speed,
+                vy: -Math.sin(angle) * speed * 0.78,
+                drag: 0.995,
+                life: lerp(options.lifeMin || 0.55, options.lifeMax || 0.95, Math.random()),
+                size: lerp(options.sizeMin || 1.8, options.sizeMax || 4.4, Math.random()) * this.intensity,
+                endSize: 0.35,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                alpha: options.alpha ?? 0.72,
+                shape: 'circle',
+                glow: options.glow ?? 6,
+                blend: options.blend || 'source-over',
+                layer: options.layer || 'front'
+            });
+        }
+    }
+
     swordSlash({ mirrored = false, critical = false } = {}) {
         const point = this.enemyPoint;
         this.addEffect('clean-slash', {
@@ -702,6 +730,19 @@ export default class CombatVfxEngine {
                 color: this.palette.primary,
                 core: this.palette.accent
             });
+            this.emitBurst(point, {
+                count: particleCount(18),
+                speedMin: 100,
+                speedMax: 320,
+                gravity: 35,
+                lifeMin: 0.28,
+                lifeMax: 0.58,
+                shape: 'spark',
+                colors: [this.palette.primary, this.palette.accent],
+                sizeMin: 1.2,
+                sizeMax: 3.2,
+                glow: 7
+            });
         } else if (this.element === 'poison') {
             this.addEffect('element-poison', {
                 point,
@@ -726,16 +767,18 @@ export default class CombatVfxEngine {
                 duration: 820,
                 radius: 120 * scale,
                 color: this.palette.primary,
-                core: this.palette.accent
+                core: this.palette.accent,
+                shade: this.palette.secondary
             });
-            this.emitMotes(point, {
+            this.emitInwardMotes(point, {
                 count: particleCount(30),
-                width: 210 * scale,
-                height: 180 * scale,
-                speedMin: 35,
-                speedMax: 120,
+                minRadius: 55 * scale,
+                maxRadius: 125 * scale,
+                speedMin: 60,
+                speedMax: 145,
                 colors: [this.palette.primary, this.palette.secondary],
-                glow: 15
+                glow: 6,
+                blend: 'source-over'
             });
         } else if (this.element === 'glimmer') {
             this.addEffect('element-glimmer', {
@@ -745,15 +788,17 @@ export default class CombatVfxEngine {
                 color: this.palette.primary,
                 core: this.palette.accent
             });
-            this.emitBurst(point, {
+            this.emitMotes(point, {
                 count: particleCount(32),
+                width: 145 * scale,
+                height: 80 * scale,
                 speedMin: 55,
-                speedMax: 260,
-                gravity: -35,
+                speedMax: 125,
                 colors: [this.palette.primary, this.palette.secondary, this.palette.accent],
                 shape: 'spark',
-                sizeMax: 3.4,
-                glow: 14
+                sizeMin: 1.2,
+                sizeMax: 3.2,
+                glow: 8
             });
         } else if (this.element === 'light') {
             this.addEffect('impact-flare', {
@@ -1369,40 +1414,44 @@ export default class CombatVfxEngine {
     drawElementFire(ctx, effect, progress, fade) {
         const radius = effect.radius * easeOutCubic(progress);
         ctx.save();
-        ctx.translate(effect.point.x, effect.point.y + radius * 0.18);
+        ctx.translate(effect.point.x, effect.point.y + radius * 0.24);
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = fade * 0.52;
-        ctx.shadowColor = effect.core;
-        ctx.shadowBlur = 16;
-        ctx.lineCap = 'round';
-        const colors = [effect.color, '#e66b39', '#ffd083'];
-        for (let index = 0; index < 7; index += 1) {
-            const offset = (index - 3) * radius * 0.16;
-            const tongueHeight = radius * (0.34 + ((index * 29) % 4) * 0.12);
-            const sway = Math.sin(index * 2.1 + progress * 4.2) * radius * 0.13;
-            ctx.strokeStyle = colors[index % colors.length];
-            ctx.globalAlpha = fade * (0.2 + (index % 3) * 0.08);
-            ctx.lineWidth = Math.max(1.4, radius * (0.022 + (index % 2) * 0.014));
+        ctx.shadowColor = effect.color;
+        ctx.shadowBlur = 8;
+        const colors = ['#d94724', effect.color, '#ffd083'];
+        for (let index = 0; index < 5; index += 1) {
+            const offset = (index - 2) * radius * 0.22;
+            const tongueHeight = radius * (0.58 + (index % 3) * 0.18);
+            const tongueWidth = radius * (0.16 + (index % 2) * 0.035);
+            const sway = Math.sin(index * 1.9 + progress * 3.8) * radius * 0.08;
+            ctx.fillStyle = colors[index % colors.length];
+            ctx.globalAlpha = fade * (0.36 + (index % 3) * 0.1);
             ctx.beginPath();
-            ctx.moveTo(offset, radius * 0.28);
+            ctx.moveTo(offset - tongueWidth, radius * 0.2);
             ctx.bezierCurveTo(
-                offset - sway * 0.55,
-                -tongueHeight * 0.08,
+                offset - tongueWidth * 0.9,
+                -tongueHeight * 0.34,
+                offset + sway - tongueWidth * 0.24,
+                -tongueHeight * 0.7,
                 offset + sway,
-                -tongueHeight * 0.58,
-                offset + sway * 0.32,
                 -tongueHeight
             );
-            ctx.stroke();
+            ctx.bezierCurveTo(
+                offset + sway + tongueWidth * 0.3,
+                -tongueHeight * 0.64,
+                offset + tongueWidth,
+                -tongueHeight * 0.24,
+                offset + tongueWidth,
+                radius * 0.2
+            );
+            ctx.closePath();
+            ctx.fill();
         }
-        const glow = ctx.createRadialGradient(0, radius * 0.12, 0, 0, radius * 0.12, radius * 0.92);
-        glow.addColorStop(0, 'rgba(255, 211, 112, 0.32)');
-        glow.addColorStop(0.42, 'rgba(226, 82, 37, 0.13)');
-        glow.addColorStop(1, 'rgba(160, 38, 24, 0)');
-        ctx.globalAlpha = fade * 0.62;
-        ctx.fillStyle = glow;
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = fade * 0.7;
+        ctx.fillStyle = '#ffe0a0';
         ctx.beginPath();
-        ctx.arc(0, radius * 0.12, radius * 0.92, 0, TAU);
+        ctx.ellipse(0, radius * 0.17, radius * 0.62, radius * 0.12, 0, 0, TAU);
         ctx.fill();
         ctx.restore();
     }
@@ -1435,35 +1484,49 @@ export default class CombatVfxEngine {
     }
 
     drawLightning(ctx, effect, progress, fade, now) {
-        const branches = 5;
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = fade;
-        ctx.strokeStyle = effect.core;
-        ctx.shadowColor = effect.color;
-        ctx.shadowBlur = 25;
-        ctx.lineWidth = 2.4;
-        for (let branch = 0; branch < branches; branch += 1) {
-            const angle = branch / branches * TAU + now * 0.0008;
-            const end = {
-                x: effect.point.x + Math.cos(angle) * effect.radius,
-                y: effect.point.y + Math.sin(angle) * effect.radius
-            };
+        const radius = effect.radius * easeOutCubic(clamp(progress * 1.8, 0, 1));
+        const drawBolt = (start, end, segments, phase) => {
+            const dx = end.x - start.x;
+            const dy = end.y - start.y;
+            const magnitude = Math.hypot(dx, dy) || 1;
+            const normal = { x: -dy / magnitude, y: dx / magnitude };
             ctx.beginPath();
-            ctx.moveTo(effect.point.x, effect.point.y);
-            const segments = 8;
+            ctx.moveTo(start.x, start.y);
             for (let segment = 1; segment <= segments; segment += 1) {
                 const amount = segment / segments;
-                const jitter = Math.sin(now * 0.02 + segment * 4.7 + branch) * 10 * (1 - amount * 0.5);
-                const normalX = -Math.sin(angle);
-                const normalY = Math.cos(angle);
+                const edgeFade = Math.sin(Math.PI * amount);
+                const jitter = Math.sin(now * 0.025 + phase + segment * 4.3) * radius * 0.075 * edgeFade;
                 ctx.lineTo(
-                    lerp(effect.point.x, end.x, amount) + normalX * jitter,
-                    lerp(effect.point.y, end.y, amount) + normalY * jitter
+                    lerp(start.x, end.x, amount) + normal.x * jitter,
+                    lerp(start.y, end.y, amount) + normal.y * jitter
                 );
             }
             ctx.stroke();
-        }
+        };
+        const center = effect.point;
+        const source = { x: center.x - radius * 0.18, y: center.y - radius * 1.35 };
+        const branchEnds = [
+            { x: center.x - radius * 0.72, y: center.y + radius * 0.34 },
+            { x: center.x + radius * 0.78, y: center.y + radius * 0.26 },
+            { x: center.x + radius * 0.14, y: center.y + radius * 0.68 }
+        ];
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.shadowColor = effect.color;
+        ctx.shadowBlur = 12;
+        ctx.globalAlpha = fade * 0.42;
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = 7 * this.intensity;
+        drawBolt(source, center, 9, 0);
+        branchEnds.forEach((end, index) => drawBolt(center, end, 5, index * 1.7));
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = fade;
+        ctx.strokeStyle = effect.core;
+        ctx.lineWidth = 2.2 * this.intensity;
+        drawBolt(source, center, 9, 0);
+        branchEnds.forEach((end, index) => drawBolt(center, end, 5, index * 1.7));
         ctx.restore();
     }
 
@@ -1485,23 +1548,36 @@ export default class CombatVfxEngine {
 
     drawElementShadow(ctx, effect, progress, fade, now) {
         const radius = effect.radius * easeOutCubic(progress);
+        const rotation = -now * 0.00032;
         ctx.save();
         ctx.translate(effect.point.x, effect.point.y);
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = fade * 0.72;
-        ctx.strokeStyle = effect.color;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = fade * 0.62;
+        ctx.strokeStyle = effect.shade;
         ctx.shadowColor = effect.core;
-        ctx.shadowBlur = 20;
-        for (let index = 0; index < 8; index += 1) {
-            const angle = index / 8 * TAU - now * 0.00055;
-            ctx.lineWidth = 2 + (index % 2);
+        ctx.shadowBlur = 8;
+        ctx.lineCap = 'round';
+        for (let index = 0; index < 6; index += 1) {
+            const angle = index / 6 * TAU + rotation;
+            const outer = {
+                x: Math.cos(angle) * radius,
+                y: Math.sin(angle) * radius * 0.78
+            };
+            const innerAngle = angle + 0.92;
+            const inner = {
+                x: Math.cos(innerAngle) * radius * 0.13,
+                y: Math.sin(innerAngle) * radius * 0.1
+            };
+            ctx.lineWidth = (5 - index % 2) * this.intensity;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(angle) * radius * 0.12, Math.sin(angle) * radius * 0.12);
-            ctx.quadraticCurveTo(
-                Math.cos(angle + 0.7) * radius * 0.66,
-                Math.sin(angle + 0.7) * radius * 0.66,
-                Math.cos(angle + 0.2) * radius,
-                Math.sin(angle + 0.2) * radius
+            ctx.moveTo(outer.x, outer.y);
+            ctx.bezierCurveTo(
+                Math.cos(angle + 0.25) * radius * 0.76,
+                Math.sin(angle + 0.25) * radius * 0.58,
+                Math.cos(angle + 0.72) * radius * 0.38,
+                Math.sin(angle + 0.72) * radius * 0.28,
+                inner.x,
+                inner.y
             );
             ctx.stroke();
         }
@@ -1510,22 +1586,35 @@ export default class CombatVfxEngine {
 
     drawElementGlimmer(ctx, effect, progress, fade) {
         const radius = effect.radius * easeOutCubic(progress);
+        const glints = [
+            { x: -0.34, y: -0.2, size: 0.23, phase: 0 },
+            { x: 0.18, y: -0.38, size: 0.3, phase: 0.18 },
+            { x: 0.38, y: 0.06, size: 0.18, phase: 0.34 },
+            { x: -0.08, y: 0.28, size: 0.16, phase: 0.48 }
+        ];
         ctx.save();
         ctx.translate(effect.point.x, effect.point.y);
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = fade * 0.88;
         ctx.strokeStyle = effect.core;
         ctx.shadowColor = effect.color;
-        ctx.shadowBlur = 22;
-        for (let index = 0; index < 12; index += 1) {
-            const angle = index / 12 * TAU;
-            const inner = radius * (index % 2 ? 0.18 : 0.36);
-            ctx.lineWidth = index % 2 ? 1.2 : 2.4;
+        ctx.shadowBlur = 7;
+        ctx.lineCap = 'round';
+        glints.forEach(glint => {
+            const local = clamp((progress - glint.phase) / 0.42, 0, 1);
+            const glintFade = Math.sin(local * Math.PI);
+            if (glintFade <= 0) return;
+            const x = glint.x * radius;
+            const y = glint.y * radius;
+            const size = glint.size * radius * easeOutCubic(local);
+            ctx.globalAlpha = fade * glintFade * 0.88;
+            ctx.lineWidth = 1.8 * this.intensity;
             ctx.beginPath();
-            ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
-            ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+            ctx.moveTo(x, y - size);
+            ctx.lineTo(x, y + size);
+            ctx.moveTo(x - size * 0.55, y);
+            ctx.lineTo(x + size * 0.55, y);
             ctx.stroke();
-        }
+        });
         ctx.restore();
     }
 }

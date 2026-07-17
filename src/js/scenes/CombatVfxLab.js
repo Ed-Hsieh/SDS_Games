@@ -1,6 +1,6 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
 import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260717b';
-import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260717o';
+import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260717r';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 import { MonsterDatabase } from '../data/Monsters.js';
