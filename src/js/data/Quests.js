@@ -37,7 +37,7 @@ export const ObjectiveType = {
     CUSTOM: 'custom'            // 自定義條件
 };
 
-import { ItemRarity, ItemType, EquipmentType, AffixStat } from '../models/Enums.js';
+import { ItemRarity, ItemType, EquipmentType, AffixStat, WeaponForm } from '../models/Enums.js';
 
 /**
  * 任務資料庫
@@ -313,9 +313,16 @@ export const QuestRewardItems = {
         name: '行路者短劍',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.UNCOMMON,
+        level: 1,
+        requiredLevel: 1,
         stats: {
-            attack: 12
+            attack: 12,
+            critChance: 0.08,
+            critDamage: 1.5,
+            weaponSpeed: 1.0,
+            attackSpeed: 1.0
         },
         description: '每個英雄旅程的起點。',
         isQuestReward: true
@@ -530,25 +537,15 @@ export const QuestRewardItems = {
     },
 
     // 懸賞獎勵
-    wolf_fang: {
-        id: 'wolf_fang',
-        name: '狼牙項鍊',
-        icon: '🦷',
-        type: EquipmentType.ACCESSORY,
-        rarity: ItemRarity.UNCOMMON,
-        stats: {
-            attack: 3,
-            critChance: 0.08
-        },
-        description: '用狼牙製成的項鍊，散發著野性的氣息。',
-        isQuestReward: true
-    },
     assassin_dagger: {
         id: 'assassin_dagger',
         name: '無聲匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.EPIC,
+        level: 63,
+        requiredLevel: 63,
         stats: {
             attack: 18,
             critChance: 0.25,
@@ -1082,12 +1079,16 @@ export const QuestRewardItems = {
         name: '斷焰刃',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.LEGENDARY,
+        level: 70,
+        requiredLevel: 70,
         stats: {
             attack: 35,
             critChance: 0.2,
             critDamage: 2.5,
-            weaponSpeed: 1.2
+            weaponSpeed: 1.2,
+            attackSpeed: 1.1
         },
         description: '傳說中能夠斬殺惡魔的神劍。對惡魔類敵人傷害 +50%。',
         specialEffects: [

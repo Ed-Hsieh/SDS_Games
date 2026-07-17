@@ -37,28 +37,28 @@ const readySet = ids => new Set(ids);
 const ART_READY = Object.freeze({
     equipment: readySet([
         'abyssal_needle', 'ancient_sword', 'assassin_blade', 'aurora_ward_plate',
-        'bone_sword', 'cave_ward_shield', 'crystal_shield', 'dawnbrand_sword',
+        'cave_ward_shield', 'crystal_shield', 'dawnbrand_sword',
         'demon_blade', 'demon_general_armor', 'demon_lord_armor', 'demon_lord_crown',
         'demon_lord_sword', 'dragon_knight_helm', 'elder_dragon_fang',
         'elder_dragon_fang_badge', 'elemental_badge', 'elemental_crown', 'elemental_orb',
         'flame_sword', 'forest_guardian_crown', 'forest_guardian_staff', 'frost_blade',
         'frostbite_dueling_blade', 'frostbound_scepter_drop', 'ghost_cloak',
         'glimmer_focus', 'glimmer_lampstaff', 'goblin_dagger', 'hydra_spine_spear',
-        'lich_staff', 'miners_pickhammer', 'old_armor', 'old_sword', 'overlord_armor',
+        'lich_staff', 'miners_pickhammer', 'overlord_armor',
         'prism_focus', 'rune_badge', 'rune_scriber_focus', 'seraph_void_focus',
         'shade_focus', 'shadow_armor_drop', 'shadow_badge', 'shadow_blade_drop',
         'shadow_commander_blade', 'shadow_commander_sword', 'shadow_overlord_armor',
         'shadowneedle_dagger', 'slime_sword', 'spider_silk_gloves', 'thornhook_claws',
         'thunder_axe', 'titan_gauntlet', 'titan_hammer', 'umbral_pike',
-        'wolf_fang_blade', 'wolf_pelt_armor', 'wyvern_lance'
+        'undead_dagger', 'wolf_fang_blade', 'wolf_pelt_armor', 'wyvern_lance'
     ]),
     consumables: readySet([
         'antidote', 'cold_resist_potion', 'fire_resist_potion', 'health_potion_s'
     ]),
     materials: readySet([
         'abyssal_shard', 'alpha_fang', 'ancient_artifact', 'ancient_bark', 'ancient_gear',
-        'ancient_rune', 'assassin_blade', 'bat_wing', 'beast_hide', 'bone_fragment',
-        'bone_sword', 'carnivore_seed', 'commander_blade', 'crystal_shard', 'cursed_shard',
+        'ancient_rune', 'assassin_blade_fragment', 'bat_wing', 'beast_hide', 'bone_fragment',
+        'bone_sword_fragment', 'carnivore_seed', 'commander_blade', 'crystal_shard', 'cursed_shard',
         'dark_crystal', 'dark_dragon_scale', 'dark_steel', 'demon_core',
         'demon_general_helm', 'demon_horn', 'demonic_steel', 'dragon_heart',
         'dragon_knight_badge', 'dragon_scale_armor', 'dragon_tooth', 'drake_scale',
@@ -84,7 +84,7 @@ const ART_READY = Object.freeze({
         'bone_series_dagger', 'bone_series_hammer', 'bone_series_spear',
         'bone_series_staff', 'bone_series_sword', 'bone_soul_staff', 'demonwar_helm',
         'dragon_amulet', 'dragon_overlord_crown', 'dragon_scale_armor', 'dragon_slayer',
-        'earthwarden_aegis', 'fire_sword', 'frostbound_scepter', 'gargoyle_bulwark',
+        'earthwarden_aegis', 'frostbound_scepter', 'gargoyle_bulwark',
         'glimmer_focus', 'goblin_trickster_charm', 'greater_health_potion',
         'guardian_armor', 'health_potion_basic', 'hydra_fang_dagger', 'ice_sword',
         'iron_sword', 'leather_armor', 'mithril_sword', 'nature_amulet',
@@ -92,7 +92,7 @@ const ART_READY = Object.freeze({
         'silver_thread_hook', 'slime_crown_ring', 'slime_series', 'slime_series_dagger',
         'slime_series_hammer', 'slime_series_spear', 'slime_series_staff',
         'slime_series_sword', 'storm_spear', 'titan_armor', 'titan_blade', 'titan_ring',
-        'void_reaver', 'wolf_cloak', 'wolf_fang_necklace', 'wyvern_scale_mail'
+        'wolf_cloak', 'wolf_fang_necklace', 'wyvern_scale_mail'
     ]),
     currencies: readySet([]),
     clues: readySet([

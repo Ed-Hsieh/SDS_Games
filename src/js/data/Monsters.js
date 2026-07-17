@@ -329,7 +329,7 @@ export const MonsterDatabase = {
             { itemId: 'iron_ore', chance: 0.4, quantity: [1, 3] }
         ],
         equipmentDrops: [
-            { equipmentId: 'bone_sword', chance: 0.035 }
+            { equipmentId: 'undead_dagger', chance: 0.035 }
         ],
         skills: ['sword_slash'],
         description: '被黑暗力量復活的骷髏。'
@@ -407,7 +407,6 @@ export const MonsterDatabase = {
         ],
         equipmentDrops: [
             { equipmentId: 'lich_staff', chance: 0.20 },
-            { equipmentId: 'tower_lich_staff', chance: 0.08 }
         ],
         skills: ['dark_bolt', 'summon_skeleton', 'life_drain'],
         description: '操控亡靈的邪惡法師。'
@@ -880,7 +879,7 @@ export const MonsterDatabase = {
         exp: 260,
         gold: 150,
         drops: [
-            { itemId: 'assassin_blade', chance: 0.25, quantity: [1, 1] },
+            { itemId: 'assassin_blade_fragment', chance: 0.25, quantity: [1, 1] },
             { itemId: 'shadow_cloak_fragment', chance: 0.35, quantity: [1, 1] }
         ],
         equipmentDrops: [
@@ -1445,7 +1444,7 @@ export const TowerMonsterData = {
         gold: 80,
         drops: [
             { itemId: 'iron_ore', chance: 1.0, quantity: [2, 2] },
-            { itemId: 'bone_sword', chance: 0.3, quantity: [1, 1] }
+            { itemId: 'bone_sword_fragment', chance: 0.3, quantity: [1, 1] }
         ],
         skills: ['command'],
         description: '骷髏士兵的指揮官。',

@@ -1,5 +1,5 @@
 import GameManager from './GameManager.js';
-import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260717t';
+import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260717u';
 import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';

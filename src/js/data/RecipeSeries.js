@@ -4,15 +4,9 @@
  * They keep weapon choice available without multiplying blueprint drops.
  */
 
-import { EquipmentType, ItemRarity } from '../models/Enums.js';
+import { EquipmentType, ItemRarity, WeaponForm } from '../models/Enums.js';
 
-export const WeaponForms = Object.freeze({
-    SWORD: 'sword',
-    DAGGER: 'dagger',
-    HAMMER: 'hammer',
-    STAFF: 'staff',
-    SPEAR: 'spear'
-});
+export const WeaponForms = WeaponForm;
 
 export const RecipeSeriesDatabase = Object.freeze({
     slime_series: {
@@ -63,7 +57,7 @@ function weaponStats({ attack, critChance, critDamage, weaponSpeed, durability }
 
 function createSeriesWeaponRecipe(seriesId, form, data) {
     const series = RecipeSeriesDatabase[seriesId];
-    const id = `${seriesId}_${form}`;
+    const id = `${seriesId}_${data.idSuffix || form}`;
     return {
         id,
         name: data.name,
@@ -126,7 +120,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 6, critChance: 0.16, critDamage: 1.65, weaponSpeed: 1.35, durability: 17 },
         desc: '輕巧的凝膠匕首，傷害偏低，但節奏快，適合嘗試高速打法。'
     }),
-    slime_series_hammer: createSeriesWeaponRecipe('slime_series', WeaponForms.HAMMER, {
+    slime_series_hammer: createSeriesWeaponRecipe('slime_series', WeaponForms.HEAVY, {
+        idSuffix: 'hammer',
         name: '青凝木槌',
         icon: '🔨',
         formLabel: '槌型',
@@ -136,7 +131,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 11, critChance: 0.04, critDamage: 1.45, weaponSpeed: 0.75, durability: 20 },
         desc: '粗鐵與木柄被凝膠綁在一起，慢但扎實，是最低限度的大槌選擇。'
     }),
-    slime_series_staff: createSeriesWeaponRecipe('slime_series', WeaponForms.STAFF, {
+    slime_series_staff: createSeriesWeaponRecipe('slime_series', WeaponForms.FOCUS, {
+        idSuffix: 'staff',
         name: '青凝枝杖',
         icon: '🪄',
         formLabel: '杖型',
@@ -146,7 +142,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 7, critChance: 0.08, critDamage: 1.5, weaponSpeed: 0.95, durability: 18 },
         desc: '以凝膠封住枝杖裂縫的簡易法杖，足以讓玩家嘗試法杖節奏。'
     }),
-    slime_series_spear: createSeriesWeaponRecipe('slime_series', WeaponForms.SPEAR, {
+    slime_series_spear: createSeriesWeaponRecipe('slime_series', WeaponForms.LANCE, {
+        idSuffix: 'spear',
         name: '青凝短槍',
         icon: '🪓',
         formLabel: '槍型',
@@ -179,7 +176,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 13, critChance: 0.18, critDamage: 1.75, weaponSpeed: 1.35, durability: 19 },
         desc: '短而尖的骨刃，強度有限，但能銜接匕首玩家的中段空窗。'
     }),
-    bone_series_hammer: createSeriesWeaponRecipe('bone_series', WeaponForms.HAMMER, {
+    bone_series_hammer: createSeriesWeaponRecipe('bone_series', WeaponForms.HEAVY, {
+        idSuffix: 'hammer',
         name: '骸骨木槌',
         icon: '🔨',
         formLabel: '槌型',
@@ -190,7 +188,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 22, critChance: 0.05, critDamage: 1.55, weaponSpeed: 0.72, durability: 22 },
         desc: '把厚骨綁上木柄的粗槌，攻擊慢，卻能讓大槌路線不中斷。'
     }),
-    bone_series_staff: createSeriesWeaponRecipe('bone_series', WeaponForms.STAFF, {
+    bone_series_staff: createSeriesWeaponRecipe('bone_series', WeaponForms.FOCUS, {
+        idSuffix: 'staff',
         name: '枯骨杖',
         icon: '🪄',
         formLabel: '杖型',
@@ -201,7 +200,8 @@ export const SeriesRecipeDatabase = Object.freeze({
         stats: { attack: 15, critChance: 0.1, critDamage: 1.6, weaponSpeed: 0.92, durability: 20 },
         desc: '骨片與靈質拼成的杖，效果樸素，但給法杖玩家一條可製作的中段選擇。'
     }),
-    bone_series_spear: createSeriesWeaponRecipe('bone_series', WeaponForms.SPEAR, {
+    bone_series_spear: createSeriesWeaponRecipe('bone_series', WeaponForms.LANCE, {
+        idSuffix: 'spear',
         name: '白骨短槍',
         icon: '🪓',
         formLabel: '槍型',

@@ -1,10 +1,10 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
-import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260717b';
+import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260717c';
 import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260717t';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 import { MonsterDatabase } from '../data/Monsters.js';
-import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js';
+import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js?v=20260717a';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -226,7 +226,7 @@ const EFFECT_LABELS = Object.freeze({
     sonic: '音波尖嘯',
     roots: '根鬚束縛',
     ambush: '伏擊斬擊',
-    vanish: '隱匿',
+    vanish: '藏匿',
     nature: '自然之怒',
     regeneration: '再生',
     phase: '相位穿透',
@@ -751,8 +751,11 @@ export class CombatVfxLab {
             this.setFeed(`${event.attack.name}已釋放`);
         } else if (event.type === 'monster:hit') {
             if (event.damage > 0) {
-                this.playerImpactFeedback(event.damage, { label: event.attack.name });
-                this.setFeed(`${event.snapshot.monster.name}造成 ${event.damage} 點傷害`);
+                this.playerImpactFeedback(event.damage, {
+                    label: event.critical ? 'CRITICAL' : event.attack.name,
+                    critical: event.critical
+                });
+                this.setFeed(`${event.snapshot.monster.name}${event.critical ? '暴擊，' : ''}造成 ${event.damage} 點傷害`);
             }
         } else if (event.type === 'action:rejected') {
             this.handleRejectedAction(event);
@@ -1005,12 +1008,12 @@ export class CombatVfxLab {
         this.showFloatNumber(damage, { target: 'enemy', critical, label });
     }
 
-    playerImpactFeedback(damage, { label = null, light = false } = {}) {
-        this.flash('rgba(210, 68, 48, 0.4)');
+    playerImpactFeedback(damage, { label = null, light = false, critical = false } = {}) {
+        this.flash(critical ? 'rgba(230, 88, 54, 0.56)' : 'rgba(210, 68, 48, 0.4)');
         this.restartClass(this.damageVignette, 'is-active', 540);
         this.shake(light ? 'light' : 'heavy');
-        this.hitStop(light ? 42 : 72);
-        this.showFloatNumber(damage, { target: 'player', playerDamage: true, label });
+        this.hitStop(critical ? 92 : (light ? 42 : 72));
+        this.showFloatNumber(damage, { target: 'player', playerDamage: true, critical, label });
     }
 
     showResult(phase) {

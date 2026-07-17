@@ -100,7 +100,7 @@ function refreshPlayerHp(character, heal = true) {
     if (heal) character.hp = character.maxHp;
 }
 
-function createPlayer(level = 1, equipmentIds = ['old_sword']) {
+function createPlayer(level = 1, equipmentIds = []) {
     const character = {
         level,
         baseAtk: 5,
@@ -470,9 +470,9 @@ function runMatchup(playerScenario, monsterId) {
 function runGateChecks() {
     const players = {
         lv1Unarmed: createScenarioPlayer('lv1_unarmed', 1, []),
-        earlyJunk: createScenarioPlayer('early_rusty_no_armor', 1, ['old_sword']),
+        earlyUnique: createScenarioPlayer('early_unique_no_armor', 1, ['slime_sword']),
         earlyUncommon: createScenarioPlayer('early_uncommon', 5, ['wolf_fang_blade', 'wolf_pelt_armor']),
-        midWeak: createScenarioPlayer('mid_weak', 12, ['bone_sword', 'ghost_cloak', 'shadow_badge']),
+        midWeak: createScenarioPlayer('mid_weak', 12, ['undead_dagger', 'ghost_cloak', 'shadow_badge']),
         midGood: createScenarioPlayer('mid_good', 14, ['shadow_commander_blade', 'shadow_armor_drop', 'titan_gauntlet']),
         lateEpic: createScenarioPlayer('late_epic', 30, ['demon_blade', 'demon_general_armor', 'elemental_orb']),
         lateLegendary: createScenarioPlayer('late_legendary', 30, ['demon_lord_sword', 'demon_lord_armor', 'demon_lord_crown'])
@@ -482,7 +482,7 @@ function runGateChecks() {
         runMatchup(players.lv1Unarmed, 'orc_warrior'),
         runMatchup(players.lv1Unarmed, 'poison_spider'),
         runMatchup(players.lv1Unarmed, 'stone_golem_mini'),
-        runMatchup(players.earlyJunk, 'poison_spider'),
+        runMatchup(players.earlyUnique, 'poison_spider'),
         runMatchup(players.earlyUncommon, 'forest_guardian'),
         runMatchup(players.midWeak, 'shadow_mage'),
         runMatchup(players.midGood, 'shadow_commander'),
@@ -523,7 +523,7 @@ function validateReport(report) {
     assertAtLeast(issues, 'lv1 unarmed vs orc warrior ratio', byKey['lv1_unarmed:orc_warrior'].ratio, 2.0);
     assertAtLeast(issues, 'lv1 unarmed vs poison spider ratio', byKey['lv1_unarmed:poison_spider'].ratio, 2.0);
     assertAtLeast(issues, 'lv1 unarmed vs stone golem ratio', byKey['lv1_unarmed:stone_golem_mini'].ratio, 2.0);
-    assertAtLeast(issues, 'early rusty no armor vs poison spider ratio', byKey['early_rusty_no_armor:poison_spider'].ratio, 1.05);
+    assertAtLeast(issues, 'early unique no armor vs poison spider ratio', byKey['early_unique_no_armor:poison_spider'].ratio, 1.05);
     assertAtLeast(issues, 'early uncommon vs forest guardian ratio', byKey['early_uncommon:forest_guardian'].ratio, 2.5);
     assertAtLeast(issues, 'mid weak vs shadow mage ratio', byKey['mid_weak:shadow_mage'].ratio, 1.1);
     assertRange(issues, 'mid good vs shadow commander ratio', byKey['mid_good:shadow_commander'].ratio, 0.65, 1.2);

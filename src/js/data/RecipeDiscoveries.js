@@ -91,21 +91,10 @@ export const RecipeDiscoveryDatabase = {
         clue: '無聲影幕圖紙需要從副本或精銳敵人手中取得。',
         interactionId: 'strong_blueprint_drop'
     },
-    void_reaver: {
-        source: '副本、菁英或首領掉落',
-        clue: '幽光裂刃圖紙只會在強力戰鬥掉落。',
-        interactionId: 'strong_blueprint_drop'
-    },
-
     mithril_sword: {
         source: '遺跡副本：盲目的秩序',
         clue: '通過守護者的考驗後，從朱利安的防衛紀錄中拼出秘銀長劍圖紙。',
         interactionId: 'dungeon_ruins_002'
-    },
-    fire_sword: {
-        source: '地獄副本：絕望的火種',
-        clue: '在終焉之戰擊倒炎獄後，先遣隊日記裡的鍛造觀測能解出燼火劍圖紙。',
-        interactionId: 'dungeon_hell_002'
     },
     ice_sword: {
         source: '雪山副本：寒地校準法',

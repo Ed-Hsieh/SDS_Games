@@ -4,7 +4,7 @@
  * 所有裝備都可強化
  */
 
-import { AffixStat, ItemType, ItemRarity } from '../models/Enums.js';
+import { AffixStat, ItemType, ItemRarity, WeaponForm } from '../models/Enums.js';
 
 /**
  * 無盡塔 BOSS 裝備
@@ -16,6 +16,7 @@ export const TowerBossEquipment = {
         name: '哥布林頭目匕首',
         icon: '🗡️',
         type: ItemType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.UNCOMMON,
         attack: 15,
         defense: 0,
@@ -58,6 +59,7 @@ export const TowerBossEquipment = {
         name: '沉淵刃',
         icon: '⚔️',
         type: ItemType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.EPIC,
         attack: 35,
         defense: 0,

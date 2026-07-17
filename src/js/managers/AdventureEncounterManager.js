@@ -9,7 +9,7 @@ import {
     getGeneratedMonsterImage
 } from '../data/AssetManifest.js';
 import { markItemKnown } from './EncyclopediaManager.js';
-import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js';
+import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js?v=20260717a';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;

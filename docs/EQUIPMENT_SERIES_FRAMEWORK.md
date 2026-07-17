@@ -1,6 +1,6 @@
 # Equipment Series Framework
 
-Last updated: 2026-07-11
+Last updated: 2026-07-17
 
 This document defines the intended equipment-series, weapon-form, and affinity
 positioning for future combat and item passes. Runtime JS/data remains the
@@ -210,6 +210,44 @@ monster-group affinities. Do not automatically feed them into `Arcane Resonance`
   systems are paused.
 
 ## Implementation Targets
+
+### Current Data-Normalization Checkpoint
+
+- [done] [P1] [equipment-data] Separate the `assassin_blade` equipment and material identities
+  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/Materials.js`, `src/js/data/Monsters.js`, `src/js/data/Recipes.js`
+  Source of truth: runtime equipment and material databases
+  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`
+  Notes: The equipment keeps `assassin_blade`; the crafting material is now `assassin_blade_fragment` and owns a separate material asset.
+
+- [done] [P1] [equipment-data] Consolidate the wolf-fang material and necklace flow
+  Owner file(s): `src/js/data/Materials.js`, `src/js/data/Quests.js`, `src/js/data/Recipes.js`
+  Source of truth: `src/js/data/Materials.js`, `src/js/data/Recipes.js`
+  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`
+  Notes: `wolf_fang` is only a material; the duplicate quest-reward necklace was removed and the necklace remains a blueprint craft.
+
+- [done] [P1] [material-data] Give forge materials one canonical definition
+  Owner file(s): `src/js/data/Materials.js`, `src/js/data/Items.js`
+  Source of truth: `src/js/data/Materials.js`
+  Validation: import `Items.js`; run `scripts/DataConsistencyCheck.mjs`
+  Notes: `iron_shard`, `forge_core`, `high_ore`, and `rare_metal` shop records now derive their identity from `MaterialDatabase`; only purchase price is shop-owned.
+
+- [done] [P1] [equipment-data] Remove obsolete starter equipment
+  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/AssetManifest.js`, `scripts/DifficultyProgressionCheck.mjs`
+  Source of truth: `src/js/data/Equipment.js`
+  Validation: `rg "old_sword|old_armor" src scripts`
+  Notes: `old_sword`, `old_armor`, their runtime images, and stale simulator references are removed.
+
+- [in_progress] [P1] [equipment-data] Complete the formal weapon catalog audit
+  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/Recipes.js`, `src/js/data/RecipeSeries.js`, `src/js/data/BossEquipment.js`
+  Source of truth: live runtime databases plus this framework
+  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/EquipmentEffectCheck.mjs`, level-band/form audit
+  Notes: Same-name source collisions are resolved; the remaining work is weapon-form distribution by level band, blueprint inclusion, and elemental focus coverage. Casino weapons and tower redesign remain outside this pass.
+
+- [planned] [P2] [equipment-art] Review crafted-result identity before generating the remaining art
+  Owner file(s): `src/assets/images/art/items/equipment/`, `src/js/data/AssetManifest.js`
+  Source of truth: approved live recipe results and `docs/ART_STYLE_GUIDE.md`
+  Validation: `scripts/AssetCoverageCheck.mjs`, manual visual review in small batches
+  Notes: Forty-six crafted-result mappings remain; do not mass-generate them before each recipe result and blueprint identity is accepted.
 
 - [done] [P1] [combat] Replace sword Blade Tempo with Steady Stance
   Owner file(s): `src/js/utils/WeaponCombatProfile.js`,

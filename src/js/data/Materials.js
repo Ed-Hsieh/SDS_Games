@@ -721,14 +721,14 @@ export const MaterialDatabase = {
     },
     
     // ==================== 暗影軍團材料 ====================
-    assassin_blade: {
-        id: 'assassin_blade',
-        name: '刺客之刃',
+    assassin_blade_fragment: {
+        id: 'assassin_blade_fragment',
+        name: '無聲刃殘片',
         icon: '🗡️',
         type: ItemType.MATERIAL,
         rarity: ItemRarity.EPIC,
         price: 450,
-        description: '暗影刺客的武器。',
+        description: '從暗影刺客武器上斷下的鋒刃，可用於製作暗影裝備。',
         craftUse: ['assassin_weapon']
     },
     
@@ -910,8 +910,8 @@ export const MaterialDatabase = {
         craftUse: ['slime_accessory']
     },
     
-    bone_sword: {
-        id: 'bone_sword',
+    bone_sword_fragment: {
+        id: 'bone_sword_fragment',
         name: '骨劍碎片',
         icon: '🦴',
         type: ItemType.MATERIAL,

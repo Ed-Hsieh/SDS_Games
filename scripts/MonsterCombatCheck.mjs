@@ -105,6 +105,39 @@ if (guardianSession.player.statuses.some(status => status.id === 'regeneration_r
     problems.push('regeneration: incorrectly applied the monster buff to the player');
 }
 
+const vanishActions = buildMonsterCombatActions(MonsterDatabase.ambush_mantis, 0);
+const vanish = vanishActions.find(action => action.skillId === 'vanish');
+if (vanish?.monsterEffect?.modifiers?.dodgeChance !== 0.5) {
+    problems.push('vanish: expected 50% monster dodge chance');
+}
+if (vanish?.monsterEffect?.modifiers?.critChance !== 0.5) {
+    problems.push('vanish: expected 50% monster critical chance');
+}
+const vanishSession = new RealtimeCombatSession({
+    player: { maxHp: 100, hp: 100 },
+    monster: { id: 'ambush_mantis', name: '伏擊螳螂', maxHp: 100, attacks: vanishActions },
+    loadout: { main: { damage: 10 }, offhand: { enabled: false } }
+});
+vanishSession.phase = CombatSessionPhase.RUNNING;
+vanishSession.pendingMonsterImpact = { attack: vanish, total: 0, remaining: 0 };
+vanishSession.resolveMonsterImpact();
+const basicMantisAttack = vanishActions.find(action => !action.isSkill);
+let criticalHit = null;
+vanishSession.subscribe(event => {
+    if (event.type === 'monster:hit') criticalHit = event;
+});
+const originalRandom = Math.random;
+try {
+    Math.random = () => 0;
+    vanishSession.pendingMonsterImpact = { attack: basicMantisAttack, total: 0, remaining: 0 };
+    vanishSession.resolveMonsterImpact();
+} finally {
+    Math.random = originalRandom;
+}
+if (!criticalHit?.critical || criticalHit.damage !== Math.floor(basicMantisAttack.damage * 1.5)) {
+    problems.push('vanish: monster critical chance is not applied to runtime damage');
+}
+
 if (problems.length > 0) {
     console.error(`Monster combat check failed (${problems.length})`);
     problems.forEach(problem => console.error(`- ${problem}`));

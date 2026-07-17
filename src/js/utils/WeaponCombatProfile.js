@@ -1,20 +1,12 @@
+import { WeaponForm } from '../models/Enums.js';
+
 function getEquippedWeapon(character) {
     return character?.equipment?.weapon || character?.data?.equipment?.weapon || null;
 }
 
-function textIncludesAny(text, keys) {
-    return keys.some(key => text.includes(key));
-}
-
 function normalizeWeaponForm(form) {
     const value = String(form || '').trim().toLowerCase();
-    if (!value) return '';
-    if (['sword', 'blade', 'katana'].includes(value)) return 'sword';
-    if (['dagger', 'knife', 'needle', 'claw', 'claws'].includes(value)) return 'dagger';
-    if (['heavy', 'hammer', 'axe', 'mace', 'club', 'gauntlet'].includes(value)) return 'heavy';
-    if (['staff', 'focus', 'wand', 'orb', 'tome', 'book', 'scepter', 'sceptre'].includes(value)) return 'focus';
-    if (['lance', 'spear', 'pike'].includes(value)) return 'lance';
-    return '';
+    return Object.values(WeaponForm).includes(value) ? value : '';
 }
 
 const BASE_PROFILES = {
@@ -104,31 +96,10 @@ export function getWeaponCombatProfile(character) {
     const weapon = getEquippedWeapon(character);
     if (!weapon) return { ...BASE_PROFILES.unarmed };
 
-    const haystack = [
-        weapon.id,
-        weapon.name,
-        weapon.type,
-        weapon.weaponForm,
-        weapon.form,
-        weapon.weaponType,
-        weapon.subtype,
-        weapon.category
-    ].filter(Boolean).join(' ').toLowerCase();
-
-    const declaredForm = normalizeWeaponForm(weapon.weaponForm || weapon.form || weapon.weaponType || weapon.subtype);
-    let profile = declaredForm && BASE_PROFILES[declaredForm]
+    const declaredForm = normalizeWeaponForm(weapon.weaponForm);
+    const profile = declaredForm && BASE_PROFILES[declaredForm]
         ? BASE_PROFILES[declaredForm]
-        : BASE_PROFILES.sword;
-
-    if (!declaredForm && textIncludesAny(haystack, ['dagger', 'knife', 'needle', 'claw', 'claws', 'assassin', 'goblin_dagger', 'shadow'])) {
-        profile = BASE_PROFILES.dagger;
-    } else if (!declaredForm && textIncludesAny(haystack, ['axe', 'hammer', 'mace', 'club', 'gauntlet', 'titan'])) {
-        profile = BASE_PROFILES.heavy;
-    } else if (!declaredForm && textIncludesAny(haystack, ['staff', 'focus', 'wand', 'orb', 'tome', 'book', 'scepter', 'sceptre'])) {
-        profile = BASE_PROFILES.focus;
-    } else if (!declaredForm && textIncludesAny(haystack, ['spear', 'lance', 'pike'])) {
-        profile = BASE_PROFILES.lance;
-    }
+        : BASE_PROFILES.unarmed;
 
     return { ...profile };
 }

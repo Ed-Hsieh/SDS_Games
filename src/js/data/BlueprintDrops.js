@@ -92,9 +92,6 @@ export const BlueprintDropDatabase = {
         { recipeId: 'titan_armor', chance: 0.12 },
         { recipeId: 'titan_ring', chance: 0.10 }
     ],
-    fire_elemental: [
-        { recipeId: 'fire_sword', chance: 0.06 }
-    ],
     ice_elemental: [
         { recipeId: 'ice_sword', chance: 0.06 }
     ],
@@ -105,7 +102,6 @@ export const BlueprintDropDatabase = {
         { recipeId: 'earthwarden_aegis', chance: 0.05 }
     ],
     elemental_lord: [
-        { recipeId: 'fire_sword', chance: 0.12 },
         { recipeId: 'storm_spear', chance: 0.10 }
     ],
     treant: [
@@ -139,22 +135,18 @@ export const BlueprintDropDatabase = {
         { recipeId: 'assassin_shadow_veil', chance: 0.08 }
     ],
     shadow_overlord: [
-        { recipeId: 'assassin_shadow_veil', chance: 0.10 },
-        { recipeId: 'void_reaver', chance: 0.12 }
+        { recipeId: 'assassin_shadow_veil', chance: 0.10 }
     ],
     demon_general: [
         { recipeId: 'demonwar_helm', chance: 0.08 }
     ],
     demon_lord_asariel: [
-        { recipeId: 'void_reaver', chance: 0.10 },
         { recipeId: 'demonwar_helm', chance: 0.14 }
     ],
     void_walker: [
-        { recipeId: 'void_reaver', chance: 0.06 },
         { recipeId: 'assassin_shadow_veil', chance: 0.05 }
     ],
     abyssal_seraph: [
-        { recipeId: 'void_reaver', chance: 0.1 },
         { recipeId: 'demonwar_helm', chance: 0.08 }
     ],
     dawn_sentinel: [
@@ -165,13 +157,11 @@ export const BlueprintDropDatabase = {
         { recipeId: 'primal_focus', chance: 0.04 }
     ],
     mirror_seraph: [
-        { recipeId: 'glimmer_focus', chance: 0.08 },
-        { recipeId: 'void_reaver', chance: 0.04 }
+        { recipeId: 'glimmer_focus', chance: 0.08 }
     ],
     aurora_archon: [
         { recipeId: 'glimmer_focus', chance: 0.16 },
-        { recipeId: 'primal_focus', chance: 0.08 },
-        { recipeId: 'void_reaver', chance: 0.06 }
+        { recipeId: 'primal_focus', chance: 0.08 }
     ],
 
     // Dungeon-specific monsters
@@ -221,15 +211,10 @@ export const BlueprintDropDatabase = {
         { recipeId: 'nature_amulet', chance: 0.12 },
         { recipeId: 'primal_focus', chance: 0.08 }
     ],
-    'hell:lava_golem': [
-        { recipeId: 'fire_sword', chance: 0.05 }
-    ],
     'hell:pit_fiend': [
         { recipeId: 'demonwar_helm', chance: 0.08 }
     ],
     'hell:demon_king': [
-        { recipeId: 'fire_sword', chance: 0.10 },
-        { recipeId: 'void_reaver', chance: 0.10 },
         { recipeId: 'demonwar_helm', chance: 0.14 }
     ],
     'radiant_corridor:prism_wisp': [
@@ -243,13 +228,11 @@ export const BlueprintDropDatabase = {
         { recipeId: 'primal_focus', chance: 0.08 }
     ],
     'radiant_corridor:mirror_seraph': [
-        { recipeId: 'glimmer_focus', chance: 0.14 },
-        { recipeId: 'void_reaver', chance: 0.06 }
+        { recipeId: 'glimmer_focus', chance: 0.14 }
     ],
     'radiant_corridor:aurora_archon': [
         { recipeId: 'glimmer_focus', chance: 0.22 },
-        { recipeId: 'primal_focus', chance: 0.12 },
-        { recipeId: 'void_reaver', chance: 0.08 }
+        { recipeId: 'primal_focus', chance: 0.12 }
     ]
 };
 

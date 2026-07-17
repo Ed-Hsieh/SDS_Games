@@ -1,6 +1,6 @@
 # Art Style Guide
 
-Last updated: 2026-07-14
+Last updated: 2026-07-17
 
 First-run story image work is active. Generate only assets listed in the
 first-run ledger below, in small review batches. Second-run external stories,
@@ -93,7 +93,7 @@ parallel planning source.
   broken, recovering, and chapter-state images so the world does not feel staged
   with generic backgrounds.
 
-## Layered Dialogue Assets
+## Deferred Layered Dialogue Assets
 
 The screenplay is complete enough for the first-run dialogue-art pass. Rebuild
 dialogue presentation as four independent layers:
@@ -122,7 +122,7 @@ until this replacement pass; they must not constrain the screenplay.
 illustration as its dialogue presentation and does not require a separate
 portrait unless the story direction is changed later.
 
-## Story CG Illustrations
+## Deferred Story CG Illustrations
 
 The finished screenplay may mark a small number of major emotional or revelatory
 beats for full-scene CG illustrations. These are intentionally composed images
@@ -328,10 +328,10 @@ background and layered actors; it is not a mandatory CG.
 
 ### Separate Data-Catalog Art Backlog
 
-`scripts/AssetCoverageCheck.mjs` currently reports 82 missing image mappings:
-49 crafted-result records and 33 casino-special records. It also reports 30
+`scripts/AssetCoverageCheck.mjs` currently reports 79 missing image mappings:
+46 crafted-result records and 33 casino-special records. It also reports 30
 dimension warnings across 26 unique files. These are real catalog gaps, but they
-are not part of the 65-image first-run narrative queue.
+are not part of the 59-image first-run narrative queue.
 
 Do not generate those 82 images merely to silence the checker. Crafted-result
 identity and casino inventory are still subject to data review. The exact ids

@@ -1,6 +1,6 @@
 # Obsolete Cleanup Plan
 
-Last updated: 2026-07-13
+Last updated: 2026-07-17
 
 This plan records obsolete project pieces that are still present after the docs and
 image-prompt standard were consolidated. It is a cleanup plan, not an instruction
@@ -88,6 +88,32 @@ Validation:
 
 - Reclassify or remove drifted records only during the matching item/schema pass.
 - Run `scripts/DataConsistencyCheck.mjs` and recipe/drop checks after changes.
+
+Resolved subset:
+
+- [done] [P1] `assassin_blade` cross-category collision
+  Reason: One id described both an equippable dagger and a consumed crafting material.
+  Safe when: Monster material drops and the consuming recipe point at a dedicated material id.
+  Follow-up: The material and its image now use `assassin_blade_fragment`; equipment keeps `assassin_blade`.
+  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`.
+
+- [done] [P1] `wolf_fang` quest-reward collision
+  Reason: The material id was reused by an obsolete quest-reward necklace while a blueprint necklace already existed.
+  Safe when: No active quest grants the duplicate record and the recipe continues to consume the material.
+  Follow-up: Keep `wolf_fang` as material and `crafted_wolf_fang_necklace` as the crafted equipment result.
+  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`.
+
+- [done] [P1] duplicate forge-material definitions in `Items.js`
+  Reason: Shop entries repeated identity fields already owned by `Materials.js`, allowing price, rarity, and description drift.
+  Safe when: Shop inventory derives identity from `MaterialDatabase` and owns only its sale price.
+  Follow-up: Apply the same reference pattern if later shops sell canonical materials.
+  Validation: import `src/js/data/Items.js`; run `scripts/DataConsistencyCheck.mjs`.
+
+- [removed] [P1] `old_sword`, `old_armor`
+  Reason: Obsolete starter records conflicted with the current prologue's temporary guild-issued gear and no-starting-equipment flow.
+  Safe when: Runtime, simulator, manifest, and image references are absent.
+  Follow-up: Do not recreate them as compatibility aliases; story-issued or crafted equipment must use current records.
+  Validation: `rg "old_sword|old_armor" src scripts`.
 
 ## High-Confidence Cleanup
 

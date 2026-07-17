@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-14
+Last updated: 2026-07-17
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -201,7 +201,7 @@ Current measured gaps:
   fifteen field/location backgrounds, two mandatory CGs, and two story-object
   icons. Exact ids and scene ownership are in `docs/ART_STYLE_GUIDE.md`.
 - Asset coverage has zero missing physical files for existing mappings.
-- 49 crafted-result items and 33 casino special items have no image mapping.
+- 46 crafted-result items and 33 casino special items have no image mapping.
 - 26 unique images have specification warnings; four dungeon Boss images are
   only 512 pixels.
 - `characters/reserve/apothecary_assistant.webp` is the only fully unreferenced
@@ -210,7 +210,8 @@ Current measured gaps:
 
 ## Current Review Gate
 
-As of 2026-07-13, the current review gate is the Chapter 1-2 vertical slice:
+As of 2026-07-17, the current review gate is the Chapter 1-2 vertical slice plus
+the active formal-weapon data audit:
 
 - Mainline scenes must make nine core characters complete; side stories only
   deepen them. `MainlineCharacterContracts` locks introductions, decisive scenes,
@@ -234,22 +235,35 @@ As of 2026-07-13, the current review gate is the Chapter 1-2 vertical slice:
 - Lobby backpack, warehouse, item actions, and character preparation now share
   the adventure UI language. The encyclopedia no longer exposes a duplicate
   `Discovery` tab.
-- Mia neutral proves the intended half-body visual direction only. The layered
-  dialogue system is not yet correctly integrated into all town and field
-  mainline scenes. Treat dialogue runtime integration as `in_progress`, not done.
+- The layered dialogue view now owns stable two-line presentation, manual scroll,
+  auto-read, choice placement, multi-actor half-body staging, expression layers,
+  non-selectable game text, and the prologue eye-closing transition. It still
+  requires one complete Chapter 1-2 no-skip browser validation, so integration
+  remains `in_progress`.
 - Chapter 1-2 causal structure is provisionally complete, but its player-facing
-  text still needs a focused voice, prose, pacing, and transition rewrite against
-  `docs/NARRATIVE_WRITING_GUIDE.md` and the accepted character records.
+  text has received a first character-voice pass for Mia, the elder, Eli, Frey,
+  Tavi, and the blacksmith. It is not locked until the user completes a scene-by-
+  scene playthrough and expression review.
+- Chapter 1-2 monster action ownership now lives in
+  `MonsterCombatProfiles.js`; the 17-monster contract passes
+  `MonsterCombatCheck.mjs`. Monster self-buffs no longer present as player
+  debuffs, and the combat VFX lab is the visual test surface.
+- Formal item cleanup is active but does not authorize reward allocation or
+  balance tuning. `assassin_blade` equipment/material ids are separated,
+  `wolf_fang` is a material only, four forge materials use one canonical data
+  definition, and obsolete `old_sword` / `old_armor` records are removed.
 
 The runtime foundation is reviewable, not immutable. If the user revises a scene,
 edit the story bible and recompile the authoritative registry; do not add a second
 story path as a workaround.
 
-Do not begin reward, material, equipment, or stock-layer assignment before the
-map-function review. First revise Chapter 1-2 text, correctly integrate the
-layered dialogue runtime, bind approved scene assets, lock expression
-assignments, add audio, and complete an end-to-end playthrough; then apply the
-same pattern to Chapters 3-7. Second-run external Boss expansion, second-run
+Data normalization may continue where it removes collisions or obsolete records,
+but do not assign final rewards, drops, equipment bands, or stock balance before
+the map-function review. The immediate equipment resume task is an audit of
+formal weapon distribution by level band, form, source, blueprint inclusion, and
+elemental focus coverage; casino concepts and tower equipment remain excluded.
+Chapter 1-2 still needs a no-skip playthrough, final text/expression review,
+background binding, and audio. Second-run external Boss expansion, second-run
 gameplay, final combat balance, tower rewrite, post-reveal DLC, and mobile UI
 remain paused.
 

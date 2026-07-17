@@ -11,13 +11,15 @@ import { DungeonDatabase, DungeonEntranceConfig } from '../src/js/data/Dungeons.
 import { ShopData, SecretShopItems } from '../src/js/data/Items.js';
 import { TowerBossEquipment } from '../src/js/data/BossEquipment.js';
 import { TownDialogueDatabase, TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
-import { ItemRarity, ItemType } from '../src/js/models/Enums.js';
+import { ItemRarity, ItemType, WeaponForm } from '../src/js/models/Enums.js';
 import { normalizeItemType, normalizeRarity } from '../src/js/models/ItemSchema.js';
 
 const objectValues = Object.values;
 const objectEntries = Object.entries;
 const validItemTypes = new Set(Object.values(ItemType));
 const validRarities = new Set(Object.values(ItemRarity));
+const validWeaponForms = new Set(Object.values(WeaponForm));
+const weaponNameOwners = new Map();
 
 function addIfPresent(set, id) {
     if (id) set.add(id);
@@ -157,6 +159,35 @@ function checkItemShape(scope, item) {
     }
 }
 
+function checkWeaponShape(scope, item) {
+    if (!item) return;
+    if (!validWeaponForms.has(item.weaponForm)) {
+        push('weapon-form', `${scope} has invalid or missing weaponForm ${item.weaponForm}`);
+    }
+
+    const level = Number(item.level ?? item.requiredLevel);
+    if (!Number.isFinite(level) || level < 1) {
+        push('weapon-level', `${scope} has invalid or missing level`);
+    }
+
+    const stats = item.stats || item;
+    for (const key of ['attack', 'critChance', 'critDamage', 'weaponSpeed', 'attackSpeed']) {
+        if (!Number.isFinite(Number(stats[key]))) {
+            push('weapon-stat', `${scope} missing numeric ${key}`);
+        }
+    }
+
+    const displayName = String(item.name || '').trim();
+    if (displayName) {
+        const existingScope = weaponNameOwners.get(displayName);
+        if (existingScope && existingScope !== scope) {
+            push('weapon-name', `${scope} duplicates weapon name ${displayName} from ${existingScope}`);
+        } else {
+            weaponNameOwners.set(displayName, scope);
+        }
+    }
+}
+
 function checkDungeonMonsterShape(scope, monster) {
     if (!monster) return;
 
@@ -181,16 +212,41 @@ checkDatabaseKeys('TowerMonsterData', TowerMonsterData);
 checkDatabaseKeys('QuestRewardItems', QuestRewardItems);
 
 for (const [id, item] of objectEntries(MaterialDatabase)) checkItemShape(`MaterialDatabase.${id}`, item);
-for (const [id, item] of objectEntries(EquipmentDatabase)) checkItemShape(`EquipmentDatabase.${id}`, item);
-for (const [id, item] of objectEntries(QuestRewardItems)) checkItemShape(`QuestRewardItems.${id}`, item);
-for (const [id, item] of objectEntries(TowerBossEquipment)) checkItemShape(`TowerBossEquipment.${id}`, item);
-for (const [shopId, shop] of objectEntries(ShopData)) {
-    for (const item of shop.items || []) checkItemShape(`ShopData.${shopId}.${item.id}`, item);
+for (const [id, item] of objectEntries(EquipmentDatabase)) {
+    checkItemShape(`EquipmentDatabase.${id}`, item);
+    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`EquipmentDatabase.${id}`, item);
 }
-for (const item of SecretShopItems || []) checkItemShape(`SecretShopItems.${item.id}`, item);
+for (const [id, item] of objectEntries(QuestRewardItems)) {
+    checkItemShape(`QuestRewardItems.${id}`, item);
+    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`QuestRewardItems.${id}`, item);
+}
+for (const [id, item] of objectEntries(TowerBossEquipment)) {
+    checkItemShape(`TowerBossEquipment.${id}`, item);
+    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`TowerBossEquipment.${id}`, item);
+}
+for (const [shopId, shop] of objectEntries(ShopData)) {
+    for (const item of shop.items || []) {
+        const scope = `ShopData.${shopId}.${item.id}`;
+        checkItemShape(scope, item);
+        if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(scope, item);
+    }
+}
+for (const item of SecretShopItems || []) {
+    const scope = `SecretShopItems.${item.id}`;
+    checkItemShape(scope, item);
+    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(scope, item);
+}
 for (const [id, recipe] of objectEntries(RecipeDatabase)) {
     checkItemShape(`RecipeDatabase.${id}`, recipe);
     checkItemShape(`RecipeDatabase.${id}.result`, recipe.result);
+    if (normalizeItemType(recipe.result?.type) === ItemType.WEAPON) {
+        checkWeaponShape(`RecipeDatabase.${id}.result`, recipe.result);
+        if (!validWeaponForms.has(recipe.weaponForm)) {
+            push('weapon-form', `RecipeDatabase.${id} has invalid or missing weaponForm ${recipe.weaponForm}`);
+        } else if (recipe.weaponForm !== recipe.result.weaponForm) {
+            push('weapon-form', `RecipeDatabase.${id} form ${recipe.weaponForm} differs from result ${recipe.result.weaponForm}`);
+        }
+    }
 }
 for (const [dungeonId, dungeon] of objectEntries(DungeonDatabase)) {
     for (const [index, monster] of (dungeon.monsters?.common || []).entries()) {

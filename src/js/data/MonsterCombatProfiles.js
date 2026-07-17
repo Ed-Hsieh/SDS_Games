@@ -1,4 +1,4 @@
-import { normalizeMonsterSkill } from './MonsterSkills.js';
+import { normalizeMonsterSkill } from './MonsterSkills.js?v=20260717a';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const numberOr = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -112,11 +112,14 @@ function buildMonsterEffect(skill, monsterMaxHp, rawAttack) {
     if (numberOr(skill.dodgePercent) > 0) {
         return {
             id: `${skill.id}_evasion`,
-            name: skill.id === 'vanish' ? '隱匿' : '相位偏移',
+            name: skill.id === 'vanish' ? '藏匿' : '相位偏移',
             icon: '◇',
             tone: 'evasion',
             duration: numberOr(skill.duration, 2.5),
-            modifiers: { dodgeChance: clamp(skill.dodgePercent / 100, 0, 0.75) }
+            modifiers: {
+                dodgeChance: clamp(skill.dodgePercent / 100, 0, 0.75),
+                critChance: clamp(numberOr(skill.critChancePercent) / 100, 0, 0.75)
+            }
         };
     }
     if (numberOr(skill.summonCount) > 0) {

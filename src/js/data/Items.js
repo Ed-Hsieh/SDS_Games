@@ -3,18 +3,25 @@
  * Static database of all game items and shops.
  */
 
+import { WeaponForm } from '../models/Enums.js';
+import { MaterialDatabase } from './Materials.js';
+
+function shopMaterial(id, price) {
+    const material = MaterialDatabase[id];
+    if (!material) throw new Error(`Unknown shop material: ${id}`);
+    return { ...material, price, desc: material.description };
+}
+
 export const ShopData = {
     blacksmith: {
         name: '鍛造師',
         npcPortrait: '',
         dialogue: '需要武器或防具嗎？我的作品從不讓人失望。',
         items: [
-            // 武器：有 atk, critChance, critDamage, weaponSpeed, attackSpeed
-            { id: 'iron_sword', name: '鐵劍', icon: '⚔️', type: 'weapon', rarity: 'common', attack: 10, defense: 0, critChance: 0.08, critDamage: 1.5, weaponSpeed: 1.0, attackSpeed: 1.0, price: 100, desc: '一把標準的鐵劍，守衛們的最愛。' },
             // 防具：只有 def, critChance, critDamage（無 weaponSpeed, attackSpeed）
             { id: 'steel_armor', name: '鋼鎧', icon: '🛡️', type: 'armor', rarity: 'uncommon', attack: 0, defense: 15, critChance: 0.03, critDamage: 1.2, price: 200, desc: '堅固的鋼製鎧甲，能抵擋大部分攻擊。' },
             // 武器：更高屬性
-            { id: 'mithril_blade', name: '秘銀劍', icon: '⚔️', type: 'weapon', rarity: 'rare', attack: 25, defense: 0, critChance: 0.15, critDamage: 1.8, weaponSpeed: 1.2, attackSpeed: 1.3, price: 500, desc: '輕盈而鋒利的秘銀劍，閃耀著銀光。' }
+            { id: 'mithril_blade', name: '秘銀劍', icon: '⚔️', type: 'weapon', weaponForm: WeaponForm.SWORD, rarity: 'rare', level: 25, requiredLevel: 25, attack: 25, defense: 0, critChance: 0.15, critDamage: 1.8, weaponSpeed: 1.2, attackSpeed: 1.3, price: 500, desc: '輕盈而鋒利的秘銀劍，閃耀著銀光。' }
         ]
     },
     alchemist: {
@@ -47,8 +54,8 @@ export const ShopData = {
             { id: 'silver_ring', name: '銀戒指', icon: '💍', type: 'accessory', rarity: 'uncommon', attack: 3, defense: 3, critChance: 0.05, critDamage: 1.3, price: 180, desc: '簡單但精緻的銀戒指。' },
             { id: 'lucky_charm', name: '幸運符', icon: '🧿', type: 'accessory', rarity: 'rare', attack: 0, defense: 0, critChance: 0.12, critDamage: 1.6, price: 350, desc: '帶來好運的神秘符咒。' },
             // 鍛造用素材
-            { id: 'iron_shard', name: '鐵片', icon: '⛓️', type: 'material', rarity: 'common', price: 80, desc: '可作為低階鍛造與重鑄的補充材料。' },
-            { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: 'material', rarity: 'rare', price: 360, desc: '蘊含鍛造能量的核心，可用於高階鍛造規劃。' }
+            shopMaterial('iron_shard', 80),
+            shopMaterial('forge_core', 360)
         ]
     },
     scholar: {
@@ -68,7 +75,7 @@ export const ShopData = {
 
 export const SecretShopItems = [
     // 傳說武器：最高屬性的武器
-    { id: 'dragon_blade', name: '龍息長刃', icon: '🐉', type: 'weapon', rarity: 'legendary', attack: 50, defense: 0, critChance: 0.25, critDamage: 2.5, weaponSpeed: 1.5, attackSpeed: 1.8, price: 5000, desc: '傳說中屠龍勇士使用的劍。' },
+    { id: 'dragon_blade', name: '龍息長刃', icon: '🐉', type: 'weapon', weaponForm: WeaponForm.SWORD, rarity: 'legendary', level: 60, requiredLevel: 60, attack: 50, defense: 0, critChance: 0.25, critDamage: 2.5, weaponSpeed: 1.5, attackSpeed: 1.8, price: 5000, desc: '傳說中屠龍勇士使用的劍。' },
     // 傳說防具：最高防禦
     { id: 'phoenix_armor', name: '不熄羽甲', icon: '🔥', type: 'armor', rarity: 'legendary', attack: 0, defense: 40, critChance: 0.08, critDamage: 1.5, price: 4500, desc: '浴火重生的鳳凰羽毛編織而成的鎧甲。' },
     // 傳說飾品：高爆擊
@@ -77,7 +84,7 @@ export const SecretShopItems = [
     { id: 'immortal_elixir', name: '不死藥劑', icon: '⭐', type: 'potion', rarity: 'legendary', hp: 999, price: 3000, desc: '傳說中的不死藥劑，完全恢復生命。' },
     { id: 'berserker_potion', name: '狂戰士藥劑', icon: '😈', type: 'potion', rarity: 'legendary', buff: { type: 'atk', value: 50, duration: 3 }, price: 2000, desc: '使你暫時化身為狂戰士，攻擊力短時間大幅提升！' },
     // 高級鍛造素材
-    { id: 'high_ore', name: '高級礦石', icon: '⛏️', type: 'material', rarity: 'rare', price: 450, desc: '高階裝備製作與重鑄常用的礦物。' },
-    { id: 'rare_metal', name: '稀有金屬', icon: '🔧', type: 'material', rarity: 'rare', price: 650, desc: '可用於特殊裝備與高階鍛造。' },
-    { id: 'forge_core', name: '鍛造核心', icon: '🔥', type: 'material', rarity: 'rare', price: 900, desc: '蘊含鍛造能量的核心。' }
+    shopMaterial('high_ore', 450),
+    shopMaterial('rare_metal', 650),
+    shopMaterial('forge_core', 900)
 ];

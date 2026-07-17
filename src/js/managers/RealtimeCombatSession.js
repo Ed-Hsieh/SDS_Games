@@ -69,7 +69,8 @@ function normalizeStatus(raw = {}, index = 0) {
             damage: clamp(numberOr(raw.modifiers?.damage, 1), 0.1, 5),
             incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5),
             attackCooldown: clamp(numberOr(raw.modifiers?.attackCooldown, 1), 0.25, 4),
-            dodgeChance: clamp(numberOr(raw.modifiers?.dodgeChance, 0), 0, 0.9)
+            dodgeChance: clamp(numberOr(raw.modifiers?.dodgeChance, 0), 0, 0.9),
+            critChance: clamp(numberOr(raw.modifiers?.critChance, 0), 0, 0.9)
         }
     };
 }
@@ -656,15 +657,17 @@ export default class RealtimeCombatSession {
         if (!this.pendingMonsterImpact || this.phase !== CombatSessionPhase.RUNNING) return;
         const attack = { ...this.pendingMonsterImpact.attack };
         this.pendingMonsterImpact = null;
+        const critical = attack.damage > 0 && Math.random() < this.getMonsterModifier('critChance', true);
         const resolvedDamage = attack.damage > 0
-            ? Math.max(1, Math.floor(attack.damage * this.getPlayerModifier('incomingDamage')))
+            ? Math.max(1, Math.floor(attack.damage * (critical ? 1.5 : 1) * this.getPlayerModifier('incomingDamage')))
             : 0;
         const beforeHp = this.player.hp;
         this.player.hp = Math.max(0, this.player.hp - resolvedDamage);
         this.nextMonsterActionIn = attack.recovery;
         this.emit('monster:hit', {
             attack,
-            damage: beforeHp - this.player.hp
+            damage: beforeHp - this.player.hp,
+            critical
         });
         if (attack.playerEffect) this.addStatus('player', attack.playerEffect);
         if (attack.monsterEffect) this.addStatus('monster', attack.monsterEffect);

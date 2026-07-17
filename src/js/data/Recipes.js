@@ -16,7 +16,7 @@
  * - successRate: 成功率 (0-100)
  * - result: 製作結果物品
  */
-import { AffixStat, ItemRarity, EquipmentType, ItemType } from '../models/Enums.js';
+import { AffixStat, ItemRarity, EquipmentType, ItemType, WeaponForm } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
 import { SeriesRecipeDatabase } from './RecipeSeries.js';
 
@@ -28,6 +28,7 @@ export const RecipeDatabase = {
         name: '鐵劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.COMMON,
         materials: [
             { id: 'iron_shard', quantity: 3 }
@@ -39,12 +40,15 @@ export const RecipeDatabase = {
             name: '鐵劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.COMMON,
             stats: {
                 attack: 8,
                 defense: 0,
                 critChance: 0.08,
-                critDamage: 1.5
+                critDamage: 1.5,
+                weaponSpeed: 1.0,
+                attackSpeed: 1.0
             },
             specialEffects: [],
             desc: '由鐵礦石鍛造而成的劍。'
@@ -56,6 +60,7 @@ export const RecipeDatabase = {
         name: '白骨刃',
         icon: '🦴',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'bone_fragment', quantity: 8 },
@@ -68,12 +73,15 @@ export const RecipeDatabase = {
             name: '白骨刃',
             icon: '🦴',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 8,
                 defense: 0,
                 critChance: 0.12,
-                critDamage: 1.6
+                critDamage: 1.6,
+                weaponSpeed: 1.0,
+                attackSpeed: 1.0
             },
             specialEffects: [],
             desc: '由骨頭碎片製成的鋒利刀刃。'
@@ -85,6 +93,7 @@ export const RecipeDatabase = {
         name: '毒牙匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.UNCOMMON,
         materials: [
             { id: 'poison_gland', quantity: 3 },
@@ -98,12 +107,15 @@ export const RecipeDatabase = {
             name: '毒牙匕首',
             icon: '🗡️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.DAGGER,
             rarity: ItemRarity.UNCOMMON,
             stats: {
                 attack: 10,
                 defense: 0,
                 critChance: 0.18,
-                critDamage: 1.8
+                critDamage: 1.8,
+                weaponSpeed: 1.2,
+                attackSpeed: 1.2
             },
             specialEffects: [ { type: AffixStat.POISON, value: 5 } ],
             desc: '塗有蜘蛛毒液的匕首。'
@@ -115,6 +127,7 @@ export const RecipeDatabase = {
         name: '影縫劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         materials: [
             { id: 'shadow_shard', quantity: 5 },
@@ -128,12 +141,15 @@ export const RecipeDatabase = {
             name: '影縫劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.RARE,
             stats: {
                 attack: 30,
                 defense: 0,
                 critChance: 0.15,
-                critDamage: 1.9
+                critDamage: 1.9,
+                weaponSpeed: 1.0,
+                attackSpeed: 1.0
             },
             specialEffects: [],
             desc: '由暗影能量凝聚而成的劍。'
@@ -145,6 +161,7 @@ export const RecipeDatabase = {
         name: '秘銀長劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         materials: [
             { id: 'mithril_ore', quantity: 5 },
@@ -157,45 +174,18 @@ export const RecipeDatabase = {
             name: '秘銀長劍',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.RARE,
             stats: {
                 attack: 35,
                 defense: 0,
                 critChance: 0.18,
-                critDamage: 2.0
+                critDamage: 2.0,
+                weaponSpeed: 1.0,
+                attackSpeed: 1.0
             },
             specialEffects: [],
             desc: '輕盈而鋒利的秘銀劍。'
-        }
-    },
-
-    fire_sword: {
-        id: 'fire_sword',
-        name: '燼火劍',
-        icon: '🔥',
-        type: EquipmentType.WEAPON,
-        rarity: ItemRarity.RARE,
-        materials: [
-            { id: 'fire_essence', quantity: 5 },
-            { id: 'ember_stone', quantity: 2 },
-            { id: 'mithril_ore', quantity: 3 }
-        ],
-        cost: 600,
-        successRate: 70,
-        result: {
-            id: 'crafted_fire_sword',
-            name: '燼火劍',
-            icon: '🔥',
-            type: EquipmentType.WEAPON,
-            rarity: ItemRarity.RARE,
-            stats: {
-                attack: 35,
-                defense: 0,
-                critChance: 0.15,
-                critDamage: 2.0
-            },
-            specialEffects: [ { type: AffixStat.FIRE, value: 10 } ],
-            desc: '燃燒著永恆火焰的魔劍。'
         }
     },
 
@@ -204,6 +194,7 @@ export const RecipeDatabase = {
         name: '霜線劍',
         icon: '❄️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         materials: [
             { id: 'ice_essence', quantity: 5 },
@@ -217,12 +208,15 @@ export const RecipeDatabase = {
             name: '霜線劍',
             icon: '❄️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.RARE,
             stats: {
                 attack: 35,
                 defense: 5,
                 critChance: 0.12,
-                critDamage: 1.8
+                critDamage: 1.8,
+                weaponSpeed: 1.0,
+                attackSpeed: 1.0
             },
             specialEffects: [ { type: AffixStat.ICE, value: 15 } ],
             desc: '凝結著永恆寒冰的魔劍。'
@@ -234,6 +228,7 @@ export const RecipeDatabase = {
         name: '龍心餘燼',
         icon: '🐉',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.EPIC,
         materials: [
             { id: 'dragon_heart', quantity: 1 },
@@ -248,12 +243,15 @@ export const RecipeDatabase = {
             name: '龍心餘燼',
             icon: '🐉',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.SWORD,
             rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 40,
                 defense: 0,
                 critChance: 0.22,
-                critDamage: 2.5
+                critDamage: 2.5,
+                weaponSpeed: 0.95,
+                attackSpeed: 0.9
             },
             specialEffects: [ { type: AffixStat.EXECUTE, value: 0 } ],
             desc: '傳說中能斬龍的神劍。'
@@ -265,6 +263,7 @@ export const RecipeDatabase = {
         name: '巨神遺刃',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.HEAVY,
         rarity: ItemRarity.LEGENDARY,
         materials: [
             { id: 'titan_heart', quantity: 1 },
@@ -279,12 +278,15 @@ export const RecipeDatabase = {
             name: '巨神遺刃',
             icon: '⚔️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.HEAVY,
             rarity: ItemRarity.LEGENDARY,
             stats: {
                 attack: 50,
                 defense: 10,
                 critChance: 0.25,
-                critDamage: 3.0
+                critDamage: 3.0,
+                weaponSpeed: 0.75,
+                attackSpeed: 0.7
             },
             specialEffects: [],
             desc: '蘊含泰坦之力的傳說神劍。'
@@ -729,48 +731,12 @@ export const RecipeDatabase = {
     },
 
     // ==================== 高階/新材料裝備 ====================
-    void_reaver: {
-        id: 'void_reaver',
-        name: '幽光裂刃',
-        icon: '🌑',
-        type: EquipmentType.WEAPON,
-        rarity: ItemRarity.LEGENDARY,
-        materials: [
-            { id: 'void_essence', quantity: 2 },
-            { id: 'world_shard', quantity: 1 },
-            { id: 'abyssal_shard', quantity: 2 },
-            { id: 'dark_dragon_scale', quantity: 1 },
-            { id: 'rune_stone', quantity: 3 }
-        ],
-        cost: 4800,
-        successRate: 45,
-        result: {
-            id: 'crafted_void_reaver',
-            name: '幽光裂刃',
-            icon: '🌑',
-            type: EquipmentType.WEAPON,
-            rarity: ItemRarity.LEGENDARY,
-            stats: {
-                attack: 82,
-                defense: 6,
-                critChance: 0.22,
-                critDamage: 2.6,
-                weaponSpeed: 1.1,
-                attackSpeed: 1.2
-            },
-            specialEffects: [
-                { type: AffixStat.ARMOR_PENETRATION, value: 25 },
-                { type: AffixStat.VOID, value: 30 }
-            ],
-            desc: '以虛空精華與世界碎片鍛造，切裂防禦。'
-        }
-    },
-
     storm_spear: {
         id: 'storm_spear',
         name: '鳴雷長矛',
         icon: '⚡',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.LANCE,
         rarity: ItemRarity.EPIC,
         materials: [
             { id: 'storm_essence', quantity: 2 },
@@ -786,6 +752,7 @@ export const RecipeDatabase = {
             name: '鳴雷長矛',
             icon: '⚡',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.LANCE,
             rarity: ItemRarity.EPIC,
             stats: {
                 attack: 56,
@@ -837,6 +804,7 @@ export const RecipeDatabase = {
         name: '九頭毒牙',
         icon: '🦂',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.EPIC,
         materials: [
             { id: 'hydra_fang', quantity: 3 },
@@ -851,6 +819,7 @@ export const RecipeDatabase = {
             name: '九頭毒牙',
             icon: '🦂',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.DAGGER,
             rarity: ItemRarity.EPIC,
             stats: {
                 attack: 48,
@@ -870,9 +839,10 @@ export const RecipeDatabase = {
         name: '骨靈權杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.EPIC,
         materials: [
-            { id: 'bone_sword', quantity: 1 },
+            { id: 'bone_sword_fragment', quantity: 1 },
             { id: 'spirit_essence', quantity: 2 },
             { id: 'ectoplasm', quantity: 3 },
             { id: 'lich_phylactery', quantity: 1 },
@@ -885,6 +855,7 @@ export const RecipeDatabase = {
             name: '骨靈權杖',
             icon: '☠️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.FOCUS,
             rarity: ItemRarity.EPIC,
             stats: {
                 attack: 44,
@@ -1129,7 +1100,7 @@ export const RecipeDatabase = {
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
         materials: [
-            { id: 'assassin_blade', quantity: 1 },
+            { id: 'assassin_blade_fragment', quantity: 1 },
             { id: 'shadow_arrow', quantity: 4 },
             { id: 'shadow_insignia', quantity: 2 },
             { id: 'void_essence', quantity: 1 }
@@ -1189,6 +1160,7 @@ export const RecipeDatabase = {
         name: '霜縛權杖',
         icon: '❄️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         materials: [
             { id: 'frost_core', quantity: 2 },
@@ -1202,6 +1174,7 @@ export const RecipeDatabase = {
             name: '霜縛權杖',
             icon: '❄️',
             type: EquipmentType.WEAPON,
+            weaponForm: WeaponForm.FOCUS,
             rarity: ItemRarity.RARE,
             stats: {
                 attack: 32,
@@ -1245,7 +1218,6 @@ const RECIPE_RESULT_LEVELS = Object.freeze({
     frostbound_scepter: 33,
     hydra_fang_dagger: 33,
     ice_sword: 35,
-    fire_sword: 40,
     storm_spear: 45,
     titan_blade: 40,
     titan_armor: 40,
@@ -1256,7 +1228,6 @@ const RECIPE_RESULT_LEVELS = Object.freeze({
     dragon_amulet: 58,
     dragon_slayer: 60,
     assassin_shadow_veil: 63,
-    void_reaver: 65,
     demonwar_helm: 68,
     dragon_overlord_crown: 70,
     slime_crown_ring: 8

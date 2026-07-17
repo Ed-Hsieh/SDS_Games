@@ -1,6 +1,6 @@
 
 // 特殊效果類型
-import { AffixStat,ItemRarity,EquipmentType } from '../models/Enums.js';
+import { AffixStat, ItemRarity, EquipmentType, WeaponForm } from '../models/Enums.js';
 import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
 
 
@@ -9,50 +9,12 @@ import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from
  */
 export const EquipmentDatabase = {
     // ==================== 第一章掉落武器 ====================
-    old_sword: {
-        id: 'old_sword',
-        name: '生鏽短劍',
-        icon: '🗡️',
-        type: EquipmentType.WEAPON,
-        rarity: ItemRarity.COMMON,
-        level: 1,
-        stats: {
-            attack: 4,
-            defense: 0,
-            critChance: 0.10,
-            critDamage: 1.5,
-            weaponSpeed: 1.0,    // 節奏條指針速度
-            attackSpeed: 1.0     // 攻擊頻率（每秒）
-        },
-        setId: null,
-        description: '劍身鏽蝕、刃口不平，但足夠讓白手起家的旅人撐過最初幾場戰鬥。'
-    },
-
-    old_armor: {
-        id: 'old_armor',
-        name: '舊護甲',
-        icon: '🥋',
-        type: EquipmentType.EQUIPMENT,
-        rarity: ItemRarity.COMMON,
-        level: 1,
-        stats: {
-            attack: 0,
-            defense: 6,
-            critChance: 0,
-            critDamage: 0
-        },
-        specialEffects: [
-        ],
-        setId: null,
-        description: '由舊布料製成的護甲，提供基本防護。'
-    },
-
     slime_sword: {
         id: 'slime_sword',
         name: '青凝刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
-        weaponForm: 'dagger',
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.EPIC,
         level: 1,
         stats: {
@@ -77,6 +39,7 @@ export const EquipmentDatabase = {
         name: '哥布林短刀',
         icon: '🔪',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.UNCOMMON,
         level: 3,
         stats: {
@@ -101,6 +64,7 @@ export const EquipmentDatabase = {
         name: '狼牙刀',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.UNCOMMON,
         level: 5,
         stats: {
@@ -165,6 +129,7 @@ export const EquipmentDatabase = {
         name: '森衛枝杖',
         icon: '🌿',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         level: 13,
         stats: {
@@ -205,11 +170,12 @@ export const EquipmentDatabase = {
     },
 
     // ==================== 第三章掉落裝備 ====================
-    bone_sword: {
-        id: 'bone_sword',
-        name: '白骨短劍',
-        icon: '💀',
+    undead_dagger: {
+        id: 'undead_dagger',
+        name: '亡者短匕',
+        icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.UNCOMMON,
         level: 13,
         stats: {
@@ -224,8 +190,8 @@ export const EquipmentDatabase = {
             { type: AffixStat.ARMOR_PENETRATION, value: 10 }
         ],
         setId: 'undead_slayer',
-        description: '骷髏戰士使用的劍，能穿透護甲。',
-        dropFrom: ['skeleton_warrior', 'tower_skeleton_captain']
+        description: '以亡者骨片與鏽鐵拼成的短匕，狹窄刃口擅長刺入護甲縫隙。',
+        dropFrom: ['skeleton_warrior']
     },
 
     ghost_cloak: {
@@ -254,6 +220,7 @@ export const EquipmentDatabase = {
         name: '枯魂法杖',
         icon: '☠️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.EPIC,
         level: 20,
         stats: {
@@ -280,6 +247,7 @@ export const EquipmentDatabase = {
         name: '影縫刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.RARE,
         level: 23,
         stats: {
@@ -345,6 +313,7 @@ export const EquipmentDatabase = {
         name: '暮影令劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.EPIC,
         level: 30,
         stats: {
@@ -370,6 +339,7 @@ export const EquipmentDatabase = {
         name: '古刻長劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         level: 33,
         stats: {
@@ -436,6 +406,7 @@ export const EquipmentDatabase = {
         name: '巨神遺錘',
         icon: '🔨',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.HEAVY,
         rarity: ItemRarity.EPIC,
         level: 40,
         stats: {
@@ -462,6 +433,7 @@ export const EquipmentDatabase = {
         name: '燼火劍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         level: 43,
         stats: {
@@ -485,6 +457,7 @@ export const EquipmentDatabase = {
         name: '霜線刃',
         icon: '❄️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         level: 43,
         stats: {
@@ -508,6 +481,7 @@ export const EquipmentDatabase = {
         name: '鳴雷斧',
         icon: '⚡',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.HEAVY,
         rarity: ItemRarity.RARE,
         level: 45,
         stats: {
@@ -580,6 +554,7 @@ export const EquipmentDatabase = {
         name: '翼龍長槍',
         icon: '🔱',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.LANCE,
         rarity: ItemRarity.RARE,
         level: 53,
         stats: {
@@ -653,6 +628,7 @@ export const EquipmentDatabase = {
         name: '無聲刃',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.EPIC,
         level: 63,
         stats: {
@@ -702,6 +678,7 @@ export const EquipmentDatabase = {
         name: '黑焰戰刃',
         icon: '😈',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.EPIC,
         level: 68,
         stats: {
@@ -750,6 +727,7 @@ export const EquipmentDatabase = {
         name: '末焰刃',
         icon: '👑',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.LEGENDARY,
         level: 70,
         stats: {
@@ -800,6 +778,7 @@ export const EquipmentDatabase = {
         name: '幽光裂刃',
         icon: '🌑',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.LEGENDARY,
         level: 70,
         stats: {
@@ -869,6 +848,7 @@ export const EquipmentDatabase = {
         name: '獄火長槍',
         icon: '🔥',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.LANCE,
         rarity: ItemRarity.EPIC,
         level: 33,
         stats: {
@@ -894,6 +874,7 @@ export const EquipmentDatabase = {
         name: '守衛短杖',
         icon: '🪄',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.UNCOMMON,
         stats: {
             attack: 12,
@@ -912,38 +893,13 @@ export const EquipmentDatabase = {
         dropSource: 'forest_guardian'
     },
     
-    // ===== 第3章 BOSS - 巫妖 =====
-    tower_lich_staff: {
-        id: 'tower_lich_staff',
-        name: '枯魂法杖',
-        icon: '☠️',
-        type: EquipmentType.WEAPON,
-        rarity: ItemRarity.RARE,
-        stats: {
-            attack: 22,
-            defense: 0,
-            critChance: 0.12,
-            critDamage: 1.8,
-            weaponSpeed: 0.8,
-            attackSpeed: 0.85,
-            hp: 50
-        },
-        price: 600,
-        description: '巫妖的法杖，充滿死亡的氣息。',
-        setId: null,
-        canEnhance: true,
-        level: 15,
-        // 保留元素傷害作為特殊效果
-        specialEffects: [ { type: AffixStat.POISON, value: 10 } ],
-        dropSource: 'lich'
-    },
-    
     // ===== 第4章 BOSS - 暗影指揮官 =====
     shadow_commander_sword: {
         id: 'shadow_commander_sword',
         name: '影令劍',
         icon: '⚔️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         stats: {
             attack: 28,
@@ -1016,6 +972,7 @@ export const EquipmentDatabase = {
         name: '古龍牙刃',
         icon: '🐲',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.EPIC,
         stats: {
             attack: 56,
@@ -1091,6 +1048,7 @@ export const EquipmentDatabase = {
         name: '礦脈破槌',
         icon: '⛏️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.HEAVY,
         rarity: ItemRarity.UNCOMMON,
         level: 8,
         stats: {
@@ -1135,6 +1093,7 @@ export const EquipmentDatabase = {
         name: '微光燈杖',
         icon: '🪄',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         level: 18,
         stats: {
@@ -1158,6 +1117,7 @@ export const EquipmentDatabase = {
         name: '刻符焦鏡',
         icon: '🔮',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         level: 20,
         stats: {
@@ -1181,6 +1141,7 @@ export const EquipmentDatabase = {
         name: '霜吻決鬥刃',
         icon: '❄️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.RARE,
         level: 20,
         stats: {
@@ -1205,6 +1166,7 @@ export const EquipmentDatabase = {
         name: '縛霜權杖',
         icon: '🧊',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         level: 20,
         stats: {
@@ -1229,6 +1191,7 @@ export const EquipmentDatabase = {
         name: '影針匕首',
         icon: '🗡️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.RARE,
         level: 25,
         stats: {
@@ -1252,6 +1215,7 @@ export const EquipmentDatabase = {
         name: '暗幕長槍',
         icon: '🔱',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.LANCE,
         rarity: ItemRarity.EPIC,
         level: 30,
         stats: {
@@ -1276,6 +1240,7 @@ export const EquipmentDatabase = {
         name: '幽影焦核',
         icon: '🌑',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.RARE,
         level: 28,
         stats: {
@@ -1299,6 +1264,7 @@ export const EquipmentDatabase = {
         name: '棘鉤爪',
         icon: '🪝',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.RARE,
         level: 50,
         stats: {
@@ -1323,6 +1289,7 @@ export const EquipmentDatabase = {
         name: '九頭脊槍',
         icon: '🐍',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.LANCE,
         rarity: ItemRarity.EPIC,
         level: 53,
         stats: {
@@ -1347,6 +1314,7 @@ export const EquipmentDatabase = {
         name: '深淵針刃',
         icon: '🖤',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.DAGGER,
         rarity: ItemRarity.EPIC,
         level: 65,
         stats: {
@@ -1371,6 +1339,7 @@ export const EquipmentDatabase = {
         name: '偽翼虛核',
         icon: '🌀',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.EPIC,
         level: 68,
         stats: {
@@ -1395,6 +1364,7 @@ export const EquipmentDatabase = {
         name: '黎印長劍',
         icon: '☀️',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.SWORD,
         rarity: ItemRarity.LEGENDARY,
         level: 70,
         stats: {
@@ -1419,6 +1389,7 @@ export const EquipmentDatabase = {
         name: '棱光焦儀',
         icon: '💠',
         type: EquipmentType.WEAPON,
+        weaponForm: WeaponForm.FOCUS,
         rarity: ItemRarity.EPIC,
         level: 70,
         stats: {
@@ -1527,7 +1498,7 @@ export const SetDatabase = {
         id: 'undead_slayer',
         name: '亡靈獵人套裝',
         icon: '💀',
-        pieces: ['bone_sword', 'ghost_cloak'],
+        pieces: ['undead_dagger', 'ghost_cloak'],
         bonuses: [
             {
                 required: 2,

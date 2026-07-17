@@ -27,6 +27,16 @@ export const ItemType = {
     QUEST: 'quest'
 };
 
+// ===== 武器型制 =====
+// 所有可裝備武器與藍圖成品都必須明確使用其中一種，戰鬥層不得靠名稱推測。
+export const WeaponForm = Object.freeze({
+    SWORD: 'sword',
+    DAGGER: 'dagger',
+    HEAVY: 'heavy',
+    FOCUS: 'focus',
+    LANCE: 'lance'
+});
+
 // ===== 詞綴屬性鍵（純列舉，僅提供關鍵字） =====
 export const AffixStat = {
     //基本狀態
