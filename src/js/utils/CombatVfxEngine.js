@@ -413,14 +413,15 @@ export default class CombatVfxEngine {
 
     monsterClaw() {
         const center = this.playerPoint;
-        [-54, 0, 54].forEach((offset, index) => {
-            this.addEffect('claw', {
-                point: { x: center.x + offset, y: center.y },
-                duration: 520,
-                delay: index * 55,
-                color: '#e85d49',
-                core: '#ffd1bd'
-            });
+        this.addEffect('claw-triple', {
+            point: center,
+            duration: 430,
+            angle: 0.68,
+            length: Math.min(this.width, this.height) * 0.46,
+            spacing: 19,
+            width: 7,
+            color: '#b7473e',
+            core: '#f3b4a5'
         });
     }
 
@@ -503,24 +504,25 @@ export default class CombatVfxEngine {
 
     monsterCurse() {
         const player = this.playerPoint;
-        this.addEffect('curse', {
+        this.addEffect('shadow-curse', {
             point: player,
-            duration: 1280,
-            radius: Math.min(this.width, this.height) * 0.25,
+            duration: 980,
+            radius: Math.min(this.width, this.height) * 0.2,
             color: '#9b6ca9',
-            core: '#e0b6df'
+            core: '#d8b4dc'
         });
-        this.emitMotes(player, {
-            count: 46,
-            width: this.width * 0.62,
-            height: 160,
-            speedMin: 45,
-            speedMax: 145,
+        this.emitInwardMotes(player, {
+            count: 18,
+            minRadius: 70,
+            maxRadius: 155,
+            speedMin: 70,
+            speedMax: 150,
             colors: ['#b17bb8', '#684774', '#34263d'],
-            glow: 13,
+            glow: 5,
+            blend: 'source-over',
             layer: 'front'
         });
-        return 780;
+        return 620;
     }
 
     monsterBodyImpact() {
@@ -570,15 +572,49 @@ export default class CombatVfxEngine {
 
     monsterRoots() {
         const point = this.playerPoint;
-        this.addEffect('curse', { point, duration: 1050, radius: 120, color: '#7c6a3d', core: '#b6b276' });
-        this.emitMotes(point, { count: 32, width: 220, height: 90, speedMin: 25, speedMax: 85, colors: ['#75613d', '#9b8b57', '#3f5639'] });
+        this.addEffect('root-bind', {
+            point,
+            duration: 980,
+            radius: Math.min(this.width, this.height) * 0.16,
+            color: '#5f4a2d',
+            core: '#9b8b57'
+        });
+        this.emitBurst(point, {
+            count: 12,
+            speedMin: 35,
+            speedMax: 115,
+            angleStart: -Math.PI * 0.9,
+            angleEnd: -Math.PI * 0.1,
+            gravity: 150,
+            lifeMax: 0.65,
+            colors: ['#75613d', '#8d8150', '#3f5639'],
+            sizeMax: 3.6,
+            glow: 0,
+            blend: 'source-over'
+        });
         return 650;
     }
 
     monsterVanish() {
         const point = this.enemyPoint;
-        this.addEffect('curse', { point, duration: 900, radius: 105, color: '#6e7180', core: '#bbc0ca' });
-        this.emitMotes(point, { count: 48, width: 250, height: 260, speedMin: 35, speedMax: 135, colors: ['#c4c7cd', '#737783', '#30343b'], layer: 'front' });
+        this.addEffect('vanish-veil', {
+            point,
+            duration: 760,
+            radius: Math.min(this.width, this.height) * 0.16,
+            color: '#454853',
+            core: '#aeb3bd'
+        });
+        this.emitMotes(point, {
+            count: 14,
+            width: 180,
+            height: 210,
+            speedMin: 45,
+            speedMax: 105,
+            colors: ['#9da2ac', '#626672', '#30333b'],
+            glow: 3,
+            blend: 'source-over',
+            layer: 'front'
+        });
         return 300;
     }
 
@@ -862,7 +898,7 @@ export default class CombatVfxEngine {
         if (effect.type === 'clean-slash') this.drawCleanSlash(ctx, effect, progress, fade);
         else if (effect.type === 'hammer-impact') this.drawHammerImpact(ctx, effect, progress, fade);
         else if (effect.type === 'slash') this.drawSlash(ctx, effect, progress, fade);
-        else if (effect.type === 'claw') this.drawClaw(ctx, effect, progress, fade);
+        else if (effect.type === 'claw-triple') this.drawTripleClaw(ctx, effect, progress);
         else if (effect.type === 'shockwave') this.drawShockwave(ctx, effect, progress, fade);
         else if (effect.type === 'impact-flare') this.drawImpactFlare(ctx, effect, progress, fade);
         else if (effect.type === 'thrust') this.drawThrust(ctx, effect, progress, fade);
@@ -871,6 +907,9 @@ export default class CombatVfxEngine {
         else if (effect.type === 'projectile') this.drawProjectile(ctx, effect, progress, fade);
         else if (effect.type === 'breath') this.drawBreath(ctx, effect, progress, fade);
         else if (effect.type === 'curse') this.drawCurse(ctx, effect, progress, fade, now);
+        else if (effect.type === 'shadow-curse') this.drawShadowCurse(ctx, effect, progress, fade, now);
+        else if (effect.type === 'root-bind') this.drawRootBind(ctx, effect, progress, fade);
+        else if (effect.type === 'vanish-veil') this.drawVanishVeil(ctx, effect, progress, fade);
         else if (effect.type === 'phase-rays') this.drawPhaseRays(ctx, effect, progress, fade);
         else if (effect.type === 'heal-ring') this.drawHealRing(ctx, effect, progress, fade);
         else if (effect.type === 'element-fire') this.drawElementFire(ctx, effect, progress, fade);
@@ -1070,33 +1109,25 @@ export default class CombatVfxEngine {
         ctx.restore();
     }
 
-    drawClaw(ctx, effect, progress, fade) {
-        const length = Math.min(this.width, this.height) * 0.56;
-        const reveal = easeOutCubic(clamp(progress * 1.65, 0, 1));
-        const x1 = effect.point.x - length * 0.5;
-        const y1 = effect.point.y - length * 0.38;
-        const x2 = lerp(x1, effect.point.x + length * 0.5, reveal);
-        const y2 = lerp(y1, effect.point.y + length * 0.38, reveal);
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.lineCap = 'round';
-        ctx.shadowColor = effect.color;
-        ctx.shadowBlur = 26;
-        ctx.globalAlpha = fade * 0.48;
-        ctx.strokeStyle = effect.color;
-        ctx.lineWidth = 19 * this.intensity;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.quadraticCurveTo(effect.point.x, effect.point.y - 32, x2, y2);
-        ctx.stroke();
-        ctx.globalAlpha = fade;
-        ctx.strokeStyle = effect.core;
-        ctx.lineWidth = 3.2;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.quadraticCurveTo(effect.point.x, effect.point.y - 32, x2, y2);
-        ctx.stroke();
-        ctx.restore();
+    drawTripleClaw(ctx, effect, progress) {
+        const direction = { x: Math.cos(effect.angle), y: Math.sin(effect.angle) };
+        const normal = { x: -direction.y, y: direction.x };
+        const lengths = [0.92, 1, 0.88];
+        [-1, 0, 1].forEach((lane, index) => {
+            const localProgress = clamp((progress - index * 0.08) / 0.72, 0, 1);
+            if (localProgress <= 0 || localProgress >= 1) return;
+            const point = {
+                x: effect.point.x + normal.x * effect.spacing * lane,
+                y: effect.point.y + normal.y * effect.spacing * lane
+            };
+            this.drawCleanSlash(ctx, {
+                ...effect,
+                point,
+                length: effect.length * lengths[index],
+                curve: 0.045,
+                tapered: true
+            }, localProgress, Math.sin(localProgress * Math.PI));
+        });
     }
 
     drawShockwave(ctx, effect, progress, fade) {
@@ -1346,6 +1377,130 @@ export default class CombatVfxEngine {
                 endX + normalX * offsetRatio * endWidth * 0.9,
                 endY + normalY * offsetRatio * endWidth * 0.9
             );
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    drawShadowCurse(ctx, effect, progress, fade, now) {
+        const radius = effect.radius * easeOutCubic(clamp(progress * 1.8, 0, 1));
+        const rotation = now * 0.00022;
+        ctx.save();
+        ctx.translate(effect.point.x, effect.point.y);
+        ctx.rotate(rotation);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = effect.color;
+        ctx.shadowColor = effect.core;
+        ctx.shadowBlur = 8;
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = fade * 0.78;
+        ctx.lineWidth = 4 * this.intensity;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius, radius * 0.62, 0, 0.18, Math.PI * 0.86);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius, radius * 0.62, 0, Math.PI * 1.18, Math.PI * 1.84);
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = effect.core;
+        ctx.lineWidth = 2.2 * this.intensity;
+        for (let index = 0; index < 5; index += 1) {
+            const angle = index / 5 * TAU - rotation * 1.6;
+            const outer = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius * 0.62 };
+            const inner = { x: Math.cos(angle) * radius * 0.56, y: Math.sin(angle) * radius * 0.35 };
+            const sideAngle = angle + 0.22;
+            const side = { x: Math.cos(sideAngle) * radius * 0.72, y: Math.sin(sideAngle) * radius * 0.45 };
+            ctx.beginPath();
+            ctx.moveTo(outer.x, outer.y);
+            ctx.lineTo(inner.x, inner.y);
+            ctx.lineTo(side.x, side.y);
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    drawRootBind(ctx, effect, progress, fade) {
+        const growth = easeOutCubic(clamp(progress * 1.7, 0, 1));
+        const radius = effect.radius;
+        const roots = [
+            { x: -0.68, lean: -0.42, height: 0.76 },
+            { x: -0.34, lean: 0.18, height: 1.02 },
+            { x: 0, lean: -0.12, height: 0.88 },
+            { x: 0.34, lean: 0.34, height: 1.08 },
+            { x: 0.68, lean: -0.2, height: 0.72 }
+        ];
+        const drawRoots = (color, widthScale) => {
+            ctx.strokeStyle = color;
+            roots.forEach((root, index) => {
+                const baseX = root.x * radius;
+                const baseY = radius * 0.48;
+                const tipX = baseX + root.lean * radius;
+                const tipY = baseY - root.height * radius * growth;
+                ctx.lineWidth = (7 - index % 2) * widthScale * this.intensity;
+                ctx.beginPath();
+                ctx.moveTo(baseX, baseY);
+                ctx.bezierCurveTo(
+                    baseX - root.lean * radius * 0.45,
+                    baseY - radius * 0.28 * growth,
+                    tipX + root.lean * radius * 0.38,
+                    baseY - root.height * radius * 0.68 * growth,
+                    tipX,
+                    tipY
+                );
+                ctx.stroke();
+            });
+        };
+
+        ctx.save();
+        ctx.translate(effect.point.x, effect.point.y);
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = fade * 0.88;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.shadowColor = '#2d281a';
+        ctx.shadowBlur = 3;
+        drawRoots(effect.color, 1);
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = fade * 0.72;
+        drawRoots(effect.core, 0.28);
+        ctx.restore();
+    }
+
+    drawVanishVeil(ctx, effect, progress, fade) {
+        const radius = effect.radius * easeOutCubic(clamp(progress * 1.9, 0, 1));
+        const compression = lerp(1, 0.18, easeOutCubic(progress));
+        const gradient = ctx.createRadialGradient(
+            effect.point.x,
+            effect.point.y,
+            radius * 0.12,
+            effect.point.x,
+            effect.point.y,
+            radius
+        );
+        gradient.addColorStop(0, 'rgba(28, 30, 36, 0.62)');
+        gradient.addColorStop(0.58, 'rgba(53, 56, 66, 0.34)');
+        gradient.addColorStop(1, 'rgba(69, 72, 83, 0)');
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.globalAlpha = fade * 0.82;
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.ellipse(effect.point.x, effect.point.y, radius * compression, radius, 0, 0, TAU);
+        ctx.fill();
+
+        ctx.strokeStyle = effect.core;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = effect.color;
+        ctx.shadowBlur = 5;
+        for (let index = 0; index < 4; index += 1) {
+            const y = effect.point.y + (index - 1.5) * radius * 0.3;
+            const halfWidth = radius * compression * (0.82 - index * 0.08);
+            ctx.globalAlpha = fade * (0.32 + index * 0.08);
+            ctx.lineWidth = (3 - index * 0.35) * this.intensity;
+            ctx.beginPath();
+            ctx.moveTo(effect.point.x - halfWidth, y);
+            ctx.lineTo(effect.point.x + halfWidth, y);
             ctx.stroke();
         }
         ctx.restore();

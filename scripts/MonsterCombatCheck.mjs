@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { OverworldHabitats } from '../src/js/data/OverworldMapRegistry.js';
 import {
@@ -7,6 +8,7 @@ import {
 import RealtimeCombatSession, { CombatSessionPhase } from '../src/js/managers/RealtimeCombatSession.js';
 
 const problems = [];
+const runtimeEffectIds = new Set();
 const expectedIds = new Set(
     OverworldHabitats
         .filter(habitat => habitat.chapter <= 2)
@@ -22,6 +24,9 @@ for (const id of expectedIds) {
     }
     if (!ChapterOneTwoCombatMonsterIds.includes(id)) problems.push(`${id}: missing basic attack profile`);
     const actions = buildMonsterCombatActions(monster, 2);
+    actions.forEach(action => {
+        if (action.effect) runtimeEffectIds.add(action.effect);
+    });
     const basic = actions.filter(action => !action.isSkill);
     const skills = actions.filter(action => action.isSkill);
     if (basic.length !== 1) problems.push(`${id}: expected exactly one basic attack, found ${basic.length}`);
@@ -31,6 +36,27 @@ for (const id of expectedIds) {
     if ((monster.skills || []).length === 0 && actions.length !== 1) {
         problems.push(`${id}: skill-less monster gained an extra action`);
     }
+}
+
+const combatLabSource = readFileSync(new URL('../src/js/scenes/CombatVfxLab.js', import.meta.url), 'utf8');
+const combatFlowSource = readFileSync(new URL('../src/js/managers/CombatFlowController.js', import.meta.url), 'utf8');
+const adventureSource = readFileSync(new URL('../src/js/scenes/AdventureScene.js', import.meta.url), 'utf8');
+const dungeonSource = readFileSync(new URL('../src/js/scenes/DungeonScene.js', import.meta.url), 'utf8');
+
+for (const effectId of runtimeEffectIds) {
+    if (!combatLabSource.includes(`effect === '${effectId}'`)) {
+        problems.push(`${effectId}: runtime monster effect has no CombatVfxLab dispatcher`);
+    }
+}
+if (!combatLabSource.includes("event.type === 'monster:attack-release'")
+    || !combatLabSource.includes('this.playMonsterEffect(event.attack.effect)')) {
+    problems.push('CombatVfxLab: monster release event is not connected to the VFX dispatcher');
+}
+if (!combatFlowSource.includes('new CombatVfxLab(')) {
+    problems.push('CombatFlowController: production combat does not construct CombatVfxLab');
+}
+if (!adventureSource.includes('CombatFlowController') || !dungeonSource.includes('CombatFlowController')) {
+    problems.push('Adventure/Dungeon: a production scene is missing CombatFlowController integration');
 }
 
 const poisonActions = buildMonsterCombatActions(MonsterDatabase.poison_spider, 0);
