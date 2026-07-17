@@ -8,7 +8,8 @@ const easeInOutCubic = value => value < 0.5
     : 1 - Math.pow(-2 * value + 2, 3) / 2;
 
 export const CombatElementPalettes = Object.freeze({
-    neutral: Object.freeze({ primary: '#f3ead8', secondary: '#baa879', accent: '#ffffff', smoke: '#77766e' }),
+    neutral: Object.freeze({ primary: '#cbc8c0', secondary: '#8d8a84', accent: '#f1eee7', smoke: '#6f6d69' }),
+    light: Object.freeze({ primary: '#f3ead8', secondary: '#baa879', accent: '#ffffff', smoke: '#77766e' }),
     fire: Object.freeze({ primary: '#ff9b42', secondary: '#d94724', accent: '#ffe0a0', smoke: '#6d2d21' }),
     ice: Object.freeze({ primary: '#a9edff', secondary: '#4b9ec4', accent: '#f4fdff', smoke: '#3b6375' }),
     thunder: Object.freeze({ primary: '#ffe986', secondary: '#c99a36', accent: '#fffce2', smoke: '#665a35' }),
@@ -308,35 +309,15 @@ export default class CombatVfxEngine {
     }
 
     heavyImpact() {
-        const point = { x: this.enemyPoint.x, y: this.enemyPoint.y + this.height * 0.09 };
-        this.addEffect('impact-flare', {
+        const point = { x: this.enemyPoint.x, y: this.enemyPoint.y + this.height * 0.045 };
+        this.addEffect('hammer-impact', {
             point,
-            duration: 520,
-            radius: Math.min(this.width, this.height) * 0.23,
-            color: '#d9c5a0'
+            duration: 360,
+            radius: Math.min(this.width, this.height) * 0.075,
+            color: '#8f877a',
+            core: '#e5dfd4',
+            rim: '#c7bca8'
         });
-        this.addEffect('shockwave', {
-            point,
-            duration: 680,
-            maxRadius: Math.min(this.width, this.height) * 0.245,
-            color: '#b8a17b',
-            width: 7
-        });
-        this.emitBurst(point, {
-            count: 58,
-            speedMin: 100,
-            speedMax: 470,
-            gravity: 480,
-            drag: 0.97,
-            lifeMax: 1.05,
-            sizeMin: 2,
-            sizeMax: 7,
-            shape: 'shard',
-            colors: ['#d6c9ae', '#8b7659', this.palette.primary],
-            glow: 4,
-            blend: 'source-over'
-        });
-        this.elementalImpact(point, { scale: 1.35 });
     }
 
     lanceThrust({ fromRight = false } = {}) {
@@ -357,6 +338,7 @@ export default class CombatVfxEngine {
 
     focusResonance() {
         const point = this.enemyPoint;
+        const usesLightParticles = this.element === 'light';
         this.addEffect('glyph', {
             point,
             duration: 980,
@@ -364,14 +346,19 @@ export default class CombatVfxEngine {
             color: this.palette.primary,
             core: this.palette.accent
         });
-        this.emitMotes(point, {
-            count: 34,
-            width: 250,
-            height: 210,
-            speedMin: 25,
-            speedMax: 85,
-            colors: [this.palette.primary, this.palette.secondary, this.palette.accent]
-        });
+        if (usesLightParticles) {
+            this.emitMotes(point, {
+                count: 14,
+                width: 250,
+                height: 210,
+                speedMin: 25,
+                speedMax: 85,
+                sizeMin: 2.2,
+                sizeMax: 5.2,
+                glow: 7,
+                colors: [this.palette.primary, this.palette.secondary, this.palette.accent]
+            });
+        }
         this.schedule(() => {
             this.addEffect('impact-flare', {
                 point,
@@ -379,14 +366,20 @@ export default class CombatVfxEngine {
                 radius: Math.min(this.width, this.height) * 0.22,
                 color: this.palette.primary
             });
-            this.emitBurst(point, {
-                count: 54,
-                speedMin: 85,
-                speedMax: 420,
-                gravity: 20,
-                lifeMax: 0.95
-            });
-            this.elementalImpact(point, { scale: 1.45 });
+            if (usesLightParticles) {
+                this.emitBurst(point, {
+                    count: 18,
+                    speedMin: 85,
+                    speedMax: 420,
+                    gravity: 20,
+                    lifeMax: 0.95,
+                    sizeMin: 2.2,
+                    sizeMax: 6,
+                    glow: 7
+                });
+            } else if (this.element !== 'neutral') {
+                this.elementalImpact(point, { scale: 1.45, particleScale: 0.12 });
+            }
         }, 560);
     }
 
@@ -660,8 +653,9 @@ export default class CombatVfxEngine {
         });
     }
 
-    elementalImpact(point, { scale = 1 } = {}) {
+    elementalImpact(point, { scale = 1, particleScale = 1 } = {}) {
         if (this.element === 'neutral') return;
+        const particleCount = count => count * scale * particleScale;
         if (this.element === 'fire') {
             this.addEffect('element-fire', {
                 point,
@@ -671,7 +665,7 @@ export default class CombatVfxEngine {
                 core: this.palette.accent
             });
             this.emitBurst(point, {
-                count: 30 * scale,
+                count: particleCount(30),
                 speedMin: 70,
                 speedMax: 290,
                 gravity: -110,
@@ -690,7 +684,7 @@ export default class CombatVfxEngine {
                 core: this.palette.accent
             });
             this.emitBurst(point, {
-                count: 34 * scale,
+                count: particleCount(34),
                 speedMin: 95,
                 speedMax: 330,
                 gravity: 210,
@@ -717,7 +711,7 @@ export default class CombatVfxEngine {
                 core: this.palette.accent
             });
             this.emitMotes(point, {
-                count: 24 * scale,
+                count: particleCount(24),
                 width: 170 * scale,
                 height: 110 * scale,
                 speedMin: 20,
@@ -735,7 +729,7 @@ export default class CombatVfxEngine {
                 core: this.palette.accent
             });
             this.emitMotes(point, {
-                count: 30 * scale,
+                count: particleCount(30),
                 width: 210 * scale,
                 height: 180 * scale,
                 speedMin: 35,
@@ -752,7 +746,7 @@ export default class CombatVfxEngine {
                 core: this.palette.accent
             });
             this.emitBurst(point, {
-                count: 32 * scale,
+                count: particleCount(32),
                 speedMin: 55,
                 speedMax: 260,
                 gravity: -35,
@@ -760,6 +754,23 @@ export default class CombatVfxEngine {
                 shape: 'spark',
                 sizeMax: 3.4,
                 glow: 14
+            });
+        } else if (this.element === 'light') {
+            this.addEffect('impact-flare', {
+                point,
+                duration: 620,
+                radius: 105 * scale,
+                color: this.palette.primary
+            });
+            this.emitBurst(point, {
+                count: particleCount(32),
+                speedMin: 55,
+                speedMax: 280,
+                gravity: -35,
+                colors: [this.palette.primary, this.palette.secondary, this.palette.accent],
+                shape: 'spark',
+                sizeMax: 4.2,
+                glow: 8
             });
         }
     }
@@ -804,6 +815,7 @@ export default class CombatVfxEngine {
     drawEffect(ctx, effect, progress, now) {
         const fade = Math.sin(progress * Math.PI);
         if (effect.type === 'clean-slash') this.drawCleanSlash(ctx, effect, progress, fade);
+        else if (effect.type === 'hammer-impact') this.drawHammerImpact(ctx, effect, progress, fade);
         else if (effect.type === 'slash') this.drawSlash(ctx, effect, progress, fade);
         else if (effect.type === 'claw') this.drawClaw(ctx, effect, progress, fade);
         else if (effect.type === 'shockwave') this.drawShockwave(ctx, effect, progress, fade);
@@ -874,6 +886,40 @@ export default class CombatVfxEngine {
         ctx.moveTo(start.x, start.y);
         ctx.quadraticCurveTo(first.x, first.y, tip.x, tip.y);
         ctx.stroke();
+        ctx.restore();
+    }
+
+    drawHammerImpact(ctx, effect, progress, fade) {
+        const scale = lerp(0.72, 1, easeOutCubic(clamp(progress * 2.2, 0, 1)));
+        const radius = effect.radius * scale * this.intensity;
+        ctx.save();
+        ctx.translate(effect.point.x, effect.point.y);
+        ctx.globalAlpha = fade * 0.36;
+        ctx.fillStyle = effect.color;
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.fill();
+
+        ctx.globalAlpha = fade * 0.95;
+        ctx.strokeStyle = effect.rim;
+        ctx.lineWidth = 4 * this.intensity;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, TAU);
+        ctx.stroke();
+
+        ctx.globalAlpha = fade * 0.72;
+        ctx.strokeStyle = effect.core;
+        ctx.lineWidth = 2.5 * this.intensity;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.58, 0, TAU);
+        ctx.stroke();
+
+        ctx.globalAlpha = fade * 0.8;
+        ctx.fillStyle = effect.core;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 0.15, 0, TAU);
+        ctx.fill();
         ctx.restore();
     }
 
@@ -1108,8 +1154,8 @@ export default class CombatVfxEngine {
         ctx.stroke();
         ctx.rotate(-rotation * 1.7);
         ctx.beginPath();
-        for (let index = 0; index < 6; index += 1) {
-            const angle = index / 6 * TAU - Math.PI / 2;
+        for (let index = 0; index < 5; index += 1) {
+            const angle = index * 2 / 5 * TAU - Math.PI / 2;
             const x = Math.cos(angle) * radius * 0.72;
             const y = Math.sin(angle) * radius * 0.72;
             if (index === 0) ctx.moveTo(x, y);

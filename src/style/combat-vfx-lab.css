@@ -1400,6 +1400,7 @@ button {
 .element-poison { background: #75a957; }
 .element-shadow { background: #745178; }
 .element-glimmer { background: #d8cfaa; }
+.element-light { background: #fff8dc; }
 
 .range-field + .range-field {
     margin-top: 10px;
