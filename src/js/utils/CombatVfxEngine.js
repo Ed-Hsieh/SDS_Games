@@ -271,59 +271,39 @@ export default class CombatVfxEngine {
 
     swordSlash({ mirrored = false, critical = false } = {}) {
         const point = this.enemyPoint;
-        const angle = mirrored ? -2.75 : -0.35;
-        this.addEffect('slash', {
+        this.addEffect('clean-slash', {
             point,
-            angle,
-            radius: Math.min(this.width, this.height) * (critical ? 0.235 : 0.19),
-            duration: critical ? 520 : 390,
-            width: critical ? 25 : 17,
-            color: critical ? '#ffd26c' : this.palette.primary,
-            core: this.palette.accent
+            angle: mirrored ? -2.48 : -0.66,
+            length: Math.min(this.width, this.height) * (critical ? 0.58 : 0.52),
+            curve: critical ? 0.09 : 0.07,
+            duration: critical ? 250 : 210,
+            width: critical ? 12 : 9,
+            tapered: true,
+            color: critical ? '#e7c56f' : '#d8d4c8',
+            core: critical ? '#fff1bd' : '#f6f3ea'
         });
-        this.emitBurst(point, {
-            count: critical ? 46 : 25,
-            angleStart: mirrored ? -2.5 : -0.6,
-            angleEnd: mirrored ? -0.3 : 2.2,
-            speedMin: 105,
-            speedMax: critical ? 430 : 310,
-            gravity: 150,
-            colors: critical
-                ? ['#fff0ae', '#ffc759', '#ef7b3c']
-                : [this.palette.accent, this.palette.primary, this.palette.secondary]
-        });
-        this.elementalImpact(point, { scale: critical ? 1.25 : 0.9 });
     }
 
     daggerChain() {
         const point = this.enemyPoint;
         const offsets = [
-            { x: -36, y: 16, angle: -0.28 },
-            { x: 22, y: -10, angle: -2.82 },
-            { x: 4, y: 4, angle: -0.18 }
+            { x: -18, y: 8, angle: -0.52, delay: 0 },
+            { x: 18, y: 5, angle: -2.62, delay: 58 }
         ];
-        offsets.forEach((offset, index) => {
+        offsets.forEach(offset => {
             const hitPoint = { x: point.x + offset.x, y: point.y + offset.y };
-            this.addEffect('slash', {
+            this.addEffect('clean-slash', {
                 point: hitPoint,
                 angle: offset.angle,
-                radius: Math.min(this.width, this.height) * 0.125,
-                duration: 270,
-                delay: index * 105,
-                width: 10,
-                color: this.palette.primary,
-                core: this.palette.accent
+                length: Math.min(this.width, this.height) * 0.2,
+                curve: 0.035,
+                duration: 165,
+                delay: offset.delay,
+                width: 6.5,
+                tapered: true,
+                color: '#c9c7bf',
+                core: '#f4f1e8'
             });
-            this.schedule(() => {
-                this.emitBurst(hitPoint, {
-                    count: 13,
-                    speedMin: 90,
-                    speedMax: 245,
-                    gravity: 80,
-                    sizeMax: 3.2
-                });
-                if (index === offsets.length - 1) this.elementalImpact(point, { scale: 0.7 });
-            }, index * 105 + 70);
         });
     }
 
@@ -359,36 +339,6 @@ export default class CombatVfxEngine {
         this.elementalImpact(point, { scale: 1.35 });
     }
 
-    interruptBurst() {
-        const point = { x: this.enemyPoint.x, y: this.enemyPoint.y - this.height * 0.015 };
-        this.addEffect('impact-flare', {
-            point,
-            duration: 380,
-            radius: Math.min(this.width, this.height) * 0.16,
-            color: '#f0d486'
-        });
-        this.addEffect('shockwave', {
-            point,
-            duration: 560,
-            maxRadius: Math.min(this.width, this.height) * 0.2,
-            color: '#88d4ca',
-            width: 6
-        });
-        this.emitBurst(point, {
-            count: 42,
-            speedMin: 90,
-            speedMax: 380,
-            gravity: 170,
-            drag: 0.975,
-            lifeMax: 0.82,
-            sizeMin: 1.6,
-            sizeMax: 5.2,
-            shape: 'shard',
-            colors: ['#f3df9d', '#a9e7dd', '#fff6cf'],
-            glow: 8
-        });
-    }
-
     lanceThrust({ fromRight = false } = {}) {
         const end = this.enemyPoint;
         const start = {
@@ -398,30 +348,11 @@ export default class CombatVfxEngine {
         this.addEffect('thrust', {
             start,
             end,
-            duration: 470,
-            width: 18,
-            color: this.palette.primary,
-            core: this.palette.accent
+            duration: 300,
+            width: 9,
+            color: '#c9c7bf',
+            core: '#f4f1e8'
         });
-        this.schedule(() => {
-            this.emitBurst(end, {
-                count: 34,
-                speedMin: 120,
-                speedMax: 390,
-                gravity: 90,
-                sizeMax: 4,
-                angleStart: -1.1,
-                angleEnd: 1.1
-            });
-            this.addEffect('shockwave', {
-                point: end,
-                duration: 420,
-                maxRadius: Math.min(this.width, this.height) * 0.14,
-                color: this.palette.primary,
-                width: 8
-            });
-            this.elementalImpact(end, { scale: 0.9 });
-        }, 250);
     }
 
     focusResonance() {
@@ -569,6 +500,108 @@ export default class CombatVfxEngine {
             layer: 'front'
         });
         return 780;
+    }
+
+    monsterBodyImpact() {
+        const point = this.playerPoint;
+        this.addEffect('impact-flare', { point, duration: 420, radius: 52, color: '#9aa87d', core: '#e4e8c8' });
+        this.addEffect('shockwave', { point, duration: 520, maxRadius: 115, color: '#788269', width: 9 });
+        return 240;
+    }
+
+    monsterSlash() {
+        const center = this.playerPoint;
+        this.addEffect('claw', { point: center, duration: 500, color: '#d9d4c6', core: '#fff4d8' });
+        return 250;
+    }
+
+    monsterBite({ poison = false } = {}) {
+        const point = this.playerPoint;
+        this.addEffect('impact-flare', {
+            point,
+            duration: 480,
+            radius: 62,
+            color: poison ? '#6da850' : '#ba5f4f',
+            core: poison ? '#d9f2a2' : '#ffd0bd'
+        });
+        this.emitBurst(point, {
+            count: 28,
+            speedMin: 75,
+            speedMax: 240,
+            lifeMax: 0.7,
+            colors: poison ? ['#b7dc72', '#557a3d', '#d8e7a0'] : ['#d88a72', '#7d3f39', '#f2c5a7']
+        });
+        return 260;
+    }
+
+    monsterSonic() {
+        const point = this.enemyPoint;
+        [0, 90, 180].forEach((delay, index) => this.addEffect('shockwave', {
+            point,
+            delay,
+            duration: 760,
+            maxRadius: Math.min(this.width, this.height) * (0.22 + index * 0.08),
+            color: '#9a8fc7',
+            width: 8
+        }));
+        return 620;
+    }
+
+    monsterRoots() {
+        const point = this.playerPoint;
+        this.addEffect('curse', { point, duration: 1050, radius: 120, color: '#7c6a3d', core: '#b6b276' });
+        this.emitMotes(point, { count: 32, width: 220, height: 90, speedMin: 25, speedMax: 85, colors: ['#75613d', '#9b8b57', '#3f5639'] });
+        return 650;
+    }
+
+    monsterVanish() {
+        const point = this.enemyPoint;
+        this.addEffect('curse', { point, duration: 900, radius: 105, color: '#6e7180', core: '#bbc0ca' });
+        this.emitMotes(point, { count: 48, width: 250, height: 260, speedMin: 35, speedMax: 135, colors: ['#c4c7cd', '#737783', '#30343b'], layer: 'front' });
+        return 300;
+    }
+
+    monsterNatureWrath() {
+        const point = this.playerPoint;
+        this.addEffect('vertical-crush', { point, duration: 760, color: '#71864d', core: '#d7dc8c' });
+        this.addEffect('shockwave', { point, delay: 210, duration: 760, maxRadius: 210, color: '#6b7745', width: 18 });
+        return 520;
+    }
+
+    monsterLightning() {
+        const start = this.enemyPoint;
+        const end = this.playerPoint;
+        this.addEffect('projectile', { start, end, duration: 760, color: '#7fbbe7', core: '#f4f5b0' });
+        this.schedule(() => this.addEffect('impact-flare', { point: end, duration: 430, radius: 75, color: '#8bc8ef', core: '#fff8bb' }), 570);
+        return 590;
+    }
+
+    monsterDarkProjectile() {
+        const start = this.enemyPoint;
+        const end = this.playerPoint;
+        this.addEffect('projectile', { start, end, duration: 860, color: '#675087', core: '#c59cda' });
+        return 680;
+    }
+
+    monsterDrain() {
+        const start = this.playerPoint;
+        const end = this.enemyPoint;
+        this.addEffect('projectile', { start, end, duration: 900, color: '#9a405d', core: '#ef9faf' });
+        return 680;
+    }
+
+    monsterHarden() {
+        const point = this.enemyPoint;
+        this.addEffect('shockwave', { point, duration: 760, maxRadius: 135, color: '#98958b', width: 14, layer: 'rear' });
+        this.emitBurst(point, { count: 34, speedMin: 45, speedMax: 190, gravity: 360, lifeMax: 0.9, shape: 'shard', colors: ['#b7b1a3', '#706d67', '#d2c7ad'] });
+        return 420;
+    }
+
+    monsterSummon() {
+        const point = this.enemyPoint;
+        this.addEffect('curse', { point, duration: 1200, radius: 145, color: '#75688b', core: '#d7ccdb', layer: 'rear' });
+        this.emitMotes(point, { count: 58, width: 300, height: 290, speedMin: 45, speedMax: 140, colors: ['#d8d2c8', '#827891', '#51485e'], layer: 'front' });
+        return 620;
     }
 
     bossPhase() {
@@ -770,7 +803,8 @@ export default class CombatVfxEngine {
 
     drawEffect(ctx, effect, progress, now) {
         const fade = Math.sin(progress * Math.PI);
-        if (effect.type === 'slash') this.drawSlash(ctx, effect, progress, fade);
+        if (effect.type === 'clean-slash') this.drawCleanSlash(ctx, effect, progress, fade);
+        else if (effect.type === 'slash') this.drawSlash(ctx, effect, progress, fade);
         else if (effect.type === 'claw') this.drawClaw(ctx, effect, progress, fade);
         else if (effect.type === 'shockwave') this.drawShockwave(ctx, effect, progress, fade);
         else if (effect.type === 'impact-flare') this.drawImpactFlare(ctx, effect, progress, fade);
@@ -788,6 +822,114 @@ export default class CombatVfxEngine {
         else if (effect.type === 'element-poison') this.drawElementPoison(ctx, effect, progress, fade);
         else if (effect.type === 'element-shadow') this.drawElementShadow(ctx, effect, progress, fade, now);
         else if (effect.type === 'element-glimmer') this.drawElementGlimmer(ctx, effect, progress, fade);
+    }
+
+    drawCleanSlash(ctx, effect, progress, fade) {
+        const reveal = easeOutCubic(clamp(progress * 1.5, 0, 1));
+        const halfLength = effect.length * 0.5;
+        const direction = { x: Math.cos(effect.angle), y: Math.sin(effect.angle) };
+        const normal = { x: -direction.y, y: direction.x };
+        const start = { x: -direction.x * halfLength, y: -direction.y * halfLength };
+        const control = {
+            x: normal.x * effect.length * effect.curve,
+            y: normal.y * effect.length * effect.curve
+        };
+        const end = { x: direction.x * halfLength, y: direction.y * halfLength };
+        const first = {
+            x: lerp(start.x, control.x, reveal),
+            y: lerp(start.y, control.y, reveal)
+        };
+        const second = {
+            x: lerp(control.x, end.x, reveal),
+            y: lerp(control.y, end.y, reveal)
+        };
+        const tip = {
+            x: lerp(first.x, second.x, reveal),
+            y: lerp(first.y, second.y, reveal)
+        };
+
+        if (effect.tapered) {
+            this.drawTaperedSlash(ctx, effect, reveal, fade, start, control, end);
+            return;
+        }
+
+        ctx.save();
+        ctx.translate(effect.point.x, effect.point.y);
+        ctx.lineCap = 'round';
+        ctx.globalAlpha = fade * 0.72;
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = effect.width * this.intensity;
+        ctx.shadowColor = effect.color;
+        ctx.shadowBlur = 4 * fade;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.quadraticCurveTo(first.x, first.y, tip.x, tip.y);
+        ctx.stroke();
+
+        ctx.globalAlpha = fade * 0.9;
+        ctx.strokeStyle = effect.core;
+        ctx.lineWidth = Math.max(1, effect.width * 0.28 * this.intensity);
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(start.x, start.y);
+        ctx.quadraticCurveTo(first.x, first.y, tip.x, tip.y);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    drawTaperedSlash(ctx, effect, reveal, fade, start, control, end) {
+        const steps = 14;
+        const outer = [];
+        const inner = [];
+        const coreOuter = [];
+        const coreInner = [];
+
+        for (let index = 0; index <= steps; index += 1) {
+            const localT = index / steps;
+            const t = reveal * localT;
+            const inverse = 1 - t;
+            const point = {
+                x: inverse * inverse * start.x + 2 * inverse * t * control.x + t * t * end.x,
+                y: inverse * inverse * start.y + 2 * inverse * t * control.y + t * t * end.y
+            };
+            const tangent = {
+                x: 2 * inverse * (control.x - start.x) + 2 * t * (end.x - control.x),
+                y: 2 * inverse * (control.y - start.y) + 2 * t * (end.y - control.y)
+            };
+            const magnitude = Math.hypot(tangent.x, tangent.y) || 1;
+            const normal = { x: -tangent.y / magnitude, y: tangent.x / magnitude };
+            const taper = Math.sin(Math.PI * localT);
+            const halfWidth = effect.width * this.intensity * taper * 0.5;
+            const coreHalfWidth = Math.max(0.45, halfWidth * 0.28) * taper;
+
+            outer.push({ x: point.x + normal.x * halfWidth, y: point.y + normal.y * halfWidth });
+            inner.push({ x: point.x - normal.x * halfWidth, y: point.y - normal.y * halfWidth });
+            coreOuter.push({ x: point.x + normal.x * coreHalfWidth, y: point.y + normal.y * coreHalfWidth });
+            coreInner.push({ x: point.x - normal.x * coreHalfWidth, y: point.y - normal.y * coreHalfWidth });
+        }
+
+        const fillRibbon = (left, right) => {
+            ctx.beginPath();
+            ctx.moveTo(left[0].x, left[0].y);
+            left.slice(1).forEach(point => ctx.lineTo(point.x, point.y));
+            right.slice().reverse().forEach(point => ctx.lineTo(point.x, point.y));
+            ctx.closePath();
+            ctx.fill();
+        };
+
+        ctx.save();
+        ctx.translate(effect.point.x, effect.point.y);
+        ctx.globalAlpha = fade * 0.72;
+        ctx.fillStyle = effect.color;
+        ctx.shadowColor = effect.color;
+        ctx.shadowBlur = 4 * fade;
+        fillRibbon(outer, inner);
+
+        ctx.globalAlpha = fade * 0.9;
+        ctx.fillStyle = effect.core;
+        ctx.shadowBlur = 0;
+        fillRibbon(coreOuter, coreInner);
+        ctx.restore();
     }
 
     drawSlash(ctx, effect, progress, fade) {
@@ -903,30 +1045,49 @@ export default class CombatVfxEngine {
             x: lerp(effect.start.x, effect.end.x, travel),
             y: lerp(effect.start.y, effect.end.y, travel)
         };
-        const tailProgress = clamp(travel - 0.26, 0, 1);
+        const tailProgress = clamp(travel - 0.2, 0, 1);
         const tail = {
             x: lerp(effect.start.x, effect.end.x, tailProgress),
             y: lerp(effect.start.y, effect.end.y, tailProgress)
         };
+        const direction = { x: head.x - tail.x, y: head.y - tail.y };
+        const magnitude = Math.hypot(direction.x, direction.y) || 1;
+        const normal = { x: -direction.y / magnitude, y: direction.x / magnitude };
+        const steps = 10;
+
+        const drawSpearTrace = widthScale => {
+            const left = [];
+            const right = [];
+            for (let index = 0; index <= steps; index += 1) {
+                const amount = index / steps;
+                const point = {
+                    x: lerp(tail.x, head.x, amount),
+                    y: lerp(tail.y, head.y, amount)
+                };
+                const taper = Math.sin(Math.PI * amount);
+                const halfWidth = effect.width * this.intensity * widthScale * taper * 0.5;
+                left.push({ x: point.x + normal.x * halfWidth, y: point.y + normal.y * halfWidth });
+                right.push({ x: point.x - normal.x * halfWidth, y: point.y - normal.y * halfWidth });
+            }
+            ctx.beginPath();
+            ctx.moveTo(left[0].x, left[0].y);
+            for (let index = 1; index < left.length; index += 1) ctx.lineTo(left[index].x, left[index].y);
+            for (let index = right.length - 1; index >= 0; index -= 1) ctx.lineTo(right[index].x, right[index].y);
+            ctx.closePath();
+            ctx.fill();
+        };
+
         ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
-        ctx.lineCap = 'round';
         ctx.shadowColor = effect.color;
-        ctx.shadowBlur = 28;
-        ctx.globalAlpha = fade * 0.5;
-        ctx.strokeStyle = effect.color;
-        ctx.lineWidth = effect.width * this.intensity;
-        ctx.beginPath();
-        ctx.moveTo(tail.x, tail.y);
-        ctx.lineTo(head.x, head.y);
-        ctx.stroke();
-        ctx.globalAlpha = fade;
-        ctx.strokeStyle = effect.core;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(tail.x, tail.y);
-        ctx.lineTo(head.x, head.y);
-        ctx.stroke();
+        ctx.shadowBlur = 4 * fade;
+        ctx.globalAlpha = fade * 0.72;
+        ctx.fillStyle = effect.color;
+        drawSpearTrace(1);
+
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = fade * 0.9;
+        ctx.fillStyle = effect.core;
+        drawSpearTrace(0.28);
         ctx.restore();
     }
 

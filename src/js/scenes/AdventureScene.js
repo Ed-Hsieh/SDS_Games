@@ -1,6 +1,6 @@
 import GameManager from '../managers/GameManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
-import CombatFlowController from '../managers/CombatFlowController.js?v=dialogue-flow-20260712w';
+import CombatFlowController from '../managers/CombatFlowController.js?v=20260717g';
 import {
     createLocationEncounter,
     resolveEncounterDrop,
@@ -678,8 +678,7 @@ export default class AdventureScene {
                     damage: 14,
                     telegraph: 1.45,
                     impactDelay: 0.3,
-                    recovery: 1.7,
-                    breakThreshold: 180
+                    recovery: 1.7
                 },
                 {
                     id: 'prologue_stag_sweep',
@@ -688,8 +687,7 @@ export default class AdventureScene {
                     damage: 18,
                     telegraph: 1.65,
                     impactDelay: 0.28,
-                    recovery: 1.8,
-                    breakThreshold: 220
+                    recovery: 1.8
                 },
                 {
                     id: 'prologue_stag_charge',
@@ -698,8 +696,7 @@ export default class AdventureScene {
                     damage: 999,
                     telegraph: 2.1,
                     impactDelay: 0.42,
-                    recovery: 2,
-                    breakThreshold: 999
+                    recovery: 2
                 }
             ];
             encounter.player.hp = Math.min(encounter.player.maxHp, 72);
@@ -712,7 +709,6 @@ export default class AdventureScene {
                 damage: 9,
                 cooldown: 0.9,
                 windup: 0.09,
-                breakPower: 10,
                 critDamage: 1.5,
                 enabled: true,
                 triggerBuff: null

@@ -1,6 +1,6 @@
 # Town Scholar Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-16
 
 ## Purpose
 
@@ -336,6 +336,11 @@ No relic should be implemented yet.
 
 ## Dialogue Voice
 
+伊萊 is slightly talkative, but that does not mean every line is long. He gives
+the needed answer first, then often adds one useful half-step: a limitation, a
+related civic detail, a self-correction, or a dry observation prompted by the
+document in his hands.
+
 He should sound:
 
 - Kind.
@@ -347,11 +352,45 @@ He should sound:
 He can mutter about paper, ink, damp corners, bad handwriting, and old filing
 habits. These details should humanize him and make investigation tactile.
 
+His talkative rhythm may take these forms:
+
+- Answer the question, then add one relevant detail.
+- Notice he has wandered and return himself to the immediate clue.
+- State what the evidence proves and what it does not prove.
+- Recall one ordinary tax, repair, delivery, funeral, or route detail connected
+  to the object in front of him.
+- Speak while searching, sorting, unfolding, or comparing documents.
+- Correct his own noun or conclusion when precision matters.
+
+A tangent must add evidence, human texture, a limitation, or character. If it
+does none of these, remove it. His self-correction shows care with language; it
+must not become forgetfulness, incompetence, or constant indecision.
+
 Good line shape:
 
 - A small practical complaint.
 - A concrete clue from a document.
 - A gentle warning about uncertainty.
+- One afterthought that makes the answer more useful rather than merely longer.
+
+Expression use:
+
+- `neutral`: searching, comparing, explaining ordinary records, or correcting a
+  term without emotional pressure.
+- `pleased`: welcoming someone, making room, or offering a small joke grounded
+  in the chair, paper, ink, damp, or another object physically present.
+- `guarded`: records conflict, a conclusion exceeds its evidence, or his words
+  may send a living person into danger. It carries precision and contained fear,
+  not scholar-like suspicion.
+
+Accepted calibration examples:
+
+- `你就是米婭救回來的那位？` He moves the papers off the chair, then adds:
+  `請坐。椅子會響但不會塌的——至少昨天還不會。`
+- `這張圖只能告訴我們舊路怎麼走。` He points to the field ridge, hunter
+  walkway, and old camp before explaining that a traveler may have left traces.
+- `看到什麼就記什麼，沒看到也記下一筆。這東西已經夠會誤導人了。連水漬都想冒充山脈。`
+  He taps the paper corner rather than presenting the joke as a polished maxim.
 
 Avoid:
 
@@ -360,6 +399,16 @@ Avoid:
 - Acting as if he already knows what the player must discover.
 - Saying only system terms like index, category, or preparation.
 - Speaking as a riddle.
+- Making every line a paper joke or a three-sentence monologue.
+- Using rambling as disguised world exposition.
+- Repeating self-correction until the player cannot trust his competence.
+- Giving a tangent no route back to the immediate problem.
+
+As first-run losses accumulate, his voice does not become a different
+personality. The extra helpful sentence, object humor, and conversational warmth
+gradually disappear. He answers only what is necessary, chooses words more
+slowly, and keeps working. That absence should let the player feel how close he
+is to no longer being able to continue.
 
 ## Story-System Notes
 

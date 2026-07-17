@@ -1,6 +1,6 @@
 # Village Elder Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-16
 
 ## Purpose
 
@@ -325,21 +325,55 @@ dragon's immediate reason to attack.
 
 ## Dialogue Voice
 
+The elder is restrained, not cold. He habitually places feeling behind the work
+that must be done. His warmth appears through safer timing, better equipment,
+food, route limits, remembered departures, and preparations made after he fails
+to persuade someone to stay.
+
+His emotional order is:
+
+1. Name the immediate practical risk.
+2. Offer the safer course without turning concern into a speech.
+3. Respect the other person's decision when refusal would only become control.
+4. Quietly improve their chance of returning.
+
 He should sound:
 
 - Plain.
 - Older.
 - Restrained.
 - Slightly gentlemanly through habit, not luxury.
-- Capable of warmth, but rarely decorative.
+- Warm through practical attention rather than decorative reassurance.
 
-He can use silence. He can stop mid-sentence. He should not preach.
+He can use silence or stop mid-sentence when old fear or affection nearly becomes
+explicit. Do not make every exchange hesitant. His silence must contain a choice,
+memory, or withheld request rather than generic solemnity.
 
 Good line shape:
 
 - Short practical instruction.
-- A pause that reveals he almost said more.
+- A reason grounded in weather, roads, supplies, light, names, or the condition
+  of the person in front of him.
+- A pause or object choice that reveals he almost said more.
 - Concrete detail: road mud, bell rope, old names, a weapon left too clean.
+- Concern converted into preparation: a better lamp, a delayed departure, an
+  extra ration, a repaired strap, or a clearly marked return route.
+
+Expression use:
+
+- `neutral`: ordinary civic work, listening, and practical warmth. A neutral
+  expression can accompany a protective action.
+- `guarded`: a report touches an unknown route, a missing person, or the pattern
+  of the old expedition. It is caution or masked fear, not permanent severity.
+- `resolute`: he has made a decision, accepted responsibility, or must give a
+  clear safety instruction. Do not use it for every order.
+
+Accepted calibration examples:
+
+- `明早再去。晚上會看不清路。`
+- When the protagonist insists on leaving, he pauses and replaces the lamp:
+  `那就帶這盞。舊的會滅。`
+- `天黑以前回來。路斷了就記下，怪物太多就繞開。實在過不去，就回頭。`
 
 Avoid:
 
@@ -347,6 +381,10 @@ Avoid:
 - Explaining the whole past early.
 - Repeating "protect the village" in abstract terms.
 - Treating the protagonist as chosen.
+- Saying affection directly when a practical act can carry it.
+- Polished maxims written to summarize his trauma.
+- Turning restraint into a permanently cold face or clipped hostility.
+- Explaining that a pause means worry after the action already shows it.
 
 ## Story-System Notes
 

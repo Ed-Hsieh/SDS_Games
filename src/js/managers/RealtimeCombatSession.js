@@ -23,7 +23,6 @@ function normalizeWeapon(raw = {}, slot = 'main') {
         damage: Math.max(1, Math.floor(Number(raw.damage) || (slot === 'main' ? 96 : 121))),
         cooldown: Math.max(0.1, Number(raw.cooldown) || (slot === 'main' ? 0.72 : 1.05)),
         windup: Math.max(0, Number(raw.windup) || (slot === 'main' ? 0.09 : 0.2)),
-        breakPower: Math.max(0, Number(raw.breakPower) || (slot === 'main' ? 24 : 38)),
         critDamage: clamp(numberOr(raw.critDamage, 1.5), 1, 4),
         damageMultiplier: clamp(numberOr(raw.damageMultiplier, 1), 0.1, 5),
         critDamageMultiplier: clamp(numberOr(raw.critDamageMultiplier, 1), 0.1, 5),
@@ -37,11 +36,41 @@ function normalizeMonsterAttack(raw = {}, index = 0) {
         id: raw.id || `monster_attack_${index + 1}`,
         name: raw.name || `敵方招式 ${index + 1}`,
         effect: raw.effect || 'claw',
-        damage: Math.max(1, Math.floor(Number(raw.damage) || 35)),
+        damage: Math.max(0, Math.floor(numberOr(raw.damage, 35))),
         telegraph: Math.max(0.25, Number(raw.telegraph) || 0.85),
         impactDelay: Math.max(0, numberOr(raw.impactDelay, 0.18)),
         recovery: Math.max(0.35, Number(raw.recovery) || 1.15),
-        breakThreshold: Math.max(1, Number(raw.breakThreshold) || 60)
+        cooldown: Math.max(0, numberOr(raw.cooldown, 0)),
+        isSkill: Boolean(raw.isSkill),
+        skillId: raw.skillId || null,
+        playerEffect: raw.playerEffect ? normalizeStatus(raw.playerEffect) : null,
+        monsterEffect: raw.monsterEffect ? normalizeStatus(raw.monsterEffect) : null,
+        healFromDamagePercent: Math.max(0, numberOr(raw.healFromDamagePercent, 0))
+    };
+}
+
+function normalizeStatus(raw = {}, index = 0) {
+    const duration = Math.max(0.1, numberOr(raw.duration, 3));
+    return {
+        id: raw.id || `combat_status_${index + 1}`,
+        name: raw.name || '狀態效果',
+        icon: raw.icon || '•',
+        tone: raw.tone || 'neutral',
+        duration,
+        remaining: clamp(numberOr(raw.remaining, duration), 0, duration),
+        damagePerSecond: Math.max(0, numberOr(raw.damagePerSecond, 0)),
+        healPerSecond: Math.max(0, numberOr(raw.healPerSecond, 0)),
+        tickProgress: numberOr(raw.tickProgress, 0),
+        attackInterval: Math.max(0, numberOr(raw.attackInterval, 0)),
+        summonDamage: Math.max(0, numberOr(raw.summonDamage, 0)),
+        interceptHits: Math.max(0, Math.floor(numberOr(raw.interceptHits, 0))),
+        summonProgress: numberOr(raw.summonProgress, 0),
+        modifiers: {
+            damage: clamp(numberOr(raw.modifiers?.damage, 1), 0.1, 5),
+            incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5),
+            attackCooldown: clamp(numberOr(raw.modifiers?.attackCooldown, 1), 0.25, 4),
+            dodgeChance: clamp(numberOr(raw.modifiers?.dodgeChance, 0), 0, 0.9)
+        }
     };
 }
 
@@ -55,8 +84,7 @@ function normalizeBuff(raw = {}, index = 0) {
         remaining: clamp(numberOr(raw.remaining, duration), 0, duration),
         modifiers: {
             damage: clamp(numberOr(raw.modifiers?.damage, 1), 0.1, 5),
-            incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5),
-            breakPower: clamp(numberOr(raw.modifiers?.breakPower, 1), 0.1, 5)
+            incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5)
         }
     };
 }
@@ -86,8 +114,7 @@ function normalizeConfig(config = {}) {
             maxHp: monsterMaxHp,
             hp: monsterMaxHp,
             attacks,
-            initialDelay: Math.max(0.35, Number(config.monster?.initialDelay) || 1.25),
-            interruptedDelay: Math.max(0.4, Number(config.monster?.interruptedDelay) || 1.35)
+            initialDelay: Math.max(0.35, Number(config.monster?.initialDelay) || 1.25)
         },
         loadout: {
             main: normalizeWeapon(config.loadout?.main, 'main'),
@@ -122,11 +149,13 @@ export default class RealtimeCombatSession {
             ...buff,
             modifiers: { ...buff.modifiers }
         }));
+        this.player.statuses = [];
         this.monster = {
             id: this.config.monster.id,
             name: this.config.monster.name,
             maxHp: this.config.monster.maxHp,
-            hp: this.config.monster.hp
+            hp: this.config.monster.hp,
+            statuses: []
         };
         this.loadout = {
             main: { ...this.config.loadout.main },
@@ -139,6 +168,9 @@ export default class RealtimeCombatSession {
         this.monsterFlowPaused = Boolean(config.monsterFlowPaused);
         this.nextMonsterActionIn = this.config.monster.initialDelay;
         this.monsterAttackIndex = 0;
+        this.monsterAttackCooldowns = Object.fromEntries(
+            this.config.monster.attacks.map(attack => [attack.id, attack.isSkill ? Math.min(2.5, attack.cooldown * 0.5) : 0])
+        );
         this.emit('session:configured');
     }
 
@@ -166,10 +198,7 @@ export default class RealtimeCombatSession {
                 attack: copyAction(this.monsterIntent.attack),
                 remaining: this.monsterIntent.remaining,
                 total: this.monsterIntent.total,
-                progress: clamp(1 - this.monsterIntent.remaining / this.monsterIntent.total, 0, 1),
-                breakRemaining: this.monsterIntent.breakRemaining,
-                breakMax: this.monsterIntent.breakMax,
-                breakProgress: clamp(1 - this.monsterIntent.breakRemaining / this.monsterIntent.breakMax, 0, 1)
+                progress: clamp(1 - this.monsterIntent.remaining / this.monsterIntent.total, 0, 1)
             }
             : null;
 
@@ -194,9 +223,13 @@ export default class RealtimeCombatSession {
                 buffs: this.player.buffs.map(buff => ({
                     ...buff,
                     modifiers: { ...buff.modifiers }
-                }))
+                })),
+                statuses: this.player.statuses.map(status => ({ ...status, modifiers: { ...status.modifiers } }))
             },
-            monster: { ...this.monster },
+            monster: {
+                ...this.monster,
+                statuses: this.monster.statuses.map(status => ({ ...status, modifiers: { ...status.modifiers } }))
+            },
             loadout: {
                 main: { ...this.loadout.main },
                 offhand: { ...this.loadout.offhand }
@@ -282,6 +315,7 @@ export default class RealtimeCombatSession {
         this.lastTickAt = now;
         this.updateCooldowns(delta);
         this.updateBuffs(delta);
+        this.updateStatuses(delta);
         this.updatePlayerAttacks(delta);
         this.updateMonsterFlow(delta);
         this.emit('battle:tick');
@@ -293,6 +327,65 @@ export default class RealtimeCombatSession {
         Object.keys(this.cooldowns).forEach(key => {
             this.cooldowns[key] = Math.max(0, this.cooldowns[key] - delta);
         });
+        Object.keys(this.monsterAttackCooldowns).forEach(key => {
+            this.monsterAttackCooldowns[key] = Math.max(0, this.monsterAttackCooldowns[key] - delta);
+        });
+    }
+
+    updateStatuses(delta) {
+        this.updatePlayerStatuses(delta);
+        this.updateMonsterStatuses(delta);
+    }
+
+    updatePlayerStatuses(delta) {
+        for (let index = this.player.statuses.length - 1; index >= 0; index -= 1) {
+            const status = this.player.statuses[index];
+            status.remaining = Math.max(0, status.remaining - delta);
+            status.tickProgress += delta;
+            while (status.damagePerSecond > 0 && status.tickProgress >= 1 && this.phase === CombatSessionPhase.RUNNING) {
+                status.tickProgress -= 1;
+                const damage = Math.max(1, Math.floor(status.damagePerSecond));
+                const beforeHp = this.player.hp;
+                this.player.hp = Math.max(0, this.player.hp - damage);
+                this.emit('player:status-damage', { status: { ...status }, damage: beforeHp - this.player.hp });
+                if (this.player.hp <= 0) {
+                    this.finish(CombatSessionPhase.DEFEAT, 'player_status_damage');
+                    return;
+                }
+            }
+            if (status.remaining > 0) continue;
+            this.player.statuses.splice(index, 1);
+            this.emit('player:status-expired', { status: { ...status, modifiers: { ...status.modifiers } } });
+        }
+    }
+
+    updateMonsterStatuses(delta) {
+        for (let index = this.monster.statuses.length - 1; index >= 0; index -= 1) {
+            const status = this.monster.statuses[index];
+            status.remaining = Math.max(0, status.remaining - delta);
+            status.tickProgress += delta;
+            status.summonProgress += delta;
+            while (status.healPerSecond > 0 && status.tickProgress >= 1) {
+                status.tickProgress -= 1;
+                const beforeHp = this.monster.hp;
+                this.monster.hp = Math.min(this.monster.maxHp, this.monster.hp + status.healPerSecond);
+                const amount = this.monster.hp - beforeHp;
+                if (amount > 0) this.emit('monster:heal', { status: { ...status }, amount });
+            }
+            while (status.summonDamage > 0 && status.attackInterval > 0 && status.summonProgress >= status.attackInterval) {
+                status.summonProgress -= status.attackInterval;
+                const beforeHp = this.player.hp;
+                this.player.hp = Math.max(0, this.player.hp - status.summonDamage);
+                this.emit('monster:summon-hit', { status: { ...status }, damage: beforeHp - this.player.hp });
+                if (this.player.hp <= 0) {
+                    this.finish(CombatSessionPhase.DEFEAT, 'summon_attack');
+                    return;
+                }
+            }
+            if (status.remaining > 0) continue;
+            this.monster.statuses.splice(index, 1);
+            this.emit('monster:status-expired', { status: { ...status, modifiers: { ...status.modifiers } } });
+        }
     }
 
     updateBuffs(delta) {
@@ -306,9 +399,14 @@ export default class RealtimeCombatSession {
     }
 
     getPlayerModifier(key) {
-        return this.player.buffs.reduce((total, buff) => {
+        return [...this.player.buffs, ...this.player.statuses].reduce((total, buff) => {
             return total * numberOr(buff.modifiers?.[key], 1);
         }, 1);
+    }
+
+    getMonsterModifier(key, additive = false) {
+        if (additive) return this.monster.statuses.reduce((total, status) => total + numberOr(status.modifiers?.[key], 0), 0);
+        return this.monster.statuses.reduce((total, status) => total * numberOr(status.modifiers?.[key], 1), 1);
     }
 
     updatePlayerAttacks(delta) {
@@ -361,7 +459,7 @@ export default class RealtimeCombatSession {
 
         const requestedHitType = typeof judgement === 'object' ? judgement.type : judgement;
         const hitType = ['miss', 'hit', 'crit'].includes(requestedHitType) ? requestedHitType : 'hit';
-        this.cooldowns[slot] = weapon.cooldown;
+        this.cooldowns[slot] = weapon.cooldown * this.getPlayerModifier('attackCooldown');
         const pending = {
             slot,
             hitType,
@@ -382,47 +480,52 @@ export default class RealtimeCombatSession {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
         const { slot, weapon, hitType = 'hit' } = pending;
         const baseDamage = weapon.damage * weapon.damageMultiplier * this.getPlayerModifier('damage');
-        const resolvedDamage = hitType === 'miss'
+        const evaded = hitType !== 'miss' && Math.random() < this.getMonsterModifier('dodgeChance', true);
+        const resolvedDamage = hitType === 'miss' || evaded
             ? 0
             : Math.max(1, Math.floor(hitType === 'crit'
                 ? baseDamage * weapon.critDamage * weapon.critDamageMultiplier
-                : baseDamage));
-        const resolvedBreakPower = hitType === 'miss'
-            ? 0
-            : Math.max(0, weapon.breakPower * this.getPlayerModifier('breakPower'));
-
-        if (hitType === 'miss') {
+                : baseDamage) * this.getMonsterModifier('incomingDamage'));
+        if (hitType === 'miss' || evaded) {
             this.emit('player:miss', {
                 slot,
                 hitType,
                 weapon: { ...weapon },
                 damage: 0,
-                breakResult: null
+                evaded
             });
+            return;
+        }
+
+        const summonIndex = this.monster.statuses.findIndex(status => status.interceptHits > 0);
+        if (summonIndex >= 0) {
+            const summon = this.monster.statuses[summonIndex];
+            summon.interceptHits -= 1;
+            this.emit('player:hit', {
+                slot,
+                hitType,
+                critical: hitType === 'crit',
+                weapon: { ...weapon },
+                damage: 0,
+                intercepted: true
+            });
+            this.emit('monster:summon-block', { status: { ...summon }, damage: resolvedDamage });
+            if (summon.interceptHits <= 0) {
+                this.monster.statuses.splice(summonIndex, 1);
+                this.emit('monster:summon-defeated', { status: { ...summon } });
+            }
             return;
         }
 
         const beforeHp = this.monster.hp;
         this.monster.hp = Math.max(0, this.monster.hp - resolvedDamage);
 
-        let breakResult = null;
-        if (this.monsterIntent && resolvedBreakPower > 0) {
-            const beforeBreak = this.monsterIntent.breakRemaining;
-            this.monsterIntent.breakRemaining = Math.max(0, beforeBreak - resolvedBreakPower);
-            breakResult = {
-                amount: Math.min(beforeBreak, resolvedBreakPower),
-                remaining: this.monsterIntent.breakRemaining,
-                max: this.monsterIntent.breakMax
-            };
-        }
-
         this.emit('player:hit', {
             slot,
             hitType,
             critical: hitType === 'crit',
             weapon: { ...weapon },
-            damage: beforeHp - this.monster.hp,
-            breakResult
+            damage: beforeHp - this.monster.hp
         });
         if (weapon.triggerBuff) this.addBuff(weapon.triggerBuff);
 
@@ -431,9 +534,6 @@ export default class RealtimeCombatSession {
             return;
         }
 
-        if (breakResult && this.monsterIntent?.breakRemaining <= 0) {
-            this.interruptMonster();
-        }
     }
 
     usePotion() {
@@ -496,6 +596,20 @@ export default class RealtimeCombatSession {
         return true;
     }
 
+    addStatus(target, rawStatus) {
+        if (!rawStatus) return false;
+        const status = normalizeStatus(rawStatus);
+        const list = target === 'monster' ? this.monster.statuses : this.player.statuses;
+        const existingIndex = list.findIndex(entry => entry.id === status.id);
+        if (existingIndex >= 0) list.splice(existingIndex, 1, status);
+        else list.push(status);
+        this.emit(`${target}:status-added`, {
+            status: { ...status, modifiers: { ...status.modifiers } },
+            refreshed: existingIndex >= 0
+        });
+        return true;
+    }
+
     forceMonsterAttack(attackId) {
         if (this.phase !== CombatSessionPhase.RUNNING) return false;
         const attack = this.config.monster.attacks.find(entry => entry.id === attackId);
@@ -511,14 +625,15 @@ export default class RealtimeCombatSession {
     beginMonsterIntent(forcedAttack = null) {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
         const attacks = this.config.monster.attacks;
-        const attack = forcedAttack || attacks[this.monsterAttackIndex % attacks.length];
-        if (!forcedAttack) this.monsterAttackIndex += 1;
+        const readySkills = attacks.filter(entry => entry.isSkill && this.monsterAttackCooldowns[entry.id] <= 0);
+        const attack = forcedAttack || (readySkills.length > 0
+            ? readySkills[this.monsterAttackIndex % readySkills.length]
+            : attacks.find(entry => !entry.isSkill) || attacks[0]);
+        if (!forcedAttack && readySkills.length > 0) this.monsterAttackIndex += 1;
         this.monsterIntent = {
             attack: { ...attack },
             total: attack.telegraph,
-            remaining: attack.telegraph,
-            breakMax: attack.breakThreshold,
-            breakRemaining: attack.breakThreshold
+            remaining: attack.telegraph
         };
         this.emit('monster:telegraph', { attack: { ...attack } });
     }
@@ -533,6 +648,7 @@ export default class RealtimeCombatSession {
             remaining: attack.impactDelay
         };
         this.emit('monster:attack-release', { attack });
+        if (attack.cooldown > 0) this.monsterAttackCooldowns[attack.id] = attack.cooldown;
         if (attack.impactDelay <= 0) this.resolveMonsterImpact();
     }
 
@@ -540,10 +656,9 @@ export default class RealtimeCombatSession {
         if (!this.pendingMonsterImpact || this.phase !== CombatSessionPhase.RUNNING) return;
         const attack = { ...this.pendingMonsterImpact.attack };
         this.pendingMonsterImpact = null;
-        const resolvedDamage = Math.max(
-            1,
-            Math.floor(attack.damage * this.getPlayerModifier('incomingDamage'))
-        );
+        const resolvedDamage = attack.damage > 0
+            ? Math.max(1, Math.floor(attack.damage * this.getPlayerModifier('incomingDamage')))
+            : 0;
         const beforeHp = this.player.hp;
         this.player.hp = Math.max(0, this.player.hp - resolvedDamage);
         this.nextMonsterActionIn = attack.recovery;
@@ -551,15 +666,15 @@ export default class RealtimeCombatSession {
             attack,
             damage: beforeHp - this.player.hp
         });
+        if (attack.playerEffect) this.addStatus('player', attack.playerEffect);
+        if (attack.monsterEffect) this.addStatus('monster', attack.monsterEffect);
+        if (attack.healFromDamagePercent > 0 && resolvedDamage > 0) {
+            const beforeMonsterHp = this.monster.hp;
+            this.monster.hp = Math.min(this.monster.maxHp, this.monster.hp + Math.max(1, Math.round(resolvedDamage * attack.healFromDamagePercent / 100)));
+            const amount = this.monster.hp - beforeMonsterHp;
+            if (amount > 0) this.emit('monster:heal', { attack, amount });
+        }
         if (this.player.hp <= 0) this.finish(CombatSessionPhase.DEFEAT, 'player_defeated');
-    }
-
-    interruptMonster() {
-        if (!this.monsterIntent) return;
-        const attack = { ...this.monsterIntent.attack };
-        this.monsterIntent = null;
-        this.nextMonsterActionIn = this.config.monster.interruptedDelay;
-        this.emit('monster:interrupted', { attack });
     }
 
     finish(phase, reason) {

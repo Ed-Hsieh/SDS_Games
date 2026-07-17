@@ -1,6 +1,6 @@
 # Standard Bearer Frey Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-16
 
 ## Purpose
 
@@ -355,11 +355,61 @@ Frey should sound:
 
 She may speak with confidence that later proves naive.
 
+Her warmth is the assumption that the person leaving will return. She records a
+name, checks a lamp, states the route hazard, and asks for a call at the gate.
+She does not need to say `一定要平安回來`; the maintained return routine carries
+that concern.
+
+Her humor must be immediate and easy to understand. Do not use a metaphor or a
+clever image that the player has to decode before recognizing the joke.
+
+Relationship-stage behavior:
+
+- Stranger: friendly and businesslike. She records departure and gives only the
+  necessary route, visibility, weather, and return instructions. Do not use
+  familiar complaints yet.
+- Familiar traveler: she may use a light complaint about shift work, lamps,
+  reports, or having to look along the road to shorten the distance between them.
+- Trusted companion: she may tease a repeated harmless habit because she has
+  observed it over time.
+- Real danger: every joke stops. She names the hazard and required action in the
+  shortest clear form available.
+
+Good teasing never humiliates its target. Injury, death, disappearance, trauma,
+Tavi's fear, the elder's old defeat, and any near-fatal return are never joke
+material.
+
 Good line shape:
 
 - Short encouragement.
 - A practical instruction about gate, flag, route, or watch.
 - A sudden honest admission when fear becomes too large to hide.
+
+Expression use:
+
+- `neutral`: first meetings, registration, ordinary route warnings, and friendly
+  public duty. Friendliness does not require a smile portrait.
+- `pleased`: a safe return, a familiar traveler's harmless habit, or an
+  immediately understandable light complaint after trust exists.
+- `soft`: private relief, honest dependence, or a moment when duty no longer has
+  to cover what she feels. Do not use it for routine first-meeting farewells.
+- `resolute`: a route is actively failing or another person must follow a safety
+  instruction now. Humor is absent.
+
+Accepted stranger-stage examples:
+
+- `要出門？名字寫這裡。回來後在旁邊補上時間。`
+- `先走田埂。棧道的木板不太穩，天黑後不要走那邊。`
+- `進門前喊一聲。起霧後看不清臉。`
+
+Accepted familiar and trusted directions:
+
+- `回來了？正好，省得我換班後還得沿路找人。`
+- `你每次都說很快。這次要不要先告訴我，「很快」到底是多久？`
+
+Accepted danger direction:
+
+- `棧道不能走。北側的木樁剛斷，現在過去會掉下去。`
 
 Avoid:
 
@@ -368,6 +418,10 @@ Avoid:
 - Abstract flag metaphors without a visible scene or object.
 - Making her contempt for the elder cruel.
 - Treating her as a strong fighter if the story has not earned that.
+- Using death, disappearance, injury, or fear as a punch line.
+- Teasing a stranger as though a relationship already exists.
+- Continuing to joke after the scene establishes immediate danger.
+- Making every expression of care a `soft` portrait.
 
 ## Story-System Notes
 

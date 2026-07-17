@@ -1,5 +1,5 @@
 import GameManager from './GameManager.js';
-import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260713b';
+import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260717g';
 import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
@@ -62,7 +62,7 @@ export default class CombatFlowController {
         const link = document.createElement('link');
         link.id = 'scene-combat-vfx-style';
         link.rel = 'stylesheet';
-        link.href = 'src/style/combat-vfx-lab.css?v=20260714a';
+        link.href = 'src/style/combat-vfx-lab.css?v=20260717d';
         document.head.appendChild(link);
         this.ownsStylesheet = true;
     }

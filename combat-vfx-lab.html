@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SDS 戰鬥垂直切片</title>
-    <link rel="stylesheet" href="src/style/combat-vfx-lab.css?v=20260713c">
+    <link rel="stylesheet" href="src/style/combat-vfx-lab.css?v=20260717d">
 </head>
 <body>
     <main class="vfx-lab" id="vfx-lab" data-lab-mode="combat">
@@ -31,23 +31,16 @@
                     </div>
                     <div class="health-value"><span id="enemy-hp">1840</span> / <span id="enemy-max-hp">1840</span></div>
                 </div>
+                <div class="monster-status-row" id="monster-status-row" aria-label="怪物狀態"></div>
             </header>
 
             <div class="enemy-intent" id="enemy-intent" hidden>
-                <div class="intent-head">
-                    <span id="intent-state">蓄勢</span>
-                    <strong id="intent-name">裂甲三連爪</strong>
-                    <time id="intent-time">0.72s</time>
-                </div>
                 <div class="intent-track" aria-label="怪物攻擊預告">
                     <div class="intent-fill" id="intent-fill"></div>
-                </div>
-                <div class="break-head">
-                    <span>破勢</span>
-                    <strong id="break-value">48 / 48</strong>
-                </div>
-                <div class="break-track" aria-label="破勢值">
-                    <div class="break-fill" id="break-fill"></div>
+                    <div class="intent-copy">
+                        <strong id="intent-name">裂甲三連爪</strong>
+                        <time id="intent-time">0.72s</time>
+                    </div>
                 </div>
             </div>
 
@@ -81,9 +74,9 @@
                     <span class="status-label">BUFF</span>
                     <div class="buff-list" id="player-buff-list"></div>
                 </div>
-                <div class="status-lane enemy-status-strip" aria-label="敵人減益狀態">
+                <div class="status-lane player-debuff-strip" aria-label="玩家負面狀態">
                     <span class="status-label">DEBUFF</span>
-                    <div class="enemy-status-row" id="enemy-status-row" aria-live="polite"></div>
+                    <div class="player-debuff-list" id="player-debuff-list" aria-live="polite"></div>
                 </div>
             </div>
 
@@ -193,9 +186,22 @@
                     <label class="select-field">
                         <span>怪物</span>
                         <select id="monster-select">
-                            <option value="demon">黑鐵先鋒</option>
-                            <option value="mantis">伏獵螳螂</option>
-                            <option value="golem">晶礦巨像</option>
+                            <optgroup label="第一章">
+                                <option value="slime">史萊姆</option><option value="goblin">哥布林</option>
+                                <option value="giant_rat">巨鼠</option><option value="wild_wolf">野狼</option>
+                                <option value="shadow_bat">暗影蝙蝠</option><option value="orc_warrior">獸人戰士</option>
+                                <option value="poison_spider">毒蜘蛛</option><option value="stone_golem_mini">小石像</option>
+                                <option value="treant">樹人</option><option value="ambush_mantis">銀鐮伏獵者</option>
+                                <option value="forest_guardian">古樹守衛</option>
+                            </optgroup>
+                            <optgroup label="第二章">
+                                <option value="skeleton_warrior">骷髏戰士</option><option value="ghost">幽靈</option>
+                                <option value="glimmer_sprite">微光靈</option><option value="stone_golem">石像守衛</option>
+                                <option value="rune_wisp">符文微靈</option><option value="lich">巫妖</option>
+                            </optgroup>
+                            <optgroup label="舊展示樣本">
+                                <option value="demon">黑鐵先鋒</option><option value="mantis">伏獵螳螂</option><option value="golem">晶礦巨像</option>
+                            </optgroup>
                         </select>
                     </label>
                 </section>
@@ -243,6 +249,17 @@
                         <button type="button" data-effect="projectile">魔能投射</button>
                         <button type="button" data-effect="breath">吐息射線</button>
                         <button type="button" data-effect="curse">暗影詛咒</button>
+                        <button type="button" data-effect="poison">毒素侵入</button>
+                        <button type="button" data-effect="sonic">音波尖嘯</button>
+                        <button type="button" data-effect="roots">根鬚束縛</button>
+                        <button type="button" data-effect="nature">自然之怒</button>
+                        <button type="button" data-effect="vanish">隱匿／相位</button>
+                        <button type="button" data-effect="lightning">閃電箭</button>
+                        <button type="button" data-effect="dark-projectile">黑暗箭</button>
+                        <button type="button" data-effect="drain">生命汲取</button>
+                        <button type="button" data-effect="harden">硬化</button>
+                        <button type="button" data-effect="summon">召喚骷髏</button>
+                        <button type="button" data-effect="regeneration">再生</button>
                         <button type="button" data-effect="boss-phase">Boss 階段</button>
                     </div>
                 </section>
@@ -291,6 +308,6 @@
         </aside>
     </main>
 
-    <script type="module" src="src/js/scenes/CombatVfxLab.js?v=20260713b"></script>
+    <script type="module" src="src/js/scenes/CombatVfxLab.js?v=20260717g"></script>
 </body>
 </html>

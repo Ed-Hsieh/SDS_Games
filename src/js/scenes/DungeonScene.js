@@ -25,7 +25,7 @@ import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import CombatFlowController from '../managers/CombatFlowController.js?v=dialogue-flow-20260712w';
+import CombatFlowController from '../managers/CombatFlowController.js?v=20260717g';
 import { createCombatEncounter, resolveEncounterDrop } from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
 import { ensureCombatStage } from '../components/CombatStageView.js';
 

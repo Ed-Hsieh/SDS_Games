@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-13
+Last updated: 2026-07-16
 
 ## Purpose
 
@@ -319,6 +319,84 @@ Use one row per displayed beat. Do not hide required prose in metadata. Do not
 repeat quest rewards inside dialogue when the visible world change already
 communicates them. Run-specific rows replace or supplement the adjacent `any`
 beat only when the condition is explicit.
+
+## Spoken Dialogue Realism Contract
+
+Dialogue is not a collection of beautiful lines. A character speaks because a
+specific person, problem, object, or decision is in front of them now. The line
+must first sound like something that person would actually choose to say; style
+and memorable phrasing are secondary.
+
+Every spoken beat must obey these rules:
+
+- Start from the speaker's identity, current purpose, relationship distance,
+  and present physical situation.
+- Ask why the line must be spoken now. Delete or relocate a line that exists only
+  because the audience needs lore, a system explanation, or a character summary.
+- Let information arrive through ordinary questions, partial answers, evidence,
+  correction, hesitation, and disagreement. Do not compress a setting briefing
+  into one convenient speech.
+- A character may state only what they currently know or reasonably infer. The
+  screenplay's omniscient knowledge must not leak into hints, expressions, or
+  strangely precise warnings.
+- Put care into concrete instructions, preparation, exchanged objects, and
+  practical choices. Prefer `明早再去。晚上會看不清路。` to a declaration
+  that the listener is too important to lose.
+- Do not disguise system data, material behavior, evidence synthesis, or
+  service availability as figurative dialogue. Treatment, repair, route
+  evidence, and stock should be explained with concrete actions and immediate
+  consequences a person would actually say aloud. Personification and crafted
+  metaphors are allowed only when that character's accepted voice explicitly
+  uses them in that situation.
+- Spoken dialogue is literal first. An ordinary speaker must describe what was
+  observed: an object's position, direction, condition, change, or consequence.
+  Do not give an inanimate subject a human or animal action merely to compress
+  atmosphere into the line. Write `黑色樹根一路向北延伸` instead of
+  `地下的根往北走`; write `麻痺還沒有完全退` instead of making medicine
+  `壓住` a symptom. Figurative wording belongs in narration, or in the speech
+  of a character whose accepted voice and immediate situation explicitly
+  justify it.
+- Before accepting any spoken beat, identify its grammatical subject and verb.
+  If a road walks, a root searches, paper wants, medicine remembers, a door
+  stands guard, or another object performs an intentional action, rewrite the
+  line as a physical observation. Approved character-specific jokes and Ailo's
+  deliberately disordered speech are the only current Chapter 1 exceptions;
+  exceptions must not spread into another character's voice.
+- Avoid polished symmetry, aphorisms, quotable morals, and lines that sound
+  written to advertise the character. A memorable line must grow out of the
+  immediate action rather than announce a theme.
+- Use pauses, gaze, hand movement, distance, tools, and object handling to carry
+  emotion the character would not say aloud. These actions must either perform
+  work or reveal a choice; do not attach decorative gestures to every line.
+- Do not let narration restate the emotion already carried by dialogue or
+  action. If a hand remains on the map, the narration need not explain that the
+  elder is worried.
+- Keep dialogue and action as separate runtime beats. Spoken text belongs to the
+  character; physical action and scene observation belong to narration without
+  a speaker label.
+
+Expression continuity follows the same causal rule:
+
+- An expression represents the visible state a character is allowing others to
+  see, not every emotion implied by the sentence.
+- Do not change expression merely because the speaker or line changed. Carry the
+  current expression until an observable event, realization, decision, or loss
+  changes it.
+- Warm behavior does not automatically require `soft`. A neutral face may carry
+  concern through a better lamp, a tightened bandage, or a chair moved closer.
+- Strong expressions must be earned by the scene. Do not use them early to
+  reveal fear, grief, suspicion, or affection the character is still masking.
+
+Before accepting a spoken line, answer:
+
+1. What does this character want from the listener right now?
+2. What does the character know, and what remains unknown?
+3. Would this person say the line aloud, or show it through action instead?
+4. Is the information arriving because the present exchange needs it?
+5. Could the same line be spoken unchanged by another character? If so, restore
+   the speaker's role, habits, relationship, and material world.
+6. What specifically caused the assigned expression, and should it persist into
+   the next beat?
 
 ## Character Voice
 

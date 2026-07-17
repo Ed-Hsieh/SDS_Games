@@ -1,8 +1,11 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
-import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260711l';
-import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260713a';
+import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260717b';
+import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260717g';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
+import { MonsterDatabase } from '../data/Monsters.js';
+import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js';
+import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -48,7 +51,6 @@ function buildLoadoutEntry(slot, options) {
         damage: options.damage,
         cooldown: Math.max(0.18, attackInterval * profile.cooldownMultiplier),
         windup: options.windup,
-        breakPower: options.breakPower,
         critDamage: weapon.critDamage,
         damageMultiplier: profile.damageMultiplier,
         critDamageMultiplier: profile.critDamageMultiplier,
@@ -78,7 +80,6 @@ const LOADOUT = Object.freeze({
         icon: ITEM_ASSETS.mainWeapon,
         damage: 96,
         windup: 0.09,
-        breakPower: 26,
         triggerBuff: Object.freeze({
             id: 'frostbite_weapon_effect',
             name: '霜吻附著',
@@ -91,7 +92,6 @@ const LOADOUT = Object.freeze({
         icon: ITEM_ASSETS.offhandWeapon,
         damage: 122,
         windup: 0.2,
-        breakPower: 42,
         triggerBuff: Object.freeze({
             id: 'hydra_weapon_effect',
             name: '九頭毒脈',
@@ -118,7 +118,7 @@ function createRhythmCharacter() {
     };
 }
 
-const MONSTERS = Object.freeze({
+const SHOWCASE_MONSTERS = Object.freeze({
     demon: Object.freeze({
         name: '黑鐵先鋒',
         className: '精英 · 魔族',
@@ -130,12 +130,11 @@ const MONSTERS = Object.freeze({
         visualScale: '1.01',
         feed: '黑鐵先鋒壓低武器，甲片間滲出暗紅火光',
         initialDelay: 1.25,
-        interruptedDelay: 1.4,
         attacks: Object.freeze([
-            Object.freeze({ id: 'claw', name: '裂甲三連爪', effect: 'claw', damage: 52, telegraph: 1.05, impactDelay: 0.27, recovery: 1.2, breakThreshold: 58 }),
-            Object.freeze({ id: 'projectile', name: '魔能投射', effect: 'projectile', damage: 41, telegraph: 1.35, impactDelay: 0.76, recovery: 1.45, breakThreshold: 72 }),
-            Object.freeze({ id: 'crush', name: '煉獄重壓', effect: 'crush', damage: 78, telegraph: 1.5, impactDelay: 0.29, recovery: 1.85, breakThreshold: 92 }),
-            Object.freeze({ id: 'breath', name: '灼熱吐息', effect: 'breath', damage: 66, telegraph: 1.65, impactDelay: 0.84, recovery: 2.05, breakThreshold: 104 })
+            Object.freeze({ id: 'claw', name: '裂甲三連爪', effect: 'claw', damage: 52, telegraph: 1.05, impactDelay: 0.27, recovery: 1.2 }),
+            Object.freeze({ id: 'projectile', name: '魔能投射', effect: 'projectile', damage: 41, telegraph: 1.35, impactDelay: 0.76, recovery: 1.45 }),
+            Object.freeze({ id: 'crush', name: '煉獄重壓', effect: 'crush', damage: 78, telegraph: 1.5, impactDelay: 0.29, recovery: 1.85 }),
+            Object.freeze({ id: 'breath', name: '灼熱吐息', effect: 'breath', damage: 66, telegraph: 1.65, impactDelay: 0.84, recovery: 2.05 })
         ])
     }),
     mantis: Object.freeze({
@@ -149,11 +148,10 @@ const MONSTERS = Object.freeze({
         visualScale: '1.04',
         feed: '鐮肢沿著地面緩慢張開，正在計算你的距離',
         initialDelay: 0.95,
-        interruptedDelay: 1.05,
         attacks: Object.freeze([
-            Object.freeze({ id: 'mantis_claw', name: '交錯鐮斬', effect: 'claw', damage: 44, telegraph: 0.78, impactDelay: 0.27, recovery: 0.9, breakThreshold: 52 }),
-            Object.freeze({ id: 'silk_curse', name: '獵絲拘束', effect: 'curse', damage: 32, telegraph: 1.15, impactDelay: 0.78, recovery: 1.25, breakThreshold: 66 }),
-            Object.freeze({ id: 'execution_crush', name: '斷頭鐮落', effect: 'crush', damage: 64, telegraph: 1.22, impactDelay: 0.29, recovery: 1.48, breakThreshold: 82 })
+            Object.freeze({ id: 'mantis_claw', name: '交錯鐮斬', effect: 'claw', damage: 44, telegraph: 0.78, impactDelay: 0.27, recovery: 0.9 }),
+            Object.freeze({ id: 'silk_curse', name: '獵絲拘束', effect: 'curse', damage: 32, telegraph: 1.15, impactDelay: 0.78, recovery: 1.25 }),
+            Object.freeze({ id: 'execution_crush', name: '斷頭鐮落', effect: 'crush', damage: 64, telegraph: 1.22, impactDelay: 0.29, recovery: 1.48 })
         ])
     }),
     golem: Object.freeze({
@@ -167,14 +165,36 @@ const MONSTERS = Object.freeze({
         visualScale: '0.96',
         feed: '晶礦巨像的核心逐節亮起，沉重腳步震動地面',
         initialDelay: 1.45,
-        interruptedDelay: 1.65,
         attacks: Object.freeze([
-            Object.freeze({ id: 'golem_crush', name: '晶核震地', effect: 'crush', damage: 82, telegraph: 1.55, impactDelay: 0.29, recovery: 1.9, breakThreshold: 98 }),
-            Object.freeze({ id: 'crystal_projectile', name: '晶刺投射', effect: 'projectile', damage: 48, telegraph: 1.2, impactDelay: 0.76, recovery: 1.5, breakThreshold: 74 }),
-            Object.freeze({ id: 'core_curse', name: '核心過載', effect: 'curse', damage: 58, telegraph: 1.65, impactDelay: 0.78, recovery: 2.1, breakThreshold: 112 })
+            Object.freeze({ id: 'golem_crush', name: '晶核震地', effect: 'crush', damage: 82, telegraph: 1.55, impactDelay: 0.29, recovery: 1.9 }),
+            Object.freeze({ id: 'crystal_projectile', name: '晶刺投射', effect: 'projectile', damage: 48, telegraph: 1.2, impactDelay: 0.76, recovery: 1.5 }),
+            Object.freeze({ id: 'core_curse', name: '核心過載', effect: 'curse', damage: 58, telegraph: 1.65, impactDelay: 0.78, recovery: 2.1 })
         ])
     })
 });
+
+const CHAPTER_MONSTERS = Object.fromEntries(ChapterOneTwoCombatMonsterIds.map(id => {
+    const monster = MonsterDatabase[id];
+    const chapter = Number(monster?.level || 1) <= 10 ? 1 : 2;
+    return [id, Object.freeze({
+        id,
+        name: monster.name,
+        className: `${monster.type === 'boss' ? 'Boss' : '一般怪物'} · 第 ${chapter} 章`,
+        level: monster.level,
+        maxHp: monster.maxHp,
+        image: getGeneratedMonsterImage(id),
+        background: chapter === 1
+            ? 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp'
+            : 'src/assets/images/art/scenes/world/landmarks/opened_ancient_tomb.webp',
+        backgroundAlt: chapter === 1 ? '第一章野外' : '第二章古墓路線',
+        visualScale: monster.type === 'boss' ? '1.03' : '0.94',
+        feed: `${monster.name}進入測試距離`,
+        initialDelay: 1.15,
+        attacks: Object.freeze(buildMonsterCombatActions(monster, 2).map(Object.freeze))
+    })];
+}));
+
+const MONSTERS = Object.freeze({ ...SHOWCASE_MONSTERS, ...CHAPTER_MONSTERS });
 
 const ELEMENT_LABELS = Object.freeze({
     neutral: '無屬性',
@@ -198,6 +218,22 @@ const EFFECT_LABELS = Object.freeze({
     projectile: '魔能投射',
     breath: '灼熱吐息',
     curse: '暗影拘束',
+    body: '身體撞擊',
+    slash: '武器斬擊',
+    bite: '撕咬',
+    poison: '毒素侵入',
+    sonic: '音波尖嘯',
+    roots: '根鬚束縛',
+    ambush: '伏擊斬擊',
+    vanish: '隱匿',
+    nature: '自然之怒',
+    regeneration: '再生',
+    phase: '相位穿透',
+    drain: '生命汲取',
+    lightning: '閃電箭',
+    harden: '硬化',
+    'dark-projectile': '黑暗箭',
+    summon: '召喚骷髏',
     'boss-phase': '戰意解放'
 });
 
@@ -222,13 +258,14 @@ export class CombatVfxLab {
         this.damageVignette = root.querySelector('#damage-vignette');
         this.skillBanner = root.querySelector('#skill-banner');
         this.floatLayer = root.querySelector('#float-layer');
-        this.statusRow = root.querySelector('#enemy-status-row');
+        this.playerDebuffList = root.querySelector('#player-debuff-list');
+        this.monsterStatusRow = root.querySelector('#monster-status-row');
         this.intentPanel = root.querySelector('#enemy-intent');
         this.resultPanel = root.querySelector('#combat-result');
         this.buffList = root.querySelector('#player-buff-list');
         this.settings = { shake: true, hitStop: true, numbers: true };
         this.labMode = 'combat';
-        this.currentMonsterId = options.monster?.id || 'demon';
+        this.currentMonsterId = options.monster?.id || root.querySelector('#monster-select')?.value || 'demon';
         this.currentElement = 'neutral';
         this.uiTimers = new Set();
         this.showcaseTimers = new Set();
@@ -303,7 +340,6 @@ export class CombatVfxLab {
                 name: monster.name,
                 maxHp: monster.maxHp,
                 initialDelay: monster.initialDelay,
-                interruptedDelay: monster.interruptedDelay,
                 attacks: monster.attacks
             },
             loadout: this.getLoadout(),
@@ -664,17 +700,17 @@ export class CombatVfxLab {
             const judgementLabel = event.hitType === 'crit' ? '暴擊節點' : event.hitType === 'hit' ? '命中節點' : '失誤節點';
             this.setFeed(`${event.weapon.name}於${judgementLabel}出手`);
         } else if (event.type === 'player:hit') {
-            this.enemyImpactFeedback(event.damage, {
+            if (!event.intercepted) this.enemyImpactFeedback(event.damage, {
                 critical: event.critical,
                 label: event.critical
                     ? 'CRITICAL'
-                    : event.breakResult ? `破勢 ${Math.round(event.breakResult.amount)}` : 'HIT',
+                    : 'HIT',
                 heavy: event.weapon.effect === 'heavy'
             });
-            this.setFeed(`${event.weapon.name}${event.critical ? '暴擊' : '命中'}，造成 ${event.damage} 點傷害`);
+            if (!event.intercepted) this.setFeed(`${event.weapon.name}${event.critical ? '暴擊' : '命中'}，造成 ${event.damage} 點傷害`);
         } else if (event.type === 'player:miss') {
-            this.showFloatNumber(0, { target: 'enemy', label: 'MISS' });
-            this.setFeed(`${event.weapon.name}揮空`);
+            this.showFloatNumber(0, { target: 'enemy', label: event.evaded ? 'EVADE' : 'MISS' });
+            this.setFeed(event.evaded ? `${event.snapshot.monster.name}避開了攻擊` : `${event.weapon.name}揮空`);
         } else if (event.type === 'player:potion') {
             this.engine.heal({ target: 'player' });
             this.flash('rgba(120, 202, 146, 0.24)');
@@ -684,10 +720,24 @@ export class CombatVfxLab {
             this.setFeed(`${event.buff.name}${event.refreshed ? '已刷新' : '已生效'}`);
         } else if (event.type === 'player:buff-expired') {
             this.setFeed(`${event.buff.name}效果結束`);
+        } else if (event.type === 'player:status-added') {
+            this.setFeed(`${event.status.name}${event.refreshed ? '延長' : '生效'}`);
+        } else if (event.type === 'player:status-damage') {
+            this.playerImpactFeedback(event.damage, { label: event.status.name, light: true });
+        } else if (event.type === 'monster:status-added') {
+            if (event.status.tone === 'heal') this.engine.heal({ target: 'enemy' });
+        } else if (event.type === 'monster:heal') {
+            this.engine.heal({ target: 'enemy' });
+            this.showFloatNumber(event.amount, { target: 'enemy', heal: true, label: 'RECOVER' });
+        } else if (event.type === 'monster:summon-hit') {
+            this.playMonsterEffect('slash');
+            this.playerImpactFeedback(event.damage, { label: event.status.name });
+        } else if (event.type === 'monster:summon-block') {
+            this.enemyImpactFeedback(event.damage, { label: '侍從擋下' });
+        } else if (event.type === 'monster:summon-defeated') {
         } else if (event.type === 'player:flee') {
             this.showSkill('TACTICAL', '脫離交戰');
         } else if (event.type === 'monster:telegraph') {
-            this.showSkill('MONSTER', event.attack.name);
             this.restartClass(this.enemyStage, 'is-casting', Math.ceil(event.attack.telegraph * 1000));
             this.setFeed(`${event.snapshot.monster.name}正在準備「${event.attack.name}」`);
         } else if (event.type === 'monster:flow-paused') {
@@ -699,16 +749,10 @@ export class CombatVfxLab {
             if (event.attack.effect === 'claw') this.restartClass(this.enemyStage, 'is-lunging', 650);
             this.setFeed(`${event.attack.name}已釋放`);
         } else if (event.type === 'monster:hit') {
-            this.playerImpactFeedback(event.damage, { label: event.attack.name });
-            this.setFeed(`${event.snapshot.monster.name}造成 ${event.damage} 點傷害`);
-        } else if (event.type === 'monster:interrupted') {
-            this.engine.interruptBurst();
-            this.restartClass(this.enemyStage, 'is-heavy-hit', 430);
-            this.flash('rgba(238, 214, 142, 0.36)');
-            this.shake('light');
-            this.showFloatNumber(0, { target: 'enemy', label: 'BREAK' });
-            this.addStatus('破勢', '#9fe2d5', 1700);
-            this.setFeed(`${event.attack.name}遭到中斷`);
+            if (event.damage > 0) {
+                this.playerImpactFeedback(event.damage, { label: event.attack.name });
+                this.setFeed(`${event.snapshot.monster.name}造成 ${event.damage} 點傷害`);
+            }
         } else if (event.type === 'action:rejected') {
             this.handleRejectedAction(event);
         } else if (event.type === 'battle:end') {
@@ -739,7 +783,9 @@ export class CombatVfxLab {
         this.root.querySelector('#player-max-hp').textContent = snapshot.player.maxHp;
         this.root.querySelector('#potion-count').textContent = snapshot.player.potions;
         this.renderPotionCooldown(snapshot.cooldowns.potion, 1.2);
-        this.renderBuffs(snapshot.player.buffs);
+        this.renderBuffs(snapshot.player.buffs || []);
+        this.renderPlayerDebuffs(snapshot.player.statuses || []);
+        this.renderMonsterStatuses(snapshot.monster.statuses || []);
         this.renderIntent(snapshot.monsterIntent, snapshot.phase);
         this.renderSessionState(snapshot.phase);
         this.renderRhythmState(snapshot);
@@ -781,11 +827,15 @@ export class CombatVfxLab {
                 node.className = 'buff-icon';
                 node.dataset.buffId = buff.id;
                 const image = document.createElement('img');
-                image.src = buff.icon;
+                image.src = buff.icon || '';
                 image.alt = buff.name;
+                image.hidden = !buff.icon || !String(buff.icon).includes('/');
+                const glyph = document.createElement('span');
+                glyph.className = 'buff-glyph';
+                glyph.textContent = image.hidden ? (buff.icon || '•') : '';
                 const time = document.createElement('span');
                 time.className = 'buff-time';
-                node.append(image, time);
+                node.append(image, glyph, time);
                 this.buffList.appendChild(node);
             }
             const consumed = clamp(1 - buff.remaining / Math.max(buff.duration, 0.001), 0, 1);
@@ -805,18 +855,52 @@ export class CombatVfxLab {
         }
     }
 
+    renderMonsterStatuses(statuses) {
+        const activeIds = new Set(statuses.map(status => status.id));
+        this.monsterStatusRow.querySelectorAll('[data-monster-status-id]').forEach(node => {
+            if (!activeIds.has(node.dataset.monsterStatusId)) node.remove();
+        });
+        statuses.forEach(status => {
+            let node = this.monsterStatusRow.querySelector(`[data-monster-status-id="${status.id}"]`);
+            if (!node) {
+                node = document.createElement('span');
+                node.className = `status-chip is-${status.tone || 'neutral'}`;
+                node.dataset.monsterStatusId = status.id;
+                this.monsterStatusRow.appendChild(node);
+            }
+            node.textContent = `${status.icon || '•'} ${status.name} ${Math.ceil(status.remaining)}`;
+            node.title = `${status.name} · ${status.remaining.toFixed(1)} 秒`;
+        });
+    }
+
+    renderPlayerDebuffs(statuses) {
+        const activeIds = new Set(statuses.map(status => status.id));
+        this.playerDebuffList.querySelectorAll('[data-player-status-id]').forEach(node => {
+            if (!activeIds.has(node.dataset.playerStatusId)) node.remove();
+        });
+        statuses.forEach(status => {
+            let node = this.playerDebuffList.querySelector(`[data-player-status-id="${status.id}"]`);
+            if (!node) {
+                node = document.createElement('span');
+                node.className = `status-chip is-${status.tone || 'neutral'}`;
+                node.dataset.playerStatusId = status.id;
+                this.playerDebuffList.appendChild(node);
+            }
+            node.textContent = `${status.icon || '•'} ${status.name} ${Math.ceil(status.remaining)}`;
+            node.title = `${status.name} · ${status.remaining.toFixed(1)} 秒`;
+        });
+    }
+
     renderIntent(intent, phase) {
         if (this.labMode !== 'combat' || phase !== CombatSessionPhase.RUNNING || !intent) {
             this.intentPanel.hidden = true;
             return;
         }
         this.intentPanel.hidden = false;
-        this.root.querySelector('#intent-state').textContent = intent.progress > 0.72 ? '即將命中' : '蓄勢';
+        this.intentPanel.classList.toggle('is-skill', Boolean(intent.attack.isSkill));
         this.root.querySelector('#intent-name').textContent = intent.attack.name;
         this.root.querySelector('#intent-time').textContent = `${Math.max(0, intent.remaining).toFixed(2)}s`;
         this.root.querySelector('#intent-fill').style.width = `${intent.progress * 100}%`;
-        this.root.querySelector('#break-value').textContent = `${Math.ceil(intent.breakRemaining)} / ${Math.ceil(intent.breakMax)}`;
-        this.root.querySelector('#break-fill').style.width = `${intent.breakRemaining / intent.breakMax * 100}%`;
     }
 
     renderSessionState(phase) {
@@ -845,6 +929,20 @@ export class CombatVfxLab {
         else if (effect === 'projectile') this.engine.monsterProjectile();
         else if (effect === 'breath') this.engine.monsterBreath();
         else if (effect === 'curse') this.engine.monsterCurse();
+        else if (effect === 'body') this.engine.monsterBodyImpact();
+        else if (effect === 'slash' || effect === 'ambush') this.engine.monsterSlash();
+        else if (effect === 'bite') this.engine.monsterBite();
+        else if (effect === 'poison') this.engine.monsterBite({ poison: true });
+        else if (effect === 'sonic') this.engine.monsterSonic();
+        else if (effect === 'roots') this.engine.monsterRoots();
+        else if (effect === 'vanish' || effect === 'phase') this.engine.monsterVanish();
+        else if (effect === 'nature') this.engine.monsterNatureWrath();
+        else if (effect === 'regeneration') this.engine.heal({ target: 'enemy' });
+        else if (effect === 'lightning') this.engine.monsterLightning();
+        else if (effect === 'dark-projectile') this.engine.monsterDarkProjectile();
+        else if (effect === 'drain') this.engine.monsterDrain();
+        else if (effect === 'harden') this.engine.monsterHarden();
+        else if (effect === 'summon') this.engine.monsterSummon();
     }
 
     triggerManualEffect(effectId, options = {}) {
@@ -876,11 +974,25 @@ export class CombatVfxLab {
         this.showSkill('MONSTER', EFFECT_LABELS[effectId]);
         this.restartClass(this.enemyStage, effectId === 'claw' ? 'is-lunging' : 'is-casting', 860);
         this.playMonsterEffect(effectId);
-        const delayMap = { claw: 270, crush: 290, projectile: 760, breath: 840, curse: 780 };
-        const damageMap = { claw: 52, crush: 78, projectile: 41, breath: 66, curse: 24 };
+        if (['vanish', 'phase', 'harden', 'summon', 'regeneration'].includes(effectId)) {
+            this.addStatus(EFFECT_LABELS[effectId], effectId === 'regeneration' ? '#8fd39b' : '#d4bd7f', 1800, 'monster');
+            return;
+        }
+        const delayMap = {
+            claw: 270, crush: 290, projectile: 760, breath: 840, curse: 780,
+            body: 240, slash: 250, bite: 260, poison: 260, sonic: 620,
+            roots: 650, ambush: 250, nature: 520, lightning: 590,
+            'dark-projectile': 680, drain: 680
+        };
+        const damageMap = {
+            claw: 52, crush: 78, projectile: 41, breath: 66, curse: 24,
+            body: 28, slash: 42, bite: 34, poison: 26, sonic: 24,
+            roots: 18, ambush: 58, nature: 72, lightning: 48,
+            'dark-projectile': 46, drain: 38
+        };
         this.scheduleUi(() => this.playerImpactFeedback(damageMap[effectId], {
             label: EFFECT_LABELS[effectId]
-        }), delayMap[effectId]);
+        }), delayMap[effectId] ?? 300);
     }
 
     enemyImpactFeedback(damage, { critical = false, heavy = false, label = null } = {}) {
@@ -892,11 +1004,11 @@ export class CombatVfxLab {
         this.showFloatNumber(damage, { target: 'enemy', critical, label });
     }
 
-    playerImpactFeedback(damage, { label = null } = {}) {
+    playerImpactFeedback(damage, { label = null, light = false } = {}) {
         this.flash('rgba(210, 68, 48, 0.4)');
         this.restartClass(this.damageVignette, 'is-active', 540);
-        this.shake('heavy');
-        this.hitStop(72);
+        this.shake(light ? 'light' : 'heavy');
+        this.hitStop(light ? 42 : 72);
         this.showFloatNumber(damage, { target: 'player', playerDamage: true, label });
     }
 
@@ -973,13 +1085,14 @@ export class CombatVfxLab {
         this.scheduleUi(() => number.remove(), 960);
     }
 
-    addStatus(label, color = '#d7b277', duration = 2200) {
+    addStatus(label, color = '#d7b277', duration = 2200, target = 'player') {
         const chip = document.createElement('span');
         chip.className = 'status-chip';
         chip.textContent = label;
         chip.style.color = color;
-        this.statusRow.appendChild(chip);
-        while (this.statusRow.children.length > 3) this.statusRow.firstElementChild.remove();
+        const container = target === 'monster' ? this.monsterStatusRow : this.playerDebuffList;
+        container.appendChild(chip);
+        while (container.children.length > 3) container.firstElementChild.remove();
         this.scheduleUi(() => chip.remove(), duration);
     }
 
@@ -1083,7 +1196,8 @@ export class CombatVfxLab {
         this.cancelUiTimers();
         this.engine.clear();
         this.floatLayer.innerHTML = '';
-        this.statusRow.innerHTML = '';
+        this.playerDebuffList.innerHTML = '';
+        this.monsterStatusRow.innerHTML = '';
         ['is-hit', 'is-critical-hit', 'is-heavy-hit', 'is-casting', 'is-lunging', 'is-phase', 'is-healing']
             .forEach(className => this.enemyStage.classList.remove(className));
         this.stage.classList.remove('is-shaking-light', 'is-shaking-heavy');

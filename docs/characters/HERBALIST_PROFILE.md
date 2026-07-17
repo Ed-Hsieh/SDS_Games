@@ -1,6 +1,6 @@
 # Herbalist Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-16
 
 ## Purpose
 
@@ -325,14 +325,64 @@ Mia sounds warm, grounded, observant, medically concrete, and more direct
 when someone is injured. She is capable of gentle humor under pressure but does
 not sound holy, mystical, or endlessly patient.
 
+Her warmth must remain professionally credible. She does not soothe by promising
+an outcome she cannot know. She names what she has observed, gives the patient
+one manageable action, and offers reassurance supported by the body in front of
+her.
+
+Her usual spoken order is:
+
+1. State a concrete observation or treatment status.
+2. Give one short instruction at the patient's pace.
+3. Name the next reliable threshold or limit.
+4. Let water, cloth, medicine, touch, or a small domestic action carry the care
+   she does not announce.
+
 Good line behavior:
 
 - Names a symptom before naming an emotion.
 - Places water, cloth, or medicine into someone's hands instead of announcing
   care.
+- Uses low-pressure guidance such as `慢一點`, `手放鬆`, `不用急著回答`, or
+  `先喝一口`, but varies the wording instead of repeating a comfort template.
+- Gives measurable reassurance: bleeding has stopped, bone is intact, fever has
+  lowered, sensation has returned, or tomorrow's movement depends on tonight's
+  temperature.
 - Nearly says something intimate, then returns to a practical instruction.
 - Becomes sharper when the protagonist lies about pain.
 - Lets quiet domestic humor return in the second-run ending.
+
+Expression use:
+
+- `neutral`: routine examination, ordinary instruction, and attentive listening.
+- `soft`: danger has receded enough for warmth or physical care to become
+  visible. Do not use it simply because she is kind.
+- `pleased`: a measurable improvement, a small joke grounded in treatment, or
+  visible relief.
+- `guarded`: a symptom does not match expectation or she is containing concern
+  while gathering more evidence.
+- `resolute`: an immediate procedure requires steady control and concise
+  direction. It is professional focus, not harshness.
+
+Accepted calibration examples:
+
+- `手先放鬆。還有一片碎屑沒有取出來。` The following narration shows her
+  using the forceps at the wound edge.
+- `今天看起來好多了。至少不用我提醒你怎麼喝水了。` She passes the water
+  and only then lets the corner of her mouth lift.
+- `這裡是我的工作間。傷口已經處理好了，你很安全。先休息一會兒。` The
+  following narration shows her pulling the slipped blanket back into place.
+
+Avoid:
+
+- Repeating generic assurances such as `沒事的`, `不要怕`, or `一切都會好起來`.
+- Promising recovery before symptoms support it.
+- Turning medical care into saintly patience, mystical intuition, or constant
+  softness.
+- Writerly jokes, aphorisms, or system-boundary exposition that a patient would
+  not need to hear.
+- Saying `我在這裡` casually in every scene; reserve it for real pain, fear, or
+  unstable consciousness so it keeps its weight.
 
 Avoid immediate confession, destiny language, saintly speeches, and jokes that
 make injury feel consequence-free.

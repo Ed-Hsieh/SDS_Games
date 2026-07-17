@@ -128,14 +128,10 @@ button {
     top: 92px;
     left: 50%;
     z-index: 18;
-    display: grid;
-    width: min(470px, 48%);
-    gap: 5px;
-    padding: 9px 12px 10px;
-    border: 1px solid rgba(226, 117, 78, 0.5);
+    width: min(540px, 54%);
+    padding: 0;
     border-radius: 5px;
-    background: rgba(9, 9, 8, 0.86);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.36);
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.46));
     transform: translateX(-50%);
     pointer-events: none;
 }
@@ -209,64 +205,68 @@ button {
     }
 }
 
-.intent-head,
-.break-head {
+.intent-copy {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) 58px;
     align-items: center;
-    gap: 9px;
-    font-size: 10px;
+    gap: 12px;
+    padding: 0 14px;
+    pointer-events: none;
 }
 
-.intent-head span {
-    color: var(--enemy-bright);
-    font-weight: 800;
-}
-
-.intent-head strong {
+.intent-copy strong {
     overflow: hidden;
-    color: #f4e5d8;
-    font-size: 12px;
+    color: #fff8e9;
+    font-family: Georgia, "Noto Serif TC", serif;
+    font-size: 17px;
+    font-weight: 700;
+    text-align: center;
+    text-shadow: 0 2px 5px #000, 0 0 10px rgba(0, 0, 0, 0.9);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.intent-head time,
-.break-head strong {
-    color: #d9c9b7;
+.intent-copy time {
+    color: #f1dfc9;
+    font-size: 12px;
+    font-weight: 700;
     font-variant-numeric: tabular-nums;
+    text-align: right;
+    text-shadow: 0 1px 4px #000;
 }
 
-.intent-track,
-.break-track {
-    height: 5px;
+.intent-track {
+    position: relative;
+    height: 44px;
     overflow: hidden;
-    background: rgba(0, 0, 0, 0.72);
+    border: 1px solid rgba(193, 102, 73, 0.72);
+    border-radius: 5px;
+    background: rgba(10, 11, 10, 0.9);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
 }
 
-.intent-fill,
-.break-fill {
+.intent-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
     width: 0;
     height: 100%;
+    opacity: 0.72;
     transform-origin: left center;
 }
 
 .intent-fill {
-    background: linear-gradient(90deg, #9e3f31, #ef7d58 72%, #ffd0a4);
+    background: linear-gradient(90deg, #59352e, #a94d3b 72%, #d77754);
 }
 
-.break-head {
-    grid-template-columns: 1fr auto;
-    margin-top: 2px;
-    color: #86cfc5;
+.enemy-intent.is-skill .intent-track {
+    border-color: rgba(226, 173, 82, 0.86);
 }
 
-.break-head span {
-    font-weight: 700;
-}
-
-.break-fill {
-    background: linear-gradient(90deg, #4d9e96, #9fe2d5 70%, #e6d68d);
+.enemy-intent.is-skill .intent-fill {
+    background: linear-gradient(90deg, #5d3922, #b96e28 68%, #e2a244);
 }
 
 .enemy-identity {
@@ -390,10 +390,18 @@ button {
     transform: translateX(-50%) scale(0.76);
 }
 
-.enemy-status-row {
+.player-debuff-list,
+.monster-status-row {
     display: flex;
     min-height: 25px;
     gap: 6px;
+}
+
+.monster-status-row {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    justify-content: flex-end;
 }
 
 .rhythm-control {
@@ -782,11 +790,11 @@ button {
     justify-content: flex-end;
 }
 
-.enemy-status-strip {
+.player-debuff-strip {
     justify-content: flex-start;
 }
 
-.enemy-status-strip .status-label {
+.player-debuff-strip .status-label {
     color: rgba(232, 125, 105, 0.7);
 }
 
@@ -823,6 +831,21 @@ button {
     object-fit: cover;
     filter: saturate(0.88) brightness(0.92);
 }
+
+.buff-glyph {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    color: #e4c985;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.status-chip.is-heal { color: #91d6a0; }
+.status-chip.is-guard { color: #d7c48e; }
+.status-chip.is-evasion { color: #b9b8d9; }
+.status-chip.is-summon { color: #c9b5d8; }
 
 .buff-icon::after {
     position: absolute;

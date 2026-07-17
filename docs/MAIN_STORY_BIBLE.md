@@ -1,6 +1,6 @@
 # Main Story Bible
 
-Last updated: 2026-07-11
+Last updated: 2026-07-17
 
 ## Purpose
 
@@ -1413,6 +1413,13 @@ the situation assign one shared voice to the entire cast.
   current portrait.
 - Speech and humor: short practical instruction, concrete road or civic detail,
   rare weary humor, no destiny speech or polished exposition.
+- Performance contract: restraint is not emotional absence. He places feeling
+  behind the work: recommend safer timing, name a concrete risk, respect the
+  other person's decision, then improve their chance of returning with a better
+  lamp, food, equipment, or route instruction. `neutral` may carry warmth;
+  `guarded` is reserved for uncertainty or old-pattern pressure, and `resolute`
+  for a decision that must hold. Do not turn every pause into solemnity or every
+  protective thought into a polished maxim.
 - Relationship web: old friendship and asymmetric survivor guilt with 伊萊;
   civil but painful connection with Mia because her father joined his
   expedition; initially underestimated by 芙蕾, whose view of his fear changes.
@@ -1458,6 +1465,15 @@ the situation assign one shared voice to the entire cast.
 - Speech and humor: warm, patient, slightly talkative, with dry complaints about
   paper, ink, damp corners, and handwriting. He explains the basis of a clue and
   never speaks as an oracle.
+- Performance contract: slight talkativeness means answering first and adding
+  one useful half-step, not making every line long. He may qualify evidence,
+  recall one relevant civic detail, speak while searching, notice a tangent and
+  return, or correct a term for precision. `pleased` belongs to object-grounded
+  welcome or humor, `neutral` to ordinary comparison, and `guarded` to evidence
+  limits that may endanger a living person. Tangents without evidence or human
+  texture, constant paper jokes, and rambling exposition are prohibited. As the
+  first run wounds him, the extra helpful sentence and humor disappear before
+  his kindness does.
 - Relationship web: old friendship with the elder; quiet knowledge of Mia's
   father in the expedition records; investigation partnership with
   the protagonist.
@@ -1521,6 +1537,13 @@ the situation assign one shared voice to the entire cast.
 - Speech and humor: warm, observant, medically concrete, and direct when someone
   is hurt. Affection appears through care, anger, pauses, and relief. She may joke
   softly because of who she is, not because a scene requires comic relief.
+- Performance contract: she normally moves from observed condition, to one
+  manageable instruction, to a reliable recovery threshold, then lets water,
+  cloth, medicine, touch, or a domestic action carry unspoken care. Reassurance
+  must be supported by symptoms; avoid repeated `沒事的`, `不要怕`, and promises
+  that everything will improve. `soft` requires danger to have receded,
+  `pleased` requires measurable improvement or treatment-grounded humor,
+  `guarded` requires an unexplained symptom, and `resolute` is procedural focus.
 - Relationship progression: Chapter 1 patient and healer, followed by one return
   check; Chapter 2 shared family wound and quiet work while Mia watches passing
   footsteps; Chapter 3 mutual conflict after the protagonist hides an injury and
@@ -1583,6 +1606,14 @@ the situation assign one shared voice to the entire cast.
 - Speech and humor: brief encouragement, practical gate or watch instructions,
   youthful confidence, light teasing when trust permits, no formal military
   rhetoric.
+- Performance contract: strangers receive friendly, businesslike registration
+  and necessary route warnings; familiar travelers may receive an immediately
+  understandable complaint; only trusted companions are teased about harmless
+  repeated habits. Injury, death, disappearance, trauma, Tavi's fear, and the
+  elder's old defeat are never jokes. All humor stops under real danger.
+  `neutral` owns public duty, `pleased` a safe familiar exchange, `soft` private
+  relief or admitted dependence, and `resolute` an active hazard requiring
+  immediate action.
 - Relationship web: childhood dependence and unspoken affection with 塔維;
   comradeship with the protagonist; youthful underestimation of the elder;
   physical flag repairs can connect her naturally to the blacksmith.
@@ -1626,6 +1657,16 @@ the situation assign one shared voice to the entire cast.
   rejected.
 - Speech and humor: hesitant, gentle, concrete, and awkwardly honest when
   cornered. Humor must never turn him into a coward joke.
+- Performance contract: hesitation concerns his right to insist, not his ability
+  to observe lamp evidence. He may retreat verbally, recheck glass, soot, wick,
+  oil, or wind, then state the fact he can still prove without enlarging the
+  conclusion. Fear can shake his hands or slow his speech while useful work
+  continues. `neutral` owns ordinary maintenance and factual reports, `guarded`
+  the expectation of disbelief or an unexplained failure, and `soft` a concrete
+  offer of safety or private trust. Do not turn every line into an apology or
+  ellipsis. His fixed first-run freeze is a bodily threshold failure during the
+  Gray Ridge crisis, not evidence that he was cognitively or practically
+  incompetent beforehand.
 - Relationship web: childhood bond and unspoken affection with 芙蕾; shame,
   admiration, and eventual honesty around the protagonist; practical lamp repair
   link with the blacksmith.
@@ -1671,6 +1712,16 @@ the situation assign one shared voice to the entire cast.
   approved portrait; old apprentice-centered biography is rejected.
 - Speech and humor: insults equipment, gives exact practical advice, and reveals
   care accidentally. As losses accumulate, jokes shorten and eventually fail.
+- Performance contract: he observes a gait, wound, chipped edge, loose clasp, or
+  other concrete fault before speaking. He may curse the equipment, explain how
+  it was mistreated, and mock the user, but attacks the method, neglect, and
+  recklessness rather than the person's worth. Comparisons must be immediate and
+  easy to understand, never polished symbolic constructions. `neutral` owns
+  inspection, `guarded` an immediate safety concern, `pleased` a successful
+  repair or safe object-grounded joke, `soft` care whose mocking cover has
+  failed, and `resolute` urgent technical direction. Reusing Mia's permission as
+  a forge-scene gate, joking about injury or disappearance, and replacing repair
+  information with personality display are prohibited.
 - Relationship web: repairs 芙蕾's flag fitting and 塔維's lamp parts; shares the
   town's bodily-survival front with Mia; respects the elder's burden and
   understands that 伊萊's paper can send people out as surely as weapons.
@@ -2135,14 +2186,14 @@ descriptive outputs until the complete screenplay is accepted.
 | 3 | any | narration | - | - | `pre_battle` | - | 我在南路外圍已經放倒三隻枯瘦的東西。公會制式獵刀崩了一角，公會外勤皮甲的左肩也被抓開；傷口又冷又麻，草葉擦過靴面時全朝同一個方向伏倒。北方。 |
 | 4 | any | narration | - | - | `pre_battle` | - | 霧停了。兩道巨角先從灰白裡抬起，接著才是比馬背更高的肩胛；牠胸前的毛被黑根黏成硬塊，每一次喘息都帶著腐葉與鐵鏽的味道。 |
 | 5 | any | narration | - | - | `pre_battle` | - | 牠沒有看路。只看我。 |
-| 6 | any | exit | - | - | - | - | 收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即觸發不可打斷的斷坡衝撞。 |
+| 6 | any | exit | - | - | - | - | 收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。 |
 | 7 | any | narration | - | - | `post_battle` | `eyes-closing` | 巨角撞上刀脊。金屬的低鳴貼著掌骨鑽進來；刀身折斷，視野也從上下兩端猛地闔上。 |
 | 8 | any | narration | - | - | `post_battle` | `blackout` | 天空翻了半圈。我摔出路肩，碎石一路撞著背脊，濕土灌進領口。 |
 | 9 | any | narration | - | - | `post_battle` | `blackout` | 坡頂傳來一聲嘶鳴。那頭巨影沒有追來，只在霧裡踩碎石塊，聲音越來越遠。 |
 | 10 | any | narration | - | - | `post_battle` | `blackout` | 枯枝忽然連響幾聲。腳步很急，卻沒有亂；有人跪進濕土，先按住我伸向傷口的手。 |
-| 11 | any | speaker | `herbalist` | `resolute` | `post_battle` | `blackout` | 手別動。碎片還卡在裡面。 |
+| 11 | any | speaker | `herbalist` | `resolute` | `post_battle` | `blackout` | 手先放鬆。還有一片碎屑沒有取出來。 |
 | 12 | any | narration | - | - | `post_battle` | `blackout` | 她撐開我的眼皮，又俐落地探過頸側。藥草、冷水，還有被急促呼吸壓住的一點汗味。 |
-| 13 | any | speaker | `herbalist` | `guarded` | `post_battle` | `blackout` | 聽得見，就眨一下眼。很好。剩下的交給我。 |
+| 13 | any | speaker | `herbalist` | `resolute` | `post_battle` | `blackout` | 聽得見就眨一下眼。對，就是這樣。剩下的交給我。 |
 | 14 | any | narration | - | - | `post_battle` | `blackout` | 苦藥壓過嘴裡的血味。她朝城門方向喊了兩個名字；布帶勒緊胸口以前，聲音已經沉了下去。 |
 
 ### `ch1_s02_wake_under_bitter_bottles`
@@ -2166,13 +2217,13 @@ descriptive outputs until the complete screenplay is accepted.
 | 2 | second_run | narration | - | - | 杯子的位置熟悉得讓人胸口發緊。米婭還活著，窗仍關著，一切都尚未走到那聲棘輪。 |
 | 3 | any | speaker | `herbalist` | `neutral` | 醒了先別坐。左手抬給我看，慢一點。 |
 | 4 | any | narration | - | - | 你照做。指尖仍麻，但已能分辨冷熱。 |
-| 5 | any | speaker | `herbalist` | `pleased` | 很好。至少你沒有把「醒了」誤會成「痊癒」。很多人分不清。 |
+| 5 | any | speaker | `herbalist` | `pleased` | 今天看起來好多了。至少不用我提醒你怎麼喝水了。 |
 | 6 | any | narration | - | - | 你問起地點與救命的人。她把杯子遞近，沒有先談價錢。 |
-| 7 | any | speaker | `herbalist` | `soft` | 我叫米婭。這是我的工作間，不是旅店，也不是店鋪。先喝水。 |
-| 8 | any | speaker | `herbalist` | `guarded` | 南路的傷不深，麻痺卻不對。苦葉壓得住，甜膠能讓藥留在傷口上。我會把比例寫給市集，可他們得先有貨。 |
+| 7 | any | speaker | `herbalist` | `pleased` | 這裡是我的工作間。我叫米婭。傷口已經處理好了，你很安全。先休息一會兒。 |
+| 8 | any | speaker | `herbalist` | `guarded` | 傷口不深，但麻痺還沒有完全退。我用了苦葉止痛，再用甜膠固定藥粉。今晚如果又發燒，立刻叫我。 |
 | 9 | any | narration | - | - | 你提到報酬。米婭把換下的染血布折到看不見的一面。 |
-| 10 | any | speaker | `herbalist` | `pleased` | 等你活得久一點，再找機會欠我。這一筆不收。 |
-| 11 | any | speaker | `herbalist` | `neutral` | 能走以後去十字路口。村長在等南路的消息。慢慢走，不准把暈倒算成捷徑。 |
+| 10 | any | speaker | `herbalist` | `guarded` | 報酬先放著。今晚不再發燒，明天再談別的。 |
+| 11 | any | speaker | `herbalist` | `neutral` | 能走以後去十字路口。村長正在等南路的消息。慢慢來，頭暈就坐下。 |
 | 12 | any | exit | - | - | Mia 拉開外門；控制權回到城鎮，工作間保留為故事地點。 |
 
 ### `ch1_s03_broken_crossroads`
@@ -2200,9 +2251,9 @@ descriptive outputs until the complete screenplay is accepted.
 | 6 | any | exit | - | - | 乞丐抱著爛繩離開畫面，不等待回答。 |
 | 7 | any | narration | - | - | 你還沒追問，一名老人已從公務室的方向走來。他先看你的步子，再看包紮。 |
 | 8 | any | enter | - | - | Village elder 進入；站位刻意留出通往米婭工作間的路。 |
-| 9 | any | speaker | `village_elder` | `guarded` | 米婭讓你出門，表示你至少聽得懂勸。南路發生了什麼？ |
+| 9 | any | speaker | `village_elder` | `guarded` | 米婭說，你是在南路被找到的。還記得那裡發生了什麼嗎？ |
 | 10 | any | narration | - | - | 你說明聚集的怪物、土下的黑根，以及所有痕跡朝北偏去。老人聽到「朝北」時停了一瞬。 |
-| 11 | any | speaker | `village_elder` | `neutral` | 能走，不等於路能走。跟我來。伊萊有舊圖，也有本事在承認圖不可靠之後繼續查。 |
+| 11 | any | speaker | `village_elder` | `neutral` | 最近出去巡路的人沒有回來。你看見的東西，也許和他們有關。跟我來，伊萊那裡留著以前的路圖。 |
 | 12 | any | exit | - | - | Elder 轉向 civic room；開啟跟隨與下一場景。 |
 
 ### `ch1_s04_elder_to_scholar`
@@ -2224,15 +2275,15 @@ descriptive outputs until the complete screenplay is accepted.
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 伊萊用三只杯子壓住同一張路圖。牆角受潮，墨線在南側暈成一片。 |
 | 2 | any | enter | - | - | Town scholar 抬頭；elder 留在桌側，不替他說明。 |
-| 3 | any | speaker | `town_scholar` | `pleased` | 你就是米婭從路邊撿回來的那位。請坐。那張椅子沒有斷，只是很有自己的看法。 |
-| 4 | any | speaker | `village_elder` | `guarded` | 人先別坐壞。南路的東西聚在一起，根往北走。 |
+| 3 | any | speaker | `town_scholar` | `pleased` | 你就是米婭救回來的那位？請坐。椅子會響，但不會塌——至少昨天還不會。 |
+| 4 | any | speaker | `village_elder` | `guarded` | 南路的怪物突然聚集，附近還發現一路向北延伸的黑色樹根。失蹤的巡路人可能經過那一帶。 |
 | 5 | any | narration | - | - | 伊萊把一張舊稅路、一份巡線記錄與今天的空白回程板並排。 |
-| 6 | any | speaker | `town_scholar` | `neutral` | 舊圖只告訴我們路以前在哪裡。現在得看三處：南門外田埂的腳印、獵人棧道的繩結、舊營火地的煙灰。順序隨你。 |
-| 7 | any | speaker | `town_scholar` | `guarded` | 看見什麼就記什麼。沒有腳印也算答案，別替紙補上它想要的東西。 |
-| 8 | any | speaker | `village_elder` | `resolute` | 天色變前回來。遇到堵路的，不必為了證明勇敢硬闖。 |
+| 6 | any | speaker | `town_scholar` | `neutral` | 這張圖只能告訴我們舊路怎麼走。南門外的田埂、獵人棧道，還有這處舊營地。那裡若有人經過，多少會留下些東西。 |
+| 7 | any | speaker | `town_scholar` | `guarded` | 看到什麼就記什麼，沒看到也記下一筆。這張圖已經夠會誤導人了，連水漬都想冒充山脈。 |
+| 8 | any | speaker | `village_elder` | `resolute` | 天黑以前回來。路斷了就記下，怪物太多就繞開。實在過不去，就回頭。 |
 | 9 | any | narration | - | - | 你問為何不直接清掉沿路怪物。老人看向那塊被潮氣抹去的北線。 |
-| 10 | any | speaker | `village_elder` | `neutral` | 因為我們缺的不是怪物的數量。我得先知道哪條路還能把人送回來。 |
-| 11 | any | speaker | `town_scholar` | `pleased` | 手札拿好。紙怕水、怕火，也怕自信過頭的人。第三樣最常見。 |
+| 10 | any | speaker | `village_elder` | `neutral` | 我們需要的是能把消息帶回來的人。多殺幾隻怪物，現在救不了那些失蹤的人。 |
+| 11 | any | speaker | `town_scholar` | `pleased` | 手札拿好。不確定的地方就留白，別看著舊圖替它猜答案。 |
 | 12 | any | exit | - | - | 開啟旅途手札與三個黑色 `?` 地標；控制權回到 civic room 出口。 |
 
 ### `ch1_s05_south_gate_introduction`
@@ -2254,15 +2305,15 @@ descriptive outputs until the complete screenplay is accepted.
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 南門的木料換過幾種顏色，最新的補板也已裂開。芙蕾把巡線旗靠在肩上，正逐筆核對空蕩的回程板。 |
 | 2 | any | enter | - | - | Frey 進入前景；Tavi 留在後方拆開一盞普通巡燈的玻璃罩。 |
-| 3 | any | speaker | `standard_bearer_frey` | `pleased` | 要出門？名字留一下。出去一個，回來也得一個，別逼我把你寫成兩行。 |
+| 3 | any | speaker | `standard_bearer_frey` | `pleased` | 要出門？名字寫這裡。回來後在旁邊補上時間。 |
 | 4 | any | narration | - | - | 你出示伊萊的手札。芙蕾看完三處標記，收起笑意。 |
-| 5 | any | speaker | `standard_bearer_frey` | `resolute` | 田埂最近，棧道最窄，舊營火地回程最容易起霧。累了就折返，手札不值得拿命補完。 |
+| 5 | any | speaker | `standard_bearer_frey` | `resolute` | 先走田埂。棧道的木板不太穩，天黑後不要走那邊。舊營地傍晚會起霧，來不及就明天再去。 |
 | 6 | any | enter | - | - | Tavi 把玻璃罩裝回燈框，向前半步又停住。 |
-| 7 | any | speaker | `lamplighter_tavi` | `guarded` | 如果霧提早下來，看路左邊的燈。火很小，但玻璃還沒裂。應該……還看得見。 |
-| 8 | any | speaker | `standard_bearer_frey` | `pleased` | 他說「應該」的時候，通常已經檢查過三次。這點可以信。 |
-| 9 | any | speaker | `lamplighter_tavi` | `neutral` | 四次。剛才風向變了。 |
+| 7 | any | speaker | `lamplighter_tavi` | `guarded` | 霧要是提早下來……看左邊那盞燈。火小了些，別離它太遠就好。 |
+| 8 | any | speaker | `standard_bearer_frey` | `pleased` | 他剛檢查過。燈的位置可以信。 |
+| 9 | any | speaker | `lamplighter_tavi` | `neutral` | 我不知道這算不算……只是那盞燈，今晚滅了四次。 |
 | 10 | second_run | narration | - | - | 旗在前，燈在後。位置與記憶完全相同，但現在還沒有任何理由要求他們交換責任。 |
-| 11 | any | speaker | `standard_bearer_frey` | `soft` | 去吧。回來時喊一聲。我不喜歡只看見影子走近門。 |
+| 11 | any | speaker | `standard_bearer_frey` | `soft` | 去吧。進門前喊一聲，起霧後看不清臉。 |
 | 12 | any | exit | - | - | South Gate 開啟；切回區域 Canvas 與疲勞系統。 |
 
 ### `ch1_s06_three_landmarks`
@@ -2332,19 +2383,19 @@ descriptive outputs until the complete screenplay is accepted.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 南門在我身後重新落閂。公務室裡，伊萊把三頁紀錄排開，又在旁邊留了一塊位置給伏獵者身上的銀線與黑褐樹脂。 |
-| 2 | any | speaker | `town_scholar` | `guarded` | 腳印告訴我們牠們改了方向，銀線告訴我們有東西學會守回程，樹脂則把兩件事接回那道黑根。這還不是答案，但已經不是巧合。 |
-| 3 | any | speaker | `village_elder` | `guarded` | 你親眼走過。告訴我，你認為該停在這裡，還是沿著根往林子裡查？ |
+| 2 | any | speaker | `town_scholar` | `guarded` | 腳印在半路改了方向，銀線封住回程，線上的樹脂也和舊營地的黑根一樣。這些一定有關，但我們還不知道是什麼關係。 |
+| 3 | any | speaker | `village_elder` | `guarded` | 三條路你都親自走過。那些黑根只出現在路邊，還是一路延伸進了林子？ |
 | 4 | any | narration | - | - | 我指向三頁上共同朝北的痕跡。伏獵者會死，陷阱也能拆掉；只要地下那股壓力還在，下一種東西仍會學會利用它。 |
-| 5 | any | speaker | `village_elder` | `resolute` | 那就查到能證明它從哪裡來為止。先把裝備處理好。我不會一面叫你別逞強，一面把你拿去餵林子。 |
+| 5 | any | speaker | `village_elder` | `resolute` | 好。那就繼續查。先讓鐵匠看看你的裝備。既然要進林子，我至少得確定你還有東西能保住自己。 |
 | 6 | any | narration | - | - | 鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。 |
 | 7 | any | enter | - | - | Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。 |
-| 8 | any | speaker | `blacksmith` | `guarded` | 米婭放你出來，不代表你該把自己磨成第二件廢鐵。武器給我。 |
+| 8 | any | speaker | `blacksmith` | `guarded` | 站都站不穩，還帶著這東西亂跑。拿來。 |
 | 9 | any | narration | - | - | 他扯了扯回收的銀線，確認韌度，再指向脫槽的風箱接帶。 |
-| 10 | any | speaker | `blacksmith` | `neutral` | 爐子沒死，關節卡了。你拉住那邊，我把線穿回去。別鬆手，鬆了它先打我，再打你。 |
+| 10 | any | speaker | `blacksmith` | `neutral` | 風箱的接帶脫槽了。你拉住那邊，我把線穿回去。別鬆手，它彈回來先打我，再打你。 |
 | 11 | any | narration | - | - | 風箱第一次完整抬起時，冷灰往煙道深處退了一截。第二次，火星終於咬住煤面。 |
-| 12 | any | speaker | `blacksmith` | `pleased` | 看吧，還會喘。比你剛送來的裝備有出息。 |
+| 12 | any | speaker | `blacksmith` | `pleased` | 行，火回來了。把那把刀放下，刃口比村口那條路還歪。 |
 | 13 | second_run | narration | - | - | 他的大嗓門仍在。記憶知道這間鋪子日後會只剩一聲沉默的錘響，但現在火才剛回來。 |
-| 14 | any | speaker | `blacksmith` | `resolute` | 基本修補我能做。更好的東西得等路、料和圖都回來。別拿金幣問爐子為什麼不吃空氣。 |
+| 14 | any | speaker | `blacksmith` | `resolute` | 基本修補我能做。要做更好的，得先有材料和圖紙。現在庫房還是空的。 |
 | 15 | any | narration | - | - | 他把修好的裝備推回來，手指停在那塊染血的護面上。 |
 | 16 | any | speaker | `blacksmith` | `soft` | 下次把人帶回來。裝備怎樣都行。 |
 | 17 | any | exit | - | - | Basic forge actions unlock; protagonist returns to crossroads with forest route objective. |
@@ -2419,19 +2470,19 @@ descriptive outputs until the complete screenplay is accepted.
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 南門先看見的是人影，接著才是手札。芙蕾在回程板上把同一個名字劃回原欄。 |
 | 2 | any | enter | - | - | Frey 與 Tavi 進入；旗回到門側，Tavi 點亮一盞供晚歸者辨認的燈。 |
-| 3 | any | speaker | `standard_bearer_frey` | `pleased` | 一行出去，一行回來。很好，我今天不用改規矩。 |
+| 3 | any | speaker | `standard_bearer_frey` | `pleased` | 回來了？正好。名字後面補上時間，省得我換班後還得沿路找人。 |
 | 4 | any | speaker | `lamplighter_tavi` | `soft` | 左邊那盞有亮到嗎？我把燈芯剪短了，霧裡比較不會亂跳。 |
 | 5 | any | narration | - | - | 報告在公務室攤開。伊萊把「守護者」與「源頭」分成兩欄，村長盯著那條北向根線。 |
 | 6 | any | enter | - | - | Elder、town scholar 與 Mia 進入桌邊場景。 |
-| 7 | any | speaker | `town_scholar` | `guarded` | 三處路況、伏擊方式、根心搏動都對得上。附近會安靜一陣，但「安靜」不能寫成「安全」。 |
-| 8 | any | speaker | `village_elder` | `neutral` | 就這樣寫。明天有人看見這頁，得知道自己能走多遠，也得知道哪裡不能信。 |
-| 9 | any | speaker | `herbalist` | `neutral` | 我把南路傷口的配方整理好了。貨路一通，市集可以照方備藥；現在只有紙，別把紙當成瓶子。 |
-| 10 | any | speaker | `herbalist` | `guarded` | 手給我。你回來了，不代表南路那種麻痺有禮貌到一起離開。 |
+| 7 | any | speaker | `town_scholar` | `guarded` | 三處的紀錄都對得上。目前沒有發現新的痕跡，但我還不能說道路已經安全。 |
+| 8 | any | speaker | `village_elder` | `neutral` | 照實寫。哪裡能走，哪裡還有怪物，都標清楚。明天還會有人照著這一頁出門。 |
+| 9 | any | speaker | `herbalist` | `neutral` | 我把治療南路麻痺的配方寫好了。貨路恢復以後，市集才有材料配藥。現在還做不出來。 |
+| 10 | any | speaker | `herbalist` | `guarded` | 手給我。先確認麻痺真的退了。 |
 | 11 | any | narration | - | - | 米婭依序碰過指尖，讓你閉眼分辨冷水與溫杯。她確認答案後才把手放開。 |
-| 12 | any | speaker | `herbalist` | `pleased` | 冷熱分得出來。很好。今天至少是你自己走回來的。 |
+| 12 | any | speaker | `herbalist` | `pleased` | 冷熱都分得出來。今晚不再發麻，就不用重新換藥。 |
 | 13 | any | narration | - | - | 遠處的鐵匠鋪傳來風箱聲。鐵匠走到門邊，手上仍沾著冷灰。 |
 | 14 | any | enter | - | - | Blacksmith 短暫進入 crossroads 邊緣。 |
-| 15 | any | speaker | `blacksmith` | `pleased` | 爐子會燒，門也還站著。先別替我慶祝，等你們把能運煤和鐵的路找回來再說。 |
+| 15 | any | speaker | `blacksmith` | `pleased` | 爐子能用了。我可以先修鍋和門鉸。煤和鐵運不進來，武器的事還得等。 |
 | 16 | any | narration | - | - | 爐前排起的第一批東西沒有一把武器：漏水的鍋、鬆掉的門鉸、裂開的手推車輪。鐵匠嘴上罵著順序，卻把鍋放到最前面。 |
 | 17 | second_run | narration | - | - | 這些聲音都回到了原位：旗布、燈罩、風箱、紙頁。記憶沒有讓任何人知道未來，只讓你聽見它們將來可能缺席。 |
 | 18 | any | enter | - | - | Street beggar 從空市集棚後探出身，手裡換成一片彎曲木屑。 |

@@ -1,6 +1,6 @@
 # Lamplighter Tavi Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-17
 
 ## Purpose
 
@@ -292,6 +292,22 @@ route symbol with Frey's patrol flag.
 
 ## Dialogue Voice
 
+Tavi's hesitation concerns whether he has the right to insist, not whether he can
+observe his own work. Fear may make his hands shake, slow his speech, shorten a
+gesture, or make him yield the floor first. It does not erase his knowledge of
+oil, soot, glass, wind, hinges, wicks, or the physical evidence left by a flame.
+
+When challenged, his usual movement is:
+
+1. Retreat one step with `也許是我弄錯了` or another honest qualification.
+2. Check the concrete evidence again.
+3. Awkwardly state the fact he is still certain of.
+4. Stop rather than inflate the claim beyond what the evidence supports.
+
+He may doubt his interpretation while defending an observation. For example, he
+may not know why a lamp failed, but he can still insist that clean inner glass
+means the fire did not die from smoke buildup.
+
 Tavi should sound:
 
 - Hesitant.
@@ -302,11 +318,39 @@ Tavi should sound:
 
 He should not constantly self-mock. His fear is painful, not comic relief.
 
+His pauses must vary. Ellipses are appropriate when he is deciding whether to
+speak or continue, but not every sentence needs one. Hesitation can also appear
+through a withdrawn hand, a repeated inspection, slower word choice, or letting
+someone else answer first.
+
 Good line shape:
 
 - A small practical detail about oil, glass, wind, or the path.
-- A pause or apology.
-- A quiet admission that he is afraid.
+- A pause or qualification followed by one fact he can verify.
+- A quiet offer of a safer object or route when he cannot stop someone leaving.
+- A direct admission of fear only when trust or immediate danger makes evasion
+  impossible.
+
+Expression use:
+
+- `neutral`: ordinary lamp maintenance, a factual report, or a careful answer
+  within familiar work. Hesitant delivery does not automatically require a
+  worried portrait.
+- `guarded`: he expects disbelief, doubts his interpretation, notices an
+  unexplained lamp failure, or is trying to speak despite fear. The expression
+  does not make his observation unreliable.
+- `soft`: concern becomes a concrete offer, such as lending thicker glass, or he
+  speaks privately about Frey and the reason he remains beside her flag. Do not
+  use it as a generic timid expression.
+
+Accepted calibration examples:
+
+- `霧要是提早下來……看左邊那盞燈。` He points outside and quickly draws his
+  hand back before adding: `火小了些。別離它太遠就好。`
+- `我不知道這算不算……只是那盞燈，今晚滅了四次。`
+- `左邊那盞看得清嗎？我把燈芯剪短了一點，起霧時火不會晃得太厲害。`
+- `也許是我弄錯了。` He checks himself, then continues: `可是燈罩內側沒有煙。火不是自己滅的。`
+- `你一定要去的話……至少把這盞燈帶上。這盞燈的玻璃比較厚。`
 
 Avoid:
 
@@ -314,6 +358,17 @@ Avoid:
 - Making him suddenly fearless after one conversation.
 - Giving the lamp supernatural power without approval.
 - Making his affection for Frey loud or melodramatic too early.
+- Treating hesitation as stupidity, poor observation, or total inability to
+  perform ordinary work.
+- Making every line an apology, ellipsis, or self-deprecating remark.
+- Letting a confident character speak over verified evidence merely because
+  Tavi presented it timidly.
+
+The fixed first-run Gray Ridge freeze is a threshold failure, not a rewrite of
+his competence. Tavi understands the danger and the rear lamp's function, but at
+the fatal moment his body does not move. In ordinary danger he can still inspect,
+warn, carry a lamp, and make useful decisions while afraid. The second run lets
+him act at that same threshold without making him fearless.
 
 ## Story-System Notes
 

@@ -245,7 +245,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即觸發不可打斷的斷坡衝撞。"
+                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。"
             },
             {
                 "order": 7,
@@ -293,7 +293,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "resolute",
-                "text": "手別動。碎片還卡在裡面。",
+                "text": "手先放鬆。還有一片碎屑沒有取出來。",
                 "presentationPhase": "post_battle",
                 "visualMode": "blackout"
             },
@@ -312,8 +312,8 @@ export const StorySceneRegistry = Object.freeze({
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "herbalist",
-                "expression": "guarded",
-                "text": "聽得見，就眨一下眼。很好。剩下的交給我。",
+                "expression": "resolute",
+                "text": "聽得見就眨一下眼。對，就是這樣。剩下的交給我。",
                 "presentationPhase": "post_battle",
                 "visualMode": "blackout"
             },
@@ -385,7 +385,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "pleased",
-                "text": "很好。至少你沒有把「醒了」誤會成「痊癒」。很多人分不清。"
+                "text": "今天看起來好多了。至少不用我提醒你怎麼喝水了。"
             },
             {
                 "order": 6,
@@ -400,8 +400,8 @@ export const StorySceneRegistry = Object.freeze({
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "herbalist",
-                "expression": "soft",
-                "text": "我叫米婭。這是我的工作間，不是旅店，也不是店鋪。先喝水。"
+                "expression": "pleased",
+                "text": "這裡是我的工作間。我叫米婭。傷口已經處理好了，你很安全。先休息一會兒。"
             },
             {
                 "order": 8,
@@ -409,7 +409,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "guarded",
-                "text": "南路的傷不深，麻痺卻不對。苦葉壓得住，甜膠能讓藥留在傷口上。我會把比例寫給市集，可他們得先有貨。"
+                "text": "傷口不深，但麻痺還沒有完全退。我用了苦葉止痛，再用甜膠固定藥粉。今晚如果又發燒，立刻叫我。"
             },
             {
                 "order": 9,
@@ -424,8 +424,8 @@ export const StorySceneRegistry = Object.freeze({
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "herbalist",
-                "expression": "pleased",
-                "text": "等你活得久一點，再找機會欠我。這一筆不收。"
+                "expression": "guarded",
+                "text": "報酬先放著。今晚不再發燒，明天再談別的。"
             },
             {
                 "order": 11,
@@ -433,7 +433,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "neutral",
-                "text": "能走以後去十字路口。村長在等南路的消息。慢慢走，不准把暈倒算成捷徑。"
+                "text": "能走以後去十字路口。村長正在等南路的消息。慢慢來，頭暈就坐下。"
             },
             {
                 "order": 12,
@@ -533,7 +533,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "guarded",
-                "text": "米婭讓你出門，表示你至少聽得懂勸。南路發生了什麼？"
+                "text": "米婭說，你是在南路被找到的。還記得那裡發生了什麼嗎？"
             },
             {
                 "order": 10,
@@ -549,7 +549,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "neutral",
-                "text": "能走，不等於路能走。跟我來。伊萊有舊圖，也有本事在承認圖不可靠之後繼續查。"
+                "text": "最近出去巡路的人沒有回來。你看見的東西，也許和他們有關。跟我來，伊萊那裡留著以前的路圖。"
             },
             {
                 "order": 12,
@@ -601,7 +601,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "pleased",
-                "text": "你就是米婭從路邊撿回來的那位。請坐。那張椅子沒有斷，只是很有自己的看法。"
+                "text": "你就是米婭救回來的那位？請坐。椅子會響，但不會塌——至少昨天還不會。"
             },
             {
                 "order": 4,
@@ -609,7 +609,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "guarded",
-                "text": "人先別坐壞。南路的東西聚在一起，根往北走。"
+                "text": "南路的怪物突然聚集，附近還發現一路向北延伸的黑色樹根。失蹤的巡路人可能經過那一帶。"
             },
             {
                 "order": 5,
@@ -625,7 +625,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "neutral",
-                "text": "舊圖只告訴我們路以前在哪裡。現在得看三處：南門外田埂的腳印、獵人棧道的繩結、舊營火地的煙灰。順序隨你。"
+                "text": "這張圖只能告訴我們舊路怎麼走。南門外的田埂、獵人棧道，還有這處舊營地。那裡若有人經過，多少會留下些東西。"
             },
             {
                 "order": 7,
@@ -633,7 +633,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "guarded",
-                "text": "看見什麼就記什麼。沒有腳印也算答案，別替紙補上它想要的東西。"
+                "text": "看到什麼就記什麼，沒看到也記下一筆。這張圖已經夠會誤導人了，連水漬都想冒充山脈。"
             },
             {
                 "order": 8,
@@ -641,7 +641,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "resolute",
-                "text": "天色變前回來。遇到堵路的，不必為了證明勇敢硬闖。"
+                "text": "天黑以前回來。路斷了就記下，怪物太多就繞開。實在過不去，就回頭。"
             },
             {
                 "order": 9,
@@ -657,7 +657,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "neutral",
-                "text": "因為我們缺的不是怪物的數量。我得先知道哪條路還能把人送回來。"
+                "text": "我們需要的是能把消息帶回來的人。多殺幾隻怪物，現在救不了那些失蹤的人。"
             },
             {
                 "order": 11,
@@ -665,7 +665,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "pleased",
-                "text": "手札拿好。紙怕水、怕火，也怕自信過頭的人。第三樣最常見。"
+                "text": "手札拿好。不確定的地方就留白，別看著舊圖替它猜答案。"
             },
             {
                 "order": 12,
@@ -717,7 +717,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
                 "expression": "pleased",
-                "text": "要出門？名字留一下。出去一個，回來也得一個，別逼我把你寫成兩行。"
+                "text": "要出門？名字寫這裡。回來後在旁邊補上時間。"
             },
             {
                 "order": 4,
@@ -733,7 +733,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
                 "expression": "resolute",
-                "text": "田埂最近，棧道最窄，舊營火地回程最容易起霧。累了就折返，手札不值得拿命補完。"
+                "text": "先走田埂。棧道的木板不太穩，天黑後不要走那邊。舊營地傍晚會起霧，來不及就明天再去。"
             },
             {
                 "order": 6,
@@ -749,7 +749,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "lamplighter_tavi",
                 "expression": "guarded",
-                "text": "如果霧提早下來，看路左邊的燈。火很小，但玻璃還沒裂。應該……還看得見。"
+                "text": "霧要是提早下來……看左邊那盞燈。火小了些，別離它太遠就好。"
             },
             {
                 "order": 8,
@@ -757,7 +757,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
                 "expression": "pleased",
-                "text": "他說「應該」的時候，通常已經檢查過三次。這點可以信。"
+                "text": "他剛檢查過。燈的位置可以信。"
             },
             {
                 "order": 9,
@@ -765,7 +765,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "lamplighter_tavi",
                 "expression": "neutral",
-                "text": "四次。剛才風向變了。"
+                "text": "我不知道這算不算……只是那盞燈，今晚滅了四次。"
             },
             {
                 "order": 10,
@@ -781,7 +781,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
                 "expression": "soft",
-                "text": "去吧。回來時喊一聲。我不喜歡只看見影子走近門。"
+                "text": "去吧。進門前喊一聲，起霧後看不清臉。"
             },
             {
                 "order": 12,
@@ -969,7 +969,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "guarded",
-                "text": "腳印告訴我們牠們改了方向，銀線告訴我們有東西學會守回程，樹脂則把兩件事接回那道黑根。這還不是答案，但已經不是巧合。"
+                "text": "腳印在半路改了方向，銀線封住回程，線上的樹脂也和舊營地的黑根一樣。這些一定有關，但我們還不知道是什麼關係。"
             },
             {
                 "order": 3,
@@ -977,7 +977,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "guarded",
-                "text": "你親眼走過。告訴我，你認為該停在這裡，還是沿著根往林子裡查？"
+                "text": "三條路你都親自走過。那些黑根只出現在路邊，還是一路延伸進了林子？"
             },
             {
                 "order": 4,
@@ -993,7 +993,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "resolute",
-                "text": "那就查到能證明它從哪裡來為止。先把裝備處理好。我不會一面叫你別逞強，一面把你拿去餵林子。"
+                "text": "好。那就繼續查。先讓鐵匠看看你的裝備。既然要進林子，我至少得確定你還有東西能保住自己。"
             },
             {
                 "order": 6,
@@ -1017,7 +1017,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "guarded",
-                "text": "米婭放你出來，不代表你該把自己磨成第二件廢鐵。武器給我。"
+                "text": "站都站不穩，還帶著這東西亂跑。拿來。"
             },
             {
                 "order": 9,
@@ -1033,7 +1033,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "neutral",
-                "text": "爐子沒死，關節卡了。你拉住那邊，我把線穿回去。別鬆手，鬆了它先打我，再打你。"
+                "text": "風箱的接帶脫槽了。你拉住那邊，我把線穿回去。別鬆手，它彈回來先打我，再打你。"
             },
             {
                 "order": 11,
@@ -1049,7 +1049,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "pleased",
-                "text": "看吧，還會喘。比你剛送來的裝備有出息。"
+                "text": "行，火回來了。把那把刀放下，刃口比村口那條路還歪。"
             },
             {
                 "order": 13,
@@ -1065,7 +1065,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "resolute",
-                "text": "基本修補我能做。更好的東西得等路、料和圖都回來。別拿金幣問爐子為什麼不吃空氣。"
+                "text": "基本修補我能做。要做更好的，得先有材料和圖紙。現在庫房還是空的。"
             },
             {
                 "order": 15,
@@ -1293,7 +1293,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
                 "expression": "pleased",
-                "text": "一行出去，一行回來。很好，我今天不用改規矩。"
+                "text": "回來了？正好。名字後面補上時間，省得我換班後還得沿路找人。"
             },
             {
                 "order": 4,
@@ -1325,7 +1325,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "town_scholar",
                 "expression": "guarded",
-                "text": "三處路況、伏擊方式、根心搏動都對得上。附近會安靜一陣，但「安靜」不能寫成「安全」。"
+                "text": "三處的紀錄都對得上。目前沒有發現新的痕跡，但我還不能說道路已經安全。"
             },
             {
                 "order": 8,
@@ -1333,7 +1333,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "village_elder",
                 "expression": "neutral",
-                "text": "就這樣寫。明天有人看見這頁，得知道自己能走多遠，也得知道哪裡不能信。"
+                "text": "照實寫。哪裡能走，哪裡還有怪物，都標清楚。明天還會有人照著這一頁出門。"
             },
             {
                 "order": 9,
@@ -1341,7 +1341,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "neutral",
-                "text": "我把南路傷口的配方整理好了。貨路一通，市集可以照方備藥；現在只有紙，別把紙當成瓶子。"
+                "text": "我把治療南路麻痺的配方寫好了。貨路恢復以後，市集才有材料配藥。現在還做不出來。"
             },
             {
                 "order": 10,
@@ -1349,7 +1349,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "guarded",
-                "text": "手給我。你回來了，不代表南路那種麻痺有禮貌到一起離開。"
+                "text": "手給我。先確認麻痺真的退了。"
             },
             {
                 "order": 11,
@@ -1365,7 +1365,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "pleased",
-                "text": "冷熱分得出來。很好。今天至少是你自己走回來的。"
+                "text": "冷熱都分得出來。今晚不再發麻，就不用重新換藥。"
             },
             {
                 "order": 13,
@@ -1389,7 +1389,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "pleased",
-                "text": "爐子會燒，門也還站著。先別替我慶祝，等你們把能運煤和鐵的路找回來再說。"
+                "text": "爐子能用了。我可以先修鍋和門鉸。煤和鐵運不進來，武器的事還得等。"
             },
             {
                 "order": 16,

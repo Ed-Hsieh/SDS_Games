@@ -9,20 +9,10 @@ import {
     getGeneratedMonsterImage
 } from '../data/AssetManifest.js';
 import { markItemKnown } from './EncyclopediaManager.js';
+import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
-
-const MONSTER_EFFECTS = Object.freeze({
-    fire: 'breath',
-    ice: 'projectile',
-    thunder: 'projectile',
-    poison: 'curse',
-    shadow: 'curse',
-    glimmer: 'projectile',
-    light: 'projectile',
-    void: 'curse'
-});
 
 function scaleStat(value, levelDelta, growth, minimum = 1) {
     const delta = clamp(levelDelta, -12, 12);
@@ -63,7 +53,6 @@ function buildWeaponEntry(item, character, monster, slot) {
         damage,
         cooldown: Math.max(0.32, 1 / speed),
         windup: ['heavy', 'focus'].includes(effect) ? 0.2 : 0.09,
-        breakPower: Math.max(8, Math.round(damage * (effect === 'heavy' ? 0.72 : 0.42))),
         critDamage: readNumber(character?.getCritDamage?.(), 1.5),
         enabled,
         triggerBuff: element ? {
@@ -74,41 +63,6 @@ function buildWeaponEntry(item, character, monster, slot) {
             modifiers: {}
         } : null
     };
-}
-
-function buildMonsterAttacks(monster, playerDefense) {
-    const rawAttack = readNumber(monster.attack ?? monster.atk, 5);
-    const baseDamage = Math.max(1, Math.round(rawAttack - playerDefense * 0.5));
-    const element = String(monster.element || '').toLowerCase();
-    const elementalEffect = MONSTER_EFFECTS[element] || 'claw';
-    const speed = Math.max(0.5, readNumber(monster.attackSpeed, 1));
-    const telegraphScale = clamp(1.15 / speed, 0.62, 1.45);
-    const skillNames = (monster.skills || [])
-        .map(skill => typeof skill === 'string' ? skill : skill?.name)
-        .filter(Boolean);
-
-    return [
-        {
-            id: `${monster.id}_basic`,
-            name: skillNames[0] || '逼近攻勢',
-            effect: 'claw',
-            damage: baseDamage,
-            telegraph: 1.05 * telegraphScale,
-            impactDelay: 0.27,
-            recovery: 1.05 * telegraphScale,
-            breakThreshold: Math.max(18, Math.round(monster.maxHp * 0.16))
-        },
-        {
-            id: `${monster.id}_pressure`,
-            name: skillNames[1] || (element ? '元素壓迫' : '蓄力重擊'),
-            effect: elementalEffect === 'claw' ? 'crush' : elementalEffect,
-            damage: Math.max(1, Math.round(baseDamage * 1.35)),
-            telegraph: 1.48 * telegraphScale,
-            impactDelay: elementalEffect === 'projectile' ? 0.72 : 0.31,
-            recovery: 1.55 * telegraphScale,
-            breakThreshold: Math.max(28, Math.round(monster.maxHp * 0.24))
-        }
-    ];
 }
 
 export function createCombatEncounter(monster, options = {}) {
@@ -143,8 +97,7 @@ export function createCombatEncounter(monster, options = {}) {
             visualScale: options.visualScale || (monster.isElite ? '1.02' : '0.94'),
             feed: options.feed || `${monster.name}進入攻擊距離。`,
             initialDelay: 1.2,
-            interruptedDelay: 1.35,
-            attacks: buildMonsterAttacks(monster, playerDefense)
+            attacks: buildMonsterCombatActions(monster, playerDefense)
         },
         player: {
             name: character?.name || '玩家',

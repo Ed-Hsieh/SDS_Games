@@ -1,6 +1,6 @@
 # Blacksmith Character Profile
 
-Last updated: 2026-07-10
+Last updated: 2026-07-17
 
 ## Purpose
 
@@ -318,6 +318,23 @@ Use this sparingly. His main emotional language is work.
 
 ## Dialogue Voice
 
+The blacksmith notices before he performs personality. A bad step, reopened
+wound, chipped edge, loose clasp, bent plate, or careless repair gives him the
+reason to speak. Do not open his scenes with a crafted insult that could have
+been delivered to anyone.
+
+His usual movement is:
+
+1. Notice one concrete fault in the person, equipment, or way it was used.
+2. Criticize the method, neglect, or unnecessary risk.
+3. Take the object, adjust it, or give one direct instruction.
+4. Let care appear through the work rather than a declaration.
+
+He may talk more than a clipped stereotype. He can curse the equipment, explain
+what damaged it, and mock the user in the same exchange. The target remains the
+bad method, ruined tool, or reckless choice. He does not reduce the person to
+worthlessness.
+
 He should sound:
 
 - Blunt.
@@ -330,8 +347,40 @@ He should sound:
 Good line shape:
 
 - Insult the equipment.
-- Give practical advice.
+- Tie the damage to how it was probably used.
+- Give practical advice or physically correct the fault.
 - Reveal care accidentally.
+
+His comparisons must be immediate and easy to understand. A crooked blade may
+be compared to the road outside the gate because both are visibly crooked. Do
+not build a complete literary metaphor in which equipment and people become a
+matched symbolic pair before he can speak.
+
+Expression use:
+
+- `neutral`: inspecting ordinary damage, explaining a repair, or giving direct
+  maintenance advice.
+- `guarded`: the person's gait, wound, or equipment condition shows an immediate
+  safety problem. He observes first and speaks plainly; this is not a cue for an
+  elaborate character-introduction insult.
+- `pleased`: a repair catches, the forge works again, or a simple object-grounded
+  joke lands while everyone is presently safe.
+- `soft`: concern can no longer hide behind mockery. He remains blunt and
+  work-focused rather than becoming a gentle mentor.
+- `resolute`: someone must stop using unsafe gear, leave the work area, or follow
+  a technical instruction immediately.
+
+Accepted calibration examples:
+
+- `劍崩了三個口。你是拿它砍東西，還是拿它跟石頭吵架？`
+- `站都站不穩，還帶著這東西亂跑。` He holds out his hand, then says only:
+  `拿來。`
+- `還知道回來。` He glances at the person, returns to the clasp, and adds:
+  `行。東西放那邊，先去休息吧。`
+- `裝備壞了就丟了，我能做出更好的。` He fastens the shoulder plate and
+  lowers his voice: `人不一樣。別丟在外面。`
+- `這把刀的刃口比村口那條路還歪。`
+- `誰補的？算了，別告訴我。我怕我認識他。`
 
 Avoid:
 
@@ -340,6 +389,20 @@ Avoid:
 - Too much backstory exposition.
 - Softening him into a gentle mentor too early.
 - Making every line only a joke.
+- Reusing another NPC's permission, such as whether Mia allowed the protagonist
+  outside, as a routine forge-scene opener.
+- Insulting a person's worth, intelligence, body, injury, grief, or trauma.
+- Treating near-death, disappearance, or a person who failed to return as joke
+  material.
+- Writing a polished metaphor before he has observed a physical fault.
+- Letting mockery replace the practical repair information the player needs.
+
+Tone follows town state. While people are safe, mockery and hammer rhythm make
+the forge feel alive. Under growing concern, jokes shorten and direct
+instructions take over. After fixed first-run losses, he may be unable to insult
+the equipment at all; he says what he is afraid of plainly. This is not a new
+soft personality. It is the loss of the verbal cover that once protected his
+care.
 
 ## Story-System Notes
 
