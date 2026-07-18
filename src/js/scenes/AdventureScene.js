@@ -1,4 +1,5 @@
 import GameManager from '../managers/GameManager.js';
+import { unlockBossCraftRecipes } from '../managers/BlueprintManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
 import CombatFlowController from '../managers/CombatFlowController.js?v=20260717t';
 import {
@@ -105,7 +106,9 @@ export default class AdventureScene {
             isSceneComplete: encounter => Boolean(encounter?.storyBoss),
             onBattleStateChange: (result) => {
                 if (result === 'victory' && this.activeEncounter?.storyBoss?.bossId) {
-                    GameManager.setFlag(`boss.${this.activeEncounter.storyBoss.bossId}.defeated`, true);
+                    const bossId = this.activeEncounter.storyBoss.bossId;
+                    GameManager.setFlag(`boss.${bossId}.defeated`, true);
+                    unlockBossCraftRecipes(bossId);
                 }
                 const storyContract = this.activeEncounter?.storyContract;
                 if (storyContract && result === 'victory') {

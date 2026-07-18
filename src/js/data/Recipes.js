@@ -19,6 +19,8 @@
 import { AffixStat, ItemRarity, EquipmentType, ItemType, WeaponForm } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
 import { SeriesRecipeDatabase } from './RecipeSeries.js';
+import { EquipmentDatabase } from './Equipment.js';
+import { FirstRunBossRecipeAdditions, FirstRunRecipeAdditions, FirstRunRecipeLevels, FirstRunRetiredRecipeIds } from './FirstRunLootBalance.js';
 
 
 export const RecipeDatabase = {
@@ -1192,6 +1194,13 @@ export const RecipeDatabase = {
 };
 
 Object.assign(RecipeDatabase, SeriesRecipeDatabase);
+Object.assign(RecipeDatabase, FirstRunRecipeAdditions);
+Object.assign(RecipeDatabase, FirstRunBossRecipeAdditions);
+for (const recipeId of FirstRunRetiredRecipeIds) delete RecipeDatabase[recipeId];
+for (const recipe of Object.values(FirstRunBossRecipeAdditions)) {
+    const canonical = EquipmentDatabase[recipe.resultId];
+    if (canonical) recipe.result = { ...canonical };
+}
 
 const RECIPE_RESULT_LEVELS = Object.freeze({
     iron_sword: 1,
@@ -1230,7 +1239,8 @@ const RECIPE_RESULT_LEVELS = Object.freeze({
     assassin_shadow_veil: 63,
     demonwar_helm: 68,
     dragon_overlord_crown: 70,
-    slime_crown_ring: 8
+    slime_crown_ring: 8,
+    ...FirstRunRecipeLevels
 });
 
 Object.entries(RecipeDatabase).forEach(([recipeId, recipe]) => {

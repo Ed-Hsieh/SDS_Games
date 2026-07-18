@@ -1,6 +1,6 @@
 # Town Rebuild Convergence
 
-Last updated: 2026-07-11
+Last updated: 2026-07-18
 
 ## Purpose
 
@@ -224,23 +224,23 @@ long-form character arcs, or mainline reveals that affect town staging.
 
 ## Next Integration Order
 
-Current checkpoint on 2026-07-11: items 1-4 are implemented as the reviewable
-runtime foundation. They are protected by `StoryRuntimeCheck.mjs`,
+Current checkpoint on 2026-07-18: screenplay bindings, town places,
+`TownStateResolver`, public market ownership, forge entry, and obsolete
+apothecary/reserve-service removal are implemented as a reviewable runtime
+foundation. They are protected by `StoryRuntimeCheck.mjs`,
 `TownRuntimeCheck.mjs`, and `GameExperienceAudit.mjs`.
 
-1. Bind all 66 screenplay scenes to regional, location, town, or memory/ending
-   stages and finalize first/second-run chronology.
-2. Write full dialogue and staging metadata against the accepted place states.
-3. Define the exact new story flags, route-return outputs, baseline market state,
-   and character-fate inputs.
-4. Remove obsolete apothecary, reserve-resident, market-card, and old route rules;
-   then reauthor `TownStateResolver`, town places, and service entry points against
-   this contract.
-5. Playtest Chapter 1 through Chapter 2 town return, market reopening, Mia's
-   recipe authorization, and forge recovery before later service wiring.
-6. Finalize map functionality, then assign rewards, stock layers, materials,
-   equipment sources, and optional-side-story owners together.
-7. Add final UI copy and missing images only after those data links are locked.
+Remaining order:
 
-Image generation remains intentionally deferred; no replacement asset registry
-is created during this pass.
+1. Complete the Chapter 1-2 no-skip town-return review, including market
+   reopening, Mia's recipe authorization, forge recovery, and character absence
+   states.
+2. Finalize map and scene functions before assigning final rewards, stock layers,
+   drop rates, and optional-side-story owners.
+3. Bind approved town-state backgrounds to the resolver states and review them
+   in the same camera geometry; image production has started, but runtime binding
+   is incomplete.
+4. Add final ambient copy only after state, stock, and scene ownership agree.
+
+Do not recreate an apothecary, reserve vendor, market-card compatibility layer,
+or alternate town-state resolver while completing these steps.

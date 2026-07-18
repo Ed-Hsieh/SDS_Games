@@ -1,6 +1,6 @@
 # Equipment Series Framework
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 This document defines the intended equipment-series, weapon-form, and affinity
 positioning for future combat and item passes. Runtime JS/data remains the
@@ -33,9 +33,15 @@ direction before those systems are rewritten.
   exploration, risk, or preparation.
 - Do not make every special weapon a sword. Every level band should include
   enough weapon-form support that a player is not forced out of a preferred form.
-- Do not multiply every level band into every weapon form. Use series crafts as
-  coverage, and let special gear selectively highlight monsters, dungeons, and
-  bosses.
+- Every ten-level band owns one complete baseline craft series with sword,
+  dagger, heavy weapon, spear/lance, and staff/focus. This is the guaranteed
+  continuation path for a player who wants to keep one preferred weapon form.
+- A complete five-form baseline series counts as one series unlock and one
+  source event. Its five finished weapons do not consume the special-craft,
+  monster-drop, dungeon, Boss, or quest-unique quotas.
+- Special gear selectively highlights monsters, dungeons, and bosses. It may
+  favor particular forms because the complete baseline series already protects
+  every form from an acquisition gap.
 - `weaponSpeed` means rhythm-ring pointer speed. Higher values are harder to
   control.
 - `attackSpeed` means attack cooldown/frequency. Higher values attack more
@@ -43,6 +49,190 @@ direction before those systems are rewritten.
 - Weapon-form effects should not duplicate affinity effects. For example, sword
   should not keep an attack-speed identity if glimmer/light already owns rhythm
   acceleration.
+
+## Formal Weapon Distribution Contract
+
+`src/js/data/WeaponProgression.js` is the machine-readable authority for the
+seven Lv10 bands, five formal weapon forms, acquisition roles, source budgets,
+and focus-element boundaries. `src/js/data/MonsterEcology.js` owns the monster
+side of the same source graph. Neither file authorizes final stats or final drop
+rates.
+
+Every formal weapon is classified on four independent axes:
+
+1. Level band: `1-10`, `11-20`, `21-30`, `31-40`, `41-50`, `51-60`, or `61-70`.
+2. Form: sword, dagger, heavy, lance, or focus.
+3. Acquisition role: starter, weak fallback, monster chase, special craft,
+   dungeon reward, or Boss signature.
+4. Source dispersion: which monster, habitat, dungeon, blueprint, and material
+   sources participate in the acquisition chain.
+
+Overall source coverage and craft-only continuity are different requirements.
+Monster, dungeon, and Boss items may make all five forms visible in a band, but
+they do not replace the baseline series. A player must be able to enter every
+ten-level band and craft the next sword, dagger, heavy weapon, spear/lance, or
+staff/focus without relying on random drops.
+
+| Level band | Baseline craft obligation | Chapter material/group themes |
+| --- | --- | --- |
+| 1-10 | One complete five-form baseline series. | Woodland, beast, survival. |
+| 11-20 | One complete five-form baseline series. | Undead, bone, glimmer. |
+| 21-30 | One complete five-form baseline series. | Shadow, expedition, coast. |
+| 31-40 | One complete five-form baseline series. | Stone, ancient, forge. |
+| 41-50 | One complete five-form baseline series. | Fire, ice, thunder, poison. |
+| 51-60 | One complete five-form baseline series. | Dragon, seal, cliff. |
+| 61-70 | One complete five-form baseline series. | Demon, fall site, endgame. |
+
+### Ten-Level Allocation Contract
+
+For every ten-level band:
+
+- Baseline craft always provides exactly five form variants: sword, dagger,
+  heavy weapon, spear/lance, and staff/focus. Unlocking the series opens all
+  five variants together; the player crafts only the form they want.
+- Boss and dungeon representative equipment contribute one or two items in
+  total. A single Boss still follows its own one-representative-object limit.
+- Special craft contributes one or two finished items. It excludes baseline
+  five-form coverage, Boss/dungeon core crafts, and quest-unique weapons.
+- Normal and elite monsters contribute two or three special finished-equipment
+  drops in total. Materials do not count. A monster blueprint result counts as
+  special craft, not as a direct monster special drop.
+- Quest-unique weapons have no fixed quota. They exist only when a character,
+  event, or story object logically produces that weapon. They use fixed,
+  non-random acquisition, do not fill baseline form gaps, and do not count
+  toward another allocation quota.
+
+Every item belongs to one allocation category. Do not count the same finished
+item as both a direct monster drop and a special craft merely because its recipe
+or material also comes from a monster.
+
+Chapter 1 uses six compact equipment-material groups: slime/alchemy,
+beast/hunter, goblin/scrap, toxin/silk, stone/ore, and forest/nature. Junk and
+food are tracked as non-progression loot and do not count as extra equipment
+groups. This is broad enough to distinguish its nine monsters without making
+the first forge layer demand six unrelated rare currencies.
+
+### Drop And Craft Source Budgets
+
+- Normal monster: one signature material, one common material, and at most one
+  direct equipment candidate.
+- Elite: one rare-material identity; equipment or blueprint is the primary
+  reward, not both as a complete self-contained chain.
+- Dungeon Boss: one core, at most one signature equipment object, and one
+  special craft line.
+- Main Boss: exactly one representative object that visibly matches the Boss;
+  remaining output is material or system progression.
+- Every regional ecology must have at least three monster species contributing
+  material, direct-equipment, or blueprint sources. A region may not function as
+  one monster carrying the entire acquisition graph.
+- A non-unique material should normally have two or three sources. A rare
+  material uses one primary source and one low-rate alternative. A Boss core may
+  be unique, but a recipe may require at most one Boss core.
+- A recipe combines two or three source layers in low quantities. One monster
+  may not provide the blueprint, every ingredient, and the final item.
+- A five-form series blueprint counts as one source event, not five separate
+  weapon drops.
+
+### Series Blueprint Contract
+
+- Every ten-level band has one series blueprint id and five finished recipe ids.
+- The series blueprint is a guaranteed forge or chapter unlock. It must never
+  depend on a random monster drop, because it is the weapon-form safety net.
+- One series blueprint image shows all five exact finished weapons together:
+  sword, dagger, heavy weapon, spear/lance, and staff/focus.
+- `slime_series.webp` is the approved composition reference. Future series
+  sheets follow its five-object readability, but use their own chapter material
+  identity and must match the final individual equipment images.
+- Individual weapon blueprints are not required for baseline-series variants.
+  Special crafts still use one blueprint image per finished item.
+- Baseline strength stays below special drops and special crafts. Low material
+  quantities and guaranteed access are its advantages, not superior power.
+
+### Locked First-Run Baseline Series
+
+These seven series are the complete Lv1-Lv70 craft-only continuation path. The
+five ids in one row unlock together and share the row's single blueprint image.
+
+| Chapter / band | Series | Five weapon variants | Material language |
+| --- | --- | --- | --- |
+| 1 / Lv1-10 | `slime_series` / 青凝工藝 | `slime_series_sword`, `slime_series_dagger`, `slime_series_hammer`, `slime_series_spear`, `slime_series_staff` | Slime gel, scrap iron, bound wood. |
+| 2 / Lv11-20 | `bone_series` / 白骨工藝 | `bone_series_sword`, `bone_series_dagger`, `bone_series_hammer`, `bone_series_spear`, `bone_series_staff` | Bone plates, teeth, crude iron. |
+| 3 / Lv21-30 | `expedition_series` / 遠征工藝 | `expedition_series_sword`, `expedition_series_dagger`, `expedition_series_hammer`, `expedition_series_spear`, `expedition_series_staff` | Recovered expedition iron and standardized field fittings. |
+| 4 / Lv31-40 | `runic_series` / 刻紋工藝 | `runic_series_sword`, `runic_series_dagger`, `runic_series_hammer`, `runic_series_spear`, `runic_series_staff` | Mithril, shallow runes, stabilized earth traces. |
+| 5 / Lv41-50 | `fourfold_series` / 四象工藝 | `fourfold_series_sword`, `fourfold_series_dagger`, `fourfold_series_hammer`, `fourfold_series_spear`, `fourfold_series_staff` | Controlled low-density fire, ice, thunder, and poison treatment. |
+| 6 / Lv51-60 | `sealstone_series` / 封脈工藝 | `sealstone_series_sword`, `sealstone_series_dagger`, `sealstone_series_hammer`, `sealstone_series_spear`, `sealstone_series_staff` | Seal stone, low-grade drake scale, restrained runes. |
+| 7 / Lv61-70 | `helliron_series` / 獄鐵工藝 | `helliron_series_sword`, `helliron_series_dagger`, `helliron_series_hammer`, `helliron_series_spear`, `helliron_series_staff` | Hell iron, demon horn structure, insulated soul traces. |
+
+The series names, ids, forms, and chapter bands are locked for blueprint and
+equipment production. Provisional combat numbers may still change during the
+later balance pass. Do not rename a variant after its individual equipment art
+or shared series blueprint has been approved without updating both assets.
+
+Material loot chance must stay proportional to recipe demand. The game does not
+use inflated material quantities to manufacture playtime, so high source count
+must not be paired with high per-kill quantities.
+
+### Main Boss Equipment Contract
+
+- Each mainline Boss owns exactly one direct representative equipment object.
+- Every mainline Boss representative is Legendary, but its numerical power is
+  constrained by the chapter where it appears. Legendary rarity does not turn
+  an early Boss reward into an endgame item.
+- The representative object remains exclusive to that Boss and must match the
+  object held or worn in the approved Boss illustration.
+- Existing secondary Boss equipment is obtained through a Boss-clear system
+  unlock and a low-quantity Boss-core recipe. It is never reassigned to a normal
+  monster merely to create another drop source.
+- A Boss-core recipe returns the canonical existing equipment id. It must not
+  create a second `crafted_*` copy of the same named equipment.
+- Reuse an existing approved Boss core and material image by default. Generate a
+  new Boss material only when the story and recipe function require a genuinely
+  different object.
+
+`life_seed` and `forest_essence` currently serve both ordinary loot language and
+late story-object language. Before final reward allocation, those records must
+be explicitly separated by purity/story identity or have the ordinary source
+removed. Do not silently treat a generic Chapter 1 drop as the rooted true-ending
+object.
+
+### Focus Element Boundary
+
+- Arcane Resonance supports fire, ice, thunder, and poison only.
+- A focus has at most one primary element. A neutral focus uses `magic_bolt`.
+- Baseline-series focuses are neutral when crafted and expose one replaceable
+  element-attunement slot. Attunement never adds a separate magic-power stat;
+  it writes the selected formal element directly into the equipment effects
+  already read by Arcane Resonance.
+- Attunement is deterministic. The player chooses fire, ice, thunder, or poison,
+  spends one matching material plus the forge fee, and replaces the previous
+  attunement in that same slot. There is no random result and no second element
+  slot.
+- A special focus with an authored fixed element cannot be overwritten. Shadow,
+  glimmer, light, and Void cannot be produced by ordinary forge attunement.
+- First-run access is deliberately staggered without an early-game element gap:
+  poison begins in Chapter 1 from poison spiders, ice begins in Chapter 2 from
+  the Lich route, thunder begins in Chapter 3 from the drowned-oracle route, and
+  fire begins in Chapter 4 from the ancient-titan route. Later regional sources
+  may improve availability without changing these first unlock chapters.
+- Nature, undead, glimmer, and shadow are group affinities, not resonance
+  elements. Formal light and Void remain external-story affinities.
+- Current formal focus coverage includes separate fire, ice, thunder, and poison
+  routes. `elemental_orb` remains an accessory/catalyst and must not become one
+  universal four-element focus.
+- `cursed_shard` is reserved for a Lv24-40 cursed/shadow special craft. Its
+  present drop source is not permission to leave it without a recipe.
+
+### Expedition Series Material Boundary
+
+- The Chapter 3 expedition series is neutral human military equipment, not a
+  shadow series. Its shared rare component is `expedition_steel_fragment`.
+- Expedition steel fragments are recovered from standardized fittings carried
+  by shadow soldiers, archers, and halberdiers. Shadow residue explains the
+  source encounter, but is cleaned away before forging and does not grant an
+  element.
+- The baseline expedition recipes use iron ore plus one expedition steel
+  fragment. `shadow_shard` and `dark_steel` remain available to separate chase
+  equipment and may not silently replace this series component.
 
 ## Weapon Form Quadrants
 
@@ -191,8 +381,8 @@ monster-group affinities. Do not automatically feed them into `Arcane Resonance`
 
 ## Current Series Positioning Notes
 
-- `slime_series` and `bone_series` should stay as weak fallback series. Their
-  job is coverage, not excitement.
+- All seven baseline series stay weak fallback series. Their job is guaranteed
+  form continuity, not excitement or best-in-band power.
 - `spider_venom`, `jungle_series`, and `hydra_venom` should form the poison and
   fast-weapon pressure path.
 - `glimmer_initiate` should express minor rhythm/focus support, not replace
@@ -205,80 +395,47 @@ monster-group affinities. Do not automatically feed them into `Arcane Resonance`
   builds using fire, ice, thunder, or poison.
 - `dragon_scale` and `dragon_slayer` must keep spear, armor, and accessory
   support visible so dragon content does not collapse into another sword line.
+- `cursed_shard` already has a drop source but no current use. Reserve it for
+  the formal weapon rebuild and assign it only when a matching cursed, undead,
+  or shadow recipe has a clear level band and acquisition role.
 - `radiant_series` is formal light, not merely stronger glimmer.
 - `void_tower` remains paused with tower rewrite. Do not expand it while tower
   systems are paused.
 
-## Implementation Targets
+## Current Implementation Checkpoint
 
-### Current Data-Normalization Checkpoint
+Validated first-run state:
 
-- [done] [P1] [equipment-data] Separate the `assassin_blade` equipment and material identities
-  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/Materials.js`, `src/js/data/Monsters.js`, `src/js/data/Recipes.js`
-  Source of truth: runtime equipment and material databases
-  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`
-  Notes: The equipment keeps `assassin_blade`; the crafting material is now `assassin_blade_fragment` and owns a separate material asset.
+- The formal catalog contains 76 first-run weapons: 35 baseline-series weapons
+  and 41 special weapons.
+- All seven Lv10 bands have one complete sword, dagger, heavy, lance, and focus
+  baseline series. The formal audit reports no unknown forms or blueprint gaps.
+- The five formal combat identities are implemented: Steady Stance, Quick
+  Chain, Bulwark Guard, Piercing Line, and Arcane Resonance.
+- Neutral baseline focuses support one replaceable fire, ice, thunder, or poison
+  attunement without a separate magic-power stat.
+- `assassin_blade`, `wolf_fang`, canonical forge materials, and obsolete starter
+  equipment have completed normalization.
+- The approved current batch contains 53 equipment images and 21 formal
+  blueprint images. Baseline series use one shared five-object blueprint instead
+  of obsolete per-form blueprint files.
 
-- [done] [P1] [equipment-data] Consolidate the wolf-fang material and necklace flow
-  Owner file(s): `src/js/data/Materials.js`, `src/js/data/Quests.js`, `src/js/data/Recipes.js`
-  Source of truth: `src/js/data/Materials.js`, `src/js/data/Recipes.js`
-  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/ItemFlowCheck.mjs`
-  Notes: `wolf_fang` is only a material; the duplicate quest-reward necklace was removed and the necklace remains a blueprint craft.
+Open work:
 
-- [done] [P1] [material-data] Give forge materials one canonical definition
-  Owner file(s): `src/js/data/Materials.js`, `src/js/data/Items.js`
-  Source of truth: `src/js/data/Materials.js`
-  Validation: import `Items.js`; run `scripts/DataConsistencyCheck.mjs`
-  Notes: `iron_shard`, `forge_core`, `high_ore`, and `rare_metal` shop records now derive their identity from `MaterialDatabase`; only purchase price is shop-owned.
+- [planned] [P1] [catalog-art] Review the remaining non-casino mappings
+  Owner file(s): `src/js/data/Recipes.js`, `src/js/data/BossEquipment.js`, `src/js/data/AssetManifest.js`
+  Source of truth: live recipe and Boss craft identities
+  Validation: `scripts/AssetCoverageCheck.mjs`, manual user approval
+  Notes: Six crafted results and five Boss craft blueprints remain; the 33 casino-special mappings are paused and excluded.
 
-- [done] [P1] [equipment-data] Remove obsolete starter equipment
-  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/AssetManifest.js`, `scripts/DifficultyProgressionCheck.mjs`
-  Source of truth: `src/js/data/Equipment.js`
-  Validation: `rg "old_sword|old_armor" src scripts`
-  Notes: `old_sword`, `old_armor`, their runtime images, and stale simulator references are removed.
+- [deferred] [P2] [material-use] Give `cursed_shard` one formal destination
+  Owner file(s): `src/js/data/Materials.js`, `src/js/data/Recipes.js`, `src/js/data/FirstRunLootBalance.js`
+  Source of truth: the Lv24-40 cursed, undead, and shadow source graph
+  Validation: `scripts/ItemFlowCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
+  Notes: Preserve its current source until a level-appropriate special craft is approved; do not let one monster own every source layer.
 
-- [in_progress] [P1] [equipment-data] Complete the formal weapon catalog audit
-  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/Recipes.js`, `src/js/data/RecipeSeries.js`, `src/js/data/BossEquipment.js`
-  Source of truth: live runtime databases plus this framework
-  Validation: `scripts/DataConsistencyCheck.mjs`, `scripts/EquipmentEffectCheck.mjs`, level-band/form audit
-  Notes: Same-name source collisions are resolved; the remaining work is weapon-form distribution by level band, blueprint inclusion, and elemental focus coverage. Casino weapons and tower redesign remain outside this pass.
-
-- [planned] [P2] [equipment-art] Review crafted-result identity before generating the remaining art
-  Owner file(s): `src/assets/images/art/items/equipment/`, `src/js/data/AssetManifest.js`
-  Source of truth: approved live recipe results and `docs/ART_STYLE_GUIDE.md`
-  Validation: `scripts/AssetCoverageCheck.mjs`, manual visual review in small batches
-  Notes: Forty-six crafted-result mappings remain; do not mass-generate them before each recipe result and blueprint identity is accepted.
-
-- [done] [P1] [combat] Replace sword Blade Tempo with Steady Stance
-  Owner file(s): `src/js/utils/WeaponCombatProfile.js`,
-  `src/js/managers/FightManager.js`, `src/js/utils/RhythmBarSystem.js`,
-  `src/js/scenes/AdventureScene.js`, `src/js/scenes/TowerScene.js`,
-  `src/js/utils/ItemDisplay.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `node --check src/js/managers/FightManager.js`;
-  `node scripts/DataConsistencyCheck.mjs`
-  Notes: Remove attack-speed sword identity so glimmer/light owns rhythm
-  acceleration.
-
-- [done] [P1] [combat] Replace focus slow trigger with Arcane Resonance
-  Owner file(s): `src/js/utils/WeaponCombatProfile.js`,
-  `src/js/managers/FightManager.js`, `src/js/utils/ItemDisplay.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `node --check src/js/managers/FightManager.js`;
-  `node scripts/DataConsistencyCheck.mjs`
-  Notes: Two-hit resonance should amplify fire/ice/thunder/poison or fire a
-  magic bolt when no element exists.
-
-- [done] [P1] [combat] Move heavy weapon away from armor break
-  Owner file(s): `src/js/utils/WeaponCombatProfile.js`,
-  `src/js/managers/FightManager.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `node --check src/js/managers/FightManager.js`;
-  `node scripts/DataConsistencyCheck.mjs`
-  Notes: Bulwark Guard must require armor equipped in the armor slot.
-
-- [in_progress] [P2] [data] Align equipment-line purposes with the new quadrant
-  Owner file(s): `src/js/data/RecipeSeries.js`, `src/js/data/Equipment.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `node scripts/EquipmentBalanceCheck.js`
-  Notes: This is a data pass after combat profile changes are approved.
+- [deferred] [P1] [balance] Assign final values and rates only after map-function review
+  Owner file(s): `src/js/data/Equipment.js`, `src/js/data/Recipes.js`, `src/js/data/Monsters.js`
+  Source of truth: live databases and user playtest feedback
+  Validation: `scripts/DifficultyProgressionCheck.mjs`
+  Notes: Do not add runtime multipliers or make this framework a second source of numeric truth.

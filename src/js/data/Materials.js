@@ -331,6 +331,17 @@ export const MaterialDatabase = {
         description: '被暗影侵蝕的鋼鐵。',
         craftUse: ['dark_sword', 'dark_armor']
     },
+
+    expedition_steel_fragment: {
+        id: 'expedition_steel_fragment',
+        name: '遠征鋼片',
+        icon: '⛓️',
+        type: ItemType.MATERIAL,
+        rarity: ItemRarity.UNCOMMON,
+        price: 48,
+        description: '二十年前遠征隊制式裝備上拆下的鋼片，孔位與厚度仍遵循同一套野戰規格。',
+        craftUse: ['expedition_series']
+    },
     
     shadow_arrow: {
         id: 'shadow_arrow',

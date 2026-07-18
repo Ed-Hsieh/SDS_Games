@@ -1,6 +1,6 @@
 # Chapter Quest Framework
 
-Last updated: 2026-07-11
+Last updated: 2026-07-19
 
 ## Purpose
 
@@ -8,8 +8,8 @@ The game is being stretched toward Lv1-Lv70 content. Main quests, side quests,
 town recovery, equipment sources, dungeons, and third-party sources need a shared
 chapter spine before rewards are redistributed.
 
-Combat redesign and tower rewrite are paused. This framework only defines where
-story and systems should land.
+Final combat balance and tower rewrite are paused. This framework defines where
+story, source structure, and systems should land without owning final values.
 
 ## Runtime Spine Files
 
@@ -17,8 +17,13 @@ story and systems should land.
 - `src/js/data/ChapterRegionRegistry.js` owns seven handcrafted regional maps,
   authored routes, fixed locations, and Boss convergence.
 - `src/js/data/Quests.js` contains one reward-free scene-driven record per chapter.
-- `src/js/data/OptionalSideStoryRegistry.js` holds seven deferred deepening
-  concepts; none is a playable quest or reward owner yet.
+- `src/js/data/OptionalSideStoryRegistry.js` holds 33 approved personal
+  stories (short, medium, and long for nine core characters plus the public
+  merchant and black-market trader) and six ensemble shorts. Chapter placement,
+  reward identity, mainline boundary, and
+  derived-resource needs passed user review on 2026-07-19. No entry becomes
+  playable before formal dialogue, assets, discovery interactions, runtime
+  records, and end-to-end validation are complete.
 - `scripts/StoryRuntimeCheck.mjs` validates scene, map, character, two-run, town,
   quest, and reward-deferral contracts.
 
@@ -65,6 +70,50 @@ reward or quest-placement tables.
 | 5 | 41-50 | 元素失衡 / The Elements Lose Their Shape | Elemental fronts, dungeon preparation, advanced forge planning, `elemental_lord` convergence, old expedition truth, elder death bridge. |
 | 6 | 51-60 | 龍守封痕 / The Dragon Guards The Scar | Immediate elder pursuit, dragon route pressure, first-run war, second-run evidence-bound non-attack, `elder_dragon` convergence, then return-town casino settlement. |
 | 7 | 61-70 | 墜落之地 / Where The Demon Fell | Echo Whistle route and corrected Ailo memory lead to Demon King convergence. First run achieves a genuine body kill but misses vitality, echo, and rooted core; second run closes all layers with current-run Life Seed, Ancient Rune, Forest Essence, and glimmer. Full light and Void remain outside mandatory mainline progression and may open only through optional second-run external routes. |
+
+## Monster Ecology Authority
+
+`src/js/data/MonsterEcology.js` is the runtime authority for campaign scope,
+chapter ownership, first-run roster size, second-run capacity, affinity group,
+and missing-art status. Level-only sampling must pass through that contract;
+formal light/Void, tower, reserve, and second-run external monsters may not leak
+into first-run random encounters.
+
+### Population Contract
+
+- First run contains 8-10 chapter-owned monsters including fixed route and main
+  Bosses. Chapter 1 is deliberately fixed at nine because its ecology is simple.
+- A normal habitat contains 3-4 normal monster types. A dangerous habitat may
+  contain three normal types and one elite. Bosses are fixed scene encounters,
+  never random habitat results.
+- Returning monsters are allowed only when the geography and story explain the
+  return. They do not count as a new image requirement.
+- Second run has a final capacity of exactly 12 monsters per chapter, including
+  exactly one chapter external Boss. This is a capacity interface only: it does
+  not authorize second-run routes, drops, combat, lore, flags, or art yet.
+- Formal light and Void creatures stay in optional second-run external areas and
+  never enter the mandatory mainline habitat tables.
+
+| Chapter | Level | First-run roster | Count | Second-run additions | External Boss reserve |
+| ---: | ---: | --- | ---: | ---: | --- |
+| 1 | 1-10 | `slime`, `giant_rat`, `goblin`, `wild_wolf`, `poison_spider`, `stone_golem_mini`, `treant` (elite), `ambush_mantis`, `forest_guardian` | 9 | 3 | `prologue_blood_moon_stag` |
+| 2 | 11-20 | `skeleton`, `skeleton_warrior`, `ghost`, `cave_bat`, `stone_golem`, `glimmer_sprite`, `rune_wisp`, `lich` | 8 | 4 | `nameless_curse` |
+| 3 | 21-30 | `ghost`, `skeleton_warrior`, `shadow_soldier`, `shadow_archer`, `shadow_halberdier`, `shadow_mage`, `drowned_oracle`, `shadow_commander` | 8 | 4 | `expedition_supreme_commander` |
+| 4 | 31-40 | `stone_golem_mini`, `stone_golem`, `ancient_guardian`, `crystal_golem`, `earth_elemental`, `rune_keeper`, `thorn_witch`, `ancient_titan` | 8 | 4 | `ash_baron_external` |
+| 5 | 41-50 | `fire_elemental`, `ember_beast`, `ice_elemental`, `frost_wolf`, `thunder_elemental`, `storm_raptor`, `poison_frog`, `vine_beast`, `starvein_lurker`, `elemental_lord` | 10 | 2 | `entropy_balance_external` |
+| 6 | 51-60 | `wyvern`, `drake`, `cliffscale_hatchling`, `sealstone_guardian`, `dragon_seal_sentinel`, `dragon_seal_adept`, `dragon_knight`, `elder_dragon` | 8 | 4 | `light_trial_external` |
+| 7 | 61-70 | `hell_hound`, `tormented_soul`, `lava_golem`, `demon_soldier`, `shadow_assassin`, `shadow_general`, `demon_general`, `demon_lord_asariel` | 8 | 4 | `void_revelation_external` |
+
+Chapter 1 habitat ownership is fixed for the first rebuild: the wet woodland
+uses wolf, spider, and rat; the dangerous rotroot woodland uses wolf, small stone
+golem, and the elite treant. `orc_warrior` is reserve content until `orc_fang`
+has a real downstream use. `shadow_bat` was removed as an early shadow creature
+and replaced at the core by neutral Chapter 2 `cave_bat`.
+
+Thirteen first-run monster images remain deliberately unbound and must be
+generated later: the ids are recorded in `RequiredFirstRunMonsterArtIds`. Runtime
+must show a missing-asset state during development rather than borrow unrelated
+monster art.
 
 ## Adventure Map Rebuild Contract
 
@@ -357,26 +406,108 @@ Placement rule:
 | 7 | 回聲盡頭，花仍會開 / Flower At The Echo's End | Long epilogue | Ailo, Neelu memory | Resolves the flower-field promise and restores `往下活著` without turning Neelu into a lore machine. The white-petaled, pale-green-centered flower is separated from dye work in memory and later arrives alone. | Achievement, unsigned flower letter, final handbook memory; no material reward. | The same flower must remain visually consistent across memory and letter; no explanatory tooltip or dialogue. |
 | 7 | 微光顯核 / Glimmer Reveals The Core | Medium / Late | `town_scholar`, `blacksmith`, `thorn_witch` route | Uses pure Forest Essence and the mainline Glimmer Shard only after Life Seed returns borrowed vitality and Ancient Rune pins the escaping echo. The combination exposes the rooted core without importing full light. | Three neutral anchor housings usable by every weapon form; true death is confirmed when all three cease reacting and the black pulse ends. | Full light, radiant dungeon access, a required legendary sword, and loop-aware Demon dialogue remain excluded from mandatory mainline; optional external progress never receives credit for the true kill. |
 
-## Optional Character-Deepening Side Stories V1
+## Optional Character-Deepening Side Stories V2
 
-These stories pass the skip test: removing every row leaves all mainline deaths,
-rescues, route keys, villain proof, and endings understandable. They add daily
-life, affection, humor, or relationship texture. Exact objectives and rewards
-remain deferred until the owning map or town function is implemented.
+The optional-story definition is character-first. Every recurring town character
+with an accepted runtime profile owns one short, one medium, and one long story.
+Short stories reveal habits and ordinary
+relationships; medium stories expose background or contradiction; long stories
+let the player understand the character's life and carry a story-matched durable
+reward. Positive, humorous, romantic, investigative, and painful stories are all
+valid when they follow the character's established worldview.
 
-| Chapter Window | Working Side Story | Characters | Optional Deepening | Mainline Boundary | Future Location / Function Owner |
+All 33 personal stories pass the skip test: removing every optional entry leaves
+all mandatory deaths, rescues, route keys, villain proof, and endings legible.
+Shared stories may count as relationship depth, but each core character still
+owns three personal entries. Exact stage objectives, scene prerequisites, reward
+bindings, map owners, and resource needs live in
+`OptionalSideStoryRegistry.js`.
+
+| Character | Short | Medium | Long | Chapter Coverage | Durable Reward Direction |
 | --- | --- | --- | --- | --- | --- |
-| 1-2 | 門外與桌內 / Outside The Door, Inside The Desk | `village_elder`, `town_scholar` | The two old friends process shelter changes and mutually correct each other's habits with the familiarity of people who survived from opposite sides of one gate. | Adds no expedition proof and cannot reveal or prevent the elder's departure. | Civic-room revisit and resident-notice interaction. |
-| 2-3 | 沒有病歷的下午 / An Afternoon Without A Case | Mia | The protagonist helps with ordinary work while Mia repeatedly invents one more task instead of resting; affection and self-neglect appear without an emergency. | Contains no shard clue, surgery method, or rescue condition. | Mia workroom relationship revisit; never a shop or paid-heal menu. |
-| 2-3 | 旗影不替燈說話 / A Flag Cannot Speak For A Lamp | Frey, Tavi | Route-marking banter and conflicting work habits show how well they know each other before Gray Ridge. | Tavi's far-marker measurement and wind guard remain mandatory mainline beats. | South Gate and an already discovered short patrol segment. |
-| 2-4 | 先修鍋 / Repair The Pot First | `blacksmith` | Household repairs, resident priorities, and blunt jokes show what the forge protects when no Boss weapon is involved. | Does not unlock required forge tiers or provide required Boss equipment. | Forge revisit and visible household-repair queue. |
-| 2-4 | 沒有用的東西 / Useless Things | Ailo | The player may watch or help Ailo sort scraps that carry tenderness only after the second-run memory recontextualizes them. | No whistle instruction, old-road turn, flower identity, or theft prevention is hidden here. | Town-edge scrap interaction and second-run dialogue variant. |
-| 4-5 | 不下注的夜晚 / A Night Without Betting | Lorne, Vesper | Lorne helps an unnamed patron leave the public floor with something intact; Vesper treats the unclaimed loss as wasted value. | Loaded Dice, witness clauses, collateral rules, and Lorne's decisive refusal remain mainline. | Casino public floor and odds-visible table state; no new patron portrait. |
-| 4-5 | 灰燼貨號 / Ash Freight Marks | `merchant`, `black_market`, `town_scholar` | Trade marks show how legal and illegal supply react differently to ash pressure and let the town feel economically inhabited. | Supplies no required elemental clue, contract proof, or black-market access key. | Market route record and black-market revisit after discovery. |
+| Village elder | 地圖總是不平 | 門外與桌內 | 沒有回程的名單 | 1-5 | Civic records and `return_tag` travel accessory. |
+| 伊萊 | 空格不是答案 | 雨水走過的字 | 原頁不必闔上 | 1-5 | Source/scope labels, cross-reference, and open-source index. |
+| Mia | 沒有病歷的下午 | 沒有打開的窗 | 沒有傷也能回來 | 2-5 | Market-authorized medicine, relationship record, emergency prescription. |
+| Frey | 巡線靴底 | 旗影不替燈說話 | 旗也有看不見的地方 | 1-4 | Route readability and `old_flag_knot` travel accessory. |
+| Tavi | 每扇門都嫌燈歪 | 沒人聽時也要報數 | 最後一盞也是位置 | 1-4 | Camp/return-light utility and `rear_lamp_clasp` accessory. |
+| Blacksmith | 鍋蓋不是盾 | 沒人領走的東西 | 爐火不只為刀刃 | 1-5 | Repair utility, `returned_buckle`, optional armor reinforcement. |
+| Ailo | 沒有用的東西 | 總要多留一份 | 屋簷下的一晚 | 2-6 | Relationship records and an achievement; no fixed scrap token, route clue, or forced equipment. |
+| Vesper | 先看價碼，再問名字 | 每種渴望都有一張桌 | 莊家從不靠意外 | 3-6 | Tickets, odds history, and a non-mainline high-risk pool invitation. |
+| Lorne | 認得骰子的手 | 不下注的夜晚 | 總帳上的空白列 | 3-6 | Handling tutorial, voluntary cashout visibility, public loss ledger. |
+| Public merchant | 空箱也得點數 | 貨印不替人說謊 | 空貨架也要明碼 | 2-5 | Source labels and finite-stock reservation view. |
+| Black-market trader | 我不替你保證 | 灰燼貨號 | 交易結束以後 | 3-6 | Risk clauses, source comparison, and batch warnings. |
 
-Future rewards must follow these owners. A civic or relationship revisit should
-not casually award Boss equipment; a route interaction should not duplicate a
-market or forge function. Reward definition remains outside the current pass.
+Six additional ensemble shorts establish relationships without replacing those
+personal lines: `苦茶與彎湯匙`, `到底是誰把燈掛歪`, `替沒用的東西取名字`,
+`三個人命令一個人休息`, `收攤後才開始分貨`, and `沒有主人的桌`.
+
+The 33 personal stories and six ensemble shorts passed user review on
+2026-07-19. They now remain `approved_pending_production`: their character
+direction, chapter placement, reward ownership, and derived-resource scope are
+locked, but they are not playable until formal dialogue, required assets,
+runtime quest records, discovery interactions, and end-to-end validation exist.
+Approval does not assign final stats, quantities, prices, or activate entries in
+the quest list.
+
+Chapter placement is an availability window, not an automatic quest dump.
+Stories remain hidden until the player speaks to the owning character or
+interacts with the owning place; they never auto-track, and each personal chain
+advances short -> medium -> long. This lets Chapters 2-3 contain the largest
+relationship network without placing every available story in the quest list at
+once.
+
+Current chapter cadence is derived from `OptionalSideStoryChapterPlacement`:
+
+| Chapter | Newly discoverable stories | Total story stages | Pacing function |
+| ---: | ---: | ---: | --- |
+| 1 | 5 | 5 | Five personal shorts introduce work habits after each character's mandatory entrance. |
+| 2 | 13 | 13 | The repaired road and market create the first broad relationship layer; prerequisites and direct interaction prevent simultaneous presentation. |
+| 3 | 14 | 22 | Peak town-life chapter: personal long stories, casino observation, and three ensemble scenes become discoverable across separate town returns. |
+| 4 | 6 | 18 | Few new starts; existing Frey/Tavi, forge, Ailo, casino, market, and black-market lines reach their decisive middle stages. |
+| 5 | 0 | 12 | No new side story begins. Existing long stories either close before fixed tragedies or continue through their consequences. |
+| 6 | 1 | 5 | Only the post-casino ensemble short begins; Ailo, casino, and black-market lines close around mandatory outcomes. |
+| 7 | 0 | 0 | The final mountain route, memory, Demon King battle, return, and ending remain uninterrupted by optional quest stages. |
+
+The Chapter 2-3 numbers are review inventory, not UI badges. No global quest
+prompt appears at chapter start. A player discovers only the story belonging to
+the character or place they deliberately revisit; unfinished undiscovered
+stories remain hidden rather than becoming tracked objectives.
+
+### Derived Side-Story Resources
+
+The current 39-story review draft reuses the eight accepted town places and the
+existing seven chapter maps. It creates no new character, monster, map location,
+side-story-exclusive background, or mandatory CG request. Four background
+owners reused from the mandatory screenplay still lack runtime mappings:
+`night_watch_line`, `dead_checkpoint`, `old_waystation_cache`, and
+`center_span_marker`.
+
+- New item/data ids: `return_tag`, `returning_season_tea`,
+  `mia_emergency_kit`, `old_flag_knot`, `rear_lamp_clasp`, `returned_buckle`,
+  `homebound_reinforcement_blueprint`, `house_invitation_chip`.
+- New image ids: the eight item ids above. These eight images remain
+  ungenerated until their stories pass review. The casino public ledger is a
+  mandatory mainline result and reuses the dialogue/handbook presentation; it
+  is not an optional-story icon reward.
+- New UI/system hooks: handbook return filters, civic resident records,
+  uncertainty filters, record cross-reference, open-source index, Mia emergency
+  market stock, patrol-marker readability, rear-light camp utility, one-use
+  repair credit, optional armor reinforcement, casino odds history, high-risk
+  pool access, voluntary cashout, Lorne responsibility indexing, and casino
+  restitution-status filtering.
+  Public-market source labels and reservation view, black-market risk clauses,
+  third-party source comparison, and black-market batch warnings complete the
+  20-hook review ledger.
+- Dialogue uses the closed nine-expression vocabulary. The current performance
+  plans request 58 unique actor-expression combinations: 33 physical files are
+  absent, while four existing neutral files need registration only. This is a
+  review ledger, not generation approval; final dialogue may reduce the count,
+  and no new emotion name may be invented to solve a missing performance.
+
+`OptionalSideStoryDerivedResources` and `OptionalSideStoryChapterPlacement` are
+the runtime-facing ledgers for these needs and chapter stages.
+`scripts/SideStoryAssetCheck.mjs` is the reproducible physical-file and mapping
+audit; `docs/ART_STYLE_GUIDE.md` owns the human-readable exact gap list.
 
 ## Town Recovery By Chapter
 
@@ -407,24 +538,21 @@ market or forge function. Reward definition remains outside the current pass.
 
 ## Ordered Implementation Work
 
-Current checkpoint on 2026-07-11: steps 1-5 are implemented as a reviewable
-runtime foundation. The user may still revise scene prose and details; the data
-contract no longer depends on obsolete quest or route scaffolds.
+Current checkpoint on 2026-07-18:
 
-1. Finish screenplay causality and synchronize accepted character dossiers into
-   the master register. Mia's obsolete apothecary/notebook route is closed.
-2. Assign all 66 scenes to the four stage classes and freeze the seven regional
-   route graphs described above.
-3. Lock the town-place and market contract so route returns have one destination
-   and Mia's survival never owns transaction continuity.
-4. Reorder the omniscient timeline against those locations, then write full
-   dialogue, expressions, entrances, exits, and first/second-run staging.
-5. Remove obsolete route/quest data and implement the new region database, scene
-   registry, quest flags, town resolver, and handbook integration directly.
-6. Redistribute existing quest rewards, monster/equipment sources, and dungeon
-   tables only after the story and location graph are locked.
-7. Produce missing backgrounds, expression layers, and story CGs after the
-   screenplay and asset list are approved.
+- Screenplay causality, 66 scene records, four stage classes, seven regional
+  graphs, town ownership, quest flags, resolver state, and handbook integration
+  are implemented as a reviewable foundation.
+- First-run monster ecology and formal weapon source structure are implemented.
+  Chapter monster counts are `9, 8, 8, 8, 10, 8, 8`; every Lv10 weapon band has
+  five-form baseline craft coverage.
+- Monster and weapon source structure is not final reward balance. Exact quest
+  rewards, drop rates, material quantities, stock layers, and numeric combat
+  values remain deferred until map and scene functions are approved.
+- Chapter 1-2 dialogue, expression timing, backgrounds, audio, and one complete
+  no-skip playthrough remain the current review gate.
+- Chapters 3-7 narrative art should be produced only after the Chapter 1-2
+  presentation pattern passes review.
 
 The old `main_001` chain, three-chapter quest values, random/ring geography, and
 old route checks are removed from the active story flow. Internal encounter

@@ -10,6 +10,7 @@ import {
     getRecipeDiscovery,
     getRecipeIdsForInteraction
 } from '../data/RecipeDiscoveries.js';
+import { FirstRunBossCraftUnlocks } from '../data/FirstRunLootBalance.js';
 import {
     getBlueprintDropsForMonster,
     getBlueprintDropsForRecipe
@@ -97,6 +98,10 @@ export function unlockRecipeSeries(seriesId) {
 
 export function unlockRecipesForInteraction(interactionId) {
     return unlockRecipeBlueprints(getRecipeIdsForInteraction(interactionId));
+}
+
+export function unlockBossCraftRecipes(monsterId) {
+    return unlockRecipeBlueprints(FirstRunBossCraftUnlocks[monsterId] || []);
 }
 
 export function getRecipeBlueprintInfo(recipeId) {
@@ -221,6 +226,7 @@ export default {
     unlockRecipeBlueprints,
     unlockRecipeSeries,
     unlockRecipesForInteraction,
+    unlockBossCraftRecipes,
     getRecipeBlueprintInfo,
     rollRecipeBlueprintDrop,
     rollRecipeBlueprintDrops,

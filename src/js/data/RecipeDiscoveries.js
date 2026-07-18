@@ -3,14 +3,15 @@
  * Story gates for forge recipes. Recipe stats/costs stay in Recipes.js.
  */
 
-import { getDefaultKnownSeriesRecipeIds, getRecipeSeriesForRecipe } from './RecipeSeries.js';
+import { getDefaultKnownSeriesRecipeIds, getRecipeSeriesForRecipe, SeriesRecipeDatabase } from './RecipeSeries.js';
+import { FirstRunBossRecipeDiscoveries, FirstRunRecipeDiscoveryAdditions, FirstRunRetiredRecipeIds } from './FirstRunLootBalance.js';
 
 export const DefaultKnownRecipeIds = [
     'iron_sword',
     'leather_armor',
     'health_potion_basic',
     ...getDefaultKnownSeriesRecipeIds()
-];
+].filter(recipeId => !FirstRunRetiredRecipeIds.includes(recipeId));
 
 export const RecipeDiscoveryDatabase = {
     bone_blade: {
@@ -24,9 +25,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'monster_blueprint_drop'
     },
     wolf_fang_necklace: {
-        source: '野狼掉落',
-        clue: '擊退野狼時，可能從牠們拖回巢穴的雜物裡找到獸牙護符圖紙。',
-        interactionId: 'monster_blueprint_drop'
+        source: '第一章獵人委託',
+        clue: '整理野狼素材並完成獵人委託後，由工匠還原獸牙護符圖紙。',
+        interactionId: 'chapter_1_hunter_commission'
     },
     greater_health_potion: {
         source: '待配置',
@@ -148,9 +149,9 @@ export const RecipeDiscoveryDatabase = {
     },
 
     dragon_slayer: {
-        source: '副本、菁英或首領掉落',
-        clue: '龍心餘燼圖紙需要從強力龍系戰鬥或首領戰利品中取得。',
-        interactionId: 'strong_blueprint_drop'
+        source: '第六章龍族事件',
+        clue: '完成龍族事件後，從當輪留下的戰鬥紀錄重建圖紙。',
+        interactionId: 'chapter_6_dragon_resolution'
     },
     dragon_scale_armor: {
         source: '副本、菁英或首領掉落',
@@ -163,9 +164,9 @@ export const RecipeDiscoveryDatabase = {
         interactionId: 'strong_blueprint_drop'
     },
     dragon_overlord_crown: {
-        source: '副本、菁英或首領掉落',
-        clue: '黑鱗餘冕圖紙只會從首領級戰利品中取得。',
-        interactionId: 'strong_blueprint_drop'
+        source: '第六章龍族事件',
+        clue: '完成龍族事件後，由封印遺構中的冠飾結構重建圖紙。',
+        interactionId: 'chapter_6_dragon_resolution'
     },
     wyvern_scale_mail: {
         source: '副本、菁英或首領掉落',
@@ -184,12 +185,20 @@ export const RecipeDiscoveryDatabase = {
     }
 };
 
+Object.assign(RecipeDiscoveryDatabase, FirstRunRecipeDiscoveryAdditions);
+Object.assign(RecipeDiscoveryDatabase, FirstRunBossRecipeDiscoveries);
+for (const recipeId of FirstRunRetiredRecipeIds) delete RecipeDiscoveryDatabase[recipeId];
+
 export function getRecipeDiscovery(recipeId) {
     return RecipeDiscoveryDatabase[recipeId] || getRecipeSeriesForRecipe(recipeId)?.discovery || null;
 }
 
 export function getRecipeIdsForInteraction(interactionId) {
-    return Object.entries(RecipeDiscoveryDatabase)
+    const explicitRecipeIds = Object.entries(RecipeDiscoveryDatabase)
         .filter(([, discovery]) => discovery.interactionId === interactionId)
         .map(([recipeId]) => recipeId);
+    const seriesRecipeIds = Object.values(SeriesRecipeDatabase)
+        .filter(recipe => getRecipeSeriesForRecipe(recipe.id)?.discovery?.interactionId === interactionId)
+        .map(recipe => recipe.id);
+    return [...new Set([...explicitRecipeIds, ...seriesRecipeIds])];
 }

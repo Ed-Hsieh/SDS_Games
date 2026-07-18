@@ -1,6 +1,6 @@
 # Art Style Guide
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 First-run story image work is active. Generate only assets listed in the
 first-run ledger below, in small review batches. Second-run external stories,
@@ -174,6 +174,50 @@ Current first-run narrative-art result:
 | Mandatory physical story-object icons | 1 | 2 | Loaded Dice exists; Echo Whistle and seal-scar shard do not |
 | **Remaining first-run narrative images** |  | **59** | 27 + 5 + 8 + 15 + 2 + 2 |
 
+### Optional Side-Story Derived Art Ledger
+
+Audit date: 2026-07-18. Source:
+`src/js/data/OptionalSideStoryRegistry.js`. Reproduce this ledger with
+`scripts/SideStoryAssetCheck.mjs`.
+
+The 33 personal stories and six ensemble shorts create no new actor, monster,
+map location, side-story-exclusive background, or mandatory CG. They reuse the
+accepted cast, eight town places, seven chapter maps, and existing scene-owner
+vocabulary. Their current presentation footprint is:
+
+- 58 unique actor-expression combinations are requested by the approved
+  four-beat performance plans; 33 physical expression files are absent.
+- Four existing neutral files need registration rather than generation:
+  `casino_owner:neutral`, `casino_dealer:neutral`, `merchant:neutral`, and
+  `black_market:neutral`.
+- Seventeen background owners are reused. Four shared mainline owners still lack
+  mappings: `night_watch_line`, `dead_checkpoint`, `old_waystation_cache`, and
+  `center_span_marker`. These are not new side-story locations.
+- Eight approved story-object icons remain absent: `return_tag`,
+  `returning_season_tea`, `mia_emergency_kit`, `old_flag_knot`,
+  `rear_lamp_clasp`, `returned_buckle`,
+  `homebound_reinforcement_blueprint`, and `house_invitation_chip`.
+
+Missing physical expression layers:
+
+- Village elder: `pleased`, `soft`, `grieving`.
+- Town scholar: `soft`, `afraid`, `grieving`.
+- Mia: `grieving`.
+- Frey: `guarded`, `hurt`.
+- Tavi: `pleased`, `afraid`, `grieving`.
+- Blacksmith: `grieving`, `angry`.
+- Ailo: `angry`, `soft`, `grieving`, `afraid`, `pleased`.
+- Vesper: `pleased`, `guarded`, `angry`.
+- Lorne: `guarded`, `afraid`, `soft`, `grieving`.
+- Public merchant: `guarded`, `pleased`, `soft`, `afraid`.
+- Black-market trader: `guarded`, `pleased`, `angry`.
+
+Story review passed on 2026-07-19. Write and lock each story's formal dialogue
+before generating its remaining expression layers, because the final staging
+may reduce the current performance estimate. Generate only combinations used by
+the locked dialogue and register every ready layer in
+`StoryExpressionCoverage`.
+
 ### Ready Dialogue Inventory
 
 There are 31 `*-standing.webp` files in the dialogue folder. The user-described
@@ -328,14 +372,16 @@ background and layered actors; it is not a mandatory CG.
 
 ### Separate Data-Catalog Art Backlog
 
-`scripts/AssetCoverageCheck.mjs` currently reports 79 missing image mappings:
-46 crafted-result records and 33 casino-special records. It also reports 30
-dimension warnings across 26 unique files. These are real catalog gaps, but they
-are not part of the 59-image first-run narrative queue.
+`scripts/AssetCoverageCheck.mjs` currently reports 44 missing image mappings:
+six crafted-result records, five Boss craft blueprints, and 33 casino-special
+records. It reports zero missing physical files for existing mappings and 37
+dimension warnings across 33 unique files. These catalog issues are separate
+from the 59-image first-run narrative queue.
 
-Do not generate those 82 images merely to silence the checker. Crafted-result
-identity and casino inventory are still subject to data review. The exact ids
-must be taken from the live checker output when that system pass resumes.
+Do not generate those 44 mappings merely to silence the checker. Review the
+eleven non-casino identities against live recipe and Boss craft data first. The
+33 casino-special mappings remain paused until casino gameplay and prize
+identity are approved. Always take the exact ids from the live checker output.
 
 ### Execution Order
 

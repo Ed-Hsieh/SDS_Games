@@ -75,7 +75,7 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.1,
         safeSteps: 5,
         fatigueCost: 1,
-        monsterIds: Object.freeze(['wild_wolf', 'poison_spider', 'treant', 'shadow_bat'])
+        monsterIds: Object.freeze(['wild_wolf', 'poison_spider', 'giant_rat'])
     }),
     Object.freeze({
         id: 'rotroot_woodland',
@@ -87,7 +87,7 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.12,
         safeSteps: 4,
         fatigueCost: 2,
-        monsterIds: Object.freeze(['treant', 'wild_wolf', 'orc_warrior', 'stone_golem_mini'])
+        monsterIds: Object.freeze(['treant', 'wild_wolf', 'stone_golem_mini'])
     }),
     Object.freeze({
         id: 'broken_evacuation_road',
@@ -99,7 +99,7 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.09,
         safeSteps: 6,
         fatigueCost: 2,
-        monsterIds: Object.freeze(['skeleton_warrior', 'ghost', 'glimmer_sprite'])
+        monsterIds: Object.freeze(['skeleton', 'skeleton_warrior', 'cave_bat'])
     }),
     Object.freeze({
         id: 'mist_tablet_country',
@@ -111,7 +111,7 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.1,
         safeSteps: 5,
         fatigueCost: 2,
-        monsterIds: Object.freeze(['ghost', 'glimmer_sprite', 'rune_wisp'])
+        monsterIds: Object.freeze(['ghost', 'cave_bat', 'glimmer_sprite'])
     }),
     Object.freeze({
         id: 'moon_moss_slope',
@@ -135,7 +135,7 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.125,
         safeSteps: 4,
         fatigueCost: 2,
-        monsterIds: Object.freeze(['skeleton_warrior', 'stone_golem', 'ghost', 'rune_wisp'])
+        monsterIds: Object.freeze(['skeleton', 'skeleton_warrior', 'ghost', 'rune_wisp'])
     }),
     Object.freeze({
         id: 'north_tomb_ridge',

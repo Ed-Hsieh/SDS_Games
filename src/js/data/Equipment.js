@@ -2,6 +2,7 @@
 // 特殊效果類型
 import { AffixStat, ItemRarity, EquipmentType, WeaponForm } from '../models/Enums.js';
 import { getDurabilityForEquipment, getEquipmentPowerBudget, getLevelBand } from './EquipmentBalance.js';
+import { FirstRunBossSignatureOverrides, FirstRunEquipmentAdditions, FirstRunEquipmentSourceOverrides } from './FirstRunLootBalance.js';
 
 
 /**
@@ -1434,6 +1435,14 @@ export const EquipmentDatabase = {
 };
 
 // 逐筆補齊耐久度，避免落入共用預設值
+Object.assign(EquipmentDatabase, FirstRunEquipmentAdditions);
+for (const [equipmentId, override] of Object.entries(FirstRunBossSignatureOverrides)) {
+    if (EquipmentDatabase[equipmentId]) Object.assign(EquipmentDatabase[equipmentId], override);
+}
+for (const [equipmentId, dropFrom] of Object.entries(FirstRunEquipmentSourceOverrides)) {
+    if (EquipmentDatabase[equipmentId]) EquipmentDatabase[equipmentId].dropFrom = dropFrom;
+}
+
 Object.values(EquipmentDatabase).forEach((item, index) => {
     // 稀有度欄位名稱統一，避免 UI 顯示遺失
     const level = Number(item.level) || 1;

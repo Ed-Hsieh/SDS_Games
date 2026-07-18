@@ -15,7 +15,8 @@ import {
 } from '../src/js/data/ChapterRegionRegistry.js';
 import {
     OptionalSideStoryRegistry,
-    OptionalSideStoryStatus
+    OptionalSideStoryStatus,
+    SideStoryRequiredCharacterIds
 } from '../src/js/data/OptionalSideStoryRegistry.js';
 import {
     StoryAchievementIds,
@@ -159,21 +160,21 @@ function validateMainlineCharacterContracts() {
 }
 
 function validateOptionalSideStories() {
-    if (OptionalSideStoryRegistry.length !== 7) {
-        error('optional-side-story', `Expected seven deferred side-story concepts, got ${OptionalSideStoryRegistry.length}`);
+    if (OptionalSideStoryRegistry.length !== SideStoryRequiredCharacterIds.length * 3) {
+        error('optional-side-story', `Expected short, medium, and long stories for every core character, got ${OptionalSideStoryRegistry.length}`);
     }
     const ids = new Set();
     for (const entry of OptionalSideStoryRegistry) {
         if (ids.has(entry.id)) error('optional-side-story', `Duplicate side-story id ${entry.id}`);
         ids.add(entry.id);
-        if (entry.status !== OptionalSideStoryStatus.DEFERRED) {
-            error('optional-side-story', `${entry.id} activated before its map owner was approved`);
+        if (entry.status !== OptionalSideStoryStatus.APPROVED) {
+            error('optional-side-story', `${entry.id} lost its approved production state`);
         }
-        if (entry.rewardBinding !== null) {
-            error('reward-deferral', `${entry.id} has a reward binding before map-function allocation`);
+        if (!entry.rewardBinding?.kind || !entry.rewardBinding?.id) {
+            error('reward-definition', `${entry.id} lacks a reviewable reward definition`);
         }
-        if (!entry.purpose || !entry.mainlineBoundary || !entry.futureOwner) {
-            error('optional-side-story', `${entry.id} lacks purpose, mainline boundary, or future owner`);
+        if (!entry.purpose || !entry.characterReveal || !entry.mainlineBoundary || !entry.futureOwner) {
+            error('optional-side-story', `${entry.id} lacks purpose, character reveal, mainline boundary, or owner`);
         }
         if (!Array.isArray(entry.chapterWindow)
             || entry.chapterWindow.length !== 2
@@ -575,7 +576,7 @@ console.log('Story runtime summary:');
 console.log(`- screenplay scenes: ${StorySceneOrder.length}`);
 console.log(`- closed expressions: ${StoryExpressionIds.length}`);
 console.log(`- core mainline character contracts: ${Object.keys(MainlineCharacterContracts).length}`);
-console.log(`- deferred optional side stories: ${OptionalSideStoryRegistry.length}`);
+console.log(`- approved personal side stories pending production: ${OptionalSideStoryRegistry.length}`);
 console.log(`- chapter regions: ${ChapterRegionOrder.length}`);
 console.log(`- mainline encounter contracts: ${Object.keys(StoryEncounterContracts).length}`);
 console.log(`- active town places: ${TownPlaceDatabase.length}`);

@@ -1088,7 +1088,7 @@ or personality dossier.
 | 妮露 | No living present-day entry. Exists as broken nouns and sensory fragments in Ailo's Ch1-6 speech. | Her dye-mending work, flower, and promise remain deliberately incomplete. | Never appears in first-run explanatory form. | Appears only in Ch7 memory as a mountain-village dye-mender who gathers seasonal dye plants as part of the same craft, calls Ailo by name, receives his grief, and repeats the ordinary promise. | `Flower At The Echo's End`; memory and future CG only, no ghost guidance or system shop. |
 | `elder_dragon` | Environmental heat, route closure, and records seed it from Ch1-5 without a speaking portrait. | Ch5 expedition evidence reframes dragon blockade; Ch6 is its only direct chapter. | Warns once, fights, and is erased with the local seal-keeping clan; containment collapses. | Judges current action, withholds attack without trust or passage grant, survives, and holds pressure during final execution. | `Outside The Seal Scar`; Boss art doubles as dialogue presentation. |
 | Demon King Helsarn / 魔王赫爾薩恩 | Physical cause remains hidden behind symptoms; no direct speech Ch1-6. | Its pressure creates roots, dead routes, shadows, terrain movement, and elemental convergence without turning every human evil into its plan. | Combat body falls; surviving post-credit body speaks `我記住你了，凡人。` | Resets without run memory; body, echo, and land survival are severed by preparation and it dies without redemption. | Final Boss, first false victory, second true execution; no base light/Void dependency. |
-| Merchant | Enters when Chapter 2 market route becomes usable. | Supplies route stock in Ch2, countergear inputs in Ch4, and forge contract stock in Ch5. | Remains functional in both endings; reacts to road losses but owns no long arc. | Same function with safer supply state. | `Empty Crates`, `Forge Contracts`; no supply captain needed. |
+| Merchant | Enters when Chapter 2 market route becomes usable. | Supplies route stock in Ch2, countergear inputs in Ch4, and forge contract stock in Ch5. | Remains functional in both endings; reacts to road losses and owns no mandatory mainline arc. | Same function with safer supply state. | `Empty Crates`, `Forge Contracts`; an optional long story may deepen his public-supply ethics without promoting him into the mandatory cast or requiring a supply captain. |
 | Black-market trader | Enters as a controlled Ch3 contact after casino/route pressure. | Confirms one Blank Collateral sale and can provide risky shadow-adjacent stock without owning Vesper's crime. | Survives and remains indifferent after Vesper escapes. | Contract source is closed after Vesper collection; trader still has no duplicate blank contract. | `Blank Collateral`; optional second-run creditor reveal only, with later DLC continuation. |
 
 Reserve cast placement:
@@ -1320,8 +1320,12 @@ rewards, and art remain subject to later review and map-function allocation.
 - `ChapterRegionRegistry.js` binds every map-stage scene exactly once across seven
   handcrafted regions.
 - `Quests.js` exposes seven scene-driven chapter records with empty rewards.
-- `OptionalSideStoryRegistry.js` keeps seven character-deepening concepts
-  deferred, skip-safe, and reward-free until map owners are approved.
+- `OptionalSideStoryRegistry.js` keeps 33 skip-safe personal stories (short,
+  medium, and long for every recurring town character with an accepted runtime
+  profile) plus six ensemble shorts. Their
+  chapter placement, reward identity, and derived-resource needs passed user
+  review on 2026-07-19. They remain non-playable until formal dialogue, assets,
+  discovery interactions, runtime records, and end-to-end validation are done.
 - Runtime implementation does not make every line immutable. User story review
   may still revise a scene; the generated registry must then be recompiled and
   validated rather than patched through an alternate story path.

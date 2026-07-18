@@ -37,18 +37,39 @@ const readySet = ids => new Set(ids);
 const ART_READY = Object.freeze({
     equipment: readySet([
         'abyssal_needle', 'ancient_sword', 'assassin_blade', 'aurora_ward_plate',
-        'cave_ward_shield', 'crystal_shield', 'dawnbrand_sword',
+        'bone_etched_lance', 'cave_ward_shield', 'cliffscale_skinner',
+        'crystal_shield', 'curse_iron_warhammer', 'dawnbrand_sword',
         'demon_blade', 'demon_general_armor', 'demon_lord_armor', 'demon_lord_crown',
-        'demon_lord_sword', 'dragon_knight_helm', 'elder_dragon_fang',
+        'demon_lord_sword', 'dragon_knight_helm', 'dragonseal_forkstaff',
+        'dragonseal_patrol_plate', 'earthwarden_aegis', 'elder_dragon_fang',
         'elder_dragon_fang_badge', 'elemental_badge', 'elemental_crown', 'elemental_orb',
-        'flame_sword', 'forest_guardian_crown', 'forest_guardian_staff', 'frost_blade',
+        'embercore_focus', 'flame_sword', 'forest_guardian_crown',
+        'forest_guardian_staff', 'frost_blade', 'frostwolf_mantle',
         'frostbite_dueling_blade', 'frostbound_scepter_drop', 'ghost_cloak',
-        'glimmer_focus', 'glimmer_lampstaff', 'goblin_dagger', 'hydra_spine_spear',
-        'lich_staff', 'miners_pickhammer', 'overlord_armor',
-        'prism_focus', 'rune_badge', 'rune_scriber_focus', 'seraph_void_focus',
-        'shade_focus', 'shadow_armor_drop', 'shadow_badge', 'shadow_blade_drop',
+        'fourfold_series_dagger', 'fourfold_series_hammer', 'fourfold_series_spear',
+        'fourfold_series_staff', 'fourfold_series_sword',
+        'glimmer_focus', 'glimmer_lampstaff', 'goblin_dagger',
+        'helliron_series_dagger', 'helliron_series_hammer', 'helliron_series_spear',
+        'helliron_series_staff', 'helliron_series_sword', 'hydra_spine_spear',
+        'leyline_wedge_lance', 'lich_staff', 'miasma_needle_focus',
+        'miners_pickhammer', 'molten_core_maul', 'overlord_armor', 'poison_dagger',
+        'bone_series_dagger', 'bone_series_hammer', 'bone_series_spear',
+        'bone_series_staff', 'bone_series_sword',
+        'expedition_series_dagger', 'expedition_series_hammer', 'expedition_series_spear',
+        'expedition_series_staff', 'expedition_series_sword',
+        'prism_focus', 'rune_badge', 'rune_scriber_focus',
+        'runic_series_dagger', 'runic_series_hammer', 'runic_series_spear',
+        'runic_series_staff', 'runic_series_sword',
+        'sealstone_series_dagger', 'sealstone_series_hammer', 'sealstone_series_spear',
+        'sealstone_ram', 'sealstone_series_staff', 'sealstone_series_sword',
+        'seraph_void_focus', 'silver_thread_hook', 'soul_lantern_focus',
+        'shade_focus', 'shadow_armor', 'shadow_armor_drop', 'shadow_badge', 'shadow_blade_drop',
         'shadow_commander_blade', 'shadow_commander_sword', 'shadow_overlord_armor',
-        'shadowneedle_dagger', 'slime_sword', 'spider_silk_gloves', 'thornhook_claws',
+        'shadowneedle_dagger',
+        'slime_series_dagger', 'slime_series_hammer', 'slime_series_spear',
+        'slime_series_staff', 'slime_series_sword',
+        'slime_sword', 'spider_silk_gloves', 'stormfeather_talisman',
+        'stormguide_focus', 'thornhook_claws',
         'thunder_axe', 'titan_gauntlet', 'titan_hammer', 'umbral_pike',
         'undead_dagger', 'wolf_fang_blade', 'wolf_pelt_armor', 'wyvern_lance'
     ]),
@@ -64,6 +85,7 @@ const ART_READY = Object.freeze({
         'dragon_knight_badge', 'dragon_scale_armor', 'dragon_tooth', 'drake_scale',
         'earth_essence', 'ectoplasm', 'elder_dragon_scale', 'elemental_core',
         'ember_stone', 'enhance_stone', 'fire_essence', 'forest_essence', 'forge_core',
+        'expedition_steel_fragment',
         'frost_core', 'frost_crystal', 'gargoyle_wing', 'general_armor', 'geo_crystal',
         'glimmer_shard', 'goblin_coin', 'goblin_ear', 'golem_core', 'guardian_branch',
         'high_ore', 'hydra_fang', 'hydra_scale', 'ice_essence', 'imp_horn', 'iron_ore',
@@ -80,19 +102,15 @@ const ART_READY = Object.freeze({
         'wyvern_scale', 'wyvern_wing'
     ]),
     blueprints: readySet([
-        'assassin_shadow_veil', 'blood_moon_pendant', 'bone_blade', 'bone_series',
-        'bone_series_dagger', 'bone_series_hammer', 'bone_series_spear',
-        'bone_series_staff', 'bone_series_sword', 'bone_soul_staff', 'demonwar_helm',
-        'dragon_amulet', 'dragon_overlord_crown', 'dragon_scale_armor', 'dragon_slayer',
-        'earthwarden_aegis', 'frostbound_scepter', 'gargoyle_bulwark',
+        'blood_moon_pendant', 'bone_etched_lance', 'bone_series',
+        'cliffscale_skinner', 'curse_iron_warhammer', 'embercore_focus',
+        'expedition_series', 'fourfold_series', 'earthwarden_aegis',
         'glimmer_focus', 'goblin_trickster_charm', 'greater_health_potion',
-        'guardian_armor', 'health_potion_basic', 'hydra_fang_dagger', 'ice_sword',
-        'iron_sword', 'leather_armor', 'mithril_sword', 'nature_amulet',
-        'poison_dagger', 'primal_focus', 'shadow_armor', 'shadow_blade', 'shadow_ring',
-        'silver_thread_hook', 'slime_crown_ring', 'slime_series', 'slime_series_dagger',
-        'slime_series_hammer', 'slime_series_spear', 'slime_series_staff',
-        'slime_series_sword', 'storm_spear', 'titan_armor', 'titan_blade', 'titan_ring',
-        'wolf_cloak', 'wolf_fang_necklace', 'wyvern_scale_mail'
+        'health_potion_basic', 'leather_armor', 'poison_dagger',
+        'helliron_series', 'leyline_wedge_lance', 'molten_core_maul',
+        'runic_series', 'sealstone_ram', 'sealstone_series', 'soul_lantern_focus',
+        'shadow_armor', 'silver_thread_hook', 'slime_series',
+        'stormguide_focus', 'wolf_fang_necklace'
     ]),
     currencies: readySet([]),
     clues: readySet([
@@ -111,18 +129,24 @@ const ART_READY = Object.freeze({
     monsters: readySet([
         'abyssal_seraph', 'ambush_mantis', 'ancient_guardian', 'ancient_mage',
         'ancient_titan', 'ancient_treant', 'ash_baron', 'aurora_archon',
-        'blood_moon_stag', 'crystal_golem', 'dawn_sentinel', 'demon_general',
-        'demon_king', 'demon_lord_asariel', 'demon_soldier', 'dragon_knight', 'drake',
-        'drowned_oracle', 'earth_elemental', 'elder_dragon', 'elemental_lord',
-        'fire_elemental', 'forest_guardian', 'frost_giant', 'ghost', 'giant_rat',
+        'blood_moon_stag', 'cliffscale_hatchling', 'crystal_golem', 'dawn_sentinel',
+        'demon_general', 'demon_king', 'demon_lord_asariel', 'demon_soldier',
+        'dragon_knight', 'drake',
+        'dragon_seal_adept', 'dragon_seal_sentinel', 'drowned_oracle',
+        'earth_elemental', 'elder_dragon', 'elemental_lord', 'ember_beast',
+        'fire_elemental', 'forest_guardian', 'frost_giant', 'frost_wolf', 'ghost',
+        'giant_rat',
         'glimmer_sprite', 'goblin', 'ice_dragon', 'ice_elemental', 'jungle_hydra',
-        'lich', 'mirror_seraph', 'orc_warrior', 'pit_fiend', 'poison_spider',
+        'hell_hound', 'lava_golem', 'lich', 'mirror_seraph', 'orc_warrior',
+        'pit_fiend', 'poison_frog', 'poison_spider',
         'prism_wisp', 'radiant_keeper', 'rock_golem', 'rune_keeper', 'rune_wisp',
-        'shadow_archer', 'shadow_assassin', 'shadow_bat', 'shadow_commander',
+        'sealstone_guardian',
+        'shadow_archer', 'shadow_assassin', 'cave_bat', 'shadow_commander',
         'shadow_general', 'shadow_lurker', 'shadow_mage', 'shadow_overlord',
-        'shadow_soldier', 'skeleton', 'skeleton_warrior', 'slime', 'starvein_lurker',
-        'stone_golem', 'stone_golem_mini', 'thorn_witch', 'thunder_elemental',
-        'treant', 'void_walker', 'wild_wolf', 'wyvern'
+        'shadow_halberdier', 'shadow_soldier', 'skeleton', 'skeleton_warrior',
+        'slime', 'starvein_lurker', 'storm_raptor', 'stone_golem',
+        'stone_golem_mini', 'thorn_witch', 'thunder_elemental', 'tormented_soul',
+        'treant', 'vine_beast', 'void_walker', 'wild_wolf', 'wyvern'
     ]),
     townLocations: readySet([
         'alley', 'casino', 'civic-room-working', 'crossroads', 'forge', 'gate',
@@ -252,7 +276,13 @@ export function getGeneratedItemImage(item = {}, options = {}) {
 
     const id = rawId.replace(/^crafted_/, '');
     if (options.blueprint || item.type === 'blueprint' || item.autoUnlockedBlueprint) {
-        return readyAssetPath('blueprints', id);
+        const blueprintId = normalizeId(
+            options.blueprintId
+            || item.blueprintGroupId
+            || item.seriesId
+            || id
+        );
+        return readyAssetPath('blueprints', blueprintId);
     }
 
     const type = String(options.type || item.type || '').toLowerCase();

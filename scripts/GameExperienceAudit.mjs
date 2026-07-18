@@ -127,8 +127,8 @@ function auditSideStoryGate() {
         addIssue('支線在地圖擁有者定案前已進入執行層', { questIds: activeOptional.map(quest => quest.id) });
     }
     for (const story of OptionalSideStoryRegistry) {
-        if (story.status !== OptionalSideStoryStatus.DEFERRED) addIssue('支線過早啟用', { sideStoryId: story.id });
-        if (story.rewardBinding !== null) addIssue('支線過早綁定獎勵', { sideStoryId: story.id });
+        if (story.status !== OptionalSideStoryStatus.APPROVED) addIssue('支線核准狀態不一致', { sideStoryId: story.id });
+        if (!story.rewardBinding?.id) addIssue('支線尚未定義可審核獎勵', { sideStoryId: story.id });
         if (!hasText(story.mainlineBoundary)) addIssue('支線沒有跳過安全邊界', { sideStoryId: story.id });
     }
     if (OptionalSideStoryRegistry.length < 7) {
@@ -136,9 +136,9 @@ function auditSideStoryGate() {
     }
 
     summary.sideStories = {
-        deferredConcepts: OptionalSideStoryRegistry.length,
+        approvedPersonalStoriesPendingProduction: OptionalSideStoryRegistry.length,
         activeOptionalQuests: activeOptional.length,
-        rewardBindings: OptionalSideStoryRegistry.filter(story => story.rewardBinding !== null).length
+        rewardBindings: OptionalSideStoryRegistry.filter(story => story.rewardBinding?.id).length
     };
 }
 

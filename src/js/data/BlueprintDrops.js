@@ -7,6 +7,7 @@
  */
 
 import { getSeriesRecipeIds } from './RecipeSeries.js';
+import { FirstRunBlueprintDropOverrides, FirstRunRetiredRecipeIds } from './FirstRunLootBalance.js';
 
 export const BlueprintDropDatabase = {
     // Normal monster blueprints
@@ -235,6 +236,16 @@ export const BlueprintDropDatabase = {
         { recipeId: 'primal_focus', chance: 0.12 }
     ]
 };
+
+Object.assign(BlueprintDropDatabase, FirstRunBlueprintDropOverrides);
+for (const [sourceId, entries] of Object.entries(BlueprintDropDatabase)) {
+    if (Array.isArray(entries)) {
+        BlueprintDropDatabase[sourceId] = entries.filter(entry => !FirstRunRetiredRecipeIds.includes(entry.recipeId));
+    }
+    if (Array.isArray(BlueprintDropDatabase[sourceId]) && BlueprintDropDatabase[sourceId].length === 0) {
+        delete BlueprintDropDatabase[sourceId];
+    }
+}
 
 export function getBlueprintDropKey(monsterId, dungeonId = null) {
     return dungeonId ? `${dungeonId}:${monsterId}` : monsterId;

@@ -139,13 +139,6 @@ export function getBossEquipment(bossId) {
         }
     }
     
-    // 查找主線裝備
-    for (const equip of Object.values(MainQuestBossEquipment)) {
-        if (equip.dropSource === bossId) {
-            return equip;
-        }
-    }
-    
     return null;
 }
 
@@ -153,7 +146,9 @@ export function getBossEquipment(bossId) {
  * 根據裝備 ID 獲取裝備
  */
 export function getEquipmentById(equipmentId) {
-    return TowerBossEquipment[equipmentId] || MainQuestBossEquipment[equipmentId] || null;
+    return TowerBossEquipment[equipmentId]
+        || Object.values(TowerBossEquipment).find(equipment => equipment.id === equipmentId)
+        || null;
 }
 
 /**
@@ -167,8 +162,5 @@ export function getSetBonus(setId) {
  * 獲取所有 BOSS 裝備列表
  */
 export function getAllBossEquipment() {
-    return {
-        tower: Object.values(TowerBossEquipment),
-        mainQuest: Object.values(MainQuestBossEquipment)
-    };
+    return Object.values(TowerBossEquipment);
 }

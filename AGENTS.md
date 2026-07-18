@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-17
+Last updated: 2026-07-18
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -175,6 +175,17 @@ rules.
   chapter suspense, character entry/exit, or long-form plot reveals.
 - Use `src/js/data/StoryRebuildPlan.js` before removing or reclassifying old
   story, quest, route, material, or item records during the clean reset.
+- Use `src/js/data/MonsterEcology.js` for campaign scope, chapter rosters,
+  affinity groups, second-run capacity, and monster-art gaps. First-run chapters
+  contain 8-10 monsters; Chapter 1 is fixed at nine. Second run reserves exactly
+  12 per chapter including one external Boss, but that capacity does not
+  authorize second-run implementation yet.
+- Use `src/js/data/WeaponProgression.js` for Lv10 weapon bands, the five formal
+  forms, acquisition roles, source budgets, and focus-element coverage. Do not
+  assign final stats or drop rates while its locks remain false.
+- Level-only random monster sampling must pass through `MonsterEcology.js`.
+  Formal light/Void, tower, reserve, and second-run external monsters may not
+  leak into first-run encounters.
 
 ## Current Art Status
 
@@ -182,10 +193,11 @@ The new `art` folder is the active runtime asset source through
 `AssetManifest.js`. Do not reintroduce `art-v2` fallback behavior; unfinished
 assets should be listed as gaps and regenerated into `art`.
 
-Image work is active only for approved first-run scene presentation. Connect and
-reuse existing maps, town locations, landmarks, Boss art, equipment, materials,
-and portraits before generating replacements. The immediate art scope is missing
-Chapter 1-2 backgrounds and the expression layers actually requested by their
+Image work is active for approved first-run scene presentation and explicitly
+reviewed first-run catalog assets. Connect and reuse existing maps, town
+locations, landmarks, Boss art, equipment, materials, and portraits before
+generating replacements. The immediate narrative-art scope remains the missing
+Chapter 1-2 backgrounds and expression layers actually requested by their
 scripts. Use `docs/ART_STYLE_GUIDE.md` and `docs/IMAGE_GENERATION_PROMPTS.md`.
 
 Current measured gaps:
@@ -201,17 +213,21 @@ Current measured gaps:
   fifteen field/location backgrounds, two mandatory CGs, and two story-object
   icons. Exact ids and scene ownership are in `docs/ART_STYLE_GUIDE.md`.
 - Asset coverage has zero missing physical files for existing mappings.
-- 46 crafted-result items and 33 casino special items have no image mapping.
-- 26 unique images have specification warnings; four dungeon Boss images are
-  only 512 pixels.
+- Asset coverage currently has 44 missing mappings: six crafted results, five
+  Boss craft blueprints, and 33 paused casino-special items. It has zero missing
+  physical files for existing mappings.
+- Thirty-three unique images have 37 specification warnings. Four dungeon Boss
+  images are only 512 pixels.
+- All required first-run monster ids now have image mappings. Do not borrow
+  unrelated monster images for future additions or reserved second-run content.
 - `characters/reserve/apothecary_assistant.webp` is the only fully unreferenced
   runtime art file. Registered but currently reserved monsters are not automatic
   deletion candidates.
 
 ## Current Review Gate
 
-As of 2026-07-17, the current review gate is the Chapter 1-2 vertical slice plus
-the active formal-weapon data audit:
+As of 2026-07-18, the current review gate is the Chapter 1-2 vertical slice plus
+the remaining non-casino catalog review:
 
 - Mainline scenes must make nine core characters complete; side stories only
   deepen them. `MainlineCharacterContracts` locks introductions, decisive scenes,
@@ -252,16 +268,30 @@ the active formal-weapon data audit:
   balance tuning. `assassin_blade` equipment/material ids are separated,
   `wolf_fang` is a material only, four forge materials use one canonical data
   definition, and obsolete `old_sword` / `old_armor` records are removed.
+- First-run monster ecology now compiles to chapter counts `9, 8, 8, 8, 10, 8,
+  8`. Chapter 1 uses treant as its elite; skeleton and neutral `cave_bat` begin
+  in Chapter 2. The second-run data contract reserves 12 monsters and one
+  external Boss per chapter without activating that content.
+- The formal first-run weapon catalog compiles to 76 weapons: 35 baseline-series
+  weapons and 41 special weapons. All seven Lv10 bands have five-form baseline
+  craft coverage, and the formal audit has no unknown forms or blueprint gaps.
+- The approved current catalog-art batch includes 53 equipment images, 21
+  formal blueprint images, and the expedition-steel material image. Obsolete
+  per-form baseline blueprint files were removed.
+- Neutral baseline focuses may use one replaceable fire, ice, thunder, or poison
+  attunement through the forge. This adds no separate magic-power stat and does
+  not include shadow, glimmer, light, or Void.
 
 The runtime foundation is reviewable, not immutable. If the user revises a scene,
 edit the story bible and recompile the authoritative registry; do not add a second
 story path as a workaround.
 
 Data normalization may continue where it removes collisions or obsolete records,
-but do not assign final rewards, drops, equipment bands, or stock balance before
-the map-function review. The immediate equipment resume task is an audit of
-formal weapon distribution by level band, form, source, blueprint inclusion, and
-elemental focus coverage; casino concepts and tower equipment remain excluded.
+but do not assign final rewards, drop rates, equipment values, or stock balance
+before the map-function review. The immediate catalog resume task is to review
+the six crafted-result and five Boss-blueprint mapping gaps before generating or
+removing them. The 33 casino-special mappings and tower equipment remain
+excluded.
 Chapter 1-2 still needs a no-skip playthrough, final text/expression review,
 background binding, and audio. Second-run external Boss expansion, second-run
 gameplay, final combat balance, tower rewrite, post-reveal DLC, and mobile UI
@@ -274,6 +304,7 @@ Run these after asset or manifest changes:
 ```powershell
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\AssetCoverageCheck.mjs
 & 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\DataConsistencyCheck.mjs
+& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts\MonsterEcologyCheck.mjs
 ```
 
 Optional path spot check:

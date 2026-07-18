@@ -12,6 +12,7 @@
         <nav class="forge-tabs">
             <button class="tab-btn active" data-tab="craft">🔨 鍛造製作</button>
             <button class="tab-btn" data-tab="enhance">⚒️ 裝備強化</button>
+            <button class="tab-btn" data-tab="attune">元素調律</button>
             <button class="tab-btn" data-tab="repair">🛠️ 裝備修復</button>
             <button class="tab-btn" data-tab="affix">✨ 詞綴重鑄</button>
         </nav>
@@ -77,6 +78,49 @@
                     <div class="materials-inventory" id="materials-inventory">
                         <!-- 動態生成 -->
                     </div>
+                </section>
+            </div>
+
+            <!-- ========== 法杖元素調律面板 ========== -->
+            <div id="attune-panel" class="tab-content">
+                <section class="equipment-panel">
+                    <h3>選擇法杖</h3>
+                    <div class="equipment-list" id="attune-equipment-list"></div>
+                </section>
+
+                <section class="attune-area forge-action-area">
+                    <div class="selected-equipment" id="selected-attune-equipment">
+                        <div class="empty-slot">
+                            <span class="empty-icon">◆</span>
+                            <span class="empty-text">選擇要調律的法杖</span>
+                        </div>
+                    </div>
+
+                    <div class="attune-info forge-info-panel" id="attune-info" style="display: none;">
+                        <div class="attune-summary">
+                            <div class="detail-row">
+                                <span>目前元素</span>
+                                <span id="attune-current-element" class="rate-value">中性</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>調律費用</span>
+                                <span id="attune-cost" class="cost-value">80 金幣</span>
+                            </div>
+                        </div>
+                        <div id="attune-element-options" class="attune-element-options"></div>
+                        <button id="btn-attune-equipment" class="action-btn attune-btn" disabled>選擇元素</button>
+                    </div>
+
+                    <div class="attune-result" id="attune-result" style="display: none;">
+                        <div class="result-icon"></div>
+                        <div class="result-text"></div>
+                    </div>
+                </section>
+
+                <section class="attune-support-panel">
+                    <h4>調律規則</h4>
+                    <p>一般系列法杖可選擇火、冰、雷、毒其中一種。重新調律會覆蓋原本元素，特殊固定元素法杖無法改寫。</p>
+                    <div id="attune-material-hints" class="repair-material-hints"></div>
                 </section>
             </div>
 

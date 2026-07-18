@@ -1,6 +1,6 @@
 # SDS Games Development Docs
 
-Last updated: 2026-07-14
+Last updated: 2026-07-18
 
 This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
 data files remain the source of truth for shipped behavior; these documents keep
@@ -27,8 +27,9 @@ the design direction readable for future Codex sessions.
 - `CASINO_ROUTE_FRAMEWORK.md` - fixed Vesper/Lorne two-run route, ticket and pool
   economy, Loaded Dice reversal, contract boundary, showcase reward, and runtime
   rewrite targets.
-- `EQUIPMENT_SERIES_FRAMEWORK.md` - equipment-series roles, weapon-form
-  quadrants, affinity boundaries, and future weapon ability direction.
+- `EQUIPMENT_SERIES_FRAMEWORK.md` - seven baseline craft series, weapon-form
+  contracts, source budgets, focus attunement, affinity boundaries, and open
+  item-flow work.
 - `ART_STYLE_GUIDE.md` - current image style rules and reference assets already in
   the project.
 - `IMAGE_GENERATION_PROMPTS.md` - authoritative prompt templates for every
@@ -44,11 +45,12 @@ the design direction readable for future Codex sessions.
 - Second-run external Boss expansion is paused at its recorded boundary until
   first-run story, systems, and required art are complete. Later routes must use
   stable first-run achievements/evidence flags without rewriting first-run core.
-- Combat redesign is paused.
+- Final combat balance and broad combat redesign are paused; the current five
+  weapon identities and combat VFX test path remain the implemented baseline.
 - Tower rewrite is paused.
-- First-run story image work is active and follows the concrete ledger in
+- Approved first-run story and catalog image work follows the concrete ledger in
   `ART_STYLE_GUIDE.md`. Second-run external story art, tower art, DLC light/Void
-  art, and unapproved catalog expansion remain paused.
+  art, casino prize art, and unapproved catalog expansion remain paused.
 
 ## Runtime Story Foundation
 
@@ -61,7 +63,11 @@ the design direction readable for future Codex sessions.
 
 The old town plan, quest spine, first-chapter route plan, random geography, and
 fifteen-part main quest chain are removed rather than retained as compatibility
-layers. Rewards and map-dependent stock remain deliberately unassigned.
+layers. Main-chapter rewards and numeric stock remain deliberately unassigned.
+Optional character stories carry approved reward identities and resource needs.
+Their direction passed user review on 2026-07-19, but they stay outside playable
+quest groups until formal dialogue, required assets, discovery interactions,
+runtime records, and end-to-end validation are complete.
 
 ## Working Rules
 

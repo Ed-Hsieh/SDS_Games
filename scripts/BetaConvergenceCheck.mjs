@@ -189,8 +189,8 @@ function auditStoryContent() {
     }
 
     for (const story of OptionalSideStoryRegistry) {
-        if (story.status !== OptionalSideStoryStatus.DEFERRED || story.rewardBinding !== null) {
-            addIssue('story-content', 'A side-story concept crossed the approved deferral gate.', {
+        if (story.status !== OptionalSideStoryStatus.APPROVED || !story.rewardBinding?.id) {
+            addIssue('story-content', 'A side-story plan is missing its approved production state or reward definition.', {
                 sideStoryId: story.id,
                 status: story.status,
                 rewardBinding: story.rewardBinding
@@ -203,7 +203,7 @@ function auditStoryContent() {
     ).size;
     summary.screenplayScenes = StorySceneOrder.length;
     summary.mainlineCharacterContracts = Object.keys(MainlineCharacterContracts).length;
-    summary.deferredOptionalSideStories = OptionalSideStoryRegistry.length;
+    summary.approvedOptionalSideStoriesPendingProduction = OptionalSideStoryRegistry.length;
 }
 
 function auditWorldEvents() {

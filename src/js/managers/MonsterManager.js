@@ -8,6 +8,7 @@ import {
     TowerMonsters,
     MonsterType
 } from '../data/Monsters.js';
+import { isMonsterAvailableInRun } from '../data/MonsterEcology.js';
 
 export function getMonster(monsterId) {
     return AllMonsters.find(m => m.id === monsterId) || null;
@@ -86,19 +87,21 @@ export function createMonsterInstance(monsterOrId) {
     };
 }
 
-export function createRandomMonsterForLevelRange(levelRange = [1, 10], rng = Math.random) {
+export function createRandomMonsterForLevelRange(levelRange = [1, 10], rng = Math.random, options = {}) {
     const [rawMin, rawMax] = Array.isArray(levelRange) ? levelRange : [1, 10];
     const minLevel = Math.max(1, Number(rawMin) || 1);
     const maxLevel = Math.max(minLevel, Number(rawMax) || minLevel);
     let candidates = getMonstersByLevelRange(minLevel, maxLevel)
         .filter(monster => monster.type !== MonsterType.BOSS
             && monster.type !== MonsterType.WORLD_BOSS
-            && !monster.towerFloor);
+            && !monster.towerFloor
+            && isMonsterAvailableInRun(monster.id, options));
 
     if (candidates.length === 0) {
         candidates = AllMonsters.filter(monster => monster.type !== MonsterType.BOSS
             && monster.type !== MonsterType.WORLD_BOSS
-            && !monster.towerFloor);
+            && !monster.towerFloor
+            && isMonsterAvailableInRun(monster.id, options));
     }
     if (candidates.length === 0) return null;
 

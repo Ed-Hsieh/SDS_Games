@@ -17083,6 +17083,109 @@ body {
     overflow: hidden !important;
 }
 
+.scene-forge #attune-panel.tab-content.active {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.82fr) minmax(440px, 1.35fr) minmax(260px, 0.83fr);
+    gap: 16px;
+    min-height: 0;
+}
+
+.scene-forge :is(.attune-area, .attune-support-panel) {
+    min-width: 0;
+    border: 1px solid var(--ui-border-subtle, rgba(193, 158, 86, 0.24));
+    background: var(--ui-surface-panel, rgba(8, 13, 15, 0.94));
+}
+
+.scene-forge .attune-area {
+    padding: 18px;
+}
+
+.scene-forge .attune-support-panel {
+    padding: 18px;
+    overflow: auto;
+}
+
+.scene-forge .attune-support-panel p {
+    color: var(--ui-text-muted, #aeb8b6);
+    line-height: 1.7;
+}
+
+.scene-forge .attune-summary {
+    display: grid;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.scene-forge .attune-element-options {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0 18px;
+}
+
+.scene-forge .attune-element-card {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    gap: 2px 10px;
+    min-height: 88px;
+    padding: 10px;
+    border: 1px solid rgba(193, 158, 86, 0.24);
+    background: rgba(13, 20, 22, 0.9);
+    color: var(--ui-text, #e8ece8);
+    text-align: left;
+    cursor: pointer;
+}
+
+.scene-forge .attune-element-card:hover:not(:disabled),
+.scene-forge .attune-element-card.selected {
+    border-color: rgba(217, 181, 99, 0.82);
+    background: rgba(58, 49, 29, 0.48);
+}
+
+.scene-forge .attune-element-card:disabled {
+    opacity: 0.46;
+    cursor: default;
+}
+
+.scene-forge .attune-element-icon {
+    grid-row: 1 / 4;
+    width: 46px;
+    height: 46px;
+}
+
+.scene-forge .attune-element-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.scene-forge .attune-element-card span,
+.scene-forge .attune-element-card small {
+    color: var(--ui-text-muted, #aeb8b6);
+}
+
+.scene-forge .attune-btn {
+    width: 100%;
+}
+
+.scene-forge .attune-result {
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid rgba(193, 158, 86, 0.28);
+    background: rgba(9, 15, 17, 0.96);
+}
+
+.scene-forge .attune-result.success {
+    border-color: rgba(74, 176, 126, 0.62);
+}
+
+.scene-forge .attune-result.fail {
+    border-color: rgba(190, 80, 70, 0.62);
+}
+
 .scene-forge :is(#enhance-panel, #repair-panel, #affix-panel) > :is(.equipment-panel, .enhance-history-panel, .reroll-history-panel, .repair-support-panel) {
     display: grid !important;
     grid-template-rows: auto minmax(0, 1fr);

@@ -1,6 +1,6 @@
 # Image Generation Prompt Standards
 
-Last updated: 2026-07-14
+Last updated: 2026-07-18
 
 This is the authoritative prompt standard for future SDS_Games image generation.
 Use this file together with `ART_STYLE_GUIDE.md`. Old sheet-generation prompts,
@@ -111,6 +111,21 @@ Identity constraints: this must read as a real [sword / dagger / hammer / spear 
 Negative constraints: no text, no labels, no numbers, no watermark, no UI frame, no cropped-off subject.
 ```
 
+Weapon-form scale must remain readable without a character model. A sword uses
+a full battlefield blade, normally about 70-80 percent of the weapon's total
+length, with a sword-scale guard and grip; it must be substantially longer and
+broader than the same series' dagger. A heavy hammer or maul must have a rigid,
+centered shaft joint and a head that remains symmetrical and perpendicular to
+the shaft without perspective-induced bending or skew.
+
+For a craft series built around an embedded substance, preserve the approved
+`slime_series_sword.webp` construction language: the weapon has a deliberate
+recessed central channel, and that channel is visibly filled from end to end by
+the translucent series substance. The substance is structural and voluminous,
+not a thin painted stripe, isolated gem, surface smear, or small decoration.
+Carry the same readable construction rule across all five weapon forms while
+keeping each form mechanically plausible.
+
 Boss-drop addition:
 
 ```text
@@ -119,6 +134,7 @@ Boss-drop match: this item must visually match the [weapon/object] held by [boss
 
 Reference examples:
 
+- `src/assets/images/art/items/equipment/slime_series_sword.webp`
 - `src/assets/images/art/items/equipment/wolf_fang_blade.webp`
 - `src/assets/images/art/items/equipment/lich_staff.webp`
 - `src/assets/images/art/items/equipment/dawnbrand_sword.webp`
@@ -198,13 +214,24 @@ Reference examples:
 - `src/assets/images/art/items/equipment/forest_guardian_crown.webp`
 - `src/assets/images/art/items/equipment/shadow_badge.webp`
 - `src/assets/images/art/items/equipment/elemental_badge.webp`
-- `src/assets/images/art/items/equipment/gamblers_fallacy.webp`
-- `src/assets/images/art/items/equipment/casino_owner_contract_ring.webp`
+- `src/assets/images/art/items/equipment/stormfeather_talisman.webp`
 
 ## Blueprints And Craft Plans
 
 Blueprint art must show the same object that the recipe creates. This prevents
 the blueprint from feeling like a generic scroll.
+
+Baseline series are the exception to the single-object composition: one series
+sheet must show the exact sword, dagger, heavy weapon, spear/lance, and
+staff/focus unlocked by that series. Use `slime_series.webp` as the composition
+reference. Do not generate five separate baseline blueprint sheets.
+
+The shared sheet filename is the series id (`slime_series.webp`,
+`bone_series.webp`, and so on). Individual finished-weapon files still use their
+recipe ids. Generate the five individual weapons first or from the same locked
+design description, then make the shared sheet reproduce those exact five
+silhouettes, materials, and ornaments. Old per-form baseline blueprint files are
+obsolete and must be removed rather than retained as fallbacks.
 
 Style line:
 
@@ -233,10 +260,11 @@ Negative constraints: no readable writing, no labels, no numbers, no watermark, 
 
 Reference examples:
 
-- `src/assets/images/art/items/blueprints/black_iron_blade_blueprint.webp`
-- `src/assets/images/art/items/blueprints/glimmer_lampstaff_blueprint.webp`
-- `src/assets/images/art/items/blueprints/shade_focus_blueprint.webp`
-- `src/assets/images/art/items/blueprints/aurora_ward_plate_blueprint.webp`
+- `src/assets/images/art/items/blueprints/slime_series.webp`
+- `src/assets/images/art/items/blueprints/bone_series.webp`
+- `src/assets/images/art/items/blueprints/poison_dagger.webp`
+- `src/assets/images/art/items/blueprints/glimmer_focus.webp`
+- `src/assets/images/art/items/blueprints/shadow_armor.webp`
 
 ## Normal Monsters
 
@@ -503,7 +531,7 @@ Reference examples:
 - `src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp`
 - `src/assets/images/art/scenes/backgrounds/casino-game-table.webp`
 - `src/assets/images/art/characters/portraits/casino_owner.webp`
-- `src/assets/images/art/items/equipment/gamblers_fallacy.webp`
+- `src/assets/images/art/items/key-items/clues/loaded_dice.webp`
 
 ## Dungeon Scenes
 

@@ -4,6 +4,8 @@
  */
 import GameManager, { ItemType, ItemRarity } from '../managers/GameManager.js';
 import { enhancementManager } from '../managers/EnhancementManager.js';
+import { staffAttunementManager } from '../managers/StaffAttunementManager.js';
+import { StaffAttunementContract, StaffAttunementElements } from '../data/StaffAttunement.js';
 import { affixManager } from '../managers/AffixManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { RecipeDatabase, getRecipe, getRecipesByType, canCraft } from '../managers/RecipeManager.js?v=equipment-atlas-20260605b';
@@ -36,6 +38,8 @@ export default class ForgeScene {
         // 詞綴重鑄相關
         this.selectedAffixEquipment = null;
         this.selectedRepairEquipment = null;
+        this.selectedAttuneEquipment = null;
+        this.selectedAttunementElement = null;
     }
 
     init() {
@@ -86,6 +90,16 @@ export default class ForgeScene {
             btnEnhanceEquipment: this.container.querySelector('#btn-enhance-equipment'),
             enhanceResult: this.container.querySelector('#enhance-result'),
             enhanceHistory: this.container.querySelector('#enhance-history'),
+            attunePanel: this.container.querySelector('#attune-panel'),
+            attuneEquipmentList: this.container.querySelector('#attune-equipment-list'),
+            selectedAttuneEquipment: this.container.querySelector('#selected-attune-equipment'),
+            attuneInfo: this.container.querySelector('#attune-info'),
+            attuneCurrentElement: this.container.querySelector('#attune-current-element'),
+            attuneCost: this.container.querySelector('#attune-cost'),
+            attuneElementOptions: this.container.querySelector('#attune-element-options'),
+            attuneMaterialHints: this.container.querySelector('#attune-material-hints'),
+            btnAttuneEquipment: this.container.querySelector('#btn-attune-equipment'),
+            attuneResult: this.container.querySelector('#attune-result'),
             repairPanel: this.container.querySelector('#repair-panel'),
             repairEquipmentList: this.container.querySelector('#repair-equipment-list'),
             selectedRepairEquipment: this.container.querySelector('#selected-repair-equipment'),
@@ -132,6 +146,7 @@ export default class ForgeScene {
 
         // 裝備強化
         this.dom.btnEnhanceEquipment?.addEventListener('click', () => this.enhanceSelectedEquipment());
+        this.dom.btnAttuneEquipment?.addEventListener('click', () => this.attuneSelectedEquipment());
         this.dom.btnRepairEquipment?.addEventListener('click', () => this.repairSelectedEquipment());
 
         // 詞綴重鑄
@@ -174,6 +189,9 @@ export default class ForgeScene {
             case 'enhance':
                 this.loadEnhanceEquipmentList();
                 this.renderEnhanceHistory();
+                break;
+            case 'attune':
+                this.loadAttuneEquipmentList();
                 break;
             case 'repair':
                 this.loadRepairEquipmentList();
@@ -1344,6 +1362,166 @@ export default class ForgeScene {
 
         setTimeout(() => {
             if (this.dom.repairResult) this.dom.repairResult.style.display = 'none';
+        }, 2600);
+    }
+
+    // ==================== 法杖元素調律 ====================
+
+    getAttuneEquipmentEntries() {
+        const entries = [];
+        const seen = new Set();
+        const add = (item, sourceLabel, isEquipped = false) => {
+            if (!item || String(item.weaponForm || '').toLowerCase() !== 'focus') return;
+            const key = item.instanceId || item;
+            if (seen.has(key)) return;
+            seen.add(key);
+            entries.push({ item, sourceLabel, isEquipped });
+        };
+
+        const character = GameManager.getCharacter();
+        for (const item of Object.values(character?.equipment || {})) add(item, '已裝備', true);
+        for (const stack of GameManager.state?.inventory || []) add(stack?.item, '背包');
+        for (const stack of GameManager.state?.warehouse || []) add(stack?.item, '倉庫');
+        return entries;
+    }
+
+    loadAttuneEquipmentList() {
+        if (!this.dom.attuneEquipmentList) return;
+        const entries = this.getAttuneEquipmentEntries();
+        this.dom.attuneEquipmentList.innerHTML = '';
+
+        for (const entry of entries) {
+            const { item, sourceLabel, isEquipped } = entry;
+            const current = staffAttunementManager.getCurrentAttunement(item);
+            const fixed = staffAttunementManager.getFixedElement(item);
+            const card = document.createElement('div');
+            const selected = this.selectedAttuneEquipment?.item === item;
+            card.className = `equipment-card rarity-frame rarity-${item.rarity || 'common'} ${item.rarity || 'common'} ${selected ? 'selected' : ''}`;
+            card.innerHTML = `
+                <div class="card-icon">${getItemVisualHtml(item, '◆')}</div>
+                <div class="card-info">
+                    <div class="card-name">${escapeHtml(item.name || '未命名法杖')}</div>
+                    <div class="card-stats">${escapeHtml(fixed ? `固定${fixed.label}元素` : current ? `${current.label}元素` : '中性')} · ${escapeHtml(sourceLabel)}</div>
+                </div>
+                ${isEquipped ? '<span class="equipped-badge">裝備中</span>' : ''}
+            `;
+            attachItemTooltip(card, item, { hint: '點擊選擇法杖' });
+            card.addEventListener('click', () => this.selectAttuneEquipment(entry));
+            this.dom.attuneEquipmentList.appendChild(card);
+        }
+
+        if (!entries.length) {
+            this.dom.attuneEquipmentList.innerHTML = '<div class="empty-inventory">目前沒有可查看的法杖</div>';
+        }
+        this.renderAttunementMaterialHints();
+    }
+
+    selectAttuneEquipment(entry) {
+        this.selectedAttuneEquipment = entry;
+        this.selectedAttunementElement = staffAttunementManager.getCurrentAttunement(entry.item)?.element || null;
+        this.dom.selectedAttuneEquipment.innerHTML = `
+            <div class="selected-item rarity-frame rarity-${entry.item.rarity || 'common'} ${entry.item.rarity || 'common'}">
+                <div class="item-icon">${this.renderItemVisual(entry.item, '◆')}</div>
+                <div class="item-info">
+                    <div class="item-name">${escapeHtml(entry.item.name || '未命名法杖')}</div>
+                    <div class="item-rarity">${escapeHtml(this.getRarityText(entry.item.rarity))} · ${escapeHtml(entry.sourceLabel)}</div>
+                </div>
+            </div>
+        `;
+        attachItemTooltip(this.dom.selectedAttuneEquipment.querySelector('.selected-item'), entry.item, { hint: '目前選擇的法杖' });
+        this.showAttuneInfo(entry.item);
+        this.loadAttuneEquipmentList();
+    }
+
+    showAttuneInfo(item) {
+        if (!this.dom.attuneInfo) return;
+        const current = staffAttunementManager.getCurrentAttunement(item);
+        const fixed = staffAttunementManager.getFixedElement(item);
+        const eligible = staffAttunementManager.canAttune(item);
+        this.dom.attuneCurrentElement.textContent = fixed
+            ? `${fixed.label}（固定）`
+            : current?.label || '中性';
+        this.dom.attuneCost.textContent = `${StaffAttunementContract.goldCost} 金幣`;
+
+        if (!eligible) {
+            this.dom.attuneElementOptions.innerHTML = `<div class="forge-material-empty">${fixed ? '這把法杖具有固定元素，無法重新調律。' : '這把法杖沒有可替換的元素槽。'}</div>`;
+            this.dom.btnAttuneEquipment.disabled = true;
+            this.dom.btnAttuneEquipment.textContent = '無法調律';
+            this.dom.attuneInfo.style.display = 'block';
+            return;
+        }
+
+        this.dom.attuneElementOptions.innerHTML = Object.values(StaffAttunementElements).map(element => {
+            const preview = staffAttunementManager.getElementPreview(item, element.id);
+            const material = getMaterial(element.materialId);
+            const selected = this.selectedAttunementElement === element.id;
+            const state = !preview.unlocked ? `第 ${element.unlockChapter} 章開放`
+                : preview.enoughMaterial ? `${preview.owned}/${preview.materialQuantity}`
+                    : `素材 ${preview.owned}/${preview.materialQuantity}`;
+            return `
+                <button class="attune-element-card ${selected ? 'selected' : ''} ${preview.unlocked ? '' : 'locked'}"
+                        data-attune-element="${escapeHtml(element.id)}"
+                        ${preview.unlocked ? '' : 'disabled'}>
+                    <span class="attune-element-icon">${getItemVisualHtml(material, '◆')}</span>
+                    <strong>${escapeHtml(element.label)}元素</strong>
+                    <span>${escapeHtml(material?.name || element.materialId)} · ${escapeHtml(state)}</span>
+                    <small>${escapeHtml(element.sourceLabel)}</small>
+                </button>
+            `;
+        }).join('');
+
+        this.dom.attuneElementOptions.querySelectorAll('[data-attune-element]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.selectedAttunementElement = button.dataset.attuneElement;
+                this.showAttuneInfo(item);
+            });
+        });
+
+        const preview = this.selectedAttunementElement
+            ? staffAttunementManager.getElementPreview(item, this.selectedAttunementElement)
+            : null;
+        this.dom.btnAttuneEquipment.disabled = !preview?.available || preview?.alreadyActive;
+        this.dom.btnAttuneEquipment.textContent = preview?.alreadyActive
+            ? '目前已是此元素'
+            : preview?.available
+                ? `調律為${preview.element.label}元素`
+                : '選擇可用元素';
+        this.dom.attuneInfo.style.display = 'block';
+    }
+
+    renderAttunementMaterialHints() {
+        if (!this.dom.attuneMaterialHints) return;
+        this.dom.attuneMaterialHints.innerHTML = Object.values(StaffAttunementElements).map(element => {
+            const material = getMaterial(element.materialId);
+            return `<div class="forge-material-row is-compact"><span class="forge-material-icon">${getItemVisualHtml(material, '◆')}</span><span class="forge-material-name">${escapeHtml(element.label)} · ${escapeHtml(material?.name || element.materialId)}</span><strong class="forge-material-count">第 ${element.unlockChapter} 章</strong></div>`;
+        }).join('');
+    }
+
+    attuneSelectedEquipment() {
+        const item = this.selectedAttuneEquipment?.item;
+        if (!item || !this.selectedAttunementElement) return;
+        const result = staffAttunementManager.attune(item, this.selectedAttunementElement);
+        const reasonText = {
+            ineligible: '這把法杖無法進行元素調律。',
+            chapter_locked: '目前章節尚未理解這種元素。',
+            materials: '調律素材不足。',
+            gold: '金幣不足。',
+            already_active: '這把法杖目前已是所選元素。'
+        }[result.reason];
+        this.showAttuneResult(result.success, result.message || reasonText || '元素調律失敗。');
+        this.updateUI();
+        this.showAttuneInfo(item);
+        this.loadAttuneEquipmentList();
+    }
+
+    showAttuneResult(success, message) {
+        if (!this.dom.attuneResult) return;
+        this.dom.attuneResult.style.display = 'flex';
+        this.dom.attuneResult.className = `attune-result ${success ? 'success' : 'fail'}`;
+        this.dom.attuneResult.innerHTML = `<div class="result-icon ${success ? 'success' : 'fail'}">${success ? '✓' : '!'}</div><div class="result-text">${escapeHtml(message)}</div>`;
+        audioManager.play(success ? 'craft-success' : 'craft-fail', { throttleKey: 'forge-attune-result', throttleMs: 260 });
+        setTimeout(() => {
+            if (this.dom.attuneResult) this.dom.attuneResult.style.display = 'none';
         }, 2600);
     }
 

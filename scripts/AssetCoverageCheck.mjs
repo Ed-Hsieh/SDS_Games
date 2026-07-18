@@ -158,7 +158,19 @@ for (const [id, item] of entries(MaterialDatabase)) {
 }
 
 for (const [id, recipe] of entries(RecipeDatabase)) {
-    checkAsset('blueprint', id, getGeneratedItemImage({ id, name: recipe.name, type: 'blueprint' }, { blueprint: true }), { square: true, minWidth: 96, minHeight: 96 });
+    const blueprintId = recipe.blueprintGroupId || recipe.seriesId || id;
+    checkAsset(
+        'blueprint',
+        blueprintId,
+        getGeneratedItemImage({
+            id,
+            name: recipe.name,
+            type: 'blueprint',
+            blueprintGroupId: recipe.blueprintGroupId,
+            seriesId: recipe.seriesId
+        }, { blueprint: true }),
+        { square: true, minWidth: 96, minHeight: 96 }
+    );
     if (recipe.result?.id) {
         checkAsset(
             'crafted-result',
