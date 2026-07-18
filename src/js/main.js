@@ -20,7 +20,7 @@ import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js?v=dialogue-read-cue-20260715b';
 import storyDialogueController from './managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 
-const APP_ASSET_VERSION = 'wolf-smoke-20260716a';
+const APP_ASSET_VERSION = 'tutorial-stage-20260719a';
 
 class App {
     constructor() {

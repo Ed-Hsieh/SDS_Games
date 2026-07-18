@@ -450,6 +450,24 @@
     display: none;
 }
 
+/* FHD gains one dialogue line; the two-line HD layout remains the baseline. */
+@media (min-width: 1600px) and (min-height: 900px) {
+    .story-dialogue-box {
+        height: 215px;
+        min-height: 215px;
+        grid-template-rows: calc(var(--story-dialogue-line-height) * 3) 30px;
+    }
+
+    .story-dialogue-copy {
+        height: calc(var(--story-dialogue-line-height) * 3);
+    }
+
+    .story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-box {
+        height: 215px;
+        min-height: 215px;
+    }
+}
+
 @keyframes story-dialogue-blink {
     50% { opacity: 0; }
 }

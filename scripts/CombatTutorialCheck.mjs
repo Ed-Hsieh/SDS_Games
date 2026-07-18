@@ -1,4 +1,5 @@
 import RealtimeCombatSession, { CombatSessionPhase } from '../src/js/managers/RealtimeCombatSession.js';
+import fs from 'node:fs';
 
 globalThis.requestAnimationFrame = () => 1;
 globalThis.cancelAnimationFrame = () => {};
@@ -15,6 +16,13 @@ const failures = [];
 const check = (condition, message) => {
     if (!condition) failures.push(message);
 };
+
+const adventureView = fs.readFileSync(new URL('../src/views/adventure.html', import.meta.url), 'utf8');
+const sharedCombatView = fs.readFileSync(new URL('../src/js/components/CombatStageView.js', import.meta.url), 'utf8');
+check(!adventureView.includes('data-combat-stage'), 'Adventure view still embeds a second combat stage');
+for (const requiredId of ['player-buff-list', 'player-debuff-list', 'monster-status-row']) {
+    check(sharedCombatView.includes(`id="${requiredId}"`), `Shared combat stage is missing #${requiredId}`);
+}
 
 const events = [];
 const session = new RealtimeCombatSession({

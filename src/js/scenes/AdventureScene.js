@@ -8,6 +8,7 @@ import {
     settleEncounterVictory
 } from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
 import AdventurePanelsController from '../components/AdventurePanelsController.js';
+import { ensureCombatStage } from '../components/CombatStageView.js?v=tutorial-stage-20260719a';
 import WorldMap from '../utils/WorldMap.js';
 import {
     OverworldMapConfig,
@@ -97,6 +98,7 @@ export default class AdventureScene {
                 discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])]
             })
         });
+        ensureCombatStage(this.container);
         this.combat = new CombatFlowController(this.container, {
             scene: { type: 'overworld', id: this.worldMap.config.id },
             settleVictory: encounter => encounter?.context?.prologueTutorial

@@ -62,7 +62,7 @@ export default class CombatFlowController {
         const link = document.createElement('link');
         link.id = 'scene-combat-vfx-style';
         link.rel = 'stylesheet';
-        link.href = 'src/style/combat-vfx-lab.css?v=20260717g';
+        link.href = 'src/style/combat-vfx-lab.css?v=monster-centered-20260719a';
         document.head.appendChild(link);
         this.ownsStylesheet = true;
     }
