@@ -14,7 +14,7 @@ import {
 import GameManager from '../managers/GameManager.js';
 import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
 import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
-import { markBlueprintKnown, markItemKnown, markMonsterKnown } from '../managers/EncyclopediaManager.js';
+import { markBlueprintKnown, markItemKnown } from '../managers/EncyclopediaManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
 import { StoryEventTypes } from '../data/StoryProgressMap.js';
@@ -1124,8 +1124,6 @@ class DungeonSceneClass {
         GameManager.addGold(finalGold);
         character.exp += exp;
         character.checkLevelUp();
-        markMonsterKnown(monster, { dungeonId: this.dungeonType });
-
         const blueprintUnlocks = rollRecipeBlueprintDrops({
             monster,
             dungeonId: this.dungeonType

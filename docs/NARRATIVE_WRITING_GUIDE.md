@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-16
+Last updated: 2026-07-19
 
 ## Purpose
 
@@ -397,6 +397,58 @@ Before accepting a spoken line, answer:
    the speaker's role, habits, relationship, and material world.
 6. What specifically caused the assigned expression, and should it persist into
    the next beat?
+
+### Dialogue Desire, Restraint, And Turn Continuity
+
+Before drafting a conversation, define these values for every participant. They
+are scene-writing constraints, not player-facing labels:
+
+- `immediateWant`: what the character wants the listener to do, admit, reveal,
+  stop, believe, or leave unresolved before this exchange ends.
+- `cannotSayDirectly`: facts, fears, accusations, affection, guilt, uncertainty,
+  or requests the character cannot state plainly because of knowledge limits,
+  personality, relationship, duty, shame, danger, or strategy.
+- `knowledgeBoundary`: what the character directly observed, what they inferred,
+  and what remains outside their expertise.
+- `responseHabit`: whether this character tends to answer directly, narrow the
+  question, correct wording, ask for evidence, evade, counter-question, remain
+  silent, act instead of speak, or change the practical subject.
+- `informationBudget`: how much this character can usefully reveal in this
+  moment without turning the exchange into a briefing.
+
+The scene writer must know these values even when none are written into runtime
+metadata. Two characters may know the same fact and still disclose it
+differently because they want different outcomes from the listener.
+
+Dialogue turns must connect horizontally:
+
+- Each reply reacts to the previous spoken line, silence, action, or visible
+  evidence before it serves the larger plot.
+- A character does not need to answer the grammatical question. They may answer
+  only its dangerous part, reject its premise, ask what the listener intends to
+  do, misread it, defer it, or handle an object instead.
+- Do not let each participant deliver a complete independent analysis in turn.
+  Break information across pressure, interruption, correction, and incomplete
+  answers.
+- Exposition may become longer only when the listener has earned it, the speaker
+  has chosen to provide it, and the immediate situation allows it.
+- Subtext must still change the scene. Hidden intent is not an excuse for vague
+  lines that neither affect the relationship nor advance evidence, action, or
+  consequence.
+
+Use this contrast as the target shape:
+
+> 「你為什麼不告訴我？」
+>
+> 「告訴你又能怎樣？」
+>
+> 「至少讓我知道。」
+>
+> 「知道了，你就不會來了。」
+
+The exchange releases background through conflict. It does not begin with a
+complete explanation of what happened, why it was hidden, and how both people
+feel about it.
 
 ## Character Voice
 

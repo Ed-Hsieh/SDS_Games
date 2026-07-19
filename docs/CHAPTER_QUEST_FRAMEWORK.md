@@ -54,6 +54,93 @@ Dungeons are not mandatory mainline fillers. They should exist across level band
 as side-story and equipment-support routes. If a dungeon is moved into the main
 chapter route, the plan needs to say why before implementation.
 
+## Causal Quest And Player-Knowledge Contract
+
+Every mainline segment follows this causal structure, although its presentation,
+length, location count, and dramatic rhythm may differ:
+
+1. The previous segment produces a concrete result.
+2. That result creates a new practical problem.
+3. The player proposes or accepts a provisional hypothesis.
+4. The player acts personally to test it.
+5. The location reveals evidence the hypothesis cannot fully explain.
+6. Characters reinterpret only the parts covered by their own expertise.
+7. The player handles the immediate consequence.
+8. The world changes visibly.
+9. That visible change causes the next problem.
+
+`A` must cause `B`; a prerequisite flag that merely prevents `B` from appearing
+does not establish causality. Do not build a chapter as a chain of unrelated
+orders joined only by objective completion.
+
+Author truth, character knowledge, and player knowledge are separate states:
+
+- Planning documents may record the complete cause.
+- Runtime characters may state only observations and interpretations available
+  to them at that moment.
+- The player knows a conclusion only after a scene has shown its evidence or an
+  authorized character has interpreted that evidence in front of the player.
+- A quest objective, handbook entry, flag, or UI notification cannot teach a
+  conclusion before its scene does.
+
+### Required Performance Checkpoints
+
+Quest progress must be dramatized. A silent objective update is never the sole
+presentation of a new problem, hypothesis, contradiction, consequence, route,
+or town-state change.
+
+Create a scene checkpoint whenever one of these changes:
+
+- The reason for acting.
+- The current provisional explanation.
+- The evidence that contradicts that explanation.
+- The danger produced by the player's own action.
+- The professional interpretation of collected evidence.
+- The practical consequence the player must handle.
+- The visible state of a route, location, service, NPC, or town function.
+- The causal question that begins the next segment.
+
+The runtime order is:
+
+`trigger or discovery -> performed scene -> player-knowledge output -> state flag -> objective or handbook refresh`
+
+The UI may summarize what the player has already experienced. It may not replace
+the performance with text such as `任務已更新`, silently synthesize several
+clues, or reveal the next destination without a witnessed reason.
+
+Every checkpoint must define:
+
+| Field | Requirement |
+| --- | --- |
+| `trigger` | The completed action, acquired evidence, return, encounter, or visible world change that starts the scene. |
+| `priorPlayerKnowledge` | What the player has actually seen before the scene starts. |
+| `participants` | Only people who can reasonably be present or receive the evidence. |
+| `immediateWant` | What each speaking participant wants from the exchange. |
+| `cannotSayDirectly` | What each participant withholds or cannot yet know. |
+| `newObservation` | The concrete fact shown during the scene. |
+| `provisionalInterpretation` | The limited current reading, including unresolved disagreement. |
+| `playerAction` | What the player can now do because of the performed scene. |
+| `visibleConsequence` | What changes in the world instead of only in UI text. |
+| `outputs` | Flags, objective text, handbook entries, routes, and state changes applied after the scene. |
+
+### Evidence Ownership By Character
+
+No single NPC announces the complete truth. The player assembles it from limited
+professional readings:
+
+| Character | May interpret | Must not conveniently explain |
+| --- | --- | --- |
+| Mia | Bodies, symptoms, medicine, herbs, contamination, and survival conditions. | Route history, military intent, structural damage, or the complete supernatural cause. |
+| Eli | Dates, names, route records, source boundaries, omissions, and contradictions between documents. | Medical certainty, material failure, field movement, or facts absent from the records. |
+| Blacksmith | Equipment damage, force direction, tool marks, material residue, and repair feasibility. | Who acted, why they acted, or what an unknown organism intends. |
+| Frey | Who departed, who returned, patrol practice, and how a road can currently be used. | Causes outside what she or the patrol witnessed. |
+| Tavi | Lamps, glass, flame behavior, wind direction, visibility, and fog. | Medical diagnosis, archival conclusions, or underground causes he cannot observe. |
+| Village elder | Which risk the town can bear, what must be protected, and which routes previously made people disappear. | A precise mechanism or historical certainty unsupported by surviving evidence. |
+
+Their interpretations may overlap, disagree, or correct one another. The final
+meaning belongs to the player's synthesis and later evidence, not to an NPC
+briefing disguised as dialogue.
+
 ## Narrative Writing Authority
 
 Use `docs/NARRATIVE_WRITING_GUIDE.md` before rewriting quest prose, NPC dialogue,

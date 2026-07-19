@@ -12,11 +12,9 @@ import {
     getMonsterEntries,
     isBlueprintKnownInEncyclopedia,
     isBlueprintSeriesKnownInEncyclopedia,
-    isEncyclopediaRevealAll,
     isItemKnown,
     isMonsterKnown,
-    setEncyclopediaRevealAll,
-    unlockAllEncyclopediaEntries
+    syncOwnedItemKnowledge
 } from '../managers/EncyclopediaManager.js?v=story-ch2-20260712p';
 import {
     CodexCategoryId,
@@ -154,6 +152,7 @@ export default class EncyclopediaScene {
     init() {
         this.cacheDOM();
         this.bindEvents();
+        syncOwnedItemKnowledge();
         GameManager.subscribe(this.updateFromFlags);
         this.render();
     }
@@ -165,8 +164,6 @@ export default class EncyclopediaScene {
     cacheDOM() {
         this.dom = {
             backButton: this.container.querySelector('#btn-codex-back'),
-            revealButton: this.container.querySelector('#btn-codex-toggle-reveal'),
-            unlockAllButton: this.container.querySelector('#btn-codex-unlock-all'),
             tabs: this.container.querySelectorAll('[data-codex-tab]'),
             search: this.container.querySelector('#codex-search'),
             filter: this.container.querySelector('#codex-filter'),
@@ -182,17 +179,6 @@ export default class EncyclopediaScene {
         this.dom.backButton?.addEventListener('click', () => {
             if (typeof this.app?.navigateTo === 'function') this.app.navigateTo('lobby');
             else this.app?.loadScene?.('lobby');
-        });
-
-        this.dom.revealButton?.addEventListener('click', () => {
-            setEncyclopediaRevealAll(!isEncyclopediaRevealAll());
-            this.render();
-        });
-
-        this.dom.unlockAllButton?.addEventListener('click', () => {
-            unlockAllEncyclopediaEntries();
-            showGlobalToast('百科已更新', '目前分類的條目已解鎖。', 'success');
-            this.render();
         });
 
         this.dom.tabs.forEach(tab => {
@@ -327,15 +313,6 @@ export default class EncyclopediaScene {
         this.dom.tabs.forEach(tab => {
             tab.classList.toggle('active', tab.dataset.codexTab === this.activeTab);
         });
-
-        if (this.dom.revealButton) {
-            const revealAll = isEncyclopediaRevealAll();
-            this.dom.revealButton.classList.toggle('is-active', revealAll);
-            this.dom.revealButton.textContent = `顯示全部：${revealAll ? '開' : '關'}`;
-        }
-        if (this.dom.unlockAllButton) {
-            this.dom.unlockAllButton.hidden = false;
-        }
 
         if (this.dom.summary) {
             const knownCount = entries.filter(entry => entry.known).length;
@@ -890,7 +867,7 @@ export default class EncyclopediaScene {
         const rows = sources.map(source => {
             const monster = source.monster || {};
             const known = isMonsterKnown(monster.entryId);
-            const image = known ? getGeneratedMonsterImage(String(monster.entryId || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, '')) : '';
+            const image = known ? getGeneratedMonsterImage(String(monster.entryId || '').replace(/^monster:|^world:|^tower:|^dungeon:[^:]+:/g, '')) : '';
             const icon = image
                 ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(monster.name || '')}">`
                 : escapeHtml(UnknownIcon.monster);

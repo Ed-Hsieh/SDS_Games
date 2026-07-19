@@ -28,7 +28,6 @@ import {
     getReadableSourceType
 } from '../data/CodexCatalogClasses.js';
 import {
-    BlueprintDropDatabase,
     getBlueprintDropsForMonster,
     getBlueprintDropsForRecipe
 } from '../data/BlueprintDrops.js';
@@ -41,7 +40,6 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 import { getRecipeBlueprintFlag, getRecipeSeriesFlag } from './BlueprintManager.js';
 import { storyJournalManager } from './StoryJournalManager.js';
 
-const REVEAL_ALL_FLAG = 'encyclopedia.revealAll';
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
 const ITEM_FLAG_PREFIX = 'encyclopedia.item.';
 const BLUEPRINT_FLAG_PREFIX = 'encyclopedia.blueprint.';
@@ -181,12 +179,17 @@ function getDungeonMonsterEntries(dungeonId, dungeon) {
     return entries;
 }
 
-function getSourceKeyForMonster(monster, context = {}) {
-    const monsterId = monster?.id || context.monsterId;
-    if (!monsterId) return null;
-    if (context.dungeonId) return `dungeon:${context.dungeonId}:${monsterId}`;
-    if (context.towerFloor || monster?.towerFloor) return `tower:${monsterId}`;
-    return `world:${monsterId}`;
+function getMonsterCatalogId(monsterOrId) {
+    const value = typeof monsterOrId === 'string'
+        ? monsterOrId
+        : monsterOrId?.id || monsterOrId?.monsterId || monsterOrId?.entryId;
+    if (!value) return '';
+    return String(value).replace(/^monster:|^world:|^tower:|^dungeon:[^:]+:/, '');
+}
+
+function getMonsterEntryId(monsterOrId) {
+    const monsterId = getMonsterCatalogId(monsterOrId);
+    return monsterId ? `monster:${monsterId}` : '';
 }
 
 function getItemDropRecord(itemId, rawDrop, sourceLabel) {
@@ -275,39 +278,32 @@ function collectMonsterBlueprintDrops(monster) {
     });
 }
 
-export function isEncyclopediaRevealAll() {
-    return GameManager.getFlag(REVEAL_ALL_FLAG) !== false;
-}
-
-export function setEncyclopediaRevealAll(value) {
-    GameManager.setFlag(REVEAL_ALL_FLAG, Boolean(value));
-}
-
-export function isMonsterKnown(entryId) {
-    return isEncyclopediaRevealAll() || Boolean(GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${entryId}`));
+export function isMonsterKnown(monsterOrId) {
+    const monsterId = getMonsterCatalogId(monsterOrId);
+    return Boolean(monsterId && GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`));
 }
 
 export function isItemKnown(itemId) {
-    return isEncyclopediaRevealAll() || Boolean(GameManager.getFlag(`${ITEM_FLAG_PREFIX}${itemId}`));
+    return Boolean(GameManager.getFlag(`${ITEM_FLAG_PREFIX}${itemId}`));
 }
 
 export function isBlueprintKnownInEncyclopedia(recipeId) {
-    return isEncyclopediaRevealAll()
-        || Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
+    return Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`));
 }
 
 export function isBlueprintSeriesKnownInEncyclopedia(seriesId) {
-    return isEncyclopediaRevealAll()
-        || Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
+    return Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${seriesId}`));
 }
 
-export function markMonsterKnown(monster, context = {}) {
-    const sourceKey = getSourceKeyForMonster(monster, context);
-    if (!sourceKey) return;
-    setFlagSilently(`${MONSTER_FLAG_PREFIX}${sourceKey}`, true);
+export function markMonsterKnown(monster) {
+    const monsterId = getMonsterCatalogId(monster);
+    if (!monsterId) return false;
+    if (GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`)) return false;
+    setFlagSilently(`${MONSTER_FLAG_PREFIX}${monsterId}`, true);
     notifyFlags();
+    return true;
 }
 
 export function markItemKnown(itemId) {
@@ -322,39 +318,94 @@ export function markBlueprintKnown(recipeId) {
     notifyFlags();
 }
 
+export function syncOwnedItemKnowledge() {
+    const character = GameManager.getCharacter?.();
+    const ownedItems = [
+        ...(GameManager.getInventory?.() || []).map(stack => stack?.item),
+        ...(GameManager.state?.warehouse || []).map(stack => stack?.item),
+        ...Object.values(character?.equipment || {})
+    ].filter(item => item?.id);
+    let changed = false;
+
+    for (const item of ownedItems) {
+        const flag = `${ITEM_FLAG_PREFIX}${item.id}`;
+        if (GameManager.getFlag(flag)) continue;
+        setFlagSilently(flag, true);
+        changed = true;
+    }
+
+    if (changed) notifyFlags();
+    return changed;
+}
+
 export function getDiscoveryEntries() {
     return storyJournalManager.getCatalogEntries();
 }
 
 export function getMonsterEntries() {
-    const entries = [];
+    const candidates = [];
 
     for (const monster of Object.values(MonsterDatabase)) {
-        entries.push(normalizeMonster(monster, {
-            entryId: `world:${monster.id}`,
+        candidates.push(normalizeMonster(monster, {
+            entryId: getMonsterEntryId(monster),
             sourceType: 'world',
             sourceLabel: '野外'
         }));
     }
 
     for (const [dungeonId, dungeon] of Object.entries(DungeonDatabase)) {
-        entries.push(...getDungeonMonsterEntries(dungeonId, dungeon));
+        candidates.push(...getDungeonMonsterEntries(dungeonId, dungeon));
     }
 
     for (const monster of Object.values(TowerMonsterData)) {
-        entries.push(normalizeMonster(monster, {
-            entryId: `tower:${monster.id}`,
+        candidates.push(normalizeMonster(monster, {
+            entryId: getMonsterEntryId(monster),
             sourceType: 'tower',
             sourceLabel: `無盡塔 ${monster.towerFloor || '?'}F`,
             towerFloor: monster.towerFloor || null
         }));
     }
 
-    return entries.map(entry => ({
+    const index = new Map();
+    for (const candidate of candidates) {
+        const monsterId = getMonsterCatalogId(candidate);
+        if (!monsterId) continue;
+        const sourceLabel = candidate.sourceLabel || '未知來源';
+        const itemDrops = collectMonsterItemDrops(candidate);
+        const blueprintDrops = collectMonsterBlueprintDrops(candidate);
+        const existing = index.get(monsterId);
+
+        if (!existing) {
+            index.set(monsterId, {
+                ...candidate,
+                id: monsterId,
+                entryId: getMonsterEntryId(monsterId),
+                sourceLabels: [sourceLabel],
+                itemDrops,
+                blueprintDrops
+            });
+            continue;
+        }
+
+        if (!existing.sourceLabels.includes(sourceLabel)) existing.sourceLabels.push(sourceLabel);
+        for (const drop of itemDrops) {
+            const key = `${drop.id}:${drop.sourceLabel}:${drop.chance ?? ''}`;
+            if (!existing.itemDrops.some(current => `${current.id}:${current.sourceLabel}:${current.chance ?? ''}` === key)) {
+                existing.itemDrops.push(drop);
+            }
+        }
+        for (const drop of blueprintDrops) {
+            const key = `${drop.recipeId || drop.seriesId || drop.id}:${drop.sourceLabel}:${drop.chance ?? ''}`;
+            if (!existing.blueprintDrops.some(current => `${current.recipeId || current.seriesId || current.id}:${current.sourceLabel}:${current.chance ?? ''}` === key)) {
+                existing.blueprintDrops.push(drop);
+            }
+        }
+    }
+
+    return [...index.values()].map(entry => ({
         ...entry,
-        known: isMonsterKnown(entry.entryId),
-        itemDrops: collectMonsterItemDrops(entry),
-        blueprintDrops: collectMonsterBlueprintDrops(entry)
+        sourceLabel: entry.sourceLabels.join(' / '),
+        known: isMonsterKnown(entry.id)
     }));
 }
 
@@ -365,13 +416,13 @@ function findMonsterByBlueprintSource(sourceKey) {
         const dungeonEntries = dungeon ? getDungeonMonsterEntries(maybeDungeonId, dungeon) : [];
         const match = dungeonEntries.find(entry => entry.id === maybeMonsterId);
         return match
-            ? { name: match.name, sourceLabel: match.sourceLabel, entryId: match.entryId }
-            : { name: maybeMonsterId, sourceLabel: maybeDungeonId, entryId: `dungeon:${sourceKey}` };
+            ? { name: match.name, sourceLabel: match.sourceLabel, entryId: getMonsterEntryId(match.id) }
+            : { name: maybeMonsterId, sourceLabel: maybeDungeonId, entryId: getMonsterEntryId(maybeMonsterId) };
     }
 
     const worldMonster = MonsterDatabase[sourceKey];
     if (worldMonster) {
-        return { name: worldMonster.name, sourceLabel: '野外', entryId: `world:${sourceKey}` };
+        return { name: worldMonster.name, sourceLabel: '野外', entryId: getMonsterEntryId(sourceKey) };
     }
 
     const towerMonster = TowerMonsterData[sourceKey];
@@ -379,7 +430,7 @@ function findMonsterByBlueprintSource(sourceKey) {
         return {
             name: towerMonster.name,
             sourceLabel: `無盡塔 ${towerMonster.towerFloor || '?'}F`,
-            entryId: `tower:${sourceKey}`
+            entryId: getMonsterEntryId(sourceKey)
         };
     }
 
@@ -887,32 +938,6 @@ export function getBlueprintEntries() {
     });
 
     return [...recipeEntries, ...seriesEntries];
-}
-
-export function unlockAllEncyclopediaEntries() {
-    for (const monster of getMonsterEntries()) {
-        setFlagSilently(`${MONSTER_FLAG_PREFIX}${monster.entryId}`, true);
-        for (const drop of monster.itemDrops || []) setFlagSilently(`${ITEM_FLAG_PREFIX}${drop.id}`, true);
-        for (const drop of monster.blueprintDrops || []) {
-            setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId || drop.seriesId || drop.id}`, true);
-        }
-    }
-
-    for (const sourceEntries of Object.values(BlueprintDropDatabase)) {
-        for (const drop of sourceEntries || []) {
-            setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${drop.recipeId || drop.seriesId}`, true);
-        }
-    }
-
-    for (const recipeId of Object.keys(RecipeDiscoveryDatabase)) {
-        setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`, true);
-    }
-
-    for (const item of getItemEntries()) {
-        setFlagSilently(`${ITEM_FLAG_PREFIX}${item.id}`, true);
-    }
-
-    notifyFlags();
 }
 
 export function getReadableType(type) {

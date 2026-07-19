@@ -4,6 +4,7 @@ import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
+import { markMonsterKnown } from './EncyclopediaManager.js';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -75,6 +76,7 @@ export default class CombatFlowController {
         if (!encounter || this.isActive() || !this.overlay || !this.combatRoot) return false;
         this.flow.beginEncounter(encounter);
         this.encounter = encounter;
+        markMonsterKnown(encounter.monster || encounter.visual);
         this.result = null;
         this.rewards = null;
         this.activePotion = findHealingPotion();
