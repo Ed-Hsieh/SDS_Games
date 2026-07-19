@@ -193,7 +193,7 @@ export function createRecipeBlueprintDisplayItem(unlock) {
     if (!recipe) return null;
     const resultId = recipe.result?.id || unlock.recipeId;
     const resultItem = resolveItemById(resultId, {
-        order: ['equipment', 'bossEquipment', 'material', 'shop', 'questReward']
+        order: ['equipment', 'bossEquipment', 'material', 'shop', 'rewardItem']
     });
     const rarity = resultItem?.rarity || recipe.result?.rarity || recipe.rarity || 'rare';
 

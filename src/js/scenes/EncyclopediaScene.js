@@ -542,7 +542,7 @@ export default class EncyclopediaScene {
     }
 
     renderMonsterItemDrop(drop = {}) {
-        const item = resolveItemById(drop.id, { order: ['equipment', 'material', 'shop', 'questReward'] }) || drop;
+        const item = resolveItemById(drop.id, { order: ['equipment', 'material', 'shop', 'rewardItem'] }) || drop;
         const itemKnown = Boolean(drop.id && isItemKnown(drop.id));
         const category = this.getCategoryForItem({ ...item, id: drop.id || item.id });
         return `
@@ -732,7 +732,7 @@ export default class EncyclopediaScene {
     renderMaterialCostSection(entry) {
         if (!entry.known) return '';
         const rows = (entry.materials || []).map(material => {
-            const item = resolveItemById(material.id, { order: ['material', 'shop', 'questReward'] });
+            const item = resolveItemById(material.id, { order: ['material', 'shop', 'rewardItem'] });
             const itemKnown = Boolean(item && isItemKnown(material.id));
             const rarity = item?.rarity || 'common';
             const category = item ? this.getCategoryForItem({ ...item, id: material.id }) : CodexCategoryId.MATERIALS;
@@ -942,7 +942,7 @@ export default class EncyclopediaScene {
         });
 
         this.dom.detail.querySelectorAll('[data-material-id]').forEach(element => {
-            const item = resolveItemById(element.dataset.materialId, { order: ['material', 'shop', 'questReward'] });
+            const item = resolveItemById(element.dataset.materialId, { order: ['material', 'shop', 'rewardItem'] });
             if (item && isItemKnown(element.dataset.materialId)) attachItemTooltip(element, item, { hint: '所需素材' });
         });
 

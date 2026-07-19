@@ -107,6 +107,9 @@ function hydrateCharacter(characterData) {
     });
 
     Object.assign(character, data);
+    // Growth curves are runtime authority. Never preserve a stale cached EXP
+    // requirement from an older save schema.
+    character.maxExp = character.calculateMaxExp();
 
     character.equipment = {
         weapon: hydrateItem(savedEquipment.weapon),

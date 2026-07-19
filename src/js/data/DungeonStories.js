@@ -24,7 +24,7 @@ export const DungeonStoryDatabase = {
             title: '礦道防禦鍛造線',
             status: 'implemented',
             description: '完成「洞窟初探」與「洞窟征服者」後，依序解鎖守衛甲、石像鬼壁壘與骨魂法杖圖紙，建立第一條防具成長路線。',
-            options: ['守衛甲（dungeon_cave_001）', '石像鬼壁壘、骨魂法杖（dungeon_cave_002）']
+            options: ['守衛甲', '石像鬼壁壘、骨魂法杖']
         },
         paragraphs: [
             '那是新曆四百二十六年的初秋。布蘭握著開採鎬，手心全是混著冷汗的煤屑。為了籌措王都徵收的防魔重稅，他和勘探隊的十四名同伴深入這處從未有人涉足的地底裂谷。',
@@ -53,7 +53,7 @@ export const DungeonStoryDatabase = {
             title: '古老織機的重燃',
             status: 'implemented',
             description: '完成「叢林之心」擊敗九頭蛇後，從艾拉拉的染血織機殘卷解出九頭毒牙圖紙；通關同時推進荊棘女巫的交易線。',
-            options: ['九頭蛇毒牙匕首（dungeon_jungle_002）', '荊棘女巫線：交付草藥推進']
+            options: ['九頭蛇毒牙匕首', '荊棘女巫線：交付草藥推進']
         },
         paragraphs: [
             '翡翠綠海最深處，曾居住著一支擅長與毒物共存的隱世部族。他們仰賴荊棘女巫的稀有靈草調配解毒劑，並採集巨蛛絲線，編織能抵禦百毒的秘寶防具。',
@@ -81,7 +81,7 @@ export const DungeonStoryDatabase = {
             title: '朱利安的防衛紀錄',
             status: 'implemented',
             description: '完成「守護者的考驗」後，從神殿防禦網絡的核心構造解出秘銀長劍與地脈守盾圖紙。',
-            options: ['秘銀長劍、地脈守盾（dungeon_ruins_002）', '巫妖／沉鐘神諭解謎線推進']
+            options: ['秘銀長劍、地脈守盾', '巫妖／沉鐘神諭解謎線推進']
         },
         paragraphs: [
             '這座失落文明留下的黃金地宮，曾是千年前用來監測全大陸地脈運行的至高神殿。',
@@ -110,7 +110,7 @@ export const DungeonStoryDatabase = {
             title: '寒冬校準法',
             status: 'implemented',
             description: '完成「冰霜王座」斬落冰霜巨龍後，凱倫的鐵砧刻字解出雪峰鍛造校準法：提升既有鍛造系統的穩定度，並解出霜寒之劍與霜縛權杖圖紙。',
-            options: ['鍛造校準紀錄、霜寒之劍、霜縛權杖（dungeon_snow_002）', '沉鐘神諭線：鐘碑拓印推進']
+            options: ['鍛造校準紀錄、霜寒之劍、霜縛權杖', '沉鐘神諭線：鐘碑拓印推進']
         },
         paragraphs: [
             '大陸最高聳的冰封雪峰之巔，曾有一套以地脈熱泉校準鍛造溫度的古老技術。傳奇鐵匠凱倫靠它鍛出無數能斬裂寒冰的破霜兵刃。',
@@ -138,7 +138,7 @@ export const DungeonStoryDatabase = {
             title: '先遣隊的鍛造觀測',
             status: 'implemented',
             description: '完成「終焉之戰」擊倒炎獄後，先遣隊日記中的觀測能解出烈焰之劍與魔戰指揮盔圖紙。',
-            options: ['烈焰之劍、魔戰指揮盔（dungeon_hell_002）', '古龍／灰燼男爵／魔王線推進']
+            options: ['烈焰之劍、魔戰指揮盔', '古龍／灰燼男爵／魔王線推進']
         },
         paragraphs: [
             '聖騎士團第三先遣隊奉命深入黑焰邊境最底層，調查魔王封印破裂後的深淵裂谷。',

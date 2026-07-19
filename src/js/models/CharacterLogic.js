@@ -14,6 +14,7 @@ import {
     getPassiveCombatEffects
 } from '../data/PassiveCombatEffects.js';
 import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
+import { getLevelExperienceRequirement } from '../data/MonsterProgressionBalance.js';
 
 function toPercentInt(raw) {
     const number = readNumber(raw);
@@ -29,21 +30,8 @@ function toFraction(raw) {
     return number;
 }
 
-function getFatigueWeaknessPenalty(character) {
-    const debuff = (character?.debuffs || []).find(item =>
-        item?.id === 'fatigue_weakness'
-        || item?.type === 'fatigueWeakness'
-        || item?.source === 'adventureFatigue'
-    );
-    if (!debuff) return 0;
-
-    const rawPenalty = readNumber(debuff.statPenalty ?? debuff.value, 0.2);
-    const penalty = Math.abs(rawPenalty) > 1 ? rawPenalty / 100 : rawPenalty;
-    return Math.max(0, Math.min(0.8, penalty));
-}
-
-export function getGlobalStatMultiplier(character) {
-    return Math.max(0.2, 1 - getFatigueWeaknessPenalty(character));
+export function getGlobalStatMultiplier(_character) {
+    return 1;
 }
 
 export function applyGlobalStatMultiplier(character, value, options = {}) {
@@ -291,7 +279,7 @@ export function calculateMaxHp(character) {
 }
 
 export function calculateMaxExp(character) {
-    return Math.floor(120 * Math.pow(1.25, (character.level || 1) - 1));
+    return getLevelExperienceRequirement(character.level || 1);
 }
 
 export function checkLevelUp(character) {

@@ -354,7 +354,7 @@ class StorySceneManager {
         const victory = typeof result === 'boolean' ? result : Boolean(result.victory);
         if (!victory) {
             const retry = { ...pending, status: 'retry' };
-            this.pendingEncounter = null;
+            this.pendingEncounter = retry;
             this.activeSceneId = null;
             this.activeScenePhase = null;
             GameManager.setFlag?.('story.activeSceneId', null);

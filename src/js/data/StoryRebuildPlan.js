@@ -268,7 +268,7 @@ export const StoryRebuildCleanupCandidates = Object.freeze([
         status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
         ownerPaths: ['src/js/data/StorySceneRegistry.js', 'src/js/data/Quests.js', 'src/js/data/QuestStories.js'],
-        reason: 'The fifteen legacy main quests were removed. Seven reward-free chapter records now mirror the 66-scene screenplay.',
+        reason: 'The fifteen legacy main quests were removed. Mandatory progression now reads the 66-scene screenplay directly; Quests.js is reserved for approved optional runtime quests.',
         safeWhen: 'Already replaced; do not restore main_001 through main_015.'
     },
     {

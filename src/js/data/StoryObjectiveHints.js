@@ -37,11 +37,24 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         actorId: 'standard_bearer_frey'
     },
     ch1_s06_three_landmarks: {
-        title: '調查三處道路痕跡',
-        text: ({ discoveredLandmarkIds = [] } = {}) => {
+        title: '先站穩，再追查道路',
+        text: ({ discoveredLandmarkIds = [], chapterOneFieldVictories = 0 } = {}) => {
             const discovered = new Set(discoveredLandmarkIds);
             const current = CHAPTER_ONE_SURVEY_IDS.filter(id => discovered.has(id)).length;
-            return `調查南門農田、獵人棧道與舊營火點（${current}/3）。`;
+            const victories = Math.max(0, Number(chapterOneFieldVictories) || 0);
+            if (current === 0 && victories < 2) {
+                return `先在南門荒地完成戰鬥（${victories}/2），再調查南門農田。`;
+            }
+            if (current === 0) return '前往南門農田，調查異常匯集的足跡。';
+            if (current === 1 && victories < 5) {
+                return `沿農田外圍累積實戰準備（${victories}/5），再前往獵人棧道。`;
+            }
+            if (current === 1) return '前往獵人棧道，檢查被重新打過的銀線繩結。';
+            if (current === 2 && victories < 7) {
+                return `在濕地林緣完成準備（${victories}/7），再調查舊營火點。`;
+            }
+            if (current === 2) return '前往舊營火點，確認灰燼下仍在延伸的黑根。';
+            return '三處道路痕跡已齊，整理手札中的共同方向。';
         }
     },
     ch1_s07_silver_snare: {

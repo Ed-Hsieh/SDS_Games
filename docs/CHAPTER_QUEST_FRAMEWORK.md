@@ -16,7 +16,14 @@ story, source structure, and systems should land without owning final values.
 - `src/js/data/StorySceneRegistry.js` owns the 66 mandatory scenes.
 - `src/js/data/ChapterRegionRegistry.js` owns seven handcrafted regional maps,
   authored routes, fixed locations, and Boss convergence.
-- `src/js/data/Quests.js` contains one reward-free scene-driven record per chapter.
+- `src/js/data/Quests.js` owns only optional quest runtime contracts. It is
+  intentionally empty until an optional story has approved dialogue, ownership,
+  interactions, rewards, and flags. Mandatory chapter progression is read
+  directly from `StorySceneRegistry.js` and must not be duplicated as quest
+  records.
+- `src/js/data/RewardItems.js` owns shared special reward records that are still
+  used by active systems. Reward definitions no longer live inside the quest
+  database.
 - `src/js/data/OptionalSideStoryRegistry.js` holds 33 approved personal
   stories (short, medium, and long for nine core characters plus the public
   merchant and black-market trader) and six ensemble shorts. Chapter placement,

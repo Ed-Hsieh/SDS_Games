@@ -505,6 +505,79 @@
     line-height: 1.5;
 }
 
+.adventure-onboarding {
+    position: absolute;
+    z-index: 18;
+    bottom: 22px;
+    left: 50%;
+    display: grid;
+    width: 390px;
+    gap: 5px;
+    padding: 14px 18px;
+    border: 1px solid rgba(216, 185, 104, 0.52);
+    border-radius: 4px;
+    background: rgba(7, 10, 10, 0.94);
+    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.52);
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.adventure-onboarding[hidden] {
+    display: none;
+}
+
+.adventure-onboarding > span {
+    color: var(--adventure-gold);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.adventure-onboarding strong {
+    color: #f3efe3;
+    font-size: 14px;
+}
+
+.adventure-onboarding p {
+    margin: 0;
+    color: #abb5b0;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.adventure-onboarding-keys {
+    display: flex;
+    gap: 5px;
+    margin-top: 4px;
+}
+
+.adventure-onboarding-keys[hidden] {
+    display: none;
+}
+
+.adventure-onboarding-keys kbd {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid rgba(216, 185, 104, 0.46);
+    border-bottom-width: 3px;
+    border-radius: 3px;
+    background: #161b19;
+    color: #f0e6c8;
+    font: 700 12px Rajdhani, sans-serif;
+}
+
+.adventure-tool-button.is-tutorial-target {
+    border-color: #e2bd62;
+    box-shadow: 0 0 0 2px rgba(226, 189, 98, 0.18), 0 0 22px rgba(226, 189, 98, 0.24);
+    color: #fff0be;
+}
+
+.adventure-inventory-drawer.is-equip-tutorial [data-inventory-action="equip"][data-slot="weapon"] {
+    border-color: #d8b968;
+    box-shadow: 0 0 0 2px rgba(216, 185, 104, 0.16);
+}
+
 .adventure-system-drawer {
     position: fixed;
     z-index: 70;
@@ -558,6 +631,13 @@
     gap: 8px;
     padding: 14px 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.adventure-quest-entry.is-mainline {
+    margin-bottom: 8px;
+    padding: 14px 12px;
+    border: 1px solid rgba(216, 185, 104, 0.24);
+    background: rgba(216, 185, 104, 0.045);
 }
 
 .adventure-quest-entry header {

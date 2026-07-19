@@ -4,7 +4,9 @@ import { AffixStat, EquipmentType, ItemRarity, WeaponForm } from '../models/Enum
 export const FirstRunMonsterLootOverrides = Object.freeze({
     goblin: { equipmentDrops: [] },
     stone_golem_mini: { equipmentDrops: [] },
+    giant_rat: { drops: [{ itemId: 'rat_tail', chance: 0.55, quantity: [1, 1] }, { itemId: 'beast_hide', chance: 0.18, quantity: [1, 1] }] },
     wild_wolf: { drops: [{ itemId: 'wolf_fang', chance: 0.38, quantity: [1, 1] }, { itemId: 'wolf_pelt', chance: 0.22, quantity: [1, 1] }], equipmentDrops: [{ equipmentId: 'wolf_fang_blade', chance: 0.045 }] },
+    orc_warrior: { drops: [{ itemId: 'orc_fang', chance: 0.38, quantity: [1, 1] }, { itemId: 'raw_meat', chance: 0.24, quantity: [1, 1] }] },
     forest_guardian: { equipmentDrops: [{ equipmentId: 'forest_guardian_staff', chance: 0.15 }] },
     ghost: { drops: [{ itemId: 'ectoplasm', chance: 0.36, quantity: [1, 1] }, { itemId: 'soul_fragment', chance: 0.12, quantity: [1, 1] }], equipmentDrops: [] },
     glimmer_sprite: { equipmentDrops: [] },

@@ -120,7 +120,7 @@ export class CharacterManager {
         this._hp = 120;      // 100 + (1 * 20) = 120
         this._maxHp = 120;
         this._exp = 0;
-        this._maxExp = 120;
+        this._maxExp = CharacterLogic.calculateMaxExp(this);
         this.gold = 100;
         this.baseAtk = 5;    // 基礎攻擊力
         this.baseDef = 2;    // 基礎防禦力
@@ -155,7 +155,7 @@ export class CharacterManager {
     get exp() { return Number.isFinite(this._exp) ? this._exp : 0; }
     set exp(v) { this._exp = Math.max(0, Number(v) || 0); }
 
-    get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : 120; }
+    get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : this.calculateMaxExp(); }
     set maxExp(v) { this._maxExp = Math.max(1, Number(v) || 1); }
 
     // 向後相容別名
@@ -202,6 +202,7 @@ export class CharacterManager {
     checkLevelUp() { return CharacterLogic.checkLevelUp(this); }
     gainExp(amount) { return CharacterLogic.gainExp(this, amount); }
     calculateMaxHp() { return CharacterLogic.calculateMaxHp(this); }
+    calculateMaxExp() { return CharacterLogic.calculateMaxExp(this); }
     
     // 同步
     syncProperties() { return CharacterLogic.syncProperties(this); }

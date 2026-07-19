@@ -577,7 +577,6 @@ export const EventDatabase = [
         zones: ['medium', 'high'],
         weight: 0.5,
         retireWhenFlags: ['readSpecialBountyNotice', 'mapFragmentDelivered'],
-        retireWhenQuestIds: ['bounty_elite_001'],
         description: '一張沒有署名的懸賞單被壓在石縫裡，內容指向比普通委託更危險的目標。',
         choices: [
             {
@@ -603,7 +602,6 @@ export const EventDatabase = [
         zones: ['medium', 'high', 'death'],
         weight: 0.5,
         retireWhenFlags: ['foundRuinTabletTrace'],
-        retireWhenQuestIds: ['dungeon_cave_001'],
         description: '草叢裡露出一截舊石碑，刻痕像路線，也像某種警告。碑底有洞窟形狀的標記。',
         choices: [
             {

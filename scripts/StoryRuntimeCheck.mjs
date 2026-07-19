@@ -513,6 +513,16 @@ function validateTownAndCharacters() {
 
 function validateQuests() {
     if (Object.hasOwn(QuestDatabase, 'main')) error('main-quests', 'Legacy main quest group must remain removed');
+    const expectedGroups = ['bounty', 'commission', 'hidden'];
+    const actualGroups = Object.keys(QuestDatabase).sort();
+    if (actualGroups.join(',') !== expectedGroups.sort().join(',')) {
+        error('optional-quests', `Unexpected quest groups: ${actualGroups.join(',')}`);
+    }
+    for (const [group, quests] of Object.entries(QuestDatabase)) {
+        if (!Array.isArray(quests) || quests.length > 0) {
+            error('optional-quests', `${group} must remain empty until an optional quest runtime contract is approved`);
+        }
+    }
 }
 
 function validateStoryObjectiveHints() {
@@ -523,9 +533,10 @@ function validateStoryObjectiveHints() {
     }
 
     const survey = getStoryObjectiveHint('ch1_s06_three_landmarks', {
-        discoveredLandmarkIds: ['south_gate_farmland', 'hunter_boardwalk']
+        discoveredLandmarkIds: ['south_gate_farmland', 'hunter_boardwalk'],
+        chapterOneFieldVictories: 7
     });
-    if (!survey?.text.includes('2/3')) {
+    if (!survey?.text.includes('舊營火點')) {
         error('objective-hint', 'Chapter 1 survey hint does not reflect discovered landmark progress');
     }
     if (StorySceneRegistry.ch2_s05_blood_moon_hunt) {

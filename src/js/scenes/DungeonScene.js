@@ -964,7 +964,7 @@ class DungeonSceneClass {
         if (!item.itemId) return item;
 
         const itemData = resolveItemById(item.itemId, {
-            order: ['material', 'equipment', 'shop', 'questReward', 'bossEquipment']
+            order: ['material', 'equipment', 'shop', 'rewardItem', 'bossEquipment']
         });
         return itemData ? createRuntimeItem(itemData) : null;
     }

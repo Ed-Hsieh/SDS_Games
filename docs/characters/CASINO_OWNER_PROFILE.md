@@ -24,7 +24,7 @@ showcase rewards, contract scenes, and second-run punishment logic are rewritten
 - Accepted portrait path:
   `src/assets/images/art/characters/portraits/casino_owner.webp`
 - Primary associated NPC: `casino_dealer`
-- Primary route id planned earlier: `commission_casino_showcase_001`
+- Primary route id: `vesper_showcase_route` (story route, not a generic quest record)
 - Core item: Loaded Dice
 - Contract layer: Blank Collateral Contract as public wording; an unnamed
   nonhuman creditor in the mandatory casino route; Void as a later optional

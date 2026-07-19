@@ -187,7 +187,6 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.enhancementBonuses) item.enhancementBonuses = cloneData(itemData.enhancementBonuses);
     if (itemData._enhanceBaseStats) item._enhanceBaseStats = cloneData(itemData._enhanceBaseStats);
     if (itemData.isSecretKey) item.isSecretKey = true;
-    if (itemData.isQuestReward) item.isQuestReward = true;
     if (itemData.stackable !== undefined) item.stackable = itemData.stackable;
     if (itemData.maxStack !== undefined) item.maxStack = itemData.maxStack;
     if (itemData.special !== undefined) item.special = itemData.special;

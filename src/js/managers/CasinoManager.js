@@ -958,7 +958,7 @@ export default class CasinoManager {
             seenShowcase: Boolean(GameManager.getFlag?.('town.casino.showcase_seen')),
             examinedCount,
             total: items.length,
-            futureQuestId: 'commission_casino_showcase_001',
+            futureRouteId: 'vesper_showcase_route',
             questHookReady: examinedCount >= 2,
             finalChoiceUnlocked,
             finalChoiceClaimed: Boolean(GameManager.getFlag?.('town.casino.showcase_final_choice_claimed'))

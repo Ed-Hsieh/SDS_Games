@@ -1705,7 +1705,7 @@ export default class QuestScene {
         if (rewards.items && rewards.items.length > 0) {
             rewards.items.forEach(itemId => {
                 const itemData = resolveItemById(itemId, {
-                    order: ['questReward', 'material', 'equipment', 'shop', 'bossEquipment']
+                    order: ['rewardItem', 'material', 'equipment', 'shop', 'bossEquipment']
                 });
                 if (itemData) {
                     const el = document.createElement('div');

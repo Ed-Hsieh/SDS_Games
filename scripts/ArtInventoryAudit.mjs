@@ -10,7 +10,7 @@ import { DungeonDatabase } from '../src/js/data/Dungeons.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
-import { QuestRewardItems } from '../src/js/data/Quests.js';
+import { RewardItemDatabase } from '../src/js/data/RewardItems.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { RecipeSeriesDatabase } from '../src/js/data/RecipeSeries.js';
 import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
@@ -59,7 +59,7 @@ const dungeonMonsterIds = new Set(Object.values(DungeonDatabase)
 const active = {
     equipment: new Set(Object.keys(EquipmentDatabase).filter(id => !id.startsWith('tower_'))),
     materials: new Set(Object.keys(MaterialDatabase)),
-    questItems: new Set(Object.keys(QuestRewardItems)),
+    rewardItems: new Set(Object.keys(RewardItemDatabase)),
     blueprints: new Set([
         ...Object.keys(RecipeDatabase),
         ...Object.keys(RecipeSeriesDatabase)
@@ -114,15 +114,15 @@ function classifyRuntime(relativePath) {
     }
 
     if (relativePath.startsWith('items/consumables/')) {
-        return active.materials.has(id) || active.questItems.has(id) || active.craftedResults.has(id)
+        return active.materials.has(id) || active.rewardItems.has(id) || active.craftedResults.has(id)
             ? { status: 'assigned', owner: 'consumable' }
             : { status: 'orphan', reason: 'no active consumable record' };
     }
 
     if (relativePath.startsWith('items/materials/')) {
         if (active.materials.has(id)) return { status: 'assigned', owner: 'material' };
-        if (active.questItems.has(id)) return { status: 'assigned', owner: 'quest-material' };
-        return { status: 'orphan', reason: 'no active material or quest-item record' };
+        if (active.rewardItems.has(id)) return { status: 'assigned', owner: 'reward-item' };
+        return { status: 'orphan', reason: 'no active material or reward-item record' };
     }
 
     if (relativePath.startsWith('items/blueprints/')) {
@@ -132,19 +132,19 @@ function classifyRuntime(relativePath) {
     }
 
     if (relativePath.startsWith('items/currencies/')) {
-        return active.questItems.has(id)
+        return active.rewardItems.has(id)
             ? { status: 'assigned', owner: 'currency' }
             : { status: 'orphan', reason: 'no active currency record' };
     }
 
     if (relativePath.startsWith('items/key-items/clues/')) {
-        return active.questItems.has(id)
+        return active.rewardItems.has(id)
             ? { status: 'assigned', owner: 'story-clue' }
             : { status: 'orphan', reason: 'no active story-clue record' };
     }
 
     if (relativePath.startsWith('items/key-items/relics/')) {
-        return active.questItems.has(id)
+        return active.rewardItems.has(id)
             ? { status: 'assigned', owner: 'story-relic' }
             : { status: 'orphan', reason: 'no active story-relic record' };
     }

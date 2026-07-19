@@ -1,7 +1,8 @@
 import { EquipmentDatabase, SetDatabase } from '../src/js/data/Equipment.js';
 import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { MonsterDatabase, TowerMonsterData } from '../src/js/data/Monsters.js';
-import { QuestDatabase, QuestRewardItems } from '../src/js/data/Quests.js';
+import { QuestDatabase } from '../src/js/data/Quests.js';
+import { RewardItemDatabase } from '../src/js/data/RewardItems.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../src/js/data/RecipeDiscoveries.js';
 import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
@@ -37,7 +38,7 @@ function collectKnownItemIds() {
         addIfPresent(ids, key);
         addIfPresent(ids, item.id);
     }
-    for (const [key, item] of objectEntries(QuestRewardItems)) {
+    for (const [key, item] of objectEntries(RewardItemDatabase)) {
         addIfPresent(ids, key);
         addIfPresent(ids, item.id);
     }
@@ -209,16 +210,16 @@ checkDatabaseKeys('MaterialDatabase', MaterialDatabase);
 checkDatabaseKeys('EquipmentDatabase', EquipmentDatabase);
 checkDatabaseKeys('MonsterDatabase', MonsterDatabase);
 checkDatabaseKeys('TowerMonsterData', TowerMonsterData);
-checkDatabaseKeys('QuestRewardItems', QuestRewardItems);
+checkDatabaseKeys('RewardItemDatabase', RewardItemDatabase);
 
 for (const [id, item] of objectEntries(MaterialDatabase)) checkItemShape(`MaterialDatabase.${id}`, item);
 for (const [id, item] of objectEntries(EquipmentDatabase)) {
     checkItemShape(`EquipmentDatabase.${id}`, item);
     if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`EquipmentDatabase.${id}`, item);
 }
-for (const [id, item] of objectEntries(QuestRewardItems)) {
-    checkItemShape(`QuestRewardItems.${id}`, item);
-    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`QuestRewardItems.${id}`, item);
+for (const [id, item] of objectEntries(RewardItemDatabase)) {
+    checkItemShape(`RewardItemDatabase.${id}`, item);
+    if (normalizeItemType(item.type) === ItemType.WEAPON) checkWeaponShape(`RewardItemDatabase.${id}`, item);
 }
 for (const [id, item] of objectEntries(TowerBossEquipment)) {
     checkItemShape(`TowerBossEquipment.${id}`, item);

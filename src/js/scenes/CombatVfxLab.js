@@ -344,6 +344,8 @@ export class CombatVfxLab {
                 attacks: monster.attacks
             },
             loadout: this.getLoadout(),
+            fleeChance: this.options.fleeChance ?? 0.35,
+            fleeCooldown: this.options.fleeCooldown ?? 2,
             tempo: Number(this.root.querySelector('#tempo-control')?.value || 100) / 100
         };
     }
@@ -738,6 +740,9 @@ export class CombatVfxLab {
         } else if (event.type === 'monster:summon-defeated') {
         } else if (event.type === 'player:flee') {
             this.showSkill('TACTICAL', '脫離交戰');
+        } else if (event.type === 'player:flee-failed') {
+            this.showSkill('TACTICAL', '撤離失敗');
+            this.setFeed('退路被封住了，撐過攻勢後再找機會。');
         } else if (event.type === 'monster:telegraph') {
             this.restartClass(this.enemyStage, 'is-casting', Math.ceil(event.attack.telegraph * 1000));
             this.setFeed(`${event.snapshot.monster.name}正在準備「${event.attack.name}」`);

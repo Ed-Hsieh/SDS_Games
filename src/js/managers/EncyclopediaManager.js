@@ -12,7 +12,8 @@ import { RecipeDiscoveryDatabase } from '../data/RecipeDiscoveries.js';
 import { EquipmentDatabase } from '../data/Equipment.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { ItemDatabase } from '../data/UtilityItems.js';
-import { QuestDatabase, QuestRewardItems } from '../data/Quests.js';
+import { QuestDatabase } from '../data/Quests.js';
+import { RewardItemDatabase } from '../data/RewardItems.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import {
     CasinoPrizePools,
@@ -69,7 +70,7 @@ const ItemSourceLabels = {
     item: '一般物品',
     equipment: '裝備資料',
     material: '素材資料',
-    questReward: '任務獎勵',
+    rewardItem: '特殊物品',
     casino: '賭場獎池'
 };
 
@@ -87,13 +88,13 @@ const ReadableItemSourceLabels = {
     item: '一般物品',
     equipment: '裝備資料',
     material: '素材資料',
-    questReward: '任務獎勵',
+    rewardItem: '特殊物品',
     casino: '賭場',
     shop: '市集'
 };
 
 const SourceTypeIcons = {
-    questReward: '📜',
+    rewardItem: '📜',
     casino: '🎰',
     shop: '🛒',
     market: '🛒'
@@ -190,7 +191,7 @@ function getSourceKeyForMonster(monster, context = {}) {
 
 function getItemDropRecord(itemId, rawDrop, sourceLabel) {
     const item = resolveItemById(itemId, {
-        order: ['material', 'equipment', 'bossEquipment', 'shop', 'questReward']
+        order: ['material', 'equipment', 'bossEquipment', 'shop', 'rewardItem']
     });
     const rarity = item?.rarity || 'common';
 
@@ -210,7 +211,7 @@ function getRecipeResultRarity(recipe = {}) {
     const resultId = recipe?.result?.id || recipe?.id;
     const resolvedResult = resultId
         ? resolveItemById(resultId, {
-            order: ['equipment', 'bossEquipment', 'material', 'shop', 'questReward']
+            order: ['equipment', 'bossEquipment', 'material', 'shop', 'rewardItem']
         })
         : null;
     return resolvedResult?.rarity || recipe?.result?.rarity || recipe?.rarity || 'rare';
@@ -783,8 +784,8 @@ export function getItemEntries() {
         addItemEntry(index, { ...item, id: item.id || id }, 'shop');
     }
 
-    for (const [id, item] of Object.entries(QuestRewardItems || {})) {
-        addItemEntry(index, { ...item, id: item.id || id }, 'questReward');
+    for (const [id, item] of Object.entries(RewardItemDatabase || {})) {
+        addItemEntry(index, { ...item, id: item.id || id }, 'rewardItem');
     }
 
     for (const [id, item] of Object.entries(CasinoSpecialItems || {})) {

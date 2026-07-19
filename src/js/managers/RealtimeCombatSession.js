@@ -121,6 +121,9 @@ function normalizeConfig(config = {}) {
             main: normalizeWeapon(config.loadout?.main, 'main'),
             offhand: normalizeWeapon(config.loadout?.offhand, 'offhand')
         },
+        fleeChance: clamp(numberOr(config.fleeChance, 0.35), 0, 1),
+        fleeCooldown: Math.max(0.5, numberOr(config.fleeCooldown, 2)),
+        random: typeof config.random === 'function' ? config.random : Math.random,
         tempo: clamp(Number(config.tempo) || 1, 0.5, 2)
     };
 }
@@ -584,7 +587,19 @@ export default class RealtimeCombatSession {
             this.emit('action:rejected', { action: 'flee', reason: 'battle_not_running' });
             return false;
         }
-        this.emit('player:flee');
+        if (this.cooldowns.flee > 0) {
+            this.emit('action:rejected', { action: 'flee', reason: 'cooldown' });
+            return false;
+        }
+
+        this.cooldowns.flee = this.config.fleeCooldown;
+        const roll = this.config.random();
+        if (roll >= this.config.fleeChance) {
+            this.emit('player:flee-failed', { roll, chance: this.config.fleeChance });
+            return true;
+        }
+
+        this.emit('player:flee', { roll, chance: this.config.fleeChance });
         this.finish(CombatSessionPhase.ESCAPED, 'player_fled');
         return true;
     }

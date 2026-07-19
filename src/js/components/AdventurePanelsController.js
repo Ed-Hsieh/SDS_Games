@@ -84,6 +84,7 @@ export default class AdventurePanelsController {
     handleGameState(_state, type) {
         if (['all', 'inventory', 'equipment', 'flags'].includes(type)) {
             this.renderInventory();
+            this.renderQuests();
             this.renderQuestTracker();
         }
     }
@@ -126,6 +127,7 @@ export default class AdventurePanelsController {
         const instanceId = action.dataset.instanceId;
         if (action.dataset.inventoryAction === 'equip') {
             GameManager.equipItemToSlot(instanceId, action.dataset.slot);
+            this.options.onEquipmentChanged?.(action.dataset.slot);
         } else if (action.dataset.inventoryAction === 'context-use') {
             const stack = (GameManager.getInventory() || []).find(entry => entry.instanceId === instanceId);
             if (this.options.onUseContextItem?.(stack)) return;
@@ -149,6 +151,7 @@ export default class AdventurePanelsController {
         if (type === 'quest') this.renderQuests();
         else this.renderInventory();
         this.options.onOpenStateChange?.(true);
+        this.options.onDrawerOpen?.(type);
     }
 
     closeDrawers() {
@@ -191,15 +194,22 @@ export default class AdventurePanelsController {
 
     renderQuests() {
         if (!this.questList) return;
+        const directive = storyGuidanceManager.getCurrent(this.options.getStoryHintContext?.() || {});
         const active = questManager.getActiveQuests();
         const completed = questManager.getCompletedQuests();
         const quests = [...active, ...completed];
-        if (!quests.length) {
+        if (!directive && !quests.length) {
             this.questList.innerHTML = '<p class="adventure-drawer-empty">目前沒有可顯示的任務紀錄。</p>';
             return;
         }
 
-        this.questList.innerHTML = quests.map(quest => {
+        const mainline = directive ? `
+            <article class="adventure-quest-entry is-mainline">
+                <header><strong>${escapeHtml(directive.title)}</strong><span>主線追蹤</span></header>
+                <p>${escapeHtml(directive.text)}</p>
+                <div class="adventure-quest-objective"><span>依手札線索推進</span><b>進行中</b></div>
+            </article>` : '';
+        this.questList.innerHTML = mainline + quests.map(quest => {
             const ready = quest.state?.status === QuestStatus.COMPLETED;
             const objectives = (quest.state?.progress || []).map((progress, index) => {
                 const objective = quest.objectives?.[index];

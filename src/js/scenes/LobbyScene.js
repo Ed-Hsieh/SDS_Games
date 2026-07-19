@@ -20,7 +20,7 @@ import { questManager } from '../managers/QuestManager.js?v=dialogue-flow-202607
 import { getAllPassiveCombatEffects, getPassiveCombatEffectUnlockSource } from '../data/PassiveCombatEffects.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { getTownNPC } from '../data/NPCDialogues.js';
-import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
+import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js?v=chapter1-art-20260713a';
 import { getTownPlace, getTownPlaceDisplay } from '../data/TownPlaces.js?v=town-place-label-20260716a';
 import { getGeneratedMapPropImage } from '../data/AssetManifest.js';
 import {
@@ -30,6 +30,7 @@ import {
 } from '../managers/TownStateResolver.js?v=town-art-binding-20260715a';
 import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
+import { resetSavedOverworldPlayerToEntry } from '../utils/WorldMap.js';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -578,6 +579,9 @@ export default class LobbyScene {
         if (route === 'shop') {
             this.rememberTownPlaceReturn('market');
         }
+        if (route === 'adventure') {
+            resetSavedOverworldPlayerToEntry();
+        }
 
         if (typeof this.app?.navigateTo === 'function') {
             this.app.navigateTo(route);
@@ -610,6 +614,12 @@ export default class LobbyScene {
         const directive = storyGuidanceManager.getCurrent();
         if (directive?.stageClass === 'town_scene' && directive.actorId === npcId) {
             this.openStoryScene(directive.sceneId);
+            this.renderWorldStage();
+            return;
+        }
+
+        if (npcId === 'herbalist' && GameManager.getEmergencyPotionCount() === 0) {
+            await this.playMiaEmergencyPotionSupport();
             this.renderWorldStage();
             return;
         }
@@ -732,6 +742,7 @@ export default class LobbyScene {
             dialogueManager.completeStoryScene(presentation.sceneId);
             if (presentation.sceneId === 'ch1_s02_wake_under_bitter_bottles') {
                 GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false);
+                await this.playMiaEmergencyPotionSupport({ initial: true });
             }
         } else {
             dialogueManager.commitDialogue(outcome);
@@ -748,6 +759,50 @@ export default class LobbyScene {
         return presentation;
     }
 
+    async playMiaEmergencyPotionSupport({ initial = false } = {}) {
+        const supply = GameManager.refillMiaEmergencyPotions();
+        const npc = getTownNPC('herbalist');
+        const actor = this.enrichDialogueActor({
+            ...getStoryActor('herbalist', { isFlagSet: flag => GameManager.getFlag(flag) }),
+            ...npc,
+            id: 'herbalist',
+            actorId: 'herbalist',
+            expression: supply.refilled ? 'soft' : 'guarded'
+        });
+        const expression = actor.expression;
+        const line = {
+            ...actor,
+            actorId: 'herbalist',
+            expression,
+            expressionLayer: getStoryExpressionLayer('herbalist', expression),
+            text: supply.refilled
+                ? (initial
+                    ? '這三瓶應急藥先帶著。全部用完就回來找我，我會再替你補回三瓶。'
+                    : '都用完了？把空瓶給我。我替你補回三瓶；下次用完，再回來。')
+                : '先在行囊裡留一個位置。我會替你補回三瓶應急藥。'
+        };
+
+        await storyDialogueController.play({
+            success: true,
+            npc: actor,
+            participants: [actor],
+            lines: [line]
+        }, {
+            closable: false,
+            backgroundImage: this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: this.getTownDialogueScopeElement()
+        });
+
+        if (supply.refilled) {
+            this.pushTownNarrative(
+                '米婭的應急藥',
+                '應急藥已補回三瓶。全部用完後，可再次找米婭補回三瓶。',
+                'discovery'
+            );
+        }
+        return supply;
+    }
 
     async handleSaveExport() {
         try {

@@ -106,6 +106,8 @@ export default class CombatFlowController {
             rhythmCharacter: createRhythmCharacter(character, offhand),
             autoStart: true,
             startMonsterPaused: isPrologueTutorial,
+            fleeChance: encounter.fleeChance ?? 0.35,
+            fleeCooldown: encounter.fleeCooldown ?? 2,
             canFlee: () => encounter.canFlee !== false,
             onWeaponAttempt: () => this.handleTutorialWeaponAttempt(),
             onPotionAttempt: () => this.handleTutorialPotionAttempt(),

@@ -4,7 +4,7 @@
  * (從 scenes/QuestSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
-import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById, QuestRewardItems } from '../data/Quests.js?v=dialogue-flow-20260712w';
+import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById } from '../data/Quests.js?v=dialogue-flow-20260712w';
 import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 import { getMaterial } from './MaterialManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -209,7 +209,7 @@ class QuestManager {
         if (rewards.items && rewards.items.length > 0) {
             rewards.items.forEach(itemId => {
                 const itemData = resolveItemById(itemId, {
-                    order: ['questReward', 'material', 'equipment', 'shop', 'bossEquipment']
+                    order: ['rewardItem', 'material', 'equipment', 'shop', 'bossEquipment']
                 });
                 if (itemData) {
                     // Unique quest rewards should never disappear because the bag is full.
@@ -528,43 +528,12 @@ class QuestManager {
             }
 
             if (triggered) {
-                if (quest.id === 'hidden_broke') {
-                    this.ensureBrokeQuestActive({ announce: true });
-                    return;
-                }
-
                 this.unlockQuest(quest.id);
                 this.notify('hidden_quest_discovered', { quest });
             }
         });
 
         // 特殊：金幣為 0 時檢查
-        if (triggerType === 'gold' || GameManager.getGold() === 0) {
-            this.ensureBrokeQuestActive({ announce: true });
-        }
-    }
-
-    ensureBrokeQuestActive({ announce = false } = {}) {
-        const brokeQuest = getQuestById('hidden_broke');
-        if (!brokeQuest || GameManager.getGold() !== 0) return null;
-
-        const currentState = this.getQuestState('hidden_broke');
-        const wasLocked = !this.questStates['hidden_broke'] || currentState.status === QuestStatus.LOCKED;
-
-        if (wasLocked) {
-            this.unlockQuest('hidden_broke');
-            if (announce) {
-                this.notify('hidden_quest_discovered', { quest: brokeQuest });
-            }
-        }
-
-        const latestState = this.getQuestState('hidden_broke');
-        if (latestState.status === QuestStatus.AVAILABLE) {
-            const accepted = this.acceptQuest('hidden_broke');
-            return accepted.success ? accepted.quest : brokeQuest;
-        }
-
-        return latestState.status === QuestStatus.ACTIVE ? brokeQuest : null;
     }
 
     // ==================== 查詢方法 ====================
@@ -766,4 +735,4 @@ export const questManager = new QuestManager();
 export default QuestManager;
 
 // 重新導出常用的 enum，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { QuestStatus, QuestType, ObjectiveType, QuestRewardItems };
+export { QuestStatus, QuestType, ObjectiveType };

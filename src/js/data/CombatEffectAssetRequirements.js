@@ -36,7 +36,6 @@ const CoreCombatEffectRequirements = Object.freeze([
     effectRequirement('armor_break', '破甲', 'debuff', 'combat_and_item_effect'),
     effectRequirement('attack_speed_down', '攻擊速度降低', 'debuff', 'combat_status'),
     effectRequirement('stun', '暈眩', 'debuff', 'combat_status'),
-    effectRequirement('fatigue_weakness', '疲勞虛弱', 'debuff', 'adventure_fatigue'),
     effectRequirement('poison', '中毒', 'ailment', 'combat_and_item_effect'),
     effectRequirement('burn', '燃燒', 'ailment', 'combat_and_item_effect'),
     effectRequirement('freeze', '冰凍與緩速', 'ailment', 'combat_and_item_effect'),

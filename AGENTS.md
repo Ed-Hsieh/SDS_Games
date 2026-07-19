@@ -238,9 +238,11 @@ the remaining non-casino catalog review:
   `ChapterRegionRegistry.js`. Random/ring geography is removed from `WorldMap`.
 - Eight active town places, public market ownership, and scene-driven visibility
   live in `TownPlaces.js` and `TownStateResolver.js`.
-- The old fifteen-part main quest chain is replaced by seven reward-free chapter
-  records. Old town-plan, quest-spine, route-plan, cross-arc, and side-taxonomy
-  compatibility files are removed.
+- The old fifteen-part main quest chain is removed. Mandatory progression reads
+  the 66-scene registry directly; `Quests.js` is an empty optional-quest runtime
+  contract and `RewardItems.js` owns shared special reward records. Old
+  town-plan, quest-spine, route-plan, cross-arc, and side-taxonomy compatibility
+  files are removed.
 - Seven optional character stories are registered but remain deferred, skip-safe,
   and reward-free until their map or town owner is finalized.
 - Chapter 1 contains 11 scenes and Chapter 2 contains 8. Their town entry points,

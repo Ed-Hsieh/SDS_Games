@@ -54,14 +54,11 @@
     <h1>怪物平衡檢查</h1>
     <p>
       這個檢查器是 Node 腳本，不再提供瀏覽器版資料載入。
-      平衡結果以資料庫原始數值為準，避免工具頁和腳本各自維護不同規則。
+      它會使用正式怪物數值、固定等級、目前節奏戰鬥公式與每章可取得裝備進行驗證。
     </p>
     <p>只檢查並輸出報告：</p>
-    <pre>node scripts\MonsterBalanceCheck_v4.js --report-only</pre>
-    <p>需要 JSON 輸出時執行：</p>
-    <pre>node scripts\MonsterBalanceCheck_v4.js --json --report-only</pre>
-    <p>確認要套用建議值時，指定 ID 寫回資料庫：</p>
-    <pre>node scripts\MonsterBalanceCheck_v4.js --write --ids=slime,goblin</pre>
+    <pre>node scripts\DifficultyProgressionCheck.mjs</pre>
+    <p>檢查器不會自動寫回資料，所有調整都必須修改正式數值表後重新驗證。</p>
   </main>
 </body>
 </html>

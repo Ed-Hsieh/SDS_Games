@@ -9,6 +9,7 @@
 
 // 怪物類型
 import { FirstRunMonsterLootOverrides } from './FirstRunLootBalance.js';
+import { applyFirstRunMonsterCombatBalance } from './MonsterProgressionBalance.js';
 
 export const MonsterType = {
     NORMAL: 'normal',       // 普通怪物
@@ -40,7 +41,7 @@ export const MonsterElement = {
  * - 玩家攻防依賴裝備
  */
 export const MonsterDatabase = {
-    // ==================== 第一章：初始之地 (Lv.1-3) ====================
+    // ==================== 第一章：南門外林地 (Lv.1-10) ====================
     slime: {
         id: 'slime',
         name: '史萊姆',
@@ -98,7 +99,7 @@ export const MonsterDatabase = {
         icon: '🐺',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 2,
+        level: 4,
         hp: 45,
         maxHp: 45,
         attack: 10,
@@ -148,7 +149,7 @@ export const MonsterDatabase = {
         icon: '🐀',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 1,
+        level: 3,
         hp: 30,
         maxHp: 30,
         attack: 4,
@@ -164,7 +165,7 @@ export const MonsterDatabase = {
         description: '下水道中常見的巨型老鼠。'
     },
     
-    // 中等級怪物 (Lv.4-6)
+    // 第一至二章外圍生態；獸人目前保留，不進入正式章節抽樣
     orc_warrior: {
         id: 'orc_warrior',
         name: '獸人戰士',
@@ -214,7 +215,7 @@ export const MonsterDatabase = {
         icon: '🕷️',
         type: MonsterType.NORMAL,
         element: MonsterElement.POISON,
-        level: 8,
+        level: 7,
         hp: 80,
         maxHp: 80,
         attack: 20,
@@ -268,7 +269,7 @@ export const MonsterDatabase = {
         icon: '🌳',
         type: MonsterType.ELITE,
         element: MonsterElement.EARTH,
-        level: 10,
+        level: 9,
         hp: 120,
         maxHp: 120,
         attack: 12,
@@ -312,7 +313,7 @@ export const MonsterDatabase = {
         description: '腐根溪谷的千年神木，核心樹皮被剝離後陷入無意識防衛。'
     },
 
-    // ==================== 第三章：廢墟遺跡 (Lv.6-10) ====================
+    // ==================== 第二章：斷裂撤離盆地 (Lv.11-20) ====================
     skeleton_warrior: {
         id: 'skeleton_warrior',
         name: '骷髏戰士',
@@ -370,7 +371,7 @@ export const MonsterDatabase = {
         icon: '🗿',
         type: MonsterType.NORMAL,
         element: MonsterElement.EARTH,
-        level: 18,
+        level: 17,
         hp: 180,
         maxHp: 180,
         attack: 16,
@@ -415,14 +416,14 @@ export const MonsterDatabase = {
         description: '操控亡靈的邪惡法師。'
     },
 
-    // ==================== 第四章：暗影入侵 (Lv.10-14) ====================
+    // ==================== 第三章：暗影前線 (Lv.21-30) ====================
     shadow_soldier: {
         id: 'shadow_soldier',
         name: '暗影士兵',
         icon: '🗡️',
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
-        level: 23,
+        level: 21,
         hp: 150,
         maxHp: 150,
         attack: 26,
@@ -448,7 +449,7 @@ export const MonsterDatabase = {
         icon: '🏹',
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
-        level: 25,
+        level: 23,
         hp: 120,
         maxHp: 120,
         attack: 32,
@@ -474,7 +475,7 @@ export const MonsterDatabase = {
         icon: '🧙',
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
-        level: 28,
+        level: 26,
         hp: 140,
         maxHp: 140,
         attack: 38,
@@ -526,14 +527,14 @@ export const MonsterDatabase = {
         description: '統領暗影軍團的指揮官。'
     },
 
-    // ==================== 第五章：古代遺跡 (Lv.14-18) ====================
+    // ==================== 第四章：古代遺跡 (Lv.31-40) ====================
     ancient_guardian: {
         id: 'ancient_guardian',
         name: '遺跡守衛',
         icon: '🤖',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 33,
+        level: 31,
         hp: 220,
         maxHp: 220,
         attack: 36,
@@ -558,7 +559,7 @@ export const MonsterDatabase = {
         icon: '💎',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 35,
+        level: 33,
         hp: 280,
         maxHp: 280,
         attack: 32,
@@ -583,7 +584,7 @@ export const MonsterDatabase = {
         icon: '📜',
         type: MonsterType.ELITE,
         element: MonsterElement.HOLY,
-        level: 38,
+        level: 37,
         hp: 200,
         maxHp: 200,
         attack: 45,
@@ -633,14 +634,14 @@ export const MonsterDatabase = {
         description: '沉睡萬年的遠古巨人。'
     },
 
-    // ==================== 第六章：元素試煉 (Lv.18-22) ====================
+    // ==================== 第五章：元素失衡區 (Lv.41-50) ====================
     fire_elemental: {
         id: 'fire_elemental',
         name: '火元素',
         icon: '🔥',
         type: MonsterType.NORMAL,
         element: MonsterElement.FIRE,
-        level: 43,
+        level: 41,
         hp: 200,
         maxHp: 200,
         attack: 52,
@@ -715,7 +716,7 @@ export const MonsterDatabase = {
         icon: '🪨',
         type: MonsterType.NORMAL,
         element: MonsterElement.EARTH,
-        level: 40,
+        level: 35,
         hp: 300,
         maxHp: 300,
         attack: 42,
@@ -761,14 +762,14 @@ export const MonsterDatabase = {
         description: '掌控四大元素的強大存在。'
     },
 
-    // ==================== 第七章：龍之山脈 (Lv.22-26) ====================
+    // ==================== 第六章：龍封山脈 (Lv.51-60) ====================
     wyvern: {
         id: 'wyvern',
         name: '翼龍',
         icon: '🦅',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 53,
+        level: 52,
         hp: 280,
         maxHp: 280,
         attack: 58,
@@ -793,7 +794,7 @@ export const MonsterDatabase = {
         icon: '🐉',
         type: MonsterType.NORMAL,
         element: MonsterElement.FIRE,
-        level: 55,
+        level: 54,
         hp: 320,
         maxHp: 320,
         attack: 62,
@@ -819,7 +820,7 @@ export const MonsterDatabase = {
         icon: '🛡️',
         type: MonsterType.ELITE,
         element: MonsterElement.FIRE,
-        level: 58,
+        level: 59,
         hp: 350,
         maxHp: 350,
         attack: 68,
@@ -866,14 +867,14 @@ export const MonsterDatabase = {
         description: '統治龍之山脈的古老巨龍。'
     },
 
-    // ==================== 第八章：王都危機 (Lv.26-28) ====================
+    // ==================== 第七章：墜落地外圍 (Lv.61-67) ====================
     shadow_assassin: {
         id: 'shadow_assassin',
         name: '暗影刺客',
         icon: '🗡️',
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
-        level: 63,
+        level: 61,
         hp: 300,
         maxHp: 300,
         attack: 78,
@@ -898,7 +899,7 @@ export const MonsterDatabase = {
         icon: '⚔️',
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
-        level: 65,
+        level: 67,
         hp: 450,
         maxHp: 450,
         attack: 82,
@@ -941,14 +942,14 @@ export const MonsterDatabase = {
         description: '暗影軍團的統帥。'
     },
 
-    // ==================== 第九章：最終決戰 (Lv.28-30) ====================
+    // ==================== 第七章：魔王終局 (Lv.66-70) ====================
     demon_soldier: {
         id: 'demon_soldier',
         name: '魔族士兵',
         icon: '😈',
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
-        level: 68,
+        level: 66,
         hp: 400,
         maxHp: 400,
         attack: 88,
@@ -973,7 +974,7 @@ export const MonsterDatabase = {
         icon: '👿',
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
-        level: 70,
+        level: 69,
         hp: 600,
         maxHp: 600,
         attack: 95,
@@ -1052,7 +1053,7 @@ export const MonsterDatabase = {
         icon: '◈',
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
-        level: 20,
+        level: 19,
         hp: 170,
         maxHp: 170,
         attack: 25,
@@ -1102,7 +1103,7 @@ export const MonsterDatabase = {
         icon: '✹',
         type: MonsterType.ELITE,
         element: MonsterElement.NONE,
-        level: 50,
+        level: 49,
         hp: 620,
         maxHp: 620,
         attack: 72,
@@ -1312,7 +1313,7 @@ export const MonsterDatabase = {
         icon: '🔔',
         type: MonsterType.BOSS,
         element: MonsterElement.ICE,
-        level: 30,
+        level: 28,
         hp: 560,
         maxHp: 560,
         attack: 40,
@@ -1360,7 +1361,7 @@ export const MonsterDatabase = {
         icon: '🌿',
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
-        level: 35,
+        level: 38,
         hp: 640,
         maxHp: 640,
         attack: 46,
@@ -1384,7 +1385,7 @@ export const MonsterDatabase = {
         icon: '🦗',
         type: MonsterType.BOSS,
         element: MonsterElement.NONE,
-        level: 5,
+        level: 6,
         hp: 260,
         maxHp: 260,
         attack: 18,
@@ -1406,7 +1407,7 @@ export const MonsterDatabase = {
     // dedicated balance pass; chapter ownership lives in MonsterEcology.js.
     shadow_halberdier: {
         id: 'shadow_halberdier', name: '暗影戟兵', icon: '⚔',
-        type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 26,
+        type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 24,
         hp: 205, maxHp: 205, attack: 34, attackSpeed: 1.5, defense: 17,
         exp: 125, gold: 82,
         drops: [
@@ -1418,7 +1419,7 @@ export const MonsterDatabase = {
     },
     ember_beast: {
         id: 'ember_beast', name: '燼火獸', icon: '◆',
-        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 44,
+        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 42,
         hp: 305, maxHp: 305, attack: 45, attackSpeed: 1.6, defense: 18,
         exp: 170, gold: 110,
         drops: [
@@ -1442,7 +1443,7 @@ export const MonsterDatabase = {
     },
     poison_frog: {
         id: 'poison_frog', name: '劇毒蛙', icon: '●',
-        type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 45,
+        type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 47,
         hp: 250, maxHp: 250, attack: 43, attackSpeed: 1.55, defense: 14,
         exp: 172, gold: 112,
         drops: [
@@ -1466,7 +1467,7 @@ export const MonsterDatabase = {
     },
     vine_beast: {
         id: 'vine_beast', name: '藤蔓獸', icon: '✤',
-        type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 47,
+        type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 48,
         hp: 340, maxHp: 340, attack: 45, attackSpeed: 1.5, defense: 24,
         exp: 188, gold: 122,
         drops: [
@@ -1478,7 +1479,7 @@ export const MonsterDatabase = {
     },
     cliffscale_hatchling: {
         id: 'cliffscale_hatchling', name: '崖鱗幼龍', icon: '△',
-        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 52,
+        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 51,
         hp: 365, maxHp: 365, attack: 56, attackSpeed: 1.65, defense: 25,
         exp: 215, gold: 145,
         drops: [
@@ -1490,7 +1491,7 @@ export const MonsterDatabase = {
     },
     sealstone_guardian: {
         id: 'sealstone_guardian', name: '封石守衛', icon: '▣',
-        type: MonsterType.NORMAL, element: MonsterElement.EARTH, level: 54,
+        type: MonsterType.NORMAL, element: MonsterElement.EARTH, level: 53,
         hp: 430, maxHp: 430, attack: 55, attackSpeed: 1.4, defense: 34,
         exp: 230, gold: 152,
         drops: [
@@ -1514,7 +1515,7 @@ export const MonsterDatabase = {
     },
     dragon_seal_adept: {
         id: 'dragon_seal_adept', name: '龍封術士', icon: '◈',
-        type: MonsterType.ELITE, element: MonsterElement.FIRE, level: 58,
+        type: MonsterType.ELITE, element: MonsterElement.FIRE, level: 57,
         hp: 520, maxHp: 520, attack: 68, attackSpeed: 1.7, defense: 31,
         exp: 285, gold: 190,
         drops: [
@@ -1526,7 +1527,7 @@ export const MonsterDatabase = {
     },
     hell_hound: {
         id: 'hell_hound', name: '地獄犬', icon: '◆',
-        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 64,
+        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 62,
         hp: 470, maxHp: 470, attack: 76, attackSpeed: 1.85, defense: 28,
         exp: 315, gold: 210,
         drops: [
@@ -1538,7 +1539,7 @@ export const MonsterDatabase = {
     },
     tormented_soul: {
         id: 'tormented_soul', name: '受難亡魂', icon: '◇',
-        type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 65,
+        type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 63,
         hp: 410, maxHp: 410, attack: 80, attackSpeed: 1.7, defense: 24,
         exp: 322, gold: 215,
         drops: [
@@ -1550,7 +1551,7 @@ export const MonsterDatabase = {
     },
     lava_golem: {
         id: 'lava_golem', name: '熔岩巨像', icon: '▰',
-        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 66,
+        type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 64,
         hp: 590, maxHp: 590, attack: 74, attackSpeed: 1.4, defense: 42,
         exp: 335, gold: 225,
         drops: [
@@ -2077,6 +2078,10 @@ export const TowerMonsterData = {
 for (const [monsterId, override] of Object.entries(FirstRunMonsterLootOverrides)) {
     if (MonsterDatabase[monsterId]) Object.assign(MonsterDatabase[monsterId], override);
 }
+
+// First-run combat values have one explicit authority. Encounter code may
+// select a monster, but must never rescale these values by location or player.
+applyFirstRunMonsterCombatBalance(MonsterDatabase);
 
 // Level groups: split into four logical groups used by map/manager code.
 // - LowLevelMonster: levels 1-15 (excluding BOSS and WORLD_BOSS)

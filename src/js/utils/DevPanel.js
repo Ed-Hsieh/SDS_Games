@@ -7,7 +7,8 @@
 import GameManager from '../managers/GameManager.js';
 import { questManager, QuestStatus } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
-import { QuestDatabase, QuestRewardItems, getQuestById } from '../data/Quests.js';
+import { QuestDatabase, getQuestById } from '../data/Quests.js';
+import { RewardItemDatabase } from '../data/RewardItems.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { TowerBossEquipment } from '../data/BossEquipment.js';
@@ -45,7 +46,7 @@ const DEV_PANEL_STORAGE_KEY = 'sds.devPanel.state';
 const ITEM_SOURCE_LABELS = {
     material: '素材庫',
     equipment: '裝備庫',
-    questReward: '任務物品',
+    rewardItem: '特殊物品',
     bossEquipment: '首領裝備',
     shop: '商店物品'
 };
@@ -154,7 +155,7 @@ function getDevItemCatalog() {
     const map = new Map();
     Object.values(MaterialDatabase || {}).forEach(item => addDevCatalogEntry(map, 'material', item));
     Object.values(EquipmentDatabase || {}).forEach(item => addDevCatalogEntry(map, 'equipment', item));
-    Object.values(QuestRewardItems || {}).forEach(item => addDevCatalogEntry(map, 'questReward', item));
+    Object.values(RewardItemDatabase || {}).forEach(item => addDevCatalogEntry(map, 'rewardItem', item));
     Object.values(TowerBossEquipment || {}).forEach(item => addDevCatalogEntry(map, 'bossEquipment', item));
     Object.values(ShopData || {}).forEach(shop => {
         (shop.items || []).forEach(item => addDevCatalogEntry(map, 'shop', item));
@@ -1016,7 +1017,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
 
     resolveDevEquipmentItem(itemId, slot) {
         if (!itemId || itemId === '__none__') return null;
-        const record = resolveItemRecord(itemId, { order: ['equipment', 'bossEquipment', 'questReward', 'shop'] });
+        const record = resolveItemRecord(itemId, { order: ['equipment', 'bossEquipment', 'rewardItem', 'shop'] });
         const item = record?.item;
         if (!item || getDevEquipmentSlot(item) !== slot) return null;
         return cloneDevItem(item);
@@ -1140,7 +1141,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         if (!itemId) return;
         this.savePanelState({ itemId, itemQty: quantity });
 
-        const item = resolveItemById(itemId, { order: ['material', 'equipment', 'shop', 'questReward', 'bossEquipment'] });
+        const item = resolveItemById(itemId, { order: ['material', 'equipment', 'shop', 'rewardItem', 'bossEquipment'] });
         if (!item) {
             this.refresh(`找不到物品 ${itemId}`);
             return;

@@ -1319,7 +1319,9 @@ rewards, and art remain subject to later review and map-function allocation.
   cross-run memory and clear current-run fates before the second run.
 - `ChapterRegionRegistry.js` binds every map-stage scene exactly once across seven
   handcrafted regions.
-- `Quests.js` exposes seven scene-driven chapter records with empty rewards.
+- `Quests.js` contains no mandatory chapter wrappers. The seven-chapter mainline
+  is derived directly from the 66-scene registry; optional quest records remain
+  empty until their full runtime contracts are approved.
 - `OptionalSideStoryRegistry.js` keeps 33 skip-safe personal stories (short,
   medium, and long for every recurring town character with an accepted runtime
   profile) plus six ensemble shorts. Their

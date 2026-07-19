@@ -67,7 +67,7 @@ export const CasinoRouteFramework = Object.freeze([
         playerPromise: 'The owner reacts because the player demonstrated desire, not because a quest marker demanded it.',
         requiredState: [CasinoRouteFlag.SHOWCASE_SEEN],
         setsFlags: [CasinoRouteFlag.OWNER_ATTENTION],
-        unlocks: ['commission_casino_showcase_001_seed'],
+        unlocks: ['vesper_showcase_route_seed'],
         notes: 'Currently represented by inspection flags/deep-event hooks.'
     },
     {
@@ -96,8 +96,8 @@ export const CasinoRouteFramework = Object.freeze([
     }
 ]);
 
-export const CasinoShowcaseQuestFrame = Object.freeze({
-    questId: 'commission_casino_showcase_001',
+export const CasinoShowcaseRouteFrame = Object.freeze({
+    routeId: 'vesper_showcase_route',
     title: '展示櫃後的莊家',
     trigger: {
         inspectAtLeast: 2,
@@ -146,7 +146,7 @@ export const CasinoRouteIntegrationPoints = Object.freeze([
     },
     {
         system: 'quest_database',
-        data: 'commission_casino_showcase_001',
+        data: 'vesper_showcase_route',
         status: CasinoRouteImplementationState.FRAMEWORK_ONLY,
         needed: 'Add the long side quest only after town phase and economy hooks are ready.'
     }

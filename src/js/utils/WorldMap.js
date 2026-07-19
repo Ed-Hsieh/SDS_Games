@@ -14,6 +14,15 @@ function cellKey(x, y) {
     return `${x},${y}`;
 }
 
+export function resetSavedOverworldPlayerToEntry() {
+    const state = GameManager.state?.mapState;
+    if (!state || state.version !== MAP_STATE_VERSION || state.worldId !== OverworldMapConfig.id) return false;
+    state.playerPos = { ...OverworldMapConfig.startPosition };
+    state.stepsSinceEncounter = 0;
+    GameManager.markSaveDirty?.('overworld-departure-entry');
+    return true;
+}
+
 function manhattan(a, b) {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
@@ -157,6 +166,16 @@ export default class WorldMap {
         this.saveState();
     }
 
+    returnPlayerToEntry() {
+        this.playerPos = { ...this.config.startPosition };
+        this.playerFacing = { x: 1, y: 0 };
+        this.stepsSinceEncounter = 0;
+        this.revealAroundPlayer(DEFAULT_REVEAL_RADIUS, { save: false });
+        this.updateCamera();
+        this.saveState();
+        return { ...this.playerPos };
+    }
+
     movePlayer(dx, dy) {
         const stepX = Math.sign(Number(dx) || 0);
         const stepY = Math.sign(Number(dy) || 0);
@@ -264,12 +283,9 @@ export default class WorldMap {
         const pool = habitat?.monsterIds || [];
         if (!pool.length) return null;
         const roll = Math.max(0, Math.min(0.999999, Number(rng()) || 0));
-        const [minLevel = 1, maxLevel = minLevel] = habitat.levelRange || [];
-        const levelRoll = Math.max(0, Math.min(0.999999, Number(rng()) || 0));
         return {
             habitat,
-            monsterId: pool[Math.floor(roll * pool.length)],
-            targetLevel: minLevel + Math.floor(levelRoll * (maxLevel - minLevel + 1))
+            monsterId: pool[Math.floor(roll * pool.length)]
         };
     }
 

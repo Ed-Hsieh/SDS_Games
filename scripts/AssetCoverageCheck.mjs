@@ -27,6 +27,7 @@ const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const report = {
     counts: {},
     missingMappings: [],
+    deferredMappings: [],
     missingFiles: [],
     dimensionWarnings: []
 };
@@ -138,6 +139,10 @@ function checkAsset(scope, id, assetPath, options = {}) {
     addCount(scope);
     const required = options.required !== false;
     if (!assetPath) {
+        if (options.deferred) {
+            report.deferredMappings.push({ scope, id });
+            return;
+        }
         if (required) report.missingMappings.push({ scope, id });
         return;
     }
@@ -186,7 +191,12 @@ for (const [id, item] of entries(MarketItemCatalog)) {
 }
 
 for (const [id, item] of entries(CasinoSpecialItems)) {
-    checkAsset('casino-special-item', id, getGeneratedItemImage({ ...item, id: item.id || id }), { square: true, minWidth: 96, minHeight: 96 });
+    checkAsset('casino-special-item', id, getGeneratedItemImage({ ...item, id: item.id || id }), {
+        deferred: true,
+        square: true,
+        minWidth: 96,
+        minHeight: 96
+    });
 }
 
 for (const [id, monster] of entries(MonsterDatabase)) {

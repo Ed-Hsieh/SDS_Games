@@ -72,8 +72,8 @@ for (const [actorId, contract] of Object.entries(MainlineCharacterContracts)) {
     }
 }
 
-if ((QuestDatabase.commission || []).length > 0 || (QuestDatabase.hidden || []).length > 0) {
-    push('side-story-gate', 'Optional character stories became playable before map ownership was approved');
+if (Object.values(QuestDatabase).some(group => !Array.isArray(group) || group.length > 0)) {
+    push('side-story-gate', 'Optional quests became playable before their complete runtime contracts were approved');
 }
 
 if (problems.length > 0) {

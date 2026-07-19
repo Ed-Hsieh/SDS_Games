@@ -11,13 +11,7 @@ import {
 import { markItemKnown } from './EncyclopediaManager.js';
 import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js?v=20260717a';
 
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
-
-function scaleStat(value, levelDelta, growth, minimum = 1) {
-    const delta = clamp(levelDelta, -12, 12);
-    return Math.max(minimum, Math.round(readNumber(value, minimum) * Math.pow(growth, delta)));
-}
 
 function getItemAttack(item) {
     return readNumber(item?.stats?.attack ?? item?.stats?.atk ?? item?.attack ?? item?.atk, 0);
@@ -118,24 +112,14 @@ export function createLocationEncounter(sample, tile) {
     if (!template || !sample?.habitat) return null;
 
     const monster = createMonsterInstance(template);
-    const targetLevel = Math.max(1, Math.round(readNumber(sample.targetLevel, template.level || 1)));
-    const levelDelta = targetLevel - Math.max(1, readNumber(template.level, targetLevel));
-    monster.level = targetLevel;
-    monster.hp = scaleStat(monster.hp, levelDelta, 1.14, 8);
-    monster.maxHp = monster.hp;
-    monster.currentHp = monster.hp;
-    monster.attack = scaleStat(monster.attack, levelDelta, 1.085, 2);
-    monster.atk = monster.attack;
-    monster.defense = scaleStat(monster.defense, levelDelta, 1.075, 0);
-    monster.def = monster.defense;
-    monster.exp = scaleStat(monster.exp, levelDelta, 1.08, 1);
-    monster.gold = scaleStat(monster.gold, levelDelta, 1.06, 0);
+    const fixedLevel = Math.max(1, Math.round(readNumber(template.level, 1)));
+    monster.level = fixedLevel;
     monster.encounter = {
         habitatId: sample.habitat.id,
         habitatName: sample.habitat.name,
         chapter: sample.habitat.chapter,
         threat: sample.habitat.threat,
-        targetLevel
+        fixedLevel
     };
 
     return createCombatEncounter(monster, {
@@ -154,7 +138,7 @@ export function settleEncounterVictory(encounter) {
     const character = GameManager.getCharacter();
     const drops = calculateDrops(monster).map((drop, index) => {
         const item = resolveItemById(drop.itemId, {
-            order: ['material', 'equipment', 'shop', 'bossEquipment', 'questReward']
+            order: ['material', 'equipment', 'shop', 'bossEquipment', 'rewardItem']
         });
         return {
             ...drop,
@@ -168,6 +152,10 @@ export function settleEncounterVictory(encounter) {
     character.exp += Math.max(0, readNumber(monster.exp, 0));
     character.checkLevelUp?.();
     GameManager.addGold(Math.max(0, readNumber(monster.gold, 0)));
+    if (Number(encounter?.habitat?.chapter) === 1 && !monster.isBoss) {
+        const current = Math.max(0, Number(GameManager.getFlag('story.ch1.fieldVictories')) || 0);
+        GameManager.setFlag('story.ch1.fieldVictories', current + 1);
+    }
     questManager.updateProgress(ObjectiveType.KILL, monster.id, 1);
     GameManager.notify('all');
 

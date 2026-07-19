@@ -1,6 +1,7 @@
 import { MaterialDatabase } from '../data/Materials.js';
 import { EquipmentDatabase } from '../data/Equipment.js';
-import { QuestRewardItems } from '../data/Quests.js';
+import { RewardItemDatabase } from '../data/RewardItems.js';
+import { CasinoSpecialItems } from '../data/CasinoRewards.js';
 import { TowerBossEquipment } from '../data/BossEquipment.js';
 import { ShopData, SecretShopItems } from '../data/Items.js';
 import { ItemDatabase } from '../data/UtilityItems.js';
@@ -36,11 +37,12 @@ export function resolveItemRecord(itemId, options = {}) {
 
     const preferBossEquipment = options.preferBossEquipment === true;
     const order = options.order || (preferBossEquipment
-        ? ['questReward', 'item', 'material', 'bossEquipment', 'equipment', 'shop']
-        : ['questReward', 'item', 'material', 'equipment', 'bossEquipment', 'shop']);
+        ? ['rewardItem', 'casinoItem', 'item', 'material', 'bossEquipment', 'equipment', 'shop']
+        : ['rewardItem', 'casinoItem', 'item', 'material', 'equipment', 'bossEquipment', 'shop']);
 
     const resolvers = {
-        questReward: () => QuestRewardItems[itemId] || null,
+        rewardItem: () => RewardItemDatabase[itemId] || null,
+        casinoItem: () => CasinoSpecialItems[itemId] || null,
         item: () => ItemDatabase[itemId] || null,
         material: () => MaterialDatabase[itemId] || null,
         equipment: () => EquipmentDatabase[itemId] || null,

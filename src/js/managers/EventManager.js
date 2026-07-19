@@ -765,7 +765,7 @@ function createEventRewardItem(itemType, rewardTier = 'medium') {
     if (!reward?.itemId) return null;
 
     const itemData = resolveItemById(reward.itemId, {
-        order: ['material', 'shop', 'questReward', 'equipment', 'bossEquipment']
+        order: ['material', 'shop', 'rewardItem', 'equipment', 'bossEquipment']
     });
     if (!itemData) return null;
 

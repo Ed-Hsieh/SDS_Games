@@ -121,17 +121,14 @@ export const PassiveCombatEffectUnlockSources = {
         sourceText: '黑市奇物或特殊獎池中的致命判讀手記'
     },
     venom_resolve: {
-        questIds: ['dungeon_jungle_002'],
         flags: ['dungeon.jungle.cleared'],
         sourceText: '迷霧叢林通關後解鎖'
     },
     frost_pacing: {
-        questIds: ['dungeon_snow_002'],
         flags: ['dungeon.snow.cleared'],
         sourceText: '冰封雪峰通關後解鎖'
     },
     ember_tempering: {
-        questIds: ['dungeon_hell_002'],
         flags: ['dungeon.hell.cleared'],
         sourceText: '煉獄深淵通關後解鎖'
     },
@@ -140,7 +137,6 @@ export const PassiveCombatEffectUnlockSources = {
         sourceText: '取得荊棘交換珠後解鎖'
     },
     ruin_literacy: {
-        questIds: ['dungeon_ruins_002'],
         itemIds: ['julian_margin_notes'],
         flags: ['dungeon.ruins.cleared'],
         sourceText: '遠古遺跡通關，或取得遺跡邊註後解鎖'

@@ -90,6 +90,33 @@ check(forcedChargeCount === 1, 'Tutorial completion did not queue exactly one sc
 
 session.destroy();
 
+const failedEscapeEvents = [];
+const failedEscapeSession = new RealtimeCombatSession({
+    player: { maxHp: 100, hp: 100, potions: 0 },
+    monster: { maxHp: 100, attacks: [{ id: 'normal', damage: 1, telegraph: 1 }] },
+    fleeChance: 0.35,
+    fleeCooldown: 2,
+    random: () => 0.9
+});
+failedEscapeSession.subscribe(event => failedEscapeEvents.push(event));
+failedEscapeSession.start();
+check(failedEscapeSession.flee(), 'Probability escape attempt was rejected');
+check(failedEscapeSession.getSnapshot().phase === CombatSessionPhase.RUNNING, 'Failed escape ended combat');
+check(failedEscapeEvents.some(event => event.type === 'player:flee-failed'), 'Failed escape event was not emitted');
+check(!failedEscapeSession.flee(), 'Escape ignored its retry cooldown');
+failedEscapeSession.destroy();
+
+const successfulEscapeSession = new RealtimeCombatSession({
+    player: { maxHp: 100, hp: 100, potions: 0 },
+    monster: { maxHp: 100, attacks: [{ id: 'normal', damage: 1, telegraph: 1 }] },
+    fleeChance: 0.35,
+    random: () => 0.1
+});
+successfulEscapeSession.start();
+check(successfulEscapeSession.flee(), 'Successful probability escape was rejected');
+check(successfulEscapeSession.getSnapshot().phase === CombatSessionPhase.ESCAPED, 'Successful escape did not end combat');
+successfulEscapeSession.destroy();
+
 if (failures.length) {
     console.error(`Combat tutorial check found ${failures.length} failure(s):`);
     for (const failure of failures) console.error(`- ${failure}`);

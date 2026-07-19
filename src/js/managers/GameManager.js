@@ -71,8 +71,7 @@ export const INVENTORY_UPGRADE_TIERS = [
 export const ADVENTURE_FATIGUE_BASE_MAX = 20;
 export const ADVENTURE_FATIGUE_PER_LEVEL = 10;
 export const ADVENTURE_FATIGUE_REGEN_MS = 1000;
-export const ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID = 'fatigue_weakness';
-export const ADVENTURE_FATIGUE_WEAKNESS_PENALTY = 0.2;
+export const MIA_EMERGENCY_POTION_LIMIT = 3;
 
 class GameManager {
     constructor() {
@@ -125,8 +124,7 @@ class GameManager {
     }
 
     initInitialItems() {
-        // Add initial items (using new stack system)
-        this.addToInventory(new Consumable('health_potion_s', '小型生命藥水', ItemType.POTION, ItemRarity.COMMON, '🧪', '恢復少量生命值。', 20, { hp: 30 }), 3);
+        // Mia supplies the first field medicine after the prologue treatment.
         this.addToInventory(ItemDatabase.wolf_smoke, 1);
         this.state.flags[WOLF_SMOKE_TEST_GRANT_FLAG] = true;
         this.state.flags[WOLF_SMOKE_CODEX_FLAG] = true;
@@ -588,73 +586,18 @@ class GameManager {
         return this.state.adventureFatigue;
     }
 
-    syncAdventureFatigueWeakness(options = {}) {
-        const { notify = true, reason = 'adventure-fatigue-weakness' } = options;
-        const character = this.state.character;
-        if (!character) return false;
-        if (!Array.isArray(character.debuffs)) character.debuffs = [];
-
-        const fatigue = this.normalizeAdventureFatigue();
-        const existingIndex = character.debuffs.findIndex(debuff =>
-            debuff?.id === ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID
-            || debuff?.type === 'fatigueWeakness'
-        );
-        const shouldApply = fatigue.current <= 0;
-        let changed = false;
-
-        if (shouldApply) {
-            const nextDebuff = {
-                id: ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID,
-                type: 'fatigueWeakness',
-                name: '虛弱',
-                icon: '疲',
-                value: ADVENTURE_FATIGUE_WEAKNESS_PENALTY,
-                statPenalty: ADVENTURE_FATIGUE_WEAKNESS_PENALTY,
-                description: '疲勞耗盡，全屬性 -20%。',
-                source: 'adventureFatigue',
-                persistent: true
-            };
-
-            if (existingIndex >= 0) {
-                const current = character.debuffs[existingIndex];
-                const merged = { ...current, ...nextDebuff };
-                changed = JSON.stringify(current) !== JSON.stringify(merged);
-                character.debuffs[existingIndex] = merged;
-            } else {
-                character.debuffs.push(nextDebuff);
-                changed = true;
-            }
-
-            if (character.hp > character.maxHp) {
-                character.hp = character.maxHp;
-                changed = true;
-            }
-        } else if (existingIndex >= 0) {
-            character.debuffs.splice(existingIndex, 1);
-            changed = true;
-        }
-
-        if (changed) {
-            this.markSaveDirty(reason);
-            if (notify) this.notify('all');
-        }
-        return changed;
-    }
-
     recoverAdventureFatigue(now = Date.now()) {
         const fatigue = this.normalizeAdventureFatigue();
         const max = this.getAdventureFatigueMax();
         if (fatigue.current >= max) {
             fatigue.current = max;
             fatigue.lastRecoveredAt = now;
-            this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-full' });
             return { current: fatigue.current, max, recovered: 0 };
         }
 
         const elapsed = Math.max(0, now - Number(fatigue.lastRecoveredAt || now));
         const recovered = Math.floor(elapsed / ADVENTURE_FATIGUE_REGEN_MS);
         if (recovered <= 0) {
-            this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-check' });
             return { current: fatigue.current, max, recovered: 0 };
         }
 
@@ -662,12 +605,8 @@ class GameManager {
         fatigue.lastRecoveredAt = fatigue.current >= max
             ? now
             : Number(fatigue.lastRecoveredAt) + recovered * ADVENTURE_FATIGUE_REGEN_MS;
-        const weaknessChanged = this.syncAdventureFatigueWeakness({
-            notify: false,
-            reason: 'adventure-fatigue-recover-weakness'
-        });
         this.markSaveDirty('adventure-fatigue-recover');
-        this.notify(weaknessChanged ? 'all' : 'fatigue');
+        this.notify('fatigue');
         return { current: fatigue.current, max, recovered };
     }
 
@@ -675,7 +614,6 @@ class GameManager {
         const fatigue = this.normalizeAdventureFatigue();
         fatigue.lastRecoveredAt = now;
         this.markSaveDirty('adventure-fatigue-recovery-clock');
-        this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-recovery-clock' });
         return this.getAdventureFatigueStatus({ recover: false });
     }
 
@@ -684,13 +622,11 @@ class GameManager {
         if (recover) this.recoverAdventureFatigue();
         const fatigue = this.normalizeAdventureFatigue();
         const max = this.getAdventureFatigueMax();
-        this.syncAdventureFatigueWeakness({ notify: true, reason: 'adventure-fatigue-status' });
         return {
             current: fatigue.current,
             max,
             percent: max > 0 ? (fatigue.current / max) * 100 : 0,
-            depleted: fatigue.current <= 0,
-            weaknessPenalty: ADVENTURE_FATIGUE_WEAKNESS_PENALTY
+            depleted: fatigue.current <= 0
         };
     }
 
@@ -701,12 +637,8 @@ class GameManager {
 
         fatigue.current = Math.max(0, fatigue.current - cost);
         fatigue.lastRecoveredAt = Date.now();
-        const weaknessChanged = this.syncAdventureFatigueWeakness({
-            notify: false,
-            reason: 'adventure-fatigue-consume-weakness'
-        });
         this.markSaveDirty('adventure-fatigue-consume');
-        this.notify(weaknessChanged ? 'all' : 'fatigue');
+        this.notify('fatigue');
         return true;
     }
 
@@ -716,12 +648,8 @@ class GameManager {
         const fatigue = this.normalizeAdventureFatigue();
         fatigue.current = Math.min(this.getAdventureFatigueMax(), fatigue.current + value);
         fatigue.lastRecoveredAt = Date.now();
-        const weaknessChanged = this.syncAdventureFatigueWeakness({
-            notify: false,
-            reason: 'adventure-fatigue-restore-weakness'
-        });
         this.markSaveDirty('adventure-fatigue-restore');
-        this.notify(weaknessChanged ? 'all' : 'fatigue');
+        this.notify('fatigue');
         return this.getAdventureFatigueStatus();
     }
 
@@ -731,7 +659,7 @@ class GameManager {
 
         if (!Array.isArray(character.debuffs)) character.debuffs = [];
         character.debuffs = character.debuffs.filter(debuff =>
-            debuff?.id !== ADVENTURE_FATIGUE_WEAKNESS_DEBUFF_ID
+            debuff?.id !== 'fatigue_weakness'
             && debuff?.type !== 'fatigueWeakness'
             && debuff?.source !== 'adventureFatigue'
         );
@@ -761,6 +689,37 @@ class GameManager {
                 current: fatigue.current,
                 max: fatigueMax
             }
+        };
+    }
+
+    getEmergencyPotionCount() {
+        return (this.state.inventory || []).reduce((total, stack) => (
+            stack?.item?.id === 'health_potion_s'
+                ? total + Math.max(0, Number(stack.quantity) || 0)
+                : total
+        ), 0);
+    }
+
+    refillMiaEmergencyPotions() {
+        const current = this.getEmergencyPotionCount();
+        if (current > 0) return { refilled: false, current, limit: MIA_EMERGENCY_POTION_LIMIT };
+
+        const potion = new Consumable(
+            'health_potion_s',
+            '小型生命藥水',
+            ItemType.POTION,
+            ItemRarity.COMMON,
+            '🧪',
+            '恢復少量生命值。',
+            20,
+            { hp: 30 }
+        );
+        const refilled = this.addToInventory(potion, MIA_EMERGENCY_POTION_LIMIT);
+        if (refilled) this.markSaveDirty('mia-emergency-potion-refill');
+        return {
+            refilled,
+            current: refilled ? MIA_EMERGENCY_POTION_LIMIT : 0,
+            limit: MIA_EMERGENCY_POTION_LIMIT
         };
     }
 

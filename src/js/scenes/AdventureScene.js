@@ -20,7 +20,8 @@ import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import {
     PROLOGUE_TUTORIAL_OUTCOME_FLAG,
     PROLOGUE_TUTORIAL_RESOLVED_FLAG,
-    PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
+    PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG,
+    getStorySceneCompleteFlag
 } from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
 import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { isDevModeEnabled } from '../utils/DevMode.js';
@@ -43,6 +44,19 @@ const LANDMARK_STORY_SCENES = Object.freeze({
 });
 
 const MOVE_REPEAT_MS = 80;
+
+const ADVENTURE_ONBOARDING_FLAGS = Object.freeze({
+    movement: 'tutorial.adventure.wasdMoved',
+    quest: 'tutorial.adventure.questOpened',
+    inventory: 'tutorial.adventure.inventoryOpened',
+    equipment: 'tutorial.adventure.weaponEquipped'
+});
+
+const CHAPTER_ONE_SURVEY_REQUIREMENTS = Object.freeze({
+    south_gate_farmland: Object.freeze({ victories: 2, previousLandmarkId: null }),
+    hunter_boardwalk: Object.freeze({ victories: 5, previousLandmarkId: 'south_gate_farmland' }),
+    old_campfire_site: Object.freeze({ victories: 7, previousLandmarkId: 'hunter_boardwalk' })
+});
 
 function loadImage(src) {
     if (!src) return Promise.resolve(null);
@@ -94,8 +108,11 @@ export default class AdventureScene {
         this.panels = new AdventurePanelsController(this.container, {
             onPlayerStateChange: () => this.renderPlayerStats(),
             onUseContextItem: stack => this.useContextItem(stack),
+            onDrawerOpen: type => this.handleOnboardingDrawer(type),
+            onEquipmentChanged: slot => this.handleOnboardingEquipment(slot),
             getStoryHintContext: () => ({
-                discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])]
+                discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])],
+                chapterOneFieldVictories: this.getChapterOneFieldVictories()
             })
         });
         ensureCombatStage(this.container);
@@ -146,8 +163,7 @@ export default class AdventureScene {
                 }
                 const storyContract = this.activeEncounter?.storyContract;
                 if (storyContract) storySceneManager.resolveEncounter(storyContract.id, { victory: false });
-                GameManager.restoreCharacterAtHome('battle-defeat');
-                this.app?.navigateTo?.('lobby');
+                this.returnToTown('battle-defeat');
             }
         });
         window.currentAdventureScene = this;
@@ -158,6 +174,7 @@ export default class AdventureScene {
         this.renderBossReserveList();
         await this.loadMapAssets();
         this.updateLocationUi({ forceToast: true });
+        this.updateAdventureOnboarding();
         this.requestRender();
         this.tryStartPendingFieldStory();
     }
@@ -187,6 +204,10 @@ export default class AdventureScene {
         this.devBossList = this.container.querySelector('#map-test-boss-list');
         this.devSample = this.container.querySelector('#map-test-sample');
         this.devReturnButton = this.container.querySelector('#btn-return-to-lobby');
+        this.onboarding = this.container.querySelector('#adventure-onboarding');
+        this.onboardingTitle = this.container.querySelector('#adventure-onboarding-title');
+        this.onboardingText = this.container.querySelector('#adventure-onboarding-text');
+        this.onboardingKeys = this.container.querySelector('#adventure-onboarding-keys');
 
         if (this.devPanel) this.devPanel.hidden = !this.devMode;
         if (this.devReturnButton) this.devReturnButton.hidden = !this.devMode;
@@ -228,12 +249,11 @@ export default class AdventureScene {
         this.returnToTown('adventure-dev-return', { restore: true });
     }
 
-    returnToTown(reason, options = {}) {
-        if (options.restore) GameManager.restoreCharacterAtHome(reason);
-        else {
-            GameManager.requestTownNarrativeReset(reason);
-            GameManager.markSaveDirty(reason);
-        }
+    returnToTown(reason, _options = {}) {
+        this.worldMap?.returnPlayerToEntry();
+        GameManager.restoreCharacterAtHome(reason);
+        GameManager.requestTownNarrativeReset(reason);
+        GameManager.markSaveDirty(reason);
         this.app?.navigateTo?.('lobby');
     }
 
@@ -330,10 +350,6 @@ export default class AdventureScene {
         }
 
         const directions = {
-            ArrowUp: [0, -1],
-            ArrowDown: [0, 1],
-            ArrowLeft: [-1, 0],
-            ArrowRight: [1, 0],
             w: [0, -1],
             s: [0, 1],
             a: [-1, 0],
@@ -357,6 +373,8 @@ export default class AdventureScene {
             return;
         }
         if (result.type !== 'moved') return;
+
+        this.completeAdventureOnboardingStep('movement');
 
         GameManager.consumeAdventureFatigue(result.habitat?.fatigueCost || 1);
         if (result.enteredHabitat) this.showRegionToast(result.habitat);
@@ -386,6 +404,24 @@ export default class AdventureScene {
                     return false;
                 }
             });
+            return;
+        }
+
+        const surveyBlock = this.getChapterOneSurveyBlock(entry);
+        if (surveyBlock) {
+            this.openModal({
+                kicker: '先穩住外圍',
+                title: entry.name,
+                text: surveyBlock,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: '繼續準備'
+            });
+            return;
+        }
+
+        const pendingEncounter = storySceneManager.getPendingEncounter();
+        if (entry.bossId && pendingEncounter?.bossId === entry.bossId) {
+            this.showBossWarning(entry, pendingEncounter);
             return;
         }
         const firstDiscovery = this.worldMap.discoverLandmark(entry);
@@ -554,10 +590,7 @@ export default class AdventureScene {
             return;
         }
         if (completion?.transition === 'encounter_required') {
-            const started = storySceneManager.beginEncounter(completion.encounter.id);
-            if (started?.success && entry) {
-                this.beginBossEncounter(entry, { storyContract: started.encounter });
-            }
+            if (entry) this.showBossWarning(entry, completion.encounter);
         }
         this.updateLocationUi();
         this.requestRender();
@@ -572,7 +605,6 @@ export default class AdventureScene {
         };
         return this.beginEncounter({
             monsterId: 'blood_moon_stag',
-            targetLevel: 15,
             habitat
         }, { prologueTutorial: true });
     }
@@ -743,9 +775,124 @@ export default class AdventureScene {
         if (!monster) return false;
         return this.beginEncounter({
             monsterId: entry.bossId,
-            targetLevel: monster.level,
             habitat: this.worldMap.getCurrentHabitat()
         }, { storyBoss: entry, storyContract: options.storyContract || null });
+    }
+
+    showBossWarning(entry, encounterContract) {
+        const monster = MonsterManager.getMonster(entry?.bossId);
+        if (!entry || !monster || !encounterContract) return false;
+        this.openModal({
+            kicker: '強敵警告',
+            title: `Lv.${monster.level} ${monster.name}`,
+            text: '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。',
+            image: this.images.get(`landmark:${entry.id}`),
+            actionLabel: '做好準備，進入戰鬥',
+            onConfirm: () => {
+                const started = storySceneManager.beginEncounter(encounterContract.id);
+                if (!started?.success) return false;
+                this.closeModal();
+                this.beginBossEncounter(entry, { storyContract: started.encounter });
+                return false;
+            }
+        });
+        return true;
+    }
+
+    getChapterOneFieldVictories() {
+        return Math.max(0, Number(GameManager.getFlag('story.ch1.fieldVictories')) || 0);
+    }
+
+    getChapterOneSurveyBlock(entry) {
+        const requirement = CHAPTER_ONE_SURVEY_REQUIREMENTS[entry?.id];
+        if (!requirement || this.worldMap.isLandmarkDiscovered(entry)) return '';
+        if (requirement.previousLandmarkId
+            && !this.worldMap.discoveredLandmarks.has(requirement.previousLandmarkId)) {
+            const previous = OverworldMapConfig.landmarks.find(item => item.id === requirement.previousLandmarkId);
+            return `先完成「${previous?.name || '前一處道路痕跡'}」的調查，再沿手札記錄往前。`;
+        }
+        const victories = this.getChapterOneFieldVictories();
+        if (victories >= requirement.victories) return '';
+        return `附近的怪物仍封住安全調查角度。先在目前區域完成 ${requirement.victories - victories} 場戰鬥，再回來檢查。`;
+    }
+
+    isAdventureOnboardingAvailable() {
+        return GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)
+            && GameManager.getFlag(getStorySceneCompleteFlag('ch1_s05_south_gate_introduction'));
+    }
+
+    completeAdventureOnboardingStep(step) {
+        const flag = ADVENTURE_ONBOARDING_FLAGS[step];
+        if (!flag || GameManager.getFlag(flag)) return;
+        GameManager.setFlag(flag, true);
+        this.updateAdventureOnboarding();
+    }
+
+    handleOnboardingDrawer(type) {
+        if (type === 'quest') this.completeAdventureOnboardingStep('quest');
+        if (type === 'inventory') this.completeAdventureOnboardingStep('inventory');
+    }
+
+    handleOnboardingEquipment(slot) {
+        if (slot === 'weapon') this.completeAdventureOnboardingStep('equipment');
+    }
+
+    updateAdventureOnboarding() {
+        if (!this.onboarding) return;
+        const questButton = this.container.querySelector('#btn-adventure-quests');
+        const inventoryButton = this.container.querySelector('#btn-adventure-inventory');
+        const inventoryDrawer = this.container.querySelector('#adventure-inventory-drawer');
+        questButton?.classList.remove('is-tutorial-target');
+        inventoryButton?.classList.remove('is-tutorial-target');
+        inventoryDrawer?.classList.remove('is-equip-tutorial');
+
+        if (!this.isAdventureOnboardingAvailable()) {
+            this.onboarding.hidden = true;
+            return;
+        }
+
+        const character = GameManager.getCharacter();
+        if (character?.equipment?.weapon && !GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.equipment)) {
+            GameManager.setFlag(ADVENTURE_ONBOARDING_FLAGS.equipment, true);
+        }
+
+        let step = null;
+        if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.movement)) {
+            step = {
+                title: '使用 WASD 移動',
+                text: '離開南門起點，確認角色與鏡頭移動。',
+                keys: true
+            };
+        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.quest)) {
+            step = {
+                title: '查看任務與線索',
+                text: '開啟右上角「任務」，確認目前調查目標。',
+                target: questButton
+            };
+        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.inventory)) {
+            step = {
+                title: '檢查背包',
+                text: '開啟右上角「背包」，查看應急藥與起步武器。',
+                target: inventoryButton
+            };
+        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.equipment)) {
+            step = {
+                title: '裝備起步武器',
+                text: '在背包選擇「行路者短劍」，裝到主手。',
+                equip: true
+            };
+        }
+
+        if (!step) {
+            this.onboarding.hidden = true;
+            return;
+        }
+        this.onboarding.hidden = false;
+        this.onboardingTitle.textContent = step.title;
+        this.onboardingText.textContent = step.text;
+        this.onboardingKeys.hidden = !step.keys;
+        step.target?.classList.add('is-tutorial-target');
+        inventoryDrawer?.classList.toggle('is-equip-tutorial', Boolean(step.equip));
     }
 
     handleDevAction(action) {
@@ -820,12 +967,12 @@ export default class AdventureScene {
         const monster = MonsterManager.getMonster(result.monsterId);
         const image = await loadImage(getGeneratedMonsterImage(result.monsterId));
         if (this.devSample) {
-            this.devSample.textContent = `${result.habitat.name}：Lv.${result.targetLevel} ${monster?.name || result.monsterId}`;
+            this.devSample.textContent = `${result.habitat.name}：Lv.${monster?.level ?? '?'} ${monster?.name || result.monsterId}`;
         }
         this.openModal({
             kicker: '當地怪物抽樣',
             title: monster?.name || result.monsterId,
-            text: `這次抽樣只使用「${result.habitat.name}」的怪物池，並依地點強度調整為 Lv.${result.targetLevel}。`,
+            text: `這次抽樣只使用「${result.habitat.name}」的怪物池；${monster?.name || result.monsterId}固定為 Lv.${monster?.level ?? '?'}。`,
             image
         });
     }

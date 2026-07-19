@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CasinoPrizePools, getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/CasinoRewards.js';
-import { CasinoRouteFramework, CasinoShowcaseQuestFrame } from '../src/js/data/CasinoRouteFramework.js';
+import { CasinoRouteFramework, CasinoShowcaseRouteFrame } from '../src/js/data/CasinoRouteFramework.js';
 import {
     ChapterQuestFramework,
     ChapterQuestPausedSystems,
@@ -795,9 +795,9 @@ function auditCasinoRouteFramework() {
         }
     }
 
-    if (CasinoShowcaseQuestFrame.questId !== 'commission_casino_showcase_001') {
+    if (CasinoShowcaseRouteFrame.routeId !== 'vesper_showcase_route') {
         addIssue('casino-framework', 'Casino showcase quest frame must keep the planned quest id.', {
-            questId: CasinoShowcaseQuestFrame.questId
+            routeId: CasinoShowcaseRouteFrame.routeId
         });
     }
 

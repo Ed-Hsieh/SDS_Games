@@ -27,6 +27,7 @@ export default class StoryDialogueView {
         this.copyScrollTimer = null;
         this.copyTargetScroll = 0;
         this.copyTyping = false;
+        this.actorPresentationState = new Map();
         this.updateScopeBounds = this.updateScopeBounds.bind(this);
         this.handleCopyWheel = this.handleCopyWheel.bind(this);
         this.handleCopyScroll = this.handleCopyScroll.bind(this);
@@ -110,6 +111,7 @@ export default class StoryDialogueView {
     }
 
     show({ closable = false, autoPlay = false, scopeElement = null } = {}) {
+        this.actorPresentationState.clear();
         this.setScope(scopeElement);
         this.root.hidden = false;
         this.closeButton.hidden = !closable;
@@ -125,6 +127,7 @@ export default class StoryDialogueView {
         this.copyTargetScroll = 0;
         this.copyTyping = false;
         this.renderedLineKey = null;
+        this.actorPresentationState.clear();
         this.cast.innerHTML = '';
         this.choices.innerHTML = '';
         this.choices.hidden = true;
@@ -280,21 +283,43 @@ export default class StoryDialogueView {
             const slot = Math.floor(index / 2);
             const lineExpression = resolveLayerImage(line.expressionLayer);
             const actorExpression = resolveLayerImage(actor.expressionLayer);
-            const expressionScale = isActive
-                ? (line.expressionLayer?.scale || actor.expressionLayer?.scale || 1)
-                : (actor.expressionLayer?.scale || 1);
-            const expressionOffsetY = isActive
-                ? (line.expressionLayer?.offsetY || actor.expressionLayer?.offsetY || 0)
-                : (actor.expressionLayer?.offsetY || 0);
-            const standingScale = Number((isActive ? line.standingScale : null) ?? actor.standingScale) || 1;
-            const standingOffsetY = Number((isActive ? line.standingOffsetY : null) ?? actor.standingOffsetY) || 0;
-            const resolvedScale = standingScale * (Number(expressionScale) || 1);
-            const resolvedOffsetY = standingOffsetY + (Number(expressionOffsetY) || 0);
-            const facing = (isActive ? line.standingFacing : '') || actor.standingFacing || 'center';
+            const remembered = this.actorPresentationState.get(actorId);
+            let image;
+            let resolvedScale;
+            let resolvedOffsetY;
+            let facing;
+
+            if (isActive) {
+                const expressionScale = line.expressionLayer?.scale || actor.expressionLayer?.scale || 1;
+                const expressionOffsetY = line.expressionLayer?.offsetY || actor.expressionLayer?.offsetY || 0;
+                const standingScale = Number(line.standingScale ?? actor.standingScale) || 1;
+                const standingOffsetY = Number(line.standingOffsetY ?? actor.standingOffsetY) || 0;
+                resolvedScale = standingScale * (Number(expressionScale) || 1);
+                resolvedOffsetY = standingOffsetY + (Number(expressionOffsetY) || 0);
+                facing = line.standingFacing || actor.standingFacing || 'center';
+                image = lineExpression || line.standing || actorExpression || actor.standing || line.portrait || actor.portrait || actor.image;
+                if (image) {
+                    this.actorPresentationState.set(actorId, {
+                        image,
+                        resolvedScale,
+                        resolvedOffsetY,
+                        facing
+                    });
+                }
+            } else if (remembered) {
+                ({ image, resolvedScale, resolvedOffsetY, facing } = remembered);
+            } else {
+                const expressionScale = actor.expressionLayer?.scale || 1;
+                const expressionOffsetY = actor.expressionLayer?.offsetY || 0;
+                const standingScale = Number(actor.standingScale) || 1;
+                const standingOffsetY = Number(actor.standingOffsetY) || 0;
+                resolvedScale = standingScale * (Number(expressionScale) || 1);
+                resolvedOffsetY = standingOffsetY + (Number(expressionOffsetY) || 0);
+                facing = actor.standingFacing || 'center';
+                image = actorExpression || actor.standing || actor.portrait || actor.image;
+            }
+
             const facingClass = shouldMirrorStanding(side, facing) ? ' is-mirrored' : '';
-            const image = isActive
-                ? (lineExpression || line.standing || actorExpression || actor.standing || line.portrait || actor.portrait || actor.image)
-                : (actorExpression || actor.standing || actor.portrait || actor.image);
             if (!image) return '';
             return `
                 <figure class="story-dialogue-actor ${isActive ? 'is-active' : 'is-inactive'}${facingClass}" data-side="${side}" data-slot="${slot}" style="--story-actor-scale: ${resolvedScale}; --story-actor-offset-y: ${resolvedOffsetY}%">

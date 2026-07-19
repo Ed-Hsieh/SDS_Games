@@ -1,6 +1,8 @@
 import { MonsterDatabase, MonsterElement, MonsterType } from '../src/js/data/Monsters.js';
 import {
     FirstRunMonsterRosters,
+    FirstRunMonsterCarryovers,
+    FirstRunMonsterFixedLevels,
     RequiredFirstRunMonsterArtIds,
     SecondRunExternalMonsterIds,
     SecondRunMonsterCapacity,
@@ -13,6 +15,7 @@ import {
     RegionSourceContract,
     WeaponLevelBands
 } from '../src/js/data/WeaponProgression.js';
+import { OverworldHabitats } from '../src/js/data/OverworldMapRegistry.js';
 
 const problems = [];
 const externalIds = new Set(SecondRunExternalMonsterIds);
@@ -36,6 +39,19 @@ for (const [chapterKey, roster] of Object.entries(FirstRunMonsterRosters)) {
         if (!getMonsterEcologyProfile(monsterId).chapters.includes(chapter)) {
             problems.push(`${monsterId} has inconsistent chapter ownership for chapter ${chapter}`);
         }
+        const fixedLevel = FirstRunMonsterFixedLevels[monsterId];
+        if (!Number.isInteger(fixedLevel)) {
+            problems.push(`${monsterId} has no canonical fixed level`);
+        } else if (monster.level !== fixedLevel) {
+            problems.push(`${monsterId} runtime level ${monster.level} differs from fixed level ${fixedLevel}`);
+        }
+        const [minLevel, maxLevel] = roster.levelBand;
+        if (fixedLevel < minLevel || fixedLevel > maxLevel) {
+            const sourceChapter = FirstRunMonsterCarryovers[chapter]?.[monsterId];
+            if (!sourceChapter || !getMonsterEcologyProfile(monsterId).chapters.includes(sourceChapter)) {
+                problems.push(`${monsterId} is outside chapter ${chapter}'s band without an explicit carryover source`);
+            }
+        }
     }
 
     const boss = MonsterDatabase[roster.mandatoryBossId];
@@ -55,6 +71,28 @@ const chapterOne = FirstRunMonsterRosters[1];
 if (chapterOne.monsterIds.length !== 9) problems.push('chapter 1 must contain exactly 9 first-run monsters');
 if (MonsterDatabase.treant?.type !== MonsterType.ELITE) problems.push('treant must be the Chapter 1 elite');
 if (MonsterDatabase.cave_bat?.element !== MonsterElement.NONE) problems.push('cave_bat must remain a neutral Chapter 2 creature');
+
+const formalFirstRunIds = new Set(Object.values(FirstRunMonsterRosters).flatMap(entry => entry.monsterIds));
+for (const monsterId of Object.keys(FirstRunMonsterFixedLevels)) {
+    if (!formalFirstRunIds.has(monsterId)) problems.push(`fixed-level monster ${monsterId} is outside the first-run rosters`);
+}
+
+for (const habitat of OverworldHabitats) {
+    const [minLevel, maxLevel] = habitat.levelRange;
+    for (const monsterId of habitat.monsterIds) {
+        const monster = MonsterDatabase[monsterId];
+        if (!monster) {
+            problems.push(`${habitat.id} references missing monster ${monsterId}`);
+            continue;
+        }
+        if ([MonsterType.BOSS, MonsterType.WORLD_BOSS].includes(monster.type)) {
+            problems.push(`${habitat.id} leaks Boss ${monsterId} into random encounters`);
+        }
+        if (monster.level < minLevel || monster.level > maxLevel) {
+            problems.push(`${habitat.id} range ${minLevel}-${maxLevel} does not contain fixed Lv${monster.level} ${monsterId}`);
+        }
+    }
+}
 
 for (const monsterId of RequiredFirstRunMonsterArtIds) {
     if (!MonsterDatabase[monsterId]) problems.push(`required-art monster ${monsterId} has no runtime record`);

@@ -38,17 +38,17 @@ export const RecipeDiscoveryDatabase = {
     guardian_armor: {
         source: '幽暗洞窟任務',
         clue: '完成洞窟特殊調查後，才能解出守衛甲圖紙。',
-        interactionId: 'dungeon_cave_001'
+        interactionId: null
     },
     gargoyle_bulwark: {
         source: '幽暗洞窟任務',
         clue: '完成洞窟深處調查後，才能拼出壁壘圖紙。',
-        interactionId: 'dungeon_cave_002'
+        interactionId: null
     },
     bone_soul_staff: {
         source: '幽暗洞窟任務',
         clue: '洞窟任務的後續紀錄能拼出骨杖圖紙。',
-        interactionId: 'dungeon_cave_002'
+        interactionId: null
     },
 
     poison_dagger: {
@@ -69,7 +69,7 @@ export const RecipeDiscoveryDatabase = {
     hydra_fang_dagger: {
         source: '叢林副本：蛛絲的遺贈',
         clue: '擊敗叢林九頭蛇後，從艾拉拉的染血織機殘卷中解出毒牙匕首圖紙。',
-        interactionId: 'dungeon_jungle_002'
+        interactionId: null
     },
 
     shadow_blade: {
@@ -95,17 +95,17 @@ export const RecipeDiscoveryDatabase = {
     mithril_sword: {
         source: '遺跡副本：盲目的秩序',
         clue: '通過守護者的考驗後，從朱利安的防衛紀錄中拼出秘銀長劍圖紙。',
-        interactionId: 'dungeon_ruins_002'
+        interactionId: null
     },
     ice_sword: {
         source: '雪山副本：寒地校準法',
         clue: '登上冰霜王座後，凱倫的鐵砧刻字能解出破霜兵刃圖紙。',
-        interactionId: 'dungeon_snow_002'
+        interactionId: null
     },
     frostbound_scepter: {
         source: '雪山副本：寒地校準法',
         clue: '凱倫留下的寒地校準法被帶回鍛造鋪後，雪峰專屬鍛造線才會交出霜縛權杖圖紙。',
-        interactionId: 'dungeon_snow_002'
+        interactionId: null
     },
     nature_amulet: {
         source: '副本、菁英或首領掉落',
@@ -125,7 +125,7 @@ export const RecipeDiscoveryDatabase = {
     earthwarden_aegis: {
         source: '遺跡副本：盲目的秩序',
         clue: '遠古守衛者停機後，神殿防禦網絡的核心構造能拼出地脈守盾圖紙。',
-        interactionId: 'dungeon_ruins_002'
+        interactionId: null
     },
     storm_spear: {
         source: '副本、菁英或首領掉落',
@@ -176,7 +176,7 @@ export const RecipeDiscoveryDatabase = {
     demonwar_helm: {
         source: '地獄副本：絕望的火種',
         clue: '炎獄被擊倒後，熔毀鎧甲裡倖存的指揮盔構型能被重新鍛出。',
-        interactionId: 'dungeon_hell_002'
+        interactionId: null
     },
     slime_crown_ring: {
         source: '副本、菁英或首領掉落',

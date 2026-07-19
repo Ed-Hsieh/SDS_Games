@@ -1,6 +1,6 @@
 import { AffixStat, EquipmentType, ItemRarity, ItemType } from '../models/Enums.js';
 import { MaterialDatabase } from './Materials.js';
-import { QuestRewardItems } from './Quests.js';
+import { RewardItemDatabase } from './RewardItems.js';
 import { ShopData, SecretShopItems } from './Items.js';
 
 export const CasinoRewardRarityText = {
@@ -96,7 +96,7 @@ const SHOP_ITEM_INDEX = Object.values(ShopData)
 export function resolveCasinoRewardItem(itemId) {
     return CasinoSpecialItems[itemId]
         || MaterialDatabase[itemId]
-        || QuestRewardItems[itemId]
+        || RewardItemDatabase[itemId]
         || SHOP_ITEM_INDEX[itemId]
         || null;
 }

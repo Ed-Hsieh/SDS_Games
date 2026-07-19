@@ -37,7 +37,7 @@ const readySet = ids => new Set(ids);
 const ART_READY = Object.freeze({
     equipment: readySet([
         'abyssal_needle', 'ancient_sword', 'assassin_blade', 'aurora_ward_plate',
-        'bone_etched_lance', 'cave_ward_shield', 'cliffscale_skinner',
+        'bone_etched_lance', 'blood_moon_pendant', 'cave_ward_shield', 'cliffscale_skinner',
         'crystal_shield', 'curse_iron_warhammer', 'dawnbrand_sword',
         'demon_blade', 'demon_general_armor', 'demon_lord_armor', 'demon_lord_crown',
         'demon_lord_sword', 'dragon_knight_helm', 'dragonseal_forkstaff',
@@ -48,10 +48,10 @@ const ART_READY = Object.freeze({
         'frostbite_dueling_blade', 'frostbound_scepter_drop', 'ghost_cloak',
         'fourfold_series_dagger', 'fourfold_series_hammer', 'fourfold_series_spear',
         'fourfold_series_staff', 'fourfold_series_sword',
-        'glimmer_focus', 'glimmer_lampstaff', 'goblin_dagger',
+        'glimmer_focus', 'glimmer_lampstaff', 'goblin_dagger', 'goblin_trickster_charm',
         'helliron_series_dagger', 'helliron_series_hammer', 'helliron_series_spear',
         'helliron_series_staff', 'helliron_series_sword', 'hydra_spine_spear',
-        'leyline_wedge_lance', 'lich_staff', 'miasma_needle_focus',
+        'leather_armor', 'leyline_wedge_lance', 'lich_staff', 'miasma_needle_focus',
         'miners_pickhammer', 'molten_core_maul', 'overlord_armor', 'poison_dagger',
         'bone_series_dagger', 'bone_series_hammer', 'bone_series_spear',
         'bone_series_staff', 'bone_series_sword',
@@ -71,10 +71,11 @@ const ART_READY = Object.freeze({
         'slime_sword', 'spider_silk_gloves', 'stormfeather_talisman',
         'stormguide_focus', 'thornhook_claws',
         'thunder_axe', 'titan_gauntlet', 'titan_hammer', 'umbral_pike',
-        'undead_dagger', 'wolf_fang_blade', 'wolf_pelt_armor', 'wyvern_lance'
+        'undead_dagger', 'wolf_fang_blade', 'wolf_fang_necklace', 'wolf_pelt_armor', 'wyvern_lance'
     ]),
     consumables: readySet([
-        'antidote', 'cold_resist_potion', 'fire_resist_potion', 'health_potion_s'
+        'antidote', 'fire_resist_potion',
+        'greater_health_potion', 'health_potion', 'health_potion_s'
     ]),
     materials: readySet([
         'abyssal_shard', 'alpha_fang', 'ancient_artifact', 'ancient_bark', 'ancient_gear',
@@ -84,7 +85,7 @@ const ART_READY = Object.freeze({
         'demon_general_helm', 'demon_horn', 'demonic_steel', 'dragon_heart',
         'dragon_knight_badge', 'dragon_scale_armor', 'dragon_tooth', 'drake_scale',
         'earth_essence', 'ectoplasm', 'elder_dragon_scale', 'elemental_core',
-        'ember_stone', 'enhance_stone', 'fire_essence', 'forest_essence', 'forge_core',
+        'ember_stone', 'fire_essence', 'forest_essence', 'forge_core',
         'expedition_steel_fragment',
         'frost_core', 'frost_crystal', 'gargoyle_wing', 'general_armor', 'geo_crystal',
         'glimmer_shard', 'goblin_coin', 'goblin_ear', 'golem_core', 'guardian_branch',
@@ -107,6 +108,8 @@ const ART_READY = Object.freeze({
         'expedition_series', 'fourfold_series', 'earthwarden_aegis',
         'glimmer_focus', 'goblin_trickster_charm', 'greater_health_potion',
         'health_potion_basic', 'leather_armor', 'poison_dagger',
+        'forge_demon_lord_crown', 'forge_elder_dragon_badge',
+        'forge_elemental_crown', 'forge_forest_guardian_crown', 'forge_titan_gauntlet',
         'helliron_series', 'leyline_wedge_lance', 'molten_core_maul',
         'runic_series', 'sealstone_ram', 'sealstone_series', 'soul_lantern_focus',
         'shadow_armor', 'silver_thread_hook', 'slime_series',
@@ -114,13 +117,9 @@ const ART_READY = Object.freeze({
     ]),
     currencies: readySet([]),
     clues: readySet([
-        'gate_patrol_map', 'julian_bookmark', 'lamplighter_oil', 'loaded_dice',
-        'marlo_odds_sheet', 'north_letter_seal', 'unsent_reply'
+        'loaded_dice'
     ]),
-    relics: readySet([
-        'ash_nameplate', 'bell_rhythm_charm', 'craftsman_gouge',
-        'frey_broken_standard', 'leah_stitched_name'
-    ]),
+    relics: readySet([]),
     portraits: readySet([
         'black_market', 'blacksmith', 'casino_dealer', 'casino_owner', 'herbalist',
         'lamplighter_tavi', 'merchant', 'standard_bearer_frey', 'street_beggar',

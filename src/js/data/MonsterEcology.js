@@ -101,6 +101,76 @@ export const FirstRunMonsterRosters = Object.freeze({
     ], 'demon_lord_asariel')
 });
 
+// Canonical runtime levels. Encounter regions select a species; they never
+// reroll or rescale that species' level. Later chapters may retain explicitly
+// listed weaker carryovers as ecological continuity, but cannot promote them.
+export const FirstRunMonsterFixedLevels = Object.freeze({
+    slime: 1,
+    goblin: 2,
+    giant_rat: 3,
+    wild_wolf: 4,
+    ambush_mantis: 6,
+    poison_spider: 7,
+    stone_golem_mini: 8,
+    treant: 9,
+    forest_guardian: 10,
+    skeleton: 11,
+    cave_bat: 12,
+    skeleton_warrior: 13,
+    ghost: 15,
+    stone_golem: 17,
+    glimmer_sprite: 18,
+    rune_wisp: 19,
+    lich: 20,
+    shadow_soldier: 21,
+    shadow_archer: 23,
+    shadow_halberdier: 24,
+    shadow_mage: 26,
+    drowned_oracle: 28,
+    shadow_commander: 30,
+    ancient_guardian: 31,
+    crystal_golem: 33,
+    earth_elemental: 35,
+    rune_keeper: 37,
+    thorn_witch: 38,
+    ancient_titan: 40,
+    fire_elemental: 41,
+    ember_beast: 42,
+    ice_elemental: 43,
+    frost_wolf: 44,
+    thunder_elemental: 45,
+    storm_raptor: 46,
+    poison_frog: 47,
+    vine_beast: 48,
+    starvein_lurker: 49,
+    elemental_lord: 50,
+    cliffscale_hatchling: 51,
+    wyvern: 52,
+    sealstone_guardian: 53,
+    drake: 54,
+    dragon_seal_sentinel: 56,
+    dragon_seal_adept: 57,
+    dragon_knight: 59,
+    elder_dragon: 60,
+    shadow_assassin: 61,
+    hell_hound: 62,
+    tormented_soul: 63,
+    lava_golem: 64,
+    demon_soldier: 66,
+    shadow_general: 67,
+    demon_general: 69,
+    demon_lord_asariel: 70
+});
+
+export const FirstRunMonsterCarryovers = Object.freeze({
+    3: Object.freeze({ ghost: 2, skeleton_warrior: 2 }),
+    4: Object.freeze({ stone_golem_mini: 1, stone_golem: 2 })
+});
+
+export function getFixedFirstRunMonsterLevel(monsterId) {
+    return FirstRunMonsterFixedLevels[monsterId] || null;
+}
+
 const secondRunCapacity = (chapter, externalBossKey, runtimeBossId = null) => {
     const firstRunCount = FirstRunMonsterRosters[chapter].monsterIds.length;
     return Object.freeze({
