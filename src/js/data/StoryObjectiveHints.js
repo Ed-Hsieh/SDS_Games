@@ -1,11 +1,10 @@
 import { getStoryScene } from './StorySceneRegistry.js';
 import { getSceneRegionBinding } from './ChapterRegionRegistry.js';
-
-const CHAPTER_ONE_SURVEY_IDS = Object.freeze([
-    'south_gate_farmland',
-    'hunter_boardwalk',
-    'old_campfire_site'
-]);
+import {
+    ChapterOneInvestigationOrder,
+    ChapterOneInvestigations,
+    ChapterOneRotrootTrials
+} from './ChapterOneProgression.js';
 
 const STORY_OBJECTIVE_HINTS = Object.freeze({
     ch1_s01_road_collapse: {
@@ -37,29 +36,72 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         actorId: 'standard_bearer_frey'
     },
     ch1_s06_three_landmarks: {
-        title: '先站穩，再追查道路',
-        text: ({ discoveredLandmarkIds = [], chapterOneFieldVictories = 0 } = {}) => {
-            const discovered = new Set(discoveredLandmarkIds);
-            const current = CHAPTER_ONE_SURVEY_IDS.filter(id => discovered.has(id)).length;
-            const victories = Math.max(0, Number(chapterOneFieldVictories) || 0);
-            if (current === 0 && victories < 2) {
-                return `先在南門荒地完成戰鬥（${victories}/2），再調查南門農田。`;
+        title: ({
+            chapterOneInvestigations = {},
+            chapterOneHomeRecoveryKnown = false,
+            chapterOneFirstReportComplete = false
+        } = {}) => {
+            const farmlandComplete = Boolean(chapterOneInvestigations.south_gate_farmland?.evidence);
+            if (farmlandComplete && !chapterOneFirstReportComplete) return '把第一份紀錄帶回南門';
+            if (farmlandComplete && !chapterOneHomeRecoveryKnown) return '讓米婭檢查傷勢';
+            return '沿失聯者走過的路追查';
+        },
+        text: ({
+            chapterOneInvestigations = {},
+            chapterOneHomeRecoveryKnown = false,
+            chapterOneFirstReportComplete = false
+        } = {}) => {
+            const farmlandComplete = Boolean(chapterOneInvestigations.south_gate_farmland?.evidence);
+            if (farmlandComplete && !chapterOneFirstReportComplete) {
+                return '沿原路走回南門入口，將田埂上的方向證據交給芙蕾。靠近南門入口後按 F 返回城鎮。';
             }
-            if (current === 0) return '前往南門農田，調查異常匯集的足跡。';
-            if (current === 1 && victories < 5) {
-                return `沿農田外圍累積實戰準備（${victories}/5），再前往獵人棧道。`;
+            if (farmlandComplete && !chapterOneHomeRecoveryKnown) {
+                return '前往米婭的工作間。她要確認你能否繼續巡路；這項檢查不取決於目前生命值或藥水數量。';
             }
-            if (current === 1) return '前往獵人棧道，檢查被重新打過的銀線繩結。';
-            if (current === 2 && victories < 7) {
-                return `在濕地林緣完成準備（${victories}/7），再調查舊營火點。`;
-            }
-            if (current === 2) return '前往舊營火點，確認灰燼下仍在延伸的黑根。';
-            return '三處道路痕跡已齊，整理手札中的共同方向。';
+            const pendingId = ChapterOneInvestigationOrder.find(id => !chapterOneInvestigations[id]?.evidence);
+            if (!pendingId) return '三份現場證據已齊，整理彼此無法解釋的矛盾。';
+            const entry = ChapterOneInvestigations[pendingId];
+            const state = chapterOneInvestigations[pendingId] || {};
+            if (state.victory) return '留在目前地標完成戰後證據判讀；若演出中斷，靠近同一地標再按 F。';
+            return entry.routeHint;
+        },
+        placeId: ({
+            chapterOneInvestigations = {},
+            chapterOneHomeRecoveryKnown = false,
+            chapterOneFirstReportPending = false,
+            chapterOneFirstReportComplete = false
+        } = {}) => {
+            const farmlandComplete = Boolean(chapterOneInvestigations.south_gate_farmland?.evidence);
+            if (farmlandComplete && chapterOneFirstReportPending && !chapterOneFirstReportComplete) return 'gate';
+            if (farmlandComplete && chapterOneFirstReportComplete && !chapterOneHomeRecoveryKnown) return 'mia_workroom';
+            return null;
+        },
+        actorId: ({
+            chapterOneInvestigations = {},
+            chapterOneHomeRecoveryKnown = false,
+            chapterOneFirstReportPending = false,
+            chapterOneFirstReportComplete = false
+        } = {}) => {
+            const farmlandComplete = Boolean(chapterOneInvestigations.south_gate_farmland?.evidence);
+            if (farmlandComplete && chapterOneFirstReportPending && !chapterOneFirstReportComplete) return 'standard_bearer_frey';
+            if (farmlandComplete && chapterOneFirstReportComplete && !chapterOneHomeRecoveryKnown) return 'herbalist';
+            return null;
+        },
+        targetId: ({
+            chapterOneInvestigations = {},
+            chapterOneFirstReportPending = false,
+            chapterOneFirstReportComplete = false
+        } = {}) => {
+            const farmlandComplete = Boolean(chapterOneInvestigations.south_gate_farmland?.evidence);
+            if (farmlandComplete && chapterOneFirstReportPending && !chapterOneFirstReportComplete) return null;
+            if (farmlandComplete && !chapterOneFirstReportComplete) return 'south_gate_entry';
+            return ChapterOneInvestigationOrder.find(id => !chapterOneInvestigations[id]?.evidence) || null;
         }
     },
     ch1_s07_silver_snare: {
-        title: '追查銀線陷阱',
-        text: '前往銀絲伏道，查明是什麼東西改動了路標。'
+        title: '回程路標轉向了',
+        text: '追蹤被挪動的銀線，查明是誰改變了回程路標。線索從舊營火點往東北延伸，銀線會在靠近伏道時重新出現。',
+        targetId: 'silver_snare_pass'
     },
     ch1_s08_cold_forge_smoke: {
         title: '把證據帶回冷爐',
@@ -68,8 +110,18 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         actorId: 'blacksmith'
     },
     ch1_s09_rotroot_approach: {
-        title: '追蹤向北的根脈',
-        text: '前往腐根溪谷，沿黑色根痕追查森林異常。'
+        title: '沿仍在搏動的黑根深入',
+        text: ({ chapterOneGearReady = false, chapterOneGearEquipped = false, chapterOneRotrootTrialId = null } = {}) => {
+            if (!chapterOneGearReady) {
+                return '黑根汁已經蝕壞舊裝備。回到鐵匠鋪，請鐵匠處理銀線並整理一件能帶進林子的武器。';
+            }
+            if (!chapterOneGearEquipped) {
+                return '鐵匠整理好的武器還在行囊裡。出發前先把它換到手上。';
+            }
+            const trial = ChapterOneRotrootTrials.find(entry => entry.id === chapterOneRotrootTrialId);
+            if (trial) return `${trial.title}：${trial.text}`;
+            return '兩段腐根實戰已完成，沿仍在向北搏動的根脈判讀森林匯流點。';
+        }
     },
     ch1_s10_forest_guardian: {
         title: '進入古樹根心',
@@ -145,13 +197,13 @@ export function getStoryObjectiveHint(sceneId, context = {}) {
     return Object.freeze({
         sceneId,
         chapter: scene.chapter,
-        title: authored.title || scene.title || `第 ${scene.chapter} 章行動`,
+        title: resolveHintText(authored.title, context) || scene.title || `第 ${scene.chapter} 章行動`,
         text: resolveHintText(authored.text, context),
-        placeId: authored.placeId || null,
-        actorId: authored.actorId || null,
-        targetId: authored.targetId || getSceneRegionBinding(sceneId)?.targetId || null,
+        placeId: resolveHintText(authored.placeId, context) || null,
+        actorId: resolveHintText(authored.actorId, context) || null,
+        targetId: Object.prototype.hasOwnProperty.call(authored, 'targetId')
+            ? (resolveHintText(authored.targetId, context) || null)
+            : (getSceneRegionBinding(sceneId)?.targetId || null),
         stageClass: scene.stageClass
     });
 }
-
-export { CHAPTER_ONE_SURVEY_IDS };

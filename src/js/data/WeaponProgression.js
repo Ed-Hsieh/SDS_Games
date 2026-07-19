@@ -105,6 +105,22 @@ export const MonsterSourceBudget = Object.freeze({
     mainBoss: Object.freeze({ matchingRepresentativeObjects: 1, remainingOutput: Object.freeze(['material', 'system']) })
 });
 
+// equipmentDrops[].chance is the final baseline independent probability.
+// Runtime code must not apply hidden chapter, zone, rarity, or level scaling;
+// only an explicit player-facing drop bonus may modify the roll.
+export const EquipmentDropRateContract = Object.freeze({
+    chanceSemantics: 'final_baseline_probability',
+    migratedChapters: Object.freeze([1, 2, 3, 4, 5, 6, 7]),
+    standardByRarity: Object.freeze({
+        common: 0.20,
+        uncommon: 0.15,
+        rare: 0.10,
+        epic: 0.05
+    }),
+    mainBossLegendaryRange: Object.freeze([0.15, 0.25]),
+    standardRarities: Object.freeze(['common', 'uncommon', 'rare', 'epic'])
+});
+
 export const RegionSourceContract = Object.freeze({
     minimumContributingMonsterSpecies: 3,
     contributionTypes: Object.freeze(['material', 'direct_equipment', 'blueprint']),

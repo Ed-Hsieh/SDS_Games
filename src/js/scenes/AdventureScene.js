@@ -1,12 +1,11 @@
 import GameManager from '../managers/GameManager.js';
-import { unlockBossCraftRecipes } from '../managers/BlueprintManager.js';
 import MonsterManager from '../managers/MonsterManager.js';
-import CombatFlowController from '../managers/CombatFlowController.js?v=20260717t';
+import CombatFlowController from '../managers/CombatFlowController.js?v=codex-runtime-20260719f';
 import {
     createLocationEncounter,
     resolveEncounterDrop,
     settleEncounterVictory
-} from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
+} from '../managers/AdventureEncounterManager.js?v=codex-runtime-20260719c';
 import AdventurePanelsController from '../components/AdventurePanelsController.js';
 import { ensureCombatStage } from '../components/CombatStageView.js?v=tutorial-stage-20260719a';
 import WorldMap from '../utils/WorldMap.js';
@@ -15,7 +14,7 @@ import {
     SecondRunOvercapBossReserves
 } from '../data/OverworldMapRegistry.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
-import { storySceneManager } from '../managers/StorySceneManager.js?v=chapter1-art-20260713a';
+import { storySceneManager } from '../managers/StorySceneManager.js?v=codex-runtime-20260719c';
 import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import {
     PROLOGUE_TUTORIAL_OUTCOME_FLAG,
@@ -26,12 +25,22 @@ import {
 import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { ItemUseAction, ItemUseContext } from '../data/UtilityItems.js';
-
-const THREE_LANDMARK_IDS = Object.freeze([
-    'south_gate_farmland',
-    'hunter_boardwalk',
-    'old_campfire_site'
-]);
+import { resolveItemById } from '../utils/ItemResolver.js';
+import { showGlobalToast } from '../utils/UIFeedback.js';
+import { markItemKnown } from '../managers/EncyclopediaManager.js?v=codex-runtime-20260719c';
+import {
+    ChapterOneInvestigationOrder,
+    ChapterOneInvestigations,
+    ChapterOneMantisRecovery,
+    ChapterOneOptionalRoutes,
+    ChapterOneProgressFlag,
+    ChapterOneRotrootTrials,
+    areChapterOneInvestigationsComplete,
+    getEquippedChapterOneGearQualification,
+    getChapterOneInvestigation,
+    getNextChapterOneRotrootTrial,
+    readChapterOneObjectiveContext
+} from '../data/ChapterOneProgression.js?v=codex-runtime-20260719f';
 
 const LANDMARK_STORY_SCENES = Object.freeze({
     silver_snare_pass: 'ch1_s07_silver_snare',
@@ -48,14 +57,7 @@ const MOVE_REPEAT_MS = 80;
 const ADVENTURE_ONBOARDING_FLAGS = Object.freeze({
     movement: 'tutorial.adventure.wasdMoved',
     quest: 'tutorial.adventure.questOpened',
-    inventory: 'tutorial.adventure.inventoryOpened',
-    equipment: 'tutorial.adventure.weaponEquipped'
-});
-
-const CHAPTER_ONE_SURVEY_REQUIREMENTS = Object.freeze({
-    south_gate_farmland: Object.freeze({ victories: 2, previousLandmarkId: null }),
-    hunter_boardwalk: Object.freeze({ victories: 5, previousLandmarkId: 'south_gate_farmland' }),
-    old_campfire_site: Object.freeze({ victories: 7, previousLandmarkId: 'hunter_boardwalk' })
+    inventory: 'tutorial.adventure.inventoryOpened'
 });
 
 function loadImage(src) {
@@ -109,25 +111,31 @@ export default class AdventureScene {
             onPlayerStateChange: () => this.renderPlayerStats(),
             onUseContextItem: stack => this.useContextItem(stack),
             onDrawerOpen: type => this.handleOnboardingDrawer(type),
-            onEquipmentChanged: slot => this.handleOnboardingEquipment(slot),
             getStoryHintContext: () => ({
                 discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])],
-                chapterOneFieldVictories: this.getChapterOneFieldVictories()
+                ...readChapterOneObjectiveContext(flag => GameManager.getFlag(flag)),
+                playerLevel: Number(GameManager.getCharacter()?.level) || 1,
+                chapterOneGearEquipped: Boolean(
+                    getEquippedChapterOneGearQualification(GameManager.getCharacter())
+                )
             })
         });
         ensureCombatStage(this.container);
         this.combat = new CombatFlowController(this.container, {
             scene: { type: 'overworld', id: this.worldMap.config.id },
-            settleVictory: encounter => encounter?.context?.prologueTutorial
-                ? { exp: 0, gold: 0, drops: [] }
-                : settleEncounterVictory(encounter),
+            settleVictory: encounter => {
+                if (encounter?.context?.prologueTutorial) return { exp: 0, gold: 0, drops: [] };
+                return this.applyChapterOneGuaranteedRewards(
+                    encounter,
+                    settleEncounterVictory(encounter)
+                );
+            },
             resolveDrop: (drop, decision) => resolveEncounterDrop(drop, decision),
             isSceneComplete: encounter => Boolean(encounter?.storyBoss),
             onBattleStateChange: (result) => {
                 if (result === 'victory' && this.activeEncounter?.storyBoss?.bossId) {
                     const bossId = this.activeEncounter.storyBoss.bossId;
                     GameManager.setFlag(`boss.${bossId}.defeated`, true);
-                    unlockBossCraftRecipes(bossId);
                 }
                 const storyContract = this.activeEncounter?.storyContract;
                 if (storyContract && result === 'victory') {
@@ -144,6 +152,18 @@ export default class AdventureScene {
                 this.activeEncounter = null;
                 this.renderPlayerStats();
                 this.canvas?.focus();
+                if (phase === 'victory' && completedEncounter?.context?.chapterOneInvestigationId) {
+                    window.setTimeout(() => this.showChapterOneEvidence(
+                        completedEncounter.context.chapterOneInvestigationId
+                    ), 60);
+                } else if (phase === 'victory' && completedEncounter?.context?.chapterOneRotrootTrialId) {
+                    window.setTimeout(() => this.showRotrootTrialResult(
+                        completedEncounter.context.chapterOneRotrootTrialId
+                    ), 60);
+                } else if (phase === 'victory' && completedEncounter?.context?.chapterOneEliteId) {
+                    GameManager.setFlag(ChapterOneProgressFlag.ROTROOT_ELITE_CLEARED, true);
+                    window.setTimeout(() => this.showChapterOneEliteResult(), 60);
+                }
             },
             onSceneComplete: () => {
                 this.worldMap.suppressEncounters(4);
@@ -188,7 +208,6 @@ export default class AdventureScene {
         this.playerLevel = this.container.querySelector('#adv-player-level');
         this.playerHp = this.container.querySelector('#adv-player-hp');
         this.playerGold = this.container.querySelector('#adv-player-gold');
-        this.playerFatigue = this.container.querySelector('#adv-player-fatigue');
         this.locationHint = this.container.querySelector('#map-location-hint');
         this.locationHintTitle = this.container.querySelector('#map-location-hint-title');
         this.locationHintText = this.container.querySelector('#map-location-hint-text');
@@ -252,6 +271,12 @@ export default class AdventureScene {
     returnToTown(reason, _options = {}) {
         this.worldMap?.returnPlayerToEntry();
         GameManager.restoreCharacterAtHome(reason);
+        if (GameManager.getFlag(ChapterOneInvestigations.south_gate_farmland.evidenceFlag)) {
+            if (!GameManager.getFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)
+                && !GameManager.getFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)) {
+                GameManager.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, true);
+            }
+        }
         GameManager.requestTownNarrativeReset(reason);
         GameManager.markSaveDirty(reason);
         this.app?.navigateTo?.('lobby');
@@ -332,6 +357,21 @@ export default class AdventureScene {
         }
         if (this.modalOpen || this.panels?.isOpen()) return;
 
+        const lockedOnboardingStep = this.getAdventureOnboardingStep();
+        if (this.isInitialSystemOnboardingLocked()) {
+            const key = event.key.toLowerCase();
+            if (lockedOnboardingStep === 'quest' && key === 'q') {
+                event.preventDefault();
+                this.panels?.toggleDrawer('quest');
+            } else if (lockedOnboardingStep === 'inventory' && key === 'b') {
+                event.preventDefault();
+                this.panels?.toggleDrawer('inventory');
+            } else if (['q', 'b', 'f', 'enter', 'w', 'a', 's', 'd'].includes(key)) {
+                event.preventDefault();
+            }
+            return;
+        }
+
         if (event.key.toLowerCase() === 'q') {
             event.preventDefault();
             this.panels?.toggleDrawer('quest');
@@ -366,6 +406,7 @@ export default class AdventureScene {
     }
 
     move(dx, dy) {
+        if (this.isInitialSystemOnboardingLocked()) return;
         const result = this.worldMap.movePlayer(dx, dy);
         if (result.type === 'blocked' && result.gate) {
             this.showInteractionHint(result.gate, '前方道路中斷，靠近後調查。');
@@ -376,7 +417,6 @@ export default class AdventureScene {
 
         this.completeAdventureOnboardingStep('movement');
 
-        GameManager.consumeAdventureFatigue(result.habitat?.fatigueCost || 1);
         if (result.enteredHabitat) this.showRegionToast(result.habitat);
         this.updateLocationUi();
         this.renderPlayerStats();
@@ -389,6 +429,7 @@ export default class AdventureScene {
     }
 
     interact() {
+        if (this.isInitialSystemOnboardingLocked()) return;
         const entry = this.worldMap.getNearbyInteraction();
         if (!entry) return;
         if (entry.kind === 'town_return') {
@@ -407,34 +448,19 @@ export default class AdventureScene {
             return;
         }
 
-        const surveyBlock = this.getChapterOneSurveyBlock(entry);
-        if (surveyBlock) {
-            this.openModal({
-                kicker: '先穩住外圍',
-                title: entry.name,
-                text: surveyBlock,
-                image: this.images.get(`landmark:${entry.id}`),
-                actionLabel: '繼續準備'
-            });
-            return;
-        }
+        if (this.tryHandleChapterOneProgression(entry)) return;
 
         const pendingEncounter = storySceneManager.getPendingEncounter();
-        if (entry.bossId && pendingEncounter?.bossId === entry.bossId) {
+        if (entry.bossId && pendingEncounter?.monsterId === entry.bossId) {
             this.showBossWarning(entry, pendingEncounter);
             return;
         }
         const firstDiscovery = this.worldMap.discoverLandmark(entry);
-        this.panels?.renderQuestTracker();
+        this.panels?.renderStoryGuidance();
         storyJournalManager.recordLocationDiscoveries(entry.id, {
             chapter: this.worldMap.getCurrentTile()?.chapter,
             firstDiscovery
         });
-
-        const completesChapterOneSurvey = firstDiscovery
-            && THREE_LANDMARK_IDS.includes(entry.id)
-            && this.hasThreeLandmarkEvidence()
-            && storySceneManager.getNextAvailableSceneId() === 'ch1_s06_three_landmarks';
 
         if (entry.kind === 'route_gate') {
             this.openModal({
@@ -442,21 +468,6 @@ export default class AdventureScene {
                 title: entry.name,
                 text: firstDiscovery ? entry.blockedText : entry.repeatText,
                 image: this.images.get(`gate-blocked:${entry.id}`)
-            });
-        } else if (firstDiscovery && THREE_LANDMARK_IDS.includes(entry.id)) {
-            this.openModal({
-                kicker: '現場調查',
-                title: entry.name,
-                text: entry.firstText,
-                image: this.images.get(`landmark:${entry.id}`),
-                actionLabel: completesChapterOneSurvey ? '整理三處紀錄' : '記入手札',
-                onConfirm: completesChapterOneSurvey
-                    ? () => {
-                        this.closeModal();
-                        this.startMapStoryScene('ch1_s06_three_landmarks', { entry });
-                        return false;
-                    }
-                    : null
             });
         } else if (!this.tryStartLandmarkStory(entry)) {
             const authoredStoryBoss = Boolean(entry.bossId && LANDMARK_STORY_SCENES[entry.id]);
@@ -523,15 +534,7 @@ export default class AdventureScene {
             }
             return true;
         }
-        if (nextSceneId === 'ch1_s06_three_landmarks' && this.hasThreeLandmarkEvidence()) {
-            this.startMapStoryScene(nextSceneId);
-            return true;
-        }
         return false;
-    }
-
-    hasThreeLandmarkEvidence() {
-        return THREE_LANDMARK_IDS.every(id => this.worldMap.discoveredLandmarks.has(id));
     }
 
     tryStartLandmarkStory(entry) {
@@ -561,6 +564,7 @@ export default class AdventureScene {
         const story = {
             sceneId: outcome.sceneId,
             scene: outcome.scene,
+            checkpointId: outcome.checkpointId || null,
             encounter: outcome.encounter,
             lines,
             entry: options.entry || this.worldMap.getNearbyInteraction() || null,
@@ -582,8 +586,24 @@ export default class AdventureScene {
             return;
         }
 
+        if (story.completionAction === 'chapter_one_evidence') {
+            this.completeChapterOneEvidence(story.checkpointId, story.entry);
+            return;
+        }
+
         const completion = storySceneManager.completeScene(story.sceneId);
-        this.panels?.renderQuestTracker();
+        if (completion?.blueprintUnlocks?.length) {
+            const seriesNames = completion.blueprintUnlocks
+                .map(unlock => unlock.series?.name)
+                .filter(Boolean)
+                .join('、');
+            showGlobalToast(
+                '工藝系列解鎖',
+                `${seriesNames}的五種武器已加入鍛造清單。`,
+                'success'
+            );
+        }
+        this.panels?.renderStoryGuidance();
         const entry = story.entry;
         if (story.completionAction === 'prologue_rescue') {
             this.finishPrologueTransition();
@@ -640,10 +660,17 @@ export default class AdventureScene {
 
     showInteractionHint(entry, overrideText = '') {
         if (!this.locationHint) return;
+        if (this.isInitialSystemOnboardingLocked()) {
+            this.hideInteractionHint();
+            return;
+        }
         this.locationHintTitle.textContent = this.worldMap.isLandmarkDiscovered(entry)
             ? entry.name
             : '未知地點';
-        this.locationHintText.textContent = overrideText || '靠近後調查。';
+        const defaultText = entry?.kind === 'town_return'
+            ? '按 F 返回城鎮。'
+            : '按 F 調查。';
+        this.locationHintText.textContent = overrideText || defaultText;
         this.locationHint.classList.add('is-visible');
     }
 
@@ -681,8 +708,6 @@ export default class AdventureScene {
         if (this.playerLevel) this.playerLevel.textContent = character?.level ?? 1;
         if (this.playerHp) this.playerHp.textContent = `${character?.hp ?? 0}/${character?.maxHp ?? 0}`;
         if (this.playerGold) this.playerGold.textContent = character?.gold ?? 0;
-        const fatigue = GameManager.getAdventureFatigueStatus({ recover: true });
-        if (this.playerFatigue) this.playerFatigue.textContent = `${fatigue.current}/${fatigue.max}`;
     }
 
     beginEncounter(sample, options = {}) {
@@ -692,6 +717,9 @@ export default class AdventureScene {
         if (!encounter) return false;
         if (options.storyBoss) encounter.storyBoss = options.storyBoss;
         if (options.storyContract) encounter.storyContract = options.storyContract;
+        if (options.context) {
+            encounter.context = { ...(encounter.context || {}), ...options.context };
+        }
         if (options.prologueTutorial) {
             encounter.context = { ...(encounter.context || {}), prologueTutorial: true };
             encounter.canFlee = false;
@@ -782,10 +810,13 @@ export default class AdventureScene {
     showBossWarning(entry, encounterContract) {
         const monster = MonsterManager.getMonster(entry?.bossId);
         if (!entry || !monster || !encounterContract) return false;
+        const isMantisTest = entry.bossId === 'ambush_mantis';
         this.openModal({
             kicker: '強敵警告',
             title: `Lv.${monster.level} ${monster.name}`,
-            text: '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。',
+            text: isMantisTest
+                ? '路標背對城鎮，銀線也封住了原路。伏獵者已經記住你走過的順序；現在踏進去，牠就會收緊陷阱。'
+                : '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。',
             image: this.images.get(`landmark:${entry.id}`),
             actionLabel: '做好準備，進入戰鬥',
             onConfirm: () => {
@@ -799,26 +830,349 @@ export default class AdventureScene {
         return true;
     }
 
-    getChapterOneFieldVictories() {
-        return Math.max(0, Number(GameManager.getFlag('story.ch1.fieldVictories')) || 0);
+    tryHandleChapterOneProgression(entry) {
+        const investigation = getChapterOneInvestigation(entry?.id);
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        if (investigation
+            && nextSceneId === 'ch1_s06_three_landmarks'
+            && !storySceneManager.isSceneComplete('ch1_s06_three_landmarks')) {
+            const previous = investigation.previousId
+                ? ChapterOneInvestigations[investigation.previousId]
+                : null;
+            if (previous && !GameManager.getFlag(previous.evidenceFlag)) {
+                const previousLandmark = OverworldMapConfig.landmarks.find(item => item.id === previous.id);
+                this.openModal({
+                    kicker: '手札缺頁',
+                    title: entry.name,
+                    text: `手札裡關於「${previousLandmark?.name || '前一處痕跡'}」的紀錄仍是空白。缺少那段方向，眼前的痕跡還無法判讀。`,
+                    image: this.images.get(`landmark:${entry.id}`),
+                    actionLabel: '收起手札'
+                });
+                return true;
+            }
+
+            if (investigation.id !== 'south_gate_farmland'
+                && GameManager.getFlag(ChapterOneInvestigations.south_gate_farmland.evidenceFlag)
+                && !GameManager.getFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)) {
+                this.openModal({
+                    kicker: '先返城',
+                    title: '把第一份證據帶回南門',
+                    text: '先回去。城裡需要確認你帶回了什麼。',
+                    image: this.images.get(`landmark:${entry.id}`),
+                    actionLabel: '返回地圖'
+                });
+                return true;
+            }
+
+            if (GameManager.getFlag(investigation.victoryFlag)) {
+                this.showChapterOneEvidence(investigation.id, entry);
+                return true;
+            }
+
+            this.openModal({
+                kicker: '調查方式',
+                title: investigation.methodTitle,
+                text: investigation.methodText,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: '按這個方法開始調查',
+                onConfirm: () => {
+                    this.closeModal();
+                    this.beginEncounter({
+                        monsterId: investigation.monsterId,
+                        habitat: this.worldMap.getCurrentHabitat()
+                    }, {
+                        context: {
+                            chapterOneInvestigationId: investigation.id
+                        }
+                    });
+                    return false;
+                }
+            });
+            return true;
+        }
+
+        const optionalRoute = ChapterOneOptionalRoutes[entry?.id];
+        if (optionalRoute?.claimFlag) {
+            if (GameManager.getFlag(optionalRoute.claimFlag)) {
+                this.openModal({
+                    kicker: '已回收',
+                    title: entry.name,
+                    text: entry.repeatText,
+                    image: this.images.get(`landmark:${entry.id}`)
+                });
+                return true;
+            }
+            this.openModal({
+                kicker: '額外材料路線',
+                title: optionalRoute.title,
+                text: optionalRoute.text,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: '回收可用材料',
+                onConfirm: () => {
+                    this.closeModal();
+                    this.claimChapterOneSalvage(optionalRoute, entry);
+                    return false;
+                }
+            });
+            return true;
+        }
+
+        if (optionalRoute?.clearFlag) {
+            if (GameManager.getFlag(optionalRoute.clearFlag)) {
+                this.openModal({
+                    kicker: '可選菁英已清除',
+                    title: entry.name,
+                    text: entry.repeatText,
+                    image: this.images.get(`landmark:${entry.id}`)
+                });
+                return true;
+            }
+            if (!getEquippedChapterOneGearQualification(GameManager.getCharacter())) {
+                this.openModal({
+                    kicker: '可選菁英',
+                    title: '先換上準備好的裝備',
+                    text: '黑根的麻意正沿著手臂往上爬。鐵匠整理好的武器還沒有拿在手上，現在靠近只會讓自己先失去知覺。',
+                    image: this.images.get(`landmark:${entry.id}`)
+                });
+                return true;
+            }
+            this.openModal({
+                kicker: '可選菁英',
+                title: optionalRoute.title,
+                text: optionalRoute.text,
+                image: this.images.get(`landmark:${entry.id}`),
+                actionLabel: '挑戰樹人',
+                onConfirm: () => {
+                    this.closeModal();
+                    this.beginEncounter({
+                        monsterId: optionalRoute.monsterId,
+                        habitat: this.worldMap.getCurrentHabitat()
+                    }, {
+                        context: { chapterOneEliteId: optionalRoute.id }
+                    });
+                    return false;
+                }
+            });
+            return true;
+        }
+
+        if (entry?.id === 'rotroot_ravine'
+            && !storySceneManager.isSceneComplete('ch1_s09_rotroot_approach')) {
+            const prepared = GameManager.getFlag(ChapterOneProgressFlag.GEAR_READY);
+            const equipped = getEquippedChapterOneGearQualification(GameManager.getCharacter());
+            if (!prepared || !equipped) {
+                this.openModal({
+                    kicker: '黑根深處',
+                    title: '麻意越過了舊護具',
+                    text: prepared
+                        ? '鐵匠整理好的武器還收在行囊裡。越往前，黑根的麻意越重；先把真正要依靠的東西拿在手上。'
+                        : '手裡的舊裝備已經被黑根汁蝕出裂痕。鐵匠說過，深入林子以前先回冷爐找他。',
+                    image: this.images.get(`landmark:${entry.id}`),
+                    actionLabel: '返回準備'
+                });
+                return true;
+            }
+
+            const trial = getNextChapterOneRotrootTrial(flag => GameManager.getFlag(flag));
+            if (trial) {
+                this.openModal({
+                    kicker: '沿根脈深入',
+                    title: trial.title,
+                    text: trial.text,
+                    image: this.images.get(`landmark:${entry.id}`),
+                    actionLabel: '進入腐根區',
+                    onConfirm: () => {
+                        this.closeModal();
+                        this.beginEncounter({
+                            monsterId: trial.monsterId,
+                            habitat: this.worldMap.getCurrentHabitat()
+                        }, {
+                            context: { chapterOneRotrootTrialId: trial.id }
+                        });
+                        return false;
+                    }
+                });
+                return true;
+            }
+
+            this.startMapStoryScene('ch1_s09_rotroot_approach', { entry });
+            return true;
+        }
+
+        return false;
     }
 
-    getChapterOneSurveyBlock(entry) {
-        const requirement = CHAPTER_ONE_SURVEY_REQUIREMENTS[entry?.id];
-        if (!requirement || this.worldMap.isLandmarkDiscovered(entry)) return '';
-        if (requirement.previousLandmarkId
-            && !this.worldMap.discoveredLandmarks.has(requirement.previousLandmarkId)) {
-            const previous = OverworldMapConfig.landmarks.find(item => item.id === requirement.previousLandmarkId);
-            return `先完成「${previous?.name || '前一處道路痕跡'}」的調查，再沿手札記錄往前。`;
+    showChapterOneEvidence(investigationId, entry = null) {
+        const investigation = getChapterOneInvestigation(investigationId);
+        if (!investigation || GameManager.getFlag(investigation.evidenceFlag)) return false;
+        const target = entry || OverworldMapConfig.landmarks.find(item => item.id === investigationId);
+        const presentation = storySceneManager.buildCheckpointPresentation(
+            'ch1_s06_three_landmarks',
+            investigationId
+        );
+        if (!presentation) return false;
+        return this.showStoryPresentation(presentation, {
+            entry: target,
+            completionAction: 'chapter_one_evidence'
+        });
+    }
+
+    completeChapterOneEvidence(investigationId, entry = null) {
+        const investigation = getChapterOneInvestigation(investigationId);
+        if (!investigation) return;
+        const target = entry || OverworldMapConfig.landmarks.find(item => item.id === investigationId);
+        if (target) {
+            const firstDiscovery = this.worldMap.discoverLandmark(target);
+            storyJournalManager.recordLocationDiscoveries(target.id, {
+                chapter: 1,
+                firstDiscovery
+            });
         }
-        const victories = this.getChapterOneFieldVictories();
-        if (victories >= requirement.victories) return '';
-        return `附近的怪物仍封住安全調查角度。先在目前區域完成 ${requirement.victories - victories} 場戰鬥，再回來檢查。`;
+        GameManager.setFlag(investigation.evidenceFlag, true);
+        this.panels?.renderStoryGuidance();
+        this.updateAdventureOnboarding();
+        this.updateLocationUi();
+        this.requestRender();
+
+        if (areChapterOneInvestigationsComplete(flag => GameManager.getFlag(flag))
+            && storySceneManager.getNextAvailableSceneId() === 'ch1_s06_three_landmarks') {
+            window.setTimeout(() => this.startMapStoryScene('ch1_s06_three_landmarks'), 60);
+        }
+    }
+
+    applyChapterOneGuaranteedRewards(encounter, rewards = {}) {
+        const investigationId = encounter?.context?.chapterOneInvestigationId;
+        const rotrootTrialId = encounter?.context?.chapterOneRotrootTrialId;
+        const source = investigationId
+            ? getChapterOneInvestigation(investigationId)
+            : ChapterOneRotrootTrials.find(entry => entry.id === rotrootTrialId)
+                || (encounter?.monster?.id === 'ambush_mantis' ? ChapterOneMantisRecovery : null);
+        if (!source) return rewards;
+
+        const alreadyResolved = Boolean(GameManager.getFlag(source.victoryFlag));
+        GameManager.setFlag(source.victoryFlag, true);
+        if (investigationId === 'old_campfire_site') {
+            GameManager.setFlag(ChapterOneProgressFlag.CORE_MATERIALS_SECURED, true);
+        }
+        if (alreadyResolved) return rewards;
+
+        const guaranteedDrops = source.guaranteedRewards.map((reward, index) => {
+            const item = resolveItemById(reward.itemId, {
+                order: ['material', 'equipment', 'shop', 'bossEquipment', 'rewardItem']
+            });
+            if (!item) {
+                return {
+                    dropId: `chapter1:${source.id}:${index}:${reward.itemId}`,
+                    itemId: reward.itemId,
+                    item: null,
+                    quantity: reward.quantity,
+                    decision: 'unavailable',
+                    stored: 'missing'
+                };
+            }
+            const stored = GameManager.addToInventory(item, reward.quantity)
+                ? 'inventory'
+                : (GameManager.addToWarehouse(item, reward.quantity) ? 'warehouse' : 'missing');
+            if (stored !== 'missing') markItemKnown(item.id);
+            return {
+                dropId: `chapter1:${source.id}:${index}:${reward.itemId}`,
+                itemId: reward.itemId,
+                item,
+                quantity: reward.quantity,
+                reason: reward.reason,
+                decision: stored === 'missing' ? 'unavailable' : 'claimed',
+                stored
+            };
+        });
+
+        return {
+            ...rewards,
+            rows: [
+                ...(rewards.rows || []),
+                { label: '現場回收', value: '可辨認的材料已收進行囊' }
+            ],
+            drops: [...(rewards.drops || []), ...guaranteedDrops]
+        };
+    }
+
+    claimChapterOneSalvage(route, entry) {
+        if (!route?.claimFlag || GameManager.getFlag(route.claimFlag)) return false;
+        const recovered = [];
+        for (const reward of route.guaranteedRewards || []) {
+            const item = resolveItemById(reward.itemId, {
+                order: ['material', 'equipment', 'shop', 'bossEquipment', 'rewardItem']
+            });
+            if (!item) continue;
+            const stored = GameManager.addToInventory(item, reward.quantity)
+                || GameManager.addToWarehouse(item, reward.quantity);
+            if (!stored) continue;
+            markItemKnown(item.id);
+            recovered.push(`${item.name} ×${reward.quantity}`);
+        }
+        GameManager.setFlag(route.claimFlag, true);
+        this.worldMap.discoverLandmark(entry);
+        this.panels?.renderStoryGuidance();
+        this.openModal({
+            kicker: '材料已入庫',
+            title: entry.name,
+            text: recovered.length
+                ? `${recovered.join('、')}。這是額外支援；其餘武器、護甲與特殊工藝仍需自行狩獵。`
+                : '補給袋裡沒有可辨識的材料。',
+            image: this.images.get(`landmark:${entry.id}`)
+        });
+        return true;
+    }
+
+    showChapterOneEliteResult() {
+        this.panels?.renderStoryGuidance();
+        this.openModal({
+            kicker: '可選菁英完成',
+            title: '根哨林隙重新安靜',
+            text: '樹人倒下後，偏離主路的根脈仍被牠壓在鬆土下。古樹皮與生命種子可以帶回城裡，但牠守著的不是根脈匯流方向。',
+            image: this.images.get('landmark:rootwatch_grove')
+        });
+    }
+
+    showRotrootTrialResult(trialId) {
+        const trial = ChapterOneRotrootTrials.find(entry => entry.id === trialId);
+        if (!trial) return;
+        const next = getNextChapterOneRotrootTrial(flag => GameManager.getFlag(flag));
+        if (!next) GameManager.setFlag(ChapterOneProgressFlag.ROTROOT_COMPLETE, true);
+        this.panels?.renderStoryGuidance();
+        this.openModal({
+            kicker: '根脈仍在前方',
+            title: next ? '蛛網後面還有石殼' : '石殼下面沒有巢穴',
+            text: next
+                ? '蛛網被割開後，武器刃口沒有再被黑根汁咬出缺口。網上的獸毛全朝林外，根脈則穿過石層繼續向北。'
+                : '石殼散開後，底下只有被向上頂裂的岩層。黑根沒有在這裡停下，仍一下一下朝北收縮；真正承受壓力的地方還在前面。',
+            image: this.images.get('landmark:rotroot_ravine'),
+            actionLabel: next ? '繼續沿根脈前進' : '整理根脈證據',
+            onConfirm: !next ? () => {
+                this.closeModal();
+                this.startMapStoryScene('ch1_s09_rotroot_approach', {
+                    entry: OverworldMapConfig.landmarks.find(item => item.id === 'rotroot_ravine')
+                });
+                return false;
+            } : null
+        });
     }
 
     isAdventureOnboardingAvailable() {
         return GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)
             && GameManager.getFlag(getStorySceneCompleteFlag('ch1_s05_south_gate_introduction'));
+    }
+
+    getAdventureOnboardingStep() {
+        if (!this.isAdventureOnboardingAvailable()) return null;
+        if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.quest)) return 'quest';
+        if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.inventory)) return 'inventory';
+        if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.movement)) return 'movement';
+        return null;
+    }
+
+    isInitialSystemOnboardingLocked() {
+        const step = this.getAdventureOnboardingStep();
+        return step === 'quest' || step === 'inventory';
     }
 
     completeAdventureOnboardingStep(step) {
@@ -833,53 +1187,42 @@ export default class AdventureScene {
         if (type === 'inventory') this.completeAdventureOnboardingStep('inventory');
     }
 
-    handleOnboardingEquipment(slot) {
-        if (slot === 'weapon') this.completeAdventureOnboardingStep('equipment');
-    }
-
     updateAdventureOnboarding() {
         if (!this.onboarding) return;
         const questButton = this.container.querySelector('#btn-adventure-quests');
         const inventoryButton = this.container.querySelector('#btn-adventure-inventory');
-        const inventoryDrawer = this.container.querySelector('#adventure-inventory-drawer');
         questButton?.classList.remove('is-tutorial-target');
         inventoryButton?.classList.remove('is-tutorial-target');
-        inventoryDrawer?.classList.remove('is-equip-tutorial');
+        if (questButton) questButton.disabled = false;
+        if (inventoryButton) inventoryButton.disabled = false;
+        this.container.classList.remove('is-onboarding-locked');
 
         if (!this.isAdventureOnboardingAvailable()) {
             this.onboarding.hidden = true;
             return;
         }
 
-        const character = GameManager.getCharacter();
-        if (character?.equipment?.weapon && !GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.equipment)) {
-            GameManager.setFlag(ADVENTURE_ONBOARDING_FLAGS.equipment, true);
-        }
-
+        const onboardingStep = this.getAdventureOnboardingStep();
         let step = null;
-        if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.movement)) {
-            step = {
-                title: '使用 WASD 移動',
-                text: '離開南門起點，確認角色與鏡頭移動。',
-                keys: true
-            };
-        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.quest)) {
+        if (onboardingStep === 'quest') {
             step = {
                 title: '查看任務與線索',
-                text: '開啟右上角「任務」，確認目前調查目標。',
+                text: '開啟右上角「任務」，查看離開南門後要追查的第一段線索。',
                 target: questButton
             };
-        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.inventory)) {
+            if (inventoryButton) inventoryButton.disabled = true;
+        } else if (onboardingStep === 'inventory') {
             step = {
                 title: '檢查背包',
-                text: '開啟右上角「背包」，查看應急藥與起步武器。',
+                text: '開啟右上角「背包」，確認米婭準備的三瓶應急藥。',
                 target: inventoryButton
             };
-        } else if (!GameManager.getFlag(ADVENTURE_ONBOARDING_FLAGS.equipment)) {
+            if (questButton) questButton.disabled = true;
+        } else if (onboardingStep === 'movement') {
             step = {
-                title: '裝備起步武器',
-                text: '在背包選擇「行路者短劍」，裝到主手。',
-                equip: true
+                title: '離開南門入口',
+                text: '使用 WASD 朝任務紀錄指出的方向移動。',
+                keys: true
             };
         }
 
@@ -892,7 +1235,9 @@ export default class AdventureScene {
         this.onboardingText.textContent = step.text;
         this.onboardingKeys.hidden = !step.keys;
         step.target?.classList.add('is-tutorial-target');
-        inventoryDrawer?.classList.toggle('is-equip-tutorial', Boolean(step.equip));
+        this.container.classList.toggle('is-onboarding-locked', this.isInitialSystemOnboardingLocked());
+        if (this.isInitialSystemOnboardingLocked()) this.hideInteractionHint();
+        else this.updateLocationUi();
     }
 
     handleDevAction(action) {

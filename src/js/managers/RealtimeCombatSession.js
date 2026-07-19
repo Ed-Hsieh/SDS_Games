@@ -1,3 +1,5 @@
+import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
+
 export const CombatSessionPhase = Object.freeze({
     IDLE: 'idle',
     RUNNING: 'running',
@@ -20,6 +22,11 @@ function normalizeWeapon(raw = {}, slot = 'main') {
         id: raw.id || `${slot}_weapon`,
         name: raw.name || (slot === 'main' ? '主武器' : '副武器'),
         effect: raw.effect || (slot === 'main' ? 'sword' : 'lance'),
+        icon: raw.icon || '',
+        profile: raw.profile ? { ...raw.profile } : null,
+        element: String(raw.element || '').toLowerCase(),
+        hasArmor: Boolean(raw.hasArmor),
+        monsterDefense: Math.max(0, numberOr(raw.monsterDefense, 0)),
         damage: Math.max(1, Math.floor(Number(raw.damage) || (slot === 'main' ? 96 : 121))),
         cooldown: Math.max(0.1, Number(raw.cooldown) || (slot === 'main' ? 0.72 : 1.05)),
         windup: Math.max(0, Number(raw.windup) || (slot === 'main' ? 0.09 : 0.2)),
@@ -83,9 +90,12 @@ function normalizeBuff(raw = {}, index = 0) {
         icon: raw.icon || '',
         duration,
         remaining: clamp(numberOr(raw.remaining, duration), 0, duration),
+        stacks: Math.max(0, Math.floor(numberOr(raw.stacks, 0))),
+        maxStacks: Math.max(0, Math.floor(numberOr(raw.maxStacks, 0))),
         modifiers: {
             damage: clamp(numberOr(raw.modifiers?.damage, 1), 0.1, 5),
-            incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5)
+            incomingDamage: clamp(numberOr(raw.modifiers?.incomingDamage, 1), 0.1, 5),
+            hitZoneBonus: Math.max(0, numberOr(raw.modifiers?.hitZoneBonus, 0))
         }
     };
 }
@@ -164,6 +174,10 @@ export default class RealtimeCombatSession {
         this.loadout = {
             main: { ...this.config.loadout.main },
             offhand: { ...this.config.loadout.offhand }
+        };
+        this.weaponStates = {
+            main: { combo: 0, steadyStacks: 0, resonanceStacks: 0 },
+            offhand: { combo: 0, steadyStacks: 0, resonanceStacks: 0 }
         };
         this.cooldowns = { main: 0, offhand: 0, potion: 0, flee: 0 };
         this.pendingPlayerAttacks = [];
@@ -480,6 +494,46 @@ export default class RealtimeCombatSession {
         return true;
     }
 
+    disableWeapon(slot = 'main') {
+        if (!this.loadout[slot]) return false;
+        this.loadout[slot] = { ...this.loadout[slot], enabled: false };
+        this.cooldowns[slot] = 0;
+        this.pendingPlayerAttacks = this.pendingPlayerAttacks.filter(entry => entry.slot !== slot);
+        this.emit('player:weapon-disabled', { slot, weapon: { ...this.loadout[slot] } });
+        return true;
+    }
+
+    equipUnarmed(slot = 'main') {
+        const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
+        const previous = this.loadout[normalizedSlot] || {};
+        const profile = getWeaponCombatProfile({ equipment: { weapon: null } });
+        const damageRatio = normalizedSlot === 'main' ? 0.35 : 0.25;
+        const unarmed = normalizeWeapon({
+            id: `unarmed_${normalizedSlot}`,
+            name: '拳頭',
+            effect: 'unarmed',
+            icon: '',
+            profile,
+            damage: Math.max(1, Math.round((Number(previous.damage) || 5) * damageRatio)),
+            cooldown: Math.max(0.55, Number(previous.cooldown) || 0.9),
+            windup: 0.08,
+            critDamage: previous.critDamage || 1.5,
+            damageMultiplier: profile.damageMultiplier,
+            critDamageMultiplier: profile.critDamageMultiplier,
+            enabled: true
+        }, normalizedSlot);
+        this.loadout[normalizedSlot] = unarmed;
+        this.cooldowns[normalizedSlot] = 0;
+        this.pendingPlayerAttacks = this.pendingPlayerAttacks.filter(entry => entry.slot !== normalizedSlot);
+        this.weaponStates[normalizedSlot] = { combo: 0, steadyStacks: 0, resonanceStacks: 0 };
+        this.emit('player:weapon-replaced', {
+            slot: normalizedSlot,
+            previous: { ...previous },
+            weapon: { ...unarmed }
+        });
+        return { ...unarmed };
+    }
+
     resolvePlayerHit(pending) {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
         const { slot, weapon, hitType = 'hit' } = pending;
@@ -491,6 +545,7 @@ export default class RealtimeCombatSession {
                 ? baseDamage * weapon.critDamage * weapon.critDamageMultiplier
                 : baseDamage) * this.getMonsterModifier('incomingDamage'));
         if (hitType === 'miss' || evaded) {
+            this.resetWeaponChain(slot, weapon);
             this.emit('player:miss', {
                 slot,
                 hitType,
@@ -532,6 +587,7 @@ export default class RealtimeCombatSession {
             damage: beforeHp - this.monster.hp
         });
         if (weapon.triggerBuff) this.addBuff(weapon.triggerBuff);
+        this.resolveWeaponProfileTrigger(slot, weapon, hitType, beforeHp - this.monster.hp);
 
         if (this.monster.hp <= 0) {
             this.finish(CombatSessionPhase.VICTORY, 'monster_defeated');
@@ -580,6 +636,136 @@ export default class RealtimeCombatSession {
             refreshed: existingIndex >= 0
         });
         return true;
+    }
+
+    removeBuff(buffId) {
+        const index = this.player.buffs.findIndex(buff => buff.id === buffId);
+        if (index < 0) return false;
+        const [buff] = this.player.buffs.splice(index, 1);
+        this.emit('player:buff-expired', { buff: { ...buff, modifiers: { ...buff.modifiers } } });
+        return true;
+    }
+
+    resetWeaponChain(slot, weapon) {
+        const state = this.weaponStates[slot];
+        if (!state) return;
+        state.combo = 0;
+        state.steadyStacks = 0;
+        state.resonanceStacks = 0;
+        if (weapon?.profile?.id === 'sword') this.removeBuff(`weapon-form:${slot}:steady-stance`);
+        if (weapon?.profile?.id === 'dagger') this.removeBuff(`weapon-form:${slot}:quick-chain`);
+        if (weapon?.profile?.id === 'focus') this.removeBuff(`weapon-form:${slot}:arcane-resonance`);
+    }
+
+    resolveWeaponProfileTrigger(slot, weapon, hitType, dealtDamage) {
+        const profile = weapon?.profile;
+        const state = this.weaponStates[slot];
+        if (!profile || !state || dealtDamage <= 0) return;
+        const icon = weapon.icon || '';
+        const addFormBuff = buff => this.addBuff({ icon, ...buff });
+        const emitTrigger = detail => this.emit('player:weapon-trigger', {
+            slot,
+            weapon: { ...weapon },
+            profile: { ...profile },
+            ...detail
+        });
+        const applyExtraStrike = (ratio, triggerType, label) => {
+            const damage = Math.max(1, Math.floor(dealtDamage * ratio));
+            const beforeHp = this.monster.hp;
+            this.monster.hp = Math.max(0, this.monster.hp - damage);
+            emitTrigger({ triggerType, label, damage: beforeHp - this.monster.hp });
+        };
+
+        if (profile.id === 'sword') {
+            const maxStacks = Math.max(1, Math.floor(numberOr(profile.steadyStanceMaxStacks, 1)));
+            state.steadyStacks = Math.min(maxStacks, state.steadyStacks + 1);
+            const bonus = state.steadyStacks * Math.max(0, numberOr(profile.steadyStanceHitZoneBonus, 0)) * 100;
+            addFormBuff({
+                id: `weapon-form:${slot}:steady-stance`,
+                name: profile.label,
+                duration: 30,
+                stacks: state.steadyStacks,
+                maxStacks,
+                modifiers: { hitZoneBonus: bonus }
+            });
+            emitTrigger({ triggerType: 'steadyStance', stacks: state.steadyStacks, maxStacks, percent: bonus });
+            return;
+        }
+
+        if (profile.id === 'dagger') {
+            const comboEvery = Math.max(1, Math.floor(numberOr(profile.comboEvery, 3)));
+            state.combo = (state.combo + 1) % comboEvery;
+            if (state.combo === 0) {
+                this.removeBuff(`weapon-form:${slot}:quick-chain`);
+                applyExtraStrike(numberOr(profile.comboDamageRatio, 0.45), 'quickChain', profile.comboLabel || profile.label);
+            } else {
+                addFormBuff({
+                    id: `weapon-form:${slot}:quick-chain`,
+                    name: profile.label,
+                    duration: 12,
+                    stacks: state.combo,
+                    maxStacks: comboEvery,
+                    modifiers: {}
+                });
+                emitTrigger({ triggerType: 'quickChainCharge', stacks: state.combo, maxStacks: comboEvery });
+            }
+            return;
+        }
+
+        if (profile.id === 'heavy' && (!profile.bulwarkRequiresArmor || weapon.hasArmor)) {
+            const reduction = Math.max(0, numberOr(profile.bulwarkGuardReductionPercent, 0));
+            addFormBuff({
+                id: `weapon-form:${slot}:bulwark-guard`,
+                name: profile.label,
+                duration: Math.max(0.1, numberOr(profile.bulwarkGuardDuration, 4)),
+                modifiers: { incomingDamage: Math.max(0.1, 1 - reduction / 100) }
+            });
+            emitTrigger({ triggerType: 'bulwarkGuard', percent: reduction });
+            return;
+        }
+
+        if (profile.id === 'focus') {
+            const required = Math.max(1, Math.floor(numberOr(profile.resonanceStacksRequired, 2)));
+            state.resonanceStacks += 1;
+            if (state.resonanceStacks < required) {
+                addFormBuff({
+                    id: `weapon-form:${slot}:arcane-resonance`,
+                    name: profile.label,
+                    duration: 12,
+                    stacks: state.resonanceStacks,
+                    maxStacks: required,
+                    modifiers: {}
+                });
+                emitTrigger({ triggerType: 'arcaneResonanceCharge', stacks: state.resonanceStacks, maxStacks: required });
+                return;
+            }
+            state.resonanceStacks = 0;
+            this.removeBuff(`weapon-form:${slot}:arcane-resonance`);
+            if (Array.isArray(profile.resonanceElements) && profile.resonanceElements.includes(weapon.element)) {
+                const percent = Math.max(0, numberOr(profile.resonanceElementBonusPercent, 0));
+                addFormBuff({
+                    id: `weapon-form:${slot}:arcane-${weapon.element}`,
+                    name: `${profile.label} - ${weapon.element}`,
+                    duration: 4,
+                    modifiers: { damage: 1 + percent / 100 }
+                });
+                emitTrigger({ triggerType: 'arcaneElement', element: weapon.element, percent });
+            } else {
+                applyExtraStrike(numberOr(profile.magicBoltDamageRatio, 0.45), 'magicBolt', profile.magicBoltLabel || profile.label);
+            }
+            return;
+        }
+
+        if (profile.id === 'lance' && (hitType === 'crit' || weapon.monsterDefense >= numberOr(profile.armorPenetrationMinDefense, 8))) {
+            const percent = Math.max(0, numberOr(profile.armorPenetrationBonus, 0));
+            addFormBuff({
+                id: `weapon-form:${slot}:piercing-line`,
+                name: profile.label,
+                duration: 3,
+                modifiers: {}
+            });
+            applyExtraStrike(percent / 100, 'piercingLine', profile.label);
+        }
     }
 
     flee() {

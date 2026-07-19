@@ -676,6 +676,7 @@ class AudioManager {
             loot: this.sfxLoot,
             heal: this.sfxHeal,
             'attack-swing': this.sfxSwing,
+            'weapon-break': this.sfxWeaponBreak,
             hit: this.sfxHit,
             crit: this.sfxCrit,
             miss: this.sfxMiss,
@@ -863,6 +864,13 @@ class AudioManager {
     sfxSwing() {
         this.noise(0.09, { smooth: true, volume: 0.036, filterType: 'highpass', filterFrequency: 1150 });
         this.note(320, 0.055, { type: 'triangle', volume: 0.018, endFreq: 210, release: 0.035 });
+    }
+
+    sfxWeaponBreak() {
+        this.note(310, 0.055, { type: 'square', volume: 0.05, endFreq: 92, release: 0.08 });
+        this.note(760, 0.04, { type: 'triangle', volume: 0.038, endFreq: 180, delay: 0.025, release: 0.1 });
+        this.noise(0.16, { volume: 0.07, filterType: 'bandpass', filterFrequency: 1250, release: 0.1 });
+        this.noise(0.07, { volume: 0.045, filterType: 'highpass', filterFrequency: 2600, delay: 0.035, release: 0.08 });
     }
 
     sfxHit(options = {}) {

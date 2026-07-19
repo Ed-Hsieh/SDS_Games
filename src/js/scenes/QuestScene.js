@@ -13,7 +13,7 @@ import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
 import { dialogueManager } from '../managers/DialogueManager.js?v=chapter1-art-20260713a';
 import GameManager from '../managers/GameManager.js';
 import { storyJournalManager } from '../managers/StoryJournalManager.js';
-import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
+import { ChapterRegionOrder, ChapterRegionRegistry, findChapterLocation, getChapterRegion } from '../data/ChapterRegionRegistry.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { getResolvedTownPlaces } from '../managers/TownStateResolver.js';
 import audioManager from '../utils/AudioManager.js';
@@ -309,9 +309,12 @@ export default class QuestScene {
         const directive = storyGuidanceManager.getCurrent();
         if (!directive) return null;
         const region = getChapterRegion(directive.chapter);
+        const fieldTarget = directive.targetId
+            ? findChapterLocation(directive.targetId, directive.chapter)
+            : null;
         const destination = directive.placeId
             ? (getResolvedTownPlaces().find(place => place.id === directive.placeId)?.name || '城鎮')
-            : (region?.title || '冒險地圖');
+            : (fieldTarget?.name || region?.title || '冒險地圖');
 
         return {
             key: `mainline:${directive.sceneId}`,

@@ -6,6 +6,7 @@ import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js?v=20260717a';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import { mountSharedCombatPreview } from '../components/CombatStageView.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -48,6 +49,10 @@ function buildLoadoutEntry(slot, options) {
         name: weapon.name,
         icon: options.icon,
         effect: profile.id,
+        profile,
+        element: String(weapon.element || weapon.affinity || '').toLowerCase(),
+        hasArmor: slot === 'main',
+        monsterDefense: 14,
         damage: options.damage,
         cooldown: Math.max(0.18, attackInterval * profile.cooldownMultiplier),
         windup: options.windup,
@@ -104,18 +109,19 @@ const LOADOUT = Object.freeze({
 
 function createRhythmCharacter() {
     const main = RHYTHM_WEAPONS.main;
-    return {
+    const character = {
         equipment: {
             weapon: main,
             offhand: RHYTHM_WEAPONS.offhand
         },
-        getWeaponSpeed: () => main.weaponSpeed,
-        getAttackSpeed: () => main.attackSpeed,
-        getAttackInterval: () => 1 / Math.max(0.1, main.attackSpeed),
-        getCritChance: () => clamp(0.04 + main.critChance, 0, 0.45),
-        getCritDamage: () => main.critDamage,
+        getWeaponSpeed: () => character.equipment.weapon?.weaponSpeed || 1,
+        getAttackSpeed: () => character.equipment.weapon?.attackSpeed || 1,
+        getAttackInterval: () => 1 / Math.max(0.1, character.equipment.weapon?.attackSpeed || 1),
+        getCritChance: () => clamp(0.04 + (character.equipment.weapon?.critChance || 0.05), 0, 0.45),
+        getCritDamage: () => character.equipment.weapon?.critDamage || 1.5,
         getTotalAtk: () => LOADOUT.main.damage
     };
+    return character;
 }
 
 const SHOWCASE_MONSTERS = Object.freeze({
@@ -323,6 +329,10 @@ export class CombatVfxLab {
         return this.options.loadout || LOADOUT;
     }
 
+    getRuntimeLoadout() {
+        return this.session?.getSnapshot?.().loadout || this.getLoadout();
+    }
+
     buildSessionConfig() {
         const monster = this.getMonsterConfig();
         const player = this.options.player || {};
@@ -380,12 +390,17 @@ export class CombatVfxLab {
     }
 
     applyLoadoutVisual() {
+        const mainItem = this.rhythmCharacter?.equipment?.weapon || null;
+        const offhandItem = mainItem ? (this.rhythmCharacter?.equipment?.offhand || null) : null;
+        const offhandControl = this.root.querySelector('.rhythm-control-offhand');
+        if (offhandControl) offhandControl.hidden = !offhandItem;
+        this.root.querySelector('.player-hud')?.classList.toggle('has-no-offhand', !offhandItem);
         const slots = [
             ['main', '#lab-main-rhythm-icon', '#lab-main-rhythm-name'],
             ['offhand', '#lab-offhand-rhythm-icon', '#lab-offhand-rhythm-name']
         ];
         slots.forEach(([slot, ringIconSelector, ringNameSelector]) => {
-            const weapon = this.getLoadout()[slot];
+            const weapon = this.getRuntimeLoadout()[slot];
             const ringIcon = this.root.querySelector(ringIconSelector);
             if (ringIcon) {
                 if (weapon.icon) ringIcon.src = weapon.icon;
@@ -396,6 +411,85 @@ export class CombatVfxLab {
             const ringName = this.root.querySelector(ringNameSelector);
             if (ringName) ringName.textContent = weapon.name;
         });
+        this.renderWeaponDurability('main');
+        this.renderWeaponDurability('offhand');
+    }
+
+    getEquippedWeapon(slot) {
+        return slot === 'offhand'
+            ? this.rhythmCharacter?.equipment?.offhand || null
+            : this.rhythmCharacter?.equipment?.weapon || null;
+    }
+
+    renderWeaponDurability(slot) {
+        const item = this.getEquippedWeapon(slot);
+        const panel = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability`);
+        const value = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability-value`);
+        const fill = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability-fill`);
+        if (!panel || !value || !fill) return;
+        const isWeapon = item
+            && String(item.type || '').toLowerCase() === 'weapon'
+            && item.usesDurability !== false;
+        panel.hidden = !isWeapon;
+        if (!isWeapon) return;
+
+        const max = Math.max(1, Number(item.maxDurability) || 18);
+        const current = Math.max(0, Math.min(max, Number.isFinite(Number(item.durability)) ? Number(item.durability) : max));
+        const ratio = current / max;
+        value.textContent = `${current} / ${max}`;
+        fill.style.width = `${ratio * 100}%`;
+        panel.classList.toggle('is-low', ratio > 0 && ratio <= 0.3);
+        panel.classList.toggle('is-broken', current <= 0);
+    }
+
+    handleWeaponBroken(slot, weapon) {
+        const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
+        const createUnarmedItem = targetSlot => ({
+            id: `unarmed_${targetSlot}`,
+            name: '拳頭',
+            type: 'weapon',
+            weaponForm: 'unarmed',
+            rarity: 'common',
+            attack: targetSlot === 'main' ? 5 : 3,
+            attackSpeed: 1,
+            weaponSpeed: 1,
+            critChance: 0.05,
+            critDamage: 1.5,
+            usesDurability: false
+        });
+        const replaceSlot = targetSlot => {
+            const unarmedItem = createUnarmedItem(targetSlot);
+            this.session?.equipUnarmed(targetSlot);
+            if (targetSlot === 'main') this.rhythmCharacter.equipment.weapon = unarmedItem;
+            else this.rhythmCharacter.equipment.offhand = unarmedItem;
+            const rhythm = targetSlot === 'main' ? this.mainRhythmSystem : this.offhandRhythmSystem;
+            rhythm?.updateCharacter?.(this.rhythmCharacter);
+            const targetControl = this.root.querySelector(`.rhythm-control-${targetSlot}`);
+            targetControl?.classList.remove('is-broken');
+            targetControl?.classList.add('is-unarmed');
+        };
+
+        replaceSlot(normalizedSlot);
+        if (normalizedSlot === 'main') replaceSlot('offhand');
+        const control = this.root.querySelector(`.rhythm-control-${normalizedSlot}`);
+        control?.classList.remove('is-broken');
+        const name = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-name`);
+        const state = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-state`);
+        if (name) name.textContent = weapon?.name || '武器';
+        if (state) state.textContent = 'READY';
+        this.renderWeaponDurability(normalizedSlot);
+
+        if (normalizedSlot === 'main') {
+            const offhandControl = this.root.querySelector('.rhythm-control-offhand');
+            if (offhandControl) offhandControl.hidden = false;
+            this.root.querySelector('.player-hud')?.classList.remove('has-no-offhand');
+            const offhandName = this.root.querySelector('#lab-offhand-rhythm-name');
+            if (offhandName) offhandName.textContent = '拳頭';
+            this.renderWeaponDurability('offhand');
+        }
+        if (name) name.textContent = '拳頭';
+        this.applyLoadoutVisual();
+        this.setFeed(`${weapon?.name || '武器'}已損壞，改用拳頭繼續戰鬥`);
     }
 
     resetRhythmSystems() {
@@ -423,12 +517,16 @@ export class CombatVfxLab {
         const mainState = this.root.querySelector('#lab-main-rhythm-state');
         const offhandState = this.root.querySelector('#lab-offhand-rhythm-state');
         if (mainState) {
-            mainState.textContent = !active
+            mainState.textContent = this.root.querySelector('.rhythm-control-main')?.classList.contains('is-broken')
+                ? 'BROKEN'
+                : !active
                 ? 'HOLD'
                 : snapshot.cooldowns.main > 0.001 ? 'RECOVER' : 'READY';
         }
         if (offhandState) {
-            offhandState.textContent = !active
+            offhandState.textContent = this.root.querySelector('.rhythm-control-offhand')?.classList.contains('is-broken')
+                ? 'BROKEN'
+                : !active
                 ? 'HOLD'
                 : this.offhandRhythmSystem?.isWindowActive
                     ? 'WINDOW'
@@ -721,6 +819,8 @@ export class CombatVfxLab {
             this.setFeed(`生命藥水恢復 ${event.amount} 點生命`);
         } else if (event.type === 'player:buff-added') {
             this.setFeed(`${event.buff.name}${event.refreshed ? '已刷新' : '已生效'}`);
+        } else if (event.type === 'player:weapon-trigger') {
+            this.handleWeaponProfileTrigger(event);
         } else if (event.type === 'player:buff-expired') {
             this.setFeed(`${event.buff.name}效果結束`);
         } else if (event.type === 'player:status-added') {
@@ -792,12 +892,54 @@ export class CombatVfxLab {
         this.root.querySelector('#player-max-hp').textContent = snapshot.player.maxHp;
         this.root.querySelector('#potion-count').textContent = snapshot.player.potions;
         this.renderPotionCooldown(snapshot.cooldowns.potion, 1.2);
+        this.renderWeaponDurability('main');
+        this.renderWeaponDurability('offhand');
         this.renderBuffs(snapshot.player.buffs || []);
         this.renderPlayerDebuffs(snapshot.player.statuses || []);
         this.renderMonsterStatuses(snapshot.monster.statuses || []);
         this.renderIntent(snapshot.monsterIntent, snapshot.phase);
         this.renderSessionState(snapshot.phase);
         this.renderRhythmState(snapshot);
+        const mainHitZoneBonus = (snapshot.player.buffs || [])
+            .filter(buff => String(buff.id || '').startsWith('weapon-form:main:'))
+            .reduce((sum, buff) => sum + (Number(buff.modifiers?.hitZoneBonus) || 0), 0);
+        const offhandHitZoneBonus = (snapshot.player.buffs || [])
+            .filter(buff => String(buff.id || '').startsWith('weapon-form:offhand:'))
+            .reduce((sum, buff) => sum + (Number(buff.modifiers?.hitZoneBonus) || 0), 0);
+        if (this.lastHitZoneBonus?.main !== mainHitZoneBonus) {
+            this.mainRhythmSystem?.setBattleHitZoneBonus(mainHitZoneBonus);
+        }
+        if (this.lastHitZoneBonus?.offhand !== offhandHitZoneBonus) {
+            this.offhandRhythmSystem?.setBattleHitZoneBonus(offhandHitZoneBonus);
+        }
+        this.lastHitZoneBonus = { main: mainHitZoneBonus, offhand: offhandHitZoneBonus };
+    }
+
+    handleWeaponProfileTrigger(event) {
+        const labels = {
+            steadyStance: 'STEADY STANCE',
+            quickChainCharge: 'QUICK CHAIN',
+            quickChain: 'QUICK CHAIN',
+            bulwarkGuard: 'BULWARK GUARD',
+            arcaneResonanceCharge: 'ARCANE RESONANCE',
+            arcaneElement: 'ARCANE RESONANCE',
+            magicBolt: 'MAGIC BOLT',
+            piercingLine: 'PIERCING LINE'
+        };
+        const label = labels[event.triggerType] || event.profile?.label || 'WEAPON EFFECT';
+        this.showSkill('WEAPON', label);
+        if (event.damage > 0) {
+            this.playWeaponEffect(event.triggerType === 'magicBolt' ? 'focus' : event.weapon?.effect);
+            this.enemyImpactFeedback(event.damage, {
+                label,
+                heavy: ['heavy', 'lance'].includes(event.weapon?.effect)
+            });
+        } else if (event.triggerType === 'bulwarkGuard') {
+            this.engine.guard?.({ target: 'player' });
+        } else if (event.triggerType === 'arcaneElement') {
+            this.engine.setElement(event.element || 'neutral');
+            this.engine.elementalImpact(this.engine.enemyPoint, { scale: 0.72 });
+        }
     }
 
     renderHealth(target, current, max, immediate) {
@@ -929,6 +1071,7 @@ export class CombatVfxLab {
         else if (effect === 'heavy') this.engine.heavyImpact();
         else if (effect === 'lance') this.engine.lanceThrust({ fromRight: true });
         else if (effect === 'focus') this.engine.focusResonance();
+        else if (effect === 'unarmed') this.engine.unarmedStrike();
         else if (effect === 'critical') this.engine.swordSlash({ mirrored: true, critical: true });
     }
 
@@ -1249,4 +1392,7 @@ export class CombatVfxLab {
 }
 
 const root = document.querySelector('#vfx-lab');
-if (root) window.combatVfxLab = new CombatVfxLab(root);
+if (root) {
+    mountSharedCombatPreview(root);
+    window.combatVfxLab = new CombatVfxLab(root);
+}

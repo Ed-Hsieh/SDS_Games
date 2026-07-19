@@ -33,7 +33,7 @@ const ZoneTypeToPoolKey = {
     boss: 'death_wastes'
 };
 
-const MATERIAL_DROP_CHANCE_MULTIPLIER = 0.38;
+const WORLD_POOL_DROP_CHANCE_MULTIPLIER = 0.38;
 const MATERIAL_POOL_DEFAULT_CHANCE = 0.32;
 
 function resolveZonePoolKey(zoneIdOrType) {
@@ -146,9 +146,9 @@ export function generateDropsFromSources(sources = [], options = {}) {
     // 1) Handle monster_unique and monster_equip: each entry is an independent chance roll
     for (const src of sources) {
         if (src.type === DropSourceType.MonsterUnique || src.type === DropSourceType.MonsterEquipment) {
-            const sourceChanceMultiplier = src.type === DropSourceType.MonsterEquipment
-                ? chanceMultiplier
-                : chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER;
+            // Monster drop tables already contain their final authored chances.
+            // Only ambient world pools need the additional scarcity multiplier.
+            const sourceChanceMultiplier = chanceMultiplier;
             for (const e of src.entries) {
                 const roll = rng();
                 if (roll <= resolveScaledChance(e.chance, sourceChanceMultiplier)) {
@@ -170,7 +170,7 @@ export function generateDropsFromSources(sources = [], options = {}) {
         if (zoneSource && dungeonSource) {
             const denom = zoneWeight + dungeonWeight;
             const pickDungeonProb = dungeonWeight / denom;
-            const poolChanceMultiplier = chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER;
+            const poolChanceMultiplier = chanceMultiplier * WORLD_POOL_DROP_CHANCE_MULTIPLIER;
             if (rng() <= pickDungeonProb) {
                 const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, poolChanceMultiplier, MATERIAL_POOL_DEFAULT_CHANCE);
                 if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
@@ -179,10 +179,10 @@ export function generateDropsFromSources(sources = [], options = {}) {
                 if (r) drops.push({ ...r, source: DropSourceType.Zone });
             }
         } else if (dungeonSource) {
-            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
+            const r = rollFromEntries(dungeonSource.entries, dungeonSource.defaultQuantity, rng, chanceMultiplier * WORLD_POOL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
             if (r) drops.push({ ...r, source: DropSourceType.Dungeon });
         } else if (zoneSource) {
-            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier * MATERIAL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
+            const r = rollFromEntries(zoneSource.entries, zoneSource.defaultQuantity, rng, chanceMultiplier * WORLD_POOL_DROP_CHANCE_MULTIPLIER, MATERIAL_POOL_DEFAULT_CHANCE);
             if (r) drops.push({ ...r, source: DropSourceType.Zone });
         }
     }

@@ -8,7 +8,8 @@ import {
     getGeneratedItemImage,
     getGeneratedMonsterImage
 } from '../data/AssetManifest.js';
-import { markItemKnown } from './EncyclopediaManager.js';
+import { markBlueprintKnown, markItemKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
+import { resolveBattleBlueprintUnlocks } from './BlueprintManager.js';
 import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js?v=20260717a';
 
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -35,7 +36,8 @@ function buildWeaponEntry(item, character, monster, slot) {
     const defense = readNumber(monster?.defense ?? monster?.def, 0);
     const damage = Math.max(1, Math.round(attack - defense * (isMain ? 0.42 : 0.36)));
     const speed = item ? getItemSpeed(item) : 0.82;
-    const effect = getWeaponEffect(item, isMain ? 'heavy' : 'dagger');
+    const profile = getWeaponCombatProfile({ equipment: { weapon: item } });
+    const effect = profile?.id || getWeaponEffect(item, isMain ? 'heavy' : 'dagger');
     const icon = item ? getGeneratedItemImage(item) : '';
     const element = String(item?.element || item?.affinity || '').toLowerCase();
 
@@ -44,6 +46,10 @@ function buildWeaponEntry(item, character, monster, slot) {
         name: item?.name || (isMain ? '徒手' : '未裝備'),
         icon,
         effect,
+        profile,
+        element,
+        hasArmor: Boolean(character?.equipment?.armor && String(character.equipment.armor.type || '').toLowerCase() !== 'weapon'),
+        monsterDefense: defense,
         damage,
         cooldown: Math.max(0.32, 1 / speed),
         windup: ['heavy', 'focus'].includes(effect) ? 0.2 : 0.09,
@@ -62,10 +68,11 @@ function buildWeaponEntry(item, character, monster, slot) {
 export function createCombatEncounter(monster, options = {}) {
     if (!monster) return null;
     const character = GameManager.getCharacter();
+    const mainWeapon = character?.equipment?.weapon || null;
     const armorSlot = character?.equipment?.armor;
-    const offhand = String(armorSlot?.type || '').toLowerCase() === 'weapon' ? armorSlot : null;
+    const offhand = mainWeapon && String(armorSlot?.type || '').toLowerCase() === 'weapon' ? armorSlot : null;
     const loadout = {
-        main: buildWeaponEntry(character?.equipment?.weapon, character, monster, 'main'),
+        main: buildWeaponEntry(mainWeapon, character, monster, 'main'),
         offhand: buildWeaponEntry(offhand, character, monster, 'offhand')
     };
     const playerDefense = Math.max(0, readNumber(character?.getTotalDef?.(), character?.baseDef || 0));
@@ -148,20 +155,26 @@ export function settleEncounterVictory(encounter) {
             stored: item ? null : 'missing'
         };
     });
+    const blueprintUnlocks = resolveBattleBlueprintUnlocks({
+        monster,
+        dungeonId: encounter?.context?.dungeonId || null
+    });
+    blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
 
     character.exp += Math.max(0, readNumber(monster.exp, 0));
     character.checkLevelUp?.();
     GameManager.addGold(Math.max(0, readNumber(monster.gold, 0)));
-    if (Number(encounter?.habitat?.chapter) === 1 && !monster.isBoss) {
-        const current = Math.max(0, Number(GameManager.getFlag('story.ch1.fieldVictories')) || 0);
-        GameManager.setFlag('story.ch1.fieldVictories', current + 1);
-    }
     questManager.updateProgress(ObjectiveType.KILL, monster.id, 1);
     GameManager.notify('all');
 
     return {
         exp: Math.max(0, readNumber(monster.exp, 0)),
         gold: Math.max(0, readNumber(monster.gold, 0)),
+        rows: blueprintUnlocks.map(unlock => ({
+            label: unlock.seriesId ? '工藝系列' : '製作藍圖',
+            value: unlock.series?.name || unlock.recipe?.name || unlock.recipeId
+        })),
+        blueprintUnlocks,
         drops
     };
 }

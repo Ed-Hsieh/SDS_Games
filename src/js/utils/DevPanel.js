@@ -370,15 +370,10 @@ class DevPanel {
 
     renderCharacter() {
         const char = GameManager.getCharacter();
-        const fatigue = GameManager.getAdventureFatigueStatus?.({ recover: false });
-        const fatigueText = fatigue
-            ? `${fatigue.current}/${fatigue.max}${fatigue.depleted ? '（虛弱）' : ''}`
-            : '未啟用';
         return `
             <div class="dev-card">
                 <h4>角色狀態</h4>
                 <div class="dev-row"><small>Lv.${char.level}｜EXP ${char.exp}｜HP ${char.hp}/${char.maxHp}｜金幣 ${GameManager.getGold()}</small></div>
-                <div class="dev-row"><small>疲勞 ${fatigueText}</small></div>
                 <div class="dev-row">
                     <input id="dev-level" type="number" min="1" max="99" placeholder="等級" value="${char.level}">
                     <button class="dev-act" type="button" data-dev="set-level">設定等級</button>
@@ -390,10 +385,6 @@ class DevPanel {
                     <button class="dev-act" type="button" data-dev="zero-gold">金幣歸零</button>
                     <input id="dev-exp" type="number" placeholder="經驗" value="500">
                     <button class="dev-act" type="button" data-dev="add-exp">加經驗</button>
-                </div>
-                <div class="dev-row">
-                    <button class="dev-act" type="button" data-dev="fatigue-full">補滿疲勞</button>
-                    <button class="dev-act" type="button" data-dev="fatigue-empty">耗盡疲勞</button>
                 </div>
             </div>
         `;
@@ -905,16 +896,6 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'run-combat-validation': () => this.runCombatValidation('configured'),
             'open-vfx-lab': () => window.open('combat-vfx-lab.html', '_blank', 'noopener,noreferrer'),
             'dialogue-preview': () => this.previewDialogue(data.mode),
-            'fatigue-full': () => {
-                const status = GameManager.getAdventureFatigueStatus?.({ recover: false });
-                GameManager.restoreAdventureFatigue?.(status?.max || 9999);
-                this.refresh('疲勞已補滿');
-            },
-            'fatigue-empty': () => {
-                const status = GameManager.getAdventureFatigueStatus?.({ recover: false });
-                GameManager.consumeAdventureFatigue?.(status?.max || 9999);
-                this.refresh('疲勞已耗盡，虛弱狀態已套用');
-            },
             'grant-set': () => {
                 GameManager.grantSetEquipmentForTesting([data.setId], data.setId);
                 this.refresh(`已給予並裝備套裝 ${data.setId}`);

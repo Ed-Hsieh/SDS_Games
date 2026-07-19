@@ -2,7 +2,7 @@
  * LobbyScene.js
  * Logic for the Lobby scene (Hall).
  */
-import GameManager from '../managers/GameManager.js';
+import GameManager, { MIA_EMERGENCY_POTION_LIMIT } from '../managers/GameManager.js';
 import { getSellPrice } from '../models/ItemSchema.js';
 import { buildItemModalOptions, escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip, detachItemTooltip } from '../utils/ItemTooltip.js';
@@ -12,6 +12,7 @@ import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
 import { dialogueManager } from '../managers/DialogueManager.js?v=chapter1-art-20260713a';
+import { storySceneManager } from '../managers/StorySceneManager.js?v=codex-runtime-20260719c';
 import {
     PROLOGUE_TUTORIAL_RESOLVED_FLAG,
     PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG
@@ -31,6 +32,7 @@ import {
 import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { resetSavedOverworldPlayerToEntry } from '../utils/WorldMap.js';
+import { ChapterOneProgressFlag } from '../data/ChapterOneProgression.js?v=codex-runtime-20260719f';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -71,8 +73,6 @@ export default class LobbyScene {
         this.selectedItemSource = null; // 'warehouse' or 'inventory'
         this.selectedPassiveSlot = 0;
         this.activeTownPlaceId = null;
-        this.fatigueTimer = null;
-
         this.narrativeLines = [];
         this.lastNarrativeAt = 0;
         this.lastNarrativeTone = null;
@@ -92,8 +92,6 @@ export default class LobbyScene {
 
             this.restoreTownPlaceReturn();
             this.initializeTownNarrative();
-            this.startFatigueRecoveryLoop();
-
             // Force initial UI update with current state
             this.updateUI(GameManager.state, 'all');
             this.openInitialStoryFlow();
@@ -155,8 +153,6 @@ export default class LobbyScene {
             hpText: this.container.querySelector('#hp-text'),
             expBar: this.container.querySelector('#exp-bar'),
             expText: this.container.querySelector('#exp-text'),
-            fatigueBar: this.container.querySelector('#fatigue-bar'),
-            fatigueText: this.container.querySelector('#fatigue-text'),
             // Inventory and warehouse
             warehouseList: this.container.querySelector('#warehouse-list'),
             warehouseCount: this.container.querySelector('#warehouse-count'),
@@ -355,7 +351,9 @@ export default class LobbyScene {
             if (isEquipment) {
                 if (item.type === 'weapon') {
                     buttons.push(this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon')));
-                    buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                    if (GameManager.getCharacter()?.equipment?.weapon) {
+                        buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                    }
                 } else {
                     buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
                 }
@@ -370,7 +368,9 @@ export default class LobbyScene {
             if (isEquipment) {
                 if (item.type === 'weapon') {
                     buttons.push(this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon')));
-                    buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                    if (GameManager.getCharacter()?.equipment?.weapon) {
+                        buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                    }
                 } else {
                     buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
                 }
@@ -450,14 +450,6 @@ export default class LobbyScene {
             }
         }
 
-        if (type === 'all' || type === 'character' || type === 'fatigue') {
-            const fatigue = GameManager.getAdventureFatigueStatus?.();
-            if (fatigue && this.dom.fatigueBar && this.dom.fatigueText) {
-                this.dom.fatigueBar.style.width = `${Math.max(0, Math.min(100, fatigue.percent))}%`;
-                this.dom.fatigueText.textContent = `疲勞：${fatigue.current} / ${fatigue.max}`;
-            }
-        }
-        
         if (type === 'all' || type === 'gold') {
             if (this.dom.characterGold) {
                 this.dom.characterGold.textContent = state.character.gold || 0;
@@ -612,13 +604,28 @@ export default class LobbyScene {
         if (!npcId) return;
 
         const directive = storyGuidanceManager.getCurrent();
-        if (directive?.stageClass === 'town_scene' && directive.actorId === npcId) {
+        if (directive?.actorId === npcId) {
+            if (npcId === 'standard_bearer_frey'
+                && directive.sceneId === 'ch1_s06_three_landmarks'
+                && GameManager.getFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING)
+                && !GameManager.getFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)) {
+                await this.playChapterOneFirstReturnReport();
+                this.renderWorldStage();
+                return;
+            }
+            if (npcId === 'herbalist'
+                && directive.sceneId === 'ch1_s06_three_landmarks'
+                && !GameManager.getFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)) {
+                await this.playChapterOneMiaRecovery();
+                this.renderWorldStage();
+                return;
+            }
             this.openStoryScene(directive.sceneId);
             this.renderWorldStage();
             return;
         }
 
-        if (npcId === 'herbalist' && GameManager.getEmergencyPotionCount() === 0) {
+        if (npcId === 'herbalist' && GameManager.getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT) {
             await this.playMiaEmergencyPotionSupport();
             this.renderWorldStage();
             return;
@@ -662,6 +669,16 @@ export default class LobbyScene {
     }
 
     openInitialStoryFlow() {
+        if (GameManager.getFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING)
+            && !GameManager.getFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)
+            && !GameManager.getFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)) {
+            window.setTimeout(() => {
+                if (storyDialogueController.isOpen()) return;
+                this.playChapterOneFirstReturnReport();
+            }, 120);
+            return;
+        }
+
         const sceneId = dialogueManager.getNextStorySceneId();
         if (sceneId === 'ch1_s01_road_collapse') {
             window.setTimeout(() => {
@@ -759,8 +776,70 @@ export default class LobbyScene {
         return presentation;
     }
 
+    async playChapterOneFirstReturnReport() {
+        const presentation = storySceneManager.buildCheckpointPresentation(
+            'ch1_s06_three_landmarks',
+            'south_gate_farmland_report'
+        );
+        if (!presentation?.success) return false;
+
+        this.enterTownPlace('gate');
+        const result = await storyDialogueController.play(presentation, {
+            closable: false,
+            backgroundImage: this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: this.getTownDialogueScopeElement()
+        });
+        if (result.status !== 'complete') return false;
+
+        GameManager.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, false);
+        GameManager.setFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE, true);
+        this.pushTownNarrative(
+            '第一份道路紀錄',
+            '田埂證據已交回。芙蕾要你先去米婭的工作間接受檢查，再前往獵人棧道。',
+            'discovery'
+        );
+        this.renderWorldStage();
+        GameManager.markSaveDirty?.('chapter-one-first-report');
+        return true;
+    }
+
+    async playChapterOneMiaRecovery() {
+        const presentation = storySceneManager.buildCheckpointPresentation(
+            'ch1_s06_three_landmarks',
+            'south_gate_farmland_recovery'
+        );
+        if (!presentation?.success) return false;
+
+        this.enterTownPlace('mia_workroom');
+        const result = await storyDialogueController.play(presentation, {
+            closable: false,
+            backgroundImage: this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: this.getTownDialogueScopeElement()
+        });
+        if (result.status !== 'complete') return false;
+
+        GameManager.setFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN, true);
+        const supply = GameManager.refillMiaEmergencyPotions();
+        const supplyText = supply.refilled
+            ? '米婭也把不足的應急藥補回三瓶。'
+            : supply.current > 0
+                ? `行囊裡仍有 ${supply.current} 瓶應急藥，不需要補充。`
+                : '行囊目前沒有空位，這不影響傷勢檢查與主線推進。';
+        this.pushTownNarrative(
+            '米婭的檢查',
+            `米婭確認舊傷沒有惡化，可以繼續巡路。${supplyText}`,
+            'discovery'
+        );
+        GameManager.markSaveDirty?.('chapter-one-mia-recovery');
+        this.renderWorldStage();
+        return true;
+    }
+
     async playMiaEmergencyPotionSupport({ initial = false } = {}) {
         const supply = GameManager.refillMiaEmergencyPotions();
+        if (!supply.refilled && supply.current >= supply.limit) return supply;
         const npc = getTownNPC('herbalist');
         const actor = this.enrichDialogueActor({
             ...getStoryActor('herbalist', { isFlagSet: flag => GameManager.getFlag(flag) }),
@@ -777,8 +856,8 @@ export default class LobbyScene {
             expressionLayer: getStoryExpressionLayer('herbalist', expression),
             text: supply.refilled
                 ? (initial
-                    ? '這三瓶應急藥先帶著。全部用完就回來找我，我會再替你補回三瓶。'
-                    : '都用完了？把空瓶給我。我替你補回三瓶；下次用完，再回來。')
+                    ? '這三瓶應急藥先帶著。只要少於三瓶就回來找我，我會替你補足。'
+                    : `只剩 ${Math.max(0, supply.limit - supply.added)} 瓶了？空瓶給我。我替你補回三瓶；下次不夠，再回來。`)
                 : '先在行囊裡留一個位置。我會替你補回三瓶應急藥。'
         };
 
@@ -797,7 +876,7 @@ export default class LobbyScene {
         if (supply.refilled) {
             this.pushTownNarrative(
                 '米婭的應急藥',
-                '應急藥已補回三瓶。全部用完後，可再次找米婭補回三瓶。',
+                '應急藥已補足三瓶。少於三瓶時，可再次找米婭補足。',
                 'discovery'
             );
         }
@@ -902,9 +981,12 @@ export default class LobbyScene {
         }
 
         if (this.narrativeLines.length === 0) {
+            const returnText = shouldResetForAdventureReturn
+                ? `傷口重新包紮，生命已恢復。${this.getReturnNarrative()}`
+                : this.getReturnNarrative();
             this.pushTownNarrative(
                 shouldResetForAdventureReturn ? '返城' : '抵達',
-                this.getReturnNarrative(),
+                returnText,
                 'ambient'
             );
         } else {
@@ -1469,21 +1551,6 @@ export default class LobbyScene {
         this.renderWorldStage();
     }
 
-    startFatigueRecoveryLoop() {
-        if (this.fatigueTimer) {
-            clearInterval(this.fatigueTimer);
-            this.fatigueTimer = null;
-        }
-
-        GameManager.resetAdventureFatigueRecoveryClock?.();
-        this.fatigueTimer = setInterval(() => {
-            const result = GameManager.recoverAdventureFatigue?.();
-            if (result?.recovered > 0) {
-                this.updateUI(GameManager.state, 'fatigue');
-            }
-        }, 1000);
-    }
-
     cleanup() {
         // Unsubscribe from GameManager
         GameManager.unsubscribe(this.updateUI);
@@ -1491,10 +1558,6 @@ export default class LobbyScene {
         if (this._invUpdateRAF) {
             cancelAnimationFrame(this._invUpdateRAF);
             this._invUpdateRAF = null;
-        }
-        if (this.fatigueTimer) {
-            clearInterval(this.fatigueTimer);
-            this.fatigueTimer = null;
         }
         document.removeEventListener('keydown', this.handlePassiveEffectKeydown);
     }

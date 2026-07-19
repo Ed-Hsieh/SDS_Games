@@ -810,6 +810,182 @@ export const StorySceneRegistry = Object.freeze({
         "inputsRaw": "South Gate departure; traveler handbook",
         "outputsRaw": "farmland footprint, hunter-boardwalk silver thread, and old-campfire black-root entries; return-route trigger",
         "assetNotes": "each discovered location needs a full scene image later; no image or name appears before contact",
+        "checkpoints": {
+            "south_gate_farmland": {
+                "id": "south_gate_farmland",
+                "title": "獸爪先改了方向",
+                "beats": [
+                    {
+                        "order": 1,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "史萊姆退進水溝後，泥面終於沒有新的痕跡覆上來。牠留下的凝膠黏住一塊廢農具鐵片，我把兩樣東西一起收進袋裡。"
+                    },
+                    {
+                        "order": 2,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "靴印仍直向棧道，獸爪卻在碰到黑根前突然轉開。沒有追逐、拖行或搏鬥。人不是在這裡被襲擊，野獸也不是主動往城鎮聚集。"
+                    },
+                    {
+                        "order": 3,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "手札追加：材料先保留。鐵匠鋪現在沒有火，但這些東西不只是能賣掉的殘渣。"
+                    }
+                ]
+            },
+            "south_gate_farmland_report": {
+                "id": "south_gate_farmland_report",
+                "title": "第一頁先回到城裡",
+                "beats": [
+                    {
+                        "order": 1,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "南門在身後闔上時，芙蕾先看見我靴邊的泥，再看見手札上分開的兩種足跡。"
+                    },
+                    {
+                        "order": 2,
+                        "condition": "any",
+                        "beat": "speaker",
+                        "actorId": "standard_bearer_frey",
+                        "expression": "neutral",
+                        "text": "巡路人的靴印還往棧道走，獸爪卻先轉開了。那裡沒有搏鬥？"
+                    },
+                    {
+                        "order": 3,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "我搖頭，把沒有拖痕、血跡與追逐痕跡的那一行指給她看。"
+                    },
+                    {
+                        "order": 4,
+                        "condition": "any",
+                        "beat": "speaker",
+                        "actorId": "standard_bearer_frey",
+                        "expression": "resolute",
+                        "text": "那人不是在田埂失蹤的。下一段是棧道，但今天先別急著折回去。"
+                    },
+                    {
+                        "order": 5,
+                        "condition": "any",
+                        "beat": "exit",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "芙蕾把手札留在門房桌上，沒有放我立刻出城。她朝米婭的工作間偏了偏頭：先讓她看過，再談下一段路。"
+                    }
+                ]
+            },
+            "south_gate_farmland_recovery": {
+                "id": "south_gate_farmland_recovery",
+                "title": "能走不等於不必檢查",
+                "beats": [
+                    {
+                        "order": 1,
+                        "condition": "any",
+                        "beat": "speaker",
+                        "actorId": "herbalist",
+                        "expression": "guarded",
+                        "text": "我知道你現在站得住。檢查不是等人倒下才做。左手給我。"
+                    },
+                    {
+                        "order": 2,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "米婭依序看過瞳孔、指尖反應與舊傷附近的溫度。她問的是路上曾經出現的麻木與顫抖，不是我此刻還剩多少力氣。"
+                    },
+                    {
+                        "order": 3,
+                        "condition": "any",
+                        "beat": "speaker",
+                        "actorId": "herbalist",
+                        "expression": "soft",
+                        "text": "沒有惡化，可以繼續巡路。下一次若同一隻手先麻，別等傷口裂開才回來。"
+                    },
+                    {
+                        "order": 4,
+                        "condition": "any",
+                        "beat": "exit",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "她放開我的手腕，才看了一眼行囊裡的應急藥。傷勢檢查與補給是兩件事。"
+                    }
+                ]
+            },
+            "hunter_boardwalk": {
+                "id": "hunter_boardwalk",
+                "title": "回程標記被重新打過",
+                "beats": [
+                    {
+                        "order": 1,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "巨鼠從棧板下逃開。我沒有順著牠追，而是從回城方向逐節檢查護欄。銀線原本用來標記回程，其中一段卻被拆下，繃在旅人膝後的高度。"
+                    },
+                    {
+                        "order": 2,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "樹脂、落腳點和反覆磨亮的木面都指向同一件事：有捕食者在觀察人怎麼使用這條路，並把人留下的標記改成陷阱。"
+                    },
+                    {
+                        "order": 3,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "這能解釋棧道上的伏擊，卻解釋不了田埂的獸群為何一起避開黑根。"
+                    }
+                ]
+            },
+            "old_campfire_site": {
+                "id": "old_campfire_site",
+                "title": "冷灰下面仍有溫度",
+                "beats": [
+                    {
+                        "order": 1,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "野狼退到林緣後仍不肯靠近火坑。我握住武器的手已被震得發麻，舊護具也多了一道被黑根汁蝕出的裂痕。"
+                    },
+                    {
+                        "order": 2,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "表層灰燼濕冷，灰層下的黑根卻仍微溫。煙漬留在石塊下方，不在火堆上方；根系正一下一下向北收縮。"
+                    },
+                    {
+                        "order": 3,
+                        "condition": "any",
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "聰明的捕食者可以利用道路，卻不能讓熄滅多時的地下根脈保持溫度。先前那個合理答案，到這裡已經不夠用了。"
+                    }
+                ]
+            }
+        },
         "beats": [
             {
                 "order": 1,
@@ -948,11 +1124,11 @@ export const StorySceneRegistry = Object.freeze({
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "village elder, town scholar, blacksmith",
-        "entry": "protagonist reports the three records and Ambush Mantis evidence before taking damaged gear to the forge",
-        "exit": "forge actions open and the evidence-backed forest route becomes the next objective",
-        "objective": "report the evidence, restore damaged equipment, and decide whether the shared residue justifies entering the forest",
-        "inputsRaw": "Ambush Mantis cleared; protagonist equipment damaged",
-        "outputsRaw": "three clues synthesized; forest investigation chosen; basic repair and starter crafting opened; blacksmith relationship seed",
+        "entry": "protagonist reports the three records and Ambush Mantis evidence before bringing the empty weapon strap, worn gear, and any recovered drop to the forge",
+        "exit": "forge actions open; the next objective requires one Qingning form or an equipped Chapter 1 special drop before entering Rotroot",
+        "objective": "turn the recovered evidence and materials into one usable equipment improvement before entering the forest",
+        "inputsRaw": "Ambush Mantis cleared; early equipment pressure recorded; protagonist may be unarmed or carrying a random special drop",
+        "outputsRaw": "three clues synthesized; bellows repaired with recovered silver thread; five-form Qingning starter crafting opened; one-equipment preparation gate; blacksmith relationship seed",
         "assetNotes": "reuse forge background with cold/relit state treatment; no apprentice asset or new NPC",
         "beats": [
             {
@@ -1009,7 +1185,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。"
+                "text": "Blacksmith 從風箱後抬頭，先看空著的武器扣帶與磨損護具；若有拾得裝備，他只用指節敲了一下受力處，最後才看主角的包紮。"
             },
             {
                 "order": 8,
@@ -1017,7 +1193,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "guarded",
-                "text": "站都站不穩，還帶著這東西亂跑。拿來。"
+                "text": "手給我看。再把你現在靠著活下來的東西放桌上；什麼都沒撿到，就把那條空扣帶放下。"
             },
             {
                 "order": 9,
@@ -1049,7 +1225,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "pleased",
-                "text": "行，火回來了。把那把刀放下，刃口比村口那條路還歪。"
+                "text": "行，火回來了。別再拿歪鐵片、空扣帶，或剛撿到卻不合手的東西當作準備。"
             },
             {
                 "order": 13,
@@ -1062,21 +1238,37 @@ export const StorySceneRegistry = Object.freeze({
             {
                 "order": 14,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "blacksmith",
-                "expression": "resolute",
-                "text": "基本修補我能做。要做更好的，得先有材料和圖紙。現在庫房還是空的。"
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "他沒有先碰我的武器。漏水的鍋、脫落的門鉸與歪掉的車輪先排到火邊；直到居民用品能重新使用，他才把三份史萊姆凝膠與兩塊粗鐵碎片攤在工作臺上。"
             },
             {
                 "order": 15,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "他把修好的裝備推回來，手指停在那塊染血的護面上。"
+                "beat": "speaker",
+                "actorId": "blacksmith",
+                "expression": "resolute",
+                "text": "這些剛好只夠做一件。短劍、匕首、重槌、短槍、枝杖，五種都能用同一批材料；選你會用的，別因為我先畫了劍就把手也換掉。"
             },
             {
                 "order": 16,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "我在五種輪廓間選定慣用的形式。若先前已撿到更合手的武器，也不必為了新圖紙丟下它；真正重要的是帶著能信任的東西走進林子。"
+            },
+            {
+                "order": 17,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "他把還能使用的扣帶與護具推回來，手指停在那塊染血的護面上。"
+            },
+            {
+                "order": 18,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "blacksmith",
@@ -1084,12 +1276,12 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "下次把人帶回來。裝備怎樣都行。"
             },
             {
-                "order": 17,
+                "order": 19,
                 "condition": "any",
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "Basic forge actions unlock; protagonist returns to crossroads with forest route objective."
+                "text": "Open the forge with all five Qingning forms. Keep the Rotroot route blocked until the player crafts one form or equips an approved Chapter 1 special drop."
             }
         ]
     },
@@ -1107,8 +1299,8 @@ export const StorySceneRegistry = Object.freeze({
         "entry": "handbook aligns Ambush Mantis resin with black-root traces",
         "exit": "player reaches the ancient root-heart threshold",
         "objective": "follow the shared residue without treating every forest creature as the source",
-        "inputsRaw": "silver-thread evidence recorded; basic forge available",
-        "outputsRaw": "Forest Guardian convergence opened; northbound pressure recorded",
+        "inputsRaw": "silver-thread evidence recorded; basic forge available; qualifying equipment prepared; two Rotroot combat trials cleared",
+        "outputsRaw": "Forest Guardian convergence opened; northbound pressure recorded; optional elite and extra-material routes remain player-chosen",
         "assetNotes": "regional route and root-heart threshold backgrounds required later",
         "beats": [
             {

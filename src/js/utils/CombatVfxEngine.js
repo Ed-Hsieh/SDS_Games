@@ -348,6 +348,27 @@ export default class CombatVfxEngine {
         });
     }
 
+    unarmedStrike() {
+        const point = { x: this.enemyPoint.x, y: this.enemyPoint.y + this.height * 0.025 };
+        this.addEffect('impact-flare', {
+            point,
+            duration: 240,
+            radius: Math.min(this.width, this.height) * 0.038,
+            color: '#8d8578',
+            core: '#e8dfcf'
+        });
+        this.emitBurst(point, {
+            count: 12,
+            speedMin: 40,
+            speedMax: 125,
+            lifeMax: 0.38,
+            colors: ['#d8cdbc', '#8d8171', '#f0e7da'],
+            sizeMax: 2.8,
+            glow: 2,
+            blend: 'source-over'
+        });
+    }
+
     lanceThrust({ fromRight = false } = {}) {
         const end = this.enemyPoint;
         const start = {

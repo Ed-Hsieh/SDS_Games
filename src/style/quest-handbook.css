@@ -99,14 +99,12 @@
 }
 
 .quest-dialogue-box,
-.detail-header,
 .reward-item,
 .objective-item {
     min-width: 0;
 }
 
 .dialogue-bubble,
-.quest-title-group,
 .objective-text {
     min-width: 0;
 }
@@ -355,9 +353,23 @@
     background: rgba(3, 6, 8, 0.24);
 }
 
-.scene-quest .detail-header {
+.quest-board-container .detail-header {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
     padding: 0 0 14px;
     border-bottom: 1px solid rgba(223, 190, 121, 0.16);
+}
+
+.quest-board-container .quest-title-group {
+    min-width: 0;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
 }
 
 .scene-quest .quest-icon,
@@ -371,10 +383,22 @@
         rgba(3, 6, 8, 0.46);
 }
 
-.scene-quest .quest-type-badge {
+.quest-board-container .quest-type-badge {
+    width: fit-content;
+    max-width: 100%;
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    align-self: flex-start;
+    padding: 3px 9px;
+    border: 1px solid rgba(233, 189, 101, 0.3) !important;
+    border-radius: 999px !important;
     border-color: rgba(233, 189, 101, 0.3) !important;
     background: rgba(49, 31, 18, 0.42) !important;
     color: rgba(233, 189, 101, 0.96) !important;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.25;
 }
 
 .scene-quest .quest-dialogue-box,
@@ -670,7 +694,6 @@
 }
 
 .quest-list-header,
-.detail-header,
 .quest-dialogue-box,
 .quest-list-item,
 .objective-item,
@@ -705,14 +728,12 @@
 }
 
 .quest-item-info,
-.quest-title-group,
 .dialogue-bubble,
 .objective-text {
     min-width: 0;
 }
 
 .quest-item-info,
-.quest-title-group,
 .dialogue-bubble,
 .objective-text {
     flex: 1 1 auto;
@@ -738,7 +759,6 @@
     display: none !important;
 }
 
-.detail-header,
 .quest-dialogue-box,
 .objective-item,
 .reward-item,
@@ -986,8 +1006,7 @@
     border-right: 1px solid rgba(223, 190, 121, 0.18) !important;
 }
 
-.quest-board-container .quest-list-header,
-.quest-board-container .detail-header {
+.quest-board-container .quest-list-header {
     border-bottom: 1px solid rgba(223, 190, 121, 0.16) !important;
 }
 
@@ -1069,7 +1088,6 @@
     object-fit: cover !important;
 }
 
-.quest-board-container .quest-type-badge,
 .quest-board-container .quest-item-meta span,
 .quest-board-container .handbook-tag {
     border: 1px solid rgba(223, 190, 121, 0.16) !important;
@@ -1115,6 +1133,157 @@
 .quest-board-container .quest-footer .summary-item {
     flex: 0 0 auto;
     white-space: nowrap;
+}
+
+/* Keep authored clue content readable instead of stretching across FHD. */
+.quest-board-container .quest-detail-panel {
+    padding: clamp(14px, 1.35vw, 24px) !important;
+}
+
+.quest-board-container .detail-content {
+    width: min(100%, 1120px);
+    min-width: 0;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.quest-board-container .detail-content > *,
+.quest-board-container .quest-detail-summary,
+.quest-board-container .quest-note-current,
+.quest-board-container .quest-note-next,
+.quest-board-container .quest-note-next-copy {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.quest-board-container .quest-detail-summary {
+    display: grid;
+    gap: 10px;
+}
+
+.quest-board-container .quest-note-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.quest-board-container .quest-note-meta > span,
+.quest-board-container .quest-note-cues > span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.quest-board-container .quest-note-meta > span {
+    display: grid;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid rgba(223, 190, 121, 0.13);
+    border-radius: 5px;
+    background: rgba(3, 6, 8, 0.34);
+}
+
+.quest-board-container .quest-note-meta b {
+    color: rgba(233, 189, 101, 0.76);
+    font-size: 10px;
+}
+
+.quest-board-container .quest-note-cues {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.quest-board-container .quest-note-cues > span {
+    padding: 5px 8px;
+    border: 1px solid rgba(223, 190, 121, 0.13);
+    border-radius: 999px;
+    color: rgba(255, 247, 230, 0.7);
+    font-size: 11px;
+}
+
+.quest-board-container .quest-note-current,
+.quest-board-container .quest-note-next {
+    padding: 13px 14px;
+}
+
+.quest-board-container .quest-note-current p,
+.quest-board-container .quest-note-next p {
+    margin: 8px 0 0;
+    overflow-wrap: anywhere;
+    color: rgba(255, 247, 230, 0.76);
+    line-height: 1.65;
+}
+
+.quest-board-container .quest-note-speaker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.quest-board-container .quest-note-speaker > span:last-child {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+}
+
+.quest-board-container .quest-note-speaker small {
+    color: rgba(255, 247, 230, 0.56);
+}
+
+.quest-board-container .quest-note-next {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 18px;
+}
+
+.quest-board-container .quest-note-next-copy > span {
+    color: rgba(233, 189, 101, 0.72);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.quest-board-container .quest-note-next-copy strong {
+    display: block;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+    color: rgba(255, 247, 230, 0.94);
+}
+
+.quest-board-container .quest-note-progress {
+    min-width: 82px;
+    display: grid;
+    justify-items: end;
+    gap: 2px;
+    padding-left: 16px;
+    border-left: 1px solid rgba(223, 190, 121, 0.15);
+}
+
+.quest-board-container .quest-note-progress strong {
+    color: rgba(233, 189, 101, 0.96);
+}
+
+.quest-board-container .quest-note-progress span {
+    color: rgba(255, 247, 230, 0.52);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.quest-board-container .quest-note-meter {
+    height: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+}
+
+.quest-board-container .quest-note-meter-fill {
+    width: var(--quest-progress, 0%);
+    height: 100%;
+    background: linear-gradient(90deg, #8b7041, #e9bd65);
 }
 
 @media (max-width: 760px) {

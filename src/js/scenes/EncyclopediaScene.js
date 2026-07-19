@@ -12,10 +12,14 @@ import {
     getMonsterEntries,
     isBlueprintKnownInEncyclopedia,
     isBlueprintSeriesKnownInEncyclopedia,
+    isEncyclopediaRevealAll,
     isItemKnown,
     isMonsterKnown,
-    syncOwnedItemKnowledge
-} from '../managers/EncyclopediaManager.js?v=story-ch2-20260712p';
+    setEncyclopediaRevealAll,
+    syncMonsterKnowledge,
+    syncOwnedItemKnowledge,
+    unlockAllEncyclopediaEntries
+} from '../managers/EncyclopediaManager.js?v=codex-runtime-20260719c';
 import {
     CodexCategoryId,
     applyCodexClass,
@@ -33,6 +37,7 @@ import {
 } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
+import { isDevModeEnabled } from '../utils/DevMode.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import {
@@ -152,6 +157,7 @@ export default class EncyclopediaScene {
     init() {
         this.cacheDOM();
         this.bindEvents();
+        syncMonsterKnowledge();
         syncOwnedItemKnowledge();
         GameManager.subscribe(this.updateFromFlags);
         this.render();
@@ -164,6 +170,8 @@ export default class EncyclopediaScene {
     cacheDOM() {
         this.dom = {
             backButton: this.container.querySelector('#btn-codex-back'),
+            revealButton: this.container.querySelector('#btn-codex-toggle-reveal'),
+            unlockAllButton: this.container.querySelector('#btn-codex-unlock-all'),
             tabs: this.container.querySelectorAll('[data-codex-tab]'),
             search: this.container.querySelector('#codex-search'),
             filter: this.container.querySelector('#codex-filter'),
@@ -179,6 +187,17 @@ export default class EncyclopediaScene {
         this.dom.backButton?.addEventListener('click', () => {
             if (typeof this.app?.navigateTo === 'function') this.app.navigateTo('lobby');
             else this.app?.loadScene?.('lobby');
+        });
+
+        this.dom.revealButton?.addEventListener('click', () => {
+            if (!isDevModeEnabled()) return;
+            setEncyclopediaRevealAll(!isEncyclopediaRevealAll());
+        });
+
+        this.dom.unlockAllButton?.addEventListener('click', () => {
+            if (!isDevModeEnabled()) return;
+            unlockAllEncyclopediaEntries();
+            showGlobalToast('百科已更新', '全部百科資訊已解鎖。', 'success');
         });
 
         this.dom.tabs.forEach(tab => {
@@ -313,6 +332,15 @@ export default class EncyclopediaScene {
         this.dom.tabs.forEach(tab => {
             tab.classList.toggle('active', tab.dataset.codexTab === this.activeTab);
         });
+
+        const devMode = isDevModeEnabled();
+        if (this.dom.revealButton) {
+            const revealAll = isEncyclopediaRevealAll();
+            this.dom.revealButton.hidden = !devMode;
+            this.dom.revealButton.classList.toggle('is-active', devMode && revealAll);
+            this.dom.revealButton.textContent = `顯示全部：${revealAll ? '開' : '關'}`;
+        }
+        if (this.dom.unlockAllButton) this.dom.unlockAllButton.hidden = !devMode;
 
         if (this.dom.summary) {
             const knownCount = entries.filter(entry => entry.known).length;

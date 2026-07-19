@@ -1839,16 +1839,6 @@ input {
     width: var(--quest-list-progress, 0%);
 }
 
-.detail-header {
-    margin-bottom: 14px !important;
-}
-
-.detail-content {
-    min-height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
 .quest-detail-summary {
     margin: 0 0 16px;
 }
@@ -2205,12 +2195,6 @@ input {
         padding: 14px !important;
     }
 
-    .detail-header {
-        gap: 10px !important;
-        margin-bottom: 10px !important;
-        padding-bottom: 10px !important;
-    }
-
     .quest-icon {
         width: 46px !important;
         height: 46px !important;
@@ -2468,8 +2452,7 @@ input {
         grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
     }
 
-    .quest-dialogue-box,
-    .detail-header {
+    .quest-dialogue-box {
         flex-direction: column;
         align-items: flex-start;
     }

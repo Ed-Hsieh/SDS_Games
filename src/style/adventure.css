@@ -471,10 +471,17 @@
     color: #f4e8be;
 }
 
+.adventure-tool-button:disabled {
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #69716d;
+    cursor: default;
+    opacity: 0.55;
+}
+
 .adventure-quest-tracker {
     position: absolute;
     z-index: 15;
-    bottom: 22px;
+    top: 92px;
     left: 24px;
     display: grid;
     width: min(340px, 27vw);
@@ -571,6 +578,18 @@
     border-color: #e2bd62;
     box-shadow: 0 0 0 2px rgba(226, 189, 98, 0.18), 0 0 22px rgba(226, 189, 98, 0.24);
     color: #fff0be;
+    animation: adventure-tutorial-breathe 1.45s ease-in-out infinite;
+}
+
+@keyframes adventure-tutorial-breathe {
+    0%, 100% {
+        border-color: rgba(226, 189, 98, 0.62);
+        box-shadow: 0 0 0 1px rgba(226, 189, 98, 0.12), 0 0 10px rgba(226, 189, 98, 0.12);
+    }
+    50% {
+        border-color: #f2cf76;
+        box-shadow: 0 0 0 3px rgba(226, 189, 98, 0.2), 0 0 28px rgba(226, 189, 98, 0.42);
+    }
 }
 
 .adventure-inventory-drawer.is-equip-tutorial [data-inventory-action="equip"][data-slot="weapon"] {

@@ -26,10 +26,13 @@ function itemType(item) {
 function getActionButtons(stack) {
     const type = itemType(stack?.item);
     if (type === 'weapon') {
+        const offhandAction = GameManager.getCharacter()?.equipment?.weapon
+            ? `<button type="button" data-inventory-action="equip" data-slot="armor" data-instance-id="${escapeHtml(stack.instanceId)}">副手</button>`
+            : '';
         return `
             <div class="adventure-inventory-actions">
                 <button type="button" data-inventory-action="equip" data-slot="weapon" data-instance-id="${escapeHtml(stack.instanceId)}">主手</button>
-                <button type="button" data-inventory-action="equip" data-slot="armor" data-instance-id="${escapeHtml(stack.instanceId)}">副手</button>
+                ${offhandAction}
             </div>`;
     }
     if (type === 'armor' || type === 'accessory') {
@@ -82,10 +85,20 @@ export default class AdventurePanelsController {
     }
 
     handleGameState(_state, type) {
-        if (['all', 'inventory', 'equipment', 'flags'].includes(type)) {
+        if (type === 'all') {
+            this.renderAll();
+            return;
+        }
+        if (type === 'inventory') {
             this.renderInventory();
-            this.renderQuests();
-            this.renderQuestTracker();
+            return;
+        }
+        if (type === 'equipment') {
+            this.renderInventory();
+            return;
+        }
+        if (type === 'flags') {
+            this.renderStoryGuidance();
         }
     }
 
@@ -167,6 +180,11 @@ export default class AdventurePanelsController {
         this.renderQuests();
         this.renderQuestTracker();
         this.renderInventory();
+    }
+
+    renderStoryGuidance() {
+        this.renderQuests();
+        this.renderQuestTracker();
     }
 
     renderQuestTracker() {

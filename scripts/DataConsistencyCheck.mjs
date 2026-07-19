@@ -6,7 +6,8 @@ import { RewardItemDatabase } from '../src/js/data/RewardItems.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { RecipeDiscoveryDatabase } from '../src/js/data/RecipeDiscoveries.js';
 import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
-import { getRecipeSeries, getSeriesRecipeIds } from '../src/js/data/RecipeSeries.js';
+import { RecipeSeriesDatabase } from '../src/js/data/RecipeSeries.js';
+import { StorySceneRegistry } from '../src/js/data/StorySceneRegistry.js';
 import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../src/js/data/DropPools.js';
 import { DungeonDatabase, DungeonEntranceConfig } from '../src/js/data/Dungeons.js';
 import { ShopData, SecretShopItems } from '../src/js/data/Items.js';
@@ -327,6 +328,22 @@ const knownRecipeIds = new Set(Object.keys(RecipeDatabase));
 const blueprintDropRecipeIds = new Set();
 const directDropInteractionIds = new Set(['monster_blueprint_drop', 'strong_blueprint_drop']);
 
+const seriesUnlockSceneOwners = new Map();
+for (const series of objectValues(RecipeSeriesDatabase)) {
+    if (!series.unlockSceneId) {
+        push('blueprint-series-scene', `${series.id} has no forge progression scene`);
+        continue;
+    }
+    if (!StorySceneRegistry[series.unlockSceneId]) {
+        push('blueprint-series-scene', `${series.id} references missing scene ${series.unlockSceneId}`);
+    }
+    const previousOwner = seriesUnlockSceneOwners.get(series.unlockSceneId);
+    if (previousOwner) {
+        push('blueprint-series-scene', `${series.id} and ${previousOwner} share ${series.unlockSceneId}`);
+    }
+    seriesUnlockSceneOwners.set(series.unlockSceneId, series.id);
+}
+
 for (const [sourceKey, entries] of objectEntries(BlueprintDropDatabase)) {
     if (!Array.isArray(entries) || entries.length === 0) {
         push('blueprint-drop-source', `${sourceKey} has no drop entries`);
@@ -351,31 +368,21 @@ for (const [sourceKey, entries] of objectEntries(BlueprintDropDatabase)) {
     }
 
     entries.forEach((entry, index) => {
-        const referencedRecipeIds = entry.seriesId
-            ? getSeriesRecipeIds(entry.seriesId)
-            : [entry.recipeId].filter(Boolean);
-
-        if (!entry.recipeId && !entry.seriesId) {
-            push('blueprint-drop-recipe', `${sourceKey}[${index}] has no recipeId or seriesId`);
+        if (entry.seriesId) {
+            push('blueprint-drop-series', `${sourceKey}[${index}] cannot drop a baseline craft series`);
         }
 
-        if (entry.seriesId && !getRecipeSeries(entry.seriesId)) {
-            push('blueprint-drop-series', `${sourceKey}[${index}] references missing series ${entry.seriesId}`);
-        }
-
-        if (entry.seriesId && referencedRecipeIds.length === 0) {
-            push('blueprint-drop-series', `${sourceKey}[${index}] series ${entry.seriesId} has no recipes`);
-        }
-
-        for (const recipeId of referencedRecipeIds) {
-            if (!knownRecipeIds.has(recipeId)) {
-                push('blueprint-drop-recipe', `${sourceKey}[${index}] references missing recipe ${recipeId}`);
+        if (!entry.recipeId) {
+            push('blueprint-drop-recipe', `${sourceKey}[${index}] has no recipeId`);
+        } else {
+            if (!knownRecipeIds.has(entry.recipeId)) {
+                push('blueprint-drop-recipe', `${sourceKey}[${index}] references missing recipe ${entry.recipeId}`);
             }
-            blueprintDropRecipeIds.add(recipeId);
+            blueprintDropRecipeIds.add(entry.recipeId);
         }
 
-        if (!Number.isFinite(entry.chance) || entry.chance <= 0 || entry.chance > 1) {
-            push('blueprint-drop-chance', `${sourceKey}[${index}] has invalid chance ${entry.chance}`);
+        if (Object.hasOwn(entry, 'chance')) {
+            push('blueprint-drop-chance', `${sourceKey}[${index}] must use the source-tier rate instead of a per-entry chance`);
         }
     });
 }

@@ -33,6 +33,7 @@ const check = (condition, message) => {
 const mainBossIds = new Set(Object.values(FirstRunMonsterRosters).map(roster => roster.mandatoryBossId));
 const routeBossIds = new Set(Object.values(FirstRunMonsterRosters).flatMap(roster => roster.optionalBossIds));
 const formalIds = [...new Set(Object.values(FirstRunMonsterRosters).flatMap(roster => roster.monsterIds))];
+const directMonsterDataIds = new Set(FirstRunMonsterRosters[1].monsterIds);
 
 function findItem(itemId) {
     if (!itemId) return null;
@@ -74,6 +75,14 @@ const playerScenarios = Object.freeze({
     7: createPlayer(68, ['crafted_helliron_series_sword', 'demon_lord_armor', 'elder_dragon_fang_badge'])
 });
 
+const chapterOneBaselinePlayers = Object.freeze([
+    'sword',
+    'dagger',
+    'hammer',
+    'spear',
+    'staff'
+].map(form => createPlayer(8, [`crafted_slime_series_${form}`])));
+
 function estimateMatchup(character, monsterId) {
     const monster = MonsterDatabase[monsterId];
     const playerAttack = getTotalAtk(character);
@@ -109,11 +118,17 @@ for (const monsterId of formalIds) {
     const monster = MonsterDatabase[monsterId];
     const balance = FirstRunMonsterCombatBalance[monsterId];
     check(Boolean(monster), `Missing formal monster ${monsterId}`);
-    check(Boolean(balance), `Missing combat balance for ${monsterId}`);
-    if (!monster || !balance) continue;
+    if (directMonsterDataIds.has(monsterId)) {
+        check(!balance, `${monsterId} returned to the load-time combat override table`);
+    } else {
+        check(Boolean(balance), `Missing combat balance for ${monsterId}`);
+    }
+    if (!monster || (!balance && !directMonsterDataIds.has(monsterId))) continue;
     check(monster.level === FirstRunMonsterFixedLevels[monsterId], `${monsterId} lost its fixed level`);
-    for (const key of ['maxHp', 'attack', 'defense', 'attackSpeed', 'exp', 'gold']) {
-        check(monster[key] === balance[key], `${monsterId}.${key} does not match the authoritative balance table`);
+    if (balance) {
+        for (const key of ['maxHp', 'attack', 'defense', 'attackSpeed', 'exp', 'gold']) {
+            check(monster[key] === balance[key], `${monsterId}.${key} does not match the migration balance table`);
+        }
     }
     check(monster.hp === monster.maxHp, `${monsterId} does not start at full health`);
 
@@ -144,6 +159,14 @@ for (const monsterId of ['slime', 'goblin', 'giant_rat', 'wild_wolf']) {
 for (const monsterId of ['poison_spider', 'stone_golem_mini', 'treant', 'ambush_mantis']) {
     const result = estimateMatchup(playerScenarios[1], monsterId);
     check(result.remainingHp > result.playerHp * 0.45, `${monsterId} is too punishing for Chapter 1 preparation gear`);
+}
+
+for (const character of chapterOneBaselinePlayers) {
+    const result = estimateMatchup(character, 'forest_guardian');
+    check(
+        result.remainingHp + 90 > 0,
+        `Chapter 1 baseline ${character.equipment.weapon?.weaponForm || 'weapon'} cannot defeat Forest Guardian with the three-potion support loop`
+    );
 }
 
 const bossRows = [];

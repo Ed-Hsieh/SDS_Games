@@ -16,6 +16,10 @@ import {
 } from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
 import { ItemDatabase } from '../data/UtilityItems.js';
+import {
+    ChapterOneProgressFlag,
+    getChapterOneGearQualification
+} from '../data/ChapterOneProgression.js';
 
 const WOLF_SMOKE_TEST_GRANT_FLAG = 'test.wolfSmokeGranted';
 const WOLF_SMOKE_CODEX_FLAG = 'encyclopedia.item.wolf_smoke';
@@ -68,9 +72,6 @@ export const INVENTORY_UPGRADE_TIERS = [
     }
 ];
 
-export const ADVENTURE_FATIGUE_BASE_MAX = 20;
-export const ADVENTURE_FATIGUE_PER_LEVEL = 10;
-export const ADVENTURE_FATIGUE_REGEN_MS = 1000;
 export const MIA_EMERGENCY_POTION_LIMIT = 3;
 
 class GameManager {
@@ -94,10 +95,6 @@ class GameManager {
             inventory: [], // Array of stacked items: { item: Item, quantity: number }
             inventoryCapacity: 10,
             inventoryUpgradeLevel: 0,
-            adventureFatigue: {
-                current: ADVENTURE_FATIGUE_BASE_MAX,
-                lastRecoveredAt: Date.now()
-            },
             warehouse: [], // Array of stacked items (Unlimited capacity)
             mapState: null,
             ui: {
@@ -564,115 +561,12 @@ class GameManager {
         return this.state.inventory;
     }
 
-    getAdventureFatigueMax() {
-        const level = Math.max(1, Number(this.state.character?.level) || 1);
-        return ADVENTURE_FATIGUE_BASE_MAX + (level - 1) * ADVENTURE_FATIGUE_PER_LEVEL;
-    }
-
-    normalizeAdventureFatigue() {
-        if (!this.state.adventureFatigue || typeof this.state.adventureFatigue !== 'object') {
-            this.state.adventureFatigue = {
-                current: this.getAdventureFatigueMax(),
-                lastRecoveredAt: Date.now()
-            };
-        }
-
-        const max = this.getAdventureFatigueMax();
-        const current = Number(this.state.adventureFatigue.current);
-        this.state.adventureFatigue.current = Math.max(0, Math.min(max, Number.isFinite(current) ? current : max));
-        if (!Number.isFinite(Number(this.state.adventureFatigue.lastRecoveredAt))) {
-            this.state.adventureFatigue.lastRecoveredAt = Date.now();
-        }
-        return this.state.adventureFatigue;
-    }
-
-    recoverAdventureFatigue(now = Date.now()) {
-        const fatigue = this.normalizeAdventureFatigue();
-        const max = this.getAdventureFatigueMax();
-        if (fatigue.current >= max) {
-            fatigue.current = max;
-            fatigue.lastRecoveredAt = now;
-            return { current: fatigue.current, max, recovered: 0 };
-        }
-
-        const elapsed = Math.max(0, now - Number(fatigue.lastRecoveredAt || now));
-        const recovered = Math.floor(elapsed / ADVENTURE_FATIGUE_REGEN_MS);
-        if (recovered <= 0) {
-            return { current: fatigue.current, max, recovered: 0 };
-        }
-
-        fatigue.current = Math.min(max, fatigue.current + recovered);
-        fatigue.lastRecoveredAt = fatigue.current >= max
-            ? now
-            : Number(fatigue.lastRecoveredAt) + recovered * ADVENTURE_FATIGUE_REGEN_MS;
-        this.markSaveDirty('adventure-fatigue-recover');
-        this.notify('fatigue');
-        return { current: fatigue.current, max, recovered };
-    }
-
-    resetAdventureFatigueRecoveryClock(now = Date.now()) {
-        const fatigue = this.normalizeAdventureFatigue();
-        fatigue.lastRecoveredAt = now;
-        this.markSaveDirty('adventure-fatigue-recovery-clock');
-        return this.getAdventureFatigueStatus({ recover: false });
-    }
-
-    getAdventureFatigueStatus(options = {}) {
-        const { recover = true } = options;
-        if (recover) this.recoverAdventureFatigue();
-        const fatigue = this.normalizeAdventureFatigue();
-        const max = this.getAdventureFatigueMax();
-        return {
-            current: fatigue.current,
-            max,
-            percent: max > 0 ? (fatigue.current / max) * 100 : 0,
-            depleted: fatigue.current <= 0
-        };
-    }
-
-    consumeAdventureFatigue(amount = 1) {
-        const cost = Math.max(0, Math.ceil(Number(amount) || 0));
-        if (cost <= 0) return true;
-        const fatigue = this.normalizeAdventureFatigue();
-
-        fatigue.current = Math.max(0, fatigue.current - cost);
-        fatigue.lastRecoveredAt = Date.now();
-        this.markSaveDirty('adventure-fatigue-consume');
-        this.notify('fatigue');
-        return true;
-    }
-
-    restoreAdventureFatigue(amount = 1) {
-        const value = Math.max(0, Math.ceil(Number(amount) || 0));
-        if (value <= 0) return this.getAdventureFatigueStatus();
-        const fatigue = this.normalizeAdventureFatigue();
-        fatigue.current = Math.min(this.getAdventureFatigueMax(), fatigue.current + value);
-        fatigue.lastRecoveredAt = Date.now();
-        this.markSaveDirty('adventure-fatigue-restore');
-        this.notify('fatigue');
-        return this.getAdventureFatigueStatus();
-    }
-
     restoreCharacterAtHome(reason = 'home-rest') {
         const character = this.state.character;
         if (!character) return null;
 
-        if (!Array.isArray(character.debuffs)) character.debuffs = [];
-        character.debuffs = character.debuffs.filter(debuff =>
-            debuff?.id !== 'fatigue_weakness'
-            && debuff?.type !== 'fatigueWeakness'
-            && debuff?.source !== 'adventureFatigue'
-        );
-
         if (Array.isArray(character.statusEffects)) {
             character.statusEffects = character.statusEffects.filter(effect => effect?.positive);
-        }
-
-        const fatigue = this.normalizeAdventureFatigue();
-        const fatigueMax = this.getAdventureFatigueMax();
-        if (fatigue.current <= 0) {
-            fatigue.current = Math.min(fatigueMax, 1);
-            fatigue.lastRecoveredAt = Date.now();
         }
 
         const fullHp = Math.max(1, Number(character.maxHp) || Number(character.calculateMaxHp?.()) || 100);
@@ -684,11 +578,7 @@ class GameManager {
         this.notify('all');
         return {
             hp: character.hp,
-            maxHp: character.maxHp,
-            fatigue: {
-                current: fatigue.current,
-                max: fatigueMax
-            }
+            maxHp: character.maxHp
         };
     }
 
@@ -702,7 +592,9 @@ class GameManager {
 
     refillMiaEmergencyPotions() {
         const current = this.getEmergencyPotionCount();
-        if (current > 0) return { refilled: false, current, limit: MIA_EMERGENCY_POTION_LIMIT };
+        if (current >= MIA_EMERGENCY_POTION_LIMIT) {
+            return { refilled: false, added: 0, current, limit: MIA_EMERGENCY_POTION_LIMIT };
+        }
 
         const potion = new Consumable(
             'health_potion_s',
@@ -714,11 +606,13 @@ class GameManager {
             20,
             { hp: 30 }
         );
-        const refilled = this.addToInventory(potion, MIA_EMERGENCY_POTION_LIMIT);
+        const missing = MIA_EMERGENCY_POTION_LIMIT - current;
+        const refilled = this.addToInventory(potion, missing);
         if (refilled) this.markSaveDirty('mia-emergency-potion-refill');
         return {
             refilled,
-            current: refilled ? MIA_EMERGENCY_POTION_LIMIT : 0,
+            added: refilled ? missing : 0,
+            current: refilled ? MIA_EMERGENCY_POTION_LIMIT : current,
             limit: MIA_EMERGENCY_POTION_LIMIT
         };
     }
@@ -925,7 +819,7 @@ class GameManager {
     }
     
     // Use consumable (decrements quantity)
-    useConsumable(instanceId, fromWarehouse = false) {
+    useConsumable(instanceId, fromWarehouse = false, options = {}) {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
         const stack = source.find(s => s.instanceId === instanceId);
         
@@ -933,22 +827,23 @@ class GameManager {
             return false;
         }
         
-        // Apply effect
-        const char = this.state.character;
-        const effect = stack.item.effect || {};
-        if (effect.hp) {
-            const healingBonus = typeof char.getPassiveCombatBonus === 'function'
-                ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
-                : 0;
-            const healAmount = Math.max(1, Math.floor(effect.hp * (1 + healingBonus)));
-            char.hp = Math.min(char.maxHp, char.hp + healAmount);
-        }
-        if (effect.exp) {
-            char.exp += effect.exp;
-            char.checkLevelUp();
-        }
-        if (stack.item.buff && typeof char.addBuff === 'function') {
-            char.addBuff(stack.item.buff.type, stack.item.buff.value, stack.item.buff.duration);
+        if (options.applyEffect !== false) {
+            const char = this.state.character;
+            const effect = stack.item.effect || {};
+            if (effect.hp) {
+                const healingBonus = typeof char.getPassiveCombatBonus === 'function'
+                    ? Math.max(0, Number(char.getPassiveCombatBonus('healingReceived')) || 0)
+                    : 0;
+                const healAmount = Math.max(1, Math.floor(effect.hp * (1 + healingBonus)));
+                char.hp = Math.min(char.maxHp, char.hp + healAmount);
+            }
+            if (effect.exp) {
+                char.exp += effect.exp;
+                char.checkLevelUp();
+            }
+            if (stack.item.buff && typeof char.addBuff === 'function') {
+                char.addBuff(stack.item.buff.type, stack.item.buff.value, stack.item.buff.duration);
+            }
         }
         
         // Decrement quantity
@@ -960,7 +855,10 @@ class GameManager {
             source.splice(index, 1);
         }
         
-        this.notify('all');
+        this.markSaveDirty('use-consumable');
+        if (options.notifyType !== false) {
+            this.notify(options.notifyType || 'all');
+        }
         return true;
     }
 
@@ -1209,7 +1107,10 @@ class GameManager {
         const itemType = normalizeItemType(item.type);
         if (!slotType) return ['weapon', 'armor', 'accessory'].includes(itemType);
         if (slotType === itemType) return true;
-        return slotType === 'armor' && itemType === 'weapon';
+        if (slotType === 'armor' && itemType === 'weapon') {
+            return Boolean(this.state.character.equipment?.weapon);
+        }
+        return false;
     }
 
     equipItemToSlot(instanceId, slotType = null, fromWarehouse = false) {
@@ -1249,9 +1150,20 @@ class GameManager {
                 instanceId: oldItem.instanceId
             });
         }
-        
+
+        this.recordChapterOneGearPreparation(item);
         this.notify('all');
         return true;
+    }
+
+    recordChapterOneGearPreparation(item) {
+        const qualification = getChapterOneGearQualification(item);
+        if (!qualification) return null;
+        this.state.flags[ChapterOneProgressFlag.GEAR_READY] = true;
+        this.state.flags[ChapterOneProgressFlag.GEAR_READY_SOURCE] = qualification.source;
+        this.state.flags['story.ch1.gear_ready_item'] = qualification.itemId;
+        this.markSaveDirty('chapter-one-gear-ready');
+        return qualification;
     }
 
     consumeContextItem(instanceId, context, action) {
@@ -1353,6 +1265,7 @@ class GameManager {
         }
         
         weapon.durability = Math.max(0, weapon.durability - 1);
+        this.markSaveDirty('weapon-durability');
         
         // 耐久度歸零，裝備消失
         if (weapon.durability <= 0) {

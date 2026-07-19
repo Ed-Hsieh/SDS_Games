@@ -1,9 +1,9 @@
 /**
  * First-run monster combat progression.
  *
- * These are final data values, not encounter-time scaling. Regions choose a
- * species and Monsters.js applies this table once while building the database.
- * This keeps every species at one fixed level and one fixed combat profile.
+ * Migration table for chapters whose combat values have not yet been moved
+ * into Monsters.js. Chapter 1 is canonical in Monsters.js and must not return
+ * to this load-time override table.
  */
 
 export const MONSTER_BALANCE_VERSION = 'first-run-20260719';
@@ -25,16 +25,6 @@ const stats = (maxHp, attack, defense, attackSpeed, exp, gold) => Object.freeze(
 });
 
 export const FirstRunMonsterCombatBalance = Object.freeze({
-    slime: stats(20, 4, 1, 1.00, 20, 5),
-    goblin: stats(30, 6, 2, 1.00, 25, 7),
-    giant_rat: stats(25, 7, 1, 1.20, 35, 8),
-    wild_wolf: stats(35, 9, 2, 1.25, 40, 9),
-    ambush_mantis: stats(100, 15, 3, 1.45, 190, 36),
-    poison_spider: stats(45, 12, 3, 1.15, 70, 13),
-    stone_golem_mini: stats(75, 12, 7, 0.82, 80, 15),
-    treant: stats(140, 16, 8, 0.78, 200, 32),
-    forest_guardian: stats(310, 20, 9, 0.92, 540, 88),
-
     skeleton: stats(75, 16, 5, 1.00, 125, 19),
     cave_bat: stats(60, 17, 4, 1.35, 140, 20),
     skeleton_warrior: stats(95, 20, 7, 1.00, 155, 22),
@@ -105,4 +95,3 @@ export function getLevelExperienceRequirement(level = 1) {
     const fixedLevel = Math.max(1, Math.floor(Number(level) || 1));
     return Math.floor(90 + fixedLevel * 18 + fixedLevel * fixedLevel * 4);
 }
-

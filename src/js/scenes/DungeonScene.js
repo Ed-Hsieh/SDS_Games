@@ -13,7 +13,7 @@ import {
 } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
 import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
-import { rollRecipeBlueprintDrops } from '../managers/BlueprintManager.js';
+import { resolveBattleBlueprintUnlocks } from '../managers/BlueprintManager.js';
 import { markBlueprintKnown, markItemKnown } from '../managers/EncyclopediaManager.js';
 import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { worldStoryManager } from '../managers/WorldStoryManager.js';
@@ -25,8 +25,8 @@ import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import CombatFlowController from '../managers/CombatFlowController.js?v=20260717t';
-import { createCombatEncounter, resolveEncounterDrop } from '../managers/AdventureEncounterManager.js?v=dialogue-flow-20260712w';
+import CombatFlowController from '../managers/CombatFlowController.js?v=codex-runtime-20260719c';
+import { createCombatEncounter, resolveEncounterDrop } from '../managers/AdventureEncounterManager.js?v=codex-runtime-20260719c';
 import { ensureCombatStage } from '../components/CombatStageView.js';
 
 const MATERIAL_TREASURE_CHANCE_MULTIPLIER = 0.58;
@@ -1124,7 +1124,7 @@ class DungeonSceneClass {
         GameManager.addGold(finalGold);
         character.exp += exp;
         character.checkLevelUp();
-        const blueprintUnlocks = rollRecipeBlueprintDrops({
+        const blueprintUnlocks = resolveBattleBlueprintUnlocks({
             monster,
             dungeonId: this.dungeonType
         });
@@ -1139,9 +1139,10 @@ class DungeonSceneClass {
             gold: finalGold,
             exp,
             rows: blueprintUnlocks.map(unlock => ({
-                label: '製作圖',
+                label: unlock.seriesId ? '工藝系列' : '製作藍圖',
                 value: unlock.series?.name || unlock.recipe?.name || unlock.recipeId
-            }))
+            })),
+            blueprintUnlocks
         };
     }
 

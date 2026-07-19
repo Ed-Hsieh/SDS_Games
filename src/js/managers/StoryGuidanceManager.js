@@ -1,12 +1,24 @@
 import { getStoryObjectiveHint } from '../data/StoryObjectiveHints.js';
 import { storySceneManager } from './StorySceneManager.js?v=chapter1-art-20260713a';
+import GameManager from './GameManager.js';
+import {
+    getEquippedChapterOneGearQualification,
+    readChapterOneObjectiveContext
+} from '../data/ChapterOneProgression.js?v=codex-runtime-20260719f';
 
 class StoryGuidanceManager {
     getCurrent(context = {}) {
         const sceneId = storySceneManager.getNextAvailableSceneId();
         if (!sceneId) return null;
 
-        const hint = getStoryObjectiveHint(sceneId, context);
+        const runtimeContext = {
+            ...readChapterOneObjectiveContext(flag => GameManager.getFlag(flag)),
+            chapterOneGearEquipped: Boolean(
+                getEquippedChapterOneGearQualification(GameManager.getCharacter())
+            ),
+            ...context
+        };
+        const hint = getStoryObjectiveHint(sceneId, runtimeContext);
         if (!hint) return null;
 
         const targetType = hint.placeId

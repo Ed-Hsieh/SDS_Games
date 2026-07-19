@@ -2,7 +2,7 @@ import { CharacterManager } from '../models/DataModel.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { cloneData } from '../models/ItemSchema.js';
 
-export const SAVE_SCHEMA_VERSION = 5;
+export const SAVE_SCHEMA_VERSION = 6;
 export const SAVE_FILE_BASENAME = 'sds-save';
 export const LOCAL_SAVE_KEY = 'sds:save';
 export const LOCAL_BACKUP_KEY = 'sds:save:backup';
@@ -139,7 +139,6 @@ export function serializeGameState(state) {
         inventory: (state?.inventory || []).map(serializeStack).filter(Boolean),
         inventoryCapacity: readPositiveNumber(state?.inventoryCapacity, 10),
         inventoryUpgradeLevel: readPositiveNumber(state?.inventoryUpgradeLevel, 0),
-        adventureFatigue: safeClone(state?.adventureFatigue, null),
         warehouse: (state?.warehouse || []).map(serializeStack).filter(Boolean),
         mapState: safeClone(state?.mapState, null),
         flags: {
@@ -157,7 +156,6 @@ export function hydrateGameState(gameData, createInitialState) {
             inventory: [],
             inventoryCapacity: 10,
             inventoryUpgradeLevel: 0,
-            adventureFatigue: { current: 20, lastRecoveredAt: Date.now() },
             warehouse: [],
             mapState: null,
             flags: { secretShopUnlocked: false }
@@ -170,7 +168,6 @@ export function hydrateGameState(gameData, createInitialState) {
         inventory: (data.inventory || []).map(hydrateStack).filter(Boolean),
         inventoryCapacity: readPositiveNumber(data.inventoryCapacity, baseState.inventoryCapacity || 10),
         inventoryUpgradeLevel: readPositiveNumber(data.inventoryUpgradeLevel, baseState.inventoryUpgradeLevel || 0),
-        adventureFatigue: safeClone(data.adventureFatigue, baseState.adventureFatigue || { current: 20, lastRecoveredAt: Date.now() }),
         warehouse: (data.warehouse || []).map(hydrateStack).filter(Boolean),
         mapState: safeClone(data.mapState, null),
         flags: {
@@ -230,6 +227,14 @@ const SaveMigrations = {
         game.adventureFatigue = game.adventureFatigue && typeof game.adventureFatigue === 'object'
             ? game.adventureFatigue
             : { current: 20, lastRecoveredAt: Date.now() };
+        saveData.game = game;
+        return saveData;
+    },
+
+    // v5 -> v6: fatigue was removed from exploration and from the HUD.
+    5(saveData) {
+        const game = saveData.game || {};
+        delete game.adventureFatigue;
         saveData.game = game;
         return saveData;
     }

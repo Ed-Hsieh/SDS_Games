@@ -50,7 +50,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'low',
         encounterRate: 0.07,
         safeSteps: 7,
-        fatigueCost: 1,
         monsterIds: Object.freeze(['slime', 'goblin', 'giant_rat'])
     }),
     Object.freeze({
@@ -62,7 +61,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'low',
         encounterRate: 0.085,
         safeSteps: 6,
-        fatigueCost: 1,
         monsterIds: Object.freeze(['slime', 'goblin', 'wild_wolf', 'giant_rat'])
     }),
     Object.freeze({
@@ -74,7 +72,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'guarded',
         encounterRate: 0.1,
         safeSteps: 5,
-        fatigueCost: 1,
         monsterIds: Object.freeze(['giant_rat', 'goblin', 'wild_wolf'])
     }),
     Object.freeze({
@@ -86,7 +83,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'dangerous',
         encounterRate: 0.12,
         safeSteps: 4,
-        fatigueCost: 2,
         monsterIds: Object.freeze(['wild_wolf', 'poison_spider', 'stone_golem_mini', 'treant'])
     }),
     Object.freeze({
@@ -98,7 +94,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'guarded',
         encounterRate: 0.09,
         safeSteps: 6,
-        fatigueCost: 2,
         monsterIds: Object.freeze(['skeleton', 'skeleton_warrior', 'cave_bat'])
     }),
     Object.freeze({
@@ -110,7 +105,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'guarded',
         encounterRate: 0.1,
         safeSteps: 5,
-        fatigueCost: 2,
         monsterIds: Object.freeze(['ghost', 'cave_bat', 'glimmer_sprite'])
     }),
     Object.freeze({
@@ -122,7 +116,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'dangerous',
         encounterRate: 0.105,
         safeSteps: 5,
-        fatigueCost: 2,
         monsterIds: Object.freeze(['glimmer_sprite', 'ghost', 'rune_wisp'])
     }),
     Object.freeze({
@@ -134,7 +127,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'dangerous',
         encounterRate: 0.125,
         safeSteps: 4,
-        fatigueCost: 2,
         monsterIds: Object.freeze(['skeleton', 'skeleton_warrior', 'ghost', 'rune_wisp'])
     }),
     Object.freeze({
@@ -146,7 +138,6 @@ export const OverworldHabitats = Object.freeze([
         threat: 'severe',
         encounterRate: 0.14,
         safeSteps: 4,
-        fatigueCost: 3,
         monsterIds: Object.freeze(['skeleton_warrior', 'stone_golem', 'rune_wisp'])
     })
 ]);
@@ -206,9 +197,29 @@ export const OverworldLandmarks = Object.freeze([
         x: 35,
         y: 19,
         imageId: 'rotroot_ravine',
-        storyFlag: 'story.ch1.silver_snare_cleared',
+        storyFlag: 'story.ch1.rotroot_active',
         firstText: '發黑樹皮沿著溪谷向北收縮，森林深處的根心正承受不屬於此地的壓力。',
         repeatText: '黑根仍向北收縮，手札已把方向與古樹根心連在一起。'
+    }),
+    landmark({
+        id: 'rotroot_salvage',
+        name: '腐根補給岔路',
+        x: 37,
+        y: 5,
+        imageId: 'rotroot_ravine',
+        storyFlag: 'story.ch1.gear_ready',
+        firstText: '腐根把一只舊補給袋頂出土面，凝膠封住的粗鐵還能回爐。',
+        repeatText: '補給袋已清空；想再製作其他裝備，需要狩獵附近怪物。'
+    }),
+    landmark({
+        id: 'rootwatch_grove',
+        name: '根哨林隙',
+        x: 40,
+        y: 27,
+        imageId: 'rotroot_ravine',
+        storyFlag: 'story.ch1.gear_ready',
+        firstText: '偏離主路的根脈旁，一隻樹人正用纏根封住林隙。',
+        repeatText: '樹人的根痕仍留在林隙，但通道已經安靜。'
     }),
     landmark({
         id: 'old_wolf_den',
@@ -365,11 +376,11 @@ export const OverworldMapConfig = Object.freeze({
         kind: 'town_return',
         id: 'south_gate_entry',
         name: '南門入口',
-        x: 3,
-        y: 17,
+        x: 6,
+        y: 16,
         interactionRadius: 1,
         image: getGeneratedTownPlaceImage('gate'),
-        text: '沿著南門殘階往回走，就能回到城鎮。'
+        text: '沿著南門殘階返回城鎮。'
     }),
     secondRunBossReserves: SecondRunOvercapBossReserves
 });

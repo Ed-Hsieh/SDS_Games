@@ -12,11 +12,13 @@ import {
 } from '../data/RecipeDiscoveries.js';
 import { FirstRunBossCraftUnlocks } from '../data/FirstRunLootBalance.js';
 import {
+    BlueprintDropRate,
     getBlueprintDropsForMonster,
     getBlueprintDropsForRecipe
 } from '../data/BlueprintDrops.js';
 import {
     getRecipeSeries,
+    getRecipeSeriesForUnlockScene,
     getRecipeSeriesForRecipe,
     getSeriesRecipeIds
 } from '../data/RecipeSeries.js';
@@ -25,6 +27,8 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 const BLUEPRINT_FLAG_PREFIX = 'recipeBlueprint.';
 const BLUEPRINT_SERIES_FLAG_PREFIX = 'recipeBlueprintSeries.';
 const defaultKnownRecipes = new Set(DefaultKnownRecipeIds);
+
+export { BlueprintDropRate };
 
 function getMonsterIdFromContext(context = {}) {
     return context.monsterId || context.monster?.id || context.monster?.type || null;
@@ -100,8 +104,23 @@ export function unlockRecipesForInteraction(interactionId) {
     return unlockRecipeBlueprints(getRecipeIdsForInteraction(interactionId));
 }
 
+export function unlockRecipeSeriesForScene(sceneId) {
+    return getRecipeSeriesForUnlockScene(sceneId)
+        .map(series => unlockRecipeSeries(series.id))
+        .filter(unlock => unlock?.newlyUnlocked);
+}
+
 export function unlockBossCraftRecipes(monsterId) {
-    return unlockRecipeBlueprints(FirstRunBossCraftUnlocks[monsterId] || []);
+    return unlockRecipeBlueprints(FirstRunBossCraftUnlocks[monsterId] || [])
+        .filter(unlock => unlock.newlyUnlocked);
+}
+
+export function getBlueprintDropRate(context = {}) {
+    const monster = context.monster || context;
+    const type = String(monster?.type || '').toLowerCase();
+    if (monster?.isBoss || type === 'boss') return BlueprintDropRate.BOSS;
+    if (monster?.isElite || type === 'elite') return BlueprintDropRate.ELITE;
+    return BlueprintDropRate.NORMAL;
 }
 
 export function getRecipeBlueprintInfo(recipeId) {
@@ -122,28 +141,9 @@ export function rollRecipeBlueprintDrops(context = {}, options = {}) {
     const unlocks = [];
 
     for (const entry of dropEntries) {
-        if (entry?.seriesId) {
-            if (isRecipeSeriesKnown(entry.seriesId)) continue;
-
-            const chance = Number(options.rate ?? entry.chance ?? 0);
-            if (chance <= 0) continue;
-            if (rng() > chance) continue;
-
-            const unlock = unlockRecipeSeries(entry.seriesId);
-            if (!unlock?.newlyUnlocked) continue;
-
-            unlocks.push({
-                ...unlock,
-                dropChance: chance,
-                monsterId,
-                dungeonId: context.dungeonId || null
-            });
-            continue;
-        }
-
         if (!entry?.recipeId || isRecipeBlueprintKnown(entry.recipeId)) continue;
 
-        const chance = Number(options.rate ?? entry.chance ?? 0);
+        const chance = Number(options.rate ?? getBlueprintDropRate(context));
         if (chance <= 0) continue;
         if (rng() > chance) continue;
 
@@ -159,6 +159,20 @@ export function rollRecipeBlueprintDrops(context = {}, options = {}) {
     }
 
     return unlocks;
+}
+
+export function resolveBattleBlueprintUnlocks(context = {}, options = {}) {
+    const monsterId = getMonsterIdFromContext(context);
+    const bossUnlocks = unlockBossCraftRecipes(monsterId);
+    const randomUnlocks = rollRecipeBlueprintDrops(context, options);
+    const seen = new Set();
+
+    return [...bossUnlocks, ...randomUnlocks].filter(unlock => {
+        const key = unlock.seriesId ? `series:${unlock.seriesId}` : `recipe:${unlock.recipeId}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
 }
 
 export function rollRecipeBlueprintDrop(context = {}, options = {}) {
@@ -225,11 +239,14 @@ export default {
     unlockRecipeBlueprint,
     unlockRecipeBlueprints,
     unlockRecipeSeries,
+    unlockRecipeSeriesForScene,
     unlockRecipesForInteraction,
     unlockBossCraftRecipes,
+    getBlueprintDropRate,
     getRecipeBlueprintInfo,
     rollRecipeBlueprintDrop,
     rollRecipeBlueprintDrops,
+    resolveBattleBlueprintUnlocks,
     createRecipeBlueprintDisplayItem,
     createRecipeBlueprintDisplayItems
 };

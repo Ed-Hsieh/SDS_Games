@@ -533,11 +533,16 @@ function validateStoryObjectiveHints() {
     }
 
     const survey = getStoryObjectiveHint('ch1_s06_three_landmarks', {
-        discoveredLandmarkIds: ['south_gate_farmland', 'hunter_boardwalk'],
-        chapterOneFieldVictories: 7
+        chapterOneInvestigations: {
+            south_gate_farmland: { victory: true, evidence: true },
+            hunter_boardwalk: { victory: true, evidence: true },
+            old_campfire_site: { victory: false, evidence: false }
+        },
+        chapterOneFirstReportComplete: true,
+        chapterOneHomeRecoveryKnown: true
     });
-    if (!survey?.text.includes('舊營火點')) {
-        error('objective-hint', 'Chapter 1 survey hint does not reflect discovered landmark progress');
+    if (!survey?.text.includes('東南方') || !survey.text.includes('未知地標')) {
+        error('objective-hint', 'Chapter 1 survey hint does not reflect evidence-combat progress');
     }
     if (StorySceneRegistry.ch2_s05_blood_moon_hunt) {
         error('objective-hint', 'Removed Chapter 2 Blood Moon Stag route remains in the scene registry');

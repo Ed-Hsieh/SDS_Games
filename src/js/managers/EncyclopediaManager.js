@@ -39,10 +39,15 @@ import {
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { getRecipeBlueprintFlag, getRecipeSeriesFlag } from './BlueprintManager.js';
 import { storyJournalManager } from './StoryJournalManager.js';
+import {
+    getMonsterEcologyProfile,
+    MonsterCampaignScope
+} from '../data/MonsterEcology.js';
 
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
 const ITEM_FLAG_PREFIX = 'encyclopedia.item.';
 const BLUEPRINT_FLAG_PREFIX = 'encyclopedia.blueprint.';
+let revealAllForDev = false;
 const MonsterRankRarity = {
     normal: 'common',
     elite: 'rare',
@@ -184,7 +189,11 @@ function getMonsterCatalogId(monsterOrId) {
         ? monsterOrId
         : monsterOrId?.id || monsterOrId?.monsterId || monsterOrId?.entryId;
     if (!value) return '';
-    return String(value).replace(/^monster:|^world:|^tower:|^dungeon:[^:]+:/, '');
+    let catalogId = String(value).trim();
+    while (/^(monster:|world:|tower:|dungeon:[^:]+:)/.test(catalogId)) {
+        catalogId = catalogId.replace(/^(monster:|world:|tower:|dungeon:[^:]+:)/, '');
+    }
+    return catalogId;
 }
 
 function getMonsterEntryId(monsterOrId) {
@@ -280,21 +289,57 @@ function collectMonsterBlueprintDrops(monster) {
 
 export function isMonsterKnown(monsterOrId) {
     const monsterId = getMonsterCatalogId(monsterOrId);
-    return Boolean(monsterId && GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`));
+    return revealAllForDev || Boolean(monsterId && GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`));
 }
 
 export function isItemKnown(itemId) {
-    return Boolean(GameManager.getFlag(`${ITEM_FLAG_PREFIX}${itemId}`));
+    return revealAllForDev || Boolean(GameManager.getFlag(`${ITEM_FLAG_PREFIX}${itemId}`));
 }
 
 export function isBlueprintKnownInEncyclopedia(recipeId) {
-    return Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
+    return revealAllForDev
+        || Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`));
 }
 
 export function isBlueprintSeriesKnownInEncyclopedia(seriesId) {
-    return Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
+    return revealAllForDev
+        || Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
         || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${seriesId}`));
+}
+
+export function isEncyclopediaRevealAll() {
+    return revealAllForDev;
+}
+
+export function setEncyclopediaRevealAll(value) {
+    revealAllForDev = Boolean(value);
+    notifyFlags();
+}
+
+export function unlockAllEncyclopediaEntries() {
+    for (const monster of getMonsterEntries()) {
+        const monsterId = getMonsterCatalogId(monster);
+        if (monsterId) setFlagSilently(`${MONSTER_FLAG_PREFIX}${monsterId}`, true);
+        for (const drop of monster.itemDrops || []) {
+            if (drop.id) setFlagSilently(`${ITEM_FLAG_PREFIX}${drop.id}`, true);
+        }
+        for (const drop of monster.blueprintDrops || []) {
+            const id = drop.recipeId || drop.seriesId || drop.id;
+            if (id) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${id}`, true);
+        }
+    }
+
+    for (const item of getItemEntries()) {
+        if (item.id) setFlagSilently(`${ITEM_FLAG_PREFIX}${item.id}`, true);
+    }
+    for (const blueprint of getBlueprintEntries()) {
+        const id = blueprint.recipeId || blueprint.seriesId || blueprint.id;
+        if (id) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${id}`, true);
+    }
+
+    GameManager.markSaveDirty?.('encyclopedia-dev-unlock');
+    notifyFlags();
 }
 
 export function markMonsterKnown(monster) {
@@ -302,20 +347,56 @@ export function markMonsterKnown(monster) {
     if (!monsterId) return false;
     if (GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`)) return false;
     setFlagSilently(`${MONSTER_FLAG_PREFIX}${monsterId}`, true);
+    GameManager.markSaveDirty?.('encyclopedia-monster');
     notifyFlags();
     return true;
 }
 
+export function syncMonsterKnowledge() {
+    const flags = GameManager.state?.flags || {};
+    let changed = false;
+
+    for (const [flag, known] of Object.entries(flags)) {
+        if (!known || !flag.startsWith(MONSTER_FLAG_PREFIX)) continue;
+        const storedId = flag.slice(MONSTER_FLAG_PREFIX.length);
+        const monsterId = getMonsterCatalogId(storedId);
+        if (!monsterId) continue;
+        const canonicalFlag = `${MONSTER_FLAG_PREFIX}${monsterId}`;
+        if (!flags[canonicalFlag]) {
+            setFlagSilently(canonicalFlag, true);
+            changed = true;
+        }
+        if (canonicalFlag !== flag) {
+            delete flags[flag];
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        GameManager.markSaveDirty?.('encyclopedia-monster-migration');
+        notifyFlags();
+    }
+    return changed;
+}
+
 export function markItemKnown(itemId) {
-    if (!itemId) return;
-    setFlagSilently(`${ITEM_FLAG_PREFIX}${itemId}`, true);
+    if (!itemId) return false;
+    const flag = `${ITEM_FLAG_PREFIX}${itemId}`;
+    if (GameManager.getFlag(flag)) return false;
+    setFlagSilently(flag, true);
+    GameManager.markSaveDirty?.('encyclopedia-item');
     notifyFlags();
+    return true;
 }
 
 export function markBlueprintKnown(recipeId) {
-    if (!recipeId) return;
-    setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`, true);
+    if (!recipeId) return false;
+    const flag = `${BLUEPRINT_FLAG_PREFIX}${recipeId}`;
+    if (GameManager.getFlag(flag)) return false;
+    setFlagSilently(flag, true);
+    GameManager.markSaveDirty?.('encyclopedia-blueprint');
     notifyFlags();
+    return true;
 }
 
 export function syncOwnedItemKnowledge() {
@@ -334,7 +415,10 @@ export function syncOwnedItemKnowledge() {
         changed = true;
     }
 
-    if (changed) notifyFlags();
+    if (changed) {
+        GameManager.markSaveDirty?.('encyclopedia-owned-items');
+        notifyFlags();
+    }
     return changed;
 }
 
@@ -346,6 +430,9 @@ export function getMonsterEntries() {
     const candidates = [];
 
     for (const monster of Object.values(MonsterDatabase)) {
+        const scope = getMonsterEcologyProfile(monster.id).scope;
+        const belongsToFirstRun = scope === MonsterCampaignScope.FIRST_RUN;
+        if (!belongsToFirstRun && !isMonsterKnown(monster.id)) continue;
         candidates.push(normalizeMonster(monster, {
             entryId: getMonsterEntryId(monster),
             sourceType: 'world',
@@ -354,16 +441,12 @@ export function getMonsterEntries() {
     }
 
     for (const [dungeonId, dungeon] of Object.entries(DungeonDatabase)) {
-        candidates.push(...getDungeonMonsterEntries(dungeonId, dungeon));
-    }
-
-    for (const monster of Object.values(TowerMonsterData)) {
-        candidates.push(normalizeMonster(monster, {
-            entryId: getMonsterEntryId(monster),
-            sourceType: 'tower',
-            sourceLabel: `無盡塔 ${monster.towerFloor || '?'}F`,
-            towerFloor: monster.towerFloor || null
-        }));
+        const dungeonEntries = getDungeonMonsterEntries(dungeonId, dungeon)
+            .filter(monster => {
+                const scope = getMonsterEcologyProfile(monster.id).scope;
+                return scope === MonsterCampaignScope.FIRST_RUN || isMonsterKnown(monster.id);
+            });
+        candidates.push(...dungeonEntries);
     }
 
     const index = new Map();

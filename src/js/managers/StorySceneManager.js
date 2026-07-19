@@ -1,8 +1,8 @@
 /**
  * StorySceneManager.js
  * Run-aware owner for the 66-scene screenplay. It applies scene and achievement
- * flags only; item, equipment, material, currency, and reward effects are
- * deliberately outside this pass.
+ * flags and scene-owned forge-series unlocks only; item, equipment, material,
+ * currency, and other reward effects are deliberately outside this pass.
  */
 
 import GameManager from './GameManager.js';
@@ -27,6 +27,8 @@ import {
 } from '../data/StoryEncounterContracts.js';
 import { isOptionalStoryScene } from '../data/ChapterRegionRegistry.js';
 import { storyJournalManager } from './StoryJournalManager.js';
+import { unlockRecipeSeriesForScene } from './BlueprintManager.js';
+import { markBlueprintKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
 
 export const StoryRun = Object.freeze({
     FIRST: 1,
@@ -229,6 +231,38 @@ class StorySceneManager {
         };
     }
 
+    buildCheckpointPresentation(sceneId, checkpointId) {
+        const scene = getStoryScene(sceneId);
+        const checkpoint = scene?.checkpoints?.[checkpointId];
+        if (!scene || !checkpoint) return null;
+        const beats = (checkpoint.beats || [])
+            .filter(beat => this.matchesBeatCondition(beat.condition))
+            .map(beat => this.resolveBeat(beat, scene));
+        const participants = [...new Set(beats.map(beat => beat.actorId).filter(Boolean))]
+            .map(actorId => this.resolveActor(actorId));
+
+        return {
+            success: true,
+            scene,
+            sceneId,
+            checkpointId,
+            npc: participants[0] || { id: 'narration', name: '故事', role: '敘事' },
+            participants,
+            lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
+            effectMessages: [],
+            narrativeTitle: checkpoint.title || scene.title || scene.id,
+            narrativeSummary: checkpoint.title || scene.objective,
+            tone: scene.stageClass,
+            route: null,
+            routeLabel: null,
+            background: checkpoint.background || scene.background,
+            backgroundImage: checkpoint.backgroundImage || null,
+            worldState: scene.worldState,
+            viewpoint: scene.viewpoint,
+            knowledgeBoundary: scene.knowledgeBoundary
+        };
+    }
+
     startScene(sceneId, options = {}) {
         const gate = this.canStartScene(sceneId, options);
         if (!gate.success) return { ...gate, lines: [], participants: [] };
@@ -314,6 +348,8 @@ class StorySceneManager {
         const discoveries = storyJournalManager.recordSceneDiscoveries(sceneId, {
             runNumber: this.getRunNumber()
         });
+        const blueprintUnlocks = unlockRecipeSeriesForScene(sceneId);
+        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId));
         GameManager.markSaveDirty?.('story-scene-complete');
         return {
             success: true,
@@ -323,6 +359,7 @@ class StorySceneManager {
             nextSceneId: this.getNextAvailableSceneAfter(sceneId),
             appliedEffects,
             discoveries,
+            blueprintUnlocks,
             outputDescription: scene.outputsRaw
         };
     }

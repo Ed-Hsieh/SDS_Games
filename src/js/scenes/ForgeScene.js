@@ -684,12 +684,18 @@ export default class ForgeScene {
                 }
             }
 
-            GameManager.addItem(newItem);
+            const storedInInventory = GameManager.addItem(newItem);
+            const stored = storedInInventory || GameManager.addToWarehouse(newItem);
+            if (stored) {
+                GameManager.recordChapterOneGearPreparation?.(newItem);
+            }
 
-            this.showCraftResult(true, newItem);
+            this.showCraftResult(stored, newItem);
 
             // 任務系統
-            questManager.updateProgress(ObjectiveType.CRAFT, recipe.type, 1);
+            if (stored) {
+                questManager.updateProgress(ObjectiveType.CRAFT, recipe.type, 1);
+            }
         } else {
             this.showCraftResult(false, null);
         }

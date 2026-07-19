@@ -15,14 +15,14 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.COMMON,
         role: 'fallback',
         strength: 'weak',
-        defaultKnown: true,
+        defaultKnown: false,
+        unlockSceneId: 'ch1_s08_cold_forge_smoke',
         levelBand: [5, 9],
         materialTheme: ['slime_jelly', 'iron_shard'],
         description: '以史萊姆凝膠固定粗鐵，成品不強，但便宜、好補、壞了也不心疼。',
         discovery: {
-            source: '史萊姆群落',
-            clue: '史萊姆凝膠可以把粗鐵暫時黏成可用武器，是旅人最早能依靠的保底工藝。',
-            interactionId: 'default_series'
+            source: '第一章鐵匠回報',
+            clue: '擊敗銀鐮伏獵者並把銀線帶回鐵匠鋪；風箱修復後會一次解鎖五種青凝武器。'
         }
     },
     bone_series: {
@@ -31,13 +31,13 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.UNCOMMON,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch2_s03_ledger_that_would_not_close',
         levelBand: [11, 20],
         materialTheme: ['bone_fragment', 'iron_ore'],
         description: '用骨片與粗鐵拼成的系列武器，性能平實，適合撐過中段裝備空窗。',
         discovery: {
             source: '第二章鍛造階段',
-            clue: '整理骷髏群落的骨片後，鐵匠能穩定製作五種白骨武器。',
-            interactionId: 'chapter_2_forge_tier'
+            clue: '整理骷髏群落的骨片後，鐵匠能穩定製作五種白骨武器。'
         }
     },
     expedition_series: {
@@ -46,10 +46,11 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.UNCOMMON,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch3_s01_dead_checkpoint',
         levelBand: [21, 30],
         materialTheme: ['iron_ore', 'expedition_steel_fragment'],
         description: '依照遠征軍制式規格重建的五種武器，可靠、容易維修，不追求特殊能力。',
-        discovery: { source: '第三章鍛造階段', clue: '回收制式武器殘件後，鐵匠能重建遠征軍的完整五型規格。', interactionId: 'chapter_3_forge_tier' }
+        discovery: { source: '第三章鍛造階段', clue: '回收制式武器殘件後，鐵匠能重建遠征軍的完整五型規格。' }
     },
     runic_series: {
         id: 'runic_series',
@@ -57,10 +58,11 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.UNCOMMON,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch4_s02_fourfold_countergear',
         levelBand: [31, 40],
         materialTheme: ['mithril_ore', 'rune_stone', 'earth_essence'],
         description: '利用淺層符文穩定結構的五種武器，效果克制但能承受第四章戰鬥。',
-        discovery: { source: '第四章鍛造階段', clue: '符文石與地脈紀錄讓鐵匠完成五型刻紋武器。', interactionId: 'chapter_4_forge_tier' }
+        discovery: { source: '第四章鍛造階段', clue: '符文石與地脈紀錄讓鐵匠完成五型刻紋武器。' }
     },
     fourfold_series: {
         id: 'fourfold_series',
@@ -68,10 +70,11 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.RARE,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch5_s02_forge_contracts',
         levelBand: [41, 50],
         materialTheme: ['high_ore', 'fire_essence', 'ice_essence', 'thunder_essence', 'poison_gland'],
         description: '以低濃度元素素材製作的完整五型武器，提供第五章穩定而不超格的元素過渡。',
-        discovery: { source: '第五章鍛造階段', clue: '四種元素的安全處理紀錄使鐵匠能完成五型四象武器。', interactionId: 'chapter_5_forge_tier' }
+        discovery: { source: '第五章鍛造階段', clue: '四種元素的安全處理紀錄使鐵匠能完成五型四象武器。' }
     },
     sealstone_series: {
         id: 'sealstone_series',
@@ -79,10 +82,11 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.RARE,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch6_s02_scar_aftermath',
         levelBand: [51, 60],
         materialTheme: ['drake_scale', 'stone_fragment', 'rune_stone'],
         description: '結合封石與低階龍鱗的五種武器，用來承受龍域壓力而非取代龍族珍品。',
-        discovery: { source: '第六章鍛造階段', clue: '封印遺構的受力紀錄讓鐵匠補齊五型封脈武器。', interactionId: 'chapter_6_forge_tier' }
+        discovery: { source: '第六章鍛造階段', clue: '封印遺構的受力紀錄讓鐵匠補齊五型封脈武器。' }
     },
     helliron_series: {
         id: 'helliron_series',
@@ -90,10 +94,11 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.RARE,
         role: 'fallback',
         strength: 'weak',
+        unlockSceneId: 'ch6_s09_the_old_note_answers',
         levelBand: [61, 70],
         materialTheme: ['demonic_steel', 'demon_horn', 'soul_fragment'],
         description: '以獄鐵製成的末章五型武器，確保所有流派能進入終局，但仍低於特殊與魔王裝備。',
-        discovery: { source: '第七章鍛造階段', clue: '掌握獄鐵退火後，鐵匠能為五種流派提供最後一套保底武器。', interactionId: 'chapter_7_forge_tier' }
+        discovery: { source: '第七章鍛造階段', clue: '掌握獄鐵退火後，鐵匠能為五種流派提供最後一套保底武器。' }
     }
 });
 
@@ -246,6 +251,12 @@ const RecipeIdToSeriesId = Object.freeze(
 
 export function getRecipeSeries(seriesId) {
     return RecipeSeriesDatabase[seriesId] || null;
+}
+
+export function getRecipeSeriesForUnlockScene(sceneId) {
+    if (!sceneId) return [];
+    return Object.values(RecipeSeriesDatabase)
+        .filter(series => series.unlockSceneId === sceneId);
 }
 
 export function getRecipeSeriesForRecipe(recipeId) {

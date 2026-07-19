@@ -75,8 +75,8 @@ const SceneEffects = Object.freeze({
         second_run: { flags: { 'story.ch1.silver_snare_cleared': true } }
     },
     ch1_s08_cold_forge_smoke: {
-        first_run: { flags: { 'town.blacksmith.forge_open': true } },
-        second_run: { flags: { 'town.blacksmith.forge_open': true } }
+        first_run: { flags: { 'town.blacksmith.forge_open': true, 'story.ch1.rotroot_active': true } },
+        second_run: { flags: { 'town.blacksmith.forge_open': true, 'story.ch1.rotroot_active': true } }
     },
     ch1_s09_rotroot_approach: {
         first_run: { flags: { 'story.ch1.forest_guardian_active': true } },

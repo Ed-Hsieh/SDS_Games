@@ -51,17 +51,17 @@ export const MonsterDatabase = {
         level: 1,
         hp: 20,
         maxHp: 20,
-        attack: 5,
+        attack: 4,
         attackSpeed: 1,
-        defense: 2,
-        exp: 15,
-        gold: 10,
+        defense: 1,
+        exp: 20,
+        gold: 5,
         drops: [
             { itemId: 'slime_jelly', chance: 0.5, quantity: [1, 2] },
             { itemId: 'health_potion_s', chance: 0.1, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'slime_sword', chance: 0.02 }  // 2% 掉落青凝刃
+            { equipmentId: 'slime_sword', chance: 0.05 }
         ],
         skills: [],
         description: '最基礎的怪物，適合新手練習。'
@@ -74,21 +74,19 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 2,
-        hp: 50,
-        maxHp: 50,
-        attack: 8,
+        hp: 30,
+        maxHp: 30,
+        attack: 6,
         attackSpeed: 1,
-        defense: 3,
-        exp: 20,
-        gold: 15,
+        defense: 2,
+        exp: 25,
+        gold: 7,
         drops: [
             { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3] },
             { itemId: 'goblin_ear', chance: 0.35, quantity: [1, 1] },
             { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'goblin_dagger', chance: 0.05 }
-        ],
+        equipmentDrops: [],
         skills: [],
         description: '矮小但狡猾的哥布林。'
     },
@@ -100,22 +98,19 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 4,
-        hp: 45,
-        maxHp: 45,
-        attack: 10,
-        attackSpeed: 1,
+        hp: 35,
+        maxHp: 35,
+        attack: 9,
+        attackSpeed: 1.25,
         defense: 2,
-        exp: 18,
-        gold: 12,
+        exp: 40,
+        gold: 9,
         drops: [
-            { itemId: 'wolf_fang', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'wolf_pelt', chance: 0.25, quantity: [1, 1] },
-            { itemId: 'beast_hide', chance: 0.25, quantity: [1, 2] },
-            { itemId: 'raw_meat', chance: 0.3, quantity: [1, 2] }
+            { itemId: 'wolf_fang', chance: 0.38, quantity: [1, 1] },
+            { itemId: 'wolf_pelt', chance: 0.22, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'wolf_fang_blade', chance: 0.055 },
-            { equipmentId: 'wolf_pelt_armor', chance: 0.05 }
+            { equipmentId: 'wolf_fang_blade', chance: 0.15 }
         ],
         skills: [],
         description: '森林中的野狼，攻擊性強。'
@@ -150,16 +145,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 3,
-        hp: 30,
-        maxHp: 30,
-        attack: 4,
-        attackSpeed: 1,
+        hp: 25,
+        maxHp: 25,
+        attack: 7,
+        attackSpeed: 1.2,
         defense: 1,
-        exp: 10,
-        gold: 5,
+        exp: 35,
+        gold: 8,
         drops: [
-            { itemId: 'rat_tail', chance: 0.6, quantity: [1, 1] },
-            { itemId: 'raw_meat', chance: 0.4, quantity: [1, 1] }
+            { itemId: 'rat_tail', chance: 0.55, quantity: [1, 1] },
+            { itemId: 'beast_hide', chance: 0.18, quantity: [1, 1] }
         ],
         skills: [],
         description: '下水道中常見的巨型老鼠。'
@@ -216,19 +211,19 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.POISON,
         level: 7,
-        hp: 80,
-        maxHp: 80,
-        attack: 20,
-        attackSpeed: 1,
-        defense: 5,
-        exp: 45,
-        gold: 35,
+        hp: 45,
+        maxHp: 45,
+        attack: 12,
+        attackSpeed: 1.15,
+        defense: 3,
+        exp: 70,
+        gold: 13,
         drops: [
             { itemId: 'spider_silk', chance: 0.5, quantity: [1, 2] },
             { itemId: 'poison_gland', chance: 0.3, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'spider_silk_gloves', chance: 0.04 }
+            { equipmentId: 'spider_silk_gloves', chance: 0.15 }
         ],
         skills: ['poison_bite'],
         description: '會噴射毒液的巨型蜘蛛。'
@@ -241,20 +236,18 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.EARTH,
         level: 8,
-        hp: 100,
-        maxHp: 100,
-        attack: 14,
-        attackSpeed: 1.4,
-        defense: 12,
-        exp: 50,
-        gold: 40,
+        hp: 75,
+        maxHp: 75,
+        attack: 12,
+        attackSpeed: 0.82,
+        defense: 7,
+        exp: 80,
+        gold: 15,
         drops: [
             { itemId: 'stone_fragment', chance: 0.6, quantity: [2, 3] },
             { itemId: 'golem_core', chance: 0.1, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'miners_pickhammer', chance: 0.025 }
-        ],
+        equipmentDrops: [],
         skills: ['stone_fist'],
         description: '由石頭構成的小型魔像。'
     },
@@ -270,13 +263,13 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.EARTH,
         level: 9,
-        hp: 120,
-        maxHp: 120,
-        attack: 12,
-        attackSpeed: 1.4,
-        defense: 10,
-        exp: 50,
-        gold: 35,
+        hp: 140,
+        maxHp: 140,
+        attack: 16,
+        attackSpeed: 0.78,
+        defense: 8,
+        exp: 200,
+        gold: 32,
         drops: [
             { itemId: 'ancient_bark', chance: 0.4, quantity: [1, 2] },
             { itemId: 'life_seed', chance: 0.15, quantity: [1, 1] }
@@ -293,21 +286,19 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
         level: 10,
-        hp: 320,
-        maxHp: 320,
-        attack: 22,
-        attackSpeed: 2.2,
-        defense: 12,
-        exp: 170,
-        gold: 120,
+        hp: 310,
+        maxHp: 310,
+        attack: 20,
+        attackSpeed: 0.92,
+        defense: 9,
+        exp: 540,
+        gold: 88,
         drops: [
             { itemId: 'guardian_branch', chance: 1.0, quantity: [1, 1] },
             { itemId: 'forest_essence', chance: 0.5, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'forest_guardian_staff', chance: 0.15 },
-            { equipmentId: 'forest_guardian_crown', chance: 0.10 },
-            { equipmentId: 'tower_guardian_staff', chance: 0.08 }
+            { equipmentId: 'forest_guardian_staff', chance: 0.15 }
         ],
         skills: ['nature_wrath', 'root_bind', 'regeneration'],
         description: '腐根溪谷的千年神木，核心樹皮被剝離後陷入無意識防衛。'
@@ -333,7 +324,7 @@ export const MonsterDatabase = {
             { itemId: 'iron_ore', chance: 0.4, quantity: [1, 3] }
         ],
         equipmentDrops: [
-            { equipmentId: 'undead_dagger', chance: 0.035 }
+            { equipmentId: 'undead_dagger', chance: 0.15 }
         ],
         skills: ['sword_slash'],
         description: '被黑暗力量復活的骷髏。'
@@ -358,9 +349,7 @@ export const MonsterDatabase = {
             { itemId: 'spirit_essence', chance: 0.2, quantity: [1, 1] },
             { itemId: 'soul_fragment', chance: 0.15, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'ghost_cloak', chance: 0.05 }
-        ],
+        equipmentDrops: [],
         skills: ['phase_through', 'soul_drain'],
         description: '徘徊在遺跡中的亡魂。'
     },
@@ -436,8 +425,7 @@ export const MonsterDatabase = {
             { itemId: 'dark_steel', chance: 0.25, quantity: [1, 3] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_blade_drop', chance: 0.04 },
-            { equipmentId: 'shadow_armor_drop', chance: 0.03 }
+            { equipmentId: 'shadow_blade_drop', chance: 0.10 }
         ],
         skills: ['shadow_strike'],
         description: '暗影軍團的先鋒部隊。'
@@ -462,8 +450,7 @@ export const MonsterDatabase = {
             { itemId: 'shadow_arrow', chance: 0.3, quantity: [3, 6] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_armor_drop', chance: 0.025 },
-            { equipmentId: 'shadowneedle_dagger', chance: 0.035 }
+            { equipmentId: 'shadowneedle_dagger', chance: 0.10 }
         ],
         skills: ['shadow_shot', 'multishot'],
         description: '遠程攻擊的暗影戰士。'
@@ -489,9 +476,7 @@ export const MonsterDatabase = {
             { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_badge', chance: 0.05 },
-            { equipmentId: 'shadowneedle_dagger', chance: 0.04 },
-            { equipmentId: 'shade_focus', chance: 0.035 }
+            { equipmentId: 'shade_focus', chance: 0.10 }
         ],
         skills: ['shadow_bolt', 'dark_curse'],
         description: '操控暗影魔法的法師。'
@@ -519,9 +504,7 @@ export const MonsterDatabase = {
             { itemId: 'dark_steel', chance: 0.4, quantity: [2, 3] }
         ],
         equipmentDrops: [
-            { equipmentId: 'shadow_commander_blade', chance: 0.25 },
-            { equipmentId: 'shadow_commander_sword', chance: 0.10 },
-            { equipmentId: 'umbral_pike', chance: 0.08 }
+            { equipmentId: 'shadow_commander_blade', chance: 0.25 }
         ],
         skills: ['shadow_slash', 'rally_troops', 'dark_aura'],
         description: '統領暗影軍團的指揮官。'
@@ -547,7 +530,7 @@ export const MonsterDatabase = {
             { itemId: 'mithril_ore', chance: 0.35, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'ancient_sword', chance: 0.05 }
+            { equipmentId: 'ancient_sword', chance: 0.10 }
         ],
         skills: ['energy_beam', 'shield_bash'],
         description: '古代文明製造的機械守衛。'
@@ -572,7 +555,7 @@ export const MonsterDatabase = {
             { itemId: 'pure_crystal', chance: 0.15, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'crystal_shield', chance: 0.05 }
+            { equipmentId: 'crystal_shield', chance: 0.10 }
         ],
         skills: ['crystal_strike', 'reflect'],
         description: '由純淨水晶構成的魔像。'
@@ -599,9 +582,7 @@ export const MonsterDatabase = {
             { itemId: 'mithril_ore', chance: 0.25, quantity: [1, 1] },
             { itemId: 'crystal_shard', chance: 0.2, quantity: [1, 2] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'rune_badge', chance: 0.06 }
-        ],
+        equipmentDrops: [],
         skills: ['rune_blast', 'rune_shield'],
         description: '守護古代符文的神秘存在。'
     },
@@ -627,8 +608,7 @@ export const MonsterDatabase = {
             { itemId: 'primordial_stone', chance: 0.4, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'titan_hammer', chance: 0.20 },
-            { equipmentId: 'titan_gauntlet', chance: 0.12 }
+            { equipmentId: 'titan_hammer', chance: 0.20 }
         ],
         skills: ['titan_slam', 'earthquake', 'ancient_power'],
         description: '沉睡萬年的遠古巨人。'
@@ -653,9 +633,7 @@ export const MonsterDatabase = {
             { itemId: 'fire_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'ember_stone', chance: 0.25, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'flame_sword', chance: 0.05 }
-        ],
+        equipmentDrops: [],
         skills: ['fireball', 'flame_burst'],
         description: '純粹的火焰元素生物。'
     },
@@ -678,9 +656,7 @@ export const MonsterDatabase = {
             { itemId: 'ice_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'frost_crystal', chance: 0.25, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'frost_blade', chance: 0.05 }
-        ],
+        equipmentDrops: [],
         skills: ['ice_spike', 'freeze'],
         description: '純粹的冰霜元素生物。'
     },
@@ -703,9 +679,7 @@ export const MonsterDatabase = {
             { itemId: 'thunder_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'storm_crystal', chance: 0.25, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'thunder_axe', chance: 0.05 }
-        ],
+        equipmentDrops: [],
         skills: ['lightning_bolt', 'chain_lightning'],
         description: '純粹的雷電元素生物。'
     },
@@ -754,9 +728,7 @@ export const MonsterDatabase = {
             { itemId: 'ice_essence', chance: 0.5, quantity: [2, 3] }
         ],
         equipmentDrops: [
-            { equipmentId: 'elemental_crown', chance: 0.25 },
-            { equipmentId: 'elemental_badge', chance: 0.16 },
-            { equipmentId: 'elemental_orb', chance: 0.12 }
+            { equipmentId: 'elemental_orb', chance: 0.18 }
         ],
         skills: ['elemental_shift', 'primal_burst', 'elemental_storm'],
         description: '掌控四大元素的強大存在。'
@@ -782,7 +754,7 @@ export const MonsterDatabase = {
             { itemId: 'wyvern_wing', chance: 0.25, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'wyvern_lance', chance: 0.05 }
+            { equipmentId: 'wyvern_lance', chance: 0.10 }
         ],
         skills: ['dive_attack', 'tail_swipe'],
         description: '龍族的遠親，會飛行攻擊。'
@@ -832,9 +804,7 @@ export const MonsterDatabase = {
             { itemId: 'dragon_scale_armor', chance: 0.2, quantity: [1, 1] },
             { itemId: 'dragon_knight_badge', chance: 0.35, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'dragon_knight_helm', chance: 0.08 }
-        ],
+        equipmentDrops: [],
         skills: ['dragon_charge', 'fire_lance'],
         description: '與龍共戰的精英騎士。'
     },
@@ -887,7 +857,7 @@ export const MonsterDatabase = {
             { itemId: 'shadow_cloak_fragment', chance: 0.35, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'assassin_blade', chance: 0.08 }
+            { equipmentId: 'assassin_blade', chance: 0.05 }
         ],
         skills: ['backstab', 'vanish', 'poison_dagger'],
         description: '王都中潛伏的暗殺者。'
@@ -962,7 +932,7 @@ export const MonsterDatabase = {
             { itemId: 'demonic_steel', chance: 0.3, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'demon_blade', chance: 0.08 }
+            { equipmentId: 'demon_blade', chance: 0.05 }
         ],
         skills: ['demon_slash', 'hellfire'],
         description: '魔王麾下的精銳戰士。'
@@ -987,7 +957,7 @@ export const MonsterDatabase = {
             { itemId: 'abyssal_shard', chance: 0.4, quantity: [1, 2] }
         ],
         equipmentDrops: [
-            { equipmentId: 'demon_general_armor', chance: 0.10 }
+            { equipmentId: 'demon_general_armor', chance: 0.05 }
         ],
         skills: ['infernal_strike', 'demon_summon', 'war_cry'],
         description: '統領魔族軍隊的將軍。'
@@ -1014,8 +984,7 @@ export const MonsterDatabase = {
             { itemId: 'world_shard', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'demon_lord_sword', chance: 0.30 },
-            { equipmentId: 'demon_lord_crown', chance: 0.20 }
+            { equipmentId: 'demon_lord_sword', chance: 0.25 }
         ],
         skills: ['apocalypse', 'void_rupture', 'demon_transformation', 'soul_harvest'],
         description: '企圖毀滅世界的魔王，最終的敵人。'
@@ -1040,9 +1009,7 @@ export const MonsterDatabase = {
             { itemId: 'glimmer_shard', chance: 0.38, quantity: [1, 1] },
             { itemId: 'rune_stone', chance: 0.16, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'glimmer_lampstaff', chance: 0.045 }
-        ],
+        equipmentDrops: [],
         skills: ['lightning_bolt'],
         description: '只帶有微弱光明輪廓的靈體，讓玩家提前理解節奏型裝備，但不提供正式光明力量。'
     },
@@ -1067,7 +1034,7 @@ export const MonsterDatabase = {
             { itemId: 'pure_crystal', chance: 0.12, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'rune_scriber_focus', chance: 0.04 }
+            { equipmentId: 'rune_scriber_focus', chance: 0.10 }
         ],
         skills: ['lightning_bolt', 'harden'],
         description: '遺跡入口附近浮現的符文靈，掉落微光與符文材料。'
@@ -1116,9 +1083,7 @@ export const MonsterDatabase = {
             { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 2] },
             { itemId: 'primal_essence', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [
-            { equipmentId: 'thornhook_claws', chance: 0.075 }
-        ],
+        equipmentDrops: [],
         skills: ['poison_bite', 'regeneration'],
         description: '叢林深處吸收星脈的獵食者，提供生命、毒與微光交界的掉落。'
     },
@@ -1386,13 +1351,13 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.NONE,
         level: 6,
-        hp: 260,
-        maxHp: 260,
-        attack: 18,
-        attackSpeed: 1.25,
-        defense: 8,
-        exp: 130,
-        gold: 110,
+        hp: 100,
+        maxHp: 100,
+        attack: 15,
+        attackSpeed: 1.45,
+        defense: 3,
+        exp: 190,
+        gold: 36,
         drops: [
             { itemId: 'poison_gland', chance: 0.7, quantity: [1, 2] },
             { itemId: 'spider_silk', chance: 0.55, quantity: [1, 2] },
@@ -1438,7 +1403,7 @@ export const MonsterDatabase = {
             { itemId: 'ice_essence', chance: 0.34, quantity: [1, 1] },
             { itemId: 'frost_crystal', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'frostwolf_mantle', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
         description: '皮毛結著霜晶的元素獵狼。'
     },
     poison_frog: {
@@ -1450,7 +1415,7 @@ export const MonsterDatabase = {
             { itemId: 'poison_gland', chance: 0.34, quantity: [1, 1] },
             { itemId: 'spider_silk', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'miasma_needle_focus', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
         description: '在失衡濕地中積蓄元素毒液的巨蛙。'
     },
     storm_raptor: {
@@ -1462,7 +1427,7 @@ export const MonsterDatabase = {
             { itemId: 'thunder_essence', chance: 0.34, quantity: [1, 1] },
             { itemId: 'storm_crystal', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'stormfeather_talisman', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
         description: '借雷流俯衝的高空猛禽。'
     },
     vine_beast: {
@@ -1510,7 +1475,7 @@ export const MonsterDatabase = {
             { itemId: 'drake_scale', chance: 0.32, quantity: [1, 1] },
             { itemId: 'dragon_knight_badge', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'dragonseal_patrol_plate', chance: 0.05 }], skills: [], balanceStatus: 'provisional',
         description: '巡守封印邊界、驅逐靠近者的龍族哨衛。'
     },
     dragon_seal_adept: {
@@ -1522,7 +1487,7 @@ export const MonsterDatabase = {
             { itemId: 'magic_crystal', chance: 0.26, quantity: [1, 1] },
             { itemId: 'glimmer_shard', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'dragonseal_forkstaff', chance: 0.05 }], skills: [], balanceStatus: 'provisional',
         description: '維持古老封印術式的龍族施術者。'
     },
     hell_hound: {

@@ -4,8 +4,16 @@ import { FirstRunMonsterRosters } from '../src/js/data/MonsterEcology.js';
 import { MonsterDatabase, MonsterType } from '../src/js/data/Monsters.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
+import { generateDropsFromSources } from '../src/js/managers/DropManager.js';
+import { DropSourceType } from '../src/js/models/Enums.js';
 import { FirstRunBandAllocationPlan, FirstRunBossCraftUnlocks, FirstRunRecipeAdditions } from '../src/js/data/FirstRunLootBalance.js';
-import { BossRewardContract, MonsterSourceBudget, RegionSourceContract, WeaponBandAllocationContract } from '../src/js/data/WeaponProgression.js';
+import {
+    BossRewardContract,
+    EquipmentDropRateContract,
+    MonsterSourceBudget,
+    RegionSourceContract,
+    WeaponBandAllocationContract
+} from '../src/js/data/WeaponProgression.js';
 
 const ids = [...new Set(Object.values(FirstRunMonsterRosters).flatMap(row => row.monsterIds))];
 const mainBosses = new Set(Object.values(FirstRunMonsterRosters).map(row => row.mandatoryBossId));
@@ -17,6 +25,16 @@ const approvedBaselineCraft = new Set(Object.values(FirstRunBandAllocationPlan).
 const approvedSpecialCraft = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.specialCraft));
 const approvedBossEquipment = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.bossEquipment));
 const blueprintEntries = Object.values(BlueprintDropDatabase).flatMap(entries => entries || []);
+const migratedEquipmentRateChapters = new Set(EquipmentDropRateContract.migratedChapters);
+
+const authoredMonsterMaterialRoll = generateDropsFromSources([{
+    type: DropSourceType.MonsterUnique,
+    entries: [{ id: 'slime_jelly', chance: 0.5, quantity: 1 }],
+    rolls: 1
+}], { rng: () => 0.3 });
+if (!authoredMonsterMaterialRoll.some(drop => drop.itemId === 'slime_jelly')) {
+    issues.push('monster material chances are being reduced by a hidden global multiplier');
+}
 
 for (const [chapter, plan] of Object.entries(FirstRunBandAllocationPlan)) {
     if (plan.baselineCraft.length !== WeaponBandAllocationContract.baselineCraft.finishedItemsPerBand) {
@@ -73,6 +91,32 @@ for (const id of ids) {
     for (const drop of MonsterDatabase[id]?.drops || []) {
         if (!materialSources.has(drop.itemId)) materialSources.set(drop.itemId, new Set());
         materialSources.get(drop.itemId).add(id);
+    }
+}
+
+for (const roster of Object.values(FirstRunMonsterRosters)) {
+    if (!migratedEquipmentRateChapters.has(roster.chapter)) continue;
+    for (const monsterId of roster.monsterIds) {
+        const monster = MonsterDatabase[monsterId];
+        for (const drop of monster?.equipmentDrops || []) {
+            const equipment = EquipmentDatabase[drop.equipmentId];
+            if (mainBosses.has(monsterId)) {
+                const range = EquipmentDropRateContract.mainBossLegendaryRange;
+                if (equipment?.rarity !== BossRewardContract.signatureRarity) {
+                    issues.push(`${monsterId}: main Boss equipment ${drop.equipmentId} is not Legendary`);
+                } else if (!Number.isFinite(drop.chance) || drop.chance < range[0] || drop.chance > range[1]) {
+                    issues.push(`${monsterId}: ${drop.equipmentId} chance ${drop.chance} is outside main Boss range ${range[0]}-${range[1]}`);
+                }
+                continue;
+            }
+
+            const expectedChance = EquipmentDropRateContract.standardByRarity[equipment?.rarity];
+            if (!Number.isFinite(expectedChance)) {
+                issues.push(`${monsterId}: ${equipment?.rarity || 'unknown'} equipment is outside the four standard drop qualities`);
+            } else if (drop.chance !== expectedChance) {
+                issues.push(`${monsterId}: ${drop.equipmentId} chance ${drop.chance} must equal ${equipment.rarity} rate ${expectedChance}`);
+            }
+        }
     }
 }
 

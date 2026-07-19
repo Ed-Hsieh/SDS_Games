@@ -1,10 +1,11 @@
 import GameManager from './GameManager.js';
-import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=20260717u';
+import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=weapon-profiles-20260720a';
 import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
-import { markMonsterKnown } from './EncyclopediaManager.js';
+import { markMonsterKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
+import audioManager from '../utils/AudioManager.js';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -76,11 +77,11 @@ export default class CombatFlowController {
         if (!encounter || this.isActive() || !this.overlay || !this.combatRoot) return false;
         this.flow.beginEncounter(encounter);
         this.encounter = encounter;
-        markMonsterKnown(encounter.monster || encounter.visual);
         this.result = null;
         this.rewards = null;
         this.activePotion = findHealingPotion();
         const isPrologueTutorial = Boolean(encounter.context?.prologueTutorial);
+        const contextualGuidance = encounter.context?.combatGuidance || null;
         encounter.player.potions = isPrologueTutorial
             ? Math.max(1, Number(encounter.player.potions) || 0)
             : Math.max(0, Number(this.activePotion?.quantity) || 0);
@@ -93,7 +94,7 @@ export default class CombatFlowController {
             ? '應急藥劑'
             : (this.activePotion?.item?.name || '沒有補給');
         if (this.rewardsPanel) this.rewardsPanel.innerHTML = '';
-        this.setupTutorial(isPrologueTutorial);
+        this.setupTutorial(isPrologueTutorial, contextualGuidance);
 
         this.overlay.hidden = false;
         const character = GameManager.getCharacter();
@@ -132,10 +133,18 @@ export default class CombatFlowController {
 
     handleCombatEvent(event) {
         if (event.type === 'player:potion' && this.activePotion) {
-            GameManager.useConsumable(this.activePotion.instanceId);
+            GameManager.useConsumable(this.activePotion.instanceId, false, {
+                applyEffect: false,
+                notifyType: false
+            });
             this.activePotion = findHealingPotion();
-        } else if (event.type === 'player:hit') {
-            GameManager.reduceWeaponDurability(event.slot === 'offhand' ? 'armor' : 'weapon');
+        } else if (event.type === 'player:hit' && event.weapon?.effect !== 'unarmed') {
+            const slot = event.slot === 'offhand' ? 'offhand' : 'main';
+            const destroyedWeapon = GameManager.reduceWeaponDurability(slot === 'offhand' ? 'armor' : 'weapon');
+            if (destroyedWeapon) {
+                audioManager.play('weapon-break', { throttleKey: `weapon-break-${slot}`, throttleMs: 250 });
+                this.lab?.handleWeaponBroken(slot, destroyedWeapon);
+            }
         } else if (event.type === 'monster:hit') {
             GameManager.reduceArmorDurability();
         }
@@ -143,11 +152,11 @@ export default class CombatFlowController {
         this.options.onCombatEvent?.(event, this.encounter);
     }
 
-    setupTutorial(enabled) {
+    setupTutorial(prologueEnabled, contextualGuidance = null) {
         this.tutorialPanel?.remove();
         this.tutorialPanel = null;
-        this.tutorialState = enabled ? { stage: 'attack', complete: false } : null;
-        if (!enabled) return;
+        this.tutorialState = prologueEnabled ? { stage: 'attack', complete: false } : null;
+        if (!prologueEnabled && !contextualGuidance) return;
 
         const stage = this.combatRoot?.querySelector('#battle-preview');
         if (!stage) return;
@@ -157,7 +166,12 @@ export default class CombatFlowController {
         panel.innerHTML = '<span>戰鬥教學</span><strong></strong><small></small>';
         stage.appendChild(panel);
         this.tutorialPanel = panel;
-        this.setTutorialPrompt('在青綠色命中區或金黃色暴擊區出手。', '滑鼠左鍵 · 命中或暴擊');
+        const label = panel.querySelector('span');
+        if (label) label.textContent = prologueEnabled ? '戰鬥教學' : '調查實戰';
+        this.setTutorialPrompt(
+            prologueEnabled ? '在青綠色命中區或金黃色暴擊區出手。' : contextualGuidance.text,
+            prologueEnabled ? '滑鼠左鍵 · 命中或暴擊' : contextualGuidance.control
+        );
     }
 
     setTutorialPrompt(message, control = '') {
@@ -249,6 +263,7 @@ export default class CombatFlowController {
             && Boolean(this.encounter?.context?.prologueTutorial);
 
         if (event.result === CombatSessionPhase.VICTORY) {
+            markMonsterKnown(this.encounter?.monster || this.encounter?.visual);
             this.rewards = this.options.settleVictory?.(this.encounter, event) || { rows: [] };
         } else if (event.result === CombatSessionPhase.DEFEAT) {
             character.hp = 1;

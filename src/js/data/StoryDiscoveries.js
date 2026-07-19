@@ -56,24 +56,24 @@ export const StoryDiscoveryRegistry = Object.freeze({
     }),
     ch1_farmland_tracks: discovery({
         id: 'ch1_farmland_tracks', chapter: 1, order: 60, locationId: 'south_gate_farmland',
-        title: '走到一半失去方向的腳印', kind: 'clue', icon: '✦',
+        title: '獸爪先改了方向', kind: 'clue', icon: '✦',
         sourceLabel: '南門農田',
-        observation: '腳印在濕泥中突然偏轉，像行走者發現原本的道路已經不存在。',
-        inference: '失聯不完全是迷路；道路本身曾在短時間內變得不可判讀。'
+        observation: '人類靴印繼續朝獵人棧道前進，獸爪卻在碰到黑根前突然轉開。現場沒有追逐、拖行或搏鬥痕跡。',
+        inference: '失聯者不是在田埂遭到襲擊；附近野獸也不是主動靠近城鎮，而是在避開黑根所在的位置。'
     }),
     ch1_boardwalk_silver: discovery({
         id: 'ch1_boardwalk_silver', chapter: 1, order: 70, locationId: 'hunter_boardwalk',
-        title: '被重新打過的繩結', kind: 'clue', icon: '✦',
+        title: '回程標記被重新打過', kind: 'clue', icon: '✦',
         sourceLabel: '獵人棧道',
-        observation: '棧道繩結中夾著不屬於獵具的銀色纖維，位置避開前路，反而貼近回程方向。',
-        inference: '某種捕食者正在學習旅人的折返路線。'
+        observation: '原本標記回程的銀線被拆下一段，重新繃在旅人膝後的高度。樹脂、落腳點與磨亮的木面顯示捕食者曾反覆觀察這條路。',
+        inference: '有怪物正在學習旅人如何使用道路，並把人留下的標記改成陷阱；但牠無法解釋田埂獸群為何一起避開黑根。'
     }),
     ch1_campfire_root: discovery({
         id: 'ch1_campfire_root', chapter: 1, order: 80, locationId: 'old_campfire_site',
-        title: '冷灰下的新焦根', kind: 'clue', icon: '✦',
+        title: '冷灰下面仍有溫度', kind: 'clue', icon: '✦',
         sourceLabel: '舊營火點',
-        observation: '營火早已熄滅，灰下根汁的焦痕卻很新，並沿土層向森林深處延伸。',
-        inference: '黑根壓力比營火更新，來源不在這座廢棄營地。'
+        observation: '表層灰燼濕冷，灰層下的黑根卻仍微溫。煙漬留在石塊下方，根系正一下一下向北收縮。',
+        inference: '會利用道路的捕食者不能讓地下根脈保持溫度；三處異常背後還有一個更大的方向性壓力。'
     }),
     ch1_silver_snare: discovery({
         id: 'ch1_silver_snare', chapter: 1, order: 90, sceneId: 'ch1_s07_silver_snare',
