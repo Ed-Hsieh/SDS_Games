@@ -6,6 +6,7 @@ import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { markMonsterKnown } from './EncyclopediaManager.js';
 import audioManager from '../utils/AudioManager.js';
+import { createRecipeBlueprintDisplayItems } from './BlueprintManager.js';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -109,10 +110,10 @@ export default class CombatFlowController {
             rhythmCharacter: createRhythmCharacter(character, offhand),
             autoStart: true,
             startMonsterPaused: isPrologueTutorial,
-            fleeChance: encounter.fleeChance ?? 0.35,
+            fleeChance: encounter.fleeChance ?? 0.5,
             fleeCooldown: encounter.fleeCooldown ?? 2,
             canFlee: () => encounter.canFlee !== false,
-            onWeaponAttempt: () => this.handleTutorialWeaponAttempt(),
+            onWeaponAttempt: slot => this.handleTutorialWeaponAttempt(slot),
             onPotionAttempt: () => this.handleTutorialPotionAttempt(),
             onFleeAttempt: () => this.handleTutorialFleeAttempt(),
             fleeRejectedText: encounter.fleeRejectedText || '這場戰鬥無法撤離。',
@@ -193,9 +194,23 @@ export default class CombatFlowController {
             return;
         }
 
-        if (this.tutorialState.stage === 'attack' && event.type === 'player:hit') {
+        if (this.tutorialState.stage === 'attack' && event.type === 'player:hit' && event.slot !== 'offhand') {
+            this.tutorialState.stage = 'offhand';
+            this.setTutorialPrompt('主手命中會短暫打開副手窗口。立刻追擊。', '滑鼠右鍵 · 副手追擊');
+            return;
+        }
+
+        if (this.tutorialState.stage === 'offhand' && event.type === 'player:hit' && event.slot === 'offhand') {
+            this.tutorialState.stage = 'break';
+            this.setTutorialPrompt('武器會在攻擊中消耗耐久。再揮一次主手。', '滑鼠左鍵 · 觀察耐久');
+            return;
+        }
+
+        if (this.tutorialState.stage === 'break' && event.type === 'player:hit' && event.slot !== 'offhand') {
             this.tutorialState.stage = 'potion';
-            this.setTutorialPrompt('命中成立。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
+            audioManager.play('weapon-break', { throttleKey: 'prologue-weapon-break', throttleMs: 250 });
+            this.lab?.handleWeaponBroken('main', this.encounter?.loadout?.main);
+            this.setTutorialPrompt('獵刀斷了，空手仍能應戰。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
             return;
         }
 
@@ -220,6 +235,8 @@ export default class CombatFlowController {
         if (this.tutorialState.stage !== 'flee') {
             const prompts = {
                 attack: ['先打出一次命中或暴擊。', '滑鼠左鍵 · 命中或暴擊'],
+                offhand: ['主手命中後，趁兩圈內用副手追擊。', '滑鼠右鍵 · 副手追擊'],
+                break: ['再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊'],
                 potion: ['先喝下應急藥劑。', '空白鍵 · 使用藥水']
             };
             const [message, control] = prompts[this.tutorialState.stage] || prompts.attack;
@@ -239,14 +256,28 @@ export default class CombatFlowController {
         if (this.tutorialState.stage === 'potion') return false;
         if (this.tutorialState.stage === 'attack') {
             this.setTutorialPrompt('先打出一次命中或暴擊，再處理傷勢。', '滑鼠左鍵 · 命中或暴擊');
+        } else if (this.tutorialState.stage === 'offhand') {
+            this.setTutorialPrompt('先在兩圈窗口內完成副手追擊。', '滑鼠右鍵 · 副手追擊');
+        } else if (this.tutorialState.stage === 'break') {
+            this.setTutorialPrompt('再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊');
         } else if (this.tutorialState.stage === 'flee') {
             this.setTutorialPrompt('補給已經用過。現在嘗試撤離。', 'F · 嘗試撤離');
         }
         return true;
     }
 
-    handleTutorialWeaponAttempt() {
-        if (!this.tutorialState || this.tutorialState.stage === 'attack') return false;
+    handleTutorialWeaponAttempt(slot) {
+        if (!this.tutorialState) return false;
+        const stage = this.tutorialState.stage;
+        const isExpected = (stage === 'attack' && slot === 'main')
+            || (stage === 'offhand' && slot === 'offhand')
+            || (stage === 'break' && slot === 'main');
+        if (isExpected) return false;
+        if (stage === 'offhand') {
+            this.setTutorialPrompt('副手窗口只維持兩圈。現在用右鍵追擊。', '滑鼠右鍵 · 副手追擊');
+        } else if (stage === 'break') {
+            this.setTutorialPrompt('再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊');
+        }
         if (this.tutorialState.stage === 'potion') {
             this.setTutorialPrompt('攻擊已經完成。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
         } else if (this.tutorialState.stage === 'flee') {
@@ -306,14 +337,53 @@ export default class CombatFlowController {
         const summary = rows.map(row => (
             `<div class="adventure-combat-reward-row"><span>${escapeHtml(row.label)}</span><strong>${escapeHtml(row.value)}</strong></div>`
         )).join('');
+        const blueprints = createRecipeBlueprintDisplayItems(rewards.blueprintUnlocks || []);
+        const blueprintCards = blueprints.map(item => {
+            const image = getGeneratedItemImage(item);
+            return `<article class="combat-blueprint-card" data-combat-blueprint-id="${escapeHtml(item.id)}">
+                <span class="combat-loot-icon">${image ? `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(item.icon || '◇')}</span>
+                <span><strong>${escapeHtml(item.name)}</strong><small>已登錄至鍛造藍圖</small></span>
+            </article>`;
+        }).join('');
         const loot = (rewards.drops || []).map((drop, index) => this.renderDropDecision(drop, index)).join('');
-        this.rewardsPanel.innerHTML = `${summary}${loot ? `<div class="combat-loot-list">${loot}</div>` : ''}`;
+        this.rewardsPanel.innerHTML = `
+            <div class="combat-settlement-summary">${summary}${blueprintCards ? `<div class="combat-blueprint-list">${blueprintCards}</div>` : ''}</div>
+            <div class="combat-settlement-columns">
+                <section><header><strong>戰利品</strong><small>決定拿取或丟棄</small></header>${loot ? `<div class="combat-loot-list">${loot}</div>` : '<p class="combat-settlement-empty">沒有物品掉落</p>'}</section>
+                ${this.renderSettlementInventory()}
+            </div>`;
         this.rewardsPanel.querySelectorAll('[data-combat-drop-index]').forEach(element => {
             const index = Number(element.dataset.combatDropIndex);
             const drop = rewards.drops?.[index];
             if (drop?.item) attachItemTooltip(element, drop.item, { quantity: drop.quantity });
         });
+        this.rewardsPanel.querySelectorAll('[data-settlement-inventory-index]').forEach(element => {
+            const stack = GameManager.getInventory()?.[Number(element.dataset.settlementInventoryIndex)];
+            if (stack?.item) attachItemTooltip(element, stack.item, { quantity: stack.quantity });
+        });
+        this.rewardsPanel.querySelectorAll('[data-combat-blueprint-id]').forEach((element, index) => {
+            if (blueprints[index]) attachItemTooltip(element, blueprints[index], { quantity: 1 });
+        });
         this.updateResultActionState();
+    }
+
+    renderSettlementInventory() {
+        const inventory = GameManager.getInventory() || [];
+        const capacity = Math.max(inventory.length, GameManager.getInventoryCapacity() || 0);
+        const slots = Array.from({ length: capacity }, (_, index) => {
+            const stack = inventory[index];
+            if (!stack) return '<span class="combat-inventory-slot is-empty" aria-hidden="true"></span>';
+            const image = getGeneratedItemImage(stack.item);
+            return `<article class="combat-inventory-slot" data-settlement-inventory-index="${index}">
+                ${image ? `<img src="${escapeHtml(image)}" alt="">` : `<span>${escapeHtml(stack.item?.icon || '◆')}</span>`}
+                <b>${Math.max(1, Number(stack.quantity) || 1)}</b>
+                <button type="button" data-settlement-discard="${escapeHtml(stack.instanceId)}" title="丟棄這一格">×</button>
+            </article>`;
+        }).join('');
+        return `<section class="combat-settlement-inventory">
+            <header><strong>背包</strong><small>${inventory.length} / ${capacity}</small></header>
+            <div class="combat-inventory-grid">${slots}</div>
+        </section>`;
     }
 
     renderDropDecision(drop, index) {
@@ -322,7 +392,7 @@ export default class CombatFlowController {
         const image = item.id ? getGeneratedItemImage(item) : '';
         const status = {
             inventory: '已放入背包',
-            warehouse: '背包已滿，送入倉庫',
+            'inventory-full': '背包已滿，請先騰出空位',
             discarded: '已丟棄',
             missing: '物品資料缺失'
         }[drop.stored] || '等待決定';
@@ -338,6 +408,12 @@ export default class CombatFlowController {
     }
 
     handleRewardClick(event) {
+        const discardInventory = event.target.closest?.('[data-settlement-discard]');
+        if (discardInventory) {
+            GameManager.discardItem(discardInventory.dataset.settlementDiscard, false, { force: true });
+            this.renderRewards(this.rewards);
+            return;
+        }
         const button = event.target.closest?.('[data-drop-decision][data-drop-index]');
         if (!button || !this.rewards?.drops) return;
         const index = Number(button.dataset.dropIndex);

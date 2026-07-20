@@ -22,6 +22,8 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { ItemUseAction, ItemUseContext } from '../data/UtilityItems.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionManager.js';
+import { questManager } from '../managers/QuestManager.js';
+import { ObjectiveType, QuestStatus } from '../data/Quests.js';
 
 const MOVE_REPEAT_MS = 80;
 
@@ -75,7 +77,6 @@ export default class AdventureScene {
         this.panels = new AdventurePanelsController(this.container, {
             onPlayerStateChange: () => this.renderPlayerStats(),
             onUseContextItem: stack => this.useContextItem(stack),
-            onDrawerOpen: type => this.handleOnboardingDrawer(type),
             getStoryHintContext: () => ({
                 discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])],
                 ...chapterOneProgressionManager.getObjectiveContext(),
@@ -118,11 +119,6 @@ export default class AdventureScene {
                     window.setTimeout(() => this.showRotrootTrialResult(
                         completedEncounter.context.chapterOneRotrootTrialId
                     ), 60);
-                } else if (phase === 'victory' && completedEncounter?.context?.chapterOneEliteId) {
-                    chapterOneProgressionManager.markEliteCleared(
-                        completedEncounter.context.chapterOneEliteId
-                    );
-                    window.setTimeout(() => this.showChapterOneEliteResult(), 60);
                 }
             },
             onSceneComplete: () => {
@@ -153,7 +149,6 @@ export default class AdventureScene {
         this.renderBossReserveList();
         await this.loadMapAssets();
         this.updateLocationUi({ forceToast: true });
-        this.updateAdventureOnboarding();
         this.requestRender();
         this.tryStartPendingFieldStory();
     }
@@ -182,11 +177,6 @@ export default class AdventureScene {
         this.devBossList = this.container.querySelector('#map-test-boss-list');
         this.devSample = this.container.querySelector('#map-test-sample');
         this.devReturnButton = this.container.querySelector('#btn-return-to-lobby');
-        this.onboarding = this.container.querySelector('#adventure-onboarding');
-        this.onboardingTitle = this.container.querySelector('#adventure-onboarding-title');
-        this.onboardingText = this.container.querySelector('#adventure-onboarding-text');
-        this.onboardingKeys = this.container.querySelector('#adventure-onboarding-keys');
-
         if (this.devPanel) this.devPanel.hidden = !this.devMode;
         if (this.devReturnButton) this.devReturnButton.hidden = !this.devMode;
     }
@@ -308,21 +298,6 @@ export default class AdventureScene {
         }
         if (this.modalOpen || this.panels?.isOpen()) return;
 
-        const lockedOnboardingStep = this.getAdventureOnboardingStep();
-        if (this.isInitialSystemOnboardingLocked()) {
-            const key = event.key.toLowerCase();
-            if (lockedOnboardingStep === 'quest' && key === 'q') {
-                event.preventDefault();
-                this.panels?.toggleDrawer('quest');
-            } else if (lockedOnboardingStep === 'inventory' && key === 'b') {
-                event.preventDefault();
-                this.panels?.toggleDrawer('inventory');
-            } else if (['q', 'b', 'f', 'enter', 'w', 'a', 's', 'd'].includes(key)) {
-                event.preventDefault();
-            }
-            return;
-        }
-
         if (event.key.toLowerCase() === 'q') {
             event.preventDefault();
             this.panels?.toggleDrawer('quest');
@@ -357,7 +332,6 @@ export default class AdventureScene {
     }
 
     move(dx, dy) {
-        if (this.isInitialSystemOnboardingLocked()) return;
         const result = this.worldMap.movePlayer(dx, dy);
         if (result.type === 'blocked' && result.gate) {
             this.showInteractionHint(result.gate, '前方道路中斷，靠近後調查。');
@@ -365,8 +339,6 @@ export default class AdventureScene {
             return;
         }
         if (result.type !== 'moved') return;
-
-        this.completeAdventureOnboardingStep('movement');
 
         if (result.enteredHabitat) this.showRegionToast(result.habitat);
         this.updateLocationUi();
@@ -380,7 +352,6 @@ export default class AdventureScene {
     }
 
     interact() {
-        if (this.isInitialSystemOnboardingLocked()) return;
         const entry = this.worldMap.getNearbyInteraction();
         if (!entry) return;
         if (entry.kind === 'town_return') {
@@ -396,6 +367,13 @@ export default class AdventureScene {
                     return false;
                 }
             });
+            return;
+        }
+
+        questManager.updateProgress(ObjectiveType.EXPLORE, entry.id, 1);
+
+        if (entry.dungeonId) {
+            this.openDungeonEntrance(entry);
             return;
         }
 
@@ -432,6 +410,35 @@ export default class AdventureScene {
                 onConfirm: entry.bossId && !authoredStoryBoss ? () => this.beginBossEncounter(entry) : null
             });
         }
+        this.updateLocationUi();
+        this.requestRender();
+    }
+
+    openDungeonEntrance(entry) {
+        const questState = questManager.getQuestState('vein_beneath_the_roots');
+        const questReady = [QuestStatus.ACTIVE, QuestStatus.COMPLETED, QuestStatus.FINISHED]
+            .includes(questState.status);
+        const firstDiscovery = this.worldMap.discoverLandmark(entry);
+        storyJournalManager.recordLocationDiscoveries(entry.id, {
+            chapter: this.worldMap.getCurrentTile()?.chapter,
+            firstDiscovery
+        });
+
+        this.openModal({
+            kicker: '副本入口',
+            title: entry.name,
+            text: questReady
+                ? (firstDiscovery ? entry.firstText : entry.repeatText)
+                : '岩縫下方傳來空洞回音，但手札還沒有足夠資訊判斷入口是否穩定。先回檔案室整理腐根溪谷的紀錄。',
+            image: this.images.get(`landmark:${entry.id}`),
+            actionLabel: questReady ? '進入幽暗洞窟' : '收起手札',
+            onConfirm: questReady ? () => {
+                this.closeModal();
+                this.app?.enterDungeon?.(entry.dungeonId);
+                return false;
+            } : null
+        });
+        this.panels?.renderStoryGuidance();
         this.updateLocationUi();
         this.requestRender();
     }
@@ -607,10 +614,6 @@ export default class AdventureScene {
 
     showInteractionHint(entry, overrideText = '') {
         if (!this.locationHint) return;
-        if (this.isInitialSystemOnboardingLocked()) {
-            this.hideInteractionHint();
-            return;
-        }
         this.locationHintTitle.textContent = this.worldMap.isLandmarkDiscovered(entry)
             ? entry.name
             : '未知地點';
@@ -758,61 +761,6 @@ export default class AdventureScene {
             return true;
         }
 
-        if (action.type === 'optional-claimed' || action.type === 'elite-cleared') {
-            this.openModal({
-                kicker: action.type === 'optional-claimed' ? '已回收' : '可選菁英已清除',
-                title: entry.name,
-                text: entry.repeatText,
-                image: this.images.get(`landmark:${entry.id}`)
-            });
-            return true;
-        }
-
-        if (action.type === 'optional-claim') {
-            this.openModal({
-                kicker: '額外材料路線',
-                title: action.route.title,
-                text: action.route.text,
-                image: this.images.get(`landmark:${entry.id}`),
-                actionLabel: '回收可用材料',
-                onConfirm: () => {
-                    this.closeModal();
-                    this.claimChapterOneSalvage(action.route.id, entry);
-                    return false;
-                }
-            });
-            return true;
-        }
-
-        if (action.type === 'elite-needs-gear') {
-            this.openModal({
-                kicker: '可選菁英',
-                title: '先換上準備好的裝備',
-                text: '黑根的麻意正沿著手臂往上爬。鐵匠整理好的武器還沒有拿在手上，現在靠近只會讓自己先失去知覺。',
-                image: this.images.get(`landmark:${entry.id}`)
-            });
-            return true;
-        }
-
-        if (action.type === 'elite-encounter') {
-            this.openModal({
-                kicker: '可選菁英',
-                title: action.route.title,
-                text: action.route.text,
-                image: this.images.get(`landmark:${entry.id}`),
-                actionLabel: '挑戰樹人',
-                onConfirm: () => {
-                    this.closeModal();
-                    this.beginEncounter({
-                        monsterId: action.route.monsterId,
-                        habitat: this.worldMap.getCurrentHabitat()
-                    }, { context: { chapterOneEliteId: action.route.id } });
-                    return false;
-                }
-            });
-            return true;
-        }
-
         if (action.type === 'rotroot-needs-gear') {
             this.openModal({
                 kicker: '黑根深處',
@@ -827,21 +775,7 @@ export default class AdventureScene {
         }
 
         if (action.type === 'rotroot-trial') {
-            this.openModal({
-                kicker: '沿根脈深入',
-                title: action.trial.title,
-                text: action.trial.text,
-                image: this.images.get(`landmark:${entry.id}`),
-                actionLabel: '進入腐根區',
-                onConfirm: () => {
-                    this.closeModal();
-                    this.beginEncounter({
-                        monsterId: action.trial.monsterId,
-                        habitat: this.worldMap.getCurrentHabitat()
-                    }, { context: { chapterOneRotrootTrialId: action.trial.id } });
-                    return false;
-                }
-            });
+            this.openRotrootTrial(action.trial);
             return true;
         }
 
@@ -881,7 +815,6 @@ export default class AdventureScene {
         }
         const progression = chapterOneProgressionManager.completeEvidence(investigationId);
         this.panels?.renderStoryGuidance();
-        this.updateAdventureOnboarding();
         this.updateLocationUi();
         this.requestRender();
 
@@ -889,32 +822,6 @@ export default class AdventureScene {
             && storySceneManager.getNextAvailableSceneId() === 'ch1_s06_three_landmarks') {
             window.setTimeout(() => this.startMapStoryScene('ch1_s06_three_landmarks'), 60);
         }
-    }
-
-    claimChapterOneSalvage(routeId, entry) {
-        const result = chapterOneProgressionManager.claimOptionalRewards(routeId);
-        if (!result.success) return false;
-        this.worldMap.discoverLandmark(entry);
-        this.panels?.renderStoryGuidance();
-        this.openModal({
-            kicker: '材料已入庫',
-            title: entry.name,
-            text: result.recovered.length
-                ? `${result.recovered.join('、')}。這是額外支援；其餘武器、護甲與特殊工藝仍需自行狩獵。`
-                : '補給袋裡沒有可辨識的材料。',
-            image: this.images.get(`landmark:${entry.id}`)
-        });
-        return true;
-    }
-
-    showChapterOneEliteResult() {
-        this.panels?.renderStoryGuidance();
-        this.openModal({
-            kicker: '可選菁英完成',
-            title: '根哨林隙重新安靜',
-            text: '樹人倒下後，偏離主路的根脈仍被牠壓在鬆土下。古樹皮與生命種子可以帶回城裡，但牠守著的不是根脈匯流方向。',
-            image: this.images.get('landmark:rootwatch_grove')
-        });
     }
 
     showRotrootTrialResult(trialId) {
@@ -930,93 +837,35 @@ export default class AdventureScene {
                 : '石殼散開後，底下只有被向上頂裂的岩層。黑根沒有在這裡停下，仍一下一下朝北收縮；真正承受壓力的地方還在前面。',
             image: this.images.get('landmark:rotroot_ravine'),
             actionLabel: next ? '繼續沿根脈前進' : '整理根脈證據',
-            onConfirm: !next ? () => {
+            onConfirm: () => {
                 this.closeModal();
-                this.startMapStoryScene('ch1_s09_rotroot_approach', {
+                if (next) this.openRotrootTrial(next);
+                else this.startMapStoryScene('ch1_s09_rotroot_approach', {
                     entry: OverworldMapConfig.landmarks.find(item => item.id === 'rotroot_ravine')
                 });
                 return false;
-            } : null
+            }
         });
     }
 
-    isAdventureOnboardingAvailable() {
-        return storySceneManager.isPrologueTutorialResolved()
-            && storySceneManager.isSceneComplete('ch1_s05_south_gate_introduction');
-    }
-
-    getAdventureOnboardingStep() {
-        return chapterOneProgressionManager.getAdventureOnboardingStep({
-            available: this.isAdventureOnboardingAvailable()
+    openRotrootTrial(trial) {
+        if (!trial) return false;
+        this.openModal({
+            kicker: '沿根脈深入',
+            title: trial.title,
+            text: trial.text,
+            image: this.images.get('landmark:rotroot_ravine'),
+            actionLabel: '繼續深入',
+            onConfirm: () => {
+                this.closeModal();
+                this.beginEncounter({
+                    monsterId: trial.monsterId,
+                    habitat: this.worldMap.getCurrentHabitat()
+                }, { context: { chapterOneRotrootTrialId: trial.id } });
+                return false;
+            }
         });
-    }
-
-    isInitialSystemOnboardingLocked() {
-        const step = this.getAdventureOnboardingStep();
-        return step === 'quest' || step === 'inventory';
-    }
-
-    completeAdventureOnboardingStep(step) {
-        if (!chapterOneProgressionManager.completeAdventureOnboardingStep(step)) return;
-        this.updateAdventureOnboarding();
-    }
-
-    handleOnboardingDrawer(type) {
-        if (type === 'quest') this.completeAdventureOnboardingStep('quest');
-        if (type === 'inventory') this.completeAdventureOnboardingStep('inventory');
-    }
-
-    updateAdventureOnboarding() {
-        if (!this.onboarding) return;
-        const questButton = this.container.querySelector('#btn-adventure-quests');
-        const inventoryButton = this.container.querySelector('#btn-adventure-inventory');
-        questButton?.classList.remove('is-tutorial-target');
-        inventoryButton?.classList.remove('is-tutorial-target');
-        if (questButton) questButton.disabled = false;
-        if (inventoryButton) inventoryButton.disabled = false;
-        this.container.classList.remove('is-onboarding-locked');
-
-        if (!this.isAdventureOnboardingAvailable()) {
-            this.onboarding.hidden = true;
-            return;
-        }
-
-        const onboardingStep = this.getAdventureOnboardingStep();
-        let step = null;
-        if (onboardingStep === 'quest') {
-            step = {
-                title: '查看任務與線索',
-                text: '開啟右上角「任務」，查看離開南門後要追查的第一段線索。',
-                target: questButton
-            };
-            if (inventoryButton) inventoryButton.disabled = true;
-        } else if (onboardingStep === 'inventory') {
-            step = {
-                title: '檢查背包',
-                text: '開啟右上角「背包」，確認米婭準備的三瓶應急藥。',
-                target: inventoryButton
-            };
-            if (questButton) questButton.disabled = true;
-        } else if (onboardingStep === 'movement') {
-            step = {
-                title: '離開南門入口',
-                text: '使用 WASD 朝任務紀錄指出的方向移動。',
-                keys: true
-            };
-        }
-
-        if (!step) {
-            this.onboarding.hidden = true;
-            return;
-        }
-        this.onboarding.hidden = false;
-        this.onboardingTitle.textContent = step.title;
-        this.onboardingText.textContent = step.text;
-        this.onboardingKeys.hidden = !step.keys;
-        step.target?.classList.add('is-tutorial-target');
-        this.container.classList.toggle('is-onboarding-locked', this.isInitialSystemOnboardingLocked());
-        if (this.isInitialSystemOnboardingLocked()) this.hideInteractionHint();
-        else this.updateLocationUi();
+        return true;
     }
 
     handleDevAction(action) {

@@ -8,24 +8,63 @@
 
 export const ChapterOneProgressFlag = Object.freeze({
     MANTIS_RECOVERY_CLAIMED: 'story.ch1.mantis_recovery_claimed',
-    ROTROOT_ELITE_CLEARED: 'story.ch1.rotroot_elite_cleared',
-    ROTROOT_SALVAGE_CLAIMED: 'story.ch1.rotroot_salvage_claimed',
     HOME_RECOVERY_KNOWN: 'tutorial.adventure.homeRecoveryKnown',
     FIRST_REPORT_PENDING: 'story.ch1.first_report_pending',
-    FIRST_REPORT_COMPLETE: 'story.ch1.first_report_complete'
+    FIRST_REPORT_COMPLETE: 'story.ch1.first_report_complete',
+    CLOSING_GATE_COMPLETE: 'story.ch1.closing.gate_complete',
+    CLOSING_ARCHIVE_COMPLETE: 'story.ch1.closing.archive_complete',
+    CLOSING_MIA_COMPLETE: 'story.ch1.closing.mia_complete',
+    CLOSING_FORGE_COMPLETE: 'story.ch1.closing.forge_complete',
+    CLOSING_CROSSROADS_COMPLETE: 'story.ch1.closing.crossroads_complete'
 });
 
-export const AdventureOnboardingStep = Object.freeze({
-    QUEST: 'quest',
-    INVENTORY: 'inventory',
-    MOVEMENT: 'movement'
-});
-
-export const AdventureOnboardingFlag = Object.freeze({
-    [AdventureOnboardingStep.QUEST]: 'tutorial.adventure.questOpened',
-    [AdventureOnboardingStep.INVENTORY]: 'tutorial.adventure.inventoryOpened',
-    [AdventureOnboardingStep.MOVEMENT]: 'tutorial.adventure.wasdMoved'
-});
+export const ChapterOneClosingReportStages = Object.freeze([
+    Object.freeze({
+        id: 'gate_return',
+        flag: ChapterOneProgressFlag.CLOSING_GATE_COMPLETE,
+        checkpointId: 'gate_return',
+        placeId: 'gate',
+        actorId: 'standard_bearer_frey',
+        title: '先讓南門知道你回來了',
+        text: '前往南門，讓芙蕾登記回程時間，也看看塔維重新點亮的回程燈。'
+    }),
+    Object.freeze({
+        id: 'archive_report',
+        flag: ChapterOneProgressFlag.CLOSING_ARCHIVE_COMPLETE,
+        checkpointId: 'archive_report',
+        placeId: 'handbook',
+        actorId: 'town_scholar',
+        title: '把守護者與源頭分開記錄',
+        text: '前往檔案室，把森林守護者倒下後仍向北搏動的根脈交給伊萊與村長判讀。'
+    }),
+    Object.freeze({
+        id: 'mia_check',
+        flag: ChapterOneProgressFlag.CLOSING_MIA_COMPLETE,
+        checkpointId: 'mia_check',
+        placeId: 'mia_workroom',
+        actorId: 'herbalist',
+        title: '讓米婭完成回程檢查',
+        text: '前往米婭的工作室，確認南路麻痺是否真的退去。'
+    }),
+    Object.freeze({
+        id: 'forge_recovery',
+        flag: ChapterOneProgressFlag.CLOSING_FORGE_COMPLETE,
+        checkpointId: 'forge_recovery',
+        placeId: 'forge',
+        actorId: 'blacksmith',
+        title: '去看重新升起的爐火',
+        text: '前往鐵匠鋪。恢復的爐火正在處理城鎮第一批積欠的修繕。'
+    }),
+    Object.freeze({
+        id: 'crossroads_hint',
+        flag: ChapterOneProgressFlag.CLOSING_CROSSROADS_COMPLETE,
+        checkpointId: 'crossroads_hint',
+        placeId: 'crossroads',
+        actorId: 'street_beggar',
+        title: '回到路開始分岔的地方',
+        text: '回到裂痕廣場。空箱與斷掉的運貨繩旁，乞丐似乎正看著與所有人不同的方向。'
+    })
+]);
 
 export const ChapterOneRequirement = Object.freeze({
     QUALIFYING_GEAR_OWNED: 'chapter1.qualifying_gear_owned'
@@ -112,26 +151,6 @@ export const ChapterOneMantisRecovery = Object.freeze({
     ])
 });
 
-export const ChapterOneOptionalRoutes = Object.freeze({
-    rotroot_salvage: Object.freeze({
-        id: 'rotroot_salvage',
-        claimFlag: ChapterOneProgressFlag.ROTROOT_SALVAGE_CLAIMED,
-        title: '被根脈抬起的舊補給袋',
-        text: '腐根把一只舊補給袋頂出土面。凝膠封住了袋口，裡面的粗鐵仍能回爐。這些材料不足以再免費做完一整套裝備，但能縮短下一次狩獵。',
-        guaranteedRewards: Object.freeze([
-            { itemId: 'slime_jelly', quantity: 2, reason: '腐根岔路回收' },
-            { itemId: 'iron_ore', quantity: 1, reason: '腐根岔路回收' }
-        ])
-    }),
-    rootwatch_grove: Object.freeze({
-        id: 'rootwatch_grove',
-        monsterId: 'treant',
-        clearFlag: ChapterOneProgressFlag.ROTROOT_ELITE_CLEARED,
-        title: '根哨樹人',
-        text: '一隻樹人停在偏離主路的根脈上，反覆把鬆土壓回原位。可以繞開，也可以靠近確認牠究竟在守護什麼。'
-    })
-});
-
 export const ChapterOneSpecialGearIds = Object.freeze([
     'slime_sword',
     'wolf_fang_blade',
@@ -189,6 +208,7 @@ export function readChapterOneObjectiveContext(readFlag) {
         chapterOneRotrootTrialId: getNextChapterOneRotrootTrial(readFlag)?.id || null,
         chapterOneHomeRecoveryKnown: Boolean(readFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)),
         chapterOneFirstReportPending: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING)),
-        chapterOneFirstReportComplete: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE))
+        chapterOneFirstReportComplete: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)),
+        chapterOneClosingReportStage: ChapterOneClosingReportStages.find(stage => !readFlag(stage.flag)) || null
     });
 }

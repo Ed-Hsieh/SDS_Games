@@ -3,7 +3,6 @@ import {
     getGeneratedTownPlaceImage,
     getGeneratedWorldMapImage
 } from './AssetManifest.js';
-import { ChapterOneRequirement } from './ChapterOneProgression.js';
 import { getChapterLocation, getChapterRegion } from './ChapterRegionRegistry.js';
 
 export const OVERWORLD_ID = 'frontier_overworld_v2';
@@ -171,15 +170,10 @@ const ChapterOneLandmarkPresentation = Object.freeze({
         firstText: '發黑樹皮沿著溪谷向北收縮，森林深處的根心正承受不屬於此地的壓力。',
         repeatText: '黑根仍向北收縮，手札已把方向與古樹根心連在一起。'
     },
-    rotroot_salvage: {
-        progressionRequirement: ChapterOneRequirement.QUALIFYING_GEAR_OWNED,
-        firstText: '腐根把一只舊補給袋頂出土面，凝膠封住的粗鐵還能回爐。',
-        repeatText: '補給袋已清空；想再製作其他裝備，需要狩獵附近怪物。'
-    },
-    rootwatch_grove: {
-        progressionRequirement: ChapterOneRequirement.QUALIFYING_GEAR_OWNED,
-        firstText: '偏離主路的根脈旁，一隻樹人正用纏根封住林隙。',
-        repeatText: '樹人的根痕仍留在林隙，但通道已經安靜。'
+    split_vein_cave: {
+        storyFlag: 'quest.vein_beneath_the_roots.accepted',
+        firstText: '黑根從裂開的岩縫垂進地下，碰到石壁後傳回比根室更深的回音。舊木樁上留著礦工刻痕；這是一條被地脈震裂後重新露出的礦道。',
+        repeatText: '幽暗洞窟入口仍在腐根側路下方。進入前應備妥火把、藥水與可長時間作戰的裝備。'
     },
     old_wolf_den: {
         storyFlag: 'story.ch1.forest_guardian_active',
@@ -232,6 +226,7 @@ function createChapterLandmarks(chapter, presentations) {
             y,
             imageId: node.imageId,
             bossId: node.bossId,
+            dungeonId: node.dungeonId || null,
             sceneIds: node.sceneIds
         });
     });

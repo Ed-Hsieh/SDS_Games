@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-19
+Last updated: 2026-07-20
 
 ## Purpose
 
@@ -189,6 +189,14 @@ Novelistic prose must still tell the player what to do.
 
 Accepted story prose must be visible in the actual game, not only in planning
 notes.
+
+For layered half-body dialogue, all present actors begin fully lit before the
+first named speaker. Once a speaker takes the floor, that actor is emphasized
+and the others dim in their current expressions; they must not revert to a
+default expression merely because another actor is speaking. A mainline or side
+story interaction must expose an explicit player-facing topic choice when an NPC
+also has ordinary conversation, so story activation is never hidden inside a
+generic greeting.
 
 For quest-opening and quest-report scenes, write in this order:
 

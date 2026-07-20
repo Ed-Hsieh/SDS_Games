@@ -1,0 +1,38 @@
+<main class="guild-tutorial-scene">
+    <header class="guild-tutorial-header">
+        <div><span>ADVENTURERS' GUILD</span><h1>南境冒險者公會</h1></div>
+        <div class="guild-tutorial-progress"><span>出發準備</span><strong id="guild-step-count">1 / 7</strong></div>
+    </header>
+
+    <section class="guild-room" id="guild-room" tabindex="0" aria-label="公會大廳教學場景">
+        <div class="guild-room-backdrop" aria-hidden="true"></div>
+        <button class="guild-point guild-clerk" data-guild-point="clerk" type="button"><span>櫃台人員</span><small>F 交談</small></button>
+        <button class="guild-point guild-board" data-guild-point="board" type="button"><span>委託板</span><small>F 查看</small></button>
+        <button class="guild-point guild-rack" data-guild-point="rack" type="button"><span>訓練裝備架</span><small>F 整備</small></button>
+        <button class="guild-point guild-exit" data-guild-point="exit" type="button"><span>南境出口</span><small>F 出發</small></button>
+        <div class="guild-player" id="guild-player" aria-label="玩家位置"><span></span></div>
+        <aside class="guild-interaction-hint" id="guild-interaction-hint" hidden><kbd>F</kbd><div><strong></strong><span></span></div></aside>
+    </section>
+
+    <aside class="guild-tutorial-panel" aria-live="polite">
+        <span>目前步驟</span>
+        <h2 id="guild-step-title">先熟悉腳步</h2>
+        <p id="guild-step-text">使用 WASD 在公會大廳移動。</p>
+        <div class="guild-key-row" id="guild-key-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
+        <div class="guild-tools" id="guild-tools" hidden>
+            <button id="guild-open-commission" type="button">委託</button>
+            <button id="guild-open-clue" type="button">線索</button>
+            <button id="guild-open-equipment" type="button">裝備</button>
+        </div>
+    </aside>
+
+    <div class="guild-modal" id="guild-modal" hidden>
+        <section role="dialog" aria-modal="true" aria-labelledby="guild-modal-title">
+            <button class="guild-modal-close" id="guild-modal-close" type="button" aria-label="關閉">×</button>
+            <span id="guild-modal-kicker">公會教學</span>
+            <h2 id="guild-modal-title"></h2>
+            <div id="guild-modal-body"></div>
+        </section>
+    </div>
+</main>
+

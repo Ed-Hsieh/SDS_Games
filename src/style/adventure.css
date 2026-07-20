@@ -512,86 +512,6 @@
     line-height: 1.5;
 }
 
-.adventure-onboarding {
-    position: absolute;
-    z-index: 18;
-    bottom: 22px;
-    left: 50%;
-    display: grid;
-    width: 390px;
-    gap: 5px;
-    padding: 14px 18px;
-    border: 1px solid rgba(216, 185, 104, 0.52);
-    border-radius: 4px;
-    background: rgba(7, 10, 10, 0.94);
-    box-shadow: 0 18px 46px rgba(0, 0, 0, 0.52);
-    transform: translateX(-50%);
-    pointer-events: none;
-}
-
-.adventure-onboarding[hidden] {
-    display: none;
-}
-
-.adventure-onboarding > span {
-    color: var(--adventure-gold);
-    font-size: 10px;
-    font-weight: 800;
-}
-
-.adventure-onboarding strong {
-    color: #f3efe3;
-    font-size: 14px;
-}
-
-.adventure-onboarding p {
-    margin: 0;
-    color: #abb5b0;
-    font-size: 11px;
-    line-height: 1.5;
-}
-
-.adventure-onboarding-keys {
-    display: flex;
-    gap: 5px;
-    margin-top: 4px;
-}
-
-.adventure-onboarding-keys[hidden] {
-    display: none;
-}
-
-.adventure-onboarding-keys kbd {
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    border: 1px solid rgba(216, 185, 104, 0.46);
-    border-bottom-width: 3px;
-    border-radius: 3px;
-    background: #161b19;
-    color: #f0e6c8;
-    font: 700 12px Rajdhani, sans-serif;
-}
-
-.adventure-tool-button.is-tutorial-target {
-    border-color: #e2bd62;
-    box-shadow: 0 0 0 2px rgba(226, 189, 98, 0.18), 0 0 22px rgba(226, 189, 98, 0.24);
-    color: #fff0be;
-    animation: adventure-tutorial-breathe 1.45s ease-in-out infinite;
-}
-
-@keyframes adventure-tutorial-breathe {
-    0%, 100% {
-        border-color: rgba(226, 189, 98, 0.62);
-        box-shadow: 0 0 0 1px rgba(226, 189, 98, 0.12), 0 0 10px rgba(226, 189, 98, 0.12);
-    }
-    50% {
-        border-color: #f2cf76;
-        box-shadow: 0 0 0 3px rgba(226, 189, 98, 0.2), 0 0 28px rgba(226, 189, 98, 0.42);
-    }
-}
-
 .adventure-system-drawer {
     position: fixed;
     z-index: 70;
@@ -797,7 +717,7 @@
 }
 
 .adventure-combat-shell .combat-result {
-    width: min(520px, 52vw);
+    width: min(900px, 76vw);
 }
 
 .adventure-combat-rewards {

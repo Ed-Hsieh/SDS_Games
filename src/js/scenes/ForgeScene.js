@@ -1056,15 +1056,19 @@ export default class ForgeScene {
             this.dom.repairMissing.textContent = `${requirement.missing}`;
         }
         if (this.dom.repairCost) {
-            this.dom.repairCost.textContent = `${requirement.gold} 金幣`;
+            this.dom.repairCost.textContent = requirement.freeRepair ? '支線回饋：本次免費' : `${requirement.gold} 金幣`;
             this.dom.repairCost.className = `cost-value ${status.hasGold ? '' : 'not-enough'}`;
         }
         if (this.dom.repairMaterialCost) {
-            this.dom.repairMaterialCost.innerHTML = this.formatRepairMaterials(requirement.materials);
+            this.dom.repairMaterialCost.innerHTML = requirement.freeRepair
+                ? '<span class="forge-free-repair-note">不消耗材料</span>'
+                : this.formatRepairMaterials(requirement.materials);
             this.dom.repairMaterialCost.className = `cost-value ${status.hasMaterials ? '' : 'not-enough'}`;
         }
         if (this.dom.repairMaterialHints) {
-            this.dom.repairMaterialHints.innerHTML = this.formatRepairMaterials(requirement.materials, true);
+            this.dom.repairMaterialHints.innerHTML = requirement.freeRepair
+                ? '「鍋蓋不是盾」提供一次普通或進階裝備的免費維修。'
+                : this.formatRepairMaterials(requirement.materials, true);
         }
         if (this.dom.btnRepairEquipment) {
             this.dom.btnRepairEquipment.disabled = !status.ok;

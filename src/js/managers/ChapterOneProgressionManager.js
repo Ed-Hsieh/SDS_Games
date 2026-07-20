@@ -3,11 +3,9 @@ import { storySceneManager } from './StorySceneManager.js';
 import { markItemKnown } from './EncyclopediaManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import {
-    AdventureOnboardingFlag,
-    AdventureOnboardingStep,
+    ChapterOneClosingReportStages,
     ChapterOneInvestigations,
     ChapterOneMantisRecovery,
-    ChapterOneOptionalRoutes,
     ChapterOneProgressFlag,
     ChapterOneRequirement,
     ChapterOneRotrootTrials,
@@ -43,24 +41,6 @@ class ChapterOneProgressionManager {
             chapterOneGearReady: Boolean(this.getOwnedGearQualification()),
             chapterOneGearEquipped: Boolean(this.getEquippedGearQualification())
         });
-    }
-
-    getAdventureOnboardingStep({ available = false } = {}) {
-        if (!available) return null;
-        for (const step of [
-            AdventureOnboardingStep.QUEST,
-            AdventureOnboardingStep.INVENTORY,
-            AdventureOnboardingStep.MOVEMENT
-        ]) {
-            if (!this.readFlag(AdventureOnboardingFlag[step])) return step;
-        }
-        return null;
-    }
-
-    completeAdventureOnboardingStep(step) {
-        const flag = AdventureOnboardingFlag[step];
-        if (!flag) return false;
-        return this.setFlag(flag, true);
     }
 
     getOwnedGearQualification() {
@@ -122,23 +102,6 @@ class ChapterOneProgressionManager {
             return Object.freeze({ type: 'investigation-encounter', investigation });
         }
 
-        const optionalRoute = ChapterOneOptionalRoutes[entryId];
-        if (optionalRoute?.claimFlag) {
-            return Object.freeze({
-                type: this.readFlag(optionalRoute.claimFlag) ? 'optional-claimed' : 'optional-claim',
-                route: optionalRoute
-            });
-        }
-        if (optionalRoute?.clearFlag) {
-            if (this.readFlag(optionalRoute.clearFlag)) {
-                return Object.freeze({ type: 'elite-cleared', route: optionalRoute });
-            }
-            if (!this.getEquippedGearQualification()) {
-                return Object.freeze({ type: 'elite-needs-gear', route: optionalRoute });
-            }
-            return Object.freeze({ type: 'elite-encounter', route: optionalRoute });
-        }
-
         if (entryId === 'rotroot_ravine'
             && !storySceneManager.isSceneComplete('ch1_s09_rotroot_approach')) {
             const ownedGear = this.getOwnedGearQualification();
@@ -196,6 +159,20 @@ class ChapterOneProgressionManager {
 
     completeHomeRecovery() {
         this.setFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN, true);
+    }
+
+    getClosingReportStage() {
+        return ChapterOneClosingReportStages.find(stage => !this.readFlag(stage.flag)) || null;
+    }
+
+    completeClosingReportStage(stageId) {
+        const current = this.getClosingReportStage();
+        if (!current || current.id !== stageId) {
+            return Object.freeze({ success: false, stage: current, complete: !current });
+        }
+        this.setFlag(current.flag, true);
+        const next = this.getClosingReportStage();
+        return Object.freeze({ success: true, stage: current, next, complete: !next });
     }
 
     completeEvidence(investigationId) {
@@ -262,26 +239,6 @@ class ChapterOneProgressionManager {
             ],
             drops: [...(rewards.drops || []), ...this.storeGuaranteedRewards(source)]
         };
-    }
-
-    claimOptionalRewards(routeId) {
-        const route = ChapterOneOptionalRoutes[routeId];
-        if (!route?.claimFlag || this.readFlag(route.claimFlag)) {
-            return Object.freeze({ success: false, recovered: [] });
-        }
-
-        const recovered = this.storeGuaranteedRewards(route)
-            .filter(drop => drop.stored !== 'missing')
-            .map(drop => `${drop.item.name} ×${drop.quantity}`);
-        this.setFlag(route.claimFlag, true);
-        return Object.freeze({ success: true, recovered });
-    }
-
-    markEliteCleared(routeId) {
-        const route = ChapterOneOptionalRoutes[routeId];
-        if (!route?.clearFlag) return false;
-        this.setFlag(route.clearFlag, true);
-        return true;
     }
 
     completeRotrootTrial(trialId) {

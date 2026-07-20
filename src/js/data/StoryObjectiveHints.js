@@ -1,6 +1,7 @@
 import { getStoryScene } from './StorySceneRegistry.js';
 import { getSceneRegionBinding } from './ChapterRegionRegistry.js';
 import {
+    ChapterOneClosingReportStages,
     ChapterOneInvestigationOrder,
     ChapterOneInvestigations,
     ChapterOneRotrootTrials
@@ -128,10 +129,18 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         text: '前往古樹根心，面對封鎖道路的森林守衛。'
     },
     ch1_s11_roads_breathe_again: {
-        title: '帶回道路結果',
-        text: '返回村鎮十字路口，交代森林守衛與道路恢復狀況。',
-        placeId: 'crossroads',
-        actorId: 'village_elder'
+        title: ({ chapterOneClosingReportStage = null } = {}) => (
+            chapterOneClosingReportStage?.title || '第一章道路結案'
+        ),
+        text: ({ chapterOneClosingReportStage = null } = {}) => (
+            chapterOneClosingReportStage?.text || '第一章道路結果已完成分段回報。'
+        ),
+        placeId: ({ chapterOneClosingReportStage = null } = {}) => (
+            chapterOneClosingReportStage?.placeId || ChapterOneClosingReportStages[0].placeId
+        ),
+        actorId: ({ chapterOneClosingReportStage = null } = {}) => (
+            chapterOneClosingReportStage?.actorId || ChapterOneClosingReportStages[0].actorId
+        )
     },
     ch2_s01_empty_crates: {
         title: '檢查空箱與貨印',

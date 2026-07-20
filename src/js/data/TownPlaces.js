@@ -37,6 +37,20 @@ export const TownPlaceDatabase = [
                         ]
                     }
                 }
+            },
+            {
+                npcId: 'street_beggar',
+                label: '乞丐',
+                role: '看著錯誤方向的人',
+                portrait: portrait('street_beggar'),
+                position: { x: 69, y: 61 },
+                when: {
+                    all: [
+                        sceneComplete('ch1_s10_forest_guardian'),
+                        { flag: 'story.ch1.closing.forge_complete' },
+                        { sceneIncomplete: 'ch1_s11_roads_breathe_again' }
+                    ]
+                }
             }
         ],
         actions: [
@@ -271,6 +285,22 @@ export const TownPlaceDatabase = [
         ],
         actions: [
             {
+                type: 'interaction',
+                id: 'tavi_lamp_clasps',
+                label: '整理燈罩扣',
+                shortLabel: '扣件',
+                icon: '+',
+                imageId: 'road_sign',
+                description: '三組尺寸不同的扣件被混在南門工具箱裡。',
+                position: { x: 55, y: 72 },
+                when: {
+                    all: [
+                        { flag: 'quest.lamp_glass_for_every_door.accepted' },
+                        { not: { flag: 'quest.lamp_glass_for_every_door.finished' } }
+                    ]
+                }
+            },
+            {
                 type: 'route',
                 route: 'adventure',
                 label: '離開城鎮',
@@ -344,6 +374,22 @@ export const TownPlaceDatabase = [
             }
         ],
         actions: [
+            {
+                type: 'interaction',
+                id: 'blacksmith_pot_lid',
+                label: '檢查凹陷鍋蓋',
+                shortLabel: '鍋蓋',
+                icon: '+',
+                imageId: 'ore_vein',
+                description: '先辨認落石撞擊順序，再決定回火與敲擊位置。',
+                position: { x: 58, y: 71 },
+                when: {
+                    all: [
+                        { flag: 'quest.pot_lid_is_not_a_shield.accepted' },
+                        { not: { flag: 'quest.pot_lid_is_not_a_shield.finished' } }
+                    ]
+                }
+            },
             {
                 type: 'route',
                 route: 'forge',

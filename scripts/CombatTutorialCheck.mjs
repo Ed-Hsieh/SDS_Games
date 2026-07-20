@@ -34,6 +34,9 @@ check(
 for (const requiredId of ['player-buff-list', 'player-debuff-list', 'monster-status-row']) {
     check(sharedCombatView.includes(`id="${requiredId}"`), `Shared combat stage is missing #${requiredId}`);
 }
+for (const requiredId of ['flee-cooldown-ring', 'flee-cooldown-value']) {
+    check(sharedCombatView.includes(`id="${requiredId}"`), `Shared combat stage is missing #${requiredId}`);
+}
 check(
     combatFlowSource.includes('applyEffect: false')
         && combatFlowSource.includes('notifyType: false')
@@ -110,10 +113,14 @@ const tutorial = Object.create(CombatFlowController.prototype);
 tutorial.tutorialState = { stage: 'attack', complete: false };
 tutorial.setTutorialPrompt = () => {};
 let forcedChargeCount = 0;
-tutorial.lab = { forceMonsterAttack: id => {
-    if (id === 'prologue_stag_charge') forcedChargeCount += 1;
-    return true;
-} };
+tutorial.encounter = { loadout: { main: { name: '公會制式獵刀' } } };
+tutorial.lab = {
+    forceMonsterAttack: id => {
+        if (id === 'prologue_stag_charge') forcedChargeCount += 1;
+        return true;
+    },
+    handleWeaponBroken: () => true
+};
 
 tutorial.updateTutorial({ type: 'player:miss' });
 check(tutorial.tutorialState.stage === 'attack', 'Miss incorrectly completed the attack lesson');
@@ -122,9 +129,16 @@ check(tutorial.tutorialState.stage === 'attack', 'Early potion input advanced th
 check(tutorial.handleTutorialFleeAttempt(), 'Early flee input was not intercepted');
 check(tutorial.tutorialState.stage === 'attack', 'Early flee input advanced the tutorial');
 
-tutorial.updateTutorial({ type: 'player:hit', critical: true });
-check(tutorial.tutorialState.stage === 'potion', 'Hit or critical did not advance to the potion lesson');
-check(tutorial.handleTutorialWeaponAttempt(), 'Weapon input was not locked after the attack lesson');
+tutorial.updateTutorial({ type: 'player:hit', slot: 'main', critical: true });
+check(tutorial.tutorialState.stage === 'offhand', 'Main-hand hit did not advance to the offhand lesson');
+check(tutorial.handleTutorialWeaponAttempt('main'), 'Main-hand input was not locked during the offhand lesson');
+check(tutorial.handleTutorialWeaponAttempt('offhand') === false, 'Offhand input was blocked during the offhand lesson');
+tutorial.updateTutorial({ type: 'player:hit', slot: 'offhand' });
+check(tutorial.tutorialState.stage === 'break', 'Offhand hit did not advance to the durability lesson');
+check(tutorial.handleTutorialWeaponAttempt('main') === false, 'Main-hand input was blocked during the durability lesson');
+tutorial.updateTutorial({ type: 'player:hit', slot: 'main' });
+check(tutorial.tutorialState.stage === 'potion', 'Durability lesson did not advance to the potion lesson');
+check(tutorial.handleTutorialWeaponAttempt('main'), 'Weapon input was not locked after the durability lesson');
 check(tutorial.handleTutorialPotionAttempt() === false, 'Potion was blocked during the potion lesson');
 tutorial.updateTutorial({ type: 'player:potion' });
 check(tutorial.tutorialState.stage === 'flee', 'Potion did not advance to the flee lesson');
@@ -138,7 +152,7 @@ const failedEscapeEvents = [];
 const failedEscapeSession = new RealtimeCombatSession({
     player: { maxHp: 100, hp: 100, potions: 0 },
     monster: { maxHp: 100, attacks: [{ id: 'normal', damage: 1, telegraph: 1 }] },
-    fleeChance: 0.35,
+    fleeChance: 0.5,
     fleeCooldown: 2,
     random: () => 0.9
 });
@@ -153,7 +167,7 @@ failedEscapeSession.destroy();
 const successfulEscapeSession = new RealtimeCombatSession({
     player: { maxHp: 100, hp: 100, potions: 0 },
     monster: { maxHp: 100, attacks: [{ id: 'normal', damage: 1, telegraph: 1 }] },
-    fleeChance: 0.35,
+    fleeChance: 0.5,
     random: () => 0.1
 });
 successfulEscapeSession.start();

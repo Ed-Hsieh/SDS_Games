@@ -1,6 +1,8 @@
 import { getStoryObjectiveHint } from '../data/StoryObjectiveHints.js';
 import { storySceneManager } from './StorySceneManager.js';
 import { chapterOneProgressionManager } from './ChapterOneProgressionManager.js';
+import GameManager from './GameManager.js';
+import { GuildTutorialFlag } from '../data/GuildTutorial.js';
 
 class StoryGuidanceManager {
     getCurrent(context = {}) {
@@ -38,6 +40,10 @@ class StoryGuidanceManager {
     getTownNpcAction(npcId, context = {}) {
         const directive = this.getCurrent(context);
         if (directive?.actorId === npcId) {
+            if (directive.sceneId === 'ch1_s11_roads_breathe_again') {
+                const stage = chapterOneProgressionManager.getClosingReportStage();
+                return Object.freeze({ type: 'chapter-one-closing-report', stage, directive });
+            }
             if (npcId === 'standard_bearer_frey'
                 && directive.sceneId === 'ch1_s06_three_landmarks'
                 && chapterOneProgressionManager.isFirstReportPending()) {
@@ -58,6 +64,10 @@ class StoryGuidanceManager {
     }
 
     getInitialTownAction() {
+        if (!GameManager.getFlag(GuildTutorialFlag.COMPLETE)
+            && storySceneManager.getNextAvailableSceneId() === 'ch1_s01_road_collapse') {
+            return Object.freeze({ type: 'navigate', route: 'guild' });
+        }
         if (chapterOneProgressionManager.shouldStartFirstReport()) {
             return Object.freeze({ type: 'chapter-one-first-report' });
         }

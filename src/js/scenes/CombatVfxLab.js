@@ -354,7 +354,7 @@ export class CombatVfxLab {
                 attacks: monster.attacks
             },
             loadout: this.getLoadout(),
-            fleeChance: this.options.fleeChance ?? 0.35,
+            fleeChance: this.options.fleeChance ?? 0.5,
             fleeCooldown: this.options.fleeCooldown ?? 2,
             tempo: Number(this.root.querySelector('#tempo-control')?.value || 100) / 100
         };
@@ -945,6 +945,7 @@ export class CombatVfxLab {
         this.root.querySelector('#player-max-hp').textContent = snapshot.player.maxHp;
         this.root.querySelector('#potion-count').textContent = snapshot.player.potions;
         this.renderPotionCooldown(snapshot.cooldowns.potion, 1.2);
+        this.renderFleeCooldown(snapshot.cooldowns.flee, this.session?.config?.fleeCooldown || 2);
         this.renderWeaponDurability('main');
         this.renderWeaponDurability('offhand');
         this.renderBuffs(snapshot.player.buffs || []);
@@ -1033,6 +1034,18 @@ export class CombatVfxLab {
         const ratio = clamp(remaining / Math.max(total, 0.001), 0, 1);
         button.classList.toggle('is-cooling', ratio > 0.001);
         mask.style.setProperty('--cooldown-height', `${ratio * 100}%`);
+    }
+
+    renderFleeCooldown(remaining, total) {
+        const button = this.root.querySelector('#flee-battle');
+        const ring = this.root.querySelector('#flee-cooldown-ring');
+        const value = this.root.querySelector('#flee-cooldown-value');
+        if (!button || !ring || !value) return;
+        const ratio = clamp(remaining / Math.max(total, 0.001), 0, 1);
+        const cooling = ratio > 0.001;
+        button.classList.toggle('is-cooling', cooling);
+        ring.style.setProperty('--cooldown-progress', `${ratio * 360}deg`);
+        value.textContent = cooling ? remaining.toFixed(1) : '';
     }
 
     renderBuffs(buffs) {

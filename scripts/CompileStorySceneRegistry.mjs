@@ -80,12 +80,47 @@ function parseBeats(block, sceneId) {
     return beats;
 }
 
+function parseCheckpoints(block, sceneId) {
+    const checkpoints = {};
+    const lines = block.split(/\r?\n/);
+    const headerLine = lines.find(line => /^\|\s*Checkpoint\s*\|/.test(line));
+    if (!headerLine) return checkpoints;
+
+    const headers = headerLine.slice(1, -1).split('|').map(cell => cell.trim());
+    const column = label => headers.indexOf(label);
+    const checkpointColumn = column('Checkpoint');
+    const titleColumn = column('Title');
+    const rangeColumn = column('Beat Range');
+    const backgroundColumn = column('Background');
+    const imageColumn = column('Background Image');
+
+    for (const line of lines) {
+        if (!/^\|\s*`[a-z0-9_]+`\s*\|/.test(line)) continue;
+        const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
+        if (cells.length < headers.length) continue;
+        const checkpointId = stripTicks(cells[checkpointColumn]);
+        const range = stripTicks(cells[rangeColumn]).match(/^(\d+)-(\d+)$/);
+        if (!checkpointId || !range) {
+            throw new Error(`Malformed checkpoint row in ${sceneId}: ${line}`);
+        }
+        checkpoints[checkpointId] = {
+            title: stripTicks(cells[titleColumn]),
+            beatRange: [Number(range[1]), Number(range[2])],
+            background: stripTicks(cells[backgroundColumn]),
+            backgroundImage: stripTicks(cells[imageColumn])
+        };
+    }
+
+    return checkpoints;
+}
+
 const scenes = matches.map((match, index) => {
     const start = match.index;
     const end = matches[index + 1]?.index ?? detailSource.length;
     const block = detailSource.slice(start, end);
     const metadata = parseMetadata(block);
     const id = match[1];
+    const checkpoints = parseCheckpoints(block, id);
 
     return {
         id,
@@ -104,6 +139,7 @@ const scenes = matches.map((match, index) => {
         inputsRaw: metadata.inputs,
         outputsRaw: metadata.outputs,
         assetNotes: metadata.assetNotes,
+        ...(Object.keys(checkpoints).length ? { checkpoints } : {}),
         beats: parseBeats(block, id)
     };
 });

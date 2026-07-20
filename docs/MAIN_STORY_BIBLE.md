@@ -2461,16 +2461,29 @@ descriptive outputs until the complete screenplay is accepted.
 
 - `title`: 第一批送進爐火的東西
 - `stageClass`: `town_scene`
-- `background`: town crossroads in first recovery state, with South Gate, forge smoke, and empty market edge visible in sequence
+- `background`: five staged town visits: South Gate, archive, Mia's workroom, relit forge, then the recovering crossroads
 - `worldState`: Chapter 1 close; nearby roads readable but unsafe; market still lacks a supply route
 - `viewpoint`: `protagonist_limited`
 - `participants`: village elder, town scholar, Mia, Frey, Tavi, blacksmith, street beggar
-- `entry`: South Gate records the protagonist's return and the scene follows evidence into town
+- `entry`: the player must first walk to South Gate; each completed report points to the next town place instead of auto-playing one long return sequence
 - `exit`: Chapter 2 objective opens at the empty market edge
 - `objective`: report the forest result and identify what town function can honestly recover
 - `inputs`: Forest Guardian cleared; northern pressure evidence held
 - `outputs`: Chapter 2 opened; first town recovery state; basic forge/gate/handbook retained; Mia's basic recipe authorized but unavailable until market supply returns
 - `assetNotes`: one recovery-state crossroads background plus existing character portraits and ordinary repair props; no new resident portrait and no generation before screenplay lock
+
+This remains one mainline scene for chapter causality, but runtime presentation is
+split into five persistent checkpoints. The player must walk to each location and
+trigger its resident; `ch1_s11_roads_breathe_again` completes only after the final
+crossroads checkpoint.
+
+| Checkpoint | Title | Beat Range | Background | Background Image |
+| --- | --- | --- | --- | --- |
+| `gate_return` | 名字重新劃回回程欄 | `1-4` | South Gate after the Forest Guardian route | `src/assets/images/art/scenes/town/locations/gate-broken.webp` |
+| `archive_report` | 守護者與源頭是兩件事 | `5-8` | the civic archive desk | `src/assets/images/art/scenes/town/locations/civic-room-working.webp` |
+| `mia_check` | 冷水與溫杯 | `9-12` | Mia's herb workroom | `src/assets/images/art/scenes/town/locations/mia_workroom.webp` |
+| `forge_recovery` | 第一爐先修普通東西 | `13-17` | the relit forge and its civilian repair queue | `src/assets/images/art/scenes/town/locations/forge.webp` |
+| `crossroads_hint` | 北邊不是北邊 | `18-20` | the recovering crossroads beside empty freight crates | `src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp` |
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |

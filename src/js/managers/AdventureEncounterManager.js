@@ -276,9 +276,12 @@ export function createPrologueTutorialEncounter(habitat, tile) {
         },
         offhand: {
             ...encounter.loadout.offhand,
-            id: 'prologue_empty_offhand',
-            name: '空手',
-            enabled: false,
+            id: 'prologue_hunter_knife',
+            name: '公會副手獵刀',
+            effect: 'dagger',
+            damage: 6,
+            cooldown: 0.72,
+            enabled: true,
             triggerBuff: null
         }
     };
@@ -313,11 +316,9 @@ export function resolveEncounterDrop(drop, decision) {
     }
     const quantity = Math.max(1, Number(drop.quantity) || 1);
     const added = GameManager.addToInventory(item, quantity);
-    const stored = added
-        ? 'inventory'
-        : (GameManager.addToWarehouse(item, quantity) ? 'warehouse' : 'missing');
+    const stored = added ? 'inventory' : 'inventory-full';
     drop.stored = stored;
-    drop.decision = stored === 'missing' ? 'pending' : 'claimed';
+    drop.decision = stored === 'inventory-full' ? 'pending' : 'claimed';
     if (drop.decision === 'claimed') markItemKnown(item.id);
     return drop;
 }

@@ -691,6 +691,8 @@ class GameManager {
 
         const missing = Math.max(1, maxDurability - durability);
         const rarity = String(item.rarity || ItemRarity.COMMON).toLowerCase();
+        const freeRepair = Boolean(this.getFlag?.('forge.one_free_repair.available'))
+            && (rarity === 'common' || rarity === 'uncommon');
         const materialByRarity = {
             common: 'iron_shard',
             uncommon: 'iron_shard',
@@ -710,9 +712,10 @@ class GameManager {
         const materialQuantity = Math.max(1, Math.ceil(missing / repairMaterialDivisor));
 
         return {
-            gold: Math.max(5, Math.ceil(missing * goldMultiplier)),
-            materials: [{ id: materialId, quantity: materialQuantity }],
-            missing
+            gold: freeRepair ? 0 : Math.max(5, Math.ceil(missing * goldMultiplier)),
+            materials: freeRepair ? [] : [{ id: materialId, quantity: materialQuantity }],
+            missing,
+            freeRepair
         };
     }
 
@@ -741,12 +744,17 @@ class GameManager {
         if (!status.ok) return { ...status, success: false };
         const { requirement } = status;
 
-        if (!this.removeGold(requirement.gold)) {
+        if (requirement.gold > 0 && !this.removeGold(requirement.gold)) {
             return { success: false, reason: 'gold', requirement };
         }
 
         for (const material of requirement.materials) {
             this.removeMaterial(material.id, material.quantity);
+        }
+
+        if (requirement.freeRepair) {
+            this.setFlag?.('forge.one_free_repair.available', false, { reason: 'free-repair-used' });
+            this.setFlag?.('forge.one_free_repair.used', true, { reason: 'free-repair-used' });
         }
 
         item.durability = Number(item.maxDurability) || item.durability;
@@ -1005,6 +1013,41 @@ class GameManager {
         this.markSaveDirty('move-to-inventory');
         this.notify('all');
         return true;
+    }
+
+    moveAllMaterialsToWarehouse() {
+        const materialStacks = this.state.inventory.filter(
+            stack => String(stack.item?.type || '').toLowerCase() === 'material'
+        );
+        if (materialStacks.length === 0) {
+            return { movedStacks: 0, movedQuantity: 0 };
+        }
+
+        let movedQuantity = 0;
+        materialStacks.forEach(stack => {
+            const quantity = Math.max(1, Number(stack.quantity) || 1);
+            movedQuantity += quantity;
+            const existingStack = this.isStackable(stack.item)
+                ? findMatchingStack(this.state.warehouse, stack.item)
+                : null;
+
+            if (existingStack) {
+                existingStack.quantity = Math.max(1, Number(existingStack.quantity) || 1) + quantity;
+            } else {
+                stack.quantity = quantity;
+                this.state.warehouse.push(stack);
+            }
+        });
+
+        const movedStackSet = new Set(materialStacks);
+        this.state.inventory = this.state.inventory.filter(stack => !movedStackSet.has(stack));
+        this.markSaveDirty('move-all-materials-to-warehouse');
+        this.notify('all');
+
+        return {
+            movedStacks: materialStacks.length,
+            movedQuantity
+        };
     }
 
     getStoredItemTransactionPreview(instanceId, fromWarehouse = false) {

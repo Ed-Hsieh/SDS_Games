@@ -53,6 +53,7 @@ function location(id, name, kind, x, y, options = {}) {
         repeat: options.repeat || options.arrival || '',
         sceneIds: Object.freeze(options.sceneIds || []),
         bossId: options.bossId || null,
+        dungeonId: options.dungeonId || null,
         optional: Boolean(options.optional),
         imageId: options.imageId || null,
         prerequisites: Object.freeze(options.prerequisites || []),
@@ -110,8 +111,7 @@ export const ChapterRegionRegistry = Object.freeze({
             segment('three_marks_north', 'south_gate_farmland', 'hunter_boardwalk', [[15, 16], [28, 8]], { terrain: 'farmland_edge', encounterTableId: 'ch1_woodland' }),
             segment('three_marks_south', 'south_gate_farmland', 'old_campfire_site', [[15, 16], [29, 24]], { terrain: 'wet_road', encounterTableId: 'ch1_woodland' }),
             segment('silver_thread_branch', 'hunter_boardwalk', 'silver_snare_pass', [[28, 8], [34, 10], [39, 9]], { terrain: 'cut_boardwalk', encounterTableId: 'ch1_ambush', optional: false }),
-            segment('rotroot_salvage_spur', 'rotroot_ravine', 'rotroot_salvage', [[35, 19], [36, 12], [37, 5]], { terrain: 'raised_roots', encounterTableId: 'ch1_rotroot', optional: true }),
-            segment('rootwatch_spur', 'rotroot_ravine', 'rootwatch_grove', [[35, 19], [38, 23], [40, 27]], { terrain: 'root_grove', encounterTableId: 'ch1_rotroot_elite', optional: true }),
+            segment('split_vein_descent', 'rotroot_ravine', 'split_vein_cave', [[35, 19], [39, 12], [43, 5]], { terrain: 'split_vein', encounterTableId: 'ch1_rotroot', optional: true }),
             segment('forest_reaction_route', 'old_campfire_site', 'old_wolf_den', [[29, 24], [35, 19], [42, 19]], { terrain: 'rotroot_woodland', encounterTableId: 'ch1_forest' })
         ]),
         locationNodes: Object.freeze([
@@ -121,8 +121,7 @@ export const ChapterRegionRegistry = Object.freeze({
             location('old_campfire_site', '舊營火點', RegionLocationKind.CAMP, 29, 24, { imageId: 'old_campfire_site', sceneIds: ['ch1_s06_three_landmarks'] }),
             location('silver_snare_pass', '銀絲伏道', RegionLocationKind.SIDE_ROUTE, 39, 9, { imageId: 'silver_snare_pass', sceneIds: ['ch1_s07_silver_snare'], bossId: 'ambush_mantis' }),
             location('rotroot_ravine', '腐根溪谷', RegionLocationKind.LANDMARK, 35, 19, { imageId: 'rotroot_ravine', sceneIds: ['ch1_s09_rotroot_approach'] }),
-            location('rotroot_salvage', '腐根補給岔路', RegionLocationKind.SIDE_ROUTE, 37, 5, { imageId: 'rotroot_ravine', sceneIds: [] }),
-            location('rootwatch_grove', '根哨林隙', RegionLocationKind.SIDE_ROUTE, 40, 27, { imageId: 'rotroot_ravine', sceneIds: [], bossId: 'treant' }),
+            location('split_vein_cave', '斷脈礦道口', RegionLocationKind.SIDE_ROUTE, 43, 5, { imageId: 'rotroot_ravine', sceneIds: [], dungeonId: 'cave', optional: true }),
             location('old_wolf_den', '古樹根心', RegionLocationKind.BOSS_ARENA, 42, 19, { imageId: 'old_wolf_den', sceneIds: ['ch1_s10_forest_guardian'], bossId: 'forest_guardian' })
         ]),
         sceneBindings: Object.freeze([

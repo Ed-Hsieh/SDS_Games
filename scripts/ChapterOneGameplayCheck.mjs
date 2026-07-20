@@ -17,6 +17,9 @@ globalThis.requestAnimationFrame = () => 1;
 globalThis.cancelAnimationFrame = () => {};
 
 const { default: GameManager } = await import('../src/js/managers/GameManager.js');
+const { default: chapterOneProgressionManager } = await import('../src/js/managers/ChapterOneProgressionManager.js');
+const { storySceneManager } = await import('../src/js/managers/StorySceneManager.js');
+const { storyGuidanceManager } = await import('../src/js/managers/StoryGuidanceManager.js');
 const { default: WorldMap } = await import('../src/js/utils/WorldMap.js');
 const {
     createLocationEncounter,
@@ -30,21 +33,25 @@ const { RecipeSeriesDatabase, SeriesRecipeDatabase } = await import('../src/js/d
 const { RecipeDatabase } = await import('../src/js/data/Recipes.js');
 const { FirstRunBandAllocationPlan } = await import('../src/js/data/FirstRunLootBalance.js');
 const {
-    AdventureOnboardingFlag,
-    AdventureOnboardingStep,
+    ChapterOneClosingReportStages,
     ChapterOneProgressFlag,
     ChapterOneInvestigationOrder,
     ChapterOneInvestigations,
     ChapterOneMantisRecovery,
-    ChapterOneOptionalRoutes,
     ChapterOneRotrootTrials,
     ChapterOneSpecialGearIds
 } = await import('../src/js/data/ChapterOneProgression.js');
+const { GuildTutorialFlag } = await import('../src/js/data/GuildTutorial.js');
 const { getStoryScene } = await import('../src/js/data/StorySceneRegistry.js');
 const { StoryRouteEncounterContracts, StoryEncounterContracts } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
 const { getStoryDiscovery } = await import('../src/js/data/StoryDiscoveries.js');
 const { getStorySceneEffects } = await import('../src/js/data/StoryStateContract.js');
+const { QuestDatabase, ObjectiveType } = await import('../src/js/data/Quests.js');
+const { QuestStoryDatabase } = await import('../src/js/data/QuestStories.js');
+const { TownDialogueDatabase } = await import('../src/js/data/NPCDialogues.js');
+const { WorldInteractionDatabase } = await import('../src/js/data/WorldInteractions.js');
+const { DungeonDatabase } = await import('../src/js/data/Dungeons.js');
 
 const failures = [];
 const check = (condition, message) => {
@@ -67,7 +74,7 @@ check(
 );
 check(
     prologueEncounter?.loadout?.main?.id === 'prologue_hunter_blade'
-        && prologueEncounter?.loadout?.offhand?.enabled === false,
+        && prologueEncounter?.loadout?.offhand?.enabled === true,
     'Prologue tutorial loadout contract changed'
 );
 check(
@@ -82,6 +89,9 @@ const adventureSource = fs.readFileSync(new URL('../src/js/scenes/AdventureScene
 const adventureView = fs.readFileSync(new URL('../src/views/adventure.html', import.meta.url), 'utf8');
 const lobbyView = fs.readFileSync(new URL('../src/views/lobby.html', import.meta.url), 'utf8');
 const adventureStyles = fs.readFileSync(new URL('../src/style/adventure.css', import.meta.url), 'utf8');
+const guildView = fs.readFileSync(new URL('../src/views/guild.html', import.meta.url), 'utf8');
+const guildSource = fs.readFileSync(new URL('../src/js/scenes/GuildTutorialScene.js', import.meta.url), 'utf8');
+const guildStyles = fs.readFileSync(new URL('../src/style/guild-tutorial.css', import.meta.url), 'utf8');
 const handbookStyles = fs.readFileSync(new URL('../src/style/quest-handbook.css', import.meta.url), 'utf8');
 const foundationStyles = fs.readFileSync(new URL('../src/css/ui-foundation.css', import.meta.url), 'utf8');
 const guidanceSource = fs.readFileSync(new URL('../src/js/managers/StoryGuidanceManager.js', import.meta.url), 'utf8');
@@ -106,47 +116,28 @@ check(
     'Completed authored Boss landmarks no longer expose repeat challenges'
 );
 check(!adventureSource.includes('ArrowUp') && !adventureSource.includes('ArrowDown'), 'Arrow-key map movement returned');
-check(adventureView.includes('id="adventure-onboarding"'), 'Adventure onboarding surface is missing');
+check(!adventureView.includes('id="adventure-onboarding"'), 'Obsolete field onboarding surface returned');
 check(
-    JSON.stringify(AdventureOnboardingFlag) === JSON.stringify({
-        quest: 'tutorial.adventure.questOpened',
-        inventory: 'tutorial.adventure.inventoryOpened',
-        movement: 'tutorial.adventure.wasdMoved'
-    }),
-    'Adventure onboarding flags are no longer owned by ChapterOneProgression'
+    guildView.includes('id="guild-room"')
+        && guildView.includes('id="guild-open-clue"')
+        && guildView.includes('id="guild-open-equipment"'),
+    'Guild onboarding surface is incomplete'
 );
 check(
-    progressionManagerSource.indexOf('AdventureOnboardingStep.QUEST')
-        < progressionManagerSource.indexOf('AdventureOnboardingStep.INVENTORY')
-        && progressionManagerSource.indexOf('AdventureOnboardingStep.INVENTORY')
-            < progressionManagerSource.indexOf('AdventureOnboardingStep.MOVEMENT'),
-    'Initial field onboarding must open quests, then inventory, before movement'
+    GuildTutorialFlag.COMPLETE === 'story.prologue.guildTutorialComplete'
+        && guildSource.includes('GuildTutorialFlag.COMMISSION_ACCEPTED')
+        && guildSource.includes('GuildTutorialFlag.ARMOR_CONFLICT_SEEN'),
+    'Guild onboarding flags or equipment lesson are incomplete'
 );
 check(
-    adventureSource.includes('isInitialSystemOnboardingLocked()')
-        && adventureSource.includes('if (this.isInitialSystemOnboardingLocked()) return;'),
-    'Map movement and interaction are not locked during the system onboarding'
-);
-check(
-    adventureSource.includes('chapterOneProgressionManager.getAdventureOnboardingStep')
-        && adventureSource.includes('chapterOneProgressionManager.completeAdventureOnboardingStep')
-        && progressionManagerSource.includes('getAdventureOnboardingStep')
-        && progressionManagerSource.includes('completeAdventureOnboardingStep'),
-    'AdventureScene still owns onboarding flag logic instead of delegating to ChapterOneProgressionManager'
-);
-check(
-    adventureStyles.includes('@keyframes adventure-tutorial-breathe')
-        && adventureStyles.includes('animation: adventure-tutorial-breathe'),
-    'Quest and inventory tutorial targets have no breathing emphasis'
+    guildStyles.includes('@keyframes guild-breathe')
+        && guildStyles.includes('animation: guild-breathe'),
+    'Guild tutorial target has no breathing emphasis'
 );
 check(
     /\.adventure-quest-tracker\s*\{[^}]*top:\s*92px;/.test(adventureStyles)
         && !/\.adventure-quest-tracker\s*\{[^}]*bottom:/.test(adventureStyles),
     'Quest tracker still shares the lower-left interaction-hint position'
-);
-check(
-    /\.adventure-onboarding\s*\{[^}]*bottom:\s*22px;/.test(adventureStyles),
-    'Onboarding prompt is not anchored at the lower center'
 );
 check(
     guidanceSource.includes('chapterOneProgressionManager.getObjectiveContext()')
@@ -158,8 +149,7 @@ check(
     progressionManagerSource.includes('settleGuaranteedRewards')
         && progressionManagerSource.includes('completeEvidence')
         && progressionManagerSource.includes('completeFirstReport')
-        && progressionManagerSource.includes('completeHomeRecovery')
-        && progressionManagerSource.includes('claimOptionalRewards'),
+        && progressionManagerSource.includes('completeHomeRecovery'),
     'Chapter 1 progression does not have one runtime owner'
 );
 check(
@@ -296,6 +286,68 @@ check(
             < guidanceSource.indexOf('needsMiaEmergencyPotionSupport()'),
     'Mia injury inspection is still gated behind emergency-potion quantity'
 );
+const closingScene = getStoryScene('ch1_s11_roads_breathe_again');
+check(ChapterOneClosingReportStages.length === 5, 'Chapter 1 closing report must remain split into five town visits');
+check(
+    new Set(ChapterOneClosingReportStages.map(stage => stage.placeId)).size === 5,
+    'Chapter 1 closing report stages collapsed back into the same town place'
+);
+for (const stage of ChapterOneClosingReportStages) {
+    const hint = getStoryObjectiveHint('ch1_s11_roads_breathe_again', {
+        chapterOneClosingReportStage: stage
+    });
+    const checkpoint = closingScene?.checkpoints?.[stage.checkpointId];
+    check(
+        hint?.placeId === stage.placeId && hint?.actorId === stage.actorId,
+        `Chapter 1 closing stage ${stage.id} is not linked to its town actor and place`
+    );
+    check(
+        Array.isArray(checkpoint?.beatRange)
+            && checkpoint.beatRange.length === 2
+            && Boolean(checkpoint.backgroundImage),
+        `Chapter 1 closing stage ${stage.id} has no isolated beat range or scene background`
+    );
+}
+check(
+    guidanceSource.includes("type: 'chapter-one-closing-report'")
+        && lobbySource.includes('completeClosingReportStage(stage.id)')
+        && lobbySource.includes('storySceneManager.completeScene(sceneId)'),
+    'Chapter 1 closing checkpoints are not connected to staged town interaction and final completion'
+);
+const originalClosingFlags = GameManager.state.flags;
+GameManager.state.flags = { 'story.run': 1, 'story.chapter': 1 };
+for (let index = 1; index <= 10; index += 1) {
+    const sceneId = `ch1_s${String(index).padStart(2, '0')}_${[
+        'road_collapse',
+        'wake_under_bitter_bottles',
+        'broken_crossroads',
+        'elder_to_scholar',
+        'south_gate_introduction',
+        'three_landmarks',
+        'silver_snare',
+        'cold_forge_smoke',
+        'rotroot_approach',
+        'forest_guardian'
+    ][index - 1]}`;
+    GameManager.state.flags[`story.scene.${sceneId}.complete`] = true;
+}
+for (const [index, stage] of ChapterOneClosingReportStages.entries()) {
+    const directive = storyGuidanceManager.getCurrent();
+    check(
+        directive?.sceneId === 'ch1_s11_roads_breathe_again'
+            && directive?.placeId === stage.placeId
+            && directive?.actorId === stage.actorId,
+        `Chapter 1 closing runtime did not advance to ${stage.id}`
+    );
+    check(
+        !storySceneManager.isSceneComplete('ch1_s11_roads_breathe_again'),
+        `Chapter 1 completed before closing stage ${stage.id}`
+    );
+    const progress = chapterOneProgressionManager.completeClosingReportStage(stage.id);
+    check(progress.success, `Chapter 1 closing stage ${stage.id} could not be completed in order`);
+    check(progress.complete === (index === ChapterOneClosingReportStages.length - 1), `Chapter 1 closing stage ${stage.id} returned the wrong completion state`);
+}
+GameManager.state.flags = originalClosingFlags;
 for (const forbidden of ['必要戰力驗收', '實戰比較完成', '平均命中', '主線通行費']) {
     check(!adventureSource.includes(forbidden), `Player-facing Chapter 1 text leaked system prose: ${forbidden}`);
 }
@@ -313,19 +365,6 @@ check(!Object.hasOwn(sample || {}, 'targetLevel'), 'World map still rerolls a mo
 const encounter = createLocationEncounter({ ...sample, targetLevel: 9 }, map.getCurrentTile());
 check(encounter?.monster?.level === MonsterDatabase.slime.level, 'Encounter rescaled a fixed-level monster');
 check(encounter?.monster?.maxHp === MonsterDatabase.slime.maxHp, 'Encounter rescaled monster combat stats');
-const gatedLandmarkIds = new Set(['rotroot_salvage', 'rootwatch_grove']);
-check(
-    !map.getActiveLandmarks().some(entry => gatedLandmarkIds.has(entry.id)),
-    'Chapter 1 prepared-gear landmarks opened before qualifying gear was owned'
-);
-const originalInventory = GameManager.state.inventory;
-const baselineCraft = Object.values(SeriesRecipeDatabase).find(recipe => recipe.seriesId === 'slime_series');
-GameManager.state.inventory = [{ item: baselineCraft.result, quantity: 1, instanceId: 'chapter-one-check-gear' }];
-check(
-    [...gatedLandmarkIds].every(id => map.getActiveLandmarks().some(entry => entry.id === id)),
-    'Owning qualifying Chapter 1 gear does not open its prepared routes'
-);
-GameManager.state.inventory = originalInventory;
 GameManager.state.mapState = originalMapState;
 
 for (const habitat of OverworldHabitats) {
@@ -402,7 +441,7 @@ check(
 );
 const chapterOneLocationIds = new Set(chapterOneRegion.locationNodes.map(entry => entry.id));
 const overworldLandmarkIds = new Set(OverworldLandmarks.map(entry => entry.id));
-for (const id of [...ChapterOneInvestigationOrder, 'silver_snare_pass', 'rotroot_ravine', 'rotroot_salvage', 'rootwatch_grove', 'old_wolf_den']) {
+for (const id of [...ChapterOneInvestigationOrder, 'silver_snare_pass', 'rotroot_ravine', 'split_vein_cave', 'old_wolf_den']) {
     check(chapterOneLocationIds.has(id), `Chapter region is missing ${id}`);
     check(overworldLandmarkIds.has(id), `Overworld landmark registry is missing ${id}`);
     const node = chapterOneRegion.locationNodes.find(entry => entry.id === id);
@@ -454,8 +493,9 @@ check(
     'Rotroot comparison monsters must remain fixed at Lv7 and Lv8'
 );
 check(
-    FirstRunMonsterFixedLevels[ChapterOneOptionalRoutes.rootwatch_grove.monsterId] === 9,
-    'Optional Chapter 1 elite must remain Lv9'
+    FirstRunMonsterFixedLevels.treant === 9
+        && !chapterOneLocationIds.has('rootwatch_grove'),
+    'Chapter 1 elite must remain Lv9 without returning as a fixed map location'
 );
 check(
     StoryEncounterContracts.ch1_s10_forest_guardian?.monsterId === 'forest_guardian'
@@ -501,6 +541,55 @@ check(boardwalkAfterRecoveryHint?.text.includes('東北方') && boardwalkAfterRe
 check(
     gearHint?.text.includes('鐵匠鋪') && gearHint.text.includes('武器'),
     'Rotroot objective does not point the player back to the forge and a usable weapon'
+);
+
+const chapterOneCommissionIds = [
+    'map_corners_never_lie',
+    'one_blank_too_many',
+    'patrol_soles',
+    'lamp_glass_for_every_door',
+    'pot_lid_is_not_a_shield',
+    'vein_beneath_the_roots'
+];
+const chapterOneCommissions = new Map(QuestDatabase.commission.map(quest => [quest.id, quest]));
+check(
+    chapterOneCommissionIds.every(id => chapterOneCommissions.has(id) && QuestStoryDatabase[id]),
+    'Chapter 1 side-story quest data or presentation data is incomplete'
+);
+check(
+    TownDialogueDatabase.village_elder?.some(dialogue => dialogue.id === 'elder_offers_map_corners')
+        && TownDialogueDatabase.town_scholar?.some(dialogue => dialogue.id === 'ilai_offers_blank_reports')
+        && TownDialogueDatabase.standard_bearer_frey?.some(dialogue => dialogue.id === 'frey_offers_patrol_soles')
+        && TownDialogueDatabase.lamplighter_tavi?.some(dialogue => dialogue.id === 'tavi_offers_lamp_clasps')
+        && TownDialogueDatabase.blacksmith?.some(dialogue => dialogue.id === 'blacksmith_offers_pot_lid'),
+    'A Chapter 1 character side story has no explicit NPC offer dialogue'
+);
+const caveQuest = chapterOneCommissions.get('vein_beneath_the_roots');
+const caveLocation = ChapterRegionRegistry.chapter_01_south_gate.locationNodes
+    .find(location => location.id === 'split_vein_cave');
+const caveLandmark = OverworldLandmarks.find(landmark => landmark.id === 'split_vein_cave');
+check(
+    caveQuest?.objectives?.some(objective => objective.type === ObjectiveType.DUNGEON_CLEAR && objective.target === 'cave')
+        && caveQuest?.trigger?.afterFlag === 'story.scene.ch1_s09_rotroot_approach.complete',
+    'Chapter 1 dungeon side quest is not bound to the rotroot approach and cave clear event'
+);
+check(
+    caveLocation?.dungeonId === 'cave'
+        && caveLandmark?.dungeonId === 'cave'
+        && caveLandmark?.storyFlag === 'quest.vein_beneath_the_roots.accepted'
+        && Boolean(DungeonDatabase.cave),
+    'Chapter 1 cave location, overworld landmark, or dungeon data is disconnected'
+);
+check(
+    WorldInteractionDatabase.tavi_lamp_clasps?.progressObjectives?.some(entry => entry.target === 'tavi_lamp_clasps')
+        && WorldInteractionDatabase.blacksmith_pot_lid?.progressObjectives?.some(entry => entry.target === 'blacksmith_pot_lid'),
+    'Chapter 1 town-object side quests have no executable interaction progress hook'
+);
+check(
+    adventureSource.includes('questManager.updateProgress(ObjectiveType.EXPLORE, entry.id, 1)')
+        && adventureSource.includes('openDungeonEntrance(entry)')
+        && adventureSource.includes('this.app?.enterDungeon?.(entry.dungeonId)'),
+    'AdventureScene does not execute side-story exploration or dungeon entry'
 );
 
 if (failures.length) {

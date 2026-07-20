@@ -132,7 +132,7 @@ function normalizeConfig(config = {}) {
             main: normalizeWeapon(config.loadout?.main, 'main'),
             offhand: normalizeWeapon(config.loadout?.offhand, 'offhand')
         },
-        fleeChance: clamp(numberOr(config.fleeChance, 0.35), 0, 1),
+        fleeChance: clamp(numberOr(config.fleeChance, 0.5), 0, 1),
         fleeCooldown: Math.max(0.5, numberOr(config.fleeCooldown, 2)),
         random: typeof config.random === 'function' ? config.random : Math.random,
         tempo: clamp(Number(config.tempo) || 1, 0.5, 2)

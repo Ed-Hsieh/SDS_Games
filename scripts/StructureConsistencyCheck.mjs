@@ -843,14 +843,6 @@ for (const requiredStoryTransition of [
         push('adventure-boundary', `StorySceneManager is missing the prologue transition ${requiredStoryTransition}`);
     }
 }
-for (const requiredOnboardingOwner of [
-    'getAdventureOnboardingStep(',
-    'completeAdventureOnboardingStep('
-]) {
-    if (!chapterOneProgressionManagerSource.includes(requiredOnboardingOwner)) {
-        push('adventure-boundary', `ChapterOneProgressionManager is missing ${requiredOnboardingOwner}`);
-    }
-}
 for (const sceneOwnedAdventureMutation of [
     'GameManager.setFlag(',
     'PROLOGUE_TUTORIAL_',

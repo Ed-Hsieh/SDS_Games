@@ -120,6 +120,45 @@
     padding: 10px 4px;
 }
 
+.inventory-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.store-materials-button {
+    min-height: 36px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid rgba(111, 181, 194, 0.42);
+    border-radius: 6px;
+    color: #d9eef0;
+    background: rgba(31, 72, 80, 0.48);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.store-materials-button:hover:not(:disabled),
+.store-materials-button:focus-visible:not(:disabled) {
+    border-color: rgba(137, 211, 222, 0.74);
+    background: rgba(43, 94, 103, 0.68);
+}
+
+.store-materials-button:disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
+.store-materials-icon {
+    font-size: 18px;
+    line-height: 1;
+}
+
 .lobby-field-pack-pane .field-inventory-grid {
     align-content: start;
     min-height: 0;

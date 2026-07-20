@@ -1,211 +1,250 @@
 # Agent Session Log
 
-Last updated: 2026-07-18
+Last updated: 2026-07-20
 
 ## Current Direction
 
 The sole delivery priority is a complete first run. The supported target is
-desktop. Chapters 1 and 2 are the active vertical slice and still require one
-uninterrupted no-skip browser playthrough before their accepted scene, dialogue,
-expression, combat, town, and map pattern is copied into Chapters 3-7.
+desktop. The immediate focus is no longer catalog-image cleanup: it is
+validating the new player path from the guild tutorial through the prologue
+combat tutorial and the complete Chapter 1 return loop before the same structure
+is extended into later chapters.
 
-The formal first-run weapon catalog, seven baseline craft series, first-run
-monster ecology, and the current approved weapon/blueprint image batch are now
-implemented and validated. This does not authorize final combat values, final
-drop rates, casino prize balance, tower equipment, or second-run expansion.
+The intended opening order is now:
 
-Current delivery order:
+1. Guild tutorial: movement, interaction, commission choice, clue review, and
+   main-hand/off-hand/armor equipment conflict.
+2. Prologue combat tutorial: main-hand attack, off-hand rhythm window, weapon
+   break and unarmed fallback, potion use, flee attempt, and scripted defeat.
+3. Mia rescue and Chapter 1: town entry, field investigation, staged reports,
+   forge recovery, optional dungeon introduction, Forest Guardian, and the
+   visible town-state result.
 
-1. Preserve the completed first-run weapon and monster data contracts.
-2. Review the remaining eleven non-casino image mappings before generating or
-   deleting anything: six crafted results and five Boss craft blueprints.
-3. Give `cursed_shard` one approved cursed, undead, or shadow craft destination
-   without changing its current source prematurely.
-4. Complete the Chapter 1-2 no-skip story and expression review.
-5. Bind and review the remaining Chapter 1-2 backgrounds and audio.
-6. Apply the accepted vertical-slice pattern to Chapters 3-7.
-7. Allocate final rewards, stock, drop rates, and balance values only after map
-   and scene functions are approved.
-
-Second-run external Bosses, second-run gameplay, casino prize implementation,
-tower rewrite, final balance, post-reveal DLC, and mobile UI remain `paused` or
-`deferred` unless the user explicitly resumes them.
+Second-run external Bosses, tower rewrite, casino rewards, final numeric balance,
+post-reveal DLC, and mobile UI remain paused or deferred. Do not let those areas
+expand the current first-run validation scope.
 
 Optional second-run external Bosses remain base-game content, but their routes,
 combat, rewards, and art stay paused until the first run passes validation. The
-first-run ending must continue to set `story.secondRunUnlocked`. Before second-run
-implementation resumes, complete the achievement/evidence persistent-flag audit
-so later content connects without rewriting first-run core logic.
+first-run ending must continue to set `story.secondRunUnlocked`. Before any
+second-run implementation resumes, complete the achievement/evidence
+`persistent-flag audit` so later content connects without rewriting first-run
+core logic.
 
 ## Completed In Recent Passes
 
-- [done] [P1] [weapon-catalog] Complete the formal first-run weapon matrix
-  Owner file(s): `src/js/data/WeaponProgression.js`, `src/js/data/RecipeSeries.js`, `src/js/data/Equipment.js`, `src/js/data/BossEquipment.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`, live runtime data
-  Validation: `scripts/FormalWeaponCatalogAudit.mjs`, `scripts/DataConsistencyCheck.mjs`
-  Notes: Seventy-six first-run weapons compile with 35 baseline-series weapons, 41 special weapons, no unknown forms, and no craft-blueprint gaps.
+- [done] [P0] [opening-tutorial] Add the guild tutorial before the prologue
+  Owner file(s): `src/views/guild.html`, `src/style/guild-tutorial.css`, `src/js/scenes/GuildTutorialScene.js`
+  Source of truth: `src/js/data/GuildTutorial.js`, `src/js/managers/StoryGuidanceManager.js`
+  Validation: manual desktop browser smoke test and `scripts/CombatTutorialCheck.mjs`
+  Notes: The tutorial requires real WASD movement, NPC interaction, commission acceptance, clue viewing, and equipment-slot actions before departure; the duplicate field onboarding was removed.
 
-- [done] [P1] [baseline-craft] Implement seven complete five-form craft series
-  Owner file(s): `src/js/data/RecipeSeries.js`, `src/js/data/RecipeDiscoveries.js`, `src/js/data/AssetManifest.js`
-  Source of truth: `src/js/data/WeaponProgression.js`, `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `scripts/FormalWeaponCatalogAudit.mjs`, `scripts/AssetCoverageCheck.mjs`
-  Notes: Every Lv10 band provides sword, dagger, heavy, lance, and focus continuity through one shared series blueprint.
+- [done] [P0] [combat-tutorial] Expand the prologue combat teaching sequence
+  Owner file(s): `src/js/managers/CombatFlowController.js`, `src/js/scenes/CombatVfxLab.js`, `src/js/components/CombatStageView.js`
+  Source of truth: `src/js/data/StorySceneRegistry.js`
+  Validation: `scripts/CombatTutorialCheck.mjs`
+  Notes: The sequence now teaches both hands, the rhythm window, weapon break, unarmed replacement, an actual potion action, and a flee attempt before the fixed defeat.
 
-- [done] [P1] [staff-attunement] Add replaceable focus element attunement
-  Owner file(s): `src/js/data/StaffAttunement.js`, `src/js/managers/StaffAttunementManager.js`, `src/js/scenes/ForgeScene.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
-  Validation: `scripts/StaffAttunementCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
-  Notes: Neutral baseline focuses may use fire, ice, thunder, or poison materials without adding a separate magic-power stat; shadow, glimmer, light, and Void are excluded.
+- [done] [P1] [flee] Set the common flee chance and expose cooldown feedback
+  Owner file(s): `src/js/managers/CombatFlowController.js`, `src/js/managers/RealtimeCombatSession.js`, `src/js/scenes/CombatVfxLab.js`, `src/style/combat-vfx-lab.css`
+  Source of truth: live combat runtime
+  Validation: `scripts/CombatTutorialCheck.mjs`, manual combat UI review
+  Notes: Standard flee chance is 50%; the flee control now displays cooldown progress instead of silently becoming unavailable.
 
-- [done] [P1] [monster-ecology] Complete the first-run monster roster and source graph
-  Owner file(s): `src/js/data/MonsterEcology.js`, `src/js/data/Monsters.js`, `src/js/data/FirstRunLootBalance.js`
-  Source of truth: `src/js/data/MonsterEcology.js`
-  Validation: `scripts/MonsterEcologyCheck.mjs`, `scripts/FirstRunLootCheck.mjs`
-  Notes: Chapter counts are 9, 8, 8, 8, 10, 8, 8; all required first-run monster images are mapped.
+- [done] [P0] [dialogue-runtime] Preserve expressions while changing speaker emphasis
+  Owner file(s): `src/js/components/StoryDialogueView.js`, `src/js/scenes/LobbyScene.js`
+  Source of truth: `src/js/data/StorySceneRegistry.js`, `src/js/data/NPCDialogues.js`
+  Validation: manual layered-dialogue smoke test
+  Notes: Cast members begin bright before a speaker is selected; once dialogue begins, the speaker is emphasized and other actors dim without reverting to default expressions. Mainline and side-story NPC topics use explicit choices.
 
-- [done] [P1] [equipment-art] Connect the approved formal weapon and blueprint batch
-  Owner file(s): `src/assets/images/art/items/equipment/`, `src/assets/images/art/items/blueprints/`, `src/js/data/AssetManifest.js`
-  Source of truth: approved live recipes and `docs/IMAGE_GENERATION_PROMPTS.md`
-  Validation: `scripts/AssetCoverageCheck.mjs`, mechanical PNG/WebP dimension check
-  Notes: The completed batch contains 53 equipment images, 21 formal blueprint images, and the expedition-steel material image; obsolete per-form baseline blueprint files were removed.
+- [done] [P0] [mia-support] Make Mia's emergency potion support an actual claim
+  Owner file(s): `src/js/scenes/LobbyScene.js`, `src/js/managers/ChapterOneProgressionManager.js`
+  Source of truth: Chapter 1 runtime flags and inventory state
+  Validation: `scripts/ChapterOneGameplayCheck.mjs`, manual inventory review
+  Notes: When the player has fewer than three emergency potions, Mia offers a visible claim interaction that refills the count to three; a full inventory leaves the supply unclaimed instead of silently granting it.
+
+- [done] [P0] [battle-settlement] Add inventory decisions to battle rewards
+  Owner file(s): `src/js/managers/AdventureEncounterManager.js`, `src/js/managers/BlueprintManager.js`, `src/js/scenes/AdventureScene.js`, `src/style/inventory-grid.css`
+  Source of truth: live encounter drops and player inventory
+  Validation: `scripts/ItemFlowCheck.mjs`, manual settlement review
+  Notes: Rewards are no longer silently moved to storage when the backpack is full; settlement shows the five-column backpack, allows discarding an owned item, and displays blueprint art as a visible reward.
+
+- [done] [P0] [chapter-1-map] Remove obsolete fixed landmarks and join Rotroot investigation beats
+  Owner file(s): `src/js/data/ChapterOneProgression.js`, `src/js/data/ChapterRegionRegistry.js`, `src/js/data/OverworldMapRegistry.js`, `src/js/scenes/AdventureScene.js`
+  Source of truth: `src/js/managers/ChapterOneProgressionManager.js`, `docs/MAIN_STORY_BIBLE.md`
+  Validation: `scripts/ChapterOneGameplayCheck.mjs`, `scripts/StructureConsistencyCheck.mjs`
+  Notes: `rotroot_salvage` and the fixed `rootwatch_grove` landmark were removed; the Rotroot Ravine investigation now continues through staged story text, while the elite remains part of random regional ecology.
+
+- [done] [P0] [chapter-1-report] Split the final Chapter 1 report across town locations
+  Owner file(s): `src/js/data/StorySceneRegistry.js`, `src/js/data/TownPlaces.js`, `src/js/scenes/LobbyScene.js`
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`
+  Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/TownRuntimeCheck.mjs`, manual town walk-through
+  Notes: The single causal scene is presented as persistent South Gate, archive, Mia, forge, and crossroads checkpoints that the player must visit in order.
 
 ## Current Runtime Status
 
-- [in_progress] [P0] [chapter-1-2-writing] Finish text and expression review
-  Owner file(s): `docs/MAIN_STORY_BIBLE.md`, `src/js/data/StorySceneRegistry.js`, character dossiers
-  Source of truth: `docs/NARRATIVE_WRITING_GUIDE.md`
-  Validation: scene-by-scene user review and one no-skip Chapter 1-2 playthrough
-  Notes: The causal structure and runtime bindings exist, but player-facing text and expression timing are not locked.
+- [in_progress] [P0] [opening-playthrough] Validate the complete new-game opening without skips
+  Owner file(s): guild tutorial, prologue combat, lobby, adventure, dialogue, and settlement runtime modules
+  Source of truth: `src/js/data/GuildTutorial.js`, `src/js/data/StorySceneRegistry.js`, `src/js/data/ChapterOneProgression.js`
+  Validation: manual fresh-save desktop playthrough from `#guild` through Chapter 1 completion
+  Notes: Individual smoke tests and automated checks pass, but the entire chain has not yet been completed in one uninterrupted run.
 
-- [in_progress] [P0] [dialogue-runtime] Validate the layered dialogue view end to end
-  Owner file(s): `src/js/components/StoryDialogueView.js`, `src/js/managers/StoryDialogueController.js`, `src/style/story-dialogue.css`, `src/js/data/StoryActors.js`
+- [in_progress] [P0] [chapter-1-quests] Review Chapter 1 mainline, side stories, and dungeon introduction in play
+  Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`, `src/js/data/NPCDialogues.js`, `src/js/data/WorldInteractions.js`
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`, `docs/NARRATIVE_WRITING_GUIDE.md`
+  Validation: scene-by-scene user review and `scripts/ChapterOneGameplayCheck.mjs`
+  Notes: Runtime records exist, but optional quests remain pending user playtest approval and must not be treated as locked content.
+
+- [in_progress] [P0] [dialogue-integration] Validate choices, multi-actor emphasis, and expression continuity
+  Owner file(s): `src/js/components/StoryDialogueView.js`, `src/js/managers/StoryDialogueController.js`, `src/js/scenes/LobbyScene.js`
   Source of truth: `src/js/data/StorySceneRegistry.js`, `docs/NARRATIVE_WRITING_GUIDE.md`
-  Validation: complete Chapter 1-2 single-speaker, multi-speaker, narration, choice, auto-read, manual-scroll, expression, mirror, and blackout review
-  Notes: Implementation exists; full no-skip integration remains unverified.
+  Validation: no-skip review covering narration, choices, speaker changes, auto-read, history, and expression persistence
+  Notes: The core behavior is implemented; complete Chapter 1 integration remains unverified.
 
-- [planned] [P1] [remaining-catalog-art] Resolve eleven non-casino image mappings
-  Owner file(s): `src/js/data/Recipes.js`, `src/js/data/AssetManifest.js`, `src/assets/images/art/items/`
-  Source of truth: live recipe results and Boss craft definitions
-  Validation: `scripts/AssetCoverageCheck.mjs`, user visual approval
-  Notes: Six crafted results and five Boss craft blueprints remain; inspect identity before generation.
+- [in_progress] [P1] [settlement-integration] Validate full-backpack and blueprint reward cases
+  Owner file(s): `src/js/managers/AdventureEncounterManager.js`, `src/js/managers/BlueprintManager.js`, `src/js/scenes/AdventureScene.js`
+  Source of truth: live encounter-drop records
+  Validation: manual win with free capacity, full backpack, discarded item, and blueprint drop
+  Notes: The new decision UI is implemented, but all capacity branches still need browser playtesting.
 
-- [planned] [P0] [chapter-1-2-playthrough] Complete one uninterrupted vertical-slice run
-  Owner file(s): story, town, adventure, dialogue, and combat runtime modules
+- [in_progress] [P1] [optional-quest-contract] Resolve the optional-quest review gate
+  Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`
+  Source of truth: approved character side-story direction
+  Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/SideStoryFlowCheck.mjs`
+  Notes: Six optional quests are currently active before formal user review, so these two checks intentionally remain non-passing until the quest set is reviewed or returned to a deferred state.
+
+- [planned] [P1] [chapter-2-playthrough] Revalidate Chapter 2 after the opening flow is accepted
+  Owner file(s): Chapter 2 story, town, map, combat, and quest runtime modules
   Source of truth: `src/js/data/StorySceneRegistry.js`
-  Validation: manual new-save playthrough from prologue through Chapter 2 completion
-  Notes: Confirm guidance ownership, NPC entry order, field triggers, combat continuation, quest state, encyclopedia unlocks, death recovery, and return-home behavior.
+  Validation: manual no-skip Chapter 2 run
+  Notes: Do not propagate Chapter 1 tutorial prompts into Chapter 2; Chapter 2 should use the already learned systems normally.
 
-- [deferred] [P1] [balance] Replace failed balance assumptions with approved database values
-  Owner file(s): `src/js/data/Monsters.js`, `src/js/data/Equipment.js`, `src/js/data/Recipes.js`, `scripts/DifficultyProgressionCheck.mjs`
+- [planned] [P1] [chapter-1-2-art-audio] Finish missing presentation assets
+  Owner file(s): `src/js/data/StoryActors.js`, `src/js/data/AssetManifest.js`, `src/assets/images/art/scenes/`, `src/assets/audio/`
+  Source of truth: `docs/ART_STYLE_GUIDE.md`, live scene requirements
+  Validation: `scripts/AssetCoverageCheck.mjs` and manual scene review
+  Notes: Remaining backgrounds, expression layers, and scene audio should be produced only after text and flow are accepted.
+
+- [deferred] [P1] [balance] Resume final combat and drop-value tuning after flow validation
+  Owner file(s): `src/js/data/Monsters.js`, `src/js/data/Equipment.js`, `src/js/data/Recipes.js`
   Source of truth: live databases and user playtest feedback
   Validation: `scripts/DifficultyProgressionCheck.mjs`
-  Notes: Do not add runtime multipliers; adjust source data only when the balance pass resumes.
+  Notes: Keep the current data-first rule; do not add runtime multipliers or compatibility patches.
 
 - [deferred] [P2] [material-classification] Give `cursed_shard` an approved use
   Owner file(s): `src/js/data/Materials.js`, `src/js/data/Recipes.js`, `src/js/data/FirstRunLootBalance.js`
-  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`, live item-flow data
+  Source of truth: `docs/EQUIPMENT_SERIES_FRAMEWORK.md`
   Validation: `scripts/ItemFlowCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
-  Notes: It has a source but no destination; reserve it for a level-appropriate cursed, undead, or shadow special craft.
+  Notes: It has a source but no destination; reserve it for an appropriate cursed, undead, or shadow craft.
 
-- [paused] [P2] [casino] Keep casino rewards and weapons conceptual
-  Owner file(s): `src/js/data/CasinoRewards.js`, `docs/CASINO_ROUTE_FRAMEWORK.md`
-  Source of truth: accepted casino route framework
-  Validation: pending design approval
-  Notes: Thirty-three casino-special mappings remain and are excluded from the active art pass.
-
-- [paused] [P2] [tower-second-run-mobile] Preserve paused boundaries
-  Owner file(s): tower runtime, second-run contracts, mobile styles
-  Source of truth: `AGENTS.md`, `docs/MAIN_STORY_BIBLE.md`
+- [paused] [P2] [tower-second-run-casino-mobile] Preserve paused boundaries
+  Owner file(s): tower, second-run, casino-reward, and mobile runtime modules
+  Source of truth: `AGENTS.md`, `docs/MAIN_STORY_BIBLE.md`, `docs/CASINO_ROUTE_FRAMEWORK.md`
   Validation: scope review
-  Notes: Do not expand tower, second-run external Bosses, light/Void routes, DLC, or mobile UI during the current milestone.
+  Notes: Do not expand tower, second-run external Bosses, formal light/Void content, casino prizes, DLC, or mobile UI during this milestone.
 
 Current validation snapshot:
 
-- `BetaConvergenceCheck.mjs`: pass; 20 framework documents.
-- `StoryRuntimeCheck.mjs`: pass; 66 scenes, 9 expressions, 9 character contracts,
-  7 regions, and 7 encounter contracts.
+- `BetaConvergenceCheck.mjs`: blocked only by the six optional quests being active before review.
 - `DataConsistencyCheck.mjs`: pass.
-- `MonsterEcologyCheck.mjs`: pass; no required first-run monster art gaps.
-- `FirstRunLootCheck.mjs`: pass for 55 monsters.
-- `StaffAttunementCheck.mjs`: pass.
-- `FormalWeaponCatalogAudit.mjs`: no unknown forms or craft-blueprint gaps.
-- `AssetCoverageCheck.mjs`: expected nonzero; 44 missing mappings, 0 missing
-  physical files, and 37 dimension warnings. Missing mappings are 6 crafted
-  results, 5 Boss craft blueprints, and 33 paused casino-special items.
+- `MonsterEcologyCheck.mjs`: pass.
+- `AssetCoverageCheck.mjs`: pass for missing mappings and physical files; existing dimension warnings remain.
+- `StructureConsistencyCheck.mjs`: pass.
+- `ChapterOneGameplayCheck.mjs`: pass.
+- `CombatTutorialCheck.mjs`: pass.
+- `ItemFlowCheck.mjs`: pass with the known no-source warnings for `spirit_essence`, `dark_crystal`, and `ancient_artifact`.
+- `TownRuntimeCheck.mjs`: pass.
+- `FirstRunLootCheck.mjs`: pass.
+- `StoryRuntimeCheck.mjs`: blocked by the six optional quests being active before review.
+- `SideStoryFlowCheck.mjs`: blocked by the same optional-quest review gate.
 
 ## Next Good Step
 
-- [planned] [P1] [catalog-review] Review the eleven non-casino mappings
-  Owner file(s): `src/js/data/Recipes.js`, `src/js/data/BossEquipment.js`, `src/js/data/AssetManifest.js`
-  Source of truth: live crafted-result and Boss craft identities
-  Validation: explicit user approval of keep, regenerate, reclassify, or remove decisions
-  Notes: Do not touch the 33 paused casino items in this pass.
+- [planned] [P0] [fresh-save-review] Run the opening as a player, not as isolated systems
+  Owner file(s): all opening and Chapter 1 runtime modules
+  Source of truth: the live game flow
+  Validation: fresh save from guild entry through Chapter 1 completion
+  Notes: Record only concrete blockers such as a dead end, missing choice, inaccessible location, incorrect flag, broken reward decision, or duplicated tutorial.
 
-- [planned] [P1] [material-use] Define the `cursed_shard` destination
-  Owner file(s): `src/js/data/Recipes.js`, `src/js/data/Materials.js`
-  Source of truth: the Lv24-40 shadow/undead source graph
-  Validation: `scripts/ItemFlowCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
-  Notes: The new recipe must not make one monster own the material, blueprint, and finished item.
+- [planned] [P0] [quest-review] Approve or revise the six active optional quests
+  Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`, `src/js/data/NPCDialogues.js`
+  Source of truth: approved side-story character intentions
+  Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/SideStoryFlowCheck.mjs`
+  Notes: Once reviewed, either keep them as playable records or return unfinished entries to deferred data; do not bypass the checks.
 
-- [planned] [P0] [vertical-slice] Return to the Chapter 1-2 no-skip playthrough
-  Owner file(s): Chapter 1-2 runtime modules
-  Source of truth: `src/js/data/StorySceneRegistry.js`
-  Validation: manual new-save desktop run
-  Notes: This remains the product milestone after the focused catalog cleanup.
+- [planned] [P1] [presentation-review] Lock Chapter 1 dialogue and reward presentation
+  Owner file(s): dialogue, scene, and settlement modules
+  Source of truth: runtime player experience
+  Validation: manual review at HD and FHD desktop sizes
+  Notes: Confirm speaker emphasis, persistent expressions, choice clarity, blueprint visibility, and inventory tradeoffs before creating missing art.
 
 ## Next Resume Task
 
-Review the remaining non-casino catalog gaps before any further image batch.
+Continue with one uninterrupted fresh-save opening and Chapter 1 playthrough.
 
 Target result:
 
-- List the six crafted-result and five Boss-blueprint mapping ids from the live
-  checker.
-- Confirm whether each record is active, visually defined, and still belongs to
-  the first-run data model.
-- Remove obsolete records cleanly or approve exact item/blueprint identity before
-  generating replacements.
-- Keep the 33 casino-special records untouched and visibly out of scope.
-- Preserve the completed seven-series weapon contract and existing approved art.
+- Confirm the guild tutorial cannot be bypassed or deadlocked.
+- Confirm every taught action is performed by the player rather than described
+  only in text.
+- Confirm the prologue combat sequence teaches both hands, breakage, potion use,
+  flee feedback, and the scripted defeat exactly once.
+- Confirm Mia's potion claim, Chapter 1 map progression, Rotroot continuation,
+  optional dungeon route, staged town reports, and Forest Guardian continuation.
+- Win one battle with a full backpack and one blueprint drop to validate reward
+  decisions and blueprint imagery.
+- Review the six optional quests before treating their runtime contract as
+  accepted.
 
 Suggested implementation files:
 
-- `src/js/data/Recipes.js`
-- `src/js/data/BossEquipment.js`
-- `src/js/data/AssetManifest.js`
-- `src/assets/images/art/items/`
-- `docs/ART_STYLE_GUIDE.md`
+- `src/js/data/GuildTutorial.js`
+- `src/js/scenes/GuildTutorialScene.js`
+- `src/js/managers/CombatFlowController.js`
+- `src/js/data/ChapterOneProgression.js`
+- `src/js/managers/ChapterOneProgressionManager.js`
+- `src/js/scenes/AdventureScene.js`
+- `src/js/scenes/LobbyScene.js`
+- `src/js/data/Quests.js`
+- `src/js/data/QuestStories.js`
 
 Validation:
 
-- `scripts/AssetCoverageCheck.mjs`
-- `scripts/DataConsistencyCheck.mjs`
-- `scripts/FormalWeaponCatalogAudit.mjs`
+- Manual desktop fresh-save playthrough
+- `scripts/ChapterOneGameplayCheck.mjs`
+- `scripts/CombatTutorialCheck.mjs`
+- `scripts/StoryRuntimeCheck.mjs`
+- `scripts/SideStoryFlowCheck.mjs`
+- `scripts/ItemFlowCheck.mjs`
 
 Out of scope:
 
-- Casino weapon and prize implementation
-- Tower equipment redesign
-- Final combat balance and drop-rate tuning
-- New second-run monsters, routes, rewards, or art
-- DLC and mobile UI
+- Final numeric combat balance
+- Additional second-run Bosses or routes
+- Tower and formal light/Void content
+- Casino prize implementation
+- New image batches before scene-flow approval
+- Mobile UI
 
 ## Verification Commands
 
 ```powershell
 $node = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe"
 
-& $node scripts\BetaConvergenceCheck.mjs
-& $node scripts\StoryRuntimeCheck.mjs
 & $node scripts\DataConsistencyCheck.mjs
 & $node scripts\MonsterEcologyCheck.mjs
-& $node scripts\FirstRunLootCheck.mjs
-& $node scripts\StaffAttunementCheck.mjs
-& $node scripts\FormalWeaponCatalogAudit.mjs
 & $node scripts\AssetCoverageCheck.mjs
+& $node scripts\StructureConsistencyCheck.mjs
+& $node scripts\ChapterOneGameplayCheck.mjs
+& $node scripts\CombatTutorialCheck.mjs
+& $node scripts\ItemFlowCheck.mjs
+& $node scripts\TownRuntimeCheck.mjs
+& $node scripts\FirstRunLootCheck.mjs
+& $node scripts\StoryRuntimeCheck.mjs
+& $node scripts\SideStoryFlowCheck.mjs
 ```
 
 Expected exception:
 
-- `AssetCoverageCheck.mjs` remains nonzero until the 44 explicitly listed
-  mappings and 37 specification warnings are resolved.
+- `StoryRuntimeCheck.mjs` and `SideStoryFlowCheck.mjs` remain non-passing until
+  the six active optional quests complete user review or return to deferred data.

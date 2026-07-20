@@ -67,6 +67,7 @@ class QuestManager {
             progress,
             startTime: Date.now()
         };
+        GameManager.setFlag?.(`quest.${questId}.accepted`, true, { reason: 'quest-accepted' });
 
         this.notify('quest_accepted', { quest, questId });
         this.syncCollectObjectives();
@@ -129,6 +130,9 @@ class QuestManager {
         };
 
         GameManager.setFlag?.(`quest.${questId}.finished`, true);
+        for (const flag of quest.completionFlags || []) {
+            GameManager.setFlag?.(flag, true, { reason: `quest-complete:${questId}` });
+        }
 
         // 解鎖後續任務
         if (quest.unlocks && quest.unlocks.length > 0) {

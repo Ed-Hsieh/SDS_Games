@@ -1,0 +1,133 @@
+.guild-tutorial-scene {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: 76px minmax(0, 1fr);
+    color: #ece8dc;
+    background: #090b0c;
+}
+
+.guild-tutorial-header {
+    z-index: 4;
+    padding: 12px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(219, 180, 93, 0.28);
+    background: rgba(8, 11, 12, 0.96);
+}
+
+.guild-tutorial-header span,
+.guild-tutorial-panel > span,
+.guild-modal section > span { color: #d2aa59; font-size: 11px; font-weight: 800; }
+.guild-tutorial-header h1 { margin: 2px 0 0; font: 600 24px Georgia, serif; }
+.guild-tutorial-progress { text-align: right; }
+.guild-tutorial-progress strong { display: block; margin-top: 3px; }
+
+.guild-room {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    outline: none;
+}
+
+.guild-room-backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(4, 7, 8, 0.08), rgba(4, 7, 8, 0.55)),
+        url('../assets/images/art/scenes/town/locations/civic-room-working.webp') center / cover no-repeat;
+    filter: brightness(0.7) saturate(0.78);
+}
+
+.guild-room::after {
+    content: '';
+    position: absolute;
+    inset: 8% 4% 7%;
+    border: 1px solid rgba(232, 202, 131, 0.18);
+    pointer-events: none;
+}
+
+.guild-point {
+    position: absolute;
+    z-index: 2;
+    width: 138px;
+    min-height: 62px;
+    padding: 10px;
+    border: 1px solid rgba(219, 180, 93, 0.34);
+    border-radius: 5px;
+    color: #eee9dd;
+    background: rgba(7, 10, 11, 0.78);
+}
+.guild-point span, .guild-point small { display: block; }
+.guild-point small { margin-top: 4px; color: #b9ad91; }
+.guild-point.is-near { border-color: #e2bb67; box-shadow: 0 0 22px rgba(221, 174, 73, 0.24); }
+.guild-clerk { left: 48%; top: 13%; }
+.guild-board { left: 16%; top: 22%; }
+.guild-rack { left: 72%; top: 48%; }
+.guild-exit { left: 82%; top: 78%; }
+
+.guild-player {
+    position: absolute;
+    z-index: 3;
+    left: 12%;
+    top: 74%;
+    width: 34px;
+    height: 34px;
+    border: 2px solid #e8c878;
+    border-radius: 50%;
+    background: #18262a;
+    box-shadow: 0 8px 20px rgba(0,0,0,.55);
+    transform: translate(-50%, -50%);
+}
+.guild-player span { position:absolute; left:50%; top:-8px; width:2px; height:10px; background:#e8c878; }
+
+.guild-interaction-hint {
+    position: absolute;
+    z-index: 5;
+    left: 50%;
+    bottom: 28px;
+    min-width: 310px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border: 1px solid rgba(225, 187, 101, 0.58);
+    border-radius: 5px;
+    background: rgba(7, 10, 11, 0.92);
+    transform: translateX(-50%);
+}
+.guild-interaction-hint[hidden] { display:none; }
+.guild-interaction-hint kbd { width: 38px; height: 38px; display:grid; place-items:center; border:1px solid #d2aa59; }
+.guild-interaction-hint strong, .guild-interaction-hint span { display:block; }
+.guild-interaction-hint span { color:#aaa18d; font-size:12px; margin-top:3px; }
+
+.guild-tutorial-panel {
+    position: absolute;
+    z-index: 6;
+    right: 28px;
+    top: 102px;
+    width: 330px;
+    padding: 20px;
+    border: 1px solid rgba(219, 180, 93, 0.32);
+    border-radius: 5px;
+    background: rgba(8, 12, 13, 0.94);
+}
+.guild-tutorial-panel h2 { margin: 7px 0 9px; font: 600 20px Georgia, serif; }
+.guild-tutorial-panel p { margin: 0; color:#c3bdae; line-height:1.65; }
+.guild-key-row, .guild-tools { margin-top:14px; display:flex; gap:8px; }
+.guild-key-row[hidden], .guild-tools[hidden] { display:none; }
+.guild-key-row kbd { width:35px; height:35px; display:grid; place-items:center; border:1px solid rgba(232,200,120,.5); }
+.guild-tools button, .guild-modal button { min-height:36px; padding:0 13px; border:1px solid rgba(219,180,93,.45); border-radius:4px; color:#eee5d2; background:#252015; }
+.guild-tools button.is-required { animation: guild-breathe 1.4s ease-in-out infinite; }
+@keyframes guild-breathe { 50% { border-color:#f0c665; box-shadow:0 0 18px rgba(229,181,73,.38); } }
+
+.guild-modal { position:fixed; z-index:30; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.7); }
+.guild-modal[hidden] { display:none; }
+.guild-modal section { position:relative; width:min(760px, calc(100vw - 90px)); max-height:78vh; overflow:auto; padding:28px; border:1px solid rgba(219,180,93,.5); border-radius:6px; background:#0e1314; }
+.guild-modal h2 { margin:8px 0 18px; font:600 26px Georgia,serif; }
+.guild-modal-close { position:absolute; right:14px; top:12px; width:36px; padding:0 !important; }
+.guild-commission, .guild-clue-card, .guild-loadout { display:grid; gap:12px; }
+.guild-commission p, .guild-clue-card p { color:#c9c3b5; line-height:1.7; }
+.guild-loadout-row { display:grid; grid-template-columns:110px 1fr auto; align-items:center; gap:12px; padding:12px; border:1px solid rgba(255,255,255,.1); }
+.guild-loadout-row strong, .guild-loadout-row span { display:block; }
+.guild-loadout-row small { color:#a7a08f; }

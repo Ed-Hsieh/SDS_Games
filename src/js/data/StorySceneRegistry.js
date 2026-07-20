@@ -245,7 +245,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成一次命中或暴擊、使用應急藥劑、嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。"
+                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成主手命中、副手追擊、看見武器耐久耗盡並改以拳頭應戰、實際使用應急藥劑，再嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。"
             },
             {
                 "order": 7,
@@ -1451,17 +1451,64 @@ export const StorySceneRegistry = Object.freeze({
         "chapter": 1,
         "chapterOrder": 11,
         "stageClass": "town_scene",
-        "background": "town crossroads in first recovery state, with South Gate, forge smoke, and empty market edge visible in sequence",
+        "background": "five staged town visits: South Gate, archive, Mia's workroom, relit forge, then the recovering crossroads",
         "worldState": "Chapter 1 close; nearby roads readable but unsafe; market still lacks a supply route",
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "village elder, town scholar, Mia, Frey, Tavi, blacksmith, street beggar",
-        "entry": "South Gate records the protagonist's return and the scene follows evidence into town",
+        "entry": "the player must first walk to South Gate; each completed report points to the next town place instead of auto-playing one long return sequence",
         "exit": "Chapter 2 objective opens at the empty market edge",
         "objective": "report the forest result and identify what town function can honestly recover",
         "inputsRaw": "Forest Guardian cleared; northern pressure evidence held",
         "outputsRaw": "Chapter 2 opened; first town recovery state; basic forge/gate/handbook retained; Mia's basic recipe authorized but unavailable until market supply returns",
         "assetNotes": "one recovery-state crossroads background plus existing character portraits and ordinary repair props; no new resident portrait and no generation before screenplay lock",
+        "checkpoints": {
+            "gate_return": {
+                "title": "名字重新劃回回程欄",
+                "beatRange": [
+                    1,
+                    4
+                ],
+                "background": "South Gate after the Forest Guardian route",
+                "backgroundImage": "src/assets/images/art/scenes/town/locations/gate-broken.webp"
+            },
+            "archive_report": {
+                "title": "守護者與源頭是兩件事",
+                "beatRange": [
+                    5,
+                    8
+                ],
+                "background": "the civic archive desk",
+                "backgroundImage": "src/assets/images/art/scenes/town/locations/civic-room-working.webp"
+            },
+            "mia_check": {
+                "title": "冷水與溫杯",
+                "beatRange": [
+                    9,
+                    12
+                ],
+                "background": "Mia's herb workroom",
+                "backgroundImage": "src/assets/images/art/scenes/town/locations/mia_workroom.webp"
+            },
+            "forge_recovery": {
+                "title": "第一爐先修普通東西",
+                "beatRange": [
+                    13,
+                    17
+                ],
+                "background": "the relit forge and its civilian repair queue",
+                "backgroundImage": "src/assets/images/art/scenes/town/locations/forge.webp"
+            },
+            "crossroads_hint": {
+                "title": "北邊不是北邊",
+                "beatRange": [
+                    18,
+                    20
+                ],
+                "background": "the recovering crossroads beside empty freight crates",
+                "backgroundImage": "src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp"
+            }
+        },
         "beats": [
             {
                 "order": 1,

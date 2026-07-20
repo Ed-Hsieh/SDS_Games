@@ -278,7 +278,7 @@ export default class StoryDialogueView {
         const visible = usable.slice(0, 4);
         this.cast.innerHTML = visible.map((actor, index) => {
             const actorId = actor.id || actor.actorId;
-            const isActive = actorId === activeId;
+            const isActive = !activeId || actorId === activeId;
             const side = index % 2 === 0 ? 'left' : 'right';
             const slot = Math.floor(index / 2);
             const lineExpression = resolveLayerImage(line.expressionLayer);

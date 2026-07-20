@@ -38,6 +38,32 @@ export const WorldInteractionDatabase = {
         repeatMessage: '公告板已經整理過。新紙在風裡沙沙響，像有人正在小聲點名。',
         imageKeys: ['world.notice_board']
     },
+    tavi_lamp_clasps: {
+        id: 'tavi_lamp_clasps',
+        title: '重新分配燈罩扣',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: true,
+        flags: ['town.gate.lamp_clasps_sorted'],
+        unlockQuests: [],
+        unlockRecipes: [],
+        progressObjectives: [{ type: 'event', target: 'tavi_lamp_clasps', amount: 1 }],
+        message: '三組扣件的磨痕各自對上居民門燈、後標燈與巡線燈。塔維把自己的備用件全分出去，才讓每一盞燈都變得「稍微有個性」。你替巡線燈留下固定的一組，再把另外兩組送回原處。',
+        repeatMessage: '三組燈罩扣已重新分配；巡線燈不再靠繩結勉強固定。',
+        imageKeys: ['world.notice_board']
+    },
+    blacksmith_pot_lid: {
+        id: 'blacksmith_pot_lid',
+        title: '辨認鍋蓋受力',
+        source: InteractionSource.WORLD_OBJECT,
+        oneTime: true,
+        flags: ['town.forge.pot_lid_sorted'],
+        unlockQuests: [],
+        unlockRecipes: [],
+        progressObjectives: [{ type: 'event', target: 'blacksmith_pot_lid', amount: 1 }],
+        message: '外緣先承受碎石，握把附近的凹陷最後才形成。你按受力順序標記回火位置，沒有直接把它敲成一片看似平整、實際隨時會裂開的薄鐵。',
+        repeatMessage: '鍋蓋的受力順序已標好，鐵匠正在按順序回火。',
+        imageKeys: ['world.ancient_forge_core']
+    },
     special_bounty_notice: {
         id: 'special_bounty_notice',
         title: '精英懸賞告示',

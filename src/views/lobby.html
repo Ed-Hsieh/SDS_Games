@@ -189,7 +189,13 @@
                         <div class="storage-section inventory-section" aria-label="背包">
                             <div class="storage-section-head storage-section-meta">
                                 <span>容量</span>
-                                <strong><span id="inventory-used">0</span> / <span id="inventory-max">10</span></strong>
+                                <div class="inventory-head-actions">
+                                    <strong><span id="inventory-used">0</span> / <span id="inventory-max">10</span></strong>
+                                    <button class="store-materials-button" id="btn-store-materials" type="button" title="將背包內所有素材放入倉庫">
+                                        <span class="store-materials-icon" aria-hidden="true">⇩</span>
+                                        <span>存放素材</span>
+                                    </button>
+                                </div>
                             </div>
                             <div class="inventory-list field-inventory-grid" id="inventory-list"></div>
                         </div>

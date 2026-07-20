@@ -18,8 +18,9 @@ import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 import storyDialogueController from './managers/StoryDialogueController.js';
+import GuildTutorialScene from './scenes/GuildTutorialScene.js';
 
-const APP_ASSET_VERSION = 'codex-runtime-20260719g';
+const APP_ASSET_VERSION = 'codex-runtime-20260720a';
 
 class App {
     constructor() {
@@ -30,6 +31,7 @@ class App {
         
         // Simple router map
         this.routes = {
+            'guild': GuildTutorialScene,
             'lobby': LobbyScene,
             'shop': ShopScene,
             'adventure': null,

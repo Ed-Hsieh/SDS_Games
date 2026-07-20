@@ -1,6 +1,6 @@
 # SDS Games Development Docs
 
-Last updated: 2026-07-18
+Last updated: 2026-07-20
 
 This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
 data files remain the source of truth for shipped behavior; these documents keep
@@ -60,6 +60,19 @@ the design direction readable for future Codex sessions.
 - `src/js/data/ChapterRegionRegistry.js`
 - `src/js/data/OptionalSideStoryRegistry.js`
 - `src/js/managers/StorySceneManager.js`
+
+The current new-game entry now starts in the guild tutorial before the prologue
+combat and Chapter 1. The guild teaches movement, interaction, commission and
+clue review, and equipment-slot conflict through real player actions. The
+prologue then owns combat controls, weapon break, potion use, flee feedback, and
+the fixed defeat. The old duplicate field onboarding has been removed.
+
+Battle settlement now includes the live five-column backpack, full-capacity
+discard decisions, and visible blueprint reward art. Chapter 1 Rotroot
+investigation beats continue through staged story text instead of repeated use
+of the same landmark, and the obsolete fixed salvage and elite landmarks are
+removed. See `AGENT_SESSION_LOG.md` for the exact validation gate and unfinished
+work.
 
 The old town plan, quest spine, first-chapter route plan, random geography, and
 fifteen-part main quest chain are removed rather than retained as compatibility

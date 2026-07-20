@@ -221,6 +221,7 @@ export function createRecipeBlueprintDisplayItem(unlock) {
         icon: '📜',
         desc: '已登錄到製作圖鑑，可在鍛造介面製作。',
         autoUnlockedBlueprint: true,
+        assetId: resultId,
         recipeId: unlock.recipeId,
         recipeName: recipe.name,
         instanceId: `blueprint_${unlock.recipeId}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`

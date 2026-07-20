@@ -145,6 +145,7 @@ export default class LobbyScene {
             lobbyInventoryPane: this.container.querySelector('#lobby-field-pack-pane'),
             inventoryUsed: this.container.querySelector('#inventory-used'),
             inventoryMax: this.container.querySelector('#inventory-max'),
+            storeMaterials: this.container.querySelector('#btn-store-materials'),
             
             // Equipment slots
             slotWeapon: this.container.querySelector('#slot-weapon'),
@@ -291,6 +292,7 @@ export default class LobbyScene {
         if (this.dom.lobbyInventoryPane) {
             this.dom.lobbyInventoryPane.addEventListener('click', (e) => this.onInventoryClick(e));
         }
+        this.dom.storeMaterials?.addEventListener('click', () => this.storeAllMaterials());
     }
 
     onInventoryClick(e) {
@@ -415,6 +417,14 @@ export default class LobbyScene {
             }
             
             this.renderLobbyInventoryGrid(state.inventory || []);
+            if (this.dom.storeMaterials) {
+                const materialStacks = state.inventory.filter(stack => String(stack.item?.type || '').toLowerCase() === 'material');
+                const materialQuantity = materialStacks.reduce((total, stack) => total + Math.max(1, Number(stack.quantity) || 1), 0);
+                this.dom.storeMaterials.disabled = materialStacks.length === 0;
+                this.dom.storeMaterials.title = materialStacks.length > 0
+                    ? `將 ${materialStacks.length} 種、共 ${materialQuantity} 個素材放入倉庫`
+                    : '背包內沒有可存放的素材';
+            }
         }
 
         if (type === 'all' || type === 'flags') {
@@ -540,34 +550,27 @@ export default class LobbyScene {
         if (!npcId) return;
 
         const action = storyGuidanceManager.getTownNpcAction(npcId);
-        if (action.type === 'chapter-one-first-report') {
-            await this.playChapterOneFirstReturnReport();
-            this.renderWorldStage();
-            return;
-        }
-        if (action.type === 'chapter-one-home-recovery') {
-            await this.playChapterOneMiaRecovery();
-            this.renderWorldStage();
-            return;
-        }
-        if (action.type === 'story-scene') {
-            this.openStoryScene(action.sceneId);
-            this.renderWorldStage();
-            return;
-        }
-        if (action.type === 'mia-emergency-potions') {
-            await this.playMiaEmergencyPotionSupport();
-            this.renderWorldStage();
-            return;
-        }
-
         const dialogues = dialogueManager.getAvailableDialogues(npcId);
-        if (dialogues.length > 1) {
+        const dialogueTopics = dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue));
+        const hasStoryAction = action.type !== 'dialogue';
+        const shouldChooseTopic = hasStoryAction
+            || dialogues.length > 1
+            || dialogueTopics.some(topic => topic.category === 'side');
+
+        if (shouldChooseTopic) {
             const npc = getTownNPC(npcId);
             const actor = getStoryActor(npcId, { isFlagSet: flag => GameManager.getFlag(flag) });
+            const choices = [
+                ...(hasStoryAction ? [{
+                    id: '__story_action__',
+                    label: this.getTownStoryActionLabel(action),
+                    description: '推進目前與這名角色相關的事件。'
+                }] : []),
+                ...dialogueTopics
+            ];
             const selection = await storyDialogueController.choose({
                 title: '現在想談什麼？',
-                choices: dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue)),
+                choices,
                 standing: actor?.standing || '',
                 standingFacing: actor?.standingFacing || 'center',
                 standingScale: actor?.standingScale || 1,
@@ -581,11 +584,22 @@ export default class LobbyScene {
                 closable: true
             });
             if (selection.status !== 'selected') return;
+            if (selection.choiceId === '__story_action__') {
+                await this.executeTownNpcAction(action);
+                this.renderWorldStage();
+                return;
+            }
             const outcome = dialogueManager.startDialogue(npcId, {
                 source: 'lobby',
                 dialogueId: selection.choiceId
             });
-            this.playTownDialogueOutcome(outcome);
+            await this.playTownDialogueOutcome(outcome);
+            return;
+        }
+
+        await this.executeTownNpcAction(action);
+        if (hasStoryAction) {
+            this.renderWorldStage();
             return;
         }
 
@@ -593,9 +607,42 @@ export default class LobbyScene {
             source: 'lobby',
             dialogueId: dialogues[0]?.id || null
         });
-        this.playTownDialogueOutcome(outcome);
-
+        await this.playTownDialogueOutcome(outcome);
         this.renderWorldStage();
+    }
+
+    getTownStoryActionLabel(action) {
+        return ({
+            'chapter-one-first-report': '回報道路調查',
+            'chapter-one-home-recovery': '請米婭檢查傷勢',
+            'chapter-one-closing-report': '交付道路結果',
+            'story-scene': '繼續目前事件',
+            'mia-emergency-potions': '補充應急藥'
+        })[action?.type] || '談談目前的事';
+    }
+
+    async executeTownNpcAction(action) {
+        if (action.type === 'chapter-one-first-report') {
+            await this.playChapterOneFirstReturnReport();
+            return true;
+        }
+        if (action.type === 'chapter-one-home-recovery') {
+            await this.playChapterOneMiaRecovery();
+            return true;
+        }
+        if (action.type === 'chapter-one-closing-report') {
+            await this.playChapterOneClosingReport(action.stage);
+            return true;
+        }
+        if (action.type === 'story-scene') {
+            this.openStoryScene(action.sceneId);
+            return true;
+        }
+        if (action.type === 'mia-emergency-potions') {
+            await this.playMiaEmergencyPotionSupport();
+            return true;
+        }
+        return false;
     }
 
     openInitialStoryFlow() {
@@ -741,15 +788,43 @@ export default class LobbyScene {
         if (result.status !== 'complete') return false;
 
         chapterOneProgressionManager.completeHomeRecovery();
-        const supply = GameManager.refillMiaEmergencyPotions();
-        const supplyText = supply.refilled
-            ? '米婭也把不足的應急藥補回三瓶。'
-            : supply.current > 0
-                ? `行囊裡仍有 ${supply.current} 瓶應急藥，不需要補充。`
-                : '行囊目前沒有空位，這不影響傷勢檢查與主線推進。';
+        const needsSupply = chapterOneProgressionManager.needsMiaEmergencyPotionSupport();
         this.pushTownNarrative(
             '米婭的檢查',
-            `米婭確認舊傷沒有惡化，可以繼續巡路。${supplyText}`,
+            '米婭確認舊傷沒有惡化，可以繼續巡路。',
+            'discovery'
+        );
+        if (needsSupply) await this.playMiaEmergencyPotionSupport();
+        this.renderWorldStage();
+        return true;
+    }
+
+    async playChapterOneClosingReport(stage = chapterOneProgressionManager.getClosingReportStage()) {
+        if (!stage) return false;
+        const sceneId = 'ch1_s11_roads_breathe_again';
+        if (storySceneManager.getNextAvailableSceneId() !== sceneId) return false;
+
+        const presentation = storySceneManager.buildCheckpointPresentation(sceneId, stage.checkpointId);
+        if (!presentation?.success) return false;
+
+        this.enterTownPlace(stage.placeId);
+        const result = await storyDialogueController.play(presentation, {
+            closable: false,
+            backgroundImage: presentation.backgroundImage || this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: this.getTownDialogueScopeElement()
+        });
+        if (result.status !== 'complete') return false;
+
+        const progress = chapterOneProgressionManager.completeClosingReportStage(stage.id);
+        if (!progress.success) return false;
+        if (progress.complete) {
+            storySceneManager.completeScene(sceneId);
+        }
+
+        this.pushTownNarrative(
+            presentation.narrativeTitle,
+            progress.next?.text || '道路結果已分別交到需要處理它的人手上。',
             'discovery'
         );
         this.renderWorldStage();
@@ -757,15 +832,15 @@ export default class LobbyScene {
     }
 
     async playMiaEmergencyPotionSupport({ initial = false } = {}) {
-        const supply = GameManager.refillMiaEmergencyPotions();
-        if (!supply.refilled && supply.current >= supply.limit) return supply;
+        const current = GameManager.getEmergencyPotionCount();
+        if (current >= 3) return { refilled: false, added: 0, current, limit: 3 };
         const npc = getTownNPC('herbalist');
         const actor = this.enrichDialogueActor({
             ...getStoryActor('herbalist', { isFlagSet: flag => GameManager.getFlag(flag) }),
             ...npc,
             id: 'herbalist',
             actorId: 'herbalist',
-            expression: supply.refilled ? 'soft' : 'guarded'
+            expression: 'soft'
         });
         const expression = actor.expression;
         const line = {
@@ -773,11 +848,9 @@ export default class LobbyScene {
             actorId: 'herbalist',
             expression,
             expressionLayer: getStoryExpressionLayer('herbalist', expression),
-            text: supply.refilled
-                ? (initial
-                    ? '這三瓶應急藥先帶著。只要少於三瓶就回來找我，我會替你補足。'
-                    : `只剩 ${Math.max(0, supply.limit - supply.added)} 瓶了？空瓶給我。我替你補回三瓶；下次不夠，再回來。`)
-                : '先在行囊裡留一個位置。我會替你補回三瓶應急藥。'
+            text: initial
+                ? '先等等。你現在這個樣子不能空手出去。這三瓶應急藥帶著，用完就回來找我。'
+                : `只剩 ${current} 瓶了？空瓶給我。我替你補回三瓶。`
         };
 
         await storyDialogueController.play({
@@ -792,12 +865,38 @@ export default class LobbyScene {
             scopeElement: this.getTownDialogueScopeElement()
         });
 
+        const claim = await storyDialogueController.choose({
+            title: '米婭把藥瓶放到你手邊。',
+            choices: [{
+                id: 'claim-mia-potions',
+                label: '接過應急藥',
+                description: '將小型生命藥水補足到三瓶。'
+            }],
+            standing: actor.standing || '',
+            standingFacing: actor.standingFacing || 'center',
+            standingScale: actor.standingScale || 1,
+            standingOffsetY: actor.standingOffsetY || 0,
+            portrait: actor.portrait || actor.image || '',
+            name: actor.name || '米婭',
+            role: actor.role || '',
+            backgroundImage: this.getTownDialogueBackground(),
+            backgroundPosition: this.getTownDialogueBackgroundPosition(),
+            scopeElement: this.getTownDialogueScopeElement(),
+            closable: false
+        });
+        if (claim.status !== 'selected') {
+            return { refilled: false, added: 0, current, limit: 3 };
+        }
+
+        const supply = GameManager.refillMiaEmergencyPotions();
         if (supply.refilled) {
             this.pushTownNarrative(
                 '米婭的應急藥',
                 '應急藥已補足三瓶。少於三瓶時，可再次找米婭補足。',
                 'discovery'
             );
+        } else if (supply.current < supply.limit) {
+            this.pushTownNarrative('背包沒有空位', '先整理背包，再回來接過米婭準備的藥水。', 'warning');
         }
         return supply;
     }
@@ -1873,6 +1972,20 @@ export default class LobbyScene {
                 showGlobalToast('出售完成', `已出售「${preview.item.name}」，獲得 ${earnedGold} 金幣。`, 'success');
             }
         }
+    }
+
+    storeAllMaterials() {
+        const result = GameManager.moveAllMaterialsToWarehouse();
+        if (!result.movedStacks) {
+            showGlobalToast('沒有可存放的素材', '背包內目前沒有素材。', 'info');
+            return;
+        }
+
+        showGlobalToast(
+            '素材已放入倉庫',
+            `已存放 ${result.movedStacks} 種素材，共 ${result.movedQuantity} 個。`,
+            'success'
+        );
     }
     
     unequipItem(slotType) {

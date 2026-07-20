@@ -1000,7 +1000,36 @@ button {
 }
 
 .flee-symbol {
+    position: relative;
     transform: rotate(1deg);
+    background: conic-gradient(rgba(242, 138, 120, 0.72) var(--cooldown-progress, 0deg), rgba(87, 28, 23, 0.22) 0);
+}
+
+.flee-symbol::after {
+    position: absolute;
+    inset: 3px;
+    border-radius: 2px;
+    background: #17100f;
+    content: '';
+}
+
+.flee-symbol i,
+.flee-symbol b {
+    position: relative;
+    z-index: 1;
+    font-style: normal;
+}
+
+.flee-symbol b {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    color: #fff1de;
+    font: 700 9px/1 Consolas, monospace;
+}
+
+.quick-action-danger.is-cooling {
+    color: rgba(207, 205, 196, 0.46);
 }
 
 .potion-action.is-cooling {
@@ -1668,6 +1697,125 @@ button {
     display: grid;
     gap: 8px;
     margin-top: 12px;
+}
+
+.combat-settlement-summary {
+    display: grid;
+    gap: 5px;
+}
+
+.combat-settlement-columns {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.05fr) minmax(270px, 0.95fr);
+    gap: 16px;
+    margin-top: 12px;
+}
+
+.combat-settlement-columns > section {
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid rgba(215, 190, 128, 0.2);
+    background: rgba(5, 7, 7, 0.74);
+}
+
+.combat-settlement-columns header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.combat-settlement-columns header strong,
+.combat-blueprint-card strong {
+    margin: 0;
+    font: 700 12px/1.3 inherit;
+}
+
+.combat-settlement-columns header small,
+.combat-blueprint-card small {
+    color: rgba(230, 226, 213, 0.56);
+    font-size: 10px;
+}
+
+.combat-blueprint-list {
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.combat-blueprint-card {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 7px;
+    border: 1px solid rgba(105, 165, 189, 0.38);
+    background: rgba(28, 62, 72, 0.2);
+}
+
+.combat-blueprint-card > span:last-child {
+    display: grid;
+    gap: 3px;
+}
+
+.combat-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.combat-inventory-slot {
+    position: relative;
+    display: grid;
+    aspect-ratio: 1;
+    place-items: center;
+    min-width: 0;
+    border: 1px solid rgba(215, 190, 128, 0.24);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.combat-inventory-slot.is-empty {
+    opacity: 0.4;
+}
+
+.combat-inventory-slot img {
+    width: 78%;
+    height: 78%;
+    object-fit: contain;
+}
+
+.combat-inventory-slot b {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    color: #f2dfaa;
+    font-size: 10px;
+}
+
+.combat-inventory-slot button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
+    border-color: rgba(184, 94, 82, 0.48);
+    background: rgba(80, 24, 20, 0.88);
+}
+
+.combat-inventory-slot:hover button,
+.combat-inventory-slot:focus-within button {
+    display: grid;
+    place-items: center;
+}
+
+.combat-settlement-empty {
+    margin: 14px 0 0;
+    color: rgba(230, 226, 213, 0.5);
+    text-align: center;
 }
 
 .combat-loot-card {

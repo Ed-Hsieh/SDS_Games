@@ -271,9 +271,20 @@ class StorySceneManager {
         const checkpoint = scene?.checkpoints?.[checkpointId];
         if (!scene || !checkpoint) return null;
         const objectiveHint = getStoryObjectiveHint(sceneId);
-        const beats = (checkpoint.beats || [])
+        const [rangeStart, rangeEnd] = checkpoint.beatRange || [];
+        const sourceBeats = checkpoint.beats || scene.beats.filter(beat => (
+            Number.isFinite(rangeStart)
+            && Number.isFinite(rangeEnd)
+            && beat.order >= rangeStart
+            && beat.order <= rangeEnd
+        ));
+        const beats = sourceBeats
             .filter(beat => this.matchesBeatCondition(beat.condition))
-            .map(beat => this.resolveBeat(beat, scene));
+            .map(beat => ({
+                ...this.resolveBeat(beat, scene),
+                background: checkpoint.background || beat.background || scene.background,
+                backgroundImage: checkpoint.backgroundImage || null
+            }));
         const participants = [...new Set(beats.map(beat => beat.actorId).filter(Boolean))]
             .map(actorId => this.resolveActor(actorId));
 
