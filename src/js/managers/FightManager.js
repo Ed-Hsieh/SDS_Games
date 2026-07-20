@@ -18,21 +18,18 @@ function applyMonsterDamagePassiveMitigation(monster, player, damage) {
 
 function getCurrentHp(entity) {
     if (typeof entity?.hp === 'number') return entity.hp;
-    if (typeof entity?.currentHP === 'number') return entity.currentHP;
-    if (typeof entity?.currentHp === 'number') return entity.currentHp;
     return entity?.getHP ? entity.getHP() : 0;
 }
 
 function getMaxHp(entity) {
     if (typeof entity?.maxHp === 'number') return entity.maxHp;
-    if (typeof entity?.maxHP === 'number') return entity.maxHP;
     return entity?.getMaxHP ? entity.getMaxHP() : 0;
 }
 
 function getEntityDefense(entity) {
     if (!entity) return 0;
     if (typeof entity.getTotalDef === 'function') return Number(entity.getTotalDef()) || 0;
-    return Number(entity.defense ?? entity.def ?? entity.armor ?? 0) || 0;
+    return Number(entity.defense ?? 0) || 0;
 }
 
 function isBossLike(target) {
@@ -48,16 +45,10 @@ function setEntityHp(entity, hp) {
     const nextHp = Math.max(0, Math.floor(Number(hp) || 0));
     if (typeof entity?.hp === 'number') {
         entity.hp = nextHp;
-        if ('currentHp' in entity) entity.currentHp = nextHp;
-        if ('currentHP' in entity) entity.currentHP = nextHp;
     } else if (entity?.setHP) {
         entity.setHP(nextHp);
-        if ('currentHp' in entity) entity.currentHp = nextHp;
-        if ('currentHP' in entity) entity.currentHP = nextHp;
     } else if (entity) {
         entity.hp = nextHp;
-        entity.currentHp = nextHp;
-        entity.currentHP = nextHp;
     }
 }
 
@@ -289,25 +280,6 @@ function createWeaponTriggerVisual(profile, triggerType, details = {}) {
     };
 }
 
-export function normalizeMonsterCombatStats(monster) {
-    if (!monster) return monster;
-
-    const attack = monster.attack ?? monster.atk ?? 0;
-    const defense = monster.defense ?? monster.def ?? 0;
-    const hp = monster.hp ?? monster.currentHp ?? monster.maxHp ?? 0;
-    const maxHp = monster.maxHp ?? monster.hp ?? hp;
-
-    monster.attack = attack;
-    monster.atk = attack;
-    monster.defense = defense;
-    monster.def = defense;
-    monster.hp = hp;
-    monster.maxHp = maxHp;
-    if (monster.currentHp === undefined) monster.currentHp = hp;
-
-    return monster;
-}
-
 /**
  * Compute player attack damage (includes elemental bonuses and crit handling)
  * hitType: 'crit' | 'hit' | 'miss'
@@ -389,8 +361,7 @@ export function computePlayerAttack(player, hitType, target = null) {
 export function computeMonsterAttack(monster, player) {
     if (!monster || !player) return { damage: 1 };
     const def = player.getTotalDef ? player.getTotalDef() : (player.def || 0);
-    const normalizedMonster = normalizeMonsterCombatStats(monster);
-    const raw = (normalizedMonster.attack || 0) - def;
+    const raw = (monster.attack || 0) - def;
     let damage = Math.max(1, Math.floor(raw));
     const damageReduction = typeof player.getDamageReduction === 'function'
         ? Number(player.getDamageReduction()) || 0
@@ -399,7 +370,7 @@ export function computeMonsterAttack(monster, player) {
         damage = Math.max(1, Math.floor(damage * (1 - Math.min(damageReduction, 0.75))));
     }
     damage = applyMonsterDamagePassiveMitigation(
-        normalizedMonster,
+        monster,
         player,
         damage
     );
@@ -437,7 +408,7 @@ export function applyDamage(attacker, target, damageObj) {
     }
 
     // Subtract flat defense if present (ensure consistency with Monster.takeDamage)
-    const targetDef = (typeof target.getTotalDef === 'function') ? (target.getTotalDef()) : (target.def || target.defense || 0);
+    const targetDef = getEntityDefense(target);
     if (targetDef && damage > 0) {
         // Calculate armor penetration from attacker equipment (reduces target armor before subtraction)
         const profilePenPercent = Number(damageObj.breakdown?.profileArmorPenetrationBonus) || 0;
@@ -565,7 +536,7 @@ export function applyDamage(attacker, target, damageObj) {
 export class BattleController {
     constructor(player, monster) {
         this.player = player;
-        this.monster = normalizeMonsterCombatStats(monster);
+        this.monster = monster;
         this.monster.statusEffects = Array.isArray(this.monster.statusEffects) ? this.monster.statusEffects : [];
         this.battleEnded = false;
         this.attackCooldown = false;
@@ -1371,7 +1342,7 @@ export class BattleController {
             damage = Math.max(1, Math.floor(dmgObj.damage));
         } else {
             const def = this.player.getTotalDef ? this.player.getTotalDef() : (this.player.def || 0);
-            const monsterAttack = (this.monster.attack ?? this.monster.atk ?? 0);
+            const monsterAttack = this.monster.attack ?? 0;
             damage = Math.max(1, Math.floor(monsterAttack - def));
         }
 
@@ -1413,7 +1384,6 @@ export class BattleController {
             reflectedDamage = Math.max(1, Math.floor(damage * (playerEffects.damageReflect / 100)));
             if (typeof this.monster.hp === 'number') {
                 this.monster.hp = Math.max(0, this.monster.hp - reflectedDamage);
-                if ('currentHp' in this.monster) this.monster.currentHp = this.monster.hp;
             }
         }
 

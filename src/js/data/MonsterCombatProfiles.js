@@ -1,4 +1,4 @@
-import { normalizeMonsterSkill } from './MonsterSkills.js?v=20260717a';
+import { normalizeMonsterSkill } from './MonsterSkills.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const numberOr = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -139,7 +139,7 @@ function buildMonsterEffect(skill, monsterMaxHp, rawAttack) {
 }
 
 export function buildMonsterCombatActions(monster, playerDefense = 0) {
-    const rawAttack = numberOr(monster?.attack ?? monster?.atk, 5);
+    const rawAttack = numberOr(monster?.attack, 5);
     const baseDamage = Math.max(1, Math.round(rawAttack - numberOr(playerDefense) * 0.5));
     const speed = Math.max(0.5, numberOr(monster?.attackSpeed, 1));
     const telegraphScale = clamp(1.15 / speed, 0.62, 1.45);

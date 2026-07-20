@@ -4,7 +4,6 @@
  */
 import GameManager from '../managers/GameManager.js';
 import { casinoManager } from '../managers/CasinoManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import audioManager from '../utils/AudioManager.js';
@@ -617,10 +616,8 @@ export default class CasinoScene {
                 const effectNames = unlockedEffects.map(effect => effect.name).join('、');
                 setTimeout(() => this.showResult(`戰術技能解鎖：${effectNames}。可回大廳旅人卡片更換。`, true), 1350);
             }
-            questManager.updateStats?.('casino_prize_draw');
             if (result.reward?.rarity === 'legendary') {
                 audioManager.play('jackpot', { throttleKey: 'casino-prize-jackpot', throttleMs: 500 });
-                questManager.updateStats?.('jackpot');
             }
             if (name) this.flashPrize(name, result.reward?.rarity);
             this.updateDarkFlow(result.deepEvent);
@@ -699,18 +696,6 @@ export default class CasinoScene {
             if (result.isJackpot) {
                 audioManager.play('jackpot', { throttleKey: 'casino-slots-jackpot', throttleMs: 500 });
                 this.showJackpot();
-                // 任務系統：中頭獎
-                questManager.updateStats('jackpot');
-            }
-            this.updateDarkFlow(result.deepEvent);
-            
-            // 任務系統：賭博勝利/失敗
-            if (result.winnings > 0) {
-                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'slots', 1);
-                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questManager.updateStats('gamble_win');
-            } else {
-                questManager.updateStats('gamble_loss');
             }
             this.updateDarkFlow(result.deepEvent);
         } else {
@@ -835,14 +820,6 @@ export default class CasinoScene {
                 setTimeout(() => this.showResult(`輪盤票口吐出 +${result.ticketReward} 張獎券。`, true), 1050);
             }
             
-            // 任務系統：賭博勝利/失敗
-            if (result.isWin) {
-                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'roulette', 1);
-                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questManager.updateStats('gamble_win');
-            } else {
-                questManager.updateStats('gamble_loss');
-            }
             this.updateDarkFlow(result.deepEvent);
         } else {
             this.showResult(result.message, false);
@@ -907,14 +884,6 @@ export default class CasinoScene {
                 }, 2000);
             }
             
-            // 任務系統：賭博勝利/失敗
-            if (result.isWin) {
-                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'dice', 1);
-                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questManager.updateStats('gamble_win');
-            } else {
-                questManager.updateStats('gamble_loss');
-            }
         } else {
             this.showResult(result.message, false);
         }
@@ -989,16 +958,9 @@ export default class CasinoScene {
 
         if (result.success) {
             if (result.isWin) {
-                questManager.updateProgress(ObjectiveType.GAMBLE_WIN, 'dark_table', 1);
-                questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', result.winnings - bet);
-                questManager.updateStats('gamble_win');
-                questManager.updateStats('dark_table_win');
                 if (result.bonusReward?.title) {
                     this.flashPrize(result.bonusReward.title, 'epic');
                 }
-            } else {
-                questManager.updateStats('gamble_loss');
-                questManager.updateStats('dark_table_loss');
             }
             const followUpNotices = [];
             if (!result.isWin && result.damage > 0) {

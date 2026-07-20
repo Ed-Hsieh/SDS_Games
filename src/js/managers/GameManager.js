@@ -3,9 +3,8 @@
  * Singleton class for managing global game state.
  * Uses DataModel classes for robust state management.
  */
-import { CharacterManager, Item, Equipment, Weapon, Armor, Accessory, Consumable } from '../models/DataModel.js';
+import { CharacterManager, Consumable } from '../models/DataModel.js';
 import { ItemType, ItemRarity } from '../models/Enums.js';
-import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { ensureInstanceId, findMatchingStack, getSellPrice, isStackableItem, normalizeItemType } from '../models/ItemSchema.js';
 import {
@@ -16,12 +15,7 @@ import {
 } from '../data/PassiveCombatEffects.js';
 import SaveManager from './SaveManager.js';
 import { ItemDatabase } from '../data/UtilityItems.js';
-import {
-    ChapterOneProgressFlag,
-    getChapterOneGearQualification
-} from '../data/ChapterOneProgression.js';
 
-const WOLF_SMOKE_TEST_GRANT_FLAG = 'test.wolfSmokeGranted';
 const WOLF_SMOKE_CODEX_FLAG = 'encyclopedia.item.wolf_smoke';
 
 export const INVENTORY_UPGRADE_TIERS = [
@@ -97,15 +91,6 @@ class GameManager {
             inventoryUpgradeLevel: 0,
             warehouse: [], // Array of stacked items (Unlimited capacity)
             mapState: null,
-            ui: {
-                townNarrative: {
-                    lines: [],
-                    lastNarrativeAt: 0,
-                    lastNarrativeTone: null,
-                    resetOnNextLobby: false,
-                    resetReason: null
-                }
-            },
             flags: {
                 secretShopUnlocked: false
             }
@@ -121,36 +106,9 @@ class GameManager {
     }
 
     initInitialItems() {
-        // Mia supplies the first field medicine after the prologue treatment.
-        this.addToInventory(ItemDatabase.wolf_smoke, 1);
-        this.state.flags[WOLF_SMOKE_TEST_GRANT_FLAG] = true;
+        // Every new run starts with one explicit way to leave the field.
+        this.addToInventory(ItemDatabase.wolf_smoke, 1, { persist: false, notify: false });
         this.state.flags[WOLF_SMOKE_CODEX_FLAG] = true;
-        
-        // const coin = new Item('ancient_coin', '古代錢幣', ItemType.KEY, ItemRarity.LEGENDARY, '💸', '一枚古老的錢幣，似乎隱藏著秘密。', 500);
-        // coin.isSecretKey = true;
-        // this.addToInventory(coin);
-
-        // this.addTest();
-    }
-    
-    /**
-     * 添加測試材料 - 用於鍛造、詞綴和套裝測試
-     */
-    addTest() {
-     
-        // 測試用金幣
-        this.state.character.gold = 50000;
-        
-        // 加入所有套裝到倉庫以便測試套裝效果
-        for (const setId of Object.keys(SetDatabase)) {
-            try {
-                this.addSetToWarehouse(setId, true);
-            } catch (e) {
-                console.warn('Failed to add set for testing:', setId, e);
-            }
-        }
-
-        this.notify('all');
     }
 
 
@@ -169,6 +127,11 @@ class GameManager {
         this.saveManager.markDirty(reason);
     }
 
+    commitStateMutation(reason, notifyType = 'all', options = {}) {
+        if (options.persist !== false) this.markSaveDirty(reason);
+        if (options.notify !== false && notifyType) this.notify(notifyType);
+    }
+
     createSaveData() {
         return this.saveManager.createSaveData();
     }
@@ -178,11 +141,7 @@ class GameManager {
     }
 
     loadSaveData(saveData) {
-        const result = this.saveManager.loadSaveData(saveData);
-        this.ensureWolfSmokeTestGrant();
-        const syncResult = this.syncPassiveCombatEffectUnlocks('load-save');
-        if (syncResult.changed) this.notify('all');
-        return result;
+        return this.saveManager.loadSaveData(saveData);
     }
 
     downloadSaveFile(filename) {
@@ -210,25 +169,7 @@ class GameManager {
     }
 
     loadFromLocalStorage() {
-        const result = this.saveManager.loadFromLocalStorage();
-        this.ensureWolfSmokeTestGrant();
-        return result;
-    }
-
-    ensureWolfSmokeTestGrant() {
-        if (this.state.flags?.[WOLF_SMOKE_TEST_GRANT_FLAG]) return false;
-        const alreadyOwned = [...(this.state.inventory || []), ...(this.state.warehouse || [])]
-            .some(stack => stack?.item?.id === ItemDatabase.wolf_smoke.id && Number(stack.quantity) > 0);
-        if (!alreadyOwned && !this.addToInventory(ItemDatabase.wolf_smoke, 1)) {
-            const item = createRuntimeItem(ItemDatabase.wolf_smoke);
-            ensureInstanceId(item);
-            this.state.inventory.push({ item, quantity: 1, instanceId: item.instanceId });
-            this.notify('inventory');
-        }
-        this.state.flags[WOLF_SMOKE_TEST_GRANT_FLAG] = true;
-        this.state.flags[WOLF_SMOKE_CODEX_FLAG] = true;
-        this.markSaveDirty('wolf-smoke-test-grant');
-        return true;
+        return this.saveManager.loadFromLocalStorage();
     }
 
     hasLocalSave() {
@@ -239,46 +180,6 @@ class GameManager {
         return this.saveManager.startAutosave(intervalMs);
     }
 
-    getTownNarrativeState() {
-        if (!this.state.ui || typeof this.state.ui !== 'object') {
-            this.state.ui = {};
-        }
-
-        if (!this.state.ui.townNarrative || typeof this.state.ui.townNarrative !== 'object') {
-            this.state.ui.townNarrative = {};
-        }
-
-        const townNarrative = this.state.ui.townNarrative;
-        if (!Array.isArray(townNarrative.lines)) {
-            townNarrative.lines = [];
-        }
-        if (!Number.isFinite(Number(townNarrative.lastNarrativeAt))) {
-            townNarrative.lastNarrativeAt = 0;
-        }
-        if (!['ambient', 'discovery', 'warning'].includes(townNarrative.lastNarrativeTone)) {
-            townNarrative.lastNarrativeTone = null;
-        }
-
-        return townNarrative;
-    }
-
-    resetTownNarrativeState() {
-        const townNarrative = this.getTownNarrativeState();
-        townNarrative.lines = [];
-        townNarrative.lastNarrativeAt = 0;
-        townNarrative.lastNarrativeTone = null;
-        townNarrative.resetOnNextLobby = false;
-        townNarrative.resetReason = null;
-        return townNarrative;
-    }
-
-    requestTownNarrativeReset(reason = 'adventure_return') {
-        const townNarrative = this.getTownNarrativeState();
-        townNarrative.resetOnNextLobby = true;
-        townNarrative.resetReason = reason;
-        return townNarrative;
-    }
-    
     // ===== Helper Methods =====
     
     isStackable(item) {
@@ -289,55 +190,16 @@ class GameManager {
         return [ItemRarity.RARE, ItemRarity.EPIC, ItemRarity.LEGENDARY].includes(item.rarity);
     }
 
-    getPassiveEffectSourceItemIds() {
-        const itemIds = new Set();
-        const collect = stack => {
-            const item = stack?.item || stack;
-            if (item?.id) itemIds.add(item.id);
-            if (item?.passiveEffectId && item?.id) itemIds.add(item.id);
-        };
-
-        (this.state.inventory || []).forEach(collect);
-        (this.state.warehouse || []).forEach(collect);
-        Object.values(this.state.character?.equipment || {}).forEach(collect);
-        return itemIds;
-    }
-
-    migratePassiveEffectItemsToAchievements() {
-        let changed = false;
-        const migrateContainer = container => {
-            if (!Array.isArray(container)) return;
-            for (let index = container.length - 1; index >= 0; index -= 1) {
-                const stack = container[index];
-                const item = stack?.item || stack;
-                if (!item?.passiveEffectId) continue;
-
-                const result = this.unlockPassiveCombatEffectAchievement(item.passiveEffectId, item, { notify: false, sync: false });
-                if (result?.success) {
-                    container.splice(index, 1);
-                    changed = true;
-                }
-            }
-        };
-
-        migrateContainer(this.state.inventory);
-        migrateContainer(this.state.warehouse);
-        if (changed) this.markSaveDirty?.('passive-items-migrated');
-        return changed;
-    }
-
     resolvePassiveCombatEffectUnlockIds() {
-        const ownedItemIds = this.getPassiveEffectSourceItemIds();
         const unlocked = new Set(DefaultUnlockedPassiveCombatEffectIds);
 
         for (const effect of getAllPassiveCombatEffects()) {
             const source = getPassiveCombatEffectUnlockSource(effect.id);
-            const itemMatched = (source.itemIds || []).some(itemId => ownedItemIds.has(itemId));
             const questMatched = (source.questIds || []).some(questId => this.getFlag(`quest.${questId}.finished`));
             const achievementMatched = this.getFlag(`passiveEffects.achievement.${effect.id}`);
             const flagMatched = achievementMatched || (source.flags || []).some(flag => this.getFlag(flag));
 
-            if (source.defaultUnlocked || itemMatched || questMatched || flagMatched) {
+            if (source.defaultUnlocked || questMatched || flagMatched) {
                 unlocked.add(effect.id);
             }
         }
@@ -350,17 +212,11 @@ class GameManager {
         if (!character) return { changed: false, unlockedIds: [] };
 
         const allEffectIds = getAllPassiveCombatEffects().map(effect => effect.id);
-        const migratedPassiveItems = this.migratePassiveEffectItemsToAchievements();
         const sourceUnlockedIds = this.resolvePassiveCombatEffectUnlockIds();
         const previousUnlockedIds = Array.isArray(character.unlockedPassiveEffectIds)
             ? character.unlockedPassiveEffectIds.filter(effectId => allEffectIds.includes(effectId))
             : [];
-        const hadBetaFullUnlock = allEffectIds.length > 0
-            && allEffectIds.every(effectId => previousUnlockedIds.includes(effectId))
-            && !this.getFlag('passiveEffects.sourceLocked');
-        const nextUnlockedSet = hadBetaFullUnlock
-            ? new Set(sourceUnlockedIds)
-            : new Set([...previousUnlockedIds, ...sourceUnlockedIds]);
+        const nextUnlockedSet = new Set(sourceUnlockedIds);
 
         DefaultUnlockedPassiveCombatEffectIds.forEach(effectId => nextUnlockedSet.add(effectId));
 
@@ -384,9 +240,8 @@ class GameManager {
         character.unlockedPassiveEffectIds = nextUnlockedIds;
         character.equippedPassiveEffectIds = nextEquippedIds;
         character.passiveEffectSlots = slotCount;
-        this.state.flags['passiveEffects.sourceLocked'] = true;
 
-        const changed = unlockedChanged || equippedChanged || hadBetaFullUnlock || migratedPassiveItems;
+        const changed = unlockedChanged || equippedChanged;
         if (changed) {
             this.markSaveDirty?.(`passive-effects-${reason}`);
         }
@@ -400,8 +255,69 @@ class GameManager {
         return {
             changed,
             unlockedIds: nextUnlockedIds,
-            newlyUnlockedIds,
-            prunedBetaUnlocks: hadBetaFullUnlock
+            newlyUnlockedIds
+        };
+    }
+
+    getPassiveCombatEffectLoadout() {
+        const character = this.state.character;
+        if (!character) {
+            return {
+                slotCount: 0,
+                slots: [],
+                catalog: [],
+                hasUnread: false
+            };
+        }
+
+        const slotCount = Math.max(1, Number(character.passiveEffectSlots) || 1);
+        const equippedIds = Array.isArray(character.equippedPassiveEffectIds)
+            ? character.equippedPassiveEffectIds.slice(0, slotCount)
+            : [];
+        const unlockedIds = new Set(Array.isArray(character.unlockedPassiveEffectIds)
+            ? character.unlockedPassiveEffectIds
+            : []);
+        const effects = getAllPassiveCombatEffects();
+        const effectById = new Map(effects.map(effect => [effect.id, effect]));
+
+        return {
+            slotCount,
+            slots: Array.from({ length: slotCount }, (_, index) => effectById.get(equippedIds[index]) || null),
+            catalog: effects.map(effect => ({
+                effect,
+                unlocked: unlockedIds.has(effect.id),
+                equipped: equippedIds.includes(effect.id),
+                unread: this.hasUnreadPassiveCombatEffect(effect.id),
+                sourceText: getPassiveCombatEffectUnlockSource(effect.id).sourceText || ''
+            })),
+            hasUnread: this.hasUnreadPassiveCombatEffects()
+        };
+    }
+
+    equipPassiveCombatEffect(effectId, slotIndex = 0) {
+        const character = this.state.character;
+        const effect = getPassiveCombatEffect(effectId);
+        if (!character || !effect) {
+            return { success: false, reason: 'unknown-effect', effect: null };
+        }
+
+        this.syncPassiveCombatEffectUnlocks('state');
+        if (!character.unlockedPassiveEffectIds?.includes(effectId)) {
+            return { success: false, reason: 'locked', effect };
+        }
+
+        const success = character.equipPassiveCombatEffect(effectId, slotIndex);
+        if (!success) {
+            return { success: false, reason: 'invalid-slot', effect };
+        }
+
+        this.markSaveDirty('passive-combat-effect');
+        this.notify('all');
+        return {
+            success: true,
+            reason: null,
+            effect,
+            loadout: this.getPassiveCombatEffectLoadout()
         };
     }
 
@@ -417,9 +333,8 @@ class GameManager {
 
     hasPassiveCombatEffectAchievement(effectId) {
         if (!effectId) return false;
-        const character = this.state.character;
         return Boolean(this.getFlag(`passiveEffects.achievement.${effectId}`))
-            || Boolean(character?.unlockedPassiveEffectIds?.includes(effectId));
+            || DefaultUnlockedPassiveCombatEffectIds.includes(effectId);
     }
 
     hasUnreadPassiveCombatEffects() {
@@ -456,7 +371,7 @@ class GameManager {
         }
     }
 
-    unlockPassiveCombatEffectAchievement(effectId, sourceItem = null, options = {}) {
+    unlockPassiveCombatEffectAchievement(effectId, sourceItem = null) {
         const effect = getPassiveCombatEffect(effectId);
         const character = this.state.character;
         if (!effect || !character) return { success: false, alreadyUnlocked: false, effect: null };
@@ -466,23 +381,9 @@ class GameManager {
         this.state.flags[`passiveEffects.unread.${effectId}`] = true;
         if (sourceItem?.id) this.state.flags[`passiveEffects.sourceItem.${sourceItem.id}`] = true;
 
-        if (typeof character.unlockPassiveCombatEffect === 'function') {
-            character.unlockPassiveCombatEffect(effectId);
-        } else if (Array.isArray(character.unlockedPassiveEffectIds) && !character.unlockedPassiveEffectIds.includes(effectId)) {
-            character.unlockedPassiveEffectIds.push(effectId);
-        }
-
-        const syncResult = options.sync === false
-            ? { changed: false, unlockedIds: character.unlockedPassiveEffectIds || [] }
-            : this.syncPassiveCombatEffectUnlocks('passive-achievement');
-        if (!wasUnlocked) {
-            const recent = Array.isArray(this._recentPassiveCombatUnlocks)
-                ? this._recentPassiveCombatUnlocks
-                : [];
-            this._recentPassiveCombatUnlocks = Array.from(new Set([...recent, effectId]));
-        }
+        const syncResult = this.syncPassiveCombatEffectUnlocks('passive-achievement');
         this.markSaveDirty?.('passive-achievement');
-        if (options.notify !== false) this.notify('all');
+        this.notify('all');
 
         return {
             success: true,
@@ -543,15 +444,20 @@ class GameManager {
         return this.state.character.gold;
     }
 
-    addGold(amount) {
-        this.state.character.gold += amount;
-        this.notify('gold');
+    addGold(amount, options = {}) {
+        const delta = Number(amount) || 0;
+        if (delta === 0) return this.state.character.gold;
+        this.state.character.gold += delta;
+        this.commitStateMutation(options.reason || 'gold-change', 'gold', options);
+        return this.state.character.gold;
     }
 
-    removeGold(amount) {
-        if (this.state.character.gold >= amount) {
-            this.state.character.gold -= amount;
-            this.notify('gold');
+    removeGold(amount, options = {}) {
+        const cost = Math.max(0, Number(amount) || 0);
+        if (cost === 0) return true;
+        if (this.state.character.gold >= cost) {
+            this.state.character.gold -= cost;
+            this.commitStateMutation(options.reason || 'gold-change', 'gold', options);
             return true;
         }
         return false;
@@ -559,6 +465,65 @@ class GameManager {
 
     getInventory() {
         return this.state.inventory;
+    }
+
+    getInventoryCapacity() {
+        return Math.max(0, Number(this.state.inventoryCapacity) || 0);
+    }
+
+    getWarehouse() {
+        return this.state.warehouse;
+    }
+
+    getOverworldMapProgress() {
+        const progress = this.state.mapState;
+        if (!progress) return null;
+        return {
+            ...progress,
+            playerPos: progress.playerPos ? { ...progress.playerPos } : null,
+            exploredCells: [...(progress.exploredCells || [])],
+            discoveredLandmarks: [...(progress.discoveredLandmarks || [])]
+        };
+    }
+
+    saveOverworldMapProgress(progress, reason = 'overworld-map') {
+        this.state.mapState = progress ? {
+            ...progress,
+            playerPos: progress.playerPos ? { ...progress.playerPos } : null,
+            exploredCells: [...(progress.exploredCells || [])],
+            discoveredLandmarks: [...(progress.discoveredLandmarks || [])]
+        } : null;
+        this.markSaveDirty(reason);
+        return this.getOverworldMapProgress();
+    }
+
+    getEquipmentEntries({ includeWarehouse = false } = {}) {
+        const entries = [];
+        const add = (item, source, sourceLabel, details = {}) => {
+            const type = normalizeItemType(item?.type);
+            if (!['weapon', 'armor', 'accessory'].includes(type)) return;
+            entries.push({
+                item,
+                source,
+                sourceLabel,
+                isEquipped: source === 'equipped',
+                ...details
+            });
+        };
+
+        for (const [slot, item] of Object.entries(this.state.character?.equipment || {})) {
+            add(item, 'equipped', '穿戴中', { slot });
+        }
+        (this.state.inventory || []).forEach((stack, index) => {
+            add(stack?.item, 'inventory', '背包', { index, instanceId: stack?.instanceId });
+        });
+        if (includeWarehouse) {
+            (this.state.warehouse || []).forEach((stack, index) => {
+                add(stack?.item, 'warehouse', '倉庫', { index, instanceId: stack?.instanceId });
+            });
+        }
+
+        return entries;
     }
 
     restoreCharacterAtHome(reason = 'home-rest') {
@@ -571,7 +536,6 @@ class GameManager {
 
         const fullHp = Math.max(1, Number(character.maxHp) || Number(character.calculateMaxHp?.()) || 100);
         character.hp = fullHp;
-        character.currentHP = fullHp;
         character.syncProperties?.();
 
         this.markSaveDirty(reason);
@@ -580,6 +544,74 @@ class GameManager {
             hp: character.hp,
             maxHp: character.maxHp
         };
+    }
+
+    setCharacterHealth(value, options = {}) {
+        const character = this.state.character;
+        if (!character) return null;
+
+        const before = Math.max(0, Number(character.hp) || 0);
+        const minimumHp = Math.max(0, Math.floor(Number(options.minimumHp) || 0));
+        const maximumHp = Math.max(
+            minimumHp,
+            Math.floor(Number(options.maximumHp) || Number(character.maxHp) || before || 1)
+        );
+        const hp = Math.min(maximumHp, Math.max(minimumHp, Math.floor(Number(value) || 0)));
+        character.hp = hp;
+
+        if (hp !== before) {
+            this.commitStateMutation(options.reason || 'character-health', options.notifyType || 'all', options);
+        }
+        return Object.freeze({ before, hp, maxHp: character.maxHp, delta: hp - before });
+    }
+
+    changeCharacterHealth(amount, options = {}) {
+        const character = this.state.character;
+        if (!character) return null;
+        return this.setCharacterHealth((Number(character.hp) || 0) + (Number(amount) || 0), options);
+    }
+
+    addCharacterExperience(amount, options = {}) {
+        const character = this.state.character;
+        const added = Math.max(0, Math.floor(Number(amount) || 0));
+        if (!character || added <= 0) {
+            return Object.freeze({ added: 0, level: character?.level || 0, exp: character?.exp || 0, leveledUp: false });
+        }
+
+        const previousLevel = Math.max(1, Number(character.level) || 1);
+        character.gainExp?.(added);
+        this.commitStateMutation(options.reason || 'character-experience', options.notifyType || 'all', options);
+        return Object.freeze({
+            added,
+            level: character.level,
+            exp: character.exp,
+            leveledUp: character.level > previousLevel
+        });
+    }
+
+    setCharacterProgress(progress = {}, options = {}) {
+        const character = this.state.character;
+        if (!character) return null;
+
+        if (progress.level !== undefined) {
+            character.level = Math.max(1, Math.floor(Number(progress.level) || 1));
+            character.maxHp = character.calculateMaxHp?.() || character.maxHp;
+            character.maxExp = character.calculateMaxExp?.() || character.maxExp;
+        }
+        if (progress.exp !== undefined) {
+            character.exp = Math.max(0, Math.floor(Number(progress.exp) || 0));
+            character.checkLevelUp?.();
+        }
+        character.syncProperties?.();
+        if (progress.restoreHealth) character.hp = character.maxHp;
+
+        this.commitStateMutation(options.reason || 'character-progress', options.notifyType || 'all', options);
+        return Object.freeze({
+            level: character.level,
+            exp: character.exp,
+            hp: character.hp,
+            maxHp: character.maxHp
+        });
     }
 
     getEmergencyPotionCount() {
@@ -608,7 +640,6 @@ class GameManager {
         );
         const missing = MIA_EMERGENCY_POTION_LIMIT - current;
         const refilled = this.addToInventory(potion, missing);
-        if (refilled) this.markSaveDirty('mia-emergency-potion-refill');
         return {
             refilled,
             added: refilled ? missing : 0,
@@ -685,18 +716,30 @@ class GameManager {
         };
     }
 
-    repairEquipmentItem(item) {
+    getRepairStatus(item) {
         const requirement = this.getRepairRequirement(item);
-        if (!requirement) return { success: false, reason: 'not-needed' };
-
-        if (this.getGold() < requirement.gold) {
-            return { success: false, reason: 'gold', requirement };
+        if (!requirement) {
+            return { ok: false, reason: 'not-needed', requirement: null, hasGold: true, hasMaterials: true };
         }
 
-        const lacking = requirement.materials.find(material => this.getItemCountAcrossStorage(material.id) < material.quantity);
-        if (lacking) {
-            return { success: false, reason: 'materials', requirement };
-        }
+        const hasGold = this.getGold() >= requirement.gold;
+        const lacking = requirement.materials.find(material => (
+            this.getItemCountAcrossStorage(material.id) < material.quantity
+        ));
+        return {
+            ok: hasGold && !lacking,
+            reason: !hasGold ? 'gold' : lacking ? 'materials' : null,
+            requirement,
+            hasGold,
+            hasMaterials: !lacking,
+            lacking: lacking || null
+        };
+    }
+
+    repairEquipmentItem(item) {
+        const status = this.getRepairStatus(item);
+        if (!status.ok) return { ...status, success: false };
+        const { requirement } = status;
 
         if (!this.removeGold(requirement.gold)) {
             return { success: false, reason: 'gold', requirement };
@@ -727,7 +770,7 @@ class GameManager {
         return true;
     }
 
-    addToInventory(itemData, quantity = 1) {
+    addToInventory(itemData, quantity = 1, options = {}) {
         const sourceItem = itemData?.item || itemData;
         if (sourceItem?.passiveEffectId) {
             return this.unlockPassiveCombatEffectAchievement(sourceItem.passiveEffectId, sourceItem).success;
@@ -742,7 +785,7 @@ class GameManager {
             if (existingStack) {
                 existingStack.quantity += safeQuantity;
                 this.syncPassiveCombatEffectUnlocks('inventory-stack');
-                this.notify('inventory');
+                this.commitStateMutation('inventory-add', 'inventory', options);
                 return true;
             }
         }
@@ -760,11 +803,11 @@ class GameManager {
         });
 
         this.syncPassiveCombatEffectUnlocks('inventory');
-        this.notify('inventory');
+        this.commitStateMutation('inventory-add', 'inventory', options);
         return true;
     }
 
-    addToWarehouse(itemData, quantity = 1) {
+    addToWarehouse(itemData, quantity = 1, options = {}) {
         const sourceItem = itemData?.item || itemData;
         if (sourceItem?.passiveEffectId) {
             return this.unlockPassiveCombatEffectAchievement(sourceItem.passiveEffectId, sourceItem).success;
@@ -779,7 +822,7 @@ class GameManager {
             if (existingStack) {
                 existingStack.quantity += safeQuantity;
                 this.syncPassiveCombatEffectUnlocks('warehouse-stack');
-                this.notify('warehouse');
+                this.commitStateMutation('warehouse-add', 'warehouse', options);
                 return true;
             }
         }
@@ -792,7 +835,7 @@ class GameManager {
         });
 
         this.syncPassiveCombatEffectUnlocks('warehouse');
-        this.notify('warehouse');
+        this.commitStateMutation('warehouse-add', 'warehouse', options);
         return true;
     }
     
@@ -800,7 +843,7 @@ class GameManager {
         const index = this.state.inventory.findIndex(stack => stack.item.id === itemId);
         if (index > -1) {
             const removedStack = this.state.inventory.splice(index, 1)[0];
-            this.notify('inventory');
+            this.commitStateMutation('inventory-remove', 'inventory');
             return removedStack.item;
         }
         return null;
@@ -812,7 +855,10 @@ class GameManager {
         
         if (index > -1) {
             const removedStack = source.splice(index, 1)[0];
-            this.notify(fromWarehouse ? 'warehouse' : 'inventory');
+            this.commitStateMutation(
+                fromWarehouse ? 'warehouse-remove' : 'inventory-remove',
+                fromWarehouse ? 'warehouse' : 'inventory'
+            );
             return removedStack.item;
         }
         return null;
@@ -862,14 +908,51 @@ class GameManager {
         return true;
     }
 
-    setFlag(flag, value) {
-        this.state.flags[flag] = value;
-        this.syncPassiveCombatEffectUnlocks(`flag-${flag}`);
-        this.notify('flags');
+    updateFlags(values = {}, options = {}) {
+        const removals = Array.isArray(options.remove) ? options.remove : [];
+        let changed = false;
+
+        for (const flag of removals) {
+            if (!Object.hasOwn(this.state.flags, flag)) continue;
+            delete this.state.flags[flag];
+            changed = true;
+        }
+        for (const [flag, value] of Object.entries(values || {})) {
+            if (this.state.flags[flag] === value) continue;
+            this.state.flags[flag] = value;
+            changed = true;
+        }
+
+        if (!changed) return false;
+        if (options.syncPassive !== false) {
+            this.syncPassiveCombatEffectUnlocks(options.reason || 'flags');
+        }
+        if (options.persist !== false) {
+            this.markSaveDirty(options.reason || 'flags');
+        }
+        if (options.notify !== false) {
+            this.notify('flags');
+        }
+        return true;
+    }
+
+    setFlag(flag, value, options = {}) {
+        if (!flag) return false;
+        return this.updateFlags({ [flag]: value }, {
+            ...options,
+            reason: options.reason || `flag:${flag}`
+        });
     }
 
     getFlag(flag) {
         return this.state.flags[flag];
+    }
+
+    getFlagsByPrefix(prefix = '') {
+        return Object.fromEntries(
+            Object.entries(this.state.flags)
+                .filter(([flag]) => !prefix || flag.startsWith(prefix))
+        );
     }
     
     // ===== Item Transfer Methods =====
@@ -892,6 +975,7 @@ class GameManager {
             this.state.warehouse.push(stack);
         }
 
+        this.markSaveDirty('move-to-warehouse');
         this.notify('all');
         return true;
     }
@@ -918,99 +1002,24 @@ class GameManager {
             this.state.inventory.push(stack);
         }
 
+        this.markSaveDirty('move-to-inventory');
         this.notify('all');
         return true;
     }
 
-    /**
-     * Create a runtime Item instance from `EquipmentDatabase` entry and add it to warehouse or inventory.
-     * Preserves stats, setId, specialEffects and affixes where present.
-     */
-    addEquipmentById(equipmentId, toWarehouse = true, quantity = 1) {
-        const equipment = EquipmentDatabase[equipmentId];
-        if (!equipment) return false;
-
-        return toWarehouse
-            ? this.addToWarehouse(equipment, quantity)
-            : this.addToInventory(equipment, quantity);
-    }
-
-    /**
-     * Add all pieces of a set (by setId) into warehouse or inventory for testing.
-     */
-    addSetToWarehouse(setId, toWarehouse = true) {
-        const set = SetDatabase[setId];
-        if (!set || !Array.isArray(set.pieces)) return false;
-
-        for (const pieceId of set.pieces) {
-            this.addEquipmentById(pieceId, toWarehouse, 1);
-        }
-
-        this.notify('warehouse');
-        return true;
-    }
-
-    grantSetEquipmentForTesting(setIds = ['wolf_hunter', 'ancient_relic'], equipSetId = 'wolf_hunter') {
-        const ids = Array.isArray(setIds) ? setIds : [setIds];
-        const added = [];
-        const equipped = [];
-
-        const hasItem = (itemId) => {
-            const equippedItems = Object.values(this.state.character?.equipment || {}).filter(Boolean);
-            return equippedItems.some(item => item?.id === itemId)
-                || (this.state.inventory || []).some(stack => stack?.item?.id === itemId)
-                || (this.state.warehouse || []).some(stack => stack?.item?.id === itemId);
-        };
-
-        for (const setId of ids) {
-            const set = SetDatabase[setId];
-            if (!set || !Array.isArray(set.pieces)) continue;
-
-            for (const pieceId of set.pieces) {
-                if (hasItem(pieceId)) continue;
-                if (this.addEquipmentById(pieceId, true, 1)) {
-                    added.push(pieceId);
-                }
-            }
-        }
-
-        const setToEquip = SetDatabase[equipSetId];
-        if (setToEquip && Array.isArray(setToEquip.pieces)) {
-            for (const pieceId of setToEquip.pieces) {
-                const alreadyEquipped = Object.values(this.state.character?.equipment || {})
-                    .some(item => item?.id === pieceId);
-                if (alreadyEquipped) continue;
-
-                let stack = (this.state.warehouse || []).find(entry => entry?.item?.id === pieceId);
-                if (stack && this.equipItem(stack.instanceId, true)) {
-                    equipped.push(pieceId);
-                    continue;
-                }
-
-                stack = (this.state.inventory || []).find(entry => entry?.item?.id === pieceId);
-                if (stack && this.equipItem(stack.instanceId, false)) {
-                    equipped.push(pieceId);
-                }
-            }
-        }
-
-        this.markSaveDirty?.('test-set-equipment');
-        this.notify('all');
+    getStoredItemTransactionPreview(instanceId, fromWarehouse = false) {
+        const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
+        const stack = source.find(entry => entry.instanceId === instanceId);
+        if (!stack) return null;
 
         return {
-            added,
-            equipped,
-            sets: ids
-                .map(setId => SetDatabase[setId])
-                .filter(Boolean)
-                .map(set => ({
-                    id: set.id,
-                    name: set.name,
-                    pieces: set.pieces
-                }))
+            item: stack.item,
+            quantity: Math.max(1, Number(stack.quantity) || 1),
+            sellPrice: getSellPrice(stack.item, stack.quantity),
+            requiresDiscardConfirmation: this.isHighRarity(stack.item)
         };
     }
-    
+
     sellItem(instanceId, fromWarehouse = false) {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
         const index = source.findIndex(stack => stack.instanceId === instanceId);
@@ -1026,6 +1035,7 @@ class GameManager {
         // Add gold
         this.state.character.gold += sellPrice;
         
+        this.markSaveDirty('sell-item');
         this.notify('all');
         return sellPrice;
     }
@@ -1044,7 +1054,10 @@ class GameManager {
      * @returns {boolean} 是否成功移除
      */
     removeMaterial(materialId, quantity) {
-        let remaining = quantity;
+        const required = Math.max(0, Math.floor(Number(quantity) || 0));
+        if (required === 0) return true;
+        if (this.getItemCountAcrossStorage(materialId) < required) return false;
+        let remaining = required;
         
         // 先從背包移除
         for (let i = this.state.inventory.length - 1; i >= 0 && remaining > 0; i--) {
@@ -1074,22 +1087,18 @@ class GameManager {
             }
         }
         
-        if (remaining === 0) {
-            this.notify('all');
-            return true;
-        }
-        
-        return false;
+        this.commitStateMutation('material-remove', 'all');
+        return true;
     }
     
-    discardItem(instanceId, fromWarehouse = false) {
+    discardItem(instanceId, fromWarehouse = false, options = {}) {
         const source = fromWarehouse ? this.state.warehouse : this.state.inventory;
         const stack = source.find(s => s.instanceId === instanceId);
         
         if (!stack) return false;
         
         // Check rarity for confirmation
-        if (this.isHighRarity(stack.item)) {
+        if (this.isHighRarity(stack.item) && !options?.force) {
             // Return false to trigger UI confirmation
             return 'confirm';
         }
@@ -1098,6 +1107,7 @@ class GameManager {
         const index = source.findIndex(s => s.instanceId === instanceId);
         source.splice(index, 1);
         
+        this.markSaveDirty('discard-item');
         this.notify(fromWarehouse ? 'warehouse' : 'inventory');
         return true;
     }
@@ -1151,19 +1161,9 @@ class GameManager {
             });
         }
 
-        this.recordChapterOneGearPreparation(item);
+        this.markSaveDirty('equip-item');
         this.notify('all');
         return true;
-    }
-
-    recordChapterOneGearPreparation(item) {
-        const qualification = getChapterOneGearQualification(item);
-        if (!qualification) return null;
-        this.state.flags[ChapterOneProgressFlag.GEAR_READY] = true;
-        this.state.flags[ChapterOneProgressFlag.GEAR_READY_SOURCE] = qualification.source;
-        this.state.flags['story.ch1.gear_ready_item'] = qualification.itemId;
-        this.markSaveDirty('chapter-one-gear-ready');
-        return qualification;
     }
 
     consumeContextItem(instanceId, context, action) {
@@ -1213,6 +1213,7 @@ class GameManager {
             instanceId: item.instanceId || `unequipped_${Date.now()}`
         });
         
+        this.markSaveDirty('unequip-item');
         this.notify('all');
         return true;
     }
@@ -1274,7 +1275,8 @@ class GameManager {
             this.notify('equipment');
             return destroyedWeapon;
         }
-        
+
+        this.notify('equipment');
         return null;
     }
     
@@ -1299,6 +1301,7 @@ class GameManager {
         }
         
         armor.durability = Math.max(0, armor.durability - 1);
+        this.markSaveDirty('armor-durability');
         
         // 耐久度歸零，裝備消失
         if (armor.durability <= 0) {
@@ -1307,7 +1310,8 @@ class GameManager {
             this.notify('equipment');
             return destroyedArmor;
         }
-        
+
+        this.notify('equipment');
         return null;
     }
     
@@ -1333,6 +1337,3 @@ class GameManager {
 const gameManagerInstance = GameManager.getInstance();
 
 export default gameManagerInstance;
-
-// 重新導出常用的 Model 類型，供 Scenes 使用（避免 Scenes 直接引用 Model）
-export { Item, Equipment, Weapon, Armor, Accessory, Consumable, ItemType, ItemRarity };

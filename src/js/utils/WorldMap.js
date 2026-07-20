@@ -1,4 +1,5 @@
 import GameManager from '../managers/GameManager.js';
+import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionManager.js';
 import {
     OverworldMapConfig,
     getOverworldHabitatAt,
@@ -15,11 +16,11 @@ function cellKey(x, y) {
 }
 
 export function resetSavedOverworldPlayerToEntry() {
-    const state = GameManager.state?.mapState;
+    const state = GameManager.getOverworldMapProgress();
     if (!state || state.version !== MAP_STATE_VERSION || state.worldId !== OverworldMapConfig.id) return false;
     state.playerPos = { ...OverworldMapConfig.startPosition };
     state.stepsSinceEncounter = 0;
-    GameManager.markSaveDirty?.('overworld-departure-entry');
+    GameManager.saveOverworldMapProgress(state, 'overworld-departure-entry');
     return true;
 }
 
@@ -54,7 +55,7 @@ export default class WorldMap {
     }
 
     restoreState() {
-        const state = GameManager.state?.mapState;
+        const state = GameManager.getOverworldMapProgress();
         if (!state || state.version !== MAP_STATE_VERSION || state.worldId !== this.config.id) return;
 
         const { x, y } = state.playerPos || {};
@@ -72,7 +73,7 @@ export default class WorldMap {
     }
 
     saveState() {
-        GameManager.state.mapState = {
+        GameManager.saveOverworldMapProgress({
             version: MAP_STATE_VERSION,
             worldId: this.config.id,
             playerPos: { ...this.playerPos },
@@ -80,8 +81,7 @@ export default class WorldMap {
             stepsSinceEncounter: this.stepsSinceEncounter,
             exploredCells: [...this.exploredCells],
             discoveredLandmarks: [...this.discoveredLandmarks]
-        };
-        GameManager.markSaveDirty?.('overworld-map');
+        });
     }
 
     setViewport(width, height) {
@@ -222,6 +222,9 @@ export default class WorldMap {
     }
 
     isLandmarkAvailable(entry) {
+        if (entry.progressionRequirement) {
+            return chapterOneProgressionManager.meetsRequirement(entry.progressionRequirement);
+        }
         return !entry.storyFlag || Boolean(GameManager.getFlag(entry.storyFlag));
     }
 
@@ -274,6 +277,16 @@ export default class WorldMap {
         if (open) {
             this.discoveredLandmarks.delete(gate.id);
         }
+        this.saveState();
+        return gate;
+    }
+
+    resetGate(gateId) {
+        const gate = this.config.routeGates.find(entry => entry.id === gateId);
+        if (!gate) return null;
+        GameManager.setFlag(gate.openFlag, false);
+        if (gate.discoveryFlag) GameManager.setFlag(gate.discoveryFlag, false);
+        this.discoveredLandmarks.delete(gate.id);
         this.saveState();
         return gate;
     }

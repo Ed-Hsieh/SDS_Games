@@ -12,6 +12,8 @@ import {
     normalizeEquipmentKind
 } from '../data/EquipmentBalance.js';
 import { readItemStat, readNumber } from '../models/ItemSchema.js';
+import { questManager } from './QuestManager.js';
+import { ObjectiveType } from '../data/Quests.js';
 
 export const MAX_ENHANCEMENT_LEVEL = 10;
 
@@ -231,6 +233,8 @@ export class EnhancementManager {
                     : '強化失敗，失敗保護已耗盡。'
             };
             this.recordHistory(equipment, result);
+            GameManager.markSaveDirty?.('enhance-equipment');
+            GameManager.notify?.('all');
             return result;
         }
 
@@ -253,6 +257,10 @@ export class EnhancementManager {
         };
 
         this.recordHistory(equipment, result);
+        questManager.updateProgress(ObjectiveType.ENHANCE, equipment.rarity || 'any', 1);
+        questManager.updateStats('enhance_level', result.newLevel);
+        GameManager.markSaveDirty?.('enhance-equipment');
+        GameManager.notify?.('all');
         return result;
     }
 
@@ -277,8 +285,8 @@ export class EnhancementManager {
         if (equipment._enhanceBaseStats) return equipment._enhanceBaseStats;
 
         equipment._enhanceBaseStats = {
-            atk: readNumber(equipment._baseAtk ?? readItemStat(equipment, 'atk', 'attack', 0)),
-            def: readNumber(equipment._baseDef ?? readItemStat(equipment, 'def', 'defense', 0)),
+            attack: readNumber(readItemStat(equipment, 'attack', [], 0)),
+            defense: readNumber(readItemStat(equipment, 'defense', [], 0)),
             hp: readNumber(readItemStat(equipment, 'hp', [], 0))
         };
 
@@ -302,16 +310,12 @@ export class EnhancementManager {
         const base = this.captureBaseStats(equipment);
         const multiplier = 1 + (level * BASE_STAT_GROWTH);
 
-        if (base.atk > 0) {
-            const atk = Math.floor(base.atk * multiplier);
-            equipment.atk = atk;
-            equipment.attack = atk;
+        if (base.attack > 0) {
+            equipment.attack = Math.floor(base.attack * multiplier);
         }
 
-        if (base.def > 0) {
-            const def = Math.floor(base.def * multiplier);
-            equipment.def = def;
-            equipment.defense = def;
+        if (base.defense > 0) {
+            equipment.defense = Math.floor(base.defense * multiplier);
         }
 
         if (base.hp > 0) {
@@ -416,6 +420,10 @@ export class EnhancementManager {
         }
     }
 
+    getEnhancementHistory(limit = 10) {
+        return this.enhancementHistory.slice(0, Math.max(0, Number(limit) || 0));
+    }
+
     calculateSetBonuses(character) {
         return calculateActiveSetBonuses(character, SetDatabase);
     }
@@ -442,15 +450,20 @@ export class EnhancementManager {
         this.initializeEnhancementState(equipment);
         const currentLevel = equipment.enhanceLevel || 0;
         const nextLevel = currentLevel + 1;
+        const cost = this.getEnhancementCost(equipment);
+        const hasGold = GameManager.getGold() >= cost;
+        const canEnhance = currentLevel < MAX_ENHANCEMENT_LEVEL
+            && equipment.enhancementStability > 0
+            && equipment.canEnhance !== false;
 
         return {
             currentLevel,
             nextLevel: nextLevel <= MAX_ENHANCEMENT_LEVEL ? nextLevel : null,
-            cost: this.getEnhancementCost(equipment),
+            cost,
             successRate: Math.round(this.getSuccessRate(equipment) * 100),
-            canEnhance: currentLevel < MAX_ENHANCEMENT_LEVEL
-                && equipment.enhancementStability > 0
-                && equipment.canEnhance !== false,
+            canEnhance,
+            hasGold,
+            available: canEnhance && hasGold,
             stability: equipment.enhancementStability,
             maxStability: equipment.maxEnhancementStability,
             nextMilestone: MILESTONE_LEVELS.find(level => level > currentLevel) || null

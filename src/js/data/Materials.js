@@ -1110,5 +1110,6 @@ export const MaterialDatabase = {
     }
 };
 
-// NOTE: data module should not contain logic. Material lookups (getMaterial, getMaterialsByRarity,
-// getMaterialsForCraft) have been moved to `src/js/managers/MaterialManager.js`.
+export function getMaterial(materialId) {
+    return MaterialDatabase[materialId] || null;
+}

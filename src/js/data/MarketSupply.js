@@ -42,9 +42,7 @@ export const MarketVendors = Object.freeze([
                 stock: '基礎藥品',
                 note: '第二章公開供應線建立後維持販售，不因米婭的當輪命運中斷。'
             })
-        ]),
-        orders: Object.freeze([]),
-        exchanges: Object.freeze([])
+        ])
     })
 ]);
 

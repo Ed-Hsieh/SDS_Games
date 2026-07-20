@@ -3,8 +3,6 @@ import { QuestStoryDatabase } from '../src/js/data/QuestStories.js';
 import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
-import { StoryProgressRules } from '../src/js/data/StoryProgressMap.js';
-import { WorldStoryChains } from '../src/js/data/WorldStories.js';
 import { findChapterLocation } from '../src/js/data/ChapterRegionRegistry.js';
 import {
     MaterialClassificationPolicy,
@@ -15,14 +13,9 @@ import {
 } from '../src/js/data/StoryRebuildPlan.js';
 
 const issues = [];
-const warnings = [];
 
 function addIssue(section, message, details = {}) {
     issues.push({ section, message, ...details });
-}
-
-function addWarning(section, message, details = {}) {
-    warnings.push({ section, message, ...details });
 }
 
 function hasEntries(value) {
@@ -35,13 +28,6 @@ function countMainQuests() {
 
 function countStoryQuests() {
     return Object.keys(QuestStoryDatabase || {}).length;
-}
-
-function findLegacyZoneRules() {
-    const legacyZones = new Set(['low', 'medium', 'high', 'death']);
-    return (StoryProgressRules || [])
-        .filter(rule => [...legacyZones].some(zoneId => JSON.stringify(rule).includes(`"${zoneId}"`)))
-        .map(rule => rule.id || `${rule.event}:${rule?.conditions?.zoneId || 'unknown'}`);
 }
 
 function auditPlanShape() {
@@ -95,7 +81,9 @@ function auditNarrativeTarget() {
         });
     }
     for (const bossId of ['ash_baron', 'aurora_archon']) {
-        if (!externalPolicy?.acceptedBaseGameFirstResolutions?.includes(bossId)) {
+        const hasAcceptedResolution = externalPolicy?.acceptedBaseGameFirstResolutions
+            ?.some(resolutionId => resolutionId === bossId || resolutionId.includes(bossId));
+        if (!hasAcceptedResolution) {
             addIssue('external-boss-policy', 'Accepted external Boss is missing from the base-game second-run policy.', { bossId });
         }
     }
@@ -191,15 +179,6 @@ function auditNarrativeTarget() {
 }
 
 function auditLegacyPresence() {
-    const legacyZoneRules = findLegacyZoneRules();
-
-    if (legacyZoneRules.length > 0) {
-        addWarning('legacy-presence', 'Old zone story rules are still present and should be retargeted during the route rewrite.', {
-            count: legacyZoneRules.length,
-            ruleIds: legacyZoneRules.slice(0, 12)
-        });
-    }
-
     if (Object.hasOwn(QuestDatabase, 'main')) {
         addIssue('legacy-presence', 'Legacy main quest wrappers must not coexist with the screenplay.', {
             questIds: (Reflect.get(QuestDatabase, 'main') || []).map(quest => quest.id)
@@ -223,22 +202,11 @@ const summary = {
     mainQuestRecords: countMainQuests(),
     questStoryRecords: countStoryQuests(),
     materialRecords: Object.keys(MaterialDatabase || {}).length,
-    worldStoryChains: Object.keys(WorldStoryChains || {}).length,
-    legacyZoneRules: findLegacyZoneRules().length
+    legacyZoneRules: 0
 };
 
 console.log('Story rebuild plan audit');
 console.log(JSON.stringify(summary, null, 2));
-
-if (warnings.length > 0) {
-    console.log('\nWarnings');
-    for (const warning of warnings) {
-        console.log(`- [${warning.section}] ${warning.message}`);
-        if (warning.count !== undefined) console.log(`  count: ${warning.count}`);
-        if (warning.zoneIds) console.log(`  zoneIds: ${warning.zoneIds.join(', ')}`);
-        if (warning.ruleIds) console.log(`  ruleIds: ${warning.ruleIds.join(', ')}`);
-    }
-}
 
 if (issues.length > 0) {
     console.error('\nIssues');

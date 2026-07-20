@@ -1,0 +1,298 @@
+import GameManager, { MIA_EMERGENCY_POTION_LIMIT } from './GameManager.js';
+import { storySceneManager } from './StorySceneManager.js';
+import { markItemKnown } from './EncyclopediaManager.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
+import {
+    AdventureOnboardingFlag,
+    AdventureOnboardingStep,
+    ChapterOneInvestigations,
+    ChapterOneMantisRecovery,
+    ChapterOneOptionalRoutes,
+    ChapterOneProgressFlag,
+    ChapterOneRequirement,
+    ChapterOneRotrootTrials,
+    areChapterOneInvestigationsComplete,
+    getChapterOneInvestigation,
+    getChapterOneGearQualification,
+    getEquippedChapterOneGearQualification,
+    getNextChapterOneRotrootTrial,
+    readChapterOneObjectiveContext
+} from '../data/ChapterOneProgression.js';
+
+const ITEM_RESOLUTION_ORDER = Object.freeze([
+    'material',
+    'equipment',
+    'shop',
+    'bossEquipment',
+    'rewardItem'
+]);
+
+class ChapterOneProgressionManager {
+    readFlag(flag) {
+        return GameManager.getFlag(flag);
+    }
+
+    setFlag(flag, value) {
+        if (this.readFlag(flag) === value) return false;
+        return GameManager.setFlag(flag, value, { reason: `chapter-one-flag:${flag}` });
+    }
+
+    getObjectiveContext() {
+        return Object.freeze({
+            ...readChapterOneObjectiveContext(flag => this.readFlag(flag)),
+            chapterOneGearReady: Boolean(this.getOwnedGearQualification()),
+            chapterOneGearEquipped: Boolean(this.getEquippedGearQualification())
+        });
+    }
+
+    getAdventureOnboardingStep({ available = false } = {}) {
+        if (!available) return null;
+        for (const step of [
+            AdventureOnboardingStep.QUEST,
+            AdventureOnboardingStep.INVENTORY,
+            AdventureOnboardingStep.MOVEMENT
+        ]) {
+            if (!this.readFlag(AdventureOnboardingFlag[step])) return step;
+        }
+        return null;
+    }
+
+    completeAdventureOnboardingStep(step) {
+        const flag = AdventureOnboardingFlag[step];
+        if (!flag) return false;
+        return this.setFlag(flag, true);
+    }
+
+    getOwnedGearQualification() {
+        const character = GameManager.getCharacter();
+        const ownedItems = [
+            ...Object.values(character.equipment || {}),
+            ...(GameManager.getInventory?.() || []).map(stack => stack?.item),
+            ...(GameManager.getWarehouse?.() || []).map(stack => stack?.item)
+        ];
+        for (const item of ownedItems) {
+            const qualification = getChapterOneGearQualification(item);
+            if (qualification) return qualification;
+        }
+        return null;
+    }
+
+    getEquippedGearQualification() {
+        return getEquippedChapterOneGearQualification(GameManager.getCharacter());
+    }
+
+    getNextRotrootTrial() {
+        return getNextChapterOneRotrootTrial(flag => this.readFlag(flag));
+    }
+
+    getInvestigation(investigationId) {
+        return getChapterOneInvestigation(investigationId);
+    }
+
+    isInvestigationEvidenceRecorded(investigationId) {
+        const investigation = this.getInvestigation(investigationId);
+        return Boolean(investigation && this.readFlag(investigation.evidenceFlag));
+    }
+
+    getLandmarkAction(entryId) {
+        const investigation = this.getInvestigation(entryId);
+        const threeLandmarkSceneActive = storySceneManager.getNextAvailableSceneId() === 'ch1_s06_three_landmarks'
+            && !storySceneManager.isSceneComplete('ch1_s06_three_landmarks');
+
+        if (investigation && threeLandmarkSceneActive) {
+            const previous = investigation.previousId
+                ? ChapterOneInvestigations[investigation.previousId]
+                : null;
+            if (previous && !this.readFlag(previous.evidenceFlag)) {
+                return Object.freeze({ type: 'investigation-blocked-previous', investigation, previous });
+            }
+            if (investigation.id !== 'south_gate_farmland'
+                && this.readFlag(ChapterOneInvestigations.south_gate_farmland.evidenceFlag)
+                && !this.hasCompletedHomeRecovery()) {
+                return Object.freeze({ type: 'investigation-return-home', investigation });
+            }
+            if (this.readFlag(investigation.victoryFlag)) {
+                return Object.freeze({
+                    type: this.readFlag(investigation.evidenceFlag)
+                        ? 'investigation-recorded'
+                        : 'investigation-evidence',
+                    investigation
+                });
+            }
+            return Object.freeze({ type: 'investigation-encounter', investigation });
+        }
+
+        const optionalRoute = ChapterOneOptionalRoutes[entryId];
+        if (optionalRoute?.claimFlag) {
+            return Object.freeze({
+                type: this.readFlag(optionalRoute.claimFlag) ? 'optional-claimed' : 'optional-claim',
+                route: optionalRoute
+            });
+        }
+        if (optionalRoute?.clearFlag) {
+            if (this.readFlag(optionalRoute.clearFlag)) {
+                return Object.freeze({ type: 'elite-cleared', route: optionalRoute });
+            }
+            if (!this.getEquippedGearQualification()) {
+                return Object.freeze({ type: 'elite-needs-gear', route: optionalRoute });
+            }
+            return Object.freeze({ type: 'elite-encounter', route: optionalRoute });
+        }
+
+        if (entryId === 'rotroot_ravine'
+            && !storySceneManager.isSceneComplete('ch1_s09_rotroot_approach')) {
+            const ownedGear = this.getOwnedGearQualification();
+            const equippedGear = this.getEquippedGearQualification();
+            if (!equippedGear) {
+                return Object.freeze({ type: 'rotroot-needs-gear', ownedGear });
+            }
+            const trial = this.getNextRotrootTrial();
+            return Object.freeze(trial
+                ? { type: 'rotroot-trial', trial }
+                : { type: 'rotroot-story', sceneId: 'ch1_s09_rotroot_approach' });
+        }
+
+        return null;
+    }
+
+    meetsRequirement(requirementId) {
+        if (!requirementId) return true;
+        if (requirementId === ChapterOneRequirement.QUALIFYING_GEAR_OWNED) {
+            return Boolean(this.getOwnedGearQualification());
+        }
+        return false;
+    }
+
+    hasCompletedHomeRecovery() {
+        return Boolean(this.readFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN));
+    }
+
+    isFirstReportPending() {
+        return Boolean(this.readFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING))
+            && !this.readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE);
+    }
+
+    shouldStartFirstReport() {
+        return this.isFirstReportPending() && !this.hasCompletedHomeRecovery();
+    }
+
+    needsMiaEmergencyPotionSupport() {
+        return GameManager.getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT;
+    }
+
+    queueFirstReportOnTownReturn() {
+        const firstEvidence = ChapterOneInvestigations.south_gate_farmland.evidenceFlag;
+        if (!this.readFlag(firstEvidence)
+            || this.hasCompletedHomeRecovery()
+            || this.readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)) return false;
+        this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, true);
+        return true;
+    }
+
+    completeFirstReport() {
+        this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, false);
+        this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE, true);
+    }
+
+    completeHomeRecovery() {
+        this.setFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN, true);
+    }
+
+    completeEvidence(investigationId) {
+        const investigation = getChapterOneInvestigation(investigationId);
+        if (!investigation) return Object.freeze({ success: false, complete: false });
+        this.setFlag(investigation.evidenceFlag, true);
+        return Object.freeze({
+            success: true,
+            complete: areChapterOneInvestigationsComplete(flag => this.readFlag(flag))
+        });
+    }
+
+    getGuaranteedRewardSource(encounter = {}) {
+        const investigationId = encounter.context?.chapterOneInvestigationId;
+        const trialId = encounter.context?.chapterOneRotrootTrialId;
+        if (investigationId) return getChapterOneInvestigation(investigationId);
+        if (trialId) return ChapterOneRotrootTrials.find(entry => entry.id === trialId) || null;
+        return encounter.monster?.id === 'ambush_mantis' ? ChapterOneMantisRecovery : null;
+    }
+
+    storeGuaranteedRewards(source) {
+        return (source?.guaranteedRewards || []).map((reward, index) => {
+            const item = resolveItemById(reward.itemId, { order: ITEM_RESOLUTION_ORDER });
+            if (!item) {
+                return {
+                    dropId: `chapter1:${source.id}:${index}:${reward.itemId}`,
+                    itemId: reward.itemId,
+                    item: null,
+                    quantity: reward.quantity,
+                    decision: 'unavailable',
+                    stored: 'missing'
+                };
+            }
+
+            const stored = GameManager.addToInventory(item, reward.quantity)
+                ? 'inventory'
+                : (GameManager.addToWarehouse(item, reward.quantity) ? 'warehouse' : 'missing');
+            if (stored !== 'missing') markItemKnown(item.id);
+            return {
+                dropId: `chapter1:${source.id}:${index}:${reward.itemId}`,
+                itemId: reward.itemId,
+                item,
+                quantity: reward.quantity,
+                reason: reward.reason,
+                decision: stored === 'missing' ? 'unavailable' : 'claimed',
+                stored
+            };
+        });
+    }
+
+    settleGuaranteedRewards(encounter, rewards = {}) {
+        const source = this.getGuaranteedRewardSource(encounter);
+        if (!source) return rewards;
+
+        const alreadyResolved = Boolean(this.readFlag(source.victoryFlag));
+        this.setFlag(source.victoryFlag, true);
+        if (alreadyResolved) return rewards;
+
+        return {
+            ...rewards,
+            rows: [
+                ...(rewards.rows || []),
+                { label: '固定回收', value: '已直接收進背包或倉庫' }
+            ],
+            drops: [...(rewards.drops || []), ...this.storeGuaranteedRewards(source)]
+        };
+    }
+
+    claimOptionalRewards(routeId) {
+        const route = ChapterOneOptionalRoutes[routeId];
+        if (!route?.claimFlag || this.readFlag(route.claimFlag)) {
+            return Object.freeze({ success: false, recovered: [] });
+        }
+
+        const recovered = this.storeGuaranteedRewards(route)
+            .filter(drop => drop.stored !== 'missing')
+            .map(drop => `${drop.item.name} ×${drop.quantity}`);
+        this.setFlag(route.claimFlag, true);
+        return Object.freeze({ success: true, recovered });
+    }
+
+    markEliteCleared(routeId) {
+        const route = ChapterOneOptionalRoutes[routeId];
+        if (!route?.clearFlag) return false;
+        this.setFlag(route.clearFlag, true);
+        return true;
+    }
+
+    completeRotrootTrial(trialId) {
+        const trial = ChapterOneRotrootTrials.find(entry => entry.id === trialId);
+        if (!trial || !this.readFlag(trial.victoryFlag)) {
+            return Object.freeze({ success: false, trial: null, next: null, complete: false });
+        }
+        const next = getNextChapterOneRotrootTrial(flag => this.readFlag(flag));
+        return Object.freeze({ success: true, trial, next, complete: !next });
+    }
+}
+
+export const chapterOneProgressionManager = new ChapterOneProgressionManager();
+export default chapterOneProgressionManager;

@@ -7,10 +7,6 @@
 // 導入裝備資料庫（用於掉落判定）
 // import { getEquipment } from './Equipment.js';
 
-// 怪物類型
-import { FirstRunMonsterLootOverrides } from './FirstRunLootBalance.js';
-import { applyFirstRunMonsterCombatBalance } from './MonsterProgressionBalance.js';
-
 export const MonsterType = {
     NORMAL: 'normal',       // 普通怪物
     ELITE: 'elite',         // 精英怪物
@@ -123,13 +119,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 11,
-        hp: 60,
-        maxHp: 60,
-        attack: 12,
-        attackSpeed: 1.4,
+        hp: 75,
+        maxHp: 75,
+        attack: 16,
+        attackSpeed: 1,
         defense: 5,
-        exp: 25,
-        gold: 20,
+        exp: 125,
+        gold: 19,
         drops: [
             { itemId: 'bone_fragment', chance: 0.5, quantity: [1, 3] },
             { itemId: 'iron_ore', chance: 0.2, quantity: [1, 1] }
@@ -176,8 +172,8 @@ export const MonsterDatabase = {
         exp: 40,
         gold: 30,
         drops: [
-            { itemId: 'orc_fang', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'iron_ore', chance: 0.3, quantity: [1, 2] }
+            { itemId: 'orc_fang', chance: 0.38, quantity: [1, 1] },
+            { itemId: 'raw_meat', chance: 0.24, quantity: [1, 1] }
         ],
         skills: ['heavy_strike'],
         description: '強壯的獸人戰士。'
@@ -190,13 +186,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 12,
-        hp: 70,
-        maxHp: 70,
-        attack: 15,
-        attackSpeed: 1,
+        hp: 60,
+        maxHp: 60,
+        attack: 17,
+        attackSpeed: 1.35,
         defense: 4,
-        exp: 35,
-        gold: 25,
+        exp: 140,
+        gold: 20,
         drops: [
             { itemId: 'bat_wing', chance: 0.5, quantity: [1, 2] }
         ],
@@ -312,13 +308,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 13,
-        hp: 100,
-        maxHp: 100,
-        attack: 18,
-        attackSpeed: 1.4,
-        defense: 8,
-        exp: 55,
-        gold: 40,
+        hp: 95,
+        maxHp: 95,
+        attack: 20,
+        attackSpeed: 1,
+        defense: 7,
+        exp: 155,
+        gold: 22,
         drops: [
             { itemId: 'bone_fragment', chance: 0.6, quantity: [2, 4] },  // 提高掉落
             { itemId: 'iron_ore', chance: 0.4, quantity: [1, 3] }
@@ -339,15 +335,14 @@ export const MonsterDatabase = {
         level: 15,
         hp: 80,
         maxHp: 80,
-        attack: 22,
-        attackSpeed: 1.4,
+        attack: 24,
+        attackSpeed: 1.2,
         defense: 5,
-        exp: 60,
-        gold: 45,
+        exp: 190,
+        gold: 24,
         drops: [
-            { itemId: 'ectoplasm', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'spirit_essence', chance: 0.2, quantity: [1, 1] },
-            { itemId: 'soul_fragment', chance: 0.15, quantity: [1, 1] }
+            { itemId: 'ectoplasm', chance: 0.36, quantity: [1, 1] },
+            { itemId: 'soul_fragment', chance: 0.12, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['phase_through', 'soul_drain'],
@@ -361,13 +356,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.EARTH,
         level: 17,
-        hp: 180,
-        maxHp: 180,
-        attack: 16,
-        attackSpeed: 1.4,
-        defense: 18,
-        exp: 70,
-        gold: 50,
+        hp: 155,
+        maxHp: 155,
+        attack: 22,
+        attackSpeed: 0.8,
+        defense: 13,
+        exp: 230,
+        gold: 27,
         drops: [
             { itemId: 'golem_core', chance: 0.3, quantity: [1, 1] },
             { itemId: 'stone_fragment', chance: 0.5, quantity: [2, 4] }
@@ -384,19 +379,17 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.NONE,
         level: 20,
-        hp: 400,
-        maxHp: 400,
-        attack: 28,
-        attackSpeed: 2.2,
-        defense: 12,
-        exp: 200,
-        gold: 150,
+        hp: 525,
+        maxHp: 525,
+        attack: 39,
+        attackSpeed: 1.1,
+        defense: 13,
+        exp: 1500,
+        gold: 155,
         drops: [
             { itemId: 'lich_phylactery', chance: 1.0, quantity: [1, 1] },
-            { itemId: 'dark_crystal', chance: 0.7, quantity: [1, 2] },
             { itemId: 'glimmer_shard', chance: 0.25, quantity: [1, 1] },
-            { itemId: 'rune_stone', chance: 0.2, quantity: [1, 1] },
-            { itemId: 'soul_fragment', chance: 0.35, quantity: [1, 1] }
+            { itemId: 'frost_crystal', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'lich_staff', chance: 0.20 },
@@ -413,16 +406,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
         level: 21,
-        hp: 150,
-        maxHp: 150,
-        attack: 26,
-        attackSpeed: 1.4,
-        defense: 14,
-        exp: 80,
-        gold: 55,
+        hp: 155,
+        maxHp: 155,
+        attack: 30,
+        attackSpeed: 1,
+        defense: 10,
+        exp: 325,
+        gold: 32,
         drops: [
-            { itemId: 'shadow_shard', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'dark_steel', chance: 0.25, quantity: [1, 3] }
+            { itemId: 'shadow_shard', chance: 0.32, quantity: [1, 1] },
+            { itemId: 'expedition_steel_fragment', chance: 0.24, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'shadow_blade_drop', chance: 0.10 }
@@ -438,16 +431,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
         level: 23,
-        hp: 120,
-        maxHp: 120,
-        attack: 32,
-        attackSpeed: 1.4,
-        defense: 10,
-        exp: 85,
-        gold: 60,
+        hp: 135,
+        maxHp: 135,
+        attack: 35,
+        attackSpeed: 1.25,
+        defense: 8,
+        exp: 375,
+        gold: 35,
         drops: [
-            { itemId: 'shadow_shard', chance: 0.4, quantity: [1, 2] },
-            { itemId: 'shadow_arrow', chance: 0.3, quantity: [3, 6] }
+            { itemId: 'shadow_arrow', chance: 0.30, quantity: [2, 4] },
+            { itemId: 'expedition_steel_fragment', chance: 0.20, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'shadowneedle_dagger', chance: 0.10 }
@@ -463,17 +456,16 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
         level: 26,
-        hp: 140,
-        maxHp: 140,
-        attack: 38,
-        attackSpeed: 1.4,
-        defense: 8,
-        exp: 100,
-        gold: 70,
+        hp: 275,
+        maxHp: 275,
+        attack: 46,
+        attackSpeed: 1.18,
+        defense: 11,
+        exp: 975,
+        gold: 78,
         drops: [
-            { itemId: 'shadow_essence', chance: 0.5, quantity: [1, 1] },
-            { itemId: 'magic_crystal', chance: 0.25, quantity: [1, 2] },
-            { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] }
+            { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] },
+            { itemId: 'magic_crystal', chance: 0.18, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'shade_focus', chance: 0.10 }
@@ -490,13 +482,13 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.SHADOW,
         level: 30,
-        hp: 550,
-        maxHp: 550,
-        attack: 40,
-        attackSpeed: 2.2,
-        defense: 20,
-        exp: 280,
-        gold: 200,
+        hp: 910,
+        maxHp: 910,
+        attack: 58,
+        attackSpeed: 1.1,
+        defense: 21,
+        exp: 2960,
+        gold: 223,
         drops: [
             { itemId: 'commander_blade', chance: 1.0, quantity: [1, 1] },
             { itemId: 'shadow_core', chance: 0.8, quantity: [1, 2] },
@@ -518,13 +510,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 31,
-        hp: 220,
-        maxHp: 220,
-        attack: 36,
-        attackSpeed: 2.2,
-        defense: 22,
-        exp: 110,
-        gold: 75,
+        hp: 280,
+        maxHp: 280,
+        attack: 40,
+        attackSpeed: 0.9,
+        defense: 18,
+        exp: 625,
+        gold: 46,
         drops: [
             { itemId: 'ancient_gear', chance: 0.4, quantity: [1, 2] },
             { itemId: 'mithril_ore', chance: 0.35, quantity: [1, 2] }
@@ -543,16 +535,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 33,
-        hp: 280,
-        maxHp: 280,
-        attack: 32,
-        attackSpeed: 1.4,
-        defense: 28,
-        exp: 120,
-        gold: 80,
+        hp: 315,
+        maxHp: 315,
+        attack: 40,
+        attackSpeed: 0.82,
+        defense: 23,
+        exp: 700,
+        gold: 49,
         drops: [
-            { itemId: 'crystal_shard', chance: 0.45, quantity: [1, 3] },
-            { itemId: 'pure_crystal', chance: 0.15, quantity: [1, 1] }
+            { itemId: 'crystal_shard', chance: 0.40, quantity: [1, 2] },
+            { itemId: 'mithril_ore', chance: 0.10, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'crystal_shield', chance: 0.10 }
@@ -568,19 +560,16 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.HOLY,
         level: 37,
-        hp: 200,
-        maxHp: 200,
-        attack: 45,
-        attackSpeed: 1.4,
-        defense: 18,
-        exp: 140,
-        gold: 90,
+        hp: 470,
+        maxHp: 470,
+        attack: 61,
+        attackSpeed: 1.15,
+        defense: 20,
+        exp: 1795,
+        gold: 108,
         drops: [
-            { itemId: 'ancient_rune', chance: 0.35, quantity: [1, 1] },
-            { itemId: 'rune_stone', chance: 0.3, quantity: [1, 2] },
-            { itemId: 'glimmer_shard', chance: 0.25, quantity: [1, 1] },
-            { itemId: 'mithril_ore', chance: 0.25, quantity: [1, 1] },
-            { itemId: 'crystal_shard', chance: 0.2, quantity: [1, 2] }
+            { itemId: 'ancient_rune', chance: 0.30, quantity: [1, 1] },
+            { itemId: 'rune_stone', chance: 0.20, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['rune_blast', 'rune_shield'],
@@ -595,17 +584,18 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
         level: 40,
-        hp: 700,
-        maxHp: 700,
-        attack: 48,
-        attackSpeed: 2.2,
-        defense: 25,
-        exp: 350,
-        gold: 250,
+        hp: 1530,
+        maxHp: 1530,
+        attack: 70,
+        attackSpeed: 0.85,
+        defense: 32,
+        exp: 4920,
+        gold: 290,
         drops: [
             { itemId: 'titan_heart', chance: 1.0, quantity: [1, 1] },
-            { itemId: 'ancient_artifact', chance: 0.6, quantity: [1, 1] },
-            { itemId: 'primordial_stone', chance: 0.4, quantity: [1, 1] }
+            { itemId: 'primordial_stone', chance: 0.32, quantity: [1, 1] },
+            { itemId: 'earth_essence', chance: 0.12, quantity: [1, 1] },
+            { itemId: 'ember_stone', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'titan_hammer', chance: 0.20 }
@@ -622,13 +612,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.FIRE,
         level: 41,
-        hp: 200,
-        maxHp: 200,
-        attack: 52,
-        attackSpeed: 1.4,
+        hp: 315,
+        maxHp: 315,
+        attack: 58,
+        attackSpeed: 1.15,
         defense: 15,
-        exp: 150,
-        gold: 95,
+        exp: 1030,
+        gold: 59,
         drops: [
             { itemId: 'fire_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'ember_stone', chance: 0.25, quantity: [1, 1] }
@@ -645,13 +635,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.ICE,
         level: 43,
-        hp: 220,
-        maxHp: 220,
-        attack: 48,
-        attackSpeed: 1.4,
-        defense: 18,
-        exp: 150,
-        gold: 95,
+        hp: 395,
+        maxHp: 395,
+        attack: 54,
+        attackSpeed: 0.9,
+        defense: 23,
+        exp: 1120,
+        gold: 62,
         drops: [
             { itemId: 'ice_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'frost_crystal', chance: 0.25, quantity: [1, 1] }
@@ -668,13 +658,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.THUNDER,
         level: 45,
-        hp: 180,
-        maxHp: 180,
-        attack: 58,
-        attackSpeed: 1.4,
-        defense: 12,
-        exp: 160,
-        gold: 100,
+        hp: 325,
+        maxHp: 325,
+        attack: 68,
+        attackSpeed: 1.25,
+        defense: 15,
+        exp: 1220,
+        gold: 65,
         drops: [
             { itemId: 'thunder_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'storm_crystal', chance: 0.25, quantity: [1, 1] }
@@ -691,13 +681,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.EARTH,
         level: 35,
-        hp: 300,
-        maxHp: 300,
-        attack: 42,
-        attackSpeed: 1.4,
-        defense: 30,
-        exp: 160,
-        gold: 100,
+        hp: 315,
+        maxHp: 315,
+        attack: 47,
+        attackSpeed: 0.9,
+        defense: 20,
+        exp: 775,
+        gold: 51,
         drops: [
             { itemId: 'earth_essence', chance: 0.45, quantity: [1, 2] },
             { itemId: 'geo_crystal', chance: 0.25, quantity: [1, 1] }
@@ -714,18 +704,18 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.NONE,
         level: 50,
-        hp: 900,
-        maxHp: 900,
-        attack: 55,
-        attackSpeed: 2.2,
-        defense: 28,
-        exp: 450,
-        gold: 350,
+        hp: 1800,
+        maxHp: 1800,
+        attack: 94,
+        attackSpeed: 1.12,
+        defense: 31,
+        exp: 7380,
+        gold: 358,
         drops: [
-            { itemId: 'elemental_core', chance: 1.0, quantity: [1, 2] },
-            { itemId: 'primal_essence', chance: 0.6, quantity: [1, 2] },
-            { itemId: 'fire_essence', chance: 0.5, quantity: [2, 3] },
-            { itemId: 'ice_essence', chance: 0.5, quantity: [2, 3] }
+            { itemId: 'elemental_core', chance: 1.0, quantity: [1, 1] },
+            { itemId: 'primal_essence', chance: 0.45, quantity: [1, 1] },
+            { itemId: 'fire_essence', chance: 0.18, quantity: [1, 1] },
+            { itemId: 'molten_core', chance: 0.08, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'elemental_orb', chance: 0.18 }
@@ -742,13 +732,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 52,
-        hp: 280,
-        maxHp: 280,
-        attack: 58,
-        attackSpeed: 1.4,
-        defense: 22,
-        exp: 180,
-        gold: 110,
+        hp: 440,
+        maxHp: 440,
+        attack: 73,
+        attackSpeed: 1.25,
+        defense: 19,
+        exp: 1585,
+        gold: 74,
         drops: [
             { itemId: 'wyvern_scale', chance: 0.4, quantity: [1, 2] },
             { itemId: 'wyvern_wing', chance: 0.25, quantity: [1, 1] }
@@ -767,17 +757,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.FIRE,
         level: 54,
-        hp: 320,
-        maxHp: 320,
-        attack: 62,
-        attackSpeed: 1.4,
+        hp: 540,
+        maxHp: 540,
+        attack: 73,
+        attackSpeed: 1,
         defense: 25,
-        exp: 200,
-        gold: 120,
+        exp: 1700,
+        gold: 77,
         drops: [
-            { itemId: 'drake_scale', chance: 0.5, quantity: [1, 3] },
-            { itemId: 'dragon_tooth', chance: 0.35, quantity: [1, 2] },
-            { itemId: 'dragon_heart', chance: 0.05, quantity: [1, 1] }
+            { itemId: 'drake_scale', chance: 0.42, quantity: [1, 2] },
+            { itemId: 'dragon_tooth', chance: 0.24, quantity: [1, 1] }
         ],
         equipmentDrops: [
             // { equipmentId: 'drake_scale_mail', chance: 0.05 }
@@ -793,13 +782,13 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.FIRE,
         level: 59,
-        hp: 350,
-        maxHp: 350,
-        attack: 68,
-        attackSpeed: 1.4,
-        defense: 30,
-        exp: 240,
-        gold: 140,
+        hp: 1080,
+        maxHp: 1080,
+        attack: 94,
+        attackSpeed: 1.05,
+        defense: 37,
+        exp: 4210,
+        gold: 167,
         drops: [
             { itemId: 'dragon_scale_armor', chance: 0.2, quantity: [1, 1] },
             { itemId: 'dragon_knight_badge', chance: 0.35, quantity: [1, 1] }
@@ -817,18 +806,17 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.FIRE,
         level: 60,
-        hp: 1200,
-        maxHp: 1200,
-        attack: 72,
-        attackSpeed: 2.2,
-        defense: 35,
-        exp: 600,
-        gold: 500,
+        hp: 2555,
+        maxHp: 2555,
+        attack: 110,
+        attackSpeed: 1.05,
+        defense: 41,
+        exp: 10340,
+        gold: 425,
         drops: [
             { itemId: 'dragon_heart', chance: 1.0, quantity: [1, 1] },
-            { itemId: 'elder_dragon_scale', chance: 0.8, quantity: [2, 3] },
-            { itemId: 'dragon_tooth', chance: 0.6, quantity: [1, 2] },
-            { itemId: 'elder_dragon_fang_badge', chance: 0.4, quantity: [1, 1] }
+            { itemId: 'elder_dragon_scale', chance: 0.55, quantity: [1, 1] },
+            { itemId: 'dragon_tooth', chance: 0.30, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'elder_dragon_fang', chance: 0.15 }
@@ -845,13 +833,13 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
         level: 61,
-        hp: 300,
-        maxHp: 300,
-        attack: 78,
-        attackSpeed: 1.2,
-        defense: 20,
-        exp: 260,
-        gold: 150,
+        hp: 795,
+        maxHp: 795,
+        attack: 105,
+        attackSpeed: 1.4,
+        defense: 21,
+        exp: 4480,
+        gold: 173,
         drops: [
             { itemId: 'assassin_blade_fragment', chance: 0.25, quantity: [1, 1] },
             { itemId: 'shadow_cloak_fragment', chance: 0.35, quantity: [1, 1] }
@@ -870,13 +858,13 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
         level: 67,
-        hp: 450,
-        maxHp: 450,
-        attack: 82,
-        attackSpeed: 2.2,
-        defense: 35,
-        exp: 300,
-        gold: 180,
+        hp: 1265,
+        maxHp: 1265,
+        attack: 110,
+        attackSpeed: 1.12,
+        defense: 37,
+        exp: 5340,
+        gold: 189,
         drops: [
             { itemId: 'general_armor', chance: 0.3, quantity: [1, 1] },
             { itemId: 'shadow_insignia', chance: 0.4, quantity: [1, 1] }
@@ -920,13 +908,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.SHADOW,
         level: 66,
-        hp: 400,
-        maxHp: 400,
-        attack: 88,
-        attackSpeed: 2.2,
-        defense: 32,
-        exp: 320,
-        gold: 200,
+        hp: 730,
+        maxHp: 730,
+        attack: 89,
+        attackSpeed: 1,
+        defense: 31,
+        exp: 2470,
+        gold: 93,
         drops: [
             { itemId: 'demon_horn', chance: 0.4, quantity: [1, 1] },
             { itemId: 'demonic_steel', chance: 0.3, quantity: [1, 2] }
@@ -945,13 +933,13 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.SHADOW,
         level: 69,
-        hp: 600,
-        maxHp: 600,
-        attack: 95,
-        attackSpeed: 2.2,
-        defense: 40,
-        exp: 400,
-        gold: 250,
+        hp: 1450,
+        maxHp: 1450,
+        attack: 117,
+        attackSpeed: 1.05,
+        defense: 42,
+        exp: 5640,
+        gold: 194,
         drops: [
             { itemId: 'demon_general_helm', chance: 0.35, quantity: [1, 1] },
             { itemId: 'abyssal_shard', chance: 0.4, quantity: [1, 2] }
@@ -971,16 +959,15 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.SHADOW,
         level: 70,
-        hp: 2500,
-        maxHp: 2500,
-        attack: 120,
-        attackSpeed: 2.2,
-        defense: 50,
-        exp: 2000,
-        gold: 2000,
+        hp: 3275,
+        maxHp: 3275,
+        attack: 132,
+        attackSpeed: 1.08,
+        defense: 48,
+        exp: 13800,
+        gold: 493,
         drops: [
-            { itemId: 'demon_lord_sword', chance: 1.0, quantity: [1, 1] },
-            { itemId: 'demon_lord_armor', chance: 0.5, quantity: [1, 1] },
+            { itemId: 'demon_core', chance: 1.0, quantity: [1, 1] },
             { itemId: 'world_shard', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
@@ -998,13 +985,13 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 18,
-        hp: 145,
-        maxHp: 145,
-        attack: 22,
-        attackSpeed: 1.8,
-        defense: 9,
-        exp: 85,
-        gold: 55,
+        hp: 90,
+        maxHp: 90,
+        attack: 27,
+        attackSpeed: 1.3,
+        defense: 6,
+        exp: 255,
+        gold: 28,
         drops: [
             { itemId: 'glimmer_shard', chance: 0.38, quantity: [1, 1] },
             { itemId: 'rune_stone', chance: 0.16, quantity: [1, 1] }
@@ -1021,17 +1008,16 @@ export const MonsterDatabase = {
         type: MonsterType.NORMAL,
         element: MonsterElement.NONE,
         level: 19,
-        hp: 170,
-        maxHp: 170,
-        attack: 25,
-        attackSpeed: 1.7,
-        defense: 12,
-        exp: 105,
-        gold: 70,
+        hp: 115,
+        maxHp: 115,
+        attack: 29,
+        attackSpeed: 1.2,
+        defense: 8,
+        exp: 275,
+        gold: 30,
         drops: [
-            { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 1] },
-            { itemId: 'rune_stone', chance: 0.24, quantity: [1, 1] },
-            { itemId: 'pure_crystal', chance: 0.12, quantity: [1, 1] }
+            { itemId: 'glimmer_shard', chance: 0.30, quantity: [1, 1] },
+            { itemId: 'rune_stone', chance: 0.18, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'rune_scriber_focus', chance: 0.10 }
@@ -1071,17 +1057,16 @@ export const MonsterDatabase = {
         type: MonsterType.ELITE,
         element: MonsterElement.NONE,
         level: 49,
-        hp: 620,
-        maxHp: 620,
-        attack: 72,
-        attackSpeed: 1.55,
-        defense: 32,
-        exp: 360,
-        gold: 240,
+        hp: 765,
+        maxHp: 765,
+        attack: 82,
+        attackSpeed: 1.18,
+        defense: 27,
+        exp: 2985,
+        gold: 140,
         drops: [
-            { itemId: 'vine_core', chance: 0.42, quantity: [1, 1] },
-            { itemId: 'glimmer_shard', chance: 0.34, quantity: [1, 2] },
-            { itemId: 'primal_essence', chance: 0.18, quantity: [1, 1] }
+            { itemId: 'vine_core', chance: 0.36, quantity: [1, 1] },
+            { itemId: 'primal_essence', chance: 0.14, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['poison_bite', 'regeneration'],
@@ -1279,17 +1264,16 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.ICE,
         level: 28,
-        hp: 560,
-        maxHp: 560,
-        attack: 40,
-        attackSpeed: 1.8,
-        defense: 16,
-        exp: 330,
-        gold: 260,
+        hp: 505,
+        maxHp: 505,
+        attack: 49,
+        attackSpeed: 1.08,
+        defense: 14,
+        exp: 1680,
+        gold: 125,
         drops: [
-            { itemId: 'soul_fragment', chance: 0.7, quantity: [1, 2] },
-            { itemId: 'dark_crystal', chance: 0.35, quantity: [1, 1] },
-            { itemId: 'ancient_rune', chance: 0.25, quantity: [1, 1] }
+            { itemId: 'ancient_rune', chance: 0.25, quantity: [1, 1] },
+            { itemId: 'storm_crystal', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['sonic_screech', 'freeze', 'soul_drain'],
@@ -1327,13 +1311,13 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
         level: 38,
-        hp: 640,
-        maxHp: 640,
-        attack: 46,
-        attackSpeed: 1.9,
+        hp: 710,
+        maxHp: 710,
+        attack: 68,
+        attackSpeed: 1.15,
         defense: 18,
-        exp: 380,
-        gold: 300,
+        exp: 2870,
+        gold: 166,
         drops: [
             { itemId: 'poison_gland', chance: 0.65, quantity: [1, 2] },
             { itemId: 'spider_silk', chance: 0.45, quantity: [1, 2] },
@@ -1373,157 +1357,157 @@ export const MonsterDatabase = {
     shadow_halberdier: {
         id: 'shadow_halberdier', name: '暗影戟兵', icon: '⚔',
         type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 24,
-        hp: 205, maxHp: 205, attack: 34, attackSpeed: 1.5, defense: 17,
-        exp: 125, gold: 82,
+        hp: 200, maxHp: 200, attack: 35, attackSpeed: 0.9, defense: 13,
+        exp: 405, gold: 36,
         drops: [
-            { itemId: 'shadow_shard', chance: 0.32, quantity: [1, 1] },
-            { itemId: 'dark_steel', chance: 0.16, quantity: [1, 1] }
+            { itemId: 'dark_steel', chance: 0.16, quantity: [1, 1] },
+            { itemId: 'expedition_steel_fragment', chance: 0.26, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '以長戟維持封鎖線的暗影士兵。'
     },
     ember_beast: {
         id: 'ember_beast', name: '燼火獸', icon: '◆',
         type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 42,
-        hp: 305, maxHp: 305, attack: 45, attackSpeed: 1.6, defense: 18,
-        exp: 170, gold: 110,
+        hp: 390, maxHp: 390, attack: 58, attackSpeed: 0.98, defense: 19,
+        exp: 1075, gold: 61,
         drops: [
-            { itemId: 'fire_essence', chance: 0.34, quantity: [1, 1] },
-            { itemId: 'ember_stone', chance: 0.18, quantity: [1, 1] }
+            { itemId: 'ember_stone', chance: 0.22, quantity: [1, 1] },
+            { itemId: 'lava_scale', chance: 0.08, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '由燼火與焦岩聚成的獵食獸。'
     },
     frost_wolf: {
         id: 'frost_wolf', name: '冰霜狼', icon: '◇',
         type: MonsterType.NORMAL, element: MonsterElement.ICE, level: 44,
-        hp: 285, maxHp: 285, attack: 46, attackSpeed: 1.75, defense: 16,
-        exp: 168, gold: 108,
+        hp: 340, maxHp: 340, attack: 62, attackSpeed: 1.25, defense: 15,
+        exp: 1170, gold: 63,
         drops: [
             { itemId: 'ice_essence', chance: 0.34, quantity: [1, 1] },
             { itemId: 'frost_crystal', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [{ equipmentId: 'frostwolf_mantle', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'frostwolf_mantle', chance: 0.10 }], skills: [],
         description: '皮毛結著霜晶的元素獵狼。'
     },
     poison_frog: {
         id: 'poison_frog', name: '劇毒蛙', icon: '●',
         type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 47,
-        hp: 250, maxHp: 250, attack: 43, attackSpeed: 1.55, defense: 14,
-        exp: 172, gold: 112,
+        hp: 405, maxHp: 405, attack: 58, attackSpeed: 1.05, defense: 18,
+        exp: 1320, gold: 67,
         drops: [
             { itemId: 'poison_gland', chance: 0.34, quantity: [1, 1] },
             { itemId: 'spider_silk', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [{ equipmentId: 'miasma_needle_focus', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'miasma_needle_focus', chance: 0.10 }], skills: [],
         description: '在失衡濕地中積蓄元素毒液的巨蛙。'
     },
     storm_raptor: {
         id: 'storm_raptor', name: '風暴猛禽', icon: '▲',
         type: MonsterType.NORMAL, element: MonsterElement.THUNDER, level: 46,
-        hp: 275, maxHp: 275, attack: 49, attackSpeed: 1.85, defense: 15,
-        exp: 180, gold: 118,
+        hp: 330, maxHp: 330, attack: 67, attackSpeed: 1.35, defense: 15,
+        exp: 1265, gold: 66,
         drops: [
             { itemId: 'thunder_essence', chance: 0.34, quantity: [1, 1] },
             { itemId: 'storm_crystal', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [{ equipmentId: 'stormfeather_talisman', chance: 0.10 }], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'stormfeather_talisman', chance: 0.10 }], skills: [],
         description: '借雷流俯衝的高空猛禽。'
     },
     vine_beast: {
         id: 'vine_beast', name: '藤蔓獸', icon: '✤',
         type: MonsterType.NORMAL, element: MonsterElement.POISON, level: 48,
-        hp: 340, maxHp: 340, attack: 45, attackSpeed: 1.5, defense: 24,
-        exp: 188, gold: 122,
+        hp: 500, maxHp: 500, attack: 59, attackSpeed: 0.9, defense: 26,
+        exp: 1370, gold: 69,
         drops: [
             { itemId: 'vine_core', chance: 0.3, quantity: [1, 1] },
             { itemId: 'ancient_bark', chance: 0.18, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '因元素失衡而具備獵食性的藤蔓聚合體。'
     },
     cliffscale_hatchling: {
         id: 'cliffscale_hatchling', name: '崖鱗幼龍', icon: '△',
         type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 51,
-        hp: 365, maxHp: 365, attack: 56, attackSpeed: 1.65, defense: 25,
-        exp: 215, gold: 145,
+        hp: 430, maxHp: 430, attack: 68, attackSpeed: 1.15, defense: 20,
+        exp: 1530, gold: 73,
         drops: [
             { itemId: 'wyvern_scale', chance: 0.3, quantity: [1, 1] },
             { itemId: 'wyvern_wing', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '在封印峭壁外圍活動的幼年龍獸。'
     },
     sealstone_guardian: {
         id: 'sealstone_guardian', name: '封石守衛', icon: '▣',
         type: MonsterType.NORMAL, element: MonsterElement.EARTH, level: 53,
-        hp: 430, maxHp: 430, attack: 55, attackSpeed: 1.4, defense: 34,
-        exp: 230, gold: 152,
+        hp: 595, maxHp: 595, attack: 63, attackSpeed: 0.85, defense: 34,
+        exp: 1645, gold: 76,
         drops: [
             { itemId: 'stone_fragment', chance: 0.36, quantity: [1, 2] },
             { itemId: 'rune_stone', chance: 0.16, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '由龍族封印石層自行喚醒的守衛。'
     },
     dragon_seal_sentinel: {
         id: 'dragon_seal_sentinel', name: '龍封哨衛', icon: '◆',
         type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 56,
-        hp: 410, maxHp: 410, attack: 62, attackSpeed: 1.65, defense: 29,
-        exp: 245, gold: 165,
+        hp: 610, maxHp: 610, attack: 72, attackSpeed: 0.95, defense: 31,
+        exp: 1820, gold: 80,
         drops: [
             { itemId: 'drake_scale', chance: 0.32, quantity: [1, 1] },
             { itemId: 'dragon_knight_badge', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [{ equipmentId: 'dragonseal_patrol_plate', chance: 0.05 }], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'dragonseal_patrol_plate', chance: 0.05 }], skills: [],
         description: '巡守封印邊界、驅逐靠近者的龍族哨衛。'
     },
     dragon_seal_adept: {
         id: 'dragon_seal_adept', name: '龍封術士', icon: '◈',
         type: MonsterType.ELITE, element: MonsterElement.FIRE, level: 57,
-        hp: 520, maxHp: 520, attack: 68, attackSpeed: 1.7, defense: 31,
-        exp: 285, gold: 190,
+        hp: 900, maxHp: 900, attack: 93, attackSpeed: 1.18, defense: 28,
+        exp: 3950, gold: 162,
         drops: [
             { itemId: 'magic_crystal', chance: 0.26, quantity: [1, 1] },
             { itemId: 'glimmer_shard', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [{ equipmentId: 'dragonseal_forkstaff', chance: 0.05 }], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [{ equipmentId: 'dragonseal_forkstaff', chance: 0.05 }], skills: [],
         description: '維持古老封印術式的龍族施術者。'
     },
     hell_hound: {
         id: 'hell_hound', name: '地獄犬', icon: '◆',
         type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 62,
-        hp: 470, maxHp: 470, attack: 76, attackSpeed: 1.85, defense: 28,
-        exp: 315, gold: 210,
+        hp: 570, maxHp: 570, attack: 88, attackSpeed: 1.28, defense: 22,
+        exp: 2200, gold: 88,
         drops: [
             { itemId: 'demon_horn', chance: 0.25, quantity: [1, 1] },
             { itemId: 'demonic_steel', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '追逐墜落地熱流與魔氣的獵犬。'
     },
     tormented_soul: {
         id: 'tormented_soul', name: '受難亡魂', icon: '◇',
         type: MonsterType.NORMAL, element: MonsterElement.SHADOW, level: 63,
-        hp: 410, maxHp: 410, attack: 80, attackSpeed: 1.7, defense: 24,
-        exp: 322, gold: 215,
+        hp: 530, maxHp: 530, attack: 91, attackSpeed: 1.2, defense: 20,
+        exp: 2265, gold: 89,
         drops: [
             { itemId: 'soul_fragment', chance: 0.3, quantity: [1, 1] },
             { itemId: 'cursed_shard', chance: 0.12, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '被墜落地反覆牽引、無法離去的殘魂。'
     },
     lava_golem: {
         id: 'lava_golem', name: '熔岩巨像', icon: '▰',
         type: MonsterType.NORMAL, element: MonsterElement.FIRE, level: 64,
-        hp: 590, maxHp: 590, attack: 74, attackSpeed: 1.4, defense: 42,
-        exp: 335, gold: 225,
+        hp: 830, maxHp: 830, attack: 76, attackSpeed: 0.82, defense: 43,
+        exp: 2335, gold: 90,
         drops: [
             { itemId: 'lava_scale', chance: 0.3, quantity: [1, 1] },
             { itemId: 'molten_core', chance: 0.14, quantity: [1, 1] }
         ],
-        equipmentDrops: [], skills: [], balanceStatus: 'provisional',
+        equipmentDrops: [], skills: [],
         description: '受墜落地熱壓喚醒的熔岩巨像。'
     },
 };
@@ -2039,14 +2023,6 @@ export const TowerMonsterData = {
         towerFloor: 20
     }
 };
-
-for (const [monsterId, override] of Object.entries(FirstRunMonsterLootOverrides)) {
-    if (MonsterDatabase[monsterId]) Object.assign(MonsterDatabase[monsterId], override);
-}
-
-// First-run combat values have one explicit authority. Encounter code may
-// select a monster, but must never rescale these values by location or player.
-applyFirstRunMonsterCombatBalance(MonsterDatabase);
 
 // Level groups: split into four logical groups used by map/manager code.
 // - LowLevelMonster: levels 1-15 (excluding BOSS and WORLD_BOSS)

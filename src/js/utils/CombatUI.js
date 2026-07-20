@@ -39,7 +39,7 @@ function isWeaponItem(item) {
 }
 
 function getItemAttackValue(item) {
-    const value = Number(item?.atk ?? item?.attack ?? item?.stats?.atk ?? item?.stats?.attack ?? 0);
+    const value = Number(item?.attack ?? 0);
     return Number.isFinite(value) ? value : 0;
 }
 
@@ -150,19 +150,19 @@ function clampPercent(value) {
 }
 
 function getMonsterCurrentHp(monster) {
-    return Number(monster?.currentHp ?? monster?.hp ?? 0) || 0;
+    return Number(monster?.hp ?? 0) || 0;
 }
 
 function getMonsterMaxHp(monster) {
-    return Number(monster?.maxHp ?? monster?.hp ?? monster?.currentHp ?? 1) || 1;
+    return Number(monster?.maxHp ?? monster?.hp ?? 1) || 1;
 }
 
 function getMonsterAttack(monster) {
-    return monster?.attack ?? monster?.atk ?? 0;
+    return monster?.attack ?? 0;
 }
 
 function getMonsterDefense(monster) {
-    return monster?.defense ?? monster?.def ?? 0;
+    return monster?.defense ?? 0;
 }
 
 function getCharacterHp(character) {

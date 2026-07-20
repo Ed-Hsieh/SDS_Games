@@ -4,13 +4,13 @@
  */
 
 import GameManager from './GameManager.js';
-import { questManager } from './QuestManager.js?v=dialogue-flow-20260712w';
+import { questManager } from './QuestManager.js';
 import { worldInteractionManager } from './WorldInteractionManager.js';
 import { getTownNPC, getTownNPCDialogues } from '../data/NPCDialogues.js';
 import { getQuestById, QuestStatus } from '../data/Quests.js';
 import { getQuestStory } from '../data/QuestStories.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
-import { storySceneManager } from './StorySceneManager.js?v=chapter1-art-20260713a';
+import { storySceneManager } from './StorySceneManager.js';
 
 class DialogueManager {
     constructor() {
@@ -689,8 +689,7 @@ class DialogueManager {
             }
 
             if (effect.type === 'setFlag') {
-                GameManager.setFlag(effect.flag, effect.value ?? true);
-                GameManager.markSaveDirty?.('dialogue-flag');
+                GameManager.setFlag(effect.flag, effect.value ?? true, { reason: 'dialogue-flag' });
                 if (effect.message) messages.push(effect.message);
             }
         }

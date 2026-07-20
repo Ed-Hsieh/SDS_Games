@@ -5,9 +5,8 @@
  */
 
 import GameManager from '../managers/GameManager.js';
-import { questManager, QuestStatus } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
-import { worldStoryManager } from '../managers/WorldStoryManager.js';
-import { QuestDatabase, getQuestById } from '../data/Quests.js';
+import { questManager } from '../managers/QuestManager.js';
+import { QuestDatabase } from '../data/Quests.js';
 import { RewardItemDatabase } from '../data/RewardItems.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
@@ -15,7 +14,6 @@ import { TowerBossEquipment } from '../data/BossEquipment.js';
 import { ShopData, SecretShopItems } from '../data/Items.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { getMonsterCombatRank } from '../data/CombatBalance.js';
-import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { TownPlaceDatabase } from '../data/TownPlaces.js';
 import {
     evaluateTownCondition,
@@ -36,11 +34,10 @@ import {
     getTotalDef
 } from '../models/CharacterLogic.js';
 import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js';
-import storyDialogueController from '../managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
-import { getStoryActor } from '../data/StoryActors.js?v=chapter1-art-20260713a';
+import storyDialogueController from '../managers/StoryDialogueController.js';
+import { getStoryActor } from '../data/StoryActors.js';
 
 const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
-const DEV_SOURCE = 'boss_test_panel';
 const DEV_PANEL_STORAGE_KEY = 'sds.devPanel.state';
 
 const ITEM_SOURCE_LABELS = {
@@ -470,15 +467,13 @@ class DevPanel {
 
         const routeCards = (() => {
             const nodes = (region?.locationNodes || []).filter(node => node.kind !== 'entry');
-            const visited = nodes.filter(node =>
-                Boolean(GameManager.getFlag(worldStoryManager.getLandmarkVisitedFlag(node.id)))
-            );
+            const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
+            const visited = nodes.filter(node => discoveredIds.has(node.id));
             const landmarkRows = nodes.map(node => {
                 const isVisited = visited.some(entry => entry.id === node.id);
                 return `
                     <div class="dev-row">
                         <small style="flex:1">${node.icon || ''} ${escapeHtml(node.name || node.id)}${isVisited ? '｜已記錄' : ''}</small>
-                        <button class="dev-act" type="button" data-dev="visit-landmark" data-landmark-id="${escapeHtml(node.id)}">造訪</button>
                     </div>
                 `;
             }).join('');
@@ -486,9 +481,6 @@ class DevPanel {
             return `
                 <div class="dev-card">
                     <h4>${escapeHtml(region?.title || '第一章區域')} <small class="dev-muted">${visited.length}/${nodes.length}</small></h4>
-                    <div class="dev-row">
-                        <button class="dev-act" type="button" data-dev="chapter-region-visit-all" data-chapter="1">記錄全區域</button>
-                    </div>
                     ${landmarkRows}
                 </div>
             `;
@@ -504,6 +496,7 @@ class DevPanel {
     }
 
     renderBoss() {
+        const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
         return ChapterRegionOrder.map(regionId => {
             const region = ChapterRegionRegistry[regionId];
             const bossNodes = (region?.locationNodes || []).filter(node => node.bossId);
@@ -511,12 +504,11 @@ class DevPanel {
             const rows = bossNodes.map(node => {
                 const monster = MonsterDatabase[node.bossId] || {};
                 const sceneId = node.sceneIds?.[0] || '';
-                const visited = Boolean(GameManager.getFlag(`world.landmark.${node.id}.visited`));
+                const visited = discoveredIds.has(node.id);
                 const complete = Boolean(sceneId && GameManager.getFlag(`story.scene.${sceneId}.complete`));
                 return `
                     <div class="dev-row">
                         <small style="flex:1">${escapeHtml(monster.name || node.bossId)}｜${escapeHtml(node.name)}${node.optional ? '｜可選' : '｜主線'}${visited ? '｜<span class="dev-status">已發現</span>' : ''}${complete ? '｜<span class="dev-status">已完成</span>' : ''}</small>
-                        <button class="dev-act" type="button" data-dev="visit-landmark" data-landmark-id="${escapeHtml(node.id)}">造訪</button>
                     </div>
                 `;
             }).join('');
@@ -525,23 +517,20 @@ class DevPanel {
     }
 
     renderWorld() {
+        const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
         return ChapterRegionOrder.map(regionId => {
             const region = ChapterRegionRegistry[regionId];
             const rows = (region?.locationNodes || []).map(node => {
-                const visited = Boolean(GameManager.getFlag(`world.landmark.${node.id}.visited`));
+                const visited = discoveredIds.has(node.id);
                 return `
                     <div class="dev-row">
                         <small style="flex:1">${escapeHtml(node.name)}｜${escapeHtml(node.kind)}${visited ? '｜<span class="dev-status">已造訪</span>' : ''}</small>
-                        <button class="dev-act" type="button" data-dev="visit-landmark" data-landmark-id="${escapeHtml(node.id)}">造訪</button>
                     </div>
                 `;
             }).join('');
             return `
                 <div class="dev-card">
                     <h4>第 ${region.chapter} 章｜${escapeHtml(region.title)}</h4>
-                    <div class="dev-row">
-                        <button class="dev-act" type="button" data-dev="chapter-region-visit-all" data-chapter="${region.chapter}">記錄全區域</button>
-                    </div>
                     ${rows}
                 </div>
             `;
@@ -608,8 +597,6 @@ class DevPanel {
             <div class="dev-card">
                 <h4>${dungeonId}</h4>
                 <div class="dev-row">
-                    <button class="dev-act" type="button" data-dev="dungeon-clear" data-dungeon-id="${dungeonId}">觸發通關事件</button>
-                    <button class="dev-act" type="button" data-dev="dungeon-boss" data-dungeon-id="${dungeonId}">觸發BOSS擊殺</button>
                     <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="dungeon_${dungeonId}_001">解鎖任務I</button>
                     <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="dungeon_${dungeonId}_002">解鎖任務II</button>
                 </div>
@@ -862,17 +849,12 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'set-level': () => {
                 const char = GameManager.getCharacter();
                 const level = Math.max(1, Number(this.body.querySelector('#dev-level')?.value) || char.level);
-                char.level = level;
-                char.exp = 0;
-                char.syncProperties?.();
-                char.hp = char.maxHp;
-                GameManager.notify('all');
+                GameManager.setCharacterProgress({ level, exp: 0, restoreHealth: true }, { reason: 'dev-set-level' });
                 this.refresh(`等級設為 ${level}`);
             },
             'full-heal': () => {
                 const char = GameManager.getCharacter();
-                char.hp = char.maxHp;
-                GameManager.notify('all');
+                GameManager.setCharacterHealth(char.maxHp, { reason: 'dev-full-heal' });
                 this.refresh('生命已補滿');
             },
             'add-gold': () => {
@@ -884,10 +866,10 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
                 this.refresh('金幣歸零（可測一無所有隱藏線）');
             },
             'add-exp': () => {
-                const char = GameManager.getCharacter();
-                char.exp += Number(this.body.querySelector('#dev-exp')?.value) || 0;
-                char.checkLevelUp?.();
-                GameManager.notify('all');
+                GameManager.addCharacterExperience(
+                    Number(this.body.querySelector('#dev-exp')?.value) || 0,
+                    { reason: 'dev-add-exp' }
+                );
                 this.refresh('經驗已加入');
             },
             'add-item': () => this.addItem(false),
@@ -897,7 +879,7 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'open-vfx-lab': () => window.open('combat-vfx-lab.html', '_blank', 'noopener,noreferrer'),
             'dialogue-preview': () => this.previewDialogue(data.mode),
             'grant-set': () => {
-                GameManager.grantSetEquipmentForTesting([data.setId], data.setId);
+                this.grantEquipmentSet(data.setId);
                 this.refresh(`已給予並裝備套裝 ${data.setId}`);
             },
             'quest-unlock': () => {
@@ -912,23 +894,6 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'quest-finish': () => {
                 const result = questManager.completeQuest(data.questId);
                 this.refresh(result.success ? `已回報 ${data.questId}` : `回報失敗：${result.message}`);
-            },
-            'visit-landmark': () => {
-                const outcome = worldStoryManager.visitLandmark(data.landmarkId, { source: DEV_SOURCE });
-                questManager.syncExplorationObjectives?.();
-                this.refresh(outcome.success ? `已造訪 ${outcome.title}` : '造訪失敗');
-            },
-            'chapter-region-visit-all': () => {
-                const region = getChapterRegion(Number(data.chapter) || 1);
-                if (!region) {
-                    this.refresh(`找不到章節區域：${data.chapter}`);
-                    return;
-                }
-                for (const node of region.locationNodes || []) {
-                    if (node.kind === 'entry') continue;
-                    worldStoryManager.visitLandmark(node.id, { source: `${DEV_SOURCE}:region`, chapter: region.chapter });
-                }
-                this.refresh(`已記錄區域：${region.title}`);
             },
             'town-reset-initial': () => {
                 for (const flag of DEV_TOWN_VISIBILITY_FLAGS) {
@@ -945,14 +910,6 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'toggle-flag': () => {
                 GameManager.setFlag(data.flag, !GameManager.getFlag(data.flag));
                 this.refresh();
-            },
-            'dungeon-clear': () => {
-                worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_COMPLETED, { dungeonId: data.dungeonId, source: DEV_SOURCE });
-                this.refresh(`已觸發 ${data.dungeonId} 通關事件`);
-            },
-            'dungeon-boss': () => {
-                worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_BOSS_DEFEATED, { dungeonId: data.dungeonId, bossId: `${data.dungeonId}_boss`, source: DEV_SOURCE });
-                this.refresh(`已觸發 ${data.dungeonId} BOSS 擊殺事件`);
             },
             'save-local': () => {
                 const result = GameManager.saveToLocalStorage();
@@ -1116,6 +1073,33 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         };
     }
 
+    grantEquipmentSet(setId) {
+        const set = SetDatabase[setId];
+        if (!set || !Array.isArray(set.pieces)) return false;
+
+        const getEquipmentEntries = () => GameManager.getEquipmentEntries({ includeWarehouse: true });
+        const hasItem = itemId => getEquipmentEntries().some(entry => entry.item?.id === itemId);
+
+        for (const pieceId of set.pieces) {
+            if (hasItem(pieceId)) continue;
+            const equipment = EquipmentDatabase[pieceId];
+            if (equipment) GameManager.addToWarehouse(equipment, 1);
+        }
+
+        for (const pieceId of set.pieces) {
+            const entries = getEquipmentEntries();
+            const alreadyEquipped = entries.some(entry => entry.source === 'equipped' && entry.item?.id === pieceId);
+            if (alreadyEquipped) continue;
+
+            const warehouseEntry = entries.find(entry => entry.source === 'warehouse' && entry.item?.id === pieceId);
+            if (warehouseEntry && GameManager.equipItem(warehouseEntry.instanceId, true)) continue;
+
+            const inventoryEntry = entries.find(entry => entry.source === 'inventory' && entry.item?.id === pieceId);
+            if (inventoryEntry) GameManager.equipItem(inventoryEntry.instanceId, false);
+        }
+        return true;
+    }
+
     addItem(toWarehouse) {
         const itemId = String(this.body.querySelector('#dev-item-id')?.value || '').trim();
         const quantity = Math.max(1, Number(this.body.querySelector('#dev-item-qty')?.value) || 1);
@@ -1134,18 +1118,10 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
     }
 
     fillQuest(questId) {
-        const state = questManager.questStates?.[questId];
-        const quest = getQuestById(questId);
-        if (!quest || !state || state.status !== QuestStatus.ACTIVE) {
-            this.refresh('任務需先處於進行中才能補滿');
-            return;
-        }
-        for (const progress of state.progress || []) {
-            progress.current = progress.required;
-        }
-        state.status = QuestStatus.COMPLETED;
-        questManager.notify('quest_ready', { questId, quest });
-        this.refresh(`已補滿 ${quest.name} 的目標`);
+        const result = questManager.completeQuestObjectives(questId);
+        this.refresh(result.success
+            ? `已補滿 ${result.quest.name} 的目標`
+            : result.message);
     }
 
     importSave() {
@@ -1172,7 +1148,6 @@ export function initDevPanel(app) {
     if (typeof document === 'undefined' || devPanelInstance) return devPanelInstance;
     if (!isDevModeEnabled()) return null;
     devPanelInstance = new DevPanel(app);
-    window.devPanel = devPanelInstance;
     return devPanelInstance;
 }
 

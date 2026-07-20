@@ -41,11 +41,7 @@ export function createMonsterInstance(monsterOrId) {
 
     if (!template) return null;
 
-    // Normalize fields because data may use different keys (attack vs atk, defense vs def, hp vs maxHp)
-    const hpBase = template.hp ?? template.maxHp ?? 0;
-    const maxHp = template.maxHp ?? template.hp ?? hpBase;
-    const atk = template.atk ?? template.attack ?? 0;
-    const def = template.def ?? template.defense ?? 0;
+    const maxHp = template.maxHp ?? template.hp ?? 1;
 
     return {
         ...template,
@@ -58,14 +54,10 @@ export function createMonsterInstance(monsterOrId) {
         element: template.element,
         level: template.level,
 
-        // normalized combat stats (keeps both names for compatibility)
-        hp: hpBase,
-        maxHp: maxHp,
-        currentHp: hpBase,
-        atk: atk,
-        def: def,
-        attack: atk,
-        defense: def,
+        hp: maxHp,
+        maxHp,
+        attack: template.attack ?? 0,
+        defense: template.defense ?? 0,
 
         // rewards & misc
         exp: template.exp || 0,

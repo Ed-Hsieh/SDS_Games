@@ -1,7 +1,7 @@
 /**
  * DropPools.js
  * 中央化的掉落池系統：區域（Zone）與副本（Dungeon）掉落池
- * 提供可註冊的池、範例資料與一個主入口 `generateDrops`。
+ * 只定義區域、副本與怪物專屬掉落資料；掉落行為由 DropManager 負責。
  */
 
 // 基本池資料格式：
@@ -59,9 +59,6 @@ export const DungeonDropPools = {
         guaranteed: [ { id: 'forge_core', chance: 0.1 } ]
     }
 };
-
-// Note: Pool helpers (register/get/roll) are implemented in `managers/DropManager.js`.
-// This file contains only the pool data so it remains a pure data module.
 
 // Monster-unique drop definitions live here so all drop items are declared in this file.
 export const MonsterUniqueDrops = {

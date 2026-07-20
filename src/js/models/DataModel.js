@@ -3,10 +3,8 @@
  * Core data models for the RPG.
  */
 
-// 從 Enums.js 導入並重新導出（保持向後相容）
-import { ItemRarity, ItemType, ItemCategory } from './Enums.js';
+import { ItemType, ItemCategory } from './Enums.js';
 import * as CharacterLogic from './CharacterLogic.js';
-export { ItemRarity, ItemType, ItemCategory };
 
 export class Item {
     constructor(id, name, type, rarity, icon, description, price) {
@@ -35,17 +33,17 @@ export class Item {
 }
 
 export class Equipment extends Item {
-    constructor(id, name, type, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability) {
+    constructor(id, name, type, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability, durability) {
         super(id, name, type, rarity, icon, description, price);
 
         // 基本屬性必填，避免默認值靜默帶入
-        const required = { atk, def, critChance, critDamage };
+        const required = { attack, defense, critChance, critDamage };
         if (Object.values(required).some(v => v === undefined)) {
-            throw new Error(`Equipment ${id} missing base stats (atk/def/critChance/critDamage)`);
+            throw new Error(`Equipment ${id} missing base stats (attack/defense/critChance/critDamage)`);
         }
 
-        this.atk = atk;
-        this.def = def;
+        this.attack = attack;
+        this.defense = defense;
         this.critChance = critChance; // 所有裝備都有爆擊率
         this.critDamage = critDamage; // 所有裝備都有爆擊傷害
 
@@ -75,8 +73,8 @@ export class Equipment extends Item {
 }
 
 export class Weapon extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, weaponSpeed = 1.0, attackSpeed = 1.0, maxDurability, durability) {
-        super(id, name, ItemType.WEAPON, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
+    constructor(id, name, rarity, icon, description, price, attack, defense, critChance, critDamage, weaponSpeed = 1.0, attackSpeed = 1.0, maxDurability, durability) {
+        super(id, name, ItemType.WEAPON, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability, durability);
         this.weaponSpeed = weaponSpeed;   // 只有武器有武器速度
         this.attackSpeed = attackSpeed;   // 只有武器有攻擊速度
     }
@@ -87,14 +85,14 @@ export class Weapon extends Equipment {
 }
 
 export class Armor extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability) {
-        super(id, name, ItemType.ARMOR, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
+    constructor(id, name, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability, durability) {
+        super(id, name, ItemType.ARMOR, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability, durability);
     }
 }
 
 export class Accessory extends Equipment {
-    constructor(id, name, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability = null, durability = null) {
-        super(id, name, ItemType.ACCESSORY, rarity, icon, description, price, atk, def, critChance, critDamage, maxDurability, durability);
+    constructor(id, name, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability = null, durability = null) {
+        super(id, name, ItemType.ACCESSORY, rarity, icon, description, price, attack, defense, critChance, critDamage, maxDurability, durability);
         // 飾品沒有耐久度
         this.maxDurability = maxDurability ?? null;
         this.durability = durability ?? null;
@@ -111,7 +109,7 @@ export class Consumable extends Item {
 /**
  * Character - 純資料模型
  * 只包含屬性定義和基本的 getter/setter
- * 所有邏輯方法委派給 managers/CharacterManager.js
+ * 所有邏輯方法委派給 models/CharacterLogic.js
  */
 export class CharacterManager {
     constructor() {
@@ -157,14 +155,6 @@ export class CharacterManager {
 
     get maxExp() { return Number.isFinite(this._maxExp) ? this._maxExp : this.calculateMaxExp(); }
     set maxExp(v) { this._maxExp = Math.max(1, Number(v) || 1); }
-
-    // 向後相容別名
-    get currentHP() { return this.hp; }
-    set currentHP(v) { this.hp = v; }
-    get currentEXP() { return this.exp; }
-    set currentEXP(v) { this.exp = v; }
-    get maxEXP() { return this.maxExp; }
-    set maxEXP(v) { this.maxExp = v; }
 
     // ===== 委派方法到 CharacterManager =====
     getTotalAtk() { return CharacterLogic.getTotalAtk(this); }

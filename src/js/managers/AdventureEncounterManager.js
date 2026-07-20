@@ -1,5 +1,6 @@
 import GameManager from './GameManager.js';
-import { questManager, ObjectiveType } from './QuestManager.js?v=dialogue-flow-20260712w';
+import { questManager } from './QuestManager.js';
+import { ObjectiveType } from '../data/Quests.js';
 import { calculateDrops } from './DropManager.js';
 import { createMonsterInstance, getMonster } from './MonsterManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -8,18 +9,19 @@ import {
     getGeneratedItemImage,
     getGeneratedMonsterImage
 } from '../data/AssetManifest.js';
-import { markBlueprintKnown, markItemKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
+import { markItemKnown } from './EncyclopediaManager.js';
 import { resolveBattleBlueprintUnlocks } from './BlueprintManager.js';
-import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js?v=20260717a';
+import { getRewardEffectTotals } from './EquipmentEffectResolver.js';
+import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js';
 
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
 function getItemAttack(item) {
-    return readNumber(item?.stats?.attack ?? item?.stats?.atk ?? item?.attack ?? item?.atk, 0);
+    return readNumber(item?.attack, 0);
 }
 
 function getItemSpeed(item) {
-    return Math.max(0.35, readNumber(item?.stats?.attackSpeed ?? item?.attackSpeed, 1));
+    return Math.max(0.35, readNumber(item?.attackSpeed, 1));
 }
 
 function getWeaponEffect(item, fallback = 'sword') {
@@ -33,7 +35,7 @@ function buildWeaponEntry(item, character, monster, slot) {
     const attack = isMain
         ? Math.max(5, readNumber(character?.getTotalAtk?.(), character?.baseAtk || 5))
         : Math.max(4, readNumber(character?.baseAtk, 5) + getItemAttack(item));
-    const defense = readNumber(monster?.defense ?? monster?.def, 0);
+    const defense = readNumber(monster?.defense, 0);
     const damage = Math.max(1, Math.round(attack - defense * (isMain ? 0.42 : 0.36)));
     const speed = item ? getItemSpeed(item) : 0.82;
     const profile = getWeaponCombatProfile({ equipment: { weapon: item } });
@@ -143,7 +145,17 @@ export function createLocationEncounter(sample, tile) {
 export function settleEncounterVictory(encounter) {
     const monster = encounter.monster;
     const character = GameManager.getCharacter();
-    const drops = calculateDrops(monster).map((drop, index) => {
+    const rewardEffects = getRewardEffectTotals(character);
+    const dungeonId = encounter?.context?.dungeonId || encounter?.context?.dungeonType || null;
+    const baseGold = Array.isArray(monster.gold)
+        ? monster.gold[0] + Math.floor(Math.random() * (monster.gold[1] - monster.gold[0] + 1))
+        : Math.max(0, readNumber(monster.gold, 0));
+    const gold = Math.floor(baseGold * (1 + (rewardEffects.goldBonus || 0) / 100));
+    const exp = Math.floor(Math.max(0, readNumber(monster.exp, 0)) * (1 + (rewardEffects.expBonus || 0) / 100));
+    const drops = calculateDrops(monster, {
+        dungeonId,
+        dropBonus: rewardEffects.dropBonus || 0
+    }).map((drop, index) => {
         const item = resolveItemById(drop.itemId, {
             order: ['material', 'equipment', 'shop', 'bossEquipment', 'rewardItem']
         });
@@ -157,19 +169,18 @@ export function settleEncounterVictory(encounter) {
     });
     const blueprintUnlocks = resolveBattleBlueprintUnlocks({
         monster,
-        dungeonId: encounter?.context?.dungeonId || null
+        dungeonId
     });
-    blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
 
-    character.exp += Math.max(0, readNumber(monster.exp, 0));
-    character.checkLevelUp?.();
-    GameManager.addGold(Math.max(0, readNumber(monster.gold, 0)));
+    GameManager.addCharacterExperience(exp, { reason: 'combat-victory', notify: false });
+    GameManager.addGold(gold);
     questManager.updateProgress(ObjectiveType.KILL, monster.id, 1);
+    GameManager.markSaveDirty?.('combat-victory');
     GameManager.notify('all');
 
     return {
-        exp: Math.max(0, readNumber(monster.exp, 0)),
-        gold: Math.max(0, readNumber(monster.gold, 0)),
+        exp,
+        gold,
         rows: blueprintUnlocks.map(unlock => ({
             label: unlock.seriesId ? '工藝系列' : '製作藍圖',
             value: unlock.series?.name || unlock.recipe?.name || unlock.recipeId
@@ -177,6 +188,100 @@ export function settleEncounterVictory(encounter) {
         blueprintUnlocks,
         drops
     };
+}
+
+export function createPrologueTutorialEncounter(habitat, tile) {
+    const encounter = createLocationEncounter({
+        monsterId: 'blood_moon_stag',
+        habitat
+    }, tile);
+    if (!encounter) return null;
+
+    encounter.canFlee = false;
+    encounter.defeatActionLabel = '失去意識';
+    encounter.victoryActionLabel = '繼續前進';
+    encounter.visual = {
+        ...encounter.visual,
+        name: '迷霧中的巨影',
+        className: '未知巨獸 · 異常個體',
+        level: '??',
+        maxHp: 1200,
+        background: 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp',
+        backgroundAlt: '黑根蔓延的南路斷坡',
+        visualScale: '1.08',
+        concealIdentity: true,
+        feed: '霧裡的巨角壓低了。牠沒有退路，也沒有理智。',
+        initialDelay: 2.2,
+        attacks: [
+            {
+                id: 'prologue_stag_rake',
+                name: '裂土踏擊',
+                effect: 'crush',
+                damage: 14,
+                telegraph: 1.45,
+                impactDelay: 0.3,
+                recovery: 1.7
+            },
+            {
+                id: 'prologue_stag_sweep',
+                name: '亂角橫掃',
+                effect: 'claw',
+                damage: 18,
+                telegraph: 1.65,
+                impactDelay: 0.28,
+                recovery: 1.8
+            },
+            {
+                id: 'prologue_stag_charge',
+                name: '斷坡衝撞',
+                effect: 'crush',
+                damage: 999,
+                telegraph: 2.1,
+                impactDelay: 0.42,
+                recovery: 2
+            }
+        ]
+    };
+    encounter.player = {
+        ...encounter.player,
+        hp: Math.min(encounter.player.maxHp, 72),
+        potions: 1,
+        potionHeal: 30
+    };
+    encounter.loadout = {
+        ...encounter.loadout,
+        main: {
+            ...encounter.loadout.main,
+            id: 'prologue_hunter_blade',
+            name: '公會制式獵刀',
+            damage: 9,
+            cooldown: 0.9,
+            windup: 0.09,
+            critDamage: 1.5,
+            enabled: true,
+            triggerBuff: null
+        },
+        offhand: {
+            ...encounter.loadout.offhand,
+            id: 'prologue_empty_offhand',
+            name: '空手',
+            enabled: false,
+            triggerBuff: null
+        }
+    };
+    encounter.context = {
+        ...(encounter.context || {}),
+        prologueTutorial: true,
+        prologueIssuedGear: Object.freeze({
+            weapon: '公會制式獵刀',
+            armor: '公會外勤皮甲'
+        })
+    };
+    encounter.monster.exp = 0;
+    encounter.monster.gold = 0;
+    encounter.monster.drops = [];
+    encounter.monster.equipmentDrops = [];
+    return encounter;
 }
 
 export function resolveEncounterDrop(drop, decision) {
@@ -201,6 +306,5 @@ export function resolveEncounterDrop(drop, decision) {
     drop.stored = stored;
     drop.decision = stored === 'missing' ? 'pending' : 'claimed';
     if (drop.decision === 'claimed') markItemKnown(item.id);
-    GameManager.notify('all');
     return drop;
 }

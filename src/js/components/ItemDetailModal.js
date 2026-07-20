@@ -194,7 +194,11 @@ class ItemDetailModal {
             this.effectsEl.classList.add('is-hidden');
         }
 
-        const setHtml = opts.setHtml ?? buildItemSetInfoHtml(item, GameManager.state, { compact: false });
+        const setHtml = opts.setHtml ?? buildItemSetInfoHtml(item, {
+            character: GameManager.getCharacter(),
+            inventory: GameManager.getInventory(),
+            warehouse: GameManager.getWarehouse()
+        }, { compact: false });
         if (setHtml) {
             this.setEl.innerHTML = setHtml;
             this.setEl.classList.remove('is-hidden');
@@ -312,6 +316,6 @@ class ItemDetailModal {
 }
 
 // expose singleton
-window.ItemDetailModal = new ItemDetailModal();
+const itemDetailModal = new ItemDetailModal();
 
-export default window.ItemDetailModal;
+export default itemDetailModal;

@@ -18,7 +18,10 @@ globalThis.cancelAnimationFrame = () => {};
 
 const { default: GameManager } = await import('../src/js/managers/GameManager.js');
 const { default: WorldMap } = await import('../src/js/utils/WorldMap.js');
-const { createLocationEncounter } = await import('../src/js/managers/AdventureEncounterManager.js');
+const {
+    createLocationEncounter,
+    createPrologueTutorialEncounter
+} = await import('../src/js/managers/AdventureEncounterManager.js');
 const { MonsterDatabase } = await import('../src/js/data/Monsters.js');
 const { FirstRunMonsterFixedLevels } = await import('../src/js/data/MonsterEcology.js');
 const { OverworldHabitats, OverworldLandmarks, OverworldMapConfig } = await import('../src/js/data/OverworldMapRegistry.js');
@@ -26,6 +29,8 @@ const { ChapterRegionRegistry } = await import('../src/js/data/ChapterRegionRegi
 const { RecipeSeriesDatabase, SeriesRecipeDatabase } = await import('../src/js/data/RecipeSeries.js');
 const { FirstRunBandAllocationPlan } = await import('../src/js/data/FirstRunLootBalance.js');
 const {
+    AdventureOnboardingFlag,
+    AdventureOnboardingStep,
     ChapterOneProgressFlag,
     ChapterOneInvestigationOrder,
     ChapterOneInvestigations,
@@ -45,6 +50,33 @@ const check = (condition, message) => {
     if (!condition) failures.push(message);
 };
 
+const prologueEncounter = createPrologueTutorialEncounter({
+    id: 'prologue_contract_probe',
+    name: 'Prologue Contract Probe',
+    chapter: 1,
+    threat: 'overcap'
+}, { title: 'Prologue Contract Probe', image: '' });
+check(Boolean(prologueEncounter), 'Prologue tutorial encounter cannot be created');
+check(prologueEncounter?.canFlee === false, 'Prologue tutorial encounter allows escape');
+check(
+    prologueEncounter?.visual?.concealIdentity === true
+        && prologueEncounter?.visual?.level === '??'
+        && prologueEncounter?.visual?.attacks?.length === 3,
+    'Prologue tutorial visual or attack contract changed'
+);
+check(
+    prologueEncounter?.loadout?.main?.id === 'prologue_hunter_blade'
+        && prologueEncounter?.loadout?.offhand?.enabled === false,
+    'Prologue tutorial loadout contract changed'
+);
+check(
+    prologueEncounter?.monster?.exp === 0
+        && prologueEncounter?.monster?.gold === 0
+        && prologueEncounter?.monster?.drops?.length === 0
+        && prologueEncounter?.monster?.equipmentDrops?.length === 0,
+    'Prologue tutorial encounter grants normal battle rewards'
+);
+
 const adventureSource = fs.readFileSync(new URL('../src/js/scenes/AdventureScene.js', import.meta.url), 'utf8');
 const adventureView = fs.readFileSync(new URL('../src/views/adventure.html', import.meta.url), 'utf8');
 const lobbyView = fs.readFileSync(new URL('../src/views/lobby.html', import.meta.url), 'utf8');
@@ -52,23 +84,38 @@ const adventureStyles = fs.readFileSync(new URL('../src/style/adventure.css', im
 const handbookStyles = fs.readFileSync(new URL('../src/style/quest-handbook.css', import.meta.url), 'utf8');
 const foundationStyles = fs.readFileSync(new URL('../src/css/ui-foundation.css', import.meta.url), 'utf8');
 const guidanceSource = fs.readFileSync(new URL('../src/js/managers/StoryGuidanceManager.js', import.meta.url), 'utf8');
+const progressionManagerSource = fs.readFileSync(new URL('../src/js/managers/ChapterOneProgressionManager.js', import.meta.url), 'utf8');
 const lobbySource = fs.readFileSync(new URL('../src/js/scenes/LobbyScene.js', import.meta.url), 'utf8');
 const gameManagerSource = fs.readFileSync(new URL('../src/js/managers/GameManager.js', import.meta.url), 'utf8');
 const devPanelSource = fs.readFileSync(new URL('../src/js/utils/DevPanel.js', import.meta.url), 'utf8');
 check(!adventureSource.includes('ArrowUp') && !adventureSource.includes('ArrowDown'), 'Arrow-key map movement returned');
 check(adventureView.includes('id="adventure-onboarding"'), 'Adventure onboarding surface is missing');
-for (const flag of ['wasdMoved', 'questOpened', 'inventoryOpened']) {
-    check(adventureSource.includes(flag), `Onboarding step ${flag} is missing`);
-}
 check(
-    adventureSource.indexOf("return 'quest'") < adventureSource.indexOf("return 'inventory'")
-        && adventureSource.indexOf("return 'inventory'") < adventureSource.indexOf("return 'movement'"),
+    JSON.stringify(AdventureOnboardingFlag) === JSON.stringify({
+        quest: 'tutorial.adventure.questOpened',
+        inventory: 'tutorial.adventure.inventoryOpened',
+        movement: 'tutorial.adventure.wasdMoved'
+    }),
+    'Adventure onboarding flags are no longer owned by ChapterOneProgression'
+);
+check(
+    progressionManagerSource.indexOf('AdventureOnboardingStep.QUEST')
+        < progressionManagerSource.indexOf('AdventureOnboardingStep.INVENTORY')
+        && progressionManagerSource.indexOf('AdventureOnboardingStep.INVENTORY')
+            < progressionManagerSource.indexOf('AdventureOnboardingStep.MOVEMENT'),
     'Initial field onboarding must open quests, then inventory, before movement'
 );
 check(
     adventureSource.includes('isInitialSystemOnboardingLocked()')
         && adventureSource.includes('if (this.isInitialSystemOnboardingLocked()) return;'),
     'Map movement and interaction are not locked during the system onboarding'
+);
+check(
+    adventureSource.includes('chapterOneProgressionManager.getAdventureOnboardingStep')
+        && adventureSource.includes('chapterOneProgressionManager.completeAdventureOnboardingStep')
+        && progressionManagerSource.includes('getAdventureOnboardingStep')
+        && progressionManagerSource.includes('completeAdventureOnboardingStep'),
+    'AdventureScene still owns onboarding flag logic instead of delegating to ChapterOneProgressionManager'
 );
 check(
     adventureStyles.includes('@keyframes adventure-tutorial-breathe')
@@ -85,10 +132,40 @@ check(
     'Onboarding prompt is not anchored at the lower center'
 );
 check(
-    guidanceSource.includes('readChapterOneObjectiveContext')
-        && guidanceSource.includes('chapterOneGearEquipped'),
+    guidanceSource.includes('chapterOneProgressionManager.getObjectiveContext()')
+        && progressionManagerSource.includes('readChapterOneObjectiveContext')
+        && progressionManagerSource.includes('chapterOneGearEquipped'),
     'Shared story guidance does not derive Chapter 1 runtime progress for the handbook'
 );
+check(
+    progressionManagerSource.includes('settleGuaranteedRewards')
+        && progressionManagerSource.includes('completeEvidence')
+        && progressionManagerSource.includes('completeFirstReport')
+        && progressionManagerSource.includes('completeHomeRecovery')
+        && progressionManagerSource.includes('claimOptionalRewards'),
+    'Chapter 1 progression does not have one runtime owner'
+);
+check(
+    !adventureSource.includes('GameManager.setFlag(ChapterOneProgressFlag')
+        && !lobbySource.includes('GameManager.setFlag(ChapterOneProgressFlag')
+        && !gameManagerSource.includes('recordChapterOneGearPreparation')
+        && !gameManagerSource.includes('ChapterOneProgressFlag'),
+    'Scene or global game code still owns Chapter 1 progression rules'
+);
+for (const obsoleteFlag of [
+    'story.ch1.gear_ready',
+    'story.ch1.gear_ready_source',
+    'story.ch1.core_craft_materials_secured',
+    'story.ch1.rotroot_trials_complete'
+]) {
+    check(
+        !adventureSource.includes(obsoleteFlag)
+            && !lobbySource.includes(obsoleteFlag)
+            && !gameManagerSource.includes(obsoleteFlag)
+            && !progressionManagerSource.includes(obsoleteFlag),
+        `Obsolete Chapter 1 flag returned: ${obsoleteFlag}`
+    );
+}
 check(
     handbookStyles.includes('width: min(100%, 1120px)')
         && handbookStyles.includes('grid-template-columns: minmax(0, 1fr) auto'),
@@ -150,7 +227,7 @@ check(
 );
 check(
     gameManagerSource.includes('MIA_EMERGENCY_POTION_LIMIT - current')
-        && lobbySource.includes('GameManager.getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT'),
+        && progressionManagerSource.includes('GameManager.getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT'),
     'Mia still waits for zero potions instead of refilling every shortage to three'
 );
 const firstReport = getStoryScene('ch1_s06_three_landmarks')?.checkpoints?.south_gate_farmland_report;
@@ -184,7 +261,8 @@ const pendingReportHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
 check(
     pendingReportHint?.placeId === 'gate'
         && pendingReportHint?.actorId === 'standard_bearer_frey'
-        && lobbySource.includes("npcId === 'standard_bearer_frey'"),
+        && guidanceSource.includes("npcId === 'standard_bearer_frey'")
+        && guidanceSource.includes("type: 'chapter-one-first-report'"),
     'Returned farmland evidence is not linked to Frey and the South Gate report checkpoint'
 );
 const miaRecoveryHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
@@ -196,7 +274,9 @@ check(
     miaRecoveryHint?.placeId === 'mia_workroom'
         && miaRecoveryHint?.actorId === 'herbalist'
         && lobbySource.includes('playChapterOneMiaRecovery')
-        && lobbySource.indexOf('playChapterOneMiaRecovery') < lobbySource.indexOf('getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT'),
+        && guidanceSource.includes("type: 'chapter-one-home-recovery'")
+        && guidanceSource.indexOf("type: 'chapter-one-home-recovery'")
+            < guidanceSource.indexOf('needsMiaEmergencyPotionSupport()'),
     'Mia injury inspection is still gated behind emergency-potion quantity'
 );
 for (const forbidden of ['必要戰力驗收', '實戰比較完成', '平均命中', '主線通行費']) {
@@ -216,6 +296,19 @@ check(!Object.hasOwn(sample || {}, 'targetLevel'), 'World map still rerolls a mo
 const encounter = createLocationEncounter({ ...sample, targetLevel: 9 }, map.getCurrentTile());
 check(encounter?.monster?.level === MonsterDatabase.slime.level, 'Encounter rescaled a fixed-level monster');
 check(encounter?.monster?.maxHp === MonsterDatabase.slime.maxHp, 'Encounter rescaled monster combat stats');
+const gatedLandmarkIds = new Set(['rotroot_salvage', 'rootwatch_grove']);
+check(
+    !map.getActiveLandmarks().some(entry => gatedLandmarkIds.has(entry.id)),
+    'Chapter 1 prepared-gear landmarks opened before qualifying gear was owned'
+);
+const originalInventory = GameManager.state.inventory;
+const baselineCraft = Object.values(SeriesRecipeDatabase).find(recipe => recipe.seriesId === 'slime_series');
+GameManager.state.inventory = [{ item: baselineCraft.result, quantity: 1, instanceId: 'chapter-one-check-gear' }];
+check(
+    [...gatedLandmarkIds].every(id => map.getActiveLandmarks().some(entry => entry.id === id)),
+    'Owning qualifying Chapter 1 gear does not open its prepared routes'
+);
+GameManager.state.inventory = originalInventory;
 GameManager.state.mapState = originalMapState;
 
 for (const habitat of OverworldHabitats) {
@@ -284,6 +377,15 @@ const overworldLandmarkIds = new Set(OverworldLandmarks.map(entry => entry.id));
 for (const id of [...ChapterOneInvestigationOrder, 'silver_snare_pass', 'rotroot_ravine', 'rotroot_salvage', 'rootwatch_grove', 'old_wolf_den']) {
     check(chapterOneLocationIds.has(id), `Chapter region is missing ${id}`);
     check(overworldLandmarkIds.has(id), `Overworld landmark registry is missing ${id}`);
+    const node = chapterOneRegion.locationNodes.find(entry => entry.id === id);
+    const landmark = OverworldLandmarks.find(entry => entry.id === id);
+    check(
+        landmark?.name === node?.name
+            && landmark?.x === node?.position?.x
+            && landmark?.y === node?.position?.y
+            && landmark?.bossId === node?.bossId,
+        `${id} runtime data drifted from ChapterRegionRegistry`
+    );
 }
 check(
     chapterOneRegion.routeSegments.find(entry => entry.id === 'silver_thread_branch')?.optional === false,

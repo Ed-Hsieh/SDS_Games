@@ -15,13 +15,7 @@ function getStoryChapter() {
 }
 
 function getItemCount(itemId) {
-    if (typeof GameManager.getItemCountAcrossStorage === 'function') {
-        return GameManager.getItemCountAcrossStorage(itemId);
-    }
-    const containers = [GameManager.state?.inventory || [], GameManager.state?.warehouse || []];
-    return containers.flat().reduce((total, stack) => (
-        stack?.item?.id === itemId ? total + (Number(stack.quantity) || 1) : total
-    ), 0);
+    return GameManager.getItemCountAcrossStorage(itemId);
 }
 
 export class StaffAttunementManager {

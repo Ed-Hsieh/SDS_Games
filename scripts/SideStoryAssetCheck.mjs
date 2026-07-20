@@ -24,9 +24,11 @@ function resolveBackground(ownerId) {
 
     const chapterLocation = findChapterLocation(ownerId);
     if (!chapterLocation) return null;
-    const mappedLandmark = overworldLandmarks.get(chapterLocation.legacyLandmarkId || chapterLocation.id);
+    const mappedLandmark = overworldLandmarks.get(chapterLocation.id);
     if (mappedLandmark?.image) return mappedLandmark.image;
-    return getGeneratedLandmarkImage(chapterLocation.legacyLandmarkId || chapterLocation.id) || null;
+    return chapterLocation.imageId
+        ? getGeneratedLandmarkImage(chapterLocation.imageId) || null
+        : null;
 }
 
 const invalidExpressionIds = [];

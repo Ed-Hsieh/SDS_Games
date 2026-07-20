@@ -1,13 +1,25 @@
-import { EventDatabase, EventRole, getEventChapterRange, getEventsForZone } from '../src/js/data/Events.js';
-import { WorldLandmarks } from '../src/js/data/WorldStories.js';
-import { getEventForZone } from '../src/js/managers/EventManager.js';
+import { EventDatabase, EventRole, getEventChapterRange, getEventForZone, getEventsForZone } from '../src/js/data/Events.js';
+import { ChapterRegionRegistry } from '../src/js/data/ChapterRegionRegistry.js';
 
 const problems = [];
 const warnings = [];
-
-const landmarkById = new Map(WorldLandmarks.map(landmark => [landmark.id, landmark]));
 // These are internal event-selection tiers, not player-facing map regions.
 const zoneIds = ['low', 'medium', 'high', 'death'];
+const eventZonesByLandmark = new Map();
+for (const event of EventDatabase) {
+    for (const landmarkId of event.landmarkIds || []) {
+        if (!eventZonesByLandmark.has(landmarkId)) eventZonesByLandmark.set(landmarkId, new Set());
+        for (const zoneId of event.zones || []) eventZonesByLandmark.get(landmarkId).add(zoneId);
+    }
+}
+const WorldLandmarks = Object.values(ChapterRegionRegistry).flatMap(region =>
+    (region.locationNodes || []).map(location => ({
+        ...location,
+        chapter: region.chapter,
+        zones: [...(eventZonesByLandmark.get(location.id) || [])]
+    }))
+);
+const landmarkById = new Map(WorldLandmarks.map(landmark => [landmark.id, landmark]));
 const locationBoundRoles = new Set([
     EventRole.STORY_SEED,
     EventRole.SIDE_STORY,

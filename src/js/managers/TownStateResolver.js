@@ -5,7 +5,7 @@
  */
 
 import GameManager from './GameManager.js';
-import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js?v=town-art-binding-20260715a';
+import { getTownPlace, getTownPlaces } from '../data/TownPlaces.js';
 import { getStorySceneCompleteFlag } from '../data/StoryStateContract.js';
 import { getGeneratedBackgroundImage } from '../data/AssetManifest.js';
 
@@ -132,10 +132,19 @@ export function getTownRuntimeStage() {
 export function getTownOverviewPresentation() {
     const stage = getTownRuntimeStage();
     const assetId = TownOverviewByStage[stage];
+    const crossroads = getResolvedTownPlace('crossroads');
+    const latestCrossroadsState = [...(crossroads?.states || [])]
+        .reverse()
+        .find(state => state.runtimeVisibility === TownVisibility.VISIBLE);
+
     return {
         stage,
         assetId,
-        image: getGeneratedBackgroundImage(assetId)
+        image: getGeneratedBackgroundImage(assetId),
+        title: crossroads?.displayName || crossroads?.name || '城鎮',
+        arrivalText: latestCrossroadsState?.text
+            || crossroads?.description
+            || '城鎮仍在等待下一個能被確認的變化。'
     };
 }
 

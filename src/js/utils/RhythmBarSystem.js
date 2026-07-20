@@ -227,7 +227,7 @@ class RhythmBarSystem {
             this.attackSpeedBase = baseAttackSpeed;
             this.critChance = this.character?.getCritChance?.() || 0.05;
             this.critDamage = this.character?.getCritDamage?.() || 1.5;
-            this.attackPower = this.character?.getTotalAtk?.() || readNumber(weapon?.atk ?? weapon?.attack, 10);
+            this.attackPower = this.character?.getTotalAtk?.() || readNumber(weapon?.attack, 10);
         } else {
             this.weaponSpeed = readNumber(weapon?.weaponSpeed, 1.0) || 1.0;
             const attackSpeed = Math.max(0.1, readNumber(weapon?.attackSpeed, 1.0) || 1.0);
@@ -235,7 +235,7 @@ class RhythmBarSystem {
             const rawCritChance = readNumber(weapon?.critChance ?? weapon?.crit_chance, 0.05);
             this.critChance = Math.abs(rawCritChance) > 1 ? rawCritChance / 100 : rawCritChance;
             this.critDamage = readNumber(weapon?.critDamage ?? weapon?.crit_damage, 1.5) || 1.5;
-            this.attackPower = readNumber(weapon?.atk ?? weapon?.attack, 8);
+            this.attackPower = readNumber(weapon?.attack, 8);
         }
 
         this.weaponSpeed *= Math.max(0.1, Number(this.weaponProfile.needleSpeedMultiplier) || 1);

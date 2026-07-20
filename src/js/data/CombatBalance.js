@@ -13,27 +13,6 @@ export function getMonsterCombatRank(monster = {}) {
     return 'normal';
 }
 
-export function normalizeMonsterCombatStats(monster) {
-    if (!monster) return monster;
-
-    const attack = monster.attack ?? monster.atk ?? 0;
-    const defense = monster.defense ?? monster.def ?? 0;
-    const hp = monster.hp ?? monster.currentHp ?? monster.maxHp ?? 0;
-    const maxHp = monster.maxHp ?? monster.hp ?? hp;
-
-    monster.attack = attack;
-    monster.atk = attack;
-    monster.defense = defense;
-    monster.def = defense;
-    monster.hp = hp;
-    monster.maxHp = maxHp;
-    if (monster.currentHp === undefined) monster.currentHp = hp;
-    monster.combatRank = getMonsterCombatRank(monster);
-
-    return monster;
-}
-
 export default {
-    getMonsterCombatRank,
-    normalizeMonsterCombatStats
+    getMonsterCombatRank
 };

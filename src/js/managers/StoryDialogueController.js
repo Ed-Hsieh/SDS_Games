@@ -1,4 +1,4 @@
-import StoryDialogueView from '../components/StoryDialogueView.js?v=dialogue-read-cue-20260715b';
+import StoryDialogueView from '../components/StoryDialogueView.js';
 import { mergeConsecutiveNarration } from '../utils/StoryPresentation.js';
 import audioManager from '../utils/AudioManager.js';
 

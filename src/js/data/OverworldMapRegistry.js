@@ -3,6 +3,8 @@ import {
     getGeneratedTownPlaceImage,
     getGeneratedWorldMapImage
 } from './AssetManifest.js';
+import { ChapterOneRequirement } from './ChapterOneProgression.js';
+import { getChapterLocation, getChapterRegion } from './ChapterRegionRegistry.js';
 
 export const OVERWORLD_ID = 'frontier_overworld_v2';
 export const WORLD_CELL_SIZE = 32;
@@ -11,34 +13,28 @@ export const WORLD_TILE_ROWS = 32;
 export const WORLD_COLS = 96;
 export const WORLD_ROWS = 32;
 
-export const OverworldMapTiles = Object.freeze([
-    Object.freeze({
-        id: 'south_gate_borderland',
-        chapter: 1,
-        regionId: 'chapter_01_south_gate',
-        title: '南門外林地',
-        subtitle: '第一區域',
-        x: 0,
+function createOverworldTile(chapter) {
+    const region = getChapterRegion(chapter);
+    const visual = region?.visual;
+    if (!region || !visual?.tileId || !visual?.backgroundId) {
+        throw new Error(`Chapter ${chapter} has no playable overworld presentation`);
+    }
+    return Object.freeze({
+        id: visual.tileId,
+        chapter,
+        regionId: region.regionId,
+        title: visual.mapTitle || region.title,
+        subtitle: visual.subtitle || `第 ${chapter} 區域`,
+        x: (chapter - 1) * WORLD_TILE_COLS,
         y: 0,
         cols: WORLD_TILE_COLS,
         rows: WORLD_TILE_ROWS,
-        imageId: 'overworld_south_gate',
-        image: getGeneratedWorldMapImage('overworld_south_gate')
-    }),
-    Object.freeze({
-        id: 'broken_evacuation_basin',
-        chapter: 2,
-        regionId: 'chapter_02_broken_evacuations',
-        title: '斷裂撤離盆地',
-        subtitle: '第二區域',
-        x: WORLD_TILE_COLS,
-        y: 0,
-        cols: WORLD_TILE_COLS,
-        rows: WORLD_TILE_ROWS,
-        imageId: 'overworld_evacuation_basin',
-        image: getGeneratedWorldMapImage('overworld_evacuation_basin')
-    })
-]);
+        imageId: visual.backgroundId,
+        image: getGeneratedWorldMapImage(visual.backgroundId)
+    });
+}
+
+export const OverworldMapTiles = Object.freeze([1, 2].map(createOverworldTile));
 
 export const OverworldHabitats = Object.freeze([
     Object.freeze({
@@ -153,122 +149,97 @@ function landmark(config) {
     });
 }
 
-export const OverworldLandmarks = Object.freeze([
-    landmark({
-        id: 'south_gate_farmland',
-        name: '南門農田',
-        x: 15,
-        y: 16,
-        imageId: 'south_gate_farmland',
+const ChapterOneLandmarkPresentation = Object.freeze({
+    south_gate_farmland: {
         firstText: '田埂沒有荒到認不出路。半乾的泥裡，一串靴印走到水溝前又折回；獸爪則從四面踩進同一條溝，彼此沒有追逐。\n\n我蹲下比對深淺。人還走過這裡，怪物卻像在同一刻換了方向。',
         repeatText: '腳印仍留在原地。這裡屬於南門荒廢農田。'
-    }),
-    landmark({
-        id: 'hunter_boardwalk',
-        name: '獵人棧道',
-        x: 28,
-        y: 8,
-        imageId: 'hunter_boardwalk',
+    },
+    hunter_boardwalk: {
         firstText: '濕木踩下去時發出空響，護欄內側黏著幾縷銀亮細線。它們繞過木樁，停在旅人膝後的高度。\n\n一處繩結被重新打過，結口朝著回城方向。這不是遺落的獵具。有人，或某種東西，在試著讀懂折返的人。',
         repeatText: '濕木仍承受得住重量，但更深處的繩結並非獵人留下。'
-    }),
-    landmark({
-        id: 'old_campfire_site',
-        name: '舊營火點',
-        x: 29,
-        y: 24,
-        imageId: 'old_campfire_site',
+    },
+    old_campfire_site: {
         firstText: '表層灰燼濕冷，手指撥開後，底下卻冒出一點不合時節的餘溫。黑色細根穿過火坑，焦亮汁痕一路留在北側。\n\n營火早就熄了。這道傷比營火更新，而且仍在往前。',
         repeatText: '營火沒有再燃起，旅人手札保留了灰燼的位置。'
-    }),
-    landmark({
-        id: 'silver_snare_pass',
-        name: '銀絲伏道',
-        x: 39,
-        y: 9,
-        imageId: 'silver_snare_pass',
+    },
+    silver_snare_pass: {
         storyFlag: 'story.ch1.silver_snare_active',
-        bossId: 'ambush_mantis',
         firstText: '銀絲在林間收緊，伏獵者只會在劇情啟動後現身。'
-    }),
-    landmark({
-        id: 'rotroot_ravine',
-        name: '腐根溪谷',
-        x: 35,
-        y: 19,
-        imageId: 'rotroot_ravine',
+    },
+    rotroot_ravine: {
         storyFlag: 'story.ch1.rotroot_active',
         firstText: '發黑樹皮沿著溪谷向北收縮，森林深處的根心正承受不屬於此地的壓力。',
         repeatText: '黑根仍向北收縮，手札已把方向與古樹根心連在一起。'
-    }),
-    landmark({
-        id: 'rotroot_salvage',
-        name: '腐根補給岔路',
-        x: 37,
-        y: 5,
-        imageId: 'rotroot_ravine',
-        storyFlag: 'story.ch1.gear_ready',
+    },
+    rotroot_salvage: {
+        progressionRequirement: ChapterOneRequirement.QUALIFYING_GEAR_OWNED,
         firstText: '腐根把一只舊補給袋頂出土面，凝膠封住的粗鐵還能回爐。',
         repeatText: '補給袋已清空；想再製作其他裝備，需要狩獵附近怪物。'
-    }),
-    landmark({
-        id: 'rootwatch_grove',
-        name: '根哨林隙',
-        x: 40,
-        y: 27,
-        imageId: 'rotroot_ravine',
-        storyFlag: 'story.ch1.gear_ready',
+    },
+    rootwatch_grove: {
+        progressionRequirement: ChapterOneRequirement.QUALIFYING_GEAR_OWNED,
         firstText: '偏離主路的根脈旁，一隻樹人正用纏根封住林隙。',
         repeatText: '樹人的根痕仍留在林隙，但通道已經安靜。'
-    }),
-    landmark({
-        id: 'old_wolf_den',
-        name: '古樹根心',
-        x: 42,
-        y: 19,
-        imageId: 'old_wolf_den',
+    },
+    old_wolf_den: {
         storyFlag: 'story.ch1.forest_guardian_active',
-        bossId: 'forest_guardian',
         firstText: '森林守護者的聚合點只在主線收束時出現。'
-    }),
-    landmark({
-        id: 'mist_tablet_hill',
-        name: '霧碑丘',
-        x: 65,
-        y: 17,
-        imageId: 'mist_tablet_hill',
+    }
+});
+
+const ChapterTwoLandmarkPresentation = Object.freeze({
+    mist_tablet_hill: {
         firstText: '石碑指向撤離方向，名字卻被後來的人逐筆補在箭頭旁。',
         repeatText: '霧仍遮住遠方，石碑上的方向已被記進手札。'
-    }),
-    landmark({
-        id: 'moon_moss_slope',
-        name: '月苔坡',
-        x: 74,
-        y: 8,
-        imageId: 'moon_moss_slope',
+    },
+    moon_moss_slope: {
         firstText: '月苔沿著獸群遷徙留下的凹痕發亮。',
         repeatText: '坡面的微光沒有擴張，遷徙痕跡仍通往北側。'
-    }),
-    landmark({
-        id: 'opened_ancient_tomb',
-        name: '掘開古墓',
-        x: 89,
-        y: 17,
-        imageId: 'opened_ancient_tomb',
+    },
+    opened_ancient_tomb: {
         storyFlag: 'story.ch2.lich_active',
-        bossId: 'lich',
         firstText: '古墓入口只有在第二章主線收束時顯露真正的守墓者。'
-    }),
-    landmark({
-        id: 'north_checkpoint_marker',
-        name: '北向廢棄關卡',
-        x: 93,
-        y: 25,
-        imageId: 'cut_roadsign',
+    },
+    north_checkpoint_marker: {
         storyFlag: 'boss.lich.defeated',
         firstText: '找回的路牌被影子守著。牠們保持人類隊列的間距，並不像聚集在一起的魔物。',
         repeatText: '影子的站位仍像一條沒有收到撤回命令的巡查線。'
-    })
+    }
+});
+
+function getPlayableLocation(chapter, locationId) {
+    const region = getChapterRegion(chapter);
+    const tile = OverworldMapTiles.find(entry => entry.chapter === chapter);
+    if (!region || !tile) throw new Error(`Chapter ${chapter} has no playable overworld tile`);
+    const node = getChapterLocation(chapter, locationId);
+    if (!node) throw new Error(`Chapter ${chapter} is missing location ${locationId}`);
+    return Object.freeze({
+        node,
+        x: tile.x + node.position.x,
+        y: tile.y + node.position.y
+    });
+}
+
+function createChapterLandmarks(chapter, presentations) {
+    return Object.entries(presentations).map(([locationId, presentation]) => {
+        const { node, x, y } = getPlayableLocation(chapter, locationId);
+        if (!node.imageId) throw new Error(`Chapter location ${locationId} has no imageId`);
+        return landmark({
+            ...presentation,
+            id: node.id,
+            name: node.name,
+            x,
+            y,
+            imageId: node.imageId,
+            bossId: node.bossId,
+            sceneIds: node.sceneIds
+        });
+    });
+}
+
+export const OverworldLandmarks = Object.freeze([
+    ...createChapterLandmarks(1, ChapterOneLandmarkPresentation),
+    ...createChapterLandmarks(2, ChapterTwoLandmarkPresentation)
 ]);
 
 export const OverworldRouteGates = Object.freeze([
@@ -362,22 +333,24 @@ export const SecondRunOvercapBossReserves = Object.freeze([
     })
 ]);
 
+const SouthGateEntry = getPlayableLocation(1, 'south_gate_entry');
+
 export const OverworldMapConfig = Object.freeze({
     id: OVERWORLD_ID,
     cols: WORLD_COLS,
     rows: WORLD_ROWS,
     cellSize: WORLD_CELL_SIZE,
-    startPosition: Object.freeze({ x: 6, y: 16 }),
+    startPosition: Object.freeze({ x: SouthGateEntry.x, y: SouthGateEntry.y }),
     tiles: OverworldMapTiles,
     habitats: OverworldHabitats,
     landmarks: OverworldLandmarks,
     routeGates: OverworldRouteGates,
     townReturn: Object.freeze({
         kind: 'town_return',
-        id: 'south_gate_entry',
-        name: '南門入口',
-        x: 6,
-        y: 16,
+        id: SouthGateEntry.node.id,
+        name: SouthGateEntry.node.name,
+        x: SouthGateEntry.x,
+        y: SouthGateEntry.y,
         interactionRadius: 1,
         image: getGeneratedTownPlaceImage('gate'),
         text: '沿著南門殘階返回城鎮。'

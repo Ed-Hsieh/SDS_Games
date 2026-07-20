@@ -4,13 +4,13 @@
  */
 
 import GameManager from './GameManager.js';
-import { getRecipe } from './RecipeManager.js';
+import { RecipeDatabase } from '../data/Recipes.js';
 import {
+    BossRecipeUnlocksByMonsterId,
     DefaultKnownRecipeIds,
     getRecipeDiscovery,
     getRecipeIdsForInteraction
 } from '../data/RecipeDiscoveries.js';
-import { FirstRunBossCraftUnlocks } from '../data/FirstRunLootBalance.js';
 import {
     BlueprintDropRate,
     getBlueprintDropsForMonster,
@@ -27,6 +27,10 @@ import { resolveItemById } from '../utils/ItemResolver.js';
 const BLUEPRINT_FLAG_PREFIX = 'recipeBlueprint.';
 const BLUEPRINT_SERIES_FLAG_PREFIX = 'recipeBlueprintSeries.';
 const defaultKnownRecipes = new Set(DefaultKnownRecipeIds);
+
+function getRecipe(recipeId) {
+    return RecipeDatabase[recipeId] || null;
+}
 
 export { BlueprintDropRate };
 
@@ -111,7 +115,7 @@ export function unlockRecipeSeriesForScene(sceneId) {
 }
 
 export function unlockBossCraftRecipes(monsterId) {
-    return unlockRecipeBlueprints(FirstRunBossCraftUnlocks[monsterId] || [])
+    return unlockRecipeBlueprints(BossRecipeUnlocksByMonsterId[monsterId] || [])
         .filter(unlock => unlock.newlyUnlocked);
 }
 

@@ -10,13 +10,16 @@ import {
     StorySceneOrder,
     getStoryScene
 } from '../data/StorySceneRegistry.js';
-import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js?v=chapter1-art-20260713a';
+import { getStoryActor, getStoryExpressionLayer } from '../data/StoryActors.js';
 import {
+    PROLOGUE_TUTORIAL_OUTCOME_FLAG,
+    PROLOGUE_TUTORIAL_RESOLVED_FLAG,
+    PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG,
     applyStorySceneEffects,
-    clearCurrentRunStoryFlags,
+    getCurrentRunStoryFlagKeys,
     getStoryEncounterVictoryFlag,
     getStorySceneCompleteFlag
-} from '../data/StoryStateContract.js?v=dialogue-flow-20260712w';
+} from '../data/StoryStateContract.js';
 import {
     StoryEncounterPhase,
     StoryEncounterTransition,
@@ -28,7 +31,6 @@ import {
 import { isOptionalStoryScene } from '../data/ChapterRegionRegistry.js';
 import { storyJournalManager } from './StoryJournalManager.js';
 import { unlockRecipeSeriesForScene } from './BlueprintManager.js';
-import { markBlueprintKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
 
 export const StoryRun = Object.freeze({
     FIRST: 1,
@@ -58,6 +60,37 @@ class StorySceneManager {
 
     isFlagSet(flag) {
         return Boolean(flag && GameManager.getFlag?.(flag));
+    }
+
+    isPrologueTutorialResolved() {
+        return this.isFlagSet(PROLOGUE_TUTORIAL_RESOLVED_FLAG);
+    }
+
+    resolvePrologueTutorial(outcome = 'defeat') {
+        if (this.isPrologueTutorialResolved()) {
+            return { success: false, reason: 'already_resolved', outcome: GameManager.getFlag(PROLOGUE_TUTORIAL_OUTCOME_FLAG) };
+        }
+
+        GameManager.setFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG, true, { reason: 'prologue-tutorial-resolved' });
+        GameManager.setFlag(PROLOGUE_TUTORIAL_OUTCOME_FLAG, outcome, { reason: 'prologue-tutorial-resolved' });
+        const health = GameManager.setCharacterHealth(1, { reason: 'prologue-tutorial-resolved' });
+        return { success: true, outcome, hp: health?.hp || 1 };
+    }
+
+    isPrologueWakeDialoguePending() {
+        return this.isFlagSet(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG);
+    }
+
+    completePrologueRescue() {
+        GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, true);
+        const recovery = GameManager.restoreCharacterAtHome('prologue-rescue');
+        return { success: true, recovery };
+    }
+
+    consumePrologueWakeDialogue() {
+        if (!this.isPrologueWakeDialoguePending()) return false;
+        GameManager.setFlag(PROLOGUE_WAKE_DIALOGUE_PENDING_FLAG, false, { reason: 'prologue-wake-dialogue-consumed' });
+        return true;
     }
 
     getRunNumber() {
@@ -349,7 +382,6 @@ class StorySceneManager {
             runNumber: this.getRunNumber()
         });
         const blueprintUnlocks = unlockRecipeSeriesForScene(sceneId);
-        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId));
         GameManager.markSaveDirty?.('story-scene-complete');
         return {
             success: true,
@@ -448,20 +480,24 @@ class StorySceneManager {
         if (!this.isFlagSet('story.secondRunUnlocked')) {
             return { success: false, reason: 'second_run_locked' };
         }
-        const clearedFlags = clearCurrentRunStoryFlags(GameManager.state?.flags || {});
+        const clearedFlags = getCurrentRunStoryFlagKeys(GameManager.getFlagsByPrefix());
         this.completedSceneIds.clear();
         this.activeSceneId = null;
         this.activeScenePhase = null;
         this.pendingEncounter = null;
         this.runNumber = StoryRun.SECOND;
         this.currentChapter = 1;
-        GameManager.setFlag?.('story.run', StoryRun.SECOND);
-        GameManager.setFlag?.('story.chapter', 1);
-        GameManager.setFlag?.('story.activeSceneId', null);
-        GameManager.setFlag?.('story.activeScenePhase', null);
-        GameManager.setFlag?.('story.lastSceneId', null);
+        GameManager.updateFlags({
+            'story.run': StoryRun.SECOND,
+            'story.chapter': 1,
+            'story.activeSceneId': null,
+            'story.activeScenePhase': null,
+            'story.lastSceneId': null
+        }, {
+            remove: clearedFlags,
+            reason: 'story-second-run'
+        });
         storyJournalManager.resetForRun(StoryRun.SECOND);
-        GameManager.markSaveDirty?.('story-second-run');
         return { success: true, sceneId: StorySceneOrder[0], clearedFlags };
     }
 

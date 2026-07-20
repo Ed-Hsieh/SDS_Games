@@ -99,8 +99,8 @@ export function readEquipmentStats(itemData, type = itemData?.type) {
         : readNumber(rawDurability, maxDurability ?? DEFAULT_DURABILITY);
 
     return {
-        atk: readNumber(readItemStat(itemData, 'attack', ['atk'], 0), 0),
-        def: readNumber(readItemStat(itemData, 'defense', ['def'], 0), 0),
+        attack: readNumber(readItemStat(itemData, 'attack', [], 0), 0),
+        defense: readNumber(readItemStat(itemData, 'defense', [], 0), 0),
         critChance: readNumber(
             readItemStat(itemData, 'critChance', ['crit_chance'], defaults.critChance),
             defaults.critChance
@@ -190,7 +190,6 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.stackable !== undefined) item.stackable = itemData.stackable;
     if (itemData.maxStack !== undefined) item.maxStack = itemData.maxStack;
     if (itemData.special !== undefined) item.special = itemData.special;
-    if (itemData.stats) item.stats = cloneData(itemData.stats);
     if (itemData.buff) item.buff = cloneData(itemData.buff);
     if (itemData.passiveEffectId) item.passiveEffectId = itemData.passiveEffectId;
     if (itemData.catalogId) item.catalogId = itemData.catalogId;
@@ -201,9 +200,6 @@ export function copyRuntimeMetadata(item, itemData) {
         const value = itemData[key] ?? stats[key];
         if (value !== undefined && value !== null) item[key] = value;
     }
-
-    if (item.atk !== undefined) item.attack = item.atk;
-    if (item.def !== undefined) item.defense = item.def;
 
     if (itemData.specialEffects) {
         item.specialEffects = cloneData(itemData.specialEffects);

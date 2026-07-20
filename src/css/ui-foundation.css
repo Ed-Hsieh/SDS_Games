@@ -9995,32 +9995,6 @@ body {
     background: rgba(8, 12, 18, 0.58) !important;
 }
 
-.supply-tabs {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-}
-
-.supply-tab {
-    min-height: 44px;
-    border: 1px solid var(--ui-border);
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.055);
-    color: var(--ui-text-muted);
-    font-size: 16px;
-    font-weight: 900;
-    cursor: pointer;
-}
-
-.supply-tab:hover,
-.supply-tab:focus-visible,
-.supply-tab.active {
-    border-color: rgba(233, 189, 101, 0.62);
-    background: rgba(233, 189, 101, 0.13);
-    color: #fff8e8;
-    outline: none;
-}
-
 .supply-panel {
     min-height: 0;
     display: grid;
@@ -10048,8 +10022,7 @@ body {
     background: rgba(255, 255, 255, 0.045);
 }
 
-.supply-card.is-locked,
-.supply-card.is-completed {
+.supply-card.is-locked {
     opacity: 0.72;
 }
 
@@ -10126,72 +10099,6 @@ body {
     border-color: rgba(148, 163, 184, 0.18);
     background: rgba(255, 255, 255, 0.04);
     color: var(--ui-text-muted);
-}
-
-.supply-contract {
-    align-items: stretch;
-}
-
-.contract-copy {
-    display: grid;
-    gap: 8px;
-}
-
-.contract-flow {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 8px;
-}
-
-.contract-flow > div {
-    min-width: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-content: flex-start;
-    padding: 8px;
-    border-radius: 10px;
-    background: rgba(8, 12, 18, 0.52);
-}
-
-.contract-flow b {
-    width: 100%;
-    color: var(--ui-text-muted);
-    font-size: 12px;
-}
-
-.contract-token {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: 28px;
-    padding: 3px 8px;
-    border: 1px solid rgba(148, 163, 184, 0.22);
-    border-radius: 999px;
-    color: var(--ui-text-muted);
-    font-size: 12px;
-    font-weight: 900;
-}
-
-.contract-token.is-ready,
-.contract-token.is-reward {
-    border-color: rgba(117, 214, 149, 0.34);
-    color: #a7f3c1;
-}
-
-.contract-token.is-missing {
-    border-color: rgba(255, 93, 108, 0.34);
-    color: #ffb4bd;
-}
-
-.contract-token-icon {
-    width: 22px;
-    height: 22px;
-    display: inline-grid;
-    place-items: center;
-    border-radius: 6px;
-    font-size: 12px;
-    background-color: rgba(255, 255, 255, 0.08);
 }
 
 .supply-empty-state {
@@ -12438,15 +12345,6 @@ body {
     height: 0;
 }
 
-.supply-tabs {
-    gap: 7px;
-}
-
-.supply-tab {
-    min-height: 38px;
-    font-size: 14px;
-}
-
 .trade-status-panel {
     min-height: 0;
     grid-template-columns: 36px minmax(0, 1fr);
@@ -12834,16 +12732,6 @@ body {
 .market-place-scene .player-inventory-list::-webkit-scrollbar {
     width: 0;
     height: 0;
-}
-
-.market-place-scene .supply-tabs {
-    gap: 7px;
-}
-
-.market-place-scene .supply-tab {
-    min-height: 38px;
-    border-radius: 9px;
-    font-size: 14px;
 }
 
 .market-place-scene .trade-status-panel {
@@ -13505,13 +13393,6 @@ body {
     height: 100%;
 }
 
-.market-place-scene .supply-tabs {
-    grid-area: tabs;
-    align-self: end;
-    justify-self: end;
-    width: min(460px, 100%);
-}
-
 .market-place-scene .trade-status-panel {
     grid-area: status;
     min-height: 0;
@@ -13651,22 +13532,6 @@ body {
     padding: 10px 11px !important;
     font-size: 14px !important;
     line-height: 1.5 !important;
-}
-
-.market-place-scene .supply-tabs {
-    grid-area: tabs !important;
-    width: 100% !important;
-    align-self: stretch !important;
-    justify-self: stretch !important;
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-}
-
-.market-place-scene .supply-tab {
-    min-height: 42px !important;
-    border-radius: 10px !important;
-    font-size: 15px !important;
 }
 
 .market-place-scene .trade-status-panel {
@@ -14046,21 +13911,6 @@ body {
     max-height: none !important;
     padding: 13px !important;
     overflow-y: auto !important;
-}
-
-.market-dialogue-scene .supply-tabs {
-    grid-area: auto !important;
-    width: calc(100% - 48px) !important;
-    justify-self: start !important;
-    align-self: start !important;
-    display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-}
-
-.market-dialogue-scene .supply-tab {
-    min-height: 42px !important;
-    border-radius: 10px !important;
 }
 
 .market-dialogue-scene .trade-status-panel {
@@ -14818,14 +14668,6 @@ body {
         padding: 10px !important;
         font-size: 13px !important;
         line-height: 1.45 !important;
-    }
-
-    .market-dialogue-scene .supply-tabs {
-        gap: 6px !important;
-    }
-
-    .market-dialogue-scene .supply-tab {
-        min-height: 34px !important;
     }
 
     .market-dialogue-scene .trade-status-panel {

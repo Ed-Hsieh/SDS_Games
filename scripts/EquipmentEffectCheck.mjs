@@ -2,8 +2,7 @@ import {
     applyDamage,
     BattleController,
     computeMonsterAttack,
-    computePlayerAttack,
-    normalizeMonsterCombatStats
+    computePlayerAttack
 } from '../src/js/managers/FightManager.js';
 import {
     getEquipmentEffectTotals,
@@ -51,13 +50,10 @@ function makeMonster(overrides = {}) {
         id: overrides.id || 'test_monster',
         name: overrides.name || '測試怪物',
         hp,
-        currentHp: hp,
         maxHp: overrides.maxHp ?? hp,
         level: overrides.level ?? 1,
         attack: overrides.attack ?? 10,
-        atk: overrides.attack ?? 10,
         defense: overrides.defense ?? 0,
-        def: overrides.defense ?? 0,
         isBoss: Boolean(overrides.isBoss),
         isElite: Boolean(overrides.isElite)
     };
@@ -118,7 +114,7 @@ const custom = {
     }
 };
 
-const visibleDamageMonster = normalizeMonsterCombatStats(makeMonster({ level: 2, hp: 50, maxHp: 50, attack: 8, defense: 2 }));
+const visibleDamageMonster = makeMonster({ level: 2, hp: 50, maxHp: 50, attack: 8, defense: 2 });
 const visibleDamagePlayer = makePlayer({}, { def: 2 });
 const visibleDamageRes = computeMonsterAttack(visibleDamageMonster, visibleDamagePlayer);
 assert(

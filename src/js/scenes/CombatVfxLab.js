@@ -1,10 +1,10 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
-import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js?v=20260717c';
-import CombatVfxEngine from '../utils/CombatVfxEngine.js?v=20260717t';
+import RealtimeCombatSession, { CombatSessionPhase } from '../managers/RealtimeCombatSession.js';
+import CombatVfxEngine from '../utils/CombatVfxEngine.js';
 import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 import { MonsterDatabase } from '../data/Monsters.js';
-import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js?v=20260717a';
+import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js';
 import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
 import { mountSharedCombatPreview } from '../components/CombatStageView.js';
 
@@ -20,14 +20,13 @@ const ITEM_ASSETS = Object.freeze({
 function buildRhythmWeapon(itemId, weaponForm) {
     const item = EquipmentDatabase[itemId] || { id: itemId, name: itemId, type: 'weapon', rarity: 'common' };
     const stats = item.stats || {};
-    const attack = Number(stats.attack ?? item.attack ?? item.atk ?? 10) || 10;
+    const attack = Number(stats.attack ?? item.attack ?? 10) || 10;
     return Object.freeze({
         ...item,
         ...stats,
         type: 'weapon',
         weaponForm,
         attack,
-        atk: attack,
         critChance: Number(stats.critChance ?? item.critChance ?? 0.05) || 0.05,
         critDamage: Number(stats.critDamage ?? item.critDamage ?? 1.5) || 1.5,
         weaponSpeed: Number(stats.weaponSpeed ?? item.weaponSpeed ?? 1) || 1,
@@ -1394,5 +1393,5 @@ export class CombatVfxLab {
 const root = document.querySelector('#vfx-lab');
 if (root) {
     mountSharedCombatPreview(root);
-    window.combatVfxLab = new CombatVfxLab(root);
+    new CombatVfxLab(root);
 }

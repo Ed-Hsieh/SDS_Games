@@ -2,22 +2,19 @@
  * QuestScene.js
  * 任務冊場景 - 顯示任務列表、接取/放棄/完成任務
  */
-import { questManager, QuestStatus, QuestType, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
+import { questManager } from '../managers/QuestManager.js';
+import { QuestStatus, QuestType, ObjectiveType } from '../data/Quests.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
-import { getMaterial } from '../managers/MaterialManager.js';
+import { getMaterial } from '../data/Materials.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { getQuestStory } from '../data/QuestStories.js?v=dialogue-flow-20260712w';
+import { getQuestStory } from '../data/QuestStories.js';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
-import { getAllCharacterProfiles } from '../data/CharacterProfiles.js';
-import { dialogueManager } from '../managers/DialogueManager.js?v=chapter1-art-20260713a';
 import GameManager from '../managers/GameManager.js';
 import { storyJournalManager } from '../managers/StoryJournalManager.js';
-import { ChapterRegionOrder, ChapterRegionRegistry, findChapterLocation, getChapterRegion } from '../data/ChapterRegionRegistry.js';
-import { MonsterDatabase } from '../data/Monsters.js';
-import { getResolvedTownPlaces } from '../managers/TownStateResolver.js';
 import audioManager from '../utils/AudioManager.js';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
+import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
 
 const HANDBOOK_TABS = {
     commissions: {
@@ -49,7 +46,7 @@ const HANDBOOK_TABS = {
         panelTitle: '認識的人',
         countLabel: '位人物',
         emptyIcon: '👥',
-        emptyText: '還沒有真正認識任何人。和城鎮角色對話後，這裡才會留下很少的第一印象。',
+        emptyText: '還沒有角色正式進入這段旅途。完成相遇事件後，這裡才會留下第一筆人物紀錄。',
         ledger: records => `${records.length} 位已認識的人`
     },
     town: {
@@ -270,10 +267,10 @@ export default class QuestScene {
     updateHandbookCounts() {
         const counts = {
             commissions: this.getHandbookRecords('commissions').length,
-            boss: this.getBossTraceRecords().length,
-            world: this.getWorldNoteRecords().length,
-            relationships: this.getRelationshipRecords().length,
-            town: this.getTownMemoryRecords().length
+            boss: storyJournalManager.getBossTraceRecords().length,
+            world: storyJournalManager.getWorldNoteRecords().length,
+            relationships: storyJournalManager.getRelationshipRecords().length,
+            town: storyJournalManager.getTownMemoryRecords().length
         };
 
         this.dom.handbookCountBadges?.forEach(badge => {
@@ -285,17 +282,17 @@ export default class QuestScene {
     getHandbookRecords(tabId) {
         switch (tabId) {
             case 'boss':
-                return this.getBossTraceRecords();
+                return storyJournalManager.getBossTraceRecords();
             case 'world':
-                return this.getWorldNoteRecords();
+                return storyJournalManager.getWorldNoteRecords();
             case 'relationships':
-                return this.getRelationshipRecords();
+                return storyJournalManager.getRelationshipRecords();
             case 'town':
-                return this.getTownMemoryRecords();
+                return storyJournalManager.getTownMemoryRecords();
             case 'commissions':
             default:
                 return [
-                    this.getCurrentMainlineRecord(),
+                    storyJournalManager.getMainlineRecord(storyGuidanceManager.getCurrent()),
                     ...this.getStoryQuestList().map(quest => ({
                     key: `quest:${quest.id}`,
                     kind: 'quest',
@@ -303,39 +300,6 @@ export default class QuestScene {
                     }))
                 ].filter(Boolean);
         }
-    }
-
-    getCurrentMainlineRecord() {
-        const directive = storyGuidanceManager.getCurrent();
-        if (!directive) return null;
-        const region = getChapterRegion(directive.chapter);
-        const fieldTarget = directive.targetId
-            ? findChapterLocation(directive.targetId, directive.chapter)
-            : null;
-        const destination = directive.placeId
-            ? (getResolvedTownPlaces().find(place => place.id === directive.placeId)?.name || '城鎮')
-            : (fieldTarget?.name || region?.title || '冒險地圖');
-
-        return {
-            key: `mainline:${directive.sceneId}`,
-            kind: 'mainline',
-            icon: String(directive.chapter),
-            title: directive.title,
-            typeLabel: `第 ${directive.chapter} 章`,
-            statusIcon: '',
-            statusText: '目前主線',
-            statusTone: 'active',
-            summaryMode: 'compact',
-            summaryLabel: region?.title || `第 ${directive.chapter} 章`,
-            summaryHint: destination,
-            current: directive.text,
-            listMeta: [destination, directive.targetType === 'town' ? '城鎮' : '野外'],
-            sections: [{ title: '下一步', lines: [directive.text] }],
-            route: directive.route,
-            routeLabel: directive.targetType === 'town' ? `返回${destination}` : '前往冒險地圖',
-            routeDescription: directive.text,
-            npcId: directive.actorId || ''
-        };
     }
 
     createQuestListItem(quest) {
@@ -471,254 +435,6 @@ export default class QuestScene {
         return escapeHtml(record.icon || '◆');
     }
 
-    getBossTraceRecords() {
-        const visited = new Set(
-            storyJournalManager.getRecords()
-                .map(record => record.locationId || record.meta?.locationId)
-                .filter(Boolean)
-        );
-
-        return ChapterRegionOrder.flatMap(regionId => {
-            const region = ChapterRegionRegistry[regionId];
-            return (region?.locationNodes || [])
-                .filter(node => node.bossId)
-                .map(node => {
-                    const sceneId = node.sceneIds?.[0] || null;
-                    const sceneComplete = Boolean(sceneId && GameManager.getFlag(`story.scene.${sceneId}.complete`));
-                    if (!visited.has(node.id) && !sceneComplete) return null;
-
-                    const monster = MonsterDatabase[node.bossId] || {};
-                    const title = monster.name || node.name;
-                    const optionalLabel = node.optional ? '可選首領' : '章節首領';
-                    return {
-                        key: `boss:${region.regionId}:${node.id}`,
-                        kind: 'boss',
-                        icon: monster.icon || '!',
-                        image: monster.image || null,
-                        title,
-                        typeLabel: optionalLabel,
-                        hideSummaryMeta: true,
-                        summaryLabel: '固定地點',
-                        summaryHint: region.title,
-                        statusIcon: sceneComplete ? '✓' : '!',
-                        statusText: sceneComplete ? '已處理' : '已發現',
-                        statusTone: sceneComplete ? 'finished' : 'active',
-                        listMeta: [
-                            `第 ${region.chapter} 章`,
-                            region.title,
-                            node.name
-                        ],
-                        cues: [sceneComplete ? '此處的事件已結束' : '首領位置已確認'],
-                        current: sceneComplete
-                            ? `${node.name}的事件已被寫入當前周目。`
-                            : (node.arrival || node.mapHint || '你已找到首領所在的位置。'),
-                        thoughtTitle: sceneComplete ? '這裡還留下了什麼？' : '現在要踏進去嗎？',
-                        thoughtText: sceneComplete
-                            ? '道路與事件結果已經寫進手札。'
-                            : '位置已經確認；是否進入，取決於目前狀態與準備。',
-                        progress: {
-                            current: sceneComplete ? 1 : 0,
-                            required: 1,
-                            percent: sceneComplete ? 100 : 0
-                        },
-                        sections: [
-                            {
-                                title: '所在位置',
-                                lines: [`${region.title}：${node.name}`]
-                            },
-                            {
-                                title: sceneComplete ? '當前結果' : '現場痕跡',
-                                lines: [sceneComplete ? '事件已完成。' : (node.mapHint || '首領仍在固定地點等待。')]
-                            }
-                        ],
-                        route: 'adventure',
-                        routeLabel: sceneComplete ? '回到冒險地圖' : '前往固定地點'
-                    };
-                })
-                .filter(Boolean);
-        });
-    }
-
-    getWorldNoteRecords() {
-        const kindLabels = {
-            clue: '現場線索',
-            boss: '首領結論',
-            relationship: '人物紀錄',
-            town: '城鎮變化',
-            conclusion: '章節結論',
-            event: '劇情事件'
-        };
-
-        return storyJournalManager.getRecords().map(record => {
-            const isFieldRecord = Boolean(record.locationId || record.meta?.locationId);
-            const typeLabel = kindLabels[record.kind] || '旅途發現';
-            return {
-                key: `story-discovery:${record.id}`,
-                kind: 'world',
-                icon: record.icon || '✦',
-                title: record.title,
-                typeLabel,
-                summaryMode: 'compact',
-                hideSummaryMeta: true,
-                summaryLabel: `第 ${record.chapter} 章`,
-                summaryHint: record.sourceLabel,
-                statusIcon: '✎',
-                statusText: `紀錄 ${record.notebookIndex}`,
-                statusTone: record.kind === 'boss' || record.kind === 'conclusion' ? 'finished' : 'active',
-                listMeta: [
-                    `第 ${record.chapter} 章`,
-                    record.sourceLabel,
-                    typeLabel
-                ],
-                current: record.observation,
-                thoughtTitle: '目前能得出的結論',
-                thoughtText: record.inference,
-                sections: [
-                    { title: '親眼確認', lines: [record.observation] },
-                    { title: '手札推論', lines: [record.inference || '目前沒有足夠證據繼續推論。'] }
-                ],
-                route: isFieldRecord ? 'adventure' : 'lobby',
-                routeLabel: isFieldRecord ? '回到冒險地圖' : '回到城鎮'
-            };
-        });
-    }
-
-    getRelationshipRecords() {
-        return getAllCharacterProfiles()
-            .map(profile => this.createRelationshipRecord(profile))
-            .filter(Boolean)
-            .sort((a, b) => {
-                const depthDiff = (b.relationship?.depth || 0) - (a.relationship?.depth || 0);
-                if (depthDiff !== 0) return depthDiff;
-                return String(a.title).localeCompare(String(b.title), 'zh-Hant');
-            });
-    }
-
-    createRelationshipRecord(profile = {}) {
-        const npcId = this.getRelationshipNpcId(profile);
-        const talkCount = dialogueManager.getNpcTalkCount?.(npcId) || 0;
-        if (talkCount <= 0) return null;
-
-        const stages = this.getUnlockedRelationshipStages(profile);
-        const currentStage = stages.at(-1) || profile.stages?.[0] || null;
-        const depth = this.getRelationshipDepth(profile, talkCount, stages);
-        const portrait = profile.portrait || getGeneratedPortraitImage(npcId) || getGeneratedPortraitImage(profile.id);
-        const statusText = depth >= 3
-            ? '慢慢看清'
-            : depth >= 2 ? '有些印象' : '初識';
-
-        return {
-            key: `relationship:${profile.id}`,
-            kind: 'relationship',
-            icon: '👥',
-            image: portrait,
-            title: profile.name || npcId,
-            typeLabel: '城鎮人際',
-            summaryLabel: profile.name || '城鎮人物',
-            summaryHint: statusText,
-            statusIcon: depth >= 3 ? '◆' : depth >= 2 ? '◇' : '·',
-            statusText,
-            statusTone: depth >= 3 ? 'completed' : depth >= 2 ? 'active' : 'available',
-            meta: [profile.title, statusText, `${talkCount} 次交流`],
-            metaLabels: ['身分', '印象'],
-            listMeta: [
-                profile.title || '城鎮居民',
-                statusText,
-                `${talkCount} 次交流`
-            ],
-            current: this.getRelationshipCurrentText(profile, talkCount, currentStage),
-            thoughtTitle: depth >= 3 ? '這個人好像不只是名字了。' : '這個人現在留給我的感覺。',
-            thoughtText: depth >= 3
-                ? '有些語氣、停頓和選擇開始連在一起，但這仍然只是旅途中留下的感受。'
-                : '目前只是第一印象。這頁只記下已經發生過的交會，不替未來標路。',
-            sections: this.getRelationshipSections(profile, talkCount, stages, depth),
-            relationship: {
-                profile,
-                npcId,
-                talkCount,
-                depth,
-                stage: currentStage,
-                stages,
-                statusText
-            }
-        };
-    }
-
-    getRelationshipNpcId(profile = {}) {
-        return profile.id;
-    }
-
-    getRelationshipDepth(profile = {}, talkCount = 0, stages = []) {
-        let depth = 1;
-        const storyStageCount = stages.filter(stage => stage.fromFlag && GameManager.getFlag(stage.fromFlag)).length;
-        if (talkCount >= 3 || (talkCount >= 2 && storyStageCount >= 1)) depth += 1;
-        if (talkCount >= 5 || (talkCount >= 3 && storyStageCount >= 2)) depth += 1;
-        return Math.min(3, depth);
-    }
-
-    getUnlockedRelationshipStages(profile = {}) {
-        return (profile.stages || []).filter(stage => {
-            if (!stage.fromFlag) return true;
-            return Boolean(GameManager.getFlag(stage.fromFlag));
-        });
-    }
-
-    getRelationshipCurrentText(profile = {}, talkCount = 0, currentStage = null) {
-        const name = profile.name || '這個人';
-        if (talkCount <= 1) {
-            return `你只和${name}說過幾句話。目前留下的是第一印象，還談不上真正理解。`;
-        }
-        if (currentStage?.fromFlag && GameManager.getFlag(currentStage.fromFlag)) {
-            return `${name}身上多了一點和城鎮變化相連的痕跡。你記得那次交會，也記得他當時的語氣。`;
-        }
-        return `${name}不再只是街上的一個名字。你開始記得他的說話方式，和他看待事情的角度。`;
-    }
-
-    getRelationshipSections(profile = {}, talkCount = 0, stages = [], depth = 1) {
-        const sections = [
-            {
-                title: '初步印象',
-                lines: [
-                    profile.title || '城鎮居民',
-                    profile.imageAnchor || profile.core || '目前只留下很模糊的第一印象。'
-                ].filter(Boolean)
-            }
-        ];
-
-        if (depth >= 2) {
-            sections.push({
-                title: '性格輪廓',
-                lines: [
-                    profile.core || '仍需要更多對話才能看清他的性格。',
-                    profile.voice?.tone ? `說話方式：${profile.voice.tone}` : null
-                ].filter(Boolean)
-            });
-        }
-
-        if (depth >= 3) {
-            sections.push({
-                title: '藏起來的傷口',
-                lines: [profile.wound || '他身上應該還有故事，只是目前沒有被任何事件真正碰到。']
-            });
-            if (profile.storyFunction) {
-                sections.push({
-                    title: '在城鎮裡的位置',
-                    lines: [profile.storyFunction]
-                });
-            }
-        }
-
-        const flaggedStages = stages.filter(stage => stage.fromFlag && GameManager.getFlag(stage.fromFlag));
-        if (flaggedStages.length > 0) {
-            sections.push({
-                title: '關係推進',
-                lines: flaggedStages.map(stage => `${stage.label || stage.id}：${stage.mood || '這段關係因事件有了新的理解。'}`)
-            });
-        }
-
-        return sections;
-    }
-
     renderRelationshipDetail(record = {}) {
         this.renderRelationshipSummary(record);
         this.renderRelationshipSections(record);
@@ -739,7 +455,6 @@ export default class QuestScene {
 
         const rel = record.relationship || {};
         const profile = rel.profile || {};
-        const talkCount = Number(rel.talkCount || 0);
         const stageLabel = rel.stage?.label || '初次交會';
 
         summary.innerHTML = `
@@ -755,9 +470,8 @@ export default class QuestScene {
                     </div>
                     <p>${escapeHtml(record.current || '這段人際還需要更多接觸。')}</p>
                     <div class="relationship-feeling-row" aria-label="人物印象">
-                        <span>目前印象</span>
-                        <strong>${escapeHtml(record.statusText || '初識')}</strong>
-                        <small>${escapeHtml(`${talkCount} 次交流 · ${stageLabel}`)}</small>
+                        <span>最近記錄</span>
+                        <strong>${escapeHtml(stageLabel)}</strong>
                     </div>
                 </div>
             </section>
@@ -767,171 +481,18 @@ export default class QuestScene {
     renderRelationshipSections(record = {}) {
         if (!this.dom.detailObjectives) return;
 
-        const rel = record.relationship || {};
         const sections = Array.isArray(record.sections) ? record.sections : [];
-        const cards = sections.map(section => ({ ...section, locked: false }));
 
         this.dom.detailObjectives.classList.add('relationship-lore-grid');
-        this.dom.detailObjectives.innerHTML = cards.map(card => `
-            <li class="relationship-lore-card ${card.locked ? 'is-locked' : ''}">
+        this.dom.detailObjectives.innerHTML = sections.map(section => `
+            <li class="relationship-lore-card">
                 <div class="relationship-lore-head">
-                    <span>${escapeHtml(card.locked ? '未解鎖' : '已記錄')}</span>
-                    <strong>${escapeHtml(card.title || '側記')}</strong>
+                    <span>已記錄</span>
+                    <strong>${escapeHtml(section.title || '側記')}</strong>
                 </div>
-                ${(card.lines || ['尚未留下內容。']).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
+                ${(section.lines || ['尚未留下內容。']).map(line => `<p>${escapeHtml(line)}</p>`).join('')}
             </li>
         `).join('');
-    }
-
-    getTownMemoryRecords() {
-        const townRecords = getResolvedTownPlaces()
-            .flatMap(place => (place.states || [])
-                .map(state => ({
-                    key: `town:${place.id}:${state.id || state.flag || state.title}`,
-                    kind: 'town',
-                    icon: place.icon || '🏘️',
-                    title: state.title,
-                    typeLabel: '城鎮記憶',
-                    summaryMode: 'compact',
-                    hideSummaryMeta: true,
-                    summaryLabel: '回城所感',
-                    summaryHint: place.name,
-                    statusIcon: '✓',
-                    statusText: place.name,
-                    statusTone: 'finished',
-                    listMeta: [
-                        place.name,
-                        place.tag || '城鎮',
-                        '回城所見'
-                    ],
-                    current: this.buildTownMemoryStory(place, state)[0],
-                    sections: [
-                        {
-                            title: '城鎮變化',
-                            lines: this.buildTownMemoryStory(place, state).slice(1)
-                        }
-                    ],
-                    route: 'lobby',
-                    routeLabel: '回到城鎮'
-                })));
-        const finale = GameManager.getFlag('world.ending.outcome');
-        if (!finale?.id) return townRecords;
-
-        const sceneLines = Array.isArray(finale.sceneLines) && finale.sceneLines.length > 0
-            ? finale.sceneLines
-            : [finale.summary].filter(Boolean);
-
-        return [
-            {
-                key: `town:ending:${finale.id}`,
-                kind: 'town',
-                icon: '🌅',
-                title: finale.title || '終局之後',
-                typeLabel: '終局記憶',
-                summaryMode: 'compact',
-                hideSummaryMeta: true,
-                summaryLabel: '終局回望',
-                summaryHint: '終局之後',
-                statusIcon: '✓',
-                statusText: finale.townEcho || '終戰已留下痕跡',
-                statusTone: 'finished',
-                listMeta: [
-                    '終局之後',
-                    finale.townEcho || finale.summary || '終局已被記錄',
-                    '街上仍有聲音'
-                ],
-                current: this.buildFinaleTownStory(finale, sceneLines)[0],
-                sections: [
-                    {
-                        title: '城鎮變化',
-                        lines: this.buildFinaleTownStory(finale, sceneLines)
-                    }
-                ],
-                route: 'lobby',
-                routeLabel: '回到城鎮'
-            },
-            ...townRecords
-        ];
-    }
-
-    buildTownMemoryStory(place = {}, state = {}) {
-        const placeName = place.name || '城裡某處';
-        const tone = this.getTownMemoryTone(placeName, place);
-        const placeText = tone.trace;
-        const sceneText = this.buildTownMemoryEventText(place, state, tone);
-        return [
-            placeText,
-            sceneText
-        ].filter(Boolean);
-    }
-
-    buildTownMemoryEventText(place = {}, state = {}, tone = {}) {
-        const title = state.title ? `「${state.title}」` : '那件事';
-        const text = state.text || '街角多了一點不熟悉的痕跡。';
-        const lead = String(tone.memoryLead || '{title}之後，').replace('{title}', title);
-        return `${lead}${text}`;
-    }
-
-    getTownMemoryTone(placeName, place = {}) {
-        const key = String(place.tag || place.id || placeName || '');
-        const variants = [
-            {
-                match: ['中心', 'crossroads'],
-                trace: '廣場石板仍被腳步磨得發亮，只是公告欄前的人停得比從前久。',
-                memoryLead: '{title}貼上公告欄後，'
-            },
-            {
-                match: ['補給', 'market'],
-                trace: '帆布棚下多了湯氣與藥草味，空瓶被整齊倒扣在木架邊。',
-                memoryLead: '{title}傳到棚下後，'
-            },
-            {
-                match: ['裝備', 'forge'],
-                trace: '爐火映在門縫裡，鐵砧聲比記憶裡更沉。',
-                memoryLead: '{title}留在爐邊後，'
-            },
-            {
-                match: ['紀錄', 'handbook'],
-                trace: '小屋裡的紙頁疊得更高，頁角被翻出淡淡的毛邊。',
-                memoryLead: '{title}被寫進頁面後，'
-            },
-            {
-                match: ['暗流', 'alley'],
-                trace: '暗巷仍窄，牆邊卻多了幾道新刮痕，像有人把消息留在陰影裡。',
-                memoryLead: '{title}傳進巷尾後，'
-            },
-            {
-                match: ['金流', 'casino'],
-                trace: '賭場門縫透出暖光，桌上的笑聲短了一拍。',
-                memoryLead: '{title}在桌邊被提起後，'
-            },
-            {
-                match: ['挑戰', 'tower'],
-                trace: '塔影壓在城邊，裂縫裡的風聲仍像沒停過。',
-                memoryLead: '{title}之後，'
-            },
-            {
-                match: ['出城', 'gate'],
-                trace: '城門的鐵釘沾著灰，旗繩在風裡輕輕敲著木柱。',
-                memoryLead: '{title}掛到門邊後，'
-            }
-        ];
-
-        return variants.find(variant => variant.match.some(token => key.includes(token))) || {
-            trace: `${placeName}還保留著記憶裡的輪廓，細節卻安靜地換了位置。`,
-            memoryLead: '{title}之後，'
-        };
-    }
-
-    buildFinaleTownStory(finale = {}, sceneLines = []) {
-        const lines = Array.isArray(sceneLines) && sceneLines.length > 0
-            ? sceneLines.filter(Boolean)
-            : [finale.summary].filter(Boolean);
-        const echo = finale.townEcho || finale.summary || '城裡的人仍然照常走過街口。';
-        return [
-            ...lines,
-            echo
-        ].filter(Boolean);
     }
 
     getStoryQuestList() {
@@ -1314,21 +875,15 @@ export default class QuestScene {
     rememberHandbookRouteIntent(routeInfo = {}, source = {}) {
         if (!routeInfo.route) return;
 
-        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
-            GameManager.state.ui = {};
-        }
-
-        GameManager.state.ui.handbookRouteIntent = {
+        navigationIntentManager.setHandbookRouteIntent({
             route: routeInfo.route,
             label: routeInfo.label || source.routeLabel || `前往${this.getRouteText(routeInfo.route)}`,
             title: source.title || source.name || '旅人手札',
             kind: source.kind || 'quest',
             reportToName: routeInfo.reportToName || source.reportToName || '',
             npcId: routeInfo.npcId || source.npcId || '',
-            description: routeInfo.description || source.routeDescription || '',
-            createdAt: Date.now()
-        };
-        GameManager.markSaveDirty?.('handbook-route-intent');
+            description: routeInfo.description || source.routeDescription || ''
+        });
     }
 
     renderQuestDetail(questId) {
@@ -1934,14 +1489,7 @@ export default class QuestScene {
     }
 
     updateSummary() {
-        const active = questManager.getActiveQuests().length;
-        const completed = questManager.getCompletedQuests().length;
-        
-        // 計算已完成數
-        let finished = 0;
-        for (const [_, state] of Object.entries(questManager.questStates)) {
-            if (state.status === QuestStatus.FINISHED) finished++;
-        }
+        const { active, completed, finished } = questManager.getQuestCounts();
 
         this.dom.summaryActive.textContent = active;
         this.dom.summaryCompleted.textContent = completed;

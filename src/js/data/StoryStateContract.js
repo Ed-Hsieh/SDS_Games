@@ -232,14 +232,9 @@ const CurrentRunStoryKeys = Object.freeze([
     'story.campaignComplete'
 ]);
 
-export function clearCurrentRunStoryFlags(flags = {}) {
-    const cleared = [];
-    for (const key of Object.keys(flags)) {
-        if (CurrentRunStoryKeys.includes(key)
-            || CurrentRunStoryPrefixes.some(prefix => key.startsWith(prefix))) {
-            delete flags[key];
-            cleared.push(key);
-        }
-    }
-    return cleared;
+export function getCurrentRunStoryFlagKeys(flags = {}) {
+    return Object.keys(flags).filter(key => (
+        CurrentRunStoryKeys.includes(key)
+        || CurrentRunStoryPrefixes.some(prefix => key.startsWith(prefix))
+    ));
 }

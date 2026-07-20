@@ -19,7 +19,7 @@ import {
     syncMonsterKnowledge,
     syncOwnedItemKnowledge,
     unlockAllEncyclopediaEntries
-} from '../managers/EncyclopediaManager.js?v=codex-runtime-20260719c';
+} from '../managers/EncyclopediaManager.js';
 import {
     CodexCategoryId,
     applyCodexClass,
@@ -29,7 +29,7 @@ import {
     getReadableCodexRarity,
     getReadableCodexType,
     getReadableSourceType
-} from '../data/CodexCatalogClasses.js?v=ui-convergence-20260712y';
+} from '../data/CodexCatalogClasses.js';
 import {
     buildItemStatChipsHtml,
     escapeHtml,

@@ -1,10 +1,10 @@
 import GameManager from './GameManager.js';
-import { CombatVfxLab } from '../scenes/CombatVfxLab.js?v=weapon-profiles-20260720a';
+import { CombatVfxLab } from '../scenes/CombatVfxLab.js';
 import { CombatSessionPhase } from './RealtimeCombatSession.js';
 import SceneCombatFlow from './SceneCombatFlow.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
-import { markMonsterKnown } from './EncyclopediaManager.js?v=codex-runtime-20260719c';
+import { markMonsterKnown } from './EncyclopediaManager.js';
 import audioManager from '../utils/AudioManager.js';
 
 function escapeHtml(value) {
@@ -256,8 +256,10 @@ export default class CombatFlowController {
     }
 
     handleBattleEnd(event) {
-        const character = GameManager.getCharacter();
-        character.hp = Math.max(0, Number(event.snapshot?.player?.hp) || 0);
+        GameManager.setCharacterHealth(Math.max(0, Number(event.snapshot?.player?.hp) || 0), {
+            reason: 'combat-end',
+            notify: false
+        });
         this.result = event.result;
         const isPrologueDefeat = event.result === CombatSessionPhase.DEFEAT
             && Boolean(this.encounter?.context?.prologueTutorial);
@@ -266,8 +268,7 @@ export default class CombatFlowController {
             markMonsterKnown(this.encounter?.monster || this.encounter?.visual);
             this.rewards = this.options.settleVictory?.(this.encounter, event) || { rows: [] };
         } else if (event.result === CombatSessionPhase.DEFEAT) {
-            character.hp = 1;
-            GameManager.notify('all');
+            GameManager.setCharacterHealth(1, { reason: 'combat-defeat' });
             this.rewards = this.encounter?.context?.prologueTutorial
                 ? { rows: [
                     { label: this.encounter.context.prologueIssuedGear?.weapon || '公會制式獵刀', value: '斷裂' },

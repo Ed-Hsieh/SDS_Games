@@ -21,7 +21,7 @@ import {
 import {
     StoryAchievementIds,
     StoryAchievementRegistry,
-    clearCurrentRunStoryFlags,
+    getCurrentRunStoryFlagKeys,
     getStoryAchievementFlag
 } from '../src/js/data/StoryStateContract.js';
 import {
@@ -47,6 +47,7 @@ import {
     getOverworldHabitatAt
 } from '../src/js/data/OverworldMapRegistry.js';
 import { getStoryObjectiveHint } from '../src/js/data/StoryObjectiveHints.js';
+import { storyJournalManager } from '../src/js/managers/StoryJournalManager.js';
 
 const errors = [];
 const warnings = [];
@@ -210,6 +211,16 @@ function validateRegions() {
             if (!locationIds.has(segment.from)) error('segment-node', `${regionId}:${segment.id} missing from node ${segment.from}`);
             if (!locationIds.has(segment.to)) error('segment-node', `${regionId}:${segment.id} missing to node ${segment.to}`);
             if (!Array.isArray(segment.path) || segment.path.length < 2) error('segment-path', `${regionId}:${segment.id} has no authored path`);
+            const from = region.locationNodes.find(node => node.id === segment.from)?.position;
+            const to = region.locationNodes.find(node => node.id === segment.to)?.position;
+            const first = segment.path?.[0];
+            const last = segment.path?.[segment.path.length - 1];
+            if (from && (first?.[0] !== from.x || first?.[1] !== from.y)) {
+                error('segment-path', `${regionId}:${segment.id} path does not start at ${segment.from}`);
+            }
+            if (to && (last?.[0] !== to.x || last?.[1] !== to.y)) {
+                error('segment-path', `${regionId}:${segment.id} path does not end at ${segment.to}`);
+            }
         }
         for (const binding of region.sceneBindings) {
             const scene = StorySceneRegistry[binding.sceneId];
@@ -241,6 +252,29 @@ function validateOverworldPrototype() {
 
     if (OverworldMapConfig.tiles.length !== 2) {
         error('overworld-prototype', `Expected two ready map tiles, got ${OverworldMapConfig.tiles.length}`);
+    }
+    for (const tile of OverworldMapConfig.tiles) {
+        const region = ChapterRegionRegistry[tile.regionId];
+        if (!region || tile.imageId !== region.visual?.backgroundId || tile.title !== region.visual?.mapTitle) {
+            error('overworld-authority', `${tile.id} presentation drifted from ChapterRegionRegistry`);
+        }
+    }
+    for (const landmark of OverworldMapConfig.landmarks) {
+        const tile = OverworldMapConfig.tiles.find(entry => (
+            landmark.x >= entry.x
+            && landmark.x < entry.x + entry.cols
+            && landmark.y >= entry.y
+            && landmark.y < entry.y + entry.rows
+        ));
+        const node = tile && ChapterRegionRegistry[tile.regionId]?.locationNodes
+            .find(entry => entry.id === landmark.id);
+        if (!tile || !node
+            || landmark.name !== node.name
+            || landmark.bossId !== node.bossId
+            || landmark.x !== tile.x + node.position.x
+            || landmark.y !== tile.y + node.position.y) {
+            error('overworld-authority', `${landmark.id} drifted from ChapterRegionRegistry`);
+        }
     }
     if (!map.isCellTraversable(map.playerPos.x, map.playerPos.y)) {
         error('overworld-prototype', 'Start position is not traversable');
@@ -365,12 +399,12 @@ function validateStoryState() {
         'story.secondRunUnlocked': true,
         'story.run': 1
     };
-    clearCurrentRunStoryFlags(flags);
-    if (flags['story.scene.ch1_s01_road_collapse.complete']) error('run-reset', 'Scene completion survived run reset');
-    if (flags['story.fate.mia']) error('run-reset', 'Character fate survived run reset');
-    if (flags['story.ailo.name_revealed']) error('run-reset', 'Ailo current-run reveal survived run reset');
-    if (!flags[getStoryAchievementFlag(StoryAchievementIds.WATER_WAS_COLD)]) error('run-reset', 'Achievement memory was cleared');
-    if (!flags.story?.secondRunUnlocked && !flags['story.secondRunUnlocked']) error('run-reset', 'Second-run unlock was cleared');
+    const clearedFlags = new Set(getCurrentRunStoryFlagKeys(flags));
+    if (!clearedFlags.has('story.scene.ch1_s01_road_collapse.complete')) error('run-reset', 'Scene completion was not selected for run reset');
+    if (!clearedFlags.has('story.fate.mia')) error('run-reset', 'Character fate was not selected for run reset');
+    if (!clearedFlags.has('story.ailo.name_revealed')) error('run-reset', 'Ailo current-run reveal was not selected for run reset');
+    if (clearedFlags.has(getStoryAchievementFlag(StoryAchievementIds.WATER_WAS_COLD))) error('run-reset', 'Achievement memory was selected for clearing');
+    if (clearedFlags.has('story.secondRunUnlocked')) error('run-reset', 'Second-run unlock was selected for clearing');
 }
 
 function validateEncounterGateLifecycle() {
@@ -525,6 +559,45 @@ function validateQuests() {
     }
 }
 
+function validateRelationshipJournal() {
+    const originalGetFlag = GameManager.getFlag;
+    const flags = new Map();
+    GameManager.getFlag = flag => flags.get(flag);
+
+    try {
+        if (storyJournalManager.getRelationshipRecords().length !== 0) {
+            error('relationship-journal', 'Character records appear before their mainline introduction');
+        }
+
+        const actorId = 'herbalist';
+        const contract = MainlineCharacterContracts[actorId];
+        const profile = CharacterProfileDatabase[actorId];
+        flags.set(`story.scene.${contract.introductionSceneId}.complete`, true);
+
+        let records = storyJournalManager.getRelationshipRecords();
+        const initial = records.find(record => record.relationship?.npcId === actorId);
+        if (!initial) error('relationship-journal', 'Introduced character is missing from the journal');
+        if (initial && ('talkCount' in initial.relationship || 'depth' in initial.relationship)) {
+            error('relationship-journal', 'Relationship journal restored talk-count familiarity state');
+        }
+
+        const laterStage = profile.stages.find(stage => stage.fromFlag);
+        flags.set(laterStage.fromFlag, true);
+        records = storyJournalManager.getRelationshipRecords();
+        const progressed = records.find(record => record.relationship?.npcId === actorId);
+        if (progressed?.relationship?.stage?.id !== laterStage.id) {
+            error('relationship-journal', 'Accepted character-stage flag did not advance the journal record');
+        }
+        if (!(progressed?.sections || []).some(section =>
+            (section.lines || []).some(line => String(line).includes(laterStage.label))
+        )) {
+            error('relationship-journal', 'Unlocked character stage is absent from the journal presentation');
+        }
+    } finally {
+        GameManager.getFlag = originalGetFlag;
+    }
+}
+
 function validateStoryObjectiveHints() {
     for (const sceneId of StorySceneOrder) {
         const hint = getStoryObjectiveHint(sceneId);
@@ -578,6 +651,7 @@ function validateStoryObjectiveHints() {
 
 validateScenes();
 validateMainlineCharacterContracts();
+validateRelationshipJournal();
 validateOptionalSideStories();
 validateRegions();
 validateStoryEncounterContracts();
@@ -592,6 +666,7 @@ console.log('Story runtime summary:');
 console.log(`- screenplay scenes: ${StorySceneOrder.length}`);
 console.log(`- closed expressions: ${StoryExpressionIds.length}`);
 console.log(`- core mainline character contracts: ${Object.keys(MainlineCharacterContracts).length}`);
+console.log('- relationship journal authority: mainline introduction + character-stage flags');
 console.log(`- approved personal side stories pending production: ${OptionalSideStoryRegistry.length}`);
 console.log(`- chapter regions: ${ChapterRegionOrder.length}`);
 console.log(`- mainline encounter contracts: ${Object.keys(StoryEncounterContracts).length}`);

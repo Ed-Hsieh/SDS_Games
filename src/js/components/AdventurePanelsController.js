@@ -1,5 +1,6 @@
 import GameManager from '../managers/GameManager.js';
-import { questManager, QuestStatus } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
+import { questManager } from '../managers/QuestManager.js';
+import { QuestStatus } from '../data/Quests.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
 import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
@@ -246,7 +247,7 @@ export default class AdventurePanelsController {
         const inventory = GameManager.getInventory() || [];
         const character = GameManager.getCharacter();
         if (this.inventoryCapacity) {
-            this.inventoryCapacity.textContent = `${inventory.length} / ${GameManager.state.inventoryCapacity || inventory.length}`;
+            this.inventoryCapacity.textContent = `${inventory.length} / ${GameManager.getInventoryCapacity() || inventory.length}`;
         }
 
         if (this.equipmentSummary) {
@@ -265,7 +266,7 @@ export default class AdventurePanelsController {
         if (!inventory.some(stack => stack.instanceId === this.selectedInstanceId)) {
             this.selectedInstanceId = inventory[0]?.instanceId || null;
         }
-        const capacity = Math.max(5, Number(GameManager.state.inventoryCapacity) || inventory.length || 5);
+        const capacity = Math.max(5, GameManager.getInventoryCapacity() || inventory.length || 5);
         const slotCount = Math.ceil(Math.max(capacity, inventory.length) / 5) * 5;
         const slots = Array.from({ length: slotCount }, (_, index) => inventory[index] || null);
         this.inventoryList.innerHTML = slots.map(stack => {

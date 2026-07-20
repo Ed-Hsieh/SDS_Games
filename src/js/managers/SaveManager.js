@@ -2,7 +2,7 @@ import { CharacterManager } from '../models/DataModel.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { cloneData } from '../models/ItemSchema.js';
 
-export const SAVE_SCHEMA_VERSION = 6;
+export const SAVE_SCHEMA_VERSION = 7;
 export const SAVE_FILE_BASENAME = 'sds-save';
 export const LOCAL_SAVE_KEY = 'sds:save';
 export const LOCAL_BACKUP_KEY = 'sds:save:backup';
@@ -102,6 +102,12 @@ function hydrateCharacter(characterData) {
 
     delete data.equipment;
     delete data.skills;
+    if (data.hp === undefined && data.currentHP !== undefined) data.hp = data.currentHP;
+    if (data.exp === undefined && data.currentEXP !== undefined) data.exp = data.currentEXP;
+    if (data.maxExp === undefined && data.maxEXP !== undefined) data.maxExp = data.maxEXP;
+    delete data.currentHP;
+    delete data.currentEXP;
+    delete data.maxEXP;
     ['_m' + 'p', '_maxM' + 'p', 'm' + 'p', 'maxM' + 'p', 'currentM' + 'P'].forEach(key => {
         delete data[key];
     });
@@ -177,92 +183,6 @@ export function hydrateGameState(gameData, createInitialState) {
     };
 }
 
-/**
- * Sequential save migrations. Key N upgrades schemaVersion N -> N+1.
- * Each migration receives the whole save envelope and mutates/returns it.
- */
-const SaveMigrations = {
-    // v1 -> v2: backfill envelope fields and default flags so old saves
-    // hydrate without undefined holes.
-    1(saveData) {
-        const game = saveData.game || {};
-        game.flags = { secretShopUnlocked: false, ...(game.flags || {}) };
-        game.inventory = Array.isArray(game.inventory) ? game.inventory : [];
-        game.warehouse = Array.isArray(game.warehouse) ? game.warehouse : [];
-        game.inventoryCapacity = readPositiveNumber(game.inventoryCapacity, 10);
-        saveData.game = game;
-        saveData.systems = saveData.systems && typeof saveData.systems === 'object' ? saveData.systems : {};
-        return saveData;
-    },
-
-    // v2 -> v3: remove obsolete main_016+ quest states left by the old
-    // prototype main-line before the story was consolidated into 3 chapters.
-    2(saveData) {
-        const obsoleteMainIds = new Set(Array.from({ length: 10 }, (_, index) => `main_${String(index + 16).padStart(3, '0')}`));
-        const questStates = saveData?.systems?.quests?.questStates;
-        if (questStates && typeof questStates === 'object') {
-            for (const questId of obsoleteMainIds) {
-                delete questStates[questId];
-            }
-        }
-        return saveData;
-    },
-
-    // v3 -> v4: add material-crafted backpack progression.
-    3(saveData) {
-        const game = saveData.game || {};
-        const capacity = readPositiveNumber(game.inventoryCapacity, 10);
-        game.inventoryUpgradeLevel = readPositiveNumber(
-            game.inventoryUpgradeLevel,
-            capacity >= 22 ? 4 : capacity >= 19 ? 3 : capacity >= 16 ? 2 : capacity >= 13 ? 1 : 0
-        );
-        game.inventoryCapacity = Math.max(10, capacity);
-        saveData.game = game;
-        return saveData;
-    },
-
-    // v4 -> v5: add rechargeable adventure fatigue used for map movement.
-    4(saveData) {
-        const game = saveData.game || {};
-        game.adventureFatigue = game.adventureFatigue && typeof game.adventureFatigue === 'object'
-            ? game.adventureFatigue
-            : { current: 20, lastRecoveredAt: Date.now() };
-        saveData.game = game;
-        return saveData;
-    },
-
-    // v5 -> v6: fatigue was removed from exploration and from the HUD.
-    5(saveData) {
-        const game = saveData.game || {};
-        delete game.adventureFatigue;
-        saveData.game = game;
-        return saveData;
-    }
-};
-
-function runSaveMigrations(saveData) {
-    let version = Number(saveData.schemaVersion) || 1;
-    if (version > SAVE_SCHEMA_VERSION) {
-        throw new Error(`Save schema v${version} is newer than supported v${SAVE_SCHEMA_VERSION}.`);
-    }
-
-    const applied = [];
-    while (version < SAVE_SCHEMA_VERSION) {
-        const migrate = SaveMigrations[version];
-        if (typeof migrate === 'function') {
-            saveData = migrate(saveData) || saveData;
-            applied.push(version);
-        }
-        version += 1;
-        saveData.schemaVersion = version;
-    }
-
-    if (applied.length > 0) {
-        console.info(`[SaveManager] Migrated save schema: ${applied.map(v => `v${v}->v${v + 1}`).join(', ')}`);
-    }
-    return saveData;
-}
-
 function validateSaveShape(saveData) {
     if (!saveData || typeof saveData !== 'object') throw new Error('Save data must be an object.');
     if (!saveData.game || typeof saveData.game !== 'object') throw new Error('Save data is missing "game".');
@@ -279,17 +199,10 @@ function normalizeSaveData(rawData) {
     if (!parsed || typeof parsed !== 'object') {
         throw new Error('Save data must be a JSON object.');
     }
-
-    const envelope = parsed.schemaVersion && parsed.game
-        ? parsed
-        : {
-            schemaVersion: Number(parsed.schemaVersion) || 1,
-            savedAt: parsed.savedAt || null,
-            game: parsed.game || parsed.state || parsed,
-            systems: parsed.systems || {}
-        };
-
-    return validateSaveShape(runSaveMigrations(envelope));
+    if (Number(parsed.schemaVersion) !== SAVE_SCHEMA_VERSION) {
+        throw new Error(`Save schema v${parsed.schemaVersion ?? 'unknown'} is incompatible with v${SAVE_SCHEMA_VERSION}.`);
+    }
+    return validateSaveShape(parsed);
 }
 
 function getLocalStorage() {

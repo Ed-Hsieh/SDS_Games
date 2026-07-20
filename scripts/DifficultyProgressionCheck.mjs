@@ -13,7 +13,6 @@ import {
     FirstRunMonsterRosters
 } from '../src/js/data/MonsterEcology.js';
 import {
-    FirstRunMonsterCombatBalance,
     getLevelExperienceRequirement
 } from '../src/js/data/MonsterProgressionBalance.js';
 import { getMonsterCombatRank } from '../src/js/data/CombatBalance.js';
@@ -33,7 +32,6 @@ const check = (condition, message) => {
 const mainBossIds = new Set(Object.values(FirstRunMonsterRosters).map(roster => roster.mandatoryBossId));
 const routeBossIds = new Set(Object.values(FirstRunMonsterRosters).flatMap(roster => roster.optionalBossIds));
 const formalIds = [...new Set(Object.values(FirstRunMonsterRosters).flatMap(roster => roster.monsterIds))];
-const directMonsterDataIds = new Set(FirstRunMonsterRosters[1].monsterIds);
 
 function findItem(itemId) {
     if (!itemId) return null;
@@ -116,19 +114,11 @@ function estimateMatchup(character, monsterId) {
 
 for (const monsterId of formalIds) {
     const monster = MonsterDatabase[monsterId];
-    const balance = FirstRunMonsterCombatBalance[monsterId];
     check(Boolean(monster), `Missing formal monster ${monsterId}`);
-    if (directMonsterDataIds.has(monsterId)) {
-        check(!balance, `${monsterId} returned to the load-time combat override table`);
-    } else {
-        check(Boolean(balance), `Missing combat balance for ${monsterId}`);
-    }
-    if (!monster || (!balance && !directMonsterDataIds.has(monsterId))) continue;
+    if (!monster) continue;
     check(monster.level === FirstRunMonsterFixedLevels[monsterId], `${monsterId} lost its fixed level`);
-    if (balance) {
-        for (const key of ['maxHp', 'attack', 'defense', 'attackSpeed', 'exp', 'gold']) {
-            check(monster[key] === balance[key], `${monsterId}.${key} does not match the migration balance table`);
-        }
+    for (const key of ['maxHp', 'attack', 'defense', 'attackSpeed', 'exp', 'gold']) {
+        check(Number.isFinite(monster[key]) && monster[key] >= 0, `${monsterId}.${key} is not a canonical numeric value`);
     }
     check(monster.hp === monster.maxHp, `${monsterId} does not start at full health`);
 

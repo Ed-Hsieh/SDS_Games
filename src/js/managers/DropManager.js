@@ -7,20 +7,11 @@ import { ZoneDropPools, DungeonDropPools, MonsterUniqueDrops } from '../data/Dro
 import { DropSourceType } from '../models/Enums.js';
 import { weightedPick } from '../utils/WeightedPick.js';
 
-// Pool helpers (kept in manager so data file stays logic-free)
-export function registerZonePool(zoneId, pool) {
-    ZoneDropPools[zoneId] = pool;
-}
-
-export function registerDungeonPool(dungeonId, pool) {
-    DungeonDropPools[dungeonId] = pool;
-}
-
-export function getZonePool(zoneId) {
+function getZonePool(zoneId) {
     return ZoneDropPools[zoneId] || null;
 }
 
-export function getDungeonPool(dungeonId) {
+function getDungeonPool(dungeonId) {
     return DungeonDropPools[dungeonId] || null;
 }
 
@@ -74,12 +65,6 @@ function rollFromEntries(entries, defaultQuantity = [1, 1], rng = Math.random, c
     if (!picked) return null;
     const qty = resolveQuantity(picked.quantity != null ? picked.quantity : defaultQuantity, rng);
     return { itemId: picked.id || picked.itemId || picked.equipmentId, quantity: qty };
-}
-
-// Legacy helper kept for compatibility with DropPools pool objects
-export function rollFromPool(pool, rng = Math.random) {
-    if (!pool || !pool.items || pool.items.length === 0) return null;
-    return rollFromEntries(pool.items, pool.defaultQuantity || [1, 1], rng);
 }
 
 // Resolve drop sources from context (monster, zoneId, dungeonId)
@@ -190,19 +175,20 @@ export function generateDropsFromSources(sources = [], options = {}) {
     return drops;
 }
 
-/**
- * Compatibility wrapper: resolve + generate in one call (used by existing code)
- */
-export function generateDrops(options = {}) {
-    const { monster = null, zoneId = null, dungeonId = null, rng = Math.random, zoneWeight = 0.8, dungeonWeight = 0.15, dropBonus = 0 } = options;
-    const sources = resolveDropSources({ monster, zoneId, dungeonId });
-    return generateDropsFromSources(sources, { rng, zoneWeight, dungeonWeight, dropBonus });
-}
-
-/**
- * Legacy-friendly wrapper: calculateDrops(monster, { zoneId, dungeonId })
- */
 export function calculateDrops(monster, options = {}) {
-    const { zoneId = null, dungeonId = null, rng = Math.random } = options;
-    return generateDrops({ monster, zoneId, dungeonId, rng });
+    const {
+        zoneId = null,
+        dungeonId = null,
+        rng = Math.random,
+        zoneWeight = 0.8,
+        dungeonWeight = 0.15,
+        dropBonus = 0
+    } = options;
+    const sources = resolveDropSources({ monster, zoneId, dungeonId });
+    return generateDropsFromSources(sources, {
+        rng,
+        zoneWeight,
+        dungeonWeight,
+        dropBonus
+    });
 }

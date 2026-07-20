@@ -3,13 +3,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { CasinoPrizePools, getCasinoPrizePools, resolveCasinoRewardItem } from '../src/js/data/CasinoRewards.js';
-import { CasinoRouteFramework, CasinoShowcaseRouteFrame } from '../src/js/data/CasinoRouteFramework.js';
-import {
-    ChapterQuestFramework,
-    ChapterQuestPausedSystems,
-    LevelBandQuestFramework,
-    SecondRunExternalBossFramework
-} from '../src/js/data/ChapterQuestFramework.js';
 import { DungeonDatabase } from '../src/js/data/Dungeons.js';
 import { EventDatabase, EventRole } from '../src/js/data/Events.js';
 import {
@@ -121,7 +114,7 @@ function auditSharedSystems() {
         'src/js/managers/SaveManager.js',
         'src/js/managers/QuestManager.js',
         'src/js/managers/WorldInteractionManager.js',
-        'src/js/managers/EventManager.js',
+        'src/js/data/Events.js',
         'src/js/managers/DungeonManager.js',
         'src/js/managers/CasinoManager.js',
         'src/js/managers/EquipmentEffectResolver.js',
@@ -715,95 +708,6 @@ function auditMasterScreenplay() {
     }, {});
 }
 
-function auditChapterQuestFramework() {
-    if (!Array.isArray(ChapterQuestFramework) || ChapterQuestFramework.length !== 7) {
-        addIssue('chapter-framework', 'Chapter quest framework must cover seven Lv1-Lv70 chapters.', {
-            chapters: ChapterQuestFramework.length
-        });
-    }
-
-    if (!Array.isArray(LevelBandQuestFramework) || LevelBandQuestFramework.length !== 7) {
-        addIssue('chapter-framework', 'Level band framework must cover seven 10-level bands.', {
-            levelBands: LevelBandQuestFramework.length
-        });
-    }
-
-    const sorted = [...ChapterQuestFramework].sort((a, b) => a.levelRange[0] - b.levelRange[0]);
-    if (sorted[0]?.levelRange?.[0] !== 1 || sorted.at(-1)?.levelRange?.[1] !== 70) {
-        addIssue('chapter-framework', 'Chapter quest framework does not cover Lv1-Lv70 cleanly.', {
-            first: sorted[0]?.levelRange,
-            last: sorted.at(-1)?.levelRange
-        });
-    }
-
-    for (let index = 1; index < sorted.length; index += 1) {
-        const previous = sorted[index - 1];
-        const current = sorted[index];
-        if (previous.levelRange[1] + 1 !== current.levelRange[0]) {
-            addIssue('chapter-framework', 'Chapter level ranges have a gap or overlap.', {
-                previous: previous.id,
-                previousRange: previous.levelRange,
-                current: current.id,
-                currentRange: current.levelRange
-            });
-        }
-    }
-
-    if (ChapterQuestPausedSystems.combat?.status !== 'paused') {
-        addIssue('chapter-framework', 'Combat must remain paused during the town rebuild framework pass.');
-    }
-    if (ChapterQuestPausedSystems.tower?.status !== 'paused') {
-        addIssue('chapter-framework', 'Tower must remain paused during the town rebuild framework pass.');
-    }
-
-    if (SecondRunExternalBossFramework?.requiredForTrueEnding !== false) {
-        addIssue('external-boss-framework', 'Second-run external Bosses must not gate the true ending.');
-    }
-    if (SecondRunExternalBossFramework?.status !== 'paused' || !SecondRunExternalBossFramework?.resumeGate) {
-        addIssue('external-boss-framework', 'External Boss expansion must stay paused behind the first-run completion gate.', {
-            status: SecondRunExternalBossFramework?.status,
-            resumeGate: SecondRunExternalBossFramework?.resumeGate
-        });
-    }
-    if (SecondRunExternalBossFramework?.unlock !== 'first_run_false_ending_achievement') {
-        addIssue('external-boss-framework', 'External Boss routes must unlock from the first-run false ending.', {
-            unlock: SecondRunExternalBossFramework?.unlock
-        });
-    }
-    if (!Array.isArray(SecondRunExternalBossFramework?.tracks) || SecondRunExternalBossFramework.tracks.length < 5) {
-        addIssue('external-boss-framework', 'External Boss framework must retain the accepted five route families.', {
-            tracks: SecondRunExternalBossFramework?.tracks?.length || 0
-        });
-    }
-
-    summary.chapterFrameworks = ChapterQuestFramework.length;
-    summary.levelBandFrameworks = LevelBandQuestFramework.length;
-    summary.secondRunExternalBossTracks = SecondRunExternalBossFramework?.tracks?.length || 0;
-}
-
-function auditCasinoRouteFramework() {
-    if (!Array.isArray(CasinoRouteFramework) || CasinoRouteFramework.length < 6) {
-        addIssue('casino-framework', 'Casino route framework must include the full showcase-owner route.', {
-            stages: CasinoRouteFramework.length
-        });
-    }
-
-    const stageIds = new Set(CasinoRouteFramework.map(stage => stage.id));
-    for (const stageId of ['showcase_inspection', 'owner_contract', 'final_showcase_choice']) {
-        if (!stageIds.has(stageId)) {
-            addIssue('casino-framework', 'Casino route framework is missing a required stage.', { stageId });
-        }
-    }
-
-    if (CasinoShowcaseRouteFrame.routeId !== 'vesper_showcase_route') {
-        addIssue('casino-framework', 'Casino showcase quest frame must keep the planned quest id.', {
-            routeId: CasinoShowcaseRouteFrame.routeId
-        });
-    }
-
-    summary.casinoRouteStages = CasinoRouteFramework.length;
-}
-
 function auditStoryRebuildPlan() {
     if (StoryRebuildFoundation.mode !== 'reset_content_keep_systems') {
         addIssue('story-rebuild-plan', 'Story rebuild mode must keep the accepted clean-reset policy.', {
@@ -843,8 +747,6 @@ function auditDataBacklog() {
     const dataFiles = [
         'AGENTS.md',
         'src/js/data/StoryRebuildPlan.js',
-        'src/js/data/ChapterQuestFramework.js',
-        'src/js/data/CasinoRouteFramework.js',
         'src/js/data/QuestStories.js',
         'src/js/data/StoryActors.js',
         'src/js/data/StorySceneRegistry.js',
@@ -867,8 +769,6 @@ auditPassiveCombatEffects();
 auditTownAndPlaces();
 auditFrameworkDocs();
 auditMasterScreenplay();
-auditChapterQuestFramework();
-auditCasinoRouteFramework();
 auditStoryRebuildPlan();
 auditDataBacklog();
 

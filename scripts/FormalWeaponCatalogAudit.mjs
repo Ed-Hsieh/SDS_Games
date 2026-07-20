@@ -3,6 +3,7 @@ import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
 import { MonsterDatabase, TowerMonsterData } from '../src/js/data/Monsters.js';
 import { DefaultKnownRecipeIds, getRecipeDiscovery } from '../src/js/data/RecipeDiscoveries.js';
+import { getRecipeSeriesForRecipe } from '../src/js/data/RecipeSeries.js';
 
 const FORMS = ['sword', 'dagger', 'heavy', 'lance', 'focus'];
 const ELEMENTS = ['fire', 'ice', 'thunder', 'poison'];
@@ -47,7 +48,7 @@ function collectWeapons() {
         }));
     }
 
-    // RecipeDatabase already contains SeriesRecipeDatabase via Object.assign.
+    // RecipeDatabase is the final composed catalog, including the baseline series recipes.
     for (const recipe of Object.values(RecipeDatabase)) {
         if (String(recipe.result?.type || recipe.type).toLowerCase() !== 'weapon') continue;
         addRecord(byId, makeRecord(recipe.result, {
@@ -131,6 +132,7 @@ function classifyScope(id, effects, sources) {
 function classifyBlueprintAccess(recipe, sources) {
     if (!recipe) return 'not-applicable';
     if (DefaultKnownRecipeIds.includes(recipe.id)) return 'default-known';
+    if (getRecipeSeriesForRecipe(recipe.id)?.unlockSceneId) return 'scene-unlock';
     if (getRecipeDiscovery(recipe.id)?.interactionId) return 'discovery';
     return sources.length > 0 ? 'drop' : 'missing';
 }

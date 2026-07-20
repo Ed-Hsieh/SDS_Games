@@ -7,16 +7,28 @@
  */
 
 export const ChapterOneProgressFlag = Object.freeze({
-    GEAR_READY: 'story.ch1.gear_ready',
-    GEAR_READY_SOURCE: 'story.ch1.gear_ready_source',
-    CORE_MATERIALS_SECURED: 'story.ch1.core_craft_materials_secured',
     MANTIS_RECOVERY_CLAIMED: 'story.ch1.mantis_recovery_claimed',
-    ROTROOT_COMPLETE: 'story.ch1.rotroot_trials_complete',
     ROTROOT_ELITE_CLEARED: 'story.ch1.rotroot_elite_cleared',
     ROTROOT_SALVAGE_CLAIMED: 'story.ch1.rotroot_salvage_claimed',
     HOME_RECOVERY_KNOWN: 'tutorial.adventure.homeRecoveryKnown',
     FIRST_REPORT_PENDING: 'story.ch1.first_report_pending',
     FIRST_REPORT_COMPLETE: 'story.ch1.first_report_complete'
+});
+
+export const AdventureOnboardingStep = Object.freeze({
+    QUEST: 'quest',
+    INVENTORY: 'inventory',
+    MOVEMENT: 'movement'
+});
+
+export const AdventureOnboardingFlag = Object.freeze({
+    [AdventureOnboardingStep.QUEST]: 'tutorial.adventure.questOpened',
+    [AdventureOnboardingStep.INVENTORY]: 'tutorial.adventure.inventoryOpened',
+    [AdventureOnboardingStep.MOVEMENT]: 'tutorial.adventure.wasdMoved'
+});
+
+export const ChapterOneRequirement = Object.freeze({
+    QUALIFYING_GEAR_OWNED: 'chapter1.qualifying_gear_owned'
 });
 
 const investigation = config => Object.freeze({
@@ -174,7 +186,6 @@ export function readChapterOneObjectiveContext(readFlag) {
         chapterOneInvestigations: Object.fromEntries(
             ChapterOneInvestigationOrder.map(id => [id, getChapterOneInvestigationState(id, readFlag)])
         ),
-        chapterOneGearReady: Boolean(readFlag(ChapterOneProgressFlag.GEAR_READY)),
         chapterOneRotrootTrialId: getNextChapterOneRotrootTrial(readFlag)?.id || null,
         chapterOneHomeRecoveryKnown: Boolean(readFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)),
         chapterOneFirstReportPending: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING)),

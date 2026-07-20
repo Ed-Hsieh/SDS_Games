@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { ChapterRegionRegistry } from '../src/js/data/ChapterRegionRegistry.js';
+import { getGeneratedAssetIds } from '../src/js/data/AssetManifest.js';
 import { CasinoSpecialItems } from '../src/js/data/CasinoRewards.js';
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import { CombatEffectAssetRequirements } from '../src/js/data/CombatEffectAssetRequirements.js';
@@ -14,8 +15,8 @@ import { RewardItemDatabase } from '../src/js/data/RewardItems.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { RecipeSeriesDatabase } from '../src/js/data/RecipeSeries.js';
 import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
-import { WorldLandmarks } from '../src/js/data/WorldStories.js';
 import { OverworldMapConfig } from '../src/js/data/OverworldMapRegistry.js';
+import { StoryActorRegistry, StoryExpressionCoverage } from '../src/js/data/StoryActors.js';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const runtimeRoot = path.join(rootDir, 'src/assets/images/art');
@@ -55,6 +56,17 @@ function collectNestedIds(value, ids = new Set()) {
 
 const dungeonMonsterIds = new Set(Object.values(DungeonDatabase)
     .flatMap(dungeon => [...collectNestedIds(dungeon.monsters)]));
+const dialogueLayers = new Set();
+for (const [actorId, actor] of Object.entries(StoryActorRegistry)) {
+    for (const assetPath of [actor.standing, actor.portrait]) {
+        if (assetPath?.startsWith('src/assets/images/art/characters/dialogue/')) {
+            dialogueLayers.add(assetPath.replace('src/assets/images/art/', ''));
+        }
+    }
+    for (const expression of StoryExpressionCoverage[actorId] || []) {
+        dialogueLayers.add(`characters/dialogue/${actorId}/${expression}-standing.webp`);
+    }
+}
 
 const active = {
     equipment: new Set(Object.keys(EquipmentDatabase).filter(id => !id.startsWith('tower_'))),
@@ -71,24 +83,32 @@ const active = {
         ...Object.keys(MonsterDatabase),
         ...dungeonMonsterIds
     ]),
-    portraits: new Set(Object.keys(CharacterProfileDatabase)),
-    townLocations: new Set(TownPlaceDatabase.map(place => place.id)),
-    dungeons: new Set(Object.keys(DungeonDatabase).map(id => `dungeon_${id}`)),
+    portraits: new Set([
+        ...Object.keys(CharacterProfileDatabase),
+        ...getGeneratedAssetIds('portraits')
+    ]),
+    dialogueLayers,
+    townLocations: new Set([
+        ...TownPlaceDatabase.map(place => place.id),
+        ...getGeneratedAssetIds('townLocations')
+    ]),
+    dungeons: new Set([
+        ...Object.keys(DungeonDatabase).map(id => `dungeon_${id}`),
+        ...getGeneratedAssetIds('dungeonAreas')
+    ]),
     landmarks: new Set([
+        ...getGeneratedAssetIds('worldLandmarks'),
         ...Object.values(ChapterRegionRegistry)
             .flatMap(region => region.locationNodes || [])
-            .map(location => location.legacyLandmarkId)
+            .map(location => location.imageId)
             .filter(Boolean),
-        ...WorldLandmarks.map(landmark => landmark.id),
         ...OverworldMapConfig.routeGates.flatMap(gate => [gate.blockedImageId, gate.repairedImageId])
     ]),
-    worldMaps: new Set(OverworldMapConfig.tiles.map(tile => tile.imageId)),
-    backgrounds: new Set([
-        'town-overview',
-        'casino-hall',
-        'casino-game-table',
-        'casino-prize-wall'
+    worldMaps: new Set([
+        ...OverworldMapConfig.tiles.map(tile => tile.imageId),
+        ...getGeneratedAssetIds('worldMaps')
     ]),
+    backgrounds: new Set(getGeneratedAssetIds('backgrounds')),
     combatEffects: new Set(CombatEffectAssetRequirements.map(requirement => requirement.id))
 };
 
@@ -163,6 +183,12 @@ function classifyRuntime(relativePath) {
         return active.portraits.has(id)
             ? { status: 'assigned', owner: 'active-character' }
             : { status: 'orphan', reason: 'reserve character is not in the active screenplay register' };
+    }
+
+    if (relativePath.startsWith('characters/dialogue/')) {
+        return active.dialogueLayers.has(relativePath)
+            ? { status: 'assigned', owner: 'story-expression-layer' }
+            : { status: 'orphan', reason: 'dialogue layer is not registered by StoryActors' };
     }
 
     if (relativePath.startsWith('characters/reserve/')) {

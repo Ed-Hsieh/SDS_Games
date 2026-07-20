@@ -148,8 +148,10 @@ const ART_READY = Object.freeze({
         'treant', 'vine_beast', 'void_walker', 'wild_wolf', 'wyvern'
     ]),
     townLocations: readySet([
-        'alley', 'casino', 'civic-room-working', 'crossroads', 'forge', 'gate',
-        'gate-working', 'handbook', 'market', 'market-closed', 'market-sparse'
+        'alley', 'casino', 'civic-room-working', 'crossroads',
+        'crossroads-broken', 'crossroads-recovery-1', 'forge', 'forge-cold',
+        'gate', 'gate-broken', 'gate-working', 'handbook', 'market',
+        'market-closed', 'market-sparse'
     ]),
     dungeonAreas: readySet([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle',
@@ -162,7 +164,8 @@ const ART_READY = Object.freeze({
         'northern_drake_watch', 'obsidian_keep_gate', 'old_campfire_site',
         'old_wolf_den', 'opened_ancient_tomb', 'rotroot_bridge_blocked',
         'rotroot_bridge_repaired', 'rotroot_ravine', 'silver_snare_pass',
-        'south_gate_farmland', 'sunken_altar_reef', 'thorn_glasshouse_ruin'
+        'south_gate_farmland', 'south-road-broken', 'sunken_altar_reef',
+        'thorn_glasshouse_ruin'
     ]),
     worldMaps: readySet([
         'overworld_evacuation_basin', 'overworld_south_gate'
@@ -217,6 +220,11 @@ function readyAssetPath(category, id) {
 
 export function getGeneratedAssetPath(category, id) {
     return readyAssetPath(category, id) || assetPath(category, id);
+}
+
+export function getGeneratedAssetIds(category) {
+    const normalizedCategory = normalizeCategory(category);
+    return [...(ART_READY[normalizedCategory] || [])];
 }
 
 export function getGeneratedTownPlaceImage(placeId) {

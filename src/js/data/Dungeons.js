@@ -982,8 +982,8 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
     
     // 根據樓層調整屬性
     const floorMultiplier = 1 + (floor - 1) * 0.15;
-    const attack = Math.floor((monster.attack ?? monster.atk ?? 0) * floorMultiplier);
-    const defense = Math.floor((monster.defense ?? monster.def ?? 0) * floorMultiplier);
+    const attack = Math.floor((monster.attack ?? 0) * floorMultiplier);
+    const defense = Math.floor((monster.defense ?? 0) * floorMultiplier);
     const level = Math.max(1, (Number(dungeon.recommendLevel) || 1) + floor - 1 + (isElite ? 2 : 0));
     
     return {
@@ -993,8 +993,6 @@ export function generateDungeonMonster(dungeonType, floor, isElite = false) {
         maxHp: Math.floor(monster.hp * floorMultiplier),
         attack,
         defense,
-        atk: attack,
-        def: defense,
         exp: Math.floor(monster.exp * floorMultiplier),
         gold: monster.gold.map(g => Math.floor(g * floorMultiplier))
     };
@@ -1008,8 +1006,8 @@ export function generateDungeonBoss(dungeonType, floor = 1) {
     if (!dungeon) return null;
     const boss = dungeon.monsters.boss;
     const floorMultiplier = 1 + (Math.max(1, Number(floor) || 1) - 1) * 0.15;
-    const attack = boss.attack ?? boss.atk ?? 0;
-    const defense = boss.defense ?? boss.def ?? 0;
+    const attack = boss.attack ?? 0;
+    const defense = boss.defense ?? 0;
     const scaledAttack = Math.floor(attack * floorMultiplier);
     const scaledDefense = Math.floor(defense * floorMultiplier);
     const scaledHp = Math.floor((boss.hp ?? boss.maxHp ?? 1) * floorMultiplier);
@@ -1022,8 +1020,6 @@ export function generateDungeonBoss(dungeonType, floor = 1) {
         maxHp: scaledHp,
         attack: scaledAttack,
         defense: scaledDefense,
-        atk: scaledAttack,
-        def: scaledDefense,
         isBoss: true
     };
 }

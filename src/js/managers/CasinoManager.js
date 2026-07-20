@@ -5,6 +5,8 @@
  */
 import GameManager from './GameManager.js';
 import { markItemKnown } from './EncyclopediaManager.js';
+import { questManager } from './QuestManager.js';
+import { ObjectiveType } from '../data/Quests.js';
 import {
     CasinoRewardRarityText,
     CasinoRewardTierOrder,
@@ -402,17 +404,16 @@ export default class CasinoManager {
     }
 
     hasStoredItem(itemId) {
-        const readId = stack => stack?.item?.id || stack?.id;
-        const inventory = GameManager.state?.inventory || [];
-        const warehouse = GameManager.state?.warehouse || [];
-        return [...inventory, ...warehouse].some(stack => readId(stack) === itemId);
+        return GameManager.getItemCountAcrossStorage(itemId) > 0;
     }
 
     getDarkTableRiskSnapshot(bet = 80) {
         const safeBet = Math.max(80, Math.min(800, Math.floor(Number(bet) || 80)));
         const character = GameManager.getCharacter?.();
-        const maxHp = Math.max(1, Math.floor(Number(character?.maxHp ?? character?.maxHP ?? 120) || 120));
-        const rawHp = Math.floor(Number(character?.hp ?? character?.currentHP ?? maxHp) || maxHp);
+        const numericMaxHp = Number(character?.maxHp);
+        const maxHp = Math.max(1, Math.floor(Number.isFinite(numericMaxHp) ? numericMaxHp : 120));
+        const numericHp = Number(character?.hp);
+        const rawHp = Math.floor(Number.isFinite(numericHp) ? numericHp : maxHp);
         const hp = Math.max(0, Math.min(maxHp, rawHp));
         const damage = Math.min(Math.max(8, Math.floor(maxHp * 0.16)), Math.max(0, hp - 1));
         const luckLift = Math.max(0, this.getLuckBonus() - 1);
@@ -510,15 +511,14 @@ export default class CasinoManager {
             this.stats.darkTableLosses = (this.stats.darkTableLosses || 0) + 1;
             this.stats.houseAttention = Math.min(100, (this.stats.houseAttention || 0) + 6);
             const character = GameManager.getCharacter?.();
-            const currentHp = Number(character?.hp ?? character?.currentHP ?? maxHp) || maxHp;
+            const numericHp = Number(character?.hp);
+            const currentHp = Number.isFinite(numericHp) ? numericHp : maxHp;
             hpBefore = Math.max(0, Math.min(maxHp, Math.floor(currentHp)));
             damage = Math.min(risk.damage, Math.max(0, hpBefore - 1));
             this.stats.darkTableBloodPaid = (this.stats.darkTableBloodPaid || 0) + damage;
             hpAfter = Math.max(1, hpBefore - damage);
             if (character && damage > 0) {
-                character.hp = hpAfter;
-                character.currentHP = character.hp;
-                GameManager.notify?.('all');
+                GameManager.setCharacterHealth(hpAfter, { reason: 'casino-dark-table' });
             }
         }
 
@@ -723,6 +723,16 @@ export default class CasinoManager {
 
         if (chipReward > 0) this.addChips(chipReward, 'win');
         if (ticketReward > 0) this.addTickets(ticketReward, 'game');
+        if (isJackpot && game === CasinoGame.SLOTS) questManager.updateStats('jackpot');
+        if (safeWinnings > 0) {
+            questManager.updateProgress(ObjectiveType.GAMBLE_WIN, game, 1);
+            questManager.updateProgress(ObjectiveType.GAMBLE_PROFIT, 'any', netGain);
+            questManager.updateStats('gamble_win');
+            if (game === CasinoGame.DARK_TABLE) questManager.updateStats('dark_table_win');
+        } else {
+            questManager.updateStats('gamble_loss');
+            if (game === CasinoGame.DARK_TABLE) questManager.updateStats('dark_table_loss');
+        }
         GameManager.markSaveDirty?.('casino-game-outcome');
         return {
             chipReward,
@@ -1079,6 +1089,8 @@ export default class CasinoManager {
         }
 
         const deepEvent = this.recordPrizeOutcome(pool, reward, granted);
+        questManager.updateStats('casino_prize_draw');
+        if (reward.rarity === 'legendary') questManager.updateStats('jackpot');
 
         GameManager.markSaveDirty?.('casino-prize-draw');
 

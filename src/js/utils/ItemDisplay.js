@@ -356,8 +356,8 @@ export function buildItemStatEntries(item, options = {}) {
         });
     };
 
-    push('atk', equipmentStats ? equipmentStats.atk : readDisplayStat(item, 'atk', ['attack']));
-    push('def', equipmentStats ? equipmentStats.def : readDisplayStat(item, 'def', ['defense']));
+    push('atk', equipmentStats ? equipmentStats.attack : readDisplayStat(item, 'attack'));
+    push('def', equipmentStats ? equipmentStats.defense : readDisplayStat(item, 'defense'));
 
     if (equipmentStats && equipmentStats.durability !== null) {
         const durability = equipmentStats.durability;

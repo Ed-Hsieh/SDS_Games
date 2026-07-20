@@ -2,23 +2,22 @@
  * main.js
  * Entry point for the SPA. Handles scene switching.
  */
-import LobbyScene from './scenes/LobbyScene.js?v=codex-runtime-20260719g';
-import ShopScene from './scenes/ShopScene.js?v=scene-assets-20260629c';
-import CasinoScene from './scenes/CasinoScene.js?v=scene-assets-20260629c';
-import ForgeScene from './scenes/ForgeScene.js?v=codex-runtime-20260719c';
-import QuestScene from './scenes/QuestScene.js?v=chapter1-art-20260713a';
-import EncyclopediaScene from './scenes/EncyclopediaScene.js?v=codex-runtime-20260719c';
-import { DungeonScene } from './scenes/DungeonScene.js?v=codex-runtime-20260719c';
+import LobbyScene from './scenes/LobbyScene.js';
+import ShopScene from './scenes/ShopScene.js';
+import CasinoScene from './scenes/CasinoScene.js';
+import ForgeScene from './scenes/ForgeScene.js';
+import QuestScene from './scenes/QuestScene.js';
+import EncyclopediaScene from './scenes/EncyclopediaScene.js';
+import { DungeonScene } from './scenes/DungeonScene.js';
 import towerScene from './scenes/TowerScene.js';
 import GameManager from './managers/GameManager.js';
 // 導入共用的節奏條系統
 import './utils/RhythmBarSystem.js';
 import './utils/ItemTooltip.js';
-import './components/ItemDetailModal.js';
 import audioManager from './utils/AudioManager.js';
 import { showGlobalToast } from './utils/UIFeedback.js';
-import { initDevPanel } from './utils/DevPanel.js?v=dialogue-read-cue-20260715b';
-import storyDialogueController from './managers/StoryDialogueController.js?v=dialogue-read-cue-20260715b';
+import { initDevPanel } from './utils/DevPanel.js';
+import storyDialogueController from './managers/StoryDialogueController.js';
 
 const APP_ASSET_VERSION = 'codex-runtime-20260719g';
 
@@ -86,18 +85,7 @@ class App {
     async loadScene(sceneName) {
         const loadToken = ++this.sceneLoadToken;
         const viewName = this.dungeonRoutes[sceneName] ? 'dungeon' : sceneName;
-        const previousSceneName = this.currentSceneName || null;
         storyDialogueController.resetForSceneChange();
-
-        if (
-            sceneName === 'lobby'
-            && (
-                previousSceneName === 'adventure'
-                || this.dungeonRoutes[previousSceneName]
-            )
-        ) {
-            GameManager.requestTownNarrativeReset('adventure_return');
-        }
 
         // Cleanup current scene if it has a cleanup method
         if (this.currentScene && typeof this.currentScene.cleanup === 'function') {
@@ -141,7 +129,7 @@ class App {
             // Initialize new scene logic
             let SceneClass = this.routes[sceneName];
             if (sceneName === 'adventure') {
-                const module = await import(`./scenes/AdventureScene.js?v=${APP_ASSET_VERSION}`);
+                const module = await import('./scenes/AdventureScene.js');
                 SceneClass = module.default;
                 this.routes.adventure = SceneClass;
             }
@@ -195,10 +183,12 @@ class App {
     }
 }
 
+let gameApp = null;
+
 // Start the app when DOM is ready. Module scripts can finish after DOMContentLoaded
 // when cache-busted imports are slow, so bootstrap immediately if the DOM is ready.
 function bootstrapApp() {
-    if (window.gameApp) return;
+    if (gameApp) return;
 
     audioManager.installGlobalHooks();
     storyDialogueController.mount();
@@ -212,8 +202,8 @@ function bootstrapApp() {
     }
     GameManager.startAutosave();
 
-    window.gameApp = new App();
-    initDevPanel(window.gameApp);
+    gameApp = new App();
+    initDevPanel(gameApp);
 }
 
 if (document.readyState === 'loading') {

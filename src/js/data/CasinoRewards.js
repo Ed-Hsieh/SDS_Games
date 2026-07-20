@@ -82,179 +82,7 @@ export const CasinoSpecialItems = {
         rarity: ItemRarity.EPIC,
         price: 0,
         description: '被撕掉署名的圖紙殘頁，黑市商人只承認它「曾經非常合法」。'
-    }
-};
-
-const SHOP_ITEM_INDEX = Object.values(ShopData)
-    .flatMap(shop => shop.items || [])
-    .concat(SecretShopItems || [])
-    .reduce((index, item) => {
-        index[item.id] = item;
-        return index;
-    }, {});
-
-export function resolveCasinoRewardItem(itemId) {
-    return CasinoSpecialItems[itemId]
-        || MaterialDatabase[itemId]
-        || RewardItemDatabase[itemId]
-        || SHOP_ITEM_INDEX[itemId]
-        || null;
-}
-
-export const CasinoShowcaseItems = [
-    {
-        id: 'phoenix_feather_case',
-        itemId: 'phoenix_feather',
-        rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '不死鳥羽封櫃',
-        displayTag: '死亡保險',
-        hookFlag: 'town.casino.showcase.phoenix_feather_case.seen',
-        ownerLine: '玻璃內側沒有灰塵，像每天都有人擦拭。旁邊的小牌寫著：能買命的人，通常也買不起第二次。',
-        routeBeat: '未來賭場老闆長支線可用它談「賭命」與「贖回」：玩家最後可在展示櫃獎勵中選它作為復活型大獎。',
-        finalChoiceEligible: true
     },
-    {
-        id: 'demon_slayer_case',
-        itemId: 'demon_slayer',
-        rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '斷焰刃陳列台',
-        displayTag: '終局武器',
-        hookFlag: 'town.casino.showcase.demon_slayer_case.seen',
-        ownerLine: '劍刃被鎖在三層黑鐵架上，架底刻著一排很小的名字。這不像拍賣品，更像戰利品清單。',
-        routeBeat: '適合接到惡魔莊家、暗桌契約與深淵壓力，作為戰鬥取向玩家的最終展示櫃選項。',
-        finalChoiceEligible: true
-    },
-    {
-        id: 'transcend_stone_case',
-        itemId: 'transcend_stone',
-        rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '超越之石保險箱',
-        displayTag: '強化上限',
-        hookFlag: 'town.casino.showcase.transcend_stone_case.seen',
-        ownerLine: '石頭周圍的金屬框架有反覆修補痕跡，像它曾經把許多規則撐裂。',
-        routeBeat: '適合給喜歡打造與養成的玩家，最後選取後可接裝備強化上限或戰鬥系統改版。',
-        finalChoiceEligible: true
-    },
-    {
-        id: 'legendary_weapon_box_case',
-        itemId: 'legendary_weapon_box',
-        rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '封王武器匣',
-        displayTag: '隨機傳說',
-        hookFlag: 'town.casino.showcase.legendary_weapon_box_case.seen',
-        ownerLine: '匣蓋上的封蠟被重新封過很多次。賭場老闆似乎更喜歡讓人想像裡面是什麼，而不是打開它。',
-        routeBeat: '保留抽獎感的展示櫃終局選項，可把賭場的隨機誘惑收束到一次高張力選擇。',
-        finalChoiceEligible: true
-    },
-    {
-        id: 'lucky_charm_case',
-        itemId: 'lucky_charm_7',
-        rarity: ItemRarity.LEGENDARY,
-        cabinetTitle: '七星護符吊櫃',
-        displayTag: '機率加護',
-        hookFlag: 'town.casino.showcase.lucky_charm_case.seen',
-        ownerLine: '護符懸在紅線中央，沒有風卻微微晃動。牌子上只寫了一句：相信運氣的人最好也相信代價。',
-        routeBeat: '適合把賭場老闆長支線收束成機率、代價與玩家慾望的主題獎勵。',
-        finalChoiceEligible: true
-    }
-];
-
-export function getCasinoShowcaseItems() {
-    return CasinoShowcaseItems.map(entry => {
-        const item = resolveCasinoRewardItem(entry.itemId);
-        return {
-            ...entry,
-            item,
-            name: item?.name || entry.itemId,
-            icon: item?.icon || '◆',
-            description: item?.description || ''
-        };
-    });
-}
-
-export const CasinoPrizePools = {
-    daily_curios: {
-        id: 'daily_curios',
-        name: '日常奇物櫃',
-        subtitle: '小賭客也碰得到的桌邊雜貨',
-        minChapter: 1,
-        cost: 12,
-        description: '消耗獎券抽取補給、基礎素材、戰術手記與少量功能物。每抽都是獨立隨機，沒有保底。',
-        atmosphere: '骨骰在木桌上跳了兩下，帳房沒有抬頭，只用指尖把籌碼推回光裡。',
-        rewards: [
-            { id: 'daily_copper_luck_ring', kind: 'item', itemId: 'casino_copper_luck_ring', rarity: ItemRarity.COMMON, quantity: 1, weight: 22 },
-            { id: 'daily_green_felt_gloves', kind: 'item', itemId: 'casino_green_felt_gloves', rarity: ItemRarity.COMMON, quantity: 1, weight: 18 },
-            { id: 'daily_house_runner_boots', kind: 'item', itemId: 'casino_house_runner_boots', rarity: ItemRarity.COMMON, quantity: 1, weight: 12 },
-            { id: 'daily_chips', kind: 'chips', rarity: ItemRarity.COMMON, name: '籌碼回流', icon: '🪙', amount: [40, 90], weight: 8 },
-            { id: 'daily_red_chip_bracer', kind: 'item', itemId: 'casino_red_chip_bracer', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 14 },
-            { id: 'daily_weighted_dice_belt', kind: 'item', itemId: 'casino_weighted_dice_belt', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 8 },
-            { id: 'daily_fragment', kind: 'item', itemId: 'recipe_fragment', rarity: ItemRarity.UNCOMMON, quantity: [1, 2], weight: 3 },
-            { id: 'daily_loaded_dice_charm', kind: 'item', itemId: 'casino_loaded_dice_charm', rarity: ItemRarity.RARE, quantity: 1, weight: 6 },
-            { id: 'daily_marlo_balance_chain', kind: 'item', itemId: 'casino_marlo_balance_chain', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
-            { id: 'daily_field_medic', kind: 'item', itemId: 'field_medic_notes', rarity: ItemRarity.RARE, quantity: 1, weight: 1 },
-            { id: 'daily_black_lamp_coat', kind: 'item', itemId: 'casino_black_lamp_coat', rarity: ItemRarity.EPIC, quantity: 1, weight: 3 },
-            { id: 'daily_prize_case', kind: 'item', itemId: 'casino_prize_case', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
-            { id: 'daily_seventh_bell_crown', kind: 'item', itemId: 'casino_seventh_bell_crown', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 1 }
-        ]
-    },
-    black_market_curios: {
-        id: 'black_market_curios',
-        name: '黑市奇物櫃',
-        subtitle: '勝率表背後的暗格',
-        minChapter: 2,
-        unlockFlag: 'town.casino.false_odds_exposed',
-        cost: 36,
-        description: '稀有素材、戰術手記、黑市籤與賭場限定裝備。瑪洛說這不是保證收益，是把髒錢變成可追蹤的誘惑。',
-        atmosphere: '櫃門打開時有股焚香和鐵鏽味，角落有人笑了一聲，又立刻安靜下來。',
-        rewards: [
-            { id: 'black_table_cutter', kind: 'item', itemId: 'casino_table_cutter', rarity: ItemRarity.COMMON, quantity: 1, weight: 20 },
-            { id: 'black_cashier_lantern', kind: 'item', itemId: 'casino_cashier_lantern', rarity: ItemRarity.COMMON, quantity: 1, weight: 14 },
-            { id: 'black_rare_metal', kind: 'item', itemId: 'rare_metal', rarity: ItemRarity.COMMON, quantity: [1, 2], weight: 10 },
-            { id: 'black_forge_core', kind: 'item', itemId: 'forge_core', rarity: ItemRarity.COMMON, quantity: 1, weight: 8 },
-            { id: 'black_ticket', kind: 'item', itemId: 'black_market_ticket', rarity: ItemRarity.COMMON, quantity: 1, weight: 8 },
-            { id: 'black_moon_slot_blade', kind: 'item', itemId: 'casino_moon_slot_blade', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 12 },
-            { id: 'black_velvet_dealer_vest', kind: 'item', itemId: 'casino_velvet_dealer_vest', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 9 },
-            { id: 'black_enhance_scroll', kind: 'item', itemId: 'enhance_scroll', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 4 },
-            { id: 'black_jackpot_revolver', kind: 'item', itemId: 'casino_jackpot_revolver', rarity: ItemRarity.RARE, quantity: 1, weight: 5 },
-            { id: 'black_showcase_glass_key', kind: 'item', itemId: 'casino_showcase_glass_key', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
-            { id: 'black_vip_card', kind: 'item', itemId: 'vip_card', rarity: ItemRarity.RARE, quantity: 1, weight: 2 },
-            { id: 'black_house_edge_ring', kind: 'item', itemId: 'casino_house_edge_ring', rarity: ItemRarity.EPIC, quantity: 1, weight: 2 },
-            { id: 'black_glass_case_keyblade', kind: 'item', itemId: 'casino_glass_case_keyblade', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
-            { id: 'black_blood_chip_cuirass', kind: 'item', itemId: 'casino_blood_chip_cuirass', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
-            { id: 'black_owner_contract_ring', kind: 'item', itemId: 'casino_owner_contract_ring', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 1 }
-        ]
-    },
-    last_lamp_jackpot: {
-        id: 'last_lamp_jackpot',
-        name: '最後燈火獎池',
-        subtitle: '末日前仍亮著的金色誘惑',
-        minChapter: 3,
-        unlockFlag: 'town.casino.relief_fund_counted',
-        cost: 95,
-        description: '第三章才開放的高額獎券池。它會吐出終局材料、賭場限定飾品與少量傳說獎；每抽獨立隨機，沒有進度條。',
-        atmosphere: '惡魔莊家的影子貼在牆上，像是有人在低聲提醒：再押一次，也許這次就是奇蹟。',
-        rewards: [
-            { id: 'lamp_last_lamp_token', kind: 'item', itemId: 'casino_last_lamp_token', rarity: ItemRarity.COMMON, quantity: 1, weight: 24 },
-            { id: 'lamp_cashier_lantern', kind: 'item', itemId: 'casino_cashier_lantern', rarity: ItemRarity.COMMON, quantity: 1, weight: 14 },
-            { id: 'lamp_world_shard', kind: 'item', itemId: 'world_shard', rarity: ItemRarity.COMMON, quantity: 1, weight: 12 },
-            { id: 'lamp_forbidden_page', kind: 'item', itemId: 'forbidden_blueprint_fragment', rarity: ItemRarity.COMMON, quantity: 1, weight: 10 },
-            { id: 'lamp_oddskeeper_goggles', kind: 'item', itemId: 'casino_oddskeeper_goggles', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 13 },
-            { id: 'lamp_velvet_dealer_vest', kind: 'item', itemId: 'casino_velvet_dealer_vest', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 7 },
-            { id: 'lamp_relief_voucher', kind: 'item', itemId: 'relief_voucher', rarity: ItemRarity.UNCOMMON, quantity: [1, 2], weight: 5 },
-            { id: 'lamp_silver_odds_mask', kind: 'item', itemId: 'casino_silver_odds_mask', rarity: ItemRarity.RARE, quantity: 1, weight: 5 },
-            { id: 'lamp_loaded_dice_charm', kind: 'item', itemId: 'casino_loaded_dice_charm', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
-            { id: 'lamp_legendary_shard', kind: 'item', itemId: 'legendary_shard', rarity: ItemRarity.RARE, quantity: [1, 2], weight: 2 },
-            { id: 'lamp_false_odds_orb', kind: 'item', itemId: 'casino_false_odds_orb', rarity: ItemRarity.EPIC, quantity: 1, weight: 2 },
-            { id: 'lamp_blood_chip_cuirass', kind: 'item', itemId: 'casino_blood_chip_cuirass', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
-            { id: 'lamp_gamblers_fallacy', kind: 'item', itemId: 'gamblers_fallacy', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
-            { id: 'lamp_last_lamp_blade', kind: 'item', itemId: 'casino_last_lamp_blade', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.5 },
-            { id: 'lamp_zero_number_dice', kind: 'item', itemId: 'casino_zero_number_dice', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.3 },
-            { id: 'lamp_starlit_jackpot_armor', kind: 'item', itemId: 'casino_starlit_jackpot_armor', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.2 }
-        ]
-    }
-};
-
-Object.assign(CasinoSpecialItems, {
     casino_copper_luck_ring: {
         id: 'casino_copper_luck_ring',
         name: '銅輪幸運戒',
@@ -611,7 +439,178 @@ Object.assign(CasinoSpecialItems, {
         isCasinoUnique: true,
         source: 'casino_prize_pool'
     }
-});
+};
+
+const SHOP_ITEM_INDEX = Object.values(ShopData)
+    .flatMap(shop => shop.items || [])
+    .concat(SecretShopItems || [])
+    .reduce((index, item) => {
+        index[item.id] = item;
+        return index;
+    }, {});
+
+export function resolveCasinoRewardItem(itemId) {
+    return CasinoSpecialItems[itemId]
+        || MaterialDatabase[itemId]
+        || RewardItemDatabase[itemId]
+        || SHOP_ITEM_INDEX[itemId]
+        || null;
+}
+
+export const CasinoShowcaseItems = [
+    {
+        id: 'phoenix_feather_case',
+        itemId: 'phoenix_feather',
+        rarity: ItemRarity.LEGENDARY,
+        cabinetTitle: '不死鳥羽封櫃',
+        displayTag: '死亡保險',
+        hookFlag: 'town.casino.showcase.phoenix_feather_case.seen',
+        ownerLine: '玻璃內側沒有灰塵，像每天都有人擦拭。旁邊的小牌寫著：能買命的人，通常也買不起第二次。',
+        routeBeat: '未來賭場老闆長支線可用它談「賭命」與「贖回」：玩家最後可在展示櫃獎勵中選它作為復活型大獎。',
+        finalChoiceEligible: true
+    },
+    {
+        id: 'demon_slayer_case',
+        itemId: 'demon_slayer',
+        rarity: ItemRarity.LEGENDARY,
+        cabinetTitle: '斷焰刃陳列台',
+        displayTag: '終局武器',
+        hookFlag: 'town.casino.showcase.demon_slayer_case.seen',
+        ownerLine: '劍刃被鎖在三層黑鐵架上，架底刻著一排很小的名字。這不像拍賣品，更像戰利品清單。',
+        routeBeat: '適合接到惡魔莊家、暗桌契約與深淵壓力，作為戰鬥取向玩家的最終展示櫃選項。',
+        finalChoiceEligible: true
+    },
+    {
+        id: 'transcend_stone_case',
+        itemId: 'transcend_stone',
+        rarity: ItemRarity.LEGENDARY,
+        cabinetTitle: '超越之石保險箱',
+        displayTag: '強化上限',
+        hookFlag: 'town.casino.showcase.transcend_stone_case.seen',
+        ownerLine: '石頭周圍的金屬框架有反覆修補痕跡，像它曾經把許多規則撐裂。',
+        routeBeat: '適合給喜歡打造與養成的玩家，最後選取後可接裝備強化上限或戰鬥系統改版。',
+        finalChoiceEligible: true
+    },
+    {
+        id: 'legendary_weapon_box_case',
+        itemId: 'legendary_weapon_box',
+        rarity: ItemRarity.LEGENDARY,
+        cabinetTitle: '封王武器匣',
+        displayTag: '隨機傳說',
+        hookFlag: 'town.casino.showcase.legendary_weapon_box_case.seen',
+        ownerLine: '匣蓋上的封蠟被重新封過很多次。賭場老闆似乎更喜歡讓人想像裡面是什麼，而不是打開它。',
+        routeBeat: '保留抽獎感的展示櫃終局選項，可把賭場的隨機誘惑收束到一次高張力選擇。',
+        finalChoiceEligible: true
+    },
+    {
+        id: 'lucky_charm_case',
+        itemId: 'lucky_charm_7',
+        rarity: ItemRarity.LEGENDARY,
+        cabinetTitle: '七星護符吊櫃',
+        displayTag: '機率加護',
+        hookFlag: 'town.casino.showcase.lucky_charm_case.seen',
+        ownerLine: '護符懸在紅線中央，沒有風卻微微晃動。牌子上只寫了一句：相信運氣的人最好也相信代價。',
+        routeBeat: '適合把賭場老闆長支線收束成機率、代價與玩家慾望的主題獎勵。',
+        finalChoiceEligible: true
+    }
+];
+
+export function getCasinoShowcaseItems() {
+    return CasinoShowcaseItems.map(entry => {
+        const item = resolveCasinoRewardItem(entry.itemId);
+        return {
+            ...entry,
+            item,
+            name: item?.name || entry.itemId,
+            icon: item?.icon || '◆',
+            description: item?.description || ''
+        };
+    });
+}
+
+export const CasinoPrizePools = {
+    daily_curios: {
+        id: 'daily_curios',
+        name: '日常奇物櫃',
+        subtitle: '小賭客也碰得到的桌邊雜貨',
+        minChapter: 1,
+        cost: 12,
+        description: '消耗獎券抽取補給、基礎素材、戰術手記與少量功能物。每抽都是獨立隨機，沒有保底。',
+        atmosphere: '骨骰在木桌上跳了兩下，帳房沒有抬頭，只用指尖把籌碼推回光裡。',
+        rewards: [
+            { id: 'daily_copper_luck_ring', kind: 'item', itemId: 'casino_copper_luck_ring', rarity: ItemRarity.COMMON, quantity: 1, weight: 22 },
+            { id: 'daily_green_felt_gloves', kind: 'item', itemId: 'casino_green_felt_gloves', rarity: ItemRarity.COMMON, quantity: 1, weight: 18 },
+            { id: 'daily_house_runner_boots', kind: 'item', itemId: 'casino_house_runner_boots', rarity: ItemRarity.COMMON, quantity: 1, weight: 12 },
+            { id: 'daily_chips', kind: 'chips', rarity: ItemRarity.COMMON, name: '籌碼回流', icon: '🪙', amount: [40, 90], weight: 8 },
+            { id: 'daily_red_chip_bracer', kind: 'item', itemId: 'casino_red_chip_bracer', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 14 },
+            { id: 'daily_weighted_dice_belt', kind: 'item', itemId: 'casino_weighted_dice_belt', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 8 },
+            { id: 'daily_fragment', kind: 'item', itemId: 'recipe_fragment', rarity: ItemRarity.UNCOMMON, quantity: [1, 2], weight: 3 },
+            { id: 'daily_loaded_dice_charm', kind: 'item', itemId: 'casino_loaded_dice_charm', rarity: ItemRarity.RARE, quantity: 1, weight: 6 },
+            { id: 'daily_marlo_balance_chain', kind: 'item', itemId: 'casino_marlo_balance_chain', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
+            { id: 'daily_field_medic', kind: 'item', itemId: 'field_medic_notes', rarity: ItemRarity.RARE, quantity: 1, weight: 1 },
+            { id: 'daily_black_lamp_coat', kind: 'item', itemId: 'casino_black_lamp_coat', rarity: ItemRarity.EPIC, quantity: 1, weight: 3 },
+            { id: 'daily_prize_case', kind: 'item', itemId: 'casino_prize_case', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
+            { id: 'daily_seventh_bell_crown', kind: 'item', itemId: 'casino_seventh_bell_crown', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 1 }
+        ]
+    },
+    black_market_curios: {
+        id: 'black_market_curios',
+        name: '黑市奇物櫃',
+        subtitle: '勝率表背後的暗格',
+        minChapter: 2,
+        unlockFlag: 'town.casino.false_odds_exposed',
+        cost: 36,
+        description: '稀有素材、戰術手記、黑市籤與賭場限定裝備。瑪洛說這不是保證收益，是把髒錢變成可追蹤的誘惑。',
+        atmosphere: '櫃門打開時有股焚香和鐵鏽味，角落有人笑了一聲，又立刻安靜下來。',
+        rewards: [
+            { id: 'black_table_cutter', kind: 'item', itemId: 'casino_table_cutter', rarity: ItemRarity.COMMON, quantity: 1, weight: 20 },
+            { id: 'black_cashier_lantern', kind: 'item', itemId: 'casino_cashier_lantern', rarity: ItemRarity.COMMON, quantity: 1, weight: 14 },
+            { id: 'black_rare_metal', kind: 'item', itemId: 'rare_metal', rarity: ItemRarity.COMMON, quantity: [1, 2], weight: 10 },
+            { id: 'black_forge_core', kind: 'item', itemId: 'forge_core', rarity: ItemRarity.COMMON, quantity: 1, weight: 8 },
+            { id: 'black_ticket', kind: 'item', itemId: 'black_market_ticket', rarity: ItemRarity.COMMON, quantity: 1, weight: 8 },
+            { id: 'black_moon_slot_blade', kind: 'item', itemId: 'casino_moon_slot_blade', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 12 },
+            { id: 'black_velvet_dealer_vest', kind: 'item', itemId: 'casino_velvet_dealer_vest', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 9 },
+            { id: 'black_enhance_scroll', kind: 'item', itemId: 'enhance_scroll', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 4 },
+            { id: 'black_jackpot_revolver', kind: 'item', itemId: 'casino_jackpot_revolver', rarity: ItemRarity.RARE, quantity: 1, weight: 5 },
+            { id: 'black_showcase_glass_key', kind: 'item', itemId: 'casino_showcase_glass_key', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
+            { id: 'black_vip_card', kind: 'item', itemId: 'vip_card', rarity: ItemRarity.RARE, quantity: 1, weight: 2 },
+            { id: 'black_house_edge_ring', kind: 'item', itemId: 'casino_house_edge_ring', rarity: ItemRarity.EPIC, quantity: 1, weight: 2 },
+            { id: 'black_glass_case_keyblade', kind: 'item', itemId: 'casino_glass_case_keyblade', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
+            { id: 'black_blood_chip_cuirass', kind: 'item', itemId: 'casino_blood_chip_cuirass', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
+            { id: 'black_owner_contract_ring', kind: 'item', itemId: 'casino_owner_contract_ring', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 1 }
+        ]
+    },
+    last_lamp_jackpot: {
+        id: 'last_lamp_jackpot',
+        name: '最後燈火獎池',
+        subtitle: '末日前仍亮著的金色誘惑',
+        minChapter: 3,
+        unlockFlag: 'town.casino.relief_fund_counted',
+        cost: 95,
+        description: '第三章才開放的高額獎券池。它會吐出終局材料、賭場限定飾品與少量傳說獎；每抽獨立隨機，沒有進度條。',
+        atmosphere: '惡魔莊家的影子貼在牆上，像是有人在低聲提醒：再押一次，也許這次就是奇蹟。',
+        rewards: [
+            { id: 'lamp_last_lamp_token', kind: 'item', itemId: 'casino_last_lamp_token', rarity: ItemRarity.COMMON, quantity: 1, weight: 24 },
+            { id: 'lamp_cashier_lantern', kind: 'item', itemId: 'casino_cashier_lantern', rarity: ItemRarity.COMMON, quantity: 1, weight: 14 },
+            { id: 'lamp_world_shard', kind: 'item', itemId: 'world_shard', rarity: ItemRarity.COMMON, quantity: 1, weight: 12 },
+            { id: 'lamp_forbidden_page', kind: 'item', itemId: 'forbidden_blueprint_fragment', rarity: ItemRarity.COMMON, quantity: 1, weight: 10 },
+            { id: 'lamp_oddskeeper_goggles', kind: 'item', itemId: 'casino_oddskeeper_goggles', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 13 },
+            { id: 'lamp_velvet_dealer_vest', kind: 'item', itemId: 'casino_velvet_dealer_vest', rarity: ItemRarity.UNCOMMON, quantity: 1, weight: 7 },
+            { id: 'lamp_relief_voucher', kind: 'item', itemId: 'relief_voucher', rarity: ItemRarity.UNCOMMON, quantity: [1, 2], weight: 5 },
+            { id: 'lamp_silver_odds_mask', kind: 'item', itemId: 'casino_silver_odds_mask', rarity: ItemRarity.RARE, quantity: 1, weight: 5 },
+            { id: 'lamp_loaded_dice_charm', kind: 'item', itemId: 'casino_loaded_dice_charm', rarity: ItemRarity.RARE, quantity: 1, weight: 3 },
+            { id: 'lamp_legendary_shard', kind: 'item', itemId: 'legendary_shard', rarity: ItemRarity.RARE, quantity: [1, 2], weight: 2 },
+            { id: 'lamp_false_odds_orb', kind: 'item', itemId: 'casino_false_odds_orb', rarity: ItemRarity.EPIC, quantity: 1, weight: 2 },
+            { id: 'lamp_blood_chip_cuirass', kind: 'item', itemId: 'casino_blood_chip_cuirass', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
+            { id: 'lamp_gamblers_fallacy', kind: 'item', itemId: 'gamblers_fallacy', rarity: ItemRarity.EPIC, quantity: 1, weight: 1 },
+            { id: 'lamp_last_lamp_blade', kind: 'item', itemId: 'casino_last_lamp_blade', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.5 },
+            { id: 'lamp_zero_number_dice', kind: 'item', itemId: 'casino_zero_number_dice', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.3 },
+            { id: 'lamp_starlit_jackpot_armor', kind: 'item', itemId: 'casino_starlit_jackpot_armor', rarity: ItemRarity.LEGENDARY, quantity: 1, weight: 0.2 }
+        ]
+    }
+};
+
+
 
 export function getCasinoPrizePools() {
     return Object.values(CasinoPrizePools);

@@ -493,7 +493,7 @@ class TowerScene {
             }
             this.updateBattleUI();
 
-            if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+            if ((monster.hp ?? 0) <= 0) {
                 this.finishBattleVictory();
             } else if (res.playerHp <= 0 && !res.revived) {
                 this.finishBattleDefeat();
@@ -653,7 +653,7 @@ class TowerScene {
         }
         this.updateBattleUI();
 
-        if ((monster.hp ?? monster.currentHp ?? 0) <= 0) {
+        if ((monster.hp ?? 0) <= 0) {
             this.finishBattleVictory();
         }
     }
@@ -802,11 +802,11 @@ class TowerScene {
         }
         
         if (this.monsterAtkEl) {
-            this.monsterAtkEl.textContent = data.monster.atk ?? data.monster.attack ?? 0;
+            this.monsterAtkEl.textContent = data.monster.attack ?? 0;
         }
         
         if (this.monsterDefEl) {
-            this.monsterDefEl.textContent = data.monster.def ?? data.monster.defense ?? 0;
+            this.monsterDefEl.textContent = data.monster.defense ?? 0;
         }
         
         // 更新戰鬥中的玩家等級
@@ -839,11 +839,9 @@ class TowerScene {
         const char = GameManager.getCharacter();
         if (char) {
             char.hp = Math.max(1, Math.floor((char.maxHp || 100) * 0.3));
-            char.currentHP = char.hp;
         }
         GameManager.setFlag?.('death.pendingPenalty', true);
         GameManager.setFlag?.('death.lastReason', 'tower-death');
-        GameManager.requestTownNarrativeReset?.('death_return');
         GameManager.markSaveDirty?.('tower-death-return');
         GameManager.notify?.('all');
         this.showResultState(false, data);

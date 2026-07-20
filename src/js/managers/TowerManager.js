@@ -12,9 +12,6 @@ import { markItemKnown, markMonsterKnown } from './EncyclopediaManager.js';
 import { getBossEquipment } from '../data/BossEquipment.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 
-// 重新導出，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { getBossEquipment };
-
 // 無盡塔狀態
 export const TowerState = {
     IDLE: 'idle',           // 待機
@@ -119,9 +116,6 @@ export default class TowerManager {
         this.currentMonster = createMonsterInstance(monsterData);
         this.currentMonster.isBoss = this.isBossFloor(this.currentFloor);
         this.currentMonster.isElite = Boolean(this.currentMonster.isElite);
-        this.currentMonster.maxHp = this.currentMonster.maxHp ?? this.currentMonster.hp ?? this.currentMonster.currentHp ?? 1;
-        this.currentMonster.hp = this.currentMonster.hp ?? this.currentMonster.currentHp ?? this.currentMonster.maxHp;
-        this.currentMonster.currentHp = this.currentMonster.currentHp ?? this.currentMonster.hp;
         this.state = TowerState.IN_BATTLE;
         this.battleLog = [];
         
@@ -156,7 +150,7 @@ export default class TowerManager {
         this.battleLog.push(playerResult);
         
         // 檢查怪物是否死亡
-        if (monster.currentHp <= 0) {
+        if (monster.hp <= 0) {
             return this.handleVictory();
         }
         
@@ -178,7 +172,7 @@ export default class TowerManager {
         return {
             success: true,
             roundLog,
-            monsterHp: monster.currentHp,
+            monsterHp: monster.hp,
             playerHp: character.hp,
             continued: true
         };
@@ -204,7 +198,7 @@ export default class TowerManager {
             if (action.hitType && action.damage !== undefined) {
                 // 使用節奏條判定的結果
                 damage = action.damage;
-                const def = monster.def ?? monster.defense ?? 0;
+                const def = monster.defense ?? 0;
                 
                 // 根據判定類型生成訊息
                 if (action.hitType === 'crit') {
@@ -223,7 +217,7 @@ export default class TowerManager {
             } else {
                 // 備用邏輯：沒有節奏條時使用原始計算
                 const atk = character.getTotalAtk();
-                const def = monster.def ?? monster.defense ?? 0;
+                const def = monster.defense ?? 0;
                 
                 // 計算傷害
                 damage = Math.max(1, atk - def * 0.5);
@@ -244,8 +238,8 @@ export default class TowerManager {
                 if ((monster.isBoss || monster.type === 'boss') && effects.bossBonus > 0) {
                     damage += Math.floor(damage * (effects.bossBonus / 100));
                 }
-                const maxMonsterHp = monster.maxHp || monster.hp || monster.currentHp || 0;
-                if (effects.execute > 0 && maxMonsterHp > 0 && (monster.currentHp || monster.hp || 0) <= maxMonsterHp * 0.5) {
+                const maxMonsterHp = monster.maxHp || monster.hp || 0;
+                if (effects.execute > 0 && maxMonsterHp > 0 && monster.hp <= maxMonsterHp * 0.5) {
                     damage += Math.floor(damage * (effects.execute / 100));
                 }
                 if (effects.fire > 0) damage += Math.floor(damage * (effects.fire / 100));
@@ -276,7 +270,7 @@ export default class TowerManager {
         
         // 應用傷害
         if (damage > 0) {
-            monster.currentHp = Math.max(0, monster.currentHp - damage);
+            monster.hp = Math.max(0, monster.hp - damage);
         }
         
         return {
@@ -284,7 +278,7 @@ export default class TowerManager {
             action: action.type,
             damage,
             message,
-            targetHp: monster.currentHp
+            targetHp: monster.hp
         };
     }
     
@@ -292,7 +286,7 @@ export default class TowerManager {
      * 執行怪物行動
      */
     executeMonsterAction(monster, character) {
-        const monsterAtk = monster.atk ?? monster.attack ?? 10;
+        const monsterAtk = monster.attack ?? 10;
         const playerDef = character.getTotalDef();
         const effects = getEquipmentEffectTotals(character);
         
@@ -336,7 +330,7 @@ export default class TowerManager {
         let reflectedDamage = 0;
         if (damage > 0 && effects.damageReflect > 0) {
             reflectedDamage = Math.max(1, Math.floor(damage * (effects.damageReflect / 100)));
-            monster.currentHp = Math.max(0, (monster.currentHp ?? monster.hp ?? 0) - reflectedDamage);
+            monster.hp = Math.max(0, monster.hp - reflectedDamage);
             message += ` 反彈 ${reflectedDamage} 點傷害。`;
         }
 

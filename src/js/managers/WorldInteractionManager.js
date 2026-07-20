@@ -5,19 +5,13 @@
  */
 
 import GameManager from './GameManager.js';
-import { questManager, QuestStatus } from './QuestManager.js?v=dialogue-flow-20260712w';
-import { getQuestById } from '../data/Quests.js';
+import { questManager } from './QuestManager.js';
+import { QuestStatus, getQuestById } from '../data/Quests.js';
 import { getWorldInteraction } from '../data/WorldInteractions.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { unlockRecipeBlueprints } from './BlueprintManager.js';
-import { worldStoryManager } from './WorldStoryManager.js';
-import { StoryEventTypes } from '../data/StoryProgressMap.js';
 
 class WorldInteractionManager {
-    constructor() {
-        this.journal = [];
-    }
-
     getResolvedFlag(interactionId) {
         return `worldInteraction.${interactionId}.resolved`;
     }
@@ -27,10 +21,7 @@ class WorldInteractionManager {
     }
 
     getItemCount(itemId) {
-        const countIn = stacks => (stacks || [])
-            .filter(stack => stack?.item?.id === itemId)
-            .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
-        return countIn(GameManager.state?.inventory) + countIn(GameManager.state?.warehouse);
+        return GameManager.getItemCountAcrossStorage(itemId);
     }
 
     getMissingRequiredItems(interaction) {
@@ -146,25 +137,6 @@ class WorldInteractionManager {
             if (changed && progress.message) messages.push(progress.message);
         }
 
-        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.WORLD_INTERACTION, {
-            interactionId,
-            interaction,
-            unlockedQuestIds: unlockedQuests.map(quest => quest.id),
-            unlockedRecipeIds: recipeUnlocks.filter(unlock => unlock.newlyUnlocked).map(unlock => unlock.recipeId),
-            source: context.source || interaction.source
-        });
-
-        const entry = {
-            id: interactionId,
-            title: interaction.title,
-            source: context.source || interaction.source,
-            timestamp: Date.now(),
-            unlockedQuests: unlockedQuests.map(quest => quest.id),
-            unlockedRecipes: recipeUnlocks.filter(unlock => unlock.newlyUnlocked).map(unlock => unlock.recipeId),
-            storyEvents: storyOutcome.appliedRules || []
-        };
-        this.journal.unshift(entry);
-
         if (context.toast !== false && typeof document !== 'undefined') {
             showGlobalToast('發現', interaction.title, 'info');
         }
@@ -175,14 +147,8 @@ class WorldInteractionManager {
             messages,
             unlockedQuests,
             acceptedQuests,
-            unlockedRecipes: recipeUnlocks,
-            storyOutcome,
-            entry
+            unlockedRecipes: recipeUnlocks
         };
-    }
-
-    getJournal() {
-        return [...this.journal];
     }
 }
 

@@ -81,7 +81,7 @@ export function getTotalAtk(character) {
     let total = readNumber(character.baseAtk);
     const effects = getResolvedEquipmentEffects(character);
     getCombatStatEquipmentEntries(character).forEach(([, item]) => {
-        total += readItemStat(item, 'atk', 'attack');
+        total += readItemStat(item, 'attack');
     });
     total += readNumber(effects.atk);
     total = Math.floor(total * (1 + toFraction(effects.atkPercent) + toFraction(effects.allStats)));
@@ -93,7 +93,7 @@ export function getTotalDef(character) {
     let total = readNumber(character.baseDef);
     const effects = getResolvedEquipmentEffects(character);
     getCombatStatEquipmentEntries(character).forEach(([, item]) => {
-        total += readItemStat(item, 'def', 'defense');
+        total += readItemStat(item, 'defense');
     });
     total += readNumber(effects.def);
     total = Math.floor(total * (1 + toFraction(effects.defPercent) + toFraction(effects.allStats)));

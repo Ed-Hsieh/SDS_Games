@@ -227,8 +227,8 @@ function collectStatMap(totals, statMap, source = {}) {
 }
 
 function collectBaseStats(totals, item) {
-    addStat(totals, 'atk', readItemStat(item, 'atk', ['attack'], 0), { kind: 'base', itemId: item.id });
-    addStat(totals, 'def', readItemStat(item, 'def', ['defense'], 0), { kind: 'base', itemId: item.id });
+    addStat(totals, 'atk', readItemStat(item, 'attack', [], 0), { kind: 'base', itemId: item.id });
+    addStat(totals, 'def', readItemStat(item, 'defense', [], 0), { kind: 'base', itemId: item.id });
     addStat(totals, 'hp', readItemStat(item, 'hp', [], 0), { kind: 'base', itemId: item.id });
     addStat(totals, 'critChance', readItemStat(item, 'critChance', ['crit_chance'], 0), { kind: 'base', itemId: item.id });
 

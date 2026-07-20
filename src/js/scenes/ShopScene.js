@@ -1,9 +1,10 @@
 /**
  * ShopScene.js
- * Market supply-line scene: shelves, NPC orders, exchanges, and selling.
+ * Market presentation: vendor shelves and player selling.
  */
 import GameManager from '../managers/GameManager.js';
-import { worldInteractionManager } from '../managers/WorldInteractionManager.js';
+import { marketManager } from '../managers/MarketManager.js';
+import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
 import {
     MarketSceneAssets,
     getAllMarketVendors,
@@ -15,12 +16,7 @@ import { buildItemModalOptions, escapeHtml, getItemDisplayDescription, getItemVi
 import { attachItemTooltip, closeItemTooltip } from '../utils/ItemTooltip.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
-
-const PANEL_LABELS = {
-    shelf: '貨架',
-    orders: '委託訂單',
-    exchange: '交換'
-};
+import itemDetailModal from '../components/ItemDetailModal.js';
 
 const MARKET_SCENE_TITLE = '市集邊棚';
 const MARKET_HEADER_COPY = '左棚有藥草香，中央貨車堆著路線工具，布告角落永遠有人比公告欄更早知道麻煩。';
@@ -38,16 +34,11 @@ function cloneItemData(item) {
     return JSON.parse(JSON.stringify(item));
 }
 
-function stackQuantity(stack) {
-    return Math.max(1, Number(stack?.quantity) || 1);
-}
-
 export default class ShopScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
         this.currentVendorId = null;
-        this.currentPanel = 'shelf';
         this.currentVendor = null;
         this.marketNarrativeLog = [];
         this.lastMarketNarrativeKey = '';
@@ -55,7 +46,6 @@ export default class ShopScene {
         this.currentShopItems = [];
         this.updateUI = this.updateUI.bind(this);
         this.handleVendorClick = this.handleVendorClick.bind(this);
-        this.handleTabClick = this.handleTabClick.bind(this);
         this.handlePanelClick = this.handlePanelClick.bind(this);
         this.handleExit = this.handleExit.bind(this);
         this.handleCloseStall = this.handleCloseStall.bind(this);
@@ -78,7 +68,7 @@ export default class ShopScene {
 
         this.applySceneAssets();
         this.renderVendorHotspots();
-        if (GameManager?.state) this.updateUI(GameManager.state, 'all');
+        this.updateUI(null, 'all');
         this.renderMarketPrompt();
     }
 
@@ -100,7 +90,6 @@ export default class ShopScene {
             grid: this.container.querySelector('#market-grid'),
             exit: this.container.querySelector('#btn-exit-shop'),
             closeStall: this.container.querySelector('#btn-close-stall'),
-            tabs: this.container.querySelectorAll('.supply-tab'),
             panel: this.container.querySelector('#supply-panel'),
             playerInventory: this.container.querySelector('#player-inventory'),
             playerGold: this.container.querySelector('#player-gold'),
@@ -130,7 +119,6 @@ export default class ShopScene {
         this.dom.grid?.addEventListener('click', this.handleVendorClick);
         this.dom.exit?.addEventListener('click', this.handleExit);
         this.dom.closeStall?.addEventListener('click', this.handleCloseStall);
-        this.dom.tabs?.forEach(tab => tab.addEventListener('click', this.handleTabClick));
         this.dom.panel?.addEventListener('click', this.handlePanelClick);
         this.eventsBound = true;
     }
@@ -139,17 +127,12 @@ export default class ShopScene {
         this.dom.grid?.removeEventListener('click', this.handleVendorClick);
         this.dom.exit?.removeEventListener('click', this.handleExit);
         this.dom.closeStall?.removeEventListener('click', this.handleCloseStall);
-        this.dom.tabs?.forEach(tab => tab.removeEventListener('click', this.handleTabClick));
         this.dom.panel?.removeEventListener('click', this.handlePanelClick);
         this.eventsBound = false;
     }
 
     handleExit() {
-        if (!GameManager.state.ui || typeof GameManager.state.ui !== 'object') {
-            GameManager.state.ui = {};
-        }
-        GameManager.state.ui.returnTownPlaceId = 'market';
-        GameManager.markSaveDirty?.('market-return');
+        navigationIntentManager.setTownReturnPlace('market');
 
         if (typeof this.app?.navigateTo === 'function') {
             this.app.navigateTo('lobby');
@@ -181,14 +164,14 @@ export default class ShopScene {
         }
     }
 
-    updateUI(state, type) {
-        if (!this.dom || !state) return;
+    updateUI(_state, type = 'all') {
+        if (!this.dom) return;
         if (type === 'gold' || type === 'all') {
-            this.dom.playerGold.textContent = `${state.character.gold}`;
+            this.dom.playerGold.textContent = `${GameManager.getCharacter()?.gold || 0}`;
             this.renderCurrentPanel();
         }
         if (type === 'inventory' || type === 'warehouse' || type === 'all') {
-            this.renderPlayerInventory(state.inventory || []);
+            this.renderPlayerInventory(GameManager.getInventory());
             this.renderCurrentPanel();
         }
         if (type === 'flags' || type === 'all') {
@@ -203,14 +186,6 @@ export default class ShopScene {
         this.selectVendor(button.dataset.vendorId);
     }
 
-    handleTabClick(event) {
-        const panel = event.currentTarget.dataset.panel;
-        if (!panel || panel === this.currentPanel) return;
-        this.currentPanel = panel;
-        this.dom.tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panel));
-        this.renderCurrentPanel();
-    }
-
     handlePanelClick(event) {
         const button = event.target.closest('[data-supply-action]');
         if (!button || button.disabled) return;
@@ -218,12 +193,7 @@ export default class ShopScene {
         const action = button.dataset.supplyAction;
         if (action === 'prepare') {
             const vendorId = button.dataset.vendorId;
-            const panel = button.dataset.panel || 'shelf';
-            if (vendorId) {
-                this.currentPanel = panel;
-                this.dom.tabs?.forEach(tab => tab.classList.toggle('active', tab.dataset.panel === panel));
-                this.selectVendor(vendorId);
-            }
+            if (vendorId) this.selectVendor(vendorId);
             return;
         }
 
@@ -233,10 +203,6 @@ export default class ShopScene {
             return;
         }
 
-        if (action === 'complete') {
-            const entry = this.entryIndex.get(button.dataset.entryId);
-            if (entry) this.completeSupplyEntry(entry);
-        }
     }
 
     renderVendorHotspots() {
@@ -248,11 +214,8 @@ export default class ShopScene {
             const avatar = vendor.portrait && !locked
                 ? `<img src="${escapeHtml(vendor.portrait)}" alt="${escapeHtml(vendor.name)}">`
                 : escapeHtml(vendor.icon || '◆');
-            const availableCount = [
-                ...(vendor.shelves || []),
-                ...(vendor.orders || []),
-                ...(vendor.exchanges || [])
-            ].filter(entry => this.meetsCondition(entry.condition)).length;
+            const availableCount = (vendor.shelves || [])
+                .filter(entry => this.meetsCondition(entry.condition)).length;
             return `
                 <button
                     class="market-resident ${active ? 'active' : ''} ${locked ? 'is-locked' : ''}"
@@ -335,15 +298,10 @@ export default class ShopScene {
             return;
         }
 
-        const renderers = {
-            shelf: () => this.renderShelf(vendor),
-            orders: () => this.renderOrders(vendor),
-            exchange: () => this.renderExchanges(vendor)
-        };
-        this.dom.panel.innerHTML = renderers[this.currentPanel]?.() || '';
+        this.dom.panel.innerHTML = this.renderShelf(vendor);
         this.setTradeStatus(
-            `${vendor.name} · ${PANEL_LABELS[this.currentPanel]}`,
-            this.getPanelHint(vendor, this.currentPanel),
+            `${vendor.name} · 貨架`,
+            this.getPanelHint(vendor),
             'info'
         );
     }
@@ -351,7 +309,7 @@ export default class ShopScene {
     renderMarketPrompt() {
         if (this.dom.vendorPlace) this.dom.vendorPlace.textContent = '市集';
         if (this.dom.vendorName) this.dom.vendorName.textContent = '選擇攤位';
-        if (this.dom.vendorRole) this.dom.vendorRole.textContent = '走近攤位後再查看貨架、訂單與交換。';
+        if (this.dom.vendorRole) this.dom.vendorRole.textContent = '走近攤位後查看公開貨架。';
         this.applySceneAssets();
         if (this.dom.portraitFallback) {
             this.dom.portraitFallback.textContent = '市';
@@ -391,7 +349,6 @@ export default class ShopScene {
                     ? `背包與倉庫共有 ${potionCount} 瓶小型生命藥水。`
                     : '市集維持公開基礎藥品供應，庫存不依附任何一位角色的存亡。',
                 vendorId: 'merchant',
-                panel: 'shelf',
                 tone: potionCount >= 2 ? 'ready' : 'warning'
             }
         ];
@@ -425,7 +382,6 @@ export default class ShopScene {
                         type="button"
                         data-supply-action="prepare"
                         data-vendor-id="${escapeHtml(card.vendorId || '')}"
-                        data-panel="${escapeHtml(card.panel || 'shelf')}"
                     >前往</button>
                 </div>
             </article>
@@ -436,8 +392,6 @@ export default class ShopScene {
         if (!vendor) return ['選擇攤位後查看功能'];
         const list = [];
         if ((vendor.shelves || []).length) list.push(`貨架：${vendor.shelves.length} 項`);
-        if ((vendor.orders || []).length) list.push(`訂單：${vendor.orders.length} 項`);
-        if ((vendor.exchanges || []).length) list.push(`交換：${vendor.exchanges.length} 項`);
         return list.length ? list : ['目前沒有開放交易'];
     }
 
@@ -461,30 +415,14 @@ export default class ShopScene {
         `;
     }
 
-    getPanelHint(vendor, panel) {
-        if (panel === 'shelf') return '穩定供應會出現在這裡，強力裝備仍以掉落、圖紙與鍛造為主。';
-        if (panel === 'orders') return '把冒險帶回來的材料交給需要的人，城鎮狀態與庫存會因此改變。';
-        if (panel === 'exchange') return '多餘素材可以換成補給、路線工具或情報，不必只拿去賣掉。';
-        return vendor.summary || '';
+    getPanelHint(vendor) {
+        return vendor.summary || '穩定供應會出現在這裡，強力裝備仍以掉落、圖紙與鍛造為主。';
     }
 
     renderShelf(vendor) {
         const entries = vendor.shelves || [];
         if (entries.length === 0) return this.renderEmpty('貨架暫時空著', '這個人物目前沒有穩定供應品。');
         return entries.map(entry => this.renderShelfCard(entry)).join('');
-    }
-
-    renderOrders(vendor) {
-        const entries = vendor.orders || [];
-        const cards = entries.map(entry => this.renderSupplyEntryCard(entry, 'order'));
-        if (cards.length === 0) return this.renderEmpty('沒有新的訂單', '這條供應線目前沒有需要你處理的委託。');
-        return cards.join('');
-    }
-
-    renderExchanges(vendor) {
-        const entries = vendor.exchanges || [];
-        if (entries.length === 0) return this.renderEmpty('沒有交換項目', '這個人物目前沒有開出材料交換。');
-        return entries.map(entry => this.renderSupplyEntryCard(entry, 'exchange')).join('');
     }
 
     renderShelfCard(entry) {
@@ -520,87 +458,6 @@ export default class ShopScene {
                 </div>
             </article>
         `;
-    }
-
-    renderSupplyEntryCard(entry, type) {
-        const id = `${type}:${entry.id}`;
-        const completed = this.isEntryCompleted(type, entry);
-        const conditionMet = this.meetsCondition(entry.condition);
-        const canComplete = conditionMet && !completed && this.canPayEntry(entry);
-        this.entryIndex.set(id, { ...entry, entryKey: entry.id, actionId: id, entryType: type });
-
-        return `
-            <article class="supply-card supply-contract ${completed ? 'is-completed' : ''} ${conditionMet ? '' : 'is-locked'}">
-                <div class="supply-card-copy contract-copy">
-                    <span>${escapeHtml(type === 'order' ? '供應訂單' : '材料交換')}</span>
-                    <h3>${escapeHtml(entry.title)}</h3>
-                    <p>${escapeHtml(conditionMet ? entry.story : entry.lockedReason || '條件尚未達成。')}</p>
-                    <div class="contract-flow">
-                        <div>
-                            <b>需要</b>
-                            ${this.renderRequirementList(entry)}
-                        </div>
-                        <div>
-                            <b>回饋</b>
-                            ${this.renderRewardList(entry)}
-                        </div>
-                    </div>
-                </div>
-                <div class="supply-card-side">
-                    <button type="button" data-supply-action="complete" data-entry-id="${escapeHtml(id)}" ${canComplete ? '' : 'disabled'}>
-                        ${completed ? '已完成' : canComplete ? '交付' : this.getBlockedEntryLabel(entry)}
-                    </button>
-                </div>
-            </article>
-        `;
-    }
-
-    renderRequirementList(entry) {
-        const rows = [];
-        for (const requirement of entry.requirements || []) {
-            const item = this.resolveItem(requirement.itemId);
-            const have = this.getItemCount(requirement.itemId);
-            const need = Math.max(1, Number(requirement.quantity) || 1);
-            rows.push(`
-                <span class="contract-token ${have >= need ? 'is-ready' : 'is-missing'}">
-                    ${this.renderItemIcon(item, 'contract-token-icon')}
-                    ${escapeHtml(item?.name || requirement.itemId)} ${have}/${need}
-                </span>
-            `);
-        }
-        if (entry.goldCost) {
-            const gold = this.getPlayerGold();
-            rows.push(`
-                <span class="contract-token ${gold >= entry.goldCost ? 'is-ready' : 'is-missing'}">
-                    <span class="contract-token-icon">G</span> 金幣 ${gold}/${entry.goldCost}
-                </span>
-            `);
-        }
-        return rows.length ? rows.join('') : '<span class="contract-token is-ready">無</span>';
-    }
-
-    renderRewardList(entry) {
-        const rewards = entry.rewards || {};
-        const rows = [];
-        for (const reward of rewards.items || []) {
-            const item = this.resolveItem(reward.itemId);
-            rows.push(`
-                <span class="contract-token is-reward">
-                    ${this.renderItemIcon(item, 'contract-token-icon')}
-                    ${escapeHtml(item?.name || reward.itemId)} x${Math.max(1, Number(reward.quantity) || 1)}
-                </span>
-            `);
-        }
-        if (rewards.gold) {
-            rows.push(`<span class="contract-token is-reward"><span class="contract-token-icon">G</span> 金幣 ${rewards.gold}</span>`);
-        }
-        if (rewards.flags?.length) {
-            rows.push('<span class="contract-token is-reward">城鎮狀態更新</span>');
-        }
-        if (rewards.interactionId) {
-            rows.push('<span class="contract-token is-reward">特殊事件觸發</span>');
-        }
-        return rows.length ? rows.join('') : '<span class="contract-token is-reward">供應線更新</span>';
     }
 
     renderEmpty(title, copy) {
@@ -730,212 +587,78 @@ export default class ShopScene {
         cancelBtn.textContent = '取消';
         cancelBtn.addEventListener('click', () => this.closeItemModal());
 
-        if (window.ItemDetailModal) {
-            const flowDescription = mode === 'buy'
-                ? `購買後會放入背包。目前持有 ${this.getPlayerGold()} 金幣。`
-                : `出售 ${quantity > 1 ? `x${quantity} ` : ''}後會獲得 ${price} 金幣，物品會從背包移除。`;
-            window.ItemDetailModal.open(item, {
-                ...buildItemModalOptions(item, { description: flowDescription }),
-                action: mode,
-                priceLabel: mode === 'buy' ? '購買價' : '出售價',
-                actions: [actionBtn, cancelBtn]
-            });
-        }
+        const flowDescription = mode === 'buy'
+            ? `購買後會放入背包。目前持有 ${this.getPlayerGold()} 金幣。`
+            : `出售 ${quantity > 1 ? `x${quantity} ` : ''}後會獲得 ${price} 金幣，物品會從背包移除。`;
+        itemDetailModal.open(item, {
+            ...buildItemModalOptions(item, { description: flowDescription }),
+            action: mode,
+            priceLabel: mode === 'buy' ? '購買價' : '出售價',
+            actions: [actionBtn, cancelBtn]
+        });
     }
 
     closeItemModal() {
-        if (window.ItemDetailModal && typeof window.ItemDetailModal.close === 'function') {
-            window.ItemDetailModal.close();
-        }
-    }
-
-    consumePassiveUnlockText() {
-        const unlockedEffects = GameManager.consumePassiveCombatUnlocks?.() || [];
-        if (unlockedEffects.length === 0) return '';
-        const names = unlockedEffects.map(effect => effect.name).join('、');
-        return `戰術技能解鎖：${names}。可回大廳旅人卡片更換。`;
+        itemDetailModal.close();
     }
 
     handleBuy(trade) {
-        const { item, quantity, price } = trade;
-        const itemName = item.name || '物品';
+        const result = marketManager.buy(trade);
+        this.closeItemModal();
 
-        if (item?.passiveEffectId && GameManager.hasPassiveCombatEffectAchievement?.(item.passiveEffectId)) {
-            this.closeItemModal();
-            this.showFeedback('已解鎖', `「${itemName}」已轉為戰術成就，不需要重複購買。`, 'info');
+        if (!result.success) {
+            const feedback = {
+                'already-unlocked': ['已解鎖', `「${result.itemName}」已轉為戰術成就，不需要重複購買。`, 'info'],
+                gold: ['金幣不足', `無法購買「${result.itemName}」，目前持有 ${result.currentGold} 金幣。`, 'error'],
+                'inventory-full': ['背包已滿', `「${result.itemName}」無法放入背包，金幣已退回。`, 'error'],
+                'passive-effect': ['解鎖失敗', `「${result.itemName}」沒有對應的戰術成就。`, 'error']
+            }[result.code] || ['購買失敗', '這筆交易無法完成。', 'error'];
+            audioManager.play(feedback[2] === 'error' ? 'toast-error' : 'toast-warning', {
+                throttleKey: `market-buy-${result.code || 'failed'}`,
+                throttleMs: 180
+            });
+            this.showFeedback(...feedback);
             return;
         }
 
-        if (this.getPlayerGold() < price || !GameManager.removeGold(price)) {
-            audioManager.play('toast-error', { throttleKey: 'market-buy-failed', throttleMs: 180 });
-            this.showFeedback('金幣不足', `無法購買「${itemName}」，目前持有 ${this.getPlayerGold()} 金幣。`, 'error');
-            return;
-        }
-
-        const purchasedItem = cloneItemData(item);
-        if (purchasedItem?.passiveEffectId) {
-            const unlockResult = GameManager.unlockPassiveCombatEffectAchievement?.(purchasedItem.passiveEffectId, purchasedItem);
-            if (!unlockResult?.success) {
-                GameManager.addGold(price);
-                this.showFeedback('解鎖失敗', `「${itemName}」沒有對應的戰術成就。`, 'error');
-                return;
-            }
-
-            GameManager.markSaveDirty?.('market-passive-achievement');
-            this.closeItemModal();
+        if (result.code === 'passive-effect') {
             audioManager.play('reward', { throttleKey: 'market-passive-unlock', throttleMs: 180 });
             this.showFeedback(
-                unlockResult.alreadyUnlocked ? '已解鎖' : '戰術成就解鎖',
-                unlockResult.alreadyUnlocked
-                    ? `「${itemName}」已經記入戰術欄。`
-                    : `學會「${unlockResult.effect?.name || itemName}」，可在角色欄的戰術技能中查看。`,
+                result.alreadyUnlocked ? '已解鎖' : '戰術成就解鎖',
+                result.alreadyUnlocked
+                    ? `「${result.itemName}」已經記入戰術欄。`
+                    : `學會「${result.effectName}」，可在角色欄的戰術技能中查看。`,
                 'success'
             );
             return;
         }
 
-        const added = GameManager.addToInventory(purchasedItem, quantity);
-        if (!added) {
-            GameManager.addGold(price);
-            audioManager.play('toast-error', { throttleKey: 'market-buy-full', throttleMs: 180 });
-            this.showFeedback('背包已滿', `「${itemName}」無法放入背包，金幣已退回。`, 'error');
-            return;
-        }
-
-        GameManager.markSaveDirty?.('market-buy');
-        this.closeItemModal();
         audioManager.play('coin', { throttleKey: 'market-buy-success', throttleMs: 180 });
-        const unlockText = this.consumePassiveUnlockText();
+        const unlockText = result.unlockedEffectNames?.length
+            ? ` 戰術技能解鎖：${result.unlockedEffectNames.join('、')}。可回大廳旅人卡片更換。`
+            : '';
         this.showFeedback(
             '購買完成',
-            `已購買「${itemName}」，花費 ${price} 金幣。${unlockText ? ` ${unlockText}` : ''}`,
+            `已購買「${result.itemName}」，花費 ${result.price} 金幣。${unlockText}`,
             'success'
         );
     }
 
     handleSell(trade) {
-        const { item, quantity, instanceId, price } = trade;
-        const itemName = item.name || '物品';
-        let earnedGold = false;
-
-        if (instanceId && typeof GameManager.sellItem === 'function') {
-            earnedGold = GameManager.sellItem(instanceId, false);
-        } else {
-            const removed = GameManager.removeFromInventory(item.id);
-            if (removed) {
-                GameManager.addGold(price);
-                earnedGold = price;
-            }
-        }
-
-        if (earnedGold === false) {
+        const result = marketManager.sell(trade);
+        if (!result.success) {
             audioManager.play('toast-error', { throttleKey: 'market-sell-failed', throttleMs: 180 });
-            this.showFeedback('出售失敗', `找不到「${itemName}」，請重新整理背包後再試。`, 'error');
+            this.showFeedback('出售失敗', `找不到「${result.itemName}」，請重新整理背包後再試。`, 'error');
             return;
         }
 
-        GameManager.markSaveDirty?.('market-sell');
         this.closeItemModal();
         audioManager.play('coin', { throttleKey: 'market-sell-success', throttleMs: 180 });
-        this.showFeedback('出售完成', `已出售「${itemName}」${quantity > 1 ? `x${quantity}` : ''}，獲得 ${earnedGold} 金幣。`, 'success');
-    }
-
-    completeSupplyEntry(entry) {
-        if (!entry || this.isEntryCompleted(entry.entryType, entry) || !this.canPayEntry(entry)) return;
-
-        if (entry.rewards?.interactionId) {
-            const outcome = worldInteractionManager.trigger(entry.rewards.interactionId, {
-                source: 'market_exchange',
-                shopId: this.currentVendorId,
-                toast: false
-            });
-            const message = outcome.messages?.join(' ') || '供應線有了新的反應。';
-            if (outcome.success) this.markEntryCompleted(entry.entryType, entry);
-            audioManager.play(outcome.success ? 'reward' : 'toast-warning', {
-                throttleKey: 'market-interaction-exchange',
-                throttleMs: 180
-            });
-            this.showFeedback(outcome.success ? '交換完成' : '交換失敗', message, outcome.success ? 'success' : 'warning');
-            this.renderCurrentPanel();
-            return;
-        }
-
-        if (!this.consumeEntryCost(entry)) {
-            audioManager.play('toast-warning', { throttleKey: 'market-exchange-failed', throttleMs: 180 });
-            this.showFeedback('材料不足', '你身上的材料或金幣不足。', 'warning');
-            return;
-        }
-
-        const rewards = entry.rewards || {};
-        const rewardTexts = [];
-        if (rewards.gold) {
-            GameManager.addGold(rewards.gold);
-            rewardTexts.push(`${rewards.gold} 金幣`);
-        }
-        for (const reward of rewards.items || []) {
-            const item = this.resolveItem(reward.itemId);
-            const quantity = Math.max(1, Number(reward.quantity) || 1);
-            if (item) {
-                const addedToInventory = GameManager.addToInventory(item, quantity);
-                const addedToWarehouse = !addedToInventory && typeof GameManager.addToWarehouse === 'function'
-                    ? GameManager.addToWarehouse(item, quantity)
-                    : false;
-                if (addedToInventory || addedToWarehouse) {
-                    rewardTexts.push(`${item.name} x${quantity}${addedToWarehouse ? '（倉庫）' : ''}`);
-                }
-            }
-        }
-        for (const flag of rewards.flags || []) {
-            GameManager.setFlag(flag, true);
-        }
-
-        this.markEntryCompleted(entry.entryType, entry);
-        GameManager.markSaveDirty?.('market-supply-entry');
-        audioManager.play('reward', { throttleKey: 'market-exchange-success', throttleMs: 180 });
-        const unlockText = this.consumePassiveUnlockText();
         this.showFeedback(
-            entry.entryType === 'order' ? '訂單完成' : '交換完成',
-            `${rewardTexts.length ? `取得 ${rewardTexts.join('、')}。` : '城鎮供應線已更新。'}${unlockText ? ` ${unlockText}` : ''}`,
+            '出售完成',
+            `已出售「${result.itemName}」${result.quantity > 1 ? `x${result.quantity}` : ''}，獲得 ${result.earnedGold} 金幣。`,
             'success'
         );
-        this.renderCurrentPanel();
-    }
-
-    canPayEntry(entry) {
-        if ((entry.goldCost || 0) > this.getPlayerGold()) return false;
-        return (entry.requirements || []).every(requirement => {
-            const need = Math.max(1, Number(requirement.quantity) || 1);
-            return this.getItemCount(requirement.itemId) >= need;
-        });
-    }
-
-    consumeEntryCost(entry) {
-        if ((entry.goldCost || 0) > 0 && !GameManager.removeGold(entry.goldCost)) return false;
-        for (const requirement of entry.requirements || []) {
-            const quantity = Math.max(1, Number(requirement.quantity) || 1);
-            if (!GameManager.removeMaterial(requirement.itemId, quantity)) return false;
-        }
-        return true;
-    }
-
-    getBlockedEntryLabel(entry) {
-        if (!this.meetsCondition(entry.condition)) return '尚未開放';
-        if ((entry.goldCost || 0) > this.getPlayerGold()) return '金幣不足';
-        return '材料不足';
-    }
-
-    isEntryCompleted(type, entry) {
-        if (entry.repeatable) return false;
-        return Boolean(GameManager.getFlag(this.getEntryCompletedFlag(type, entry.entryKey || entry.id || entry.entryId)));
-    }
-
-    markEntryCompleted(type, entry) {
-        if (entry.repeatable) return;
-        GameManager.setFlag(this.getEntryCompletedFlag(type, entry.entryKey || entry.id || entry.entryId), true);
-    }
-
-    getEntryCompletedFlag(type, entryId) {
-        return `market.${type}.${entryId}.completed`;
     }
 
     isVendorLocked(vendor) {
@@ -961,15 +684,11 @@ export default class ShopScene {
     }
 
     getItemCount(itemId) {
-        const countIn = stacks => (stacks || [])
-            .filter(stack => stack?.item?.id === itemId)
-            .reduce((sum, stack) => sum + stackQuantity(stack), 0);
-        return countIn(GameManager.state?.inventory) + countIn(GameManager.state?.warehouse);
+        return marketManager.getItemCount(itemId);
     }
 
     getPlayerGold() {
-        if (typeof GameManager.getGold === 'function') return Number(GameManager.getGold()) || 0;
-        return Number(GameManager.state?.character?.gold) || 0;
+        return marketManager.getGold();
     }
 
     renderNpcDialogue(message = '', type = 'idle') {

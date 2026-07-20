@@ -291,17 +291,17 @@ export const StoryRebuildCleanupCandidates = Object.freeze([
         id: 'legacy_zone_identity',
         status: StoryRebuildStatus.REPLACED,
         priority: 'P0',
-        ownerPaths: ['src/js/data/WorldStories.js', 'src/js/data/StoryProgressMap.js', 'src/js/scenes/AdventureScene.js'],
-        reason: 'Player-facing map identity now comes from seven chapter regions, fixed nodes, and scene bindings. EventManager may retain private selection tiers until encounter rewards are allocated.',
+        ownerPaths: ['src/js/data/ChapterRegionRegistry.js', 'src/js/data/StoryDiscoveries.js', 'src/js/utils/WorldMap.js'],
+        reason: 'Player-facing map identity now comes from seven chapter regions, fixed nodes, and scene bindings. Events.js retains only pure private selection tiers until encounter rewards are allocated.',
         safeWhen: 'Already replaced; route objectives, handbook entries, and DEV map controls use chapter or route-node ids.'
     },
     {
         id: 'relationship_talk_count_depth',
-        status: StoryRebuildStatus.REWRITE,
+        status: StoryRebuildStatus.REPLACED,
         priority: 'P1',
-        ownerPaths: ['src/js/scenes/QuestScene.js', 'src/js/data/CharacterProfiles.js'],
-        reason: 'The user wants relationship notes to feel like remembered interactions, not visible familiarity meters or artificial labels.',
-        safeWhen: 'Relationship records are unlocked by story/dialogue flags.'
+        ownerPaths: ['src/js/managers/StoryJournalManager.js', 'src/js/data/CharacterProfiles.js', 'src/js/data/StoryActors.js'],
+        reason: 'Relationship notes now come from mainline introductions and accepted character-stage flags. QuestScene no longer derives familiarity from talk counts or invents character facts.',
+        safeWhen: 'Keep relationship visibility tied to MainlineCharacterContracts and profile stages; do not restore talk-count depth.'
     },
     {
         id: 'generic_quest_dialogue_bridges',
@@ -323,7 +323,7 @@ export const StoryRebuildCleanupCandidates = Object.freeze([
         id: 'legacy_external_boss_routes',
         status: StoryRebuildStatus.REWRITE,
         priority: 'P1',
-        ownerPaths: ['src/js/data/WorldStories.js', 'src/js/data/Monsters.js', 'src/js/data/Dungeons.js'],
+        ownerPaths: ['src/js/data/MonsterEcology.js', 'src/js/data/Monsters.js', 'src/js/data/Dungeons.js'],
         reason: 'Ash Baron still uses an old chapter route and placeholder Lv40 rewards, while formal light and Void records lack the approved staggered second-run external-story ownership.',
         safeWhen: 'Each external Boss has an approved story cause, second-run unlock, authored map branch, optional true-ending boundary, current-run acquisition path, and reward specification.'
     }

@@ -54,7 +54,7 @@ function location(id, name, kind, x, y, options = {}) {
         sceneIds: Object.freeze(options.sceneIds || []),
         bossId: options.bossId || null,
         optional: Boolean(options.optional),
-        legacyLandmarkId: options.legacyLandmarkId || null,
+        imageId: options.imageId || null,
         prerequisites: Object.freeze(options.prerequisites || []),
         assetStatus: options.assetStatus || 'pending_after_screenplay_lock'
     });
@@ -95,7 +95,10 @@ export const ChapterRegionRegistry = Object.freeze({
         encounterBand: 'chapter_01',
         visual: Object.freeze({
             mode: 'continuous_overworld_tile',
+            tileId: 'south_gate_borderland',
             backgroundId: 'overworld_south_gate',
+            mapTitle: '南門外林地',
+            subtitle: '第一區域',
             grade: 'chapter_01_borderland',
             renderRoutes: false,
             renderBoundary: false
@@ -103,24 +106,24 @@ export const ChapterRegionRegistry = Object.freeze({
         entryNodes: ['south_gate_entry'],
         exitNodes: ['south_gate_entry'],
         routeSegments: Object.freeze([
-            segment('collapsed_approach', 'south_gate_entry', 'south_gate_farmland', [[6, 16], [9, 17]], { terrain: 'broken_road', encounterTableId: 'ch1_road' }),
-            segment('three_marks_north', 'south_gate_farmland', 'hunter_boardwalk', [[9, 17], [15, 12]], { terrain: 'farmland_edge', encounterTableId: 'ch1_woodland' }),
-            segment('three_marks_south', 'south_gate_farmland', 'old_campfire_site', [[9, 17], [15, 23]], { terrain: 'wet_road', encounterTableId: 'ch1_woodland' }),
-            segment('silver_thread_branch', 'hunter_boardwalk', 'silver_snare_pass', [[15, 12], [22, 15], [27, 15]], { terrain: 'cut_boardwalk', encounterTableId: 'ch1_ambush', optional: false }),
-            segment('rotroot_salvage_spur', 'rotroot_ravine', 'rotroot_salvage', [[28, 14], [33, 9], [37, 5]], { terrain: 'raised_roots', encounterTableId: 'ch1_rotroot', optional: true }),
-            segment('rootwatch_spur', 'rotroot_ravine', 'rootwatch_grove', [[28, 14], [35, 22], [40, 27]], { terrain: 'root_grove', encounterTableId: 'ch1_rotroot_elite', optional: true }),
-            segment('forest_reaction_route', 'old_campfire_site', 'old_wolf_den', [[15, 23], [22, 20], [28, 14], [36, 10], [42, 10]], { terrain: 'rotroot_woodland', encounterTableId: 'ch1_forest' })
+            segment('collapsed_approach', 'south_gate_entry', 'south_gate_farmland', [[6, 16], [15, 16]], { terrain: 'broken_road', encounterTableId: 'ch1_road' }),
+            segment('three_marks_north', 'south_gate_farmland', 'hunter_boardwalk', [[15, 16], [28, 8]], { terrain: 'farmland_edge', encounterTableId: 'ch1_woodland' }),
+            segment('three_marks_south', 'south_gate_farmland', 'old_campfire_site', [[15, 16], [29, 24]], { terrain: 'wet_road', encounterTableId: 'ch1_woodland' }),
+            segment('silver_thread_branch', 'hunter_boardwalk', 'silver_snare_pass', [[28, 8], [34, 10], [39, 9]], { terrain: 'cut_boardwalk', encounterTableId: 'ch1_ambush', optional: false }),
+            segment('rotroot_salvage_spur', 'rotroot_ravine', 'rotroot_salvage', [[35, 19], [36, 12], [37, 5]], { terrain: 'raised_roots', encounterTableId: 'ch1_rotroot', optional: true }),
+            segment('rootwatch_spur', 'rotroot_ravine', 'rootwatch_grove', [[35, 19], [38, 23], [40, 27]], { terrain: 'root_grove', encounterTableId: 'ch1_rotroot_elite', optional: true }),
+            segment('forest_reaction_route', 'old_campfire_site', 'old_wolf_den', [[29, 24], [35, 19], [42, 19]], { terrain: 'rotroot_woodland', encounterTableId: 'ch1_forest' })
         ]),
         locationNodes: Object.freeze([
             location('south_gate_entry', '南門入口', RegionLocationKind.ENTRY, 6, 16, { sceneIds: ['ch1_s01_road_collapse'] }),
-            location('south_gate_farmland', '南門農田', RegionLocationKind.LANDMARK, 9, 17, { legacyLandmarkId: 'south_gate_farmland', sceneIds: ['ch1_s06_three_landmarks'] }),
-            location('hunter_boardwalk', '獵人棧道', RegionLocationKind.LANDMARK, 15, 12, { legacyLandmarkId: 'hunter_boardwalk', sceneIds: ['ch1_s06_three_landmarks'] }),
-            location('old_campfire_site', '舊營火點', RegionLocationKind.CAMP, 15, 23, { legacyLandmarkId: 'old_campfire_site', sceneIds: ['ch1_s06_three_landmarks'] }),
-            location('silver_snare_pass', '銀絲伏道', RegionLocationKind.SIDE_ROUTE, 27, 15, { legacyLandmarkId: 'silver_snare_pass', sceneIds: ['ch1_s07_silver_snare'], bossId: 'ambush_mantis' }),
-            location('rotroot_ravine', '腐根溪谷', RegionLocationKind.LANDMARK, 28, 14, { legacyLandmarkId: 'rotroot_ravine', sceneIds: ['ch1_s09_rotroot_approach'] }),
-            location('rotroot_salvage', '腐根補給岔路', RegionLocationKind.SIDE_ROUTE, 37, 5, { legacyLandmarkId: 'rotroot_salvage', sceneIds: [] }),
-            location('rootwatch_grove', '根哨林隙', RegionLocationKind.SIDE_ROUTE, 40, 27, { legacyLandmarkId: 'rootwatch_grove', sceneIds: [], bossId: 'treant' }),
-            location('old_wolf_den', '古樹根心', RegionLocationKind.BOSS_ARENA, 42, 10, { legacyLandmarkId: 'old_wolf_den', sceneIds: ['ch1_s10_forest_guardian'], bossId: 'forest_guardian' })
+            location('south_gate_farmland', '南門農田', RegionLocationKind.LANDMARK, 15, 16, { imageId: 'south_gate_farmland', sceneIds: ['ch1_s06_three_landmarks'] }),
+            location('hunter_boardwalk', '獵人棧道', RegionLocationKind.LANDMARK, 28, 8, { imageId: 'hunter_boardwalk', sceneIds: ['ch1_s06_three_landmarks'] }),
+            location('old_campfire_site', '舊營火點', RegionLocationKind.CAMP, 29, 24, { imageId: 'old_campfire_site', sceneIds: ['ch1_s06_three_landmarks'] }),
+            location('silver_snare_pass', '銀絲伏道', RegionLocationKind.SIDE_ROUTE, 39, 9, { imageId: 'silver_snare_pass', sceneIds: ['ch1_s07_silver_snare'], bossId: 'ambush_mantis' }),
+            location('rotroot_ravine', '腐根溪谷', RegionLocationKind.LANDMARK, 35, 19, { imageId: 'rotroot_ravine', sceneIds: ['ch1_s09_rotroot_approach'] }),
+            location('rotroot_salvage', '腐根補給岔路', RegionLocationKind.SIDE_ROUTE, 37, 5, { imageId: 'rotroot_ravine', sceneIds: [] }),
+            location('rootwatch_grove', '根哨林隙', RegionLocationKind.SIDE_ROUTE, 40, 27, { imageId: 'rotroot_ravine', sceneIds: [], bossId: 'treant' }),
+            location('old_wolf_den', '古樹根心', RegionLocationKind.BOSS_ARENA, 42, 19, { imageId: 'old_wolf_den', sceneIds: ['ch1_s10_forest_guardian'], bossId: 'forest_guardian' })
         ]),
         sceneBindings: Object.freeze([
             binding('ch1_s01_road_collapse', 'regional_canvas', 'collapsed_approach', RegionSceneTrigger.REGION_ENTRY),
@@ -139,20 +142,30 @@ export const ChapterRegionRegistry = Object.freeze({
         levelBand: [11, 20],
         title: '斷路上的藥味',
         encounterBand: 'chapter_02',
+        visual: Object.freeze({
+            mode: 'continuous_overworld_tile',
+            tileId: 'broken_evacuation_basin',
+            backgroundId: 'overworld_evacuation_basin',
+            mapTitle: '斷裂撤離盆地',
+            subtitle: '第二區域',
+            grade: 'chapter_02_evacuation_basin',
+            renderRoutes: false,
+            renderBoundary: false
+        }),
         entryNodes: ['evacuation_road_entry'],
         exitNodes: ['evacuation_road_entry'],
         routeSegments: Object.freeze([
-            segment('mist_tablet_road', 'evacuation_road_entry', 'mist_tablet_hill', [[3, 18], [12, 18]], { terrain: 'mist_road', encounterTableId: 'ch2_road' }),
-            segment('moon_migration_branch', 'mist_tablet_hill', 'moon_moss_slope', [[12, 18], [17, 9]], { terrain: 'moon_moss', encounterTableId: 'ch2_migration', optional: true }),
-            segment('opened_tomb_road', 'mist_tablet_hill', 'opened_ancient_tomb', [[12, 18], [22, 17], [31, 14], [41, 14]], { terrain: 'ruin_road', encounterTableId: 'ch2_dead_route' }),
-            segment('north_checkpoint_exit', 'opened_ancient_tomb', 'north_checkpoint_marker', [[41, 14], [44, 19], [45, 24]], { terrain: 'checkpoint_road', encounterTableId: 'ch2_north' })
+            segment('mist_tablet_road', 'evacuation_road_entry', 'mist_tablet_hill', [[3, 18], [17, 17]], { terrain: 'mist_road', encounterTableId: 'ch2_road' }),
+            segment('moon_migration_branch', 'mist_tablet_hill', 'moon_moss_slope', [[17, 17], [26, 8]], { terrain: 'moon_moss', encounterTableId: 'ch2_migration', optional: true }),
+            segment('opened_tomb_road', 'mist_tablet_hill', 'opened_ancient_tomb', [[17, 17], [29, 17], [41, 17]], { terrain: 'ruin_road', encounterTableId: 'ch2_dead_route' }),
+            segment('north_checkpoint_exit', 'opened_ancient_tomb', 'north_checkpoint_marker', [[41, 17], [44, 20], [45, 25]], { terrain: 'checkpoint_road', encounterTableId: 'ch2_north' })
         ]),
         locationNodes: Object.freeze([
             location('evacuation_road_entry', '斷裂撤離路', RegionLocationKind.ENTRY, 3, 18),
-            location('mist_tablet_hill', '霧碑丘', RegionLocationKind.LANDMARK, 12, 18, { legacyLandmarkId: 'mist_tablet_hill', sceneIds: ['ch2_s04_mist_and_tomb_route'] }),
-            location('moon_moss_slope', '月苔坡', RegionLocationKind.SIDE_ROUTE, 17, 9, { legacyLandmarkId: 'moon_moss_slope', sceneIds: ['ch2_s05_moon_moss_trace'], optional: true }),
-            location('opened_ancient_tomb', '掘開古墓', RegionLocationKind.BOSS_ARENA, 41, 14, { legacyLandmarkId: 'opened_ancient_tomb', sceneIds: ['ch2_s06_keeper_of_names'], bossId: 'lich' }),
-            location('north_checkpoint_marker', '北向廢棄關卡', RegionLocationKind.STORY_TRANSITION, 45, 24, { sceneIds: ['ch2_s08_shadow_at_the_checkpoint'] })
+            location('mist_tablet_hill', '霧碑丘', RegionLocationKind.LANDMARK, 17, 17, { imageId: 'mist_tablet_hill', sceneIds: ['ch2_s04_mist_and_tomb_route'] }),
+            location('moon_moss_slope', '月苔坡', RegionLocationKind.SIDE_ROUTE, 26, 8, { imageId: 'moon_moss_slope', sceneIds: ['ch2_s05_moon_moss_trace'], optional: true }),
+            location('opened_ancient_tomb', '掘開古墓', RegionLocationKind.BOSS_ARENA, 41, 17, { imageId: 'opened_ancient_tomb', sceneIds: ['ch2_s06_keeper_of_names'], bossId: 'lich' }),
+            location('north_checkpoint_marker', '北向廢棄關卡', RegionLocationKind.STORY_TRANSITION, 45, 25, { imageId: 'cut_roadsign', sceneIds: ['ch2_s08_shadow_at_the_checkpoint'] })
         ]),
         sceneBindings: Object.freeze([
             binding('ch2_s04_mist_and_tomb_route', 'regional_canvas', 'opened_tomb_road', RegionSceneTrigger.SEGMENT_ENTER),
@@ -181,8 +194,8 @@ export const ChapterRegionRegistry = Object.freeze({
         locationNodes: Object.freeze([
             location('dead_checkpoint', '廢棄關卡', RegionLocationKind.ENTRY, 4, 18, { sceneIds: ['ch3_s01_dead_checkpoint'] }),
             location('night_watch_line', '霧中守夜線', RegionLocationKind.LANDMARK, 20, 12, { sceneIds: ['ch3_s03_lamp_oil_in_fog'] }),
-            location('sunken_altar_reef', '浮出祭壇', RegionLocationKind.SIDE_ROUTE, 33, 27, { legacyLandmarkId: 'sunken_altar_reef', sceneIds: ['ch3_s06_drowned_voice'], bossId: 'drowned_oracle', optional: true }),
-            location('old_command_post', '舊指揮所', RegionLocationKind.LANDMARK, 37, 16, { legacyLandmarkId: 'black_iron_storehouse', sceneIds: ['ch3_s07_old_command_post'] }),
+            location('sunken_altar_reef', '浮出祭壇', RegionLocationKind.SIDE_ROUTE, 33, 27, { imageId: 'sunken_altar_reef', sceneIds: ['ch3_s06_drowned_voice'], bossId: 'drowned_oracle', optional: true }),
+            location('old_command_post', '舊指揮所', RegionLocationKind.LANDMARK, 37, 16, { imageId: 'black_iron_storehouse', sceneIds: ['ch3_s07_old_command_post'] }),
             location('shadow_command_yard', '左線指揮場', RegionLocationKind.BOSS_ARENA, 43, 16, { sceneIds: ['ch3_s08_shadow_commander'], bossId: 'shadow_commander' })
         ]),
         sceneBindings: Object.freeze([
@@ -213,7 +226,7 @@ export const ChapterRegionRegistry = Object.freeze({
         ]),
         locationNodes: Object.freeze([
             location('stone_route_entry', '移動石路', RegionLocationKind.ENTRY, 3, 18, { sceneIds: ['ch4_s01_road_moves_underfoot'] }),
-            location('thorn_glasshouse_ruin', '荊棘溫室遺址', RegionLocationKind.SIDE_ROUTE, 17, 7, { legacyLandmarkId: 'thorn_glasshouse_ruin', sceneIds: ['ch4_s03_thorn_value_rule'], bossId: 'thorn_witch', optional: true }),
+            location('thorn_glasshouse_ruin', '荊棘溫室遺址', RegionLocationKind.SIDE_ROUTE, 17, 7, { imageId: 'thorn_glasshouse_ruin', sceneIds: ['ch4_s03_thorn_value_rule'], bossId: 'thorn_witch', optional: true }),
             location('gray_ridge_entry', '灰脊入口', RegionLocationKind.LANDMARK, 20, 15, { sceneIds: ['ch4_s04_gray_ridge_evacuates'] }),
             location('rear_marker', '後標燈位', RegionLocationKind.LANDMARK, 33, 20, { sceneIds: ['ch4_s05_body_locks'] }),
             location('center_span_marker', '中央跨度', RegionLocationKind.LANDMARK, 34, 9, { sceneIds: ['ch4_s06_flag_returns'] }),
@@ -281,10 +294,10 @@ export const ChapterRegionRegistry = Object.freeze({
             segment('old_route_mouth_approach', 'broad_road_collapse', 'old_route_mouth', [[31, 25], [22, 27], [16, 24]], { terrain: 'acoustic_blind_turns', encounterTableId: 'ch6_old_road' })
         ]),
         locationNodes: Object.freeze([
-            location('northern_drake_watch', '北境龍哨', RegionLocationKind.ENTRY, 3, 18, { legacyLandmarkId: 'northern_drake_watch', sceneIds: ['ch6_s01_northern_drake_watch'] }),
-            location('dragon_heat_crag', '龍焰裂脊', RegionLocationKind.SIDE_ROUTE, 20, 25, { legacyLandmarkId: 'dragon_heat_crag', optional: true }),
+            location('northern_drake_watch', '北境龍哨', RegionLocationKind.ENTRY, 3, 18, { imageId: 'northern_drake_watch', sceneIds: ['ch6_s01_northern_drake_watch'] }),
+            location('dragon_heat_crag', '龍焰裂脊', RegionLocationKind.SIDE_ROUTE, 20, 25, { imageId: 'dragon_heat_crag', optional: true }),
             location('seal_warning_line', '封痕警戒線', RegionLocationKind.LANDMARK, 31, 13, { sceneIds: ['ch6_s02_scar_aftermath', 'ch6_s03_stop_before_the_line'] }),
-            location('elder_dragon_line', '龍族守線', RegionLocationKind.BOSS_ARENA, 44, 15, { legacyLandmarkId: 'charred_obelisk', sceneIds: ['ch6_s04_dragon_convergence'], bossId: 'elder_dragon' }),
+            location('elder_dragon_line', '龍族守線', RegionLocationKind.BOSS_ARENA, 44, 15, { imageId: 'charred_obelisk', sceneIds: ['ch6_s04_dragon_convergence'], bossId: 'elder_dragon' }),
             location('broad_road_collapse', '寬路盡頭', RegionLocationKind.STORY_TRANSITION, 31, 25, { sceneIds: ['ch6_s05_after_the_broad_road'] }),
             location('old_route_mouth', '舊路回音口', RegionLocationKind.LANDMARK, 16, 24, { sceneIds: ['ch6_s09_the_old_note_answers'] })
         ]),

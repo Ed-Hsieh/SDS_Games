@@ -10,26 +10,21 @@ import {
     generateDungeonMonster,
     generateDungeonBoss,
     generateFloorEvent
-} from '../managers/DungeonManager.js';
+} from '../data/Dungeons.js';
+import { dungeonManager } from '../managers/DungeonManager.js';
 import GameManager from '../managers/GameManager.js';
-import { getRewardEffectTotals } from '../managers/EquipmentEffectResolver.js';
-import { resolveBattleBlueprintUnlocks } from '../managers/BlueprintManager.js';
-import { markBlueprintKnown, markItemKnown } from '../managers/EncyclopediaManager.js';
-import { questManager, ObjectiveType } from '../managers/QuestManager.js?v=dialogue-flow-20260712w';
-import { worldStoryManager } from '../managers/WorldStoryManager.js';
-import { StoryEventTypes } from '../data/StoryProgressMap.js';
 import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import audioManager from '../utils/AudioManager.js';
 import { escapeHtml } from '../utils/ItemDisplay.js';
 import { getGeneratedDungeonImage } from '../data/AssetManifest.js';
 import { isDevModeEnabled } from '../utils/DevMode.js';
-import { createRuntimeItem } from '../models/ItemFactory.js';
-import { resolveItemById } from '../utils/ItemResolver.js';
-import CombatFlowController from '../managers/CombatFlowController.js?v=codex-runtime-20260719c';
-import { createCombatEncounter, resolveEncounterDrop } from '../managers/AdventureEncounterManager.js?v=codex-runtime-20260719c';
+import CombatFlowController from '../managers/CombatFlowController.js';
+import {
+    createCombatEncounter,
+    resolveEncounterDrop,
+    settleEncounterVictory
+} from '../managers/AdventureEncounterManager.js';
 import { ensureCombatStage } from '../components/CombatStageView.js';
-
-const MATERIAL_TREASURE_CHANCE_MULTIPLIER = 0.58;
 
 class DungeonSceneClass {
     constructor() {
@@ -43,7 +38,7 @@ class DungeonSceneClass {
         this.currentMonster = null;
         this.combatFlow = null;
         this.stepCount = 0;
-        this.mechanicState = this.createInitialMechanicState();
+        this.mechanicState = dungeonManager.createMechanicState();
         
         // Canvas 相關
         this.canvas = null;
@@ -75,7 +70,7 @@ class DungeonSceneClass {
         this.totalFloors = dungeonData.bossFloor || dungeonData.floors || 4;
         this.currentFloor = 1;
         this.stepCount = 0;
-        this.mechanicState = this.createInitialMechanicState();
+        this.mechanicState = dungeonManager.createMechanicState();
         
         // 初始化地圖
         this.initDungeonMap();
@@ -123,7 +118,7 @@ class DungeonSceneClass {
             this.addMessage(`通關目標：${dungeonData.story.mechanicUnlock.title}`, 'reward');
         }
         this.emitDungeonChallengeBrief(dungeonData);
-        questManager.updateProgress(ObjectiveType.DUNGEON_FLOOR, this.dungeonType, 1);
+        dungeonManager.recordFloorReached(this.dungeonType, this.currentFloor);
         
     }
 
@@ -336,9 +331,9 @@ class DungeonSceneClass {
     movePlayer(dx, dy) {
         if (!this.dungeonMap || this.isInCombat) return;
 
-        if (this.mechanicState.bindSteps > 0) {
-            this.mechanicState.bindSteps -= 1;
-            this.addMessage(`藤蔓仍纏住你的腳步，還需要 ${this.mechanicState.bindSteps} 秒才能掙脫。`, 'warning');
+        const bindResult = dungeonManager.consumeBindStep(this.mechanicState);
+        if (bindResult?.blocked) {
+            this.addMessage(bindResult.message, 'warning');
             this.updateUI();
             return;
         }
@@ -372,7 +367,6 @@ class DungeonSceneClass {
 
         this.renderMap();
         this.updateUI();
-        GameManager.markSaveDirty?.('dungeon-step');
     }
     
     handleMoveResult(result) {
@@ -410,370 +404,67 @@ class DungeonSceneClass {
         }
     }
 
-    createInitialMechanicState() {
-        return {
-            cold: 0,
-            supplyStress: 0,
-            puzzleFragments: 0,
-            tabletDecoded: false,
-            markers: 0,
-            lostCount: 0,
-            bindSteps: 0,
-            poisonSteps: 0,
-            poisonDamage: 0,
-            burn: 0,
-            durabilityStress: 0,
-            curseSteps: 0,
-            curseAttack: 0,
-            curseDefense: 0
-        };
-    }
-
     processDungeonStep() {
         if (!this.dungeonType || !this.dungeonMap) return true;
-
+        const outcome = dungeonManager.resolveDungeonStep(
+            this.dungeonType,
+            this.stepCount,
+            this.mechanicState
+        );
+        this.applyDungeonOutcome(outcome);
         this.syncDungeonVision();
-        this.processOngoingAilments();
-
-        switch (this.dungeonType) {
-            case 'cave':
-                this.processCaveStep();
-                break;
-            case 'snow':
-                this.processSnowStep();
-                break;
-            case 'ruins':
-                this.processRuinsStep();
-                break;
-            case 'jungle':
-                this.processJungleStep();
-                break;
-            case 'hell':
-                this.processHellStep();
-                break;
-            default:
-                break;
-        }
-
-        GameManager.notify?.('all');
-        this.checkPlayerDeath();
-        return !this.isInCombat && (GameManager.getCharacter()?.hp || 0) > 0;
+        if (!outcome.alive) this.checkPlayerDeath();
+        return !this.isInCombat && outcome.alive;
     }
 
     syncDungeonVision() {
         if (!this.dungeonMap) return;
-
-        const dungeonData = DungeonDatabase[this.dungeonType];
-        const mechanic = dungeonData?.mechanic;
-        let vision = 4;
-
-        if (mechanic?.type === 'darkness') {
-            const base = mechanic.effect?.visionRange ?? 3;
-            const bonus = this.hasCounterItem(mechanic.counterItem) ? (mechanic.effect?.torchBonus ?? 2) : 0;
-            vision = base + bonus;
-        } else if (mechanic?.type === 'maze') {
-            const protectedByItem = this.hasCounterItem('jungle_compass') || this.hasEquipmentSpecial('mazeImmune');
-            vision = protectedByItem || this.mechanicState.markers >= this.getMarkerRequired() ? 5 : 3;
-        } else if (mechanic?.type === 'puzzle') {
-            vision = this.mechanicState.tabletDecoded || this.hasEquipmentSpecial('revealHidden') ? 5 : 4;
-        } else if (mechanic?.type === 'burn') {
-            vision = 4;
-        }
-
-        this.dungeonMap.visionRange = vision;
+        this.dungeonMap.visionRange = dungeonManager.getVisionRange(this.dungeonType, this.mechanicState);
         this.dungeonMap.updateExplored?.();
     }
 
-    getPassiveCombatBonus(stat) {
-        const char = GameManager.getCharacter();
-        return typeof char?.getPassiveCombatBonus === 'function'
-            ? Math.max(0, Number(char.getPassiveCombatBonus(stat)) || 0)
-            : 0;
-    }
-
-    reduceByPassive(amount, stat, cap = 0.8) {
-        const reduction = Math.min(cap, this.getPassiveCombatBonus(stat));
-        return Math.max(1, Math.floor(amount * (1 - reduction)));
-    }
-
-    applyPassiveHealingBonus(amount) {
-        const bonus = this.getPassiveCombatBonus('healingReceived');
-        return Math.max(1, Math.floor(amount * (1 + bonus)));
-    }
-
-    getDungeonDamageMitigation(reason = '') {
-        const text = String(reason);
-        let reduction = this.getPassiveCombatBonus('hazardDamageReduction');
-
-        if (/毒|沼|中毒/.test(text)) reduction += this.getPassiveCombatBonus('poisonMitigation');
-        if (/寒|冰|雪|補給不足/.test(text)) reduction += this.getPassiveCombatBonus('coldMitigation');
-        if (/火|炎|灼|岩漿|煉獄/.test(text)) reduction += this.getPassiveCombatBonus('burnMitigation');
-        if (/陷阱|機關|突襲|錯誤/.test(text)) reduction += this.getPassiveCombatBonus('trapDamageReduction');
-
-        return Math.min(0.8, reduction);
-    }
-
-    processCaveStep() {
-        if (this.stepCount % 6 !== 0) return;
-
-        if (this.hasCounterItem('torch')) {
-            this.addMessage(`火把穩住了黑暗，視野提升到 ${this.dungeonMap.visionRange} 格。`, 'info');
-        } else {
-            this.addMessage('洞窟深處的黑暗壓縮視野，遠處只能看到模糊輪廓。', 'warning');
-        }
-    }
-
-    processSnowStep() {
-        const mechanic = DungeonDatabase[this.dungeonType]?.mechanic;
-        const hasWarmth = this.hasCounterItem('warm_cloak') || this.hasCounterItem('heart_of_ice');
-        const maxCold = mechanic?.effect?.maxCold ?? 100;
-        const baseColdGain = hasWarmth ? 1 : (mechanic?.effect?.coldPerStep ?? 2);
-        const coldGain = this.reduceByPassive(baseColdGain, 'coldGainReduction', 0.75);
-
-        this.mechanicState.cold = Math.min(maxCold, this.mechanicState.cold + coldGain);
-
-        if (this.stepCount % 6 === 0) {
-            this.consumeColdSupply(hasWarmth);
-        }
-
-        if (this.mechanicState.cold >= maxCold) {
-            const char = GameManager.getCharacter();
-            const damage = Math.max(1, Math.floor((char.maxHp || 100) * (mechanic?.effect?.damagePerStep ?? 0.05)));
-            this.applyDungeonDamage(damage, '極寒侵蝕', 'danger');
-            this.mechanicState.cold = hasWarmth ? Math.max(70, this.mechanicState.cold - 10) : this.mechanicState.cold;
-        } else if (this.stepCount % 5 === 0) {
-            this.addMessage(`寒冷累積 ${this.mechanicState.cold}/${maxCold}。雪地會持續消耗補給。`, 'warning');
-        }
-    }
-
-    processRuinsStep() {
-        const required = this.getPuzzleFragmentRequired();
-
-        if (this.mechanicState.tabletDecoded) return;
-        if (this.hasCounterItem('ancient_codex') || this.hasEquipmentSpecial('puzzleHint')) {
-            this.mechanicState.puzzleFragments = Math.max(this.mechanicState.puzzleFragments, required);
-            this.mechanicState.tabletDecoded = true;
-            this.addMessage('古代典籍協助你辨認石碑文字。', 'success');
-            return;
-        }
-
-        if (this.stepCount % 7 === 0 && this.mechanicState.puzzleFragments < required && Math.random() < 0.45) {
-            this.mechanicState.puzzleFragments += 1;
-            this.addMessage(`你拓下一段石碑文字：線索 ${this.mechanicState.puzzleFragments}/${required}。`, 'reward');
-        }
-    }
-
-    processJungleStep() {
-        if (this.mechanicState.poisonSteps > 0) {
-            this.mechanicState.poisonSteps -= 1;
-            this.applyDungeonDamage(this.mechanicState.poisonDamage, '毒沼殘毒', 'warning');
-            if (this.mechanicState.poisonSteps <= 0) {
-                this.mechanicState.poisonDamage = 0;
-                this.addMessage('毒性逐漸退去。', 'success');
+    applyDungeonOutcome(outcome = {}) {
+        for (const event of outcome.events || []) {
+            if (event.audio === 'player-hit') {
+                audioManager.play('player-hit', {
+                    throttleKey: 'dungeon-hazard-damage',
+                    throttleMs: 220,
+                    intensity: event.damage > 25 ? 'heavy' : 'light'
+                });
             }
+            this.addMessage(event.text, event.type);
         }
-
-        const required = this.getMarkerRequired();
-        const protectedByItem = this.hasCounterItem('jungle_compass') || this.hasEquipmentSpecial('mazeImmune');
-        if (this.mechanicState.markers >= required || this.stepCount % this.getMazeInterval() !== 0) return;
-
-        let chance = DungeonDatabase[this.dungeonType]?.mechanic?.effect?.lostChance ?? 0.3;
-        chance -= this.mechanicState.markers * 0.07;
-        chance -= this.getPassiveCombatBonus('lostChanceReduction');
-        if (protectedByItem) chance *= 0.5;
-        chance = Math.max(0.05, chance);
-
-        if (Math.random() < chance) {
-            this.mechanicState.lostCount += 1;
-            this.returnToDungeonEntrance();
-            this.addMessage('迷霧讓路徑扭曲，你被帶回本層入口附近。收集路標可以降低風險。', 'danger');
-        } else {
-            this.addMessage(`迷霧干擾方向，當前路標 ${this.mechanicState.markers}/${required}。`, 'info');
-        }
-    }
-
-    processHellStep() {
-        const immune = this.hasCounterItem('flame_amulet') || this.hasCounterItem('crown_of_hell') || this.hasEquipmentSpecial('burnImmune');
-        if (immune) {
-            if (this.stepCount % 8 === 0) this.addMessage('烈焰護符隔開了煉獄灼熱。', 'success');
-            return;
-        }
-
-        const mechanic = DungeonDatabase[this.dungeonType]?.mechanic;
-        const char = GameManager.getCharacter();
-        const burnDamage = Math.max(1, Math.floor((char.maxHp || 100) * (mechanic?.effect?.damagePerStep ?? 0.02)));
-        this.mechanicState.burn = Math.min(100, this.mechanicState.burn + 6);
-        this.applyDungeonDamage(burnDamage, '煉獄烈焰', 'danger');
-
-        if (this.stepCount % 3 === 0) {
-            this.applyHellDurabilityPressure();
-        }
-    }
-
-    processOngoingAilments() {
-        if (this.mechanicState.curseSteps > 0) {
-            this.mechanicState.curseSteps -= 1;
-            if (this.mechanicState.curseSteps === 0) {
-                this.mechanicState.curseAttack = 0;
-                this.mechanicState.curseDefense = 0;
-                this.addMessage('詛咒領域的壓制消散了。', 'success');
-            }
+        for (const action of outcome.actions || []) {
+            if (action.type === 'return-to-entrance') this.returnToDungeonEntrance();
         }
     }
 
     handleRuinsPressurePlate(result) {
-        if (this.dungeonType !== 'ruins') {
-            this.addMessage('踩到壓力板，遠處傳來門打開的聲音。', 'info');
-            return;
-        }
-
-        const required = this.getPuzzleFragmentRequired();
-        const canReadTablet = this.mechanicState.tabletDecoded
-            || this.mechanicState.puzzleFragments >= required
-            || this.hasCounterItem('ancient_codex')
-            || this.hasEquipmentSpecial('puzzleHint');
-
-        if (canReadTablet) {
-            this.mechanicState.tabletDecoded = true;
-            this.mechanicState.puzzleFragments = Math.max(this.mechanicState.puzzleFragments, required);
+        const outcome = dungeonManager.resolvePressurePlate(this.dungeonType, this.mechanicState);
+        if (outcome.openDoor) {
             this.dungeonMap.doorsOpened.add(result.doorId);
-            this.addMessage('你讀懂石碑順序，壓力板正確啟動，石門打開了。', 'success');
-            return;
-        }
-
-        this.dungeonMap.doorsOpened.delete(result.doorId);
-        this.dungeonMap.pressurePlatesActivated?.delete(result.doorId);
-        const penalty = DungeonDatabase.ruins?.mechanic?.effect?.wrongPenalty ?? 30;
-        this.applyDungeonDamage(penalty, '錯誤機關', 'danger');
-        this.addMessage(`石碑文字尚未辨認，需要線索 ${this.mechanicState.puzzleFragments}/${required} 才能正確啟動。`, 'warning');
-    }
-
-    handleJunglePortal(result) {
-        if (this.dungeonType !== 'jungle') {
-            this.addMessage('傳送到了新位置。', 'info');
-            return;
-        }
-
-        const protectedByItem = this.hasCounterItem('jungle_compass') || this.hasEquipmentSpecial('mazeImmune');
-        const message = protectedByItem
-            ? '指南針穩住方向，迷霧傳送後仍能辨認路徑。'
-            : '迷霧傳送改變了位置，周圍路徑變得難以判斷。';
-        this.addMessage(message, protectedByItem ? 'success' : 'warning');
-    }
-
-    consumeColdSupply(hasWarmth = false) {
-        const stack = this.findConsumableStack();
-        if (stack && !hasWarmth) {
-            const savedSupply = Math.random() < Math.min(0.8, this.getPassiveCombatBonus('snowSupplySaving'));
-            if (savedSupply) {
-                this.mechanicState.supplyStress += 1;
-                this.addMessage('雪行節拍讓這次補給消耗被保留下來。', 'success');
-                return true;
-            }
-
-            stack.quantity = Number(stack.quantity ?? 1) - 1;
-            if (stack.quantity <= 0) {
-                const inventory = GameManager.state.inventory || [];
-                const index = inventory.findIndex(itemStack => itemStack.instanceId === stack.instanceId);
-                if (index >= 0) inventory.splice(index, 1);
-            }
-            this.mechanicState.supplyStress += 1;
-            this.addMessage(`寒地補給消耗：消耗 ${stack.item?.name || '補給品'} 維持體溫。`, 'warning');
-            GameManager.notify?.('all');
-            return true;
-        }
-
-        if (!hasWarmth) {
-            const char = GameManager.getCharacter();
-            const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.04));
-            this.applyDungeonDamage(damage, '補給不足', 'danger');
-            this.addMessage('沒有可用補給，寒冷直接侵蝕生命。', 'danger');
-            return false;
-        }
-
-        this.mechanicState.cold = Math.max(0, this.mechanicState.cold - 5);
-        this.addMessage('保暖裝備降低補給壓力，寒意稍微退去。', 'success');
-        return true;
-    }
-
-    applyHellDurabilityPressure() {
-        this.mechanicState.durabilityStress += 1;
-        const destroyed = [];
-        const savedDurability = Math.random() < Math.min(0.8, this.getPassiveCombatBonus('durabilityLossReduction'));
-        if (savedDurability) {
-            this.addMessage('餘燼淬身讓裝備避開了這次高溫磨耗。', 'success');
-            return;
-        }
-
-        const weaponDestroyed = GameManager.reduceWeaponDurability?.();
-        if (weaponDestroyed) destroyed.push(weaponDestroyed.name || '武器');
-
-        const armorDestroyed = GameManager.reduceArmorDurability?.();
-        if (armorDestroyed) destroyed.push(armorDestroyed.name || '防具');
-
-        if (destroyed.length > 0) {
-            this.addMessage(`煉獄高溫熔毀了 ${destroyed.join('、')}。`, 'danger');
         } else {
-            this.addMessage('煉獄高溫磨耗裝備耐久。', 'warning');
+            this.dungeonMap.doorsOpened.delete(result.doorId);
+            this.dungeonMap.pressurePlatesActivated?.delete(result.doorId);
         }
+        this.applyDungeonOutcome(outcome);
+        this.checkPlayerDeath();
+    }
 
-        GameManager.notify?.('all');
+    handleJunglePortal(_result) {
+        this.applyDungeonOutcome(dungeonManager.resolvePortal(this.dungeonType));
     }
 
     applyDungeonDamage(amount, reason, type = 'danger') {
-        const char = GameManager.getCharacter();
-        if (!char || amount <= 0) return 0;
-
-        const baseAmount = Math.max(1, Math.floor(amount));
-        const mitigation = this.getDungeonDamageMitigation(reason);
-        const finalAmount = Math.max(1, Math.floor(baseAmount * (1 - mitigation)));
-        const mitigatedText = finalAmount < baseAmount ? `（技能減免 ${baseAmount - finalAmount}）` : '';
-        char.hp = Math.max(0, (char.hp || 0) - finalAmount);
+        const result = dungeonManager.applyHazardDamage(amount, reason);
+        const mitigatedText = result.mitigated > 0 ? `（技能減免 ${result.mitigated}）` : '';
         audioManager.play('player-hit', {
             throttleKey: 'dungeon-hazard-damage',
             throttleMs: 220,
-            intensity: finalAmount > 25 ? 'heavy' : 'light'
+            intensity: result.damage > 25 ? 'heavy' : 'light'
         });
-        this.addMessage(`${reason}：受到 ${finalAmount} 點傷害${mitigatedText}。`, type);
-        GameManager.markSaveDirty?.('dungeon-damage');
-        return finalAmount;
-    }
-
-    findConsumableStack() {
-        return (GameManager.state.inventory || []).find(stack => {
-            const item = stack?.item;
-            const quantity = Number(stack?.quantity ?? 1);
-            return quantity > 0 && (item?.type === 'potion' || Boolean(item?.effect?.hp) || Boolean(item?.buff));
-        }) || null;
-    }
-
-    hasCounterItem(itemId) {
-        if (!itemId) return false;
-        const char = GameManager.getCharacter();
-        const equipment = char?.equipment || {};
-        if (Object.values(equipment).some(item => item?.id === itemId)) return true;
-
-        return (GameManager.state.inventory || []).some(stack => stack?.item?.id === itemId && (Number(stack.quantity) || 0) > 0);
-    }
-
-    hasEquipmentSpecial(key) {
-        const char = GameManager.getCharacter();
-        const equipment = char?.equipment || {};
-        return Object.values(equipment).some(item => item?.special?.[key] || item?.specialEffects?.[key]);
-    }
-
-    getPuzzleFragmentRequired() {
-        if (this.hasCounterItem('ancient_codex') || this.hasEquipmentSpecial('puzzleHint')) return 1;
-        return Math.max(1, 2 - Math.floor(this.getPassiveCombatBonus('puzzleClueBonus')));
-    }
-
-    getMarkerRequired() {
-        const baseRequired = DungeonDatabase.jungle?.mechanic?.effect?.markerRequired ?? 3;
-        return Math.max(1, baseRequired - Math.floor(this.getPassiveCombatBonus('markerRequirementReduction')));
-    }
-
-    getMazeInterval() {
-        return DungeonDatabase.jungle?.mechanic?.effect?.lostCheckInterval ?? 10;
+        this.addMessage(`${reason}：受到 ${result.damage} 點傷害${mitigatedText}。`, type);
+        return result.damage;
     }
 
     returnToDungeonEntrance() {
@@ -806,254 +497,55 @@ class DungeonSceneClass {
 
     async resolveDungeonFloorEvent(event) {
         if (!event) return;
-
-        const dungeonData = DungeonDatabase[this.dungeonType];
-        const char = GameManager.getCharacter();
-        const eventName = event.name || '未知事件';
-        const healPlayer = percent => {
-            const baseAmount = Math.max(1, Math.floor((char.maxHp || 100) * percent));
-            const amount = this.applyPassiveHealingBonus(baseAmount);
-            char.hp = Math.min(char.maxHp || 100, (char.hp || 0) + amount);
-            this.addMessage(`💚 ${eventName}：恢復 ${amount} 生命`, 'success');
-            return amount;
-        };
-        const rollGold = range => {
-            const [min, max] = Array.isArray(range) ? range : [20, 50];
-            return min + Math.floor(Math.random() * (max - min + 1));
-        };
-
-        switch (event.type) {
-            case 'trap':
-                if (event.monsterType) {
-                    this.addMessage(`⚔️ ${eventName}：敵人從暗處突襲！`, 'danger');
-                    this.startBattle(event.monsterType);
-                    return;
-                }
-                if (event.damage) {
-                    this.applyDungeonDamage(event.damage, eventName, 'danger');
-                }
-                if (event.poison) {
-                    this.mechanicState.poisonSteps = Math.max(this.mechanicState.poisonSteps, event.poison.duration || 3);
-                    this.mechanicState.poisonDamage = Math.max(this.mechanicState.poisonDamage, event.poison.damage || 1);
-                    this.addMessage(`☠️ 中毒：每秒 ${event.poison.damage}，持續 ${event.poison.duration} 秒`, 'warning');
-                }
-                if (event.effect === 'bind') {
-                    this.mechanicState.bindSteps = Math.max(this.mechanicState.bindSteps, event.duration || 1);
-                    this.addMessage(`🌿 束縛：行動受限 ${event.duration || 1} 秒`, 'warning');
-                }
-                break;
-            case 'lava':
-                this.applyDungeonDamage(event.damage || 0, eventName, 'danger');
-                break;
-            case 'treasure': {
-                const gold = rollGold(event.goldRange);
-                GameManager.addGold(gold);
-                this.addMessage(`🏺 ${eventName}：獲得 ${gold} 金幣`, 'reward');
-                this.tryGrantDungeonTreasureItem(event.itemChance ?? 0.2, `${eventName}中找到`, dungeonData);
-                this.applyDungeonTreasureDiscoveryBonus(eventName);
-                break;
-            }
-            case 'rest':
-            case 'campfire':
-            case 'herb':
-            case 'soul_well':
-                healPlayer(event.healPercent || 0.15);
-                if (event.coldReset) {
-                    this.mechanicState.cold = 0;
-                    this.mechanicState.supplyStress = Math.max(0, this.mechanicState.supplyStress - 2);
-                    this.addMessage('🔥 寒意被驅散。', 'success');
-                }
-                if (event.removePoisaon || event.removePoison) {
-                    this.mechanicState.poisonSteps = 0;
-                    this.mechanicState.poisonDamage = 0;
-                    this.addMessage('☠️ 毒性被草藥壓下。', 'success');
-                }
-                if (event.type === 'herb' && this.dungeonType === 'jungle') {
-                    this.mechanicState.lostCount = Math.max(0, this.mechanicState.lostCount - 1);
-                    this.addMessage('草藥味掩住濕霧，回程方向變得清楚一些。', 'info');
-                }
-                if (event.type === 'soul_well') {
-                    this.mechanicState.burn = Math.max(0, this.mechanicState.burn - 25);
-                    this.mechanicState.curseSteps = Math.max(0, this.mechanicState.curseSteps - 4);
-                    this.addMessage('靈魂之井暫時壓下灼熱與詛咒。', 'success');
-                }
-                break;
-            case 'blizzard':
-                const coldIncrease = this.reduceByPassive(event.coldIncrease || 0, 'coldGainReduction', 0.75);
-                this.mechanicState.cold = Math.min(100, this.mechanicState.cold + coldIncrease);
-                this.addMessage(`❄️ ${eventName}：寒意上升 ${coldIncrease}`, 'warning');
-                break;
-            case 'puzzle_bonus':
-                this.mechanicState.puzzleFragments = Math.min(
-                    this.getPuzzleFragmentRequired(),
-                    this.mechanicState.puzzleFragments + 1
-                );
-                this.addMessage(`🔎 ${eventName}：你解開隱藏機關，下一份獎勵會更豐厚。`, 'success');
-                break;
-            case 'lore':
-                char.exp = (char.exp || 0) + (event.expBonus || 0);
-                this.mechanicState.puzzleFragments = Math.min(
-                    this.getPuzzleFragmentRequired(),
-                    this.mechanicState.puzzleFragments + 1
-                );
-                this.addMessage(`📜 ${eventName}：獲得 ${event.expBonus || 0} 經驗`, 'reward');
-                break;
-            case 'marker':
-                this.mechanicState.markers = Math.min(
-                    this.getMarkerRequired(),
-                    this.mechanicState.markers + (event.markerCount || 1)
-                );
-                this.addMessage(`🧭 ${eventName}：地圖方向變得更清楚。路標 ${this.mechanicState.markers}/${this.getMarkerRequired()}`, 'info');
-                break;
-            case 'ambush':
-                this.addMessage(`⚔️ ${eventName}：菁英怪物突襲！`, 'danger');
-                this.startBattle(event.monsterType || 'elite');
-                return;
-            case 'curse':
-                this.mechanicState.curseSteps = Math.max(this.mechanicState.curseSteps, event.duration || 0);
-                this.mechanicState.curseAttack = event.debuff?.attack || 0;
-                this.mechanicState.curseDefense = event.debuff?.defense || 0;
-                this.addMessage(`🩸 ${eventName}：攻擊與防禦受到詛咒壓制 ${event.duration || 0} 秒`, 'warning');
-                break;
-            case 'contract': {
-                const accepted = await confirmAction({
-                    title: eventName,
-                    message: '你要簽下副本中的危險契約嗎？',
-                    details: ['立即失去 15% 生命', '獲得 250 金幣', '有機會得到煉獄寶物；失敗時會留下短暫詛咒'],
-                    confirmText: '簽訂',
-                    cancelText: '拒絕',
-                    type: 'warning'
-                });
-                if (accepted) {
-                    const damage = Math.max(1, Math.floor((char.maxHp || 100) * 0.15));
-                    char.hp = Math.max(1, (char.hp || 1) - damage);
-                    GameManager.addGold(250);
-                    this.addMessage(`🩸 契約成立：失去 ${damage} 生命，獲得 250 金幣`, 'reward');
-                    if (!this.tryGrantDungeonTreasureItem(event.itemChance ?? 0.45, '契約回贈', dungeonData)) {
-                        this.mechanicState.curseSteps = Math.max(this.mechanicState.curseSteps, 4);
-                        this.mechanicState.curseAttack = Math.min(this.mechanicState.curseAttack, -4);
-                        this.mechanicState.curseDefense = Math.min(this.mechanicState.curseDefense, -4);
-                        this.addMessage('契約沒有吐出寶物，只在皮膚上留下發燙的字。', 'warning');
-                    }
-                } else {
-                    this.addMessage('你拒絕了契約，低語聲逐漸退去。', 'info');
-                }
-                break;
-            }
-            default:
-                this.addMessage(`✨ ${eventName}`, 'info');
+        let outcome = dungeonManager.resolveFloorEvent(this.dungeonType, this.mechanicState, event);
+        if (outcome.requiresContractDecision) {
+            const accepted = await confirmAction({
+                title: event.name || '危險契約',
+                message: '你要簽下副本中的危險契約嗎？',
+                details: ['立即失去 15% 生命', '獲得 250 金幣', '有機會得到煉獄寶物；失敗時會留下短暫詛咒'],
+                confirmText: '簽訂',
+                cancelText: '拒絕',
+                type: 'warning'
+            });
+            outcome = dungeonManager.resolveFloorEvent(this.dungeonType, this.mechanicState, event, {
+                contractAccepted: accepted
+            });
         }
 
-        GameManager.markSaveDirty?.('dungeon-event');
+        this.applyDungeonOutcome(outcome);
+        for (const grant of outcome.grants || []) {
+            this.describeDungeonGrant(grant.result, grant.label);
+        }
+        if (outcome.battle) {
+            this.startBattle(outcome.battle);
+            return;
+        }
         this.updateUI();
         this.checkPlayerDeath();
     }
 
-    pickDungeonTreasureItem(dungeonData = DungeonDatabase[this.dungeonType]) {
-        const randomPool = Array.isArray(dungeonData?.treasures?.random)
-            ? dungeonData.treasures.random
-            : [];
-        if (randomPool.length === 0) return null;
-
-        const item = randomPool[Math.floor(Math.random() * randomPool.length)];
-        return item ? { ...item } : null;
-    }
-
-    resolveDungeonTreasureItem(item) {
-        if (!item) return null;
-        if (!item.itemId) return item;
-
-        const itemData = resolveItemById(item.itemId, {
-            order: ['material', 'equipment', 'shop', 'rewardItem', 'bossEquipment']
-        });
-        return itemData ? createRuntimeItem(itemData) : null;
-    }
-
-    getDungeonTreasureQuantity(item) {
-        const resolvedItem = this.resolveDungeonTreasureItem(item);
-        const type = String(resolvedItem?.type || '').toLowerCase();
-        if (type === 'material') return Math.random() < 0.2 ? 2 : 1;
-        return 1;
-    }
-
-    grantDungeonItem(item, quantity = 1, label = '獲得副本物資') {
-        const resolvedItem = this.resolveDungeonTreasureItem(item);
-        if (!resolvedItem) {
+    describeDungeonGrant(result, label = '獲得副本物資') {
+        if (!result || result.rolled === false) return false;
+        if (!result.item) {
             this.addMessage('副本物資資料不存在，未取得獎勵。', 'danger');
             return false;
         }
 
-        const safeQuantity = Math.max(1, Number(quantity) || 1);
-        const quantityText = safeQuantity > 1 ? ` x${safeQuantity}` : '';
-        const addedToInventory = GameManager.addToInventory?.(resolvedItem, safeQuantity);
-
-        if (addedToInventory) {
-            markItemKnown(resolvedItem.id);
-            this.addMessage(`${label}：${resolvedItem.name}${quantityText}`, 'reward');
+        const quantityText = result.quantity > 1 ? ` x${result.quantity}` : '';
+        if (result.success && result.destination === 'inventory') {
+            this.addMessage(`${label}：${result.item.name}${quantityText}`, 'reward');
             return true;
         }
 
-        const addedToWarehouse = GameManager.addToWarehouse?.(resolvedItem, safeQuantity);
-        if (addedToWarehouse) {
-            markItemKnown(resolvedItem.id);
-            this.addMessage(`背包已滿，${resolvedItem.name}${quantityText} 已送入倉庫。`, 'warning');
+        if (result.success && result.destination === 'warehouse') {
+            this.addMessage(`背包已滿，${result.item.name}${quantityText} 已送入倉庫。`, 'warning');
             return true;
         }
 
-        this.addMessage(`${resolvedItem.name || '副本物資'} 無法放入背包或倉庫。`, 'danger');
+        this.addMessage(`${result.item.name || '副本物資'} 無法放入背包或倉庫。`, 'danger');
         return false;
     }
 
-    tryGrantDungeonTreasureItem(chance = 0, label = '找到副本物資', dungeonData = DungeonDatabase[this.dungeonType]) {
-        const safeChance = Math.max(0, Math.min(1, Number(chance) || 0));
-        if (safeChance <= 0) return false;
-
-        const item = this.pickDungeonTreasureItem(dungeonData);
-        if (!item) return false;
-
-        const type = String(item?.type || '').toLowerCase();
-        const adjustedChance = type === 'material'
-            ? safeChance * MATERIAL_TREASURE_CHANCE_MULTIPLIER
-            : safeChance;
-        if (Math.random() >= adjustedChance) return false;
-
-        return this.grantDungeonItem(item, this.getDungeonTreasureQuantity(item), label);
-    }
-
-    applyDungeonTreasureDiscoveryBonus(sourceName = '寶箱') {
-        switch (this.dungeonType) {
-            case 'snow': {
-                const before = this.mechanicState.cold;
-                this.mechanicState.cold = Math.max(0, before - 15);
-                if (before !== this.mechanicState.cold) this.addMessage(`${sourceName}裡的乾燥絨布讓寒意退去一些。`, 'success');
-                break;
-            }
-            case 'ruins': {
-                const required = this.getPuzzleFragmentRequired();
-                if (!this.mechanicState.tabletDecoded && this.mechanicState.puzzleFragments < required) {
-                    this.mechanicState.puzzleFragments += 1;
-                    this.addMessage(`你在${sourceName}內找到一片拓文：線索 ${this.mechanicState.puzzleFragments}/${required}。`, 'reward');
-                }
-                break;
-            }
-            case 'jungle': {
-                const required = this.getMarkerRequired();
-                if (this.mechanicState.markers < required) {
-                    this.mechanicState.markers += 1;
-                    this.addMessage(`${sourceName}留下的繩結可以當路標：${this.mechanicState.markers}/${required}。`, 'info');
-                }
-                break;
-            }
-            case 'hell':
-                const before = this.mechanicState.burn;
-                this.mechanicState.burn = Math.max(0, this.mechanicState.burn - 12);
-                if (before !== this.mechanicState.burn) this.addMessage(`${sourceName}的封蠟壓住灼熱，煉獄壓力短暫下降。`, 'success');
-                break;
-            default:
-                break;
-        }
-    }
-    
     // ==================== 戰鬥系統 ====================
     
     startBattle(monsterType) {
@@ -1113,37 +605,11 @@ class DungeonSceneClass {
 
     settleDungeonVictory(encounter) {
         const monster = encounter.monster;
-        const gold = Array.isArray(monster.gold)
-            ? monster.gold[0] + Math.floor(Math.random() * (monster.gold[1] - monster.gold[0]))
-            : Number(monster.gold) || 0;
-        const character = GameManager.getCharacter();
-        const rewardEffects = getRewardEffectTotals(character);
-        const finalGold = Math.floor(gold * (1 + (rewardEffects.goldBonus || 0) / 100));
-        const exp = Math.floor((monster.exp || 0) * (1 + (rewardEffects.expBonus || 0) / 100));
-
-        GameManager.addGold(finalGold);
-        character.exp += exp;
-        character.checkLevelUp();
-        const blueprintUnlocks = resolveBattleBlueprintUnlocks({
-            monster,
-            dungeonId: this.dungeonType
-        });
-        blueprintUnlocks.forEach(unlock => markBlueprintKnown(unlock.seriesId || unlock.recipeId));
+        const rewards = settleEncounterVictory(encounter);
 
         this.dungeonMap.clearMonster();
-        GameManager.markSaveDirty?.('dungeon-battle-victory');
-        GameManager.notify?.('all');
-        this.addMessage(`擊敗 ${monster.name}，取得 ${finalGold} 金幣與 ${exp} 經驗。`, 'reward');
-
-        return {
-            gold: finalGold,
-            exp,
-            rows: blueprintUnlocks.map(unlock => ({
-                label: unlock.seriesId ? '工藝系列' : '製作藍圖',
-                value: unlock.series?.name || unlock.recipe?.name || unlock.recipeId
-            })),
-            blueprintUnlocks
-        };
+        this.addMessage(`擊敗 ${monster.name}，取得 ${rewards.gold} 金幣與 ${rewards.exp} 經驗。`, 'reward');
+        return rewards;
     }
 
     finishDungeonCombatReturn() {
@@ -1163,72 +629,27 @@ class DungeonSceneClass {
     }
 
     finishDungeonDefeat() {
-        const dungeonData = DungeonDatabase[this.dungeonType];
-        const character = GameManager.getCharacter();
-        character.hp = Math.max(1, Math.floor(character.maxHp * 0.3));
-        character.currentHP = character.hp;
-        GameManager.setFlag?.('death.pendingPenalty', true);
-        GameManager.setFlag?.('death.lastReason', 'dungeon-death');
-        GameManager.requestTownNarrativeReset?.('death_return');
-        GameManager.markSaveDirty?.('dungeon-death-return');
-        GameManager.notify?.('all');
-        showGlobalToast('戰敗回城', `你倒在 ${dungeonData?.name || '副本'}，已被送回大廳。`, 'warning');
+        const result = dungeonManager.resolveDefeat(this.dungeonType);
+        showGlobalToast('戰敗回城', `你倒在 ${result.dungeon?.name || '副本'}，已被送回大廳。`, 'warning');
         this.destroy();
         window.location.hash = '#lobby';
     }
 
     handleBossVictory() {
-        const dungeonData = DungeonDatabase[this.dungeonType];
-        questManager.updateProgress(ObjectiveType.DUNGEON_BOSS, `${this.dungeonType}_boss`, 1);
-        questManager.updateProgress(ObjectiveType.DUNGEON_CLEAR, this.dungeonType, 1);
-        GameManager.setFlag?.(`dungeon.${this.dungeonType}.cleared`, true);
-        const bossId = `${this.dungeonType}_boss`;
-        const clearStoryOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_COMPLETED, {
-            dungeonId: this.dungeonType,
-            dungeon: dungeonData,
-            source: 'dungeon_clear'
-        });
-        const bossStoryOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.DUNGEON_BOSS_DEFEATED, {
-            dungeonId: this.dungeonType,
-            bossId,
-            monsterId: dungeonData?.monsters?.boss?.id || bossId,
-            source: 'dungeon_boss'
-        });
-        const newStoryClues = [
-            ...(clearStoryOutcome.newClues || []),
-            ...(bossStoryOutcome.newClues || [])
-        ];
-        if (newStoryClues.length > 0) {
-            this.addMessage(`新痕跡：${newStoryClues[0].title}`, 'info');
+        const result = dungeonManager.completeDungeon(this.dungeonType);
+        if (!result.success) {
+            this.addMessage('副本通關資料不存在，無法完成結算。', 'danger');
+            return;
         }
-        this.awardDungeonBossTreasures(dungeonData);
+
+        const dungeonData = result.dungeon;
+        result.rewards.forEach(reward => this.describeDungeonGrant(reward, '獲得副本寶物'));
         this.addMessage(`🏆 通關 ${dungeonData.name}！`, 'legendary');
         if (dungeonData.challenge?.completion) {
             this.addMessage(dungeonData.challenge.completion, 'reward');
         }
         
         showGlobalToast('副本通關', `恭喜通關 ${dungeonData.name}！`, 'success');
-    }
-
-    awardDungeonBossTreasures(dungeonData) {
-        const treasures = dungeonData?.treasures;
-        if (!treasures) return;
-
-        const rewards = [];
-        if (treasures.guaranteed) rewards.push(treasures.guaranteed);
-
-        const randomPool = Array.isArray(treasures.random) ? [...treasures.random] : [];
-        if (randomPool.length > 0) {
-            const randomReward = randomPool[Math.floor(Math.random() * randomPool.length)];
-            rewards.push(randomReward);
-        }
-
-        rewards.forEach(item => {
-            this.grantDungeonItem(item, 1, '獲得副本寶物');
-        });
-
-        GameManager.markSaveDirty?.('dungeon-boss-reward');
-        GameManager.notify?.('all');
     }
     
     handlePlayerDeath() {
@@ -1246,18 +667,15 @@ class DungeonSceneClass {
     
     showTreasure() {
         audioManager.play('loot', { throttleKey: 'dungeon-treasure', throttleMs: 220 });
-        const dungeonData = DungeonDatabase[this.dungeonType];
-        const goldMin = 20 + this.currentFloor * 10;
-        const goldMax = 50 + this.currentFloor * 20;
-        const gold = goldMin + Math.floor(Math.random() * (goldMax - goldMin));
+        const result = dungeonManager.openTreasure(this.dungeonType, this.currentFloor);
         
-        this.addMessage(`🏺 寶箱！+${gold} 金幣`, 'success');
-        GameManager.addGold(gold);
-        const itemChance = Math.min(0.55, 0.22 + this.currentFloor * 0.04);
-        this.tryGrantDungeonTreasureItem(itemChance, '寶箱中找到', dungeonData);
-        this.applyDungeonTreasureDiscoveryBonus('寶箱');
-        GameManager.markSaveDirty?.('dungeon-treasure');
-        GameManager.notify?.('all');
+        this.addMessage(`🏺 寶箱！+${result.gold} 金幣`, 'success');
+        this.describeDungeonGrant(result.reward, '寶箱中找到');
+        this.applyDungeonOutcome(dungeonManager.applyTreasureDiscoveryBonus(
+            this.dungeonType,
+            this.mechanicState,
+            '寶箱'
+        ));
         
         this.dungeonMap.clearTreasure();
         this.updateUI();
@@ -1266,13 +684,11 @@ class DungeonSceneClass {
     
     useHealingSpring() {
         const char = GameManager.getCharacter();
-        const healAmount = this.applyPassiveHealingBonus(Math.floor(char.maxHp * 0.3));
-        char.hp = Math.min(char.maxHp, char.hp + healAmount);
+        const healAmount = dungeonManager.applyHealingBonus(Math.floor(char.maxHp * 0.3));
+        const healed = dungeonManager.healCharacter(healAmount, 'dungeon-healing');
         audioManager.play('heal', { throttleKey: 'dungeon-healing-spring', throttleMs: 220 });
         
-        this.addMessage(`⛲ 恢復 ${healAmount} 生命`, 'success');
-        GameManager.markSaveDirty?.('dungeon-healing');
-        GameManager.notify?.('all');
+        this.addMessage(`⛲ 恢復 ${healed} 生命`, 'success');
         
         this.dungeonMap.clearHealing();
         this.updateUI();
@@ -1328,8 +744,7 @@ class DungeonSceneClass {
         this.initDungeonMap();
         this.renderMap();
         this.updateUI();
-        questManager.updateProgress(ObjectiveType.DUNGEON_FLOOR, this.dungeonType, 1);
-        GameManager.markSaveDirty?.('dungeon-floor');
+        dungeonManager.recordFloorReached(this.dungeonType, this.currentFloor);
         
         const isBossFloor = this.currentFloor === this.totalFloors;
         
@@ -1352,7 +767,7 @@ class DungeonSceneClass {
     
     // ==================== 渲染 ====================
     
-    renderIntegratedMap(ctx, canvas, gridSize, cameraX, cameraY) {
+    renderDungeonMap(ctx, canvas, gridSize, cameraX, cameraY) {
         const themeColors = {
             cave: { base: 'rgba(7, 10, 9, 0.62)', unknown: 'rgba(4, 6, 6, 0.86)', floor: 'rgba(24, 40, 32, 0.76)', explored: 'rgba(24, 40, 32, 0.36)', wall: 'rgba(16, 22, 20, 0.88)', wallEdge: 'rgba(163, 139, 93, 0.18)', grid: 'rgba(119, 143, 111, 0.16)', accent: '#d0a85e', detail: 'rgba(194, 175, 128, 0.46)' },
             snow: { base: 'rgba(7, 16, 24, 0.58)', unknown: 'rgba(4, 10, 15, 0.84)', floor: 'rgba(29, 52, 66, 0.74)', explored: 'rgba(29, 52, 66, 0.36)', wall: 'rgba(18, 33, 42, 0.86)', wallEdge: 'rgba(174, 219, 236, 0.2)', grid: 'rgba(176, 214, 232, 0.15)', accent: '#8bd3f7', detail: 'rgba(208, 236, 248, 0.44)' },
@@ -1499,7 +914,6 @@ class DungeonSceneClass {
         ctx.fill();
         ctx.restore();
 
-        return true;
     }
 
     renderMap() {
@@ -1519,111 +933,7 @@ class DungeonSceneClass {
         const gridSize = this.dungeonMap.gridSize || 50;
         const cameraX = this.dungeonMap.cameraOffsetX || 0;
         const cameraY = this.dungeonMap.cameraOffsetY || 0;
-        if (this.renderIntegratedMap(ctx, canvas, gridSize, cameraX, cameraY)) return;
-        
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        const themeColors = {
-            cave: { floor: '#3d3d3d', wall: '#1a1a1a', accent: '#8b7355' },
-            snow: { floor: '#e8f4f8', wall: '#b0c4de', accent: '#87ceeb' },
-            ruins: { floor: '#4a4a3a', wall: '#2a2a20', accent: '#daa520' },
-            jungle: { floor: '#2d4a2d', wall: '#1a2e1a', accent: '#228b22' },
-            hell: { floor: '#4a2020', wall: '#2a1010', accent: '#dc143c' }
-        };
-        const theme = themeColors[this.dungeonType] || themeColors.cave;
-        
-        const visibleCells = this.dungeonMap.getVisibleCells();
-        
-        visibleCells.forEach(cell => {
-            const x = cell.x * gridSize - cameraX;
-            const y = cell.y * gridSize - cameraY;
-            
-            // 迷霧戰爭
-            if (!cell.explored) {
-                ctx.fillStyle = '#000';
-                ctx.fillRect(x, y, gridSize, gridSize);
-                return;
-            }
-            
-            if (!cell.visible) {
-                ctx.fillStyle = theme.floor + '40';
-                ctx.fillRect(x, y, gridSize, gridSize);
-                if (cell.data.type === DungeonTileType.WALL) {
-                    ctx.fillStyle = theme.wall + '60';
-                    ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-                }
-                return;
-            }
-            
-            // 地板
-            ctx.fillStyle = theme.floor;
-            ctx.fillRect(x, y, gridSize, gridSize);
-            
-            // 格線
-            ctx.strokeStyle = theme.accent + '30';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, gridSize, gridSize);
-            
-            // 冰面裝飾
-            if (cell.data.decoration === DungeonTileType.ICE) {
-                ctx.fillStyle = 'rgba(135, 206, 235, 0.3)';
-                ctx.fillRect(x, y, gridSize, gridSize);
-            }
-            
-            const tileType = cell.data.type;
-            
-            if (tileType === DungeonTileType.WALL) {
-                ctx.fillStyle = theme.wall;
-                ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-            } else if (tileType === DungeonTileType.LOCKED_DOOR) {
-                const isOpen = this.dungeonMap.doorsOpened.has(cell.data.doorId);
-                if (isOpen) {
-                    ctx.font = `${gridSize * 0.5}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#666';
-                    ctx.fillText('🚪', x + gridSize / 2, y + gridSize / 2);
-                } else {
-                    ctx.fillStyle = theme.wall;
-                    ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-                    ctx.font = `${gridSize * 0.5}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('🔒', x + gridSize / 2, y + gridSize / 2);
-                }
-            } else if (tileType === DungeonTileType.LAVA) {
-                ctx.fillStyle = '#ff4500';
-                ctx.fillRect(x + 2, y + 2, gridSize - 4, gridSize - 4);
-                ctx.font = `${gridSize * 0.4}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('🔥', x + gridSize / 2, y + gridSize / 2);
-            } else if (tileType !== DungeonTileType.EMPTY && tileType !== DungeonTileType.ENTRANCE) {
-                const icon = DungeonTileIcons[tileType] || '❓';
-                ctx.font = `${gridSize * 0.6}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff';
-                ctx.fillText(icon, x + gridSize / 2, y + gridSize / 2);
-            }
-        });
-        
-        // 玩家
-        const playerX = this.dungeonMap.playerPos.x * gridSize - cameraX;
-        const playerY = this.dungeonMap.playerPos.y * gridSize - cameraY;
-        
-        ctx.fillStyle = `${theme.accent}40`;
-        ctx.fillRect(playerX, playerY, gridSize, gridSize);
-        ctx.strokeStyle = theme.accent;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(playerX, playerY, gridSize, gridSize);
-        
-        ctx.font = `${gridSize * 0.7}px Arial`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = '#fff';
-        ctx.fillText('🧙', playerX + gridSize / 2, playerY + gridSize / 2);
+        this.renderDungeonMap(ctx, canvas, gridSize, cameraX, cameraY);
     }
     
     updateUI() {
@@ -1663,28 +973,11 @@ class DungeonSceneClass {
         
         if (!statusEl) return;
 
-        const state = this.mechanicState || this.createInitialMechanicState();
-        let statusText = mechanic.name;
-
-        switch (this.dungeonType) {
-            case 'cave':
-                statusText = `黑暗籠罩｜視野 ${this.dungeonMap?.visionRange || 3}｜${this.hasCounterItem('torch') ? '火把已生效' : '缺少火把'}`;
-                break;
-            case 'snow':
-                statusText = `極寒環境｜寒冷 ${state.cold}/100｜補給消耗 ${state.supplyStress}`;
-                break;
-            case 'ruins':
-                statusText = `遺跡機關｜石碑線索 ${state.puzzleFragments}/${this.getPuzzleFragmentRequired()}｜${state.tabletDecoded ? '已辨認' : '未辨認'}`;
-                break;
-            case 'jungle':
-                statusText = `迷霧迷宮｜路標 ${state.markers}/${this.getMarkerRequired()}｜迷失 ${state.lostCount} 次`;
-                break;
-            case 'hell':
-                statusText = `煉獄烈焰｜灼熱 ${state.burn}/100｜耐久壓力 ${state.durabilityStress}`;
-                break;
-            default:
-                statusText = mechanic.name;
-        }
+        const statusText = dungeonManager.getMechanicStatus(
+            this.dungeonType,
+            this.mechanicState,
+            this.dungeonMap?.visionRange || 3
+        );
 
         statusEl.textContent = statusText;
         statusEl.title = mechanic.description || statusText;

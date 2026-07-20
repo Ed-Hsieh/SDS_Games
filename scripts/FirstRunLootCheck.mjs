@@ -4,9 +4,10 @@ import { FirstRunMonsterRosters } from '../src/js/data/MonsterEcology.js';
 import { MonsterDatabase, MonsterType } from '../src/js/data/Monsters.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
+import { BossRecipeUnlocksByMonsterId } from '../src/js/data/RecipeDiscoveries.js';
 import { generateDropsFromSources } from '../src/js/managers/DropManager.js';
 import { DropSourceType } from '../src/js/models/Enums.js';
-import { FirstRunBandAllocationPlan, FirstRunBossCraftUnlocks, FirstRunRecipeAdditions } from '../src/js/data/FirstRunLootBalance.js';
+import { FirstRunBandAllocationPlan } from '../src/js/data/FirstRunLootBalance.js';
 import {
     BossRewardContract,
     EquipmentDropRateContract,
@@ -161,7 +162,7 @@ for (const bossId of mainBosses) {
     if (signature.rewardRole !== 'boss_signature') issues.push(`${bossId}: signature reward role is not locked`);
     if (signature.dropFrom?.length !== 1 || signature.dropFrom[0] !== bossId) issues.push(`${bossId}: signature source is not exclusive`);
 
-    for (const recipeId of FirstRunBossCraftUnlocks[bossId] || []) {
+    for (const recipeId of BossRecipeUnlocksByMonsterId[bossId] || []) {
         const recipe = RecipeDatabase[recipeId];
         if (!recipe) {
             issues.push(`${bossId}: missing Boss craft ${recipeId}`);
@@ -188,7 +189,10 @@ for (const roster of Object.values(FirstRunMonsterRosters)) {
     }
 }
 
-for (const recipe of Object.values(FirstRunRecipeAdditions)) {
+const sourceLockedSpecialCrafts = Object.values(RecipeDatabase)
+    .filter(recipe => recipe.result?.balanceStatus === 'source_locked_stats_provisional');
+
+for (const recipe of sourceLockedSpecialCrafts) {
     const blueprintSources = ids.filter(id => (BlueprintDropDatabase[id] || []).some(drop => drop.recipeId === recipe.id));
     for (const material of recipe.materials) {
         const sourceCount = materialSources.get(material.id)?.size || 0;

@@ -5,6 +5,7 @@
  */
 
 import { AffixStat, ItemRarity } from '../models/Enums.js';
+import GameManager from './GameManager.js';
 import {PrefixDatabase, SuffixDatabase} from '../data/Prefixes.js';
 import { formatAffixStats } from '../utils/ItemDisplay.js';
 import {
@@ -14,6 +15,24 @@ import {
     normalizeEquipmentKind,
     rollWeightedAffixRarity
 } from '../data/EquipmentBalance.js';
+
+const REROLL_GOLD_BY_RARITY = Object.freeze({
+    common: 50,
+    uncommon: 100,
+    rare: 200,
+    epic: 400,
+    legendary: 800
+});
+
+const REROLL_MATERIALS_BY_RARITY = Object.freeze({
+    common: Object.freeze([{ id: 'iron_shard', quantity: 1 }]),
+    uncommon: Object.freeze([{ id: 'iron_shard', quantity: 2 }]),
+    rare: Object.freeze([{ id: 'high_ore', quantity: 1 }]),
+    epic: Object.freeze([{ id: 'forge_core', quantity: 1 }]),
+    legendary: Object.freeze([{ id: 'rare_metal', quantity: 1 }])
+});
+
+const RARITY_ORDER = Object.freeze(['common', 'uncommon', 'rare', 'epic', 'legendary']);
 
 // Normalize various stat key forms to central AffixStat values
 function normalizeStatKey(stat) {
@@ -65,6 +84,7 @@ export class AffixManager {
     constructor() {
         this.prefixes = PrefixDatabase;
         this.suffixes = SuffixDatabase;
+        this.rerollHistory = [];
     }
     
     /**
@@ -271,43 +291,74 @@ export class AffixManager {
         return equipment.affixBonuses || createEmptyAffixBonuses();
     }
     
-    /**
-     * 重新洗練詞綴（消耗材料）
-     */
-    rerollAffixes(equipment, keepCount = 0) {
-        if (!equipment) return null;
-        
-        // 保留指定數量的詞綴
-        const keptAffixes = keepCount > 0 && equipment.affixes 
-            ? equipment.affixes.slice(0, keepCount) 
-            : [];
-        
-        // 重置
-        equipment.affixes = keptAffixes;
-        equipment.affixBonuses = createEmptyAffixBonuses();
-        
-        // 重新累計保留的詞綴
-        for (const affix of keptAffixes) {
-            for (const [stat, value] of Object.entries(affix.stats)) {
-                const norm = normalizeStatKey(stat) || stat;
-                if (equipment.affixBonuses[norm] !== undefined) {
-                    equipment.affixBonuses[norm] += value;
-                }
-            }
+    getRerollRequirements(equipment) {
+        const rarity = equipment?.rarity || 'common';
+        return {
+            gold: REROLL_GOLD_BY_RARITY[rarity] || REROLL_GOLD_BY_RARITY.uncommon,
+            materials: (REROLL_MATERIALS_BY_RARITY[rarity] || REROLL_MATERIALS_BY_RARITY.common)
+                .map(material => ({ ...material }))
+        };
+    }
+
+    getRerollStatus(equipment) {
+        if (!equipment) return { ok: false, reason: 'equipment', requirement: null };
+        const requirement = this.getRerollRequirements(equipment);
+        const hasGold = GameManager.getGold() >= requirement.gold;
+        const lacking = requirement.materials.find(material =>
+            GameManager.getItemCountAcrossStorage(material.id) < material.quantity
+        );
+        return {
+            ok: hasGold && !lacking,
+            reason: !hasGold ? 'gold' : lacking ? 'materials' : null,
+            requirement,
+            hasGold,
+            hasMaterials: !lacking,
+            lacking: lacking || null
+        };
+    }
+
+    rerollAffixes(equipment) {
+        const status = this.getRerollStatus(equipment);
+        if (!status.ok) return { ...status, success: false, equipment };
+
+        if (!GameManager.removeGold(status.requirement.gold)) {
+            return { ...status, success: false, reason: 'gold', equipment };
         }
-        
-        // 恢復原始名稱
-        if (equipment._baseName) {
-            equipment.name = equipment._baseName;
+        for (const material of status.requirement.materials) {
+            GameManager.removeMaterial(material.id, material.quantity);
         }
-        
-        // 重新生成詞綴
-        return this.generateAffixes(equipment);
+
+        if (!equipment._baseName) equipment._baseName = equipment.name;
+        if (!equipment._baseRarity) equipment._baseRarity = equipment.rarity || 'common';
+        equipment.name = equipment._baseName;
+        equipment.rarity = equipment._baseRarity;
+
+        this.generateAffixes(equipment, true);
+        equipment.rarity = (equipment.affixes || []).reduce((current, affix) => {
+            return RARITY_ORDER.indexOf(affix.rarity) > RARITY_ORDER.indexOf(current)
+                ? affix.rarity
+                : current;
+        }, equipment._baseRarity);
+
+        GameManager.markSaveDirty?.('reroll-affixes');
+        GameManager.notify?.('all');
+        const result = {
+            success: true,
+            reason: null,
+            requirement: status.requirement,
+            equipment,
+            affixes: equipment.affixes || [],
+            message: `重鑄完成！獲得 ${(equipment.affixes || []).length} 個詞綴`
+        };
+        this.rerollHistory.unshift({ ...result, timestamp: Date.now() });
+        this.rerollHistory.length = Math.min(this.rerollHistory.length, 20);
+        return result;
+    }
+
+    getRerollHistory(limit = 10) {
+        return this.rerollHistory.slice(0, Math.max(0, Number(limit) || 0));
     }
 }
 
 // 單例導出
 export const affixManager = new AffixManager();
-
-// 向後兼容
-export default AffixManager;

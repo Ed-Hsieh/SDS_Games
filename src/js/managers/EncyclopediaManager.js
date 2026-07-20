@@ -37,7 +37,10 @@ import {
     getSeriesRecipeIds
 } from '../data/RecipeSeries.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { getRecipeBlueprintFlag, getRecipeSeriesFlag } from './BlueprintManager.js';
+import {
+    isRecipeBlueprintKnown,
+    isRecipeSeriesKnown
+} from './BlueprintManager.js';
 import { storyJournalManager } from './StoryJournalManager.js';
 import {
     getMonsterEcologyProfile,
@@ -46,7 +49,6 @@ import {
 
 const MONSTER_FLAG_PREFIX = 'encyclopedia.monster.';
 const ITEM_FLAG_PREFIX = 'encyclopedia.item.';
-const BLUEPRINT_FLAG_PREFIX = 'encyclopedia.blueprint.';
 let revealAllForDev = false;
 const MonsterRankRarity = {
     normal: 'common',
@@ -103,14 +105,6 @@ const SourceTypeIcons = {
     market: '🛒'
 };
 
-function setFlagSilently(flag, value) {
-    GameManager.state.flags[flag] = value;
-}
-
-function notifyFlags() {
-    GameManager.notify('flags');
-}
-
 function getMonsterRank(monster, fallback = 'normal') {
     if (monster?.type) return monster.type;
     return fallback;
@@ -123,8 +117,8 @@ function getMonsterRarity(monster, fallback = 'normal') {
 function normalizeMonster(monster, options = {}) {
     const rank = getMonsterRank(monster, options.rank || 'normal');
     const hp = monster?.maxHp ?? monster?.hp ?? 0;
-    const attack = monster?.attack ?? monster?.atk ?? 0;
-    const defense = monster?.defense ?? monster?.def ?? 0;
+    const attack = monster?.attack ?? 0;
+    const defense = monster?.defense ?? 0;
 
     return {
         ...monster,
@@ -297,15 +291,11 @@ export function isItemKnown(itemId) {
 }
 
 export function isBlueprintKnownInEncyclopedia(recipeId) {
-    return revealAllForDev
-        || Boolean(GameManager.getFlag(getRecipeBlueprintFlag(recipeId)))
-        || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${recipeId}`));
+    return revealAllForDev || isRecipeBlueprintKnown(recipeId);
 }
 
 export function isBlueprintSeriesKnownInEncyclopedia(seriesId) {
-    return revealAllForDev
-        || Boolean(GameManager.getFlag(getRecipeSeriesFlag(seriesId)))
-        || Boolean(GameManager.getFlag(`${BLUEPRINT_FLAG_PREFIX}${seriesId}`));
+    return revealAllForDev || isRecipeSeriesKnown(seriesId);
 }
 
 export function isEncyclopediaRevealAll() {
@@ -314,47 +304,39 @@ export function isEncyclopediaRevealAll() {
 
 export function setEncyclopediaRevealAll(value) {
     revealAllForDev = Boolean(value);
-    notifyFlags();
+    GameManager.notify('flags');
 }
 
 export function unlockAllEncyclopediaEntries() {
+    revealAllForDev = true;
+    const flags = {};
     for (const monster of getMonsterEntries()) {
         const monsterId = getMonsterCatalogId(monster);
-        if (monsterId) setFlagSilently(`${MONSTER_FLAG_PREFIX}${monsterId}`, true);
+        if (monsterId) flags[`${MONSTER_FLAG_PREFIX}${monsterId}`] = true;
         for (const drop of monster.itemDrops || []) {
-            if (drop.id) setFlagSilently(`${ITEM_FLAG_PREFIX}${drop.id}`, true);
-        }
-        for (const drop of monster.blueprintDrops || []) {
-            const id = drop.recipeId || drop.seriesId || drop.id;
-            if (id) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${id}`, true);
+            if (drop.id) flags[`${ITEM_FLAG_PREFIX}${drop.id}`] = true;
         }
     }
 
     for (const item of getItemEntries()) {
-        if (item.id) setFlagSilently(`${ITEM_FLAG_PREFIX}${item.id}`, true);
+        if (item.id) flags[`${ITEM_FLAG_PREFIX}${item.id}`] = true;
     }
-    for (const blueprint of getBlueprintEntries()) {
-        const id = blueprint.recipeId || blueprint.seriesId || blueprint.id;
-        if (id) setFlagSilently(`${BLUEPRINT_FLAG_PREFIX}${id}`, true);
-    }
-
-    GameManager.markSaveDirty?.('encyclopedia-dev-unlock');
-    notifyFlags();
+    GameManager.updateFlags(flags, { reason: 'encyclopedia-dev-unlock' });
 }
 
 export function markMonsterKnown(monster) {
     const monsterId = getMonsterCatalogId(monster);
     if (!monsterId) return false;
     if (GameManager.getFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`)) return false;
-    setFlagSilently(`${MONSTER_FLAG_PREFIX}${monsterId}`, true);
-    GameManager.markSaveDirty?.('encyclopedia-monster');
-    notifyFlags();
-    return true;
+    return GameManager.setFlag(`${MONSTER_FLAG_PREFIX}${monsterId}`, true, {
+        reason: 'encyclopedia-monster'
+    });
 }
 
 export function syncMonsterKnowledge() {
-    const flags = GameManager.state?.flags || {};
-    let changed = false;
+    const flags = GameManager.getFlagsByPrefix(MONSTER_FLAG_PREFIX);
+    const updates = {};
+    const removals = [];
 
     for (const [flag, known] of Object.entries(flags)) {
         if (!known || !flag.startsWith(MONSTER_FLAG_PREFIX)) continue;
@@ -363,63 +345,42 @@ export function syncMonsterKnowledge() {
         if (!monsterId) continue;
         const canonicalFlag = `${MONSTER_FLAG_PREFIX}${monsterId}`;
         if (!flags[canonicalFlag]) {
-            setFlagSilently(canonicalFlag, true);
-            changed = true;
+            updates[canonicalFlag] = true;
         }
         if (canonicalFlag !== flag) {
-            delete flags[flag];
-            changed = true;
+            removals.push(flag);
         }
     }
 
-    if (changed) {
-        GameManager.markSaveDirty?.('encyclopedia-monster-migration');
-        notifyFlags();
-    }
-    return changed;
+    return GameManager.updateFlags(updates, {
+        remove: removals,
+        reason: 'encyclopedia-monster-migration'
+    });
 }
 
 export function markItemKnown(itemId) {
     if (!itemId) return false;
     const flag = `${ITEM_FLAG_PREFIX}${itemId}`;
     if (GameManager.getFlag(flag)) return false;
-    setFlagSilently(flag, true);
-    GameManager.markSaveDirty?.('encyclopedia-item');
-    notifyFlags();
-    return true;
-}
-
-export function markBlueprintKnown(recipeId) {
-    if (!recipeId) return false;
-    const flag = `${BLUEPRINT_FLAG_PREFIX}${recipeId}`;
-    if (GameManager.getFlag(flag)) return false;
-    setFlagSilently(flag, true);
-    GameManager.markSaveDirty?.('encyclopedia-blueprint');
-    notifyFlags();
-    return true;
+    return GameManager.setFlag(flag, true, { reason: 'encyclopedia-item' });
 }
 
 export function syncOwnedItemKnowledge() {
     const character = GameManager.getCharacter?.();
     const ownedItems = [
         ...(GameManager.getInventory?.() || []).map(stack => stack?.item),
-        ...(GameManager.state?.warehouse || []).map(stack => stack?.item),
+        ...(GameManager.getWarehouse?.() || []).map(stack => stack?.item),
         ...Object.values(character?.equipment || {})
     ].filter(item => item?.id);
-    let changed = false;
+    const flags = {};
 
     for (const item of ownedItems) {
         const flag = `${ITEM_FLAG_PREFIX}${item.id}`;
         if (GameManager.getFlag(flag)) continue;
-        setFlagSilently(flag, true);
-        changed = true;
+        flags[flag] = true;
     }
 
-    if (changed) {
-        GameManager.markSaveDirty?.('encyclopedia-owned-items');
-        notifyFlags();
-    }
-    return changed;
+    return GameManager.updateFlags(flags, { reason: 'encyclopedia-owned-items' });
 }
 
 export function getDiscoveryEntries() {

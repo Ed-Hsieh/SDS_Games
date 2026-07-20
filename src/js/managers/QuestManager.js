@@ -4,15 +4,13 @@
  * (從 scenes/QuestSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
-import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById } from '../data/Quests.js?v=dialogue-flow-20260712w';
+import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById } from '../data/Quests.js';
 import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
-import { getMaterial } from './MaterialManager.js';
+import { getMaterial } from '../data/Materials.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import { unlockRecipesForInteraction } from './BlueprintManager.js';
 import { markItemKnown } from './EncyclopediaManager.js';
-import { worldStoryManager } from './WorldStoryManager.js';
-import { StoryEventTypes } from '../data/StoryProgressMap.js';
-import { getQuestStory } from '../data/QuestStories.js?v=dialogue-flow-20260712w';
+import { getQuestStory } from '../data/QuestStories.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 
 class QuestManager {
@@ -70,14 +68,8 @@ class QuestManager {
             startTime: Date.now()
         };
 
-        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_ACCEPTED, {
-            questId,
-            quest,
-            source: 'quest_manager'
-        });
-
-        this.notify('quest_accepted', { quest, questId, storyOutcome });
-        this.syncCollectObjectives(GameManager.state);
+        this.notify('quest_accepted', { quest, questId });
+        this.syncCollectObjectives();
         this.syncFlagObjectives();
         
         const questStory = getQuestStory(quest, this.questStates[questId]);
@@ -149,21 +141,13 @@ class QuestManager {
         this.checkHiddenQuestTriggers('quest_complete', questId);
         const blueprintUnlocks = unlockRecipesForInteraction(questId);
 
-        const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_COMPLETED, {
-            questId,
-            quest,
-            rewards,
-            blueprintUnlocks,
-            source: 'quest_manager'
-        });
-        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks, storyOutcome });
+        this.notify('quest_completed', { quest, questId, rewards, blueprintUnlocks });
 
         return {
             success: true,
             message: completedStory?.reportMessage || `完成任務：${quest.name}`,
             rewards,
-            blueprintUnlocks,
-            storyOutcome
+            blueprintUnlocks
         };
     }
 
@@ -179,12 +163,7 @@ class QuestManager {
             };
             
             const quest = getQuestById(questId);
-            const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_UNLOCKED, {
-                questId,
-                quest,
-                source: 'quest_manager'
-            });
-            this.notify('quest_unlocked', { quest, questId, storyOutcome });
+            this.notify('quest_unlocked', { quest, questId });
         }
     }
 
@@ -200,9 +179,7 @@ class QuestManager {
         }
 
         if (rewards.exp) {
-            const char = GameManager.getCharacter();
-            char.exp += rewards.exp;
-            char.checkLevelUp();
+            GameManager.addCharacterExperience(rewards.exp, { reason: 'quest-reward' });
             result.exp = rewards.exp;
         }
 
@@ -289,12 +266,7 @@ class QuestManager {
             // 檢查是否所有目標都完成
             if (this.checkQuestCompletion(questId)) {
                 state.status = QuestStatus.COMPLETED;
-                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
-                    questId,
-                    quest,
-                    source: 'quest_manager'
-                });
-                this.notify('quest_ready', { questId, quest, storyOutcome });
+                this.notify('quest_ready', { questId, quest });
             }
         }
 
@@ -356,23 +328,17 @@ class QuestManager {
         return state.progress.every(prog => prog.current >= prog.required);
     }
 
-    handleGameStateUpdate(state, type) {
+    handleGameStateUpdate(_state, type) {
         if (type === 'all' || type === 'gold') {
-            this.checkHiddenQuestTriggers('gold', Number(state?.character?.gold ?? GameManager.getGold()) || 0);
+            this.checkHiddenQuestTriggers('gold', Number(GameManager.getGold()) || 0);
         }
 
         if (!['all', 'inventory', 'warehouse'].includes(type)) return;
-        this.syncCollectObjectives(state);
+        this.syncCollectObjectives();
     }
 
-    syncCollectObjectives(state = GameManager.state) {
+    syncCollectObjectives() {
         let updated = false;
-        const countItem = itemId => {
-            const countIn = stacks => (stacks || [])
-                .filter(stack => stack?.item?.id === itemId)
-                .reduce((sum, stack) => sum + (Number(stack.quantity) || 1), 0);
-            return countIn(state?.inventory) + countIn(state?.warehouse);
-        };
 
         for (const [questId, questState] of Object.entries(this.questStates)) {
             if (questState.status !== QuestStatus.ACTIVE) continue;
@@ -383,7 +349,7 @@ class QuestManager {
             questState.progress.forEach((prog, index) => {
                 if (prog.type !== ObjectiveType.COLLECT) return;
 
-                const owned = countItem(prog.target);
+                const owned = GameManager.getItemCountAcrossStorage(prog.target);
                 const nextValue = Math.min(owned, prog.required);
                 if (nextValue === prog.current) return;
 
@@ -399,12 +365,7 @@ class QuestManager {
 
             if (this.checkQuestCompletion(questId)) {
                 questState.status = QuestStatus.COMPLETED;
-                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
-                    questId,
-                    quest,
-                    source: 'quest_manager'
-                });
-                this.notify('quest_ready', { questId, quest, storyOutcome });
+                this.notify('quest_ready', { questId, quest });
             }
         }
 
@@ -440,12 +401,7 @@ class QuestManager {
 
             if (this.checkQuestCompletion(questId)) {
                 questState.status = QuestStatus.COMPLETED;
-                const storyOutcome = worldStoryManager.applyStoryEvent(StoryEventTypes.QUEST_READY, {
-                    questId,
-                    quest,
-                    source: 'quest_manager'
-                });
-                this.notify('quest_ready', { questId, quest, storyOutcome });
+                this.notify('quest_ready', { questId, quest });
             }
         }
 
@@ -614,6 +570,32 @@ class QuestManager {
             .filter(Boolean);
     }
 
+    getQuestCounts() {
+        const counts = { active: 0, completed: 0, finished: 0 };
+        for (const state of Object.values(this.questStates)) {
+            if (state.status === QuestStatus.ACTIVE) counts.active += 1;
+            if (state.status === QuestStatus.COMPLETED) counts.completed += 1;
+            if (state.status === QuestStatus.FINISHED) counts.finished += 1;
+        }
+        return counts;
+    }
+
+    completeQuestObjectives(questId) {
+        const quest = getQuestById(questId);
+        const state = this.questStates[questId];
+        if (!quest || !state || state.status !== QuestStatus.ACTIVE) {
+            return { success: false, message: '任務需先處於進行中才能補滿' };
+        }
+
+        for (const progress of state.progress || []) {
+            progress.current = progress.required;
+        }
+        state.status = QuestStatus.COMPLETED;
+        GameManager.markSaveDirty('quest-objectives-completed');
+        this.notify('quest_ready', { questId, quest });
+        return { success: true, quest };
+    }
+
     /**
      * 獲取任務狀態
      */
@@ -713,7 +695,12 @@ class QuestManager {
                 continue;
             }
             if (state?.status === QuestStatus.FINISHED) {
-                GameManager.state.flags[`quest.${questId}.finished`] = true;
+                GameManager.setFlag(`quest.${questId}.finished`, true, {
+                    persist: false,
+                    notify: false,
+                    syncPassive: false,
+                    reason: 'quest-deserialize'
+                });
             }
         }
         this.stats = {
@@ -733,6 +720,3 @@ class QuestManager {
 // 單例
 export const questManager = new QuestManager();
 export default QuestManager;
-
-// 重新導出常用的 enum，供 Scenes 使用（避免 Scenes 直接引用 Database）
-export { QuestStatus, QuestType, ObjectiveType };

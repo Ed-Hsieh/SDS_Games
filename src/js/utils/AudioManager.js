@@ -998,8 +998,4 @@ class AudioManager {
 
 const audioManager = new AudioManager();
 
-if (typeof window !== 'undefined') {
-    window.audioManager = audioManager;
-}
-
 export default audioManager;
