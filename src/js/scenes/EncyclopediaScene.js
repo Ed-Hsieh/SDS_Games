@@ -496,14 +496,6 @@ export default class EncyclopediaScene {
     renderMonsterSkillSection(entry) {
         if (!entry.known) return '';
         const skills = (entry.skills || []).map(skill => normalizeMonsterSkill(skill));
-        const blueprintSection = blueprintDrops
-            ? `
-                <section class="codex-section">
-                    <h3>圖紙掉落</h3>
-                    <div class="codex-drop-grid">${blueprintDrops}</div>
-                </section>
-            `
-            : '';
         return `
             <section class="codex-section">
                 <h3>狀態與技能</h3>
@@ -541,6 +533,14 @@ export default class EncyclopediaScene {
         if (!entry.known) return '';
         const itemDrops = (entry.itemDrops || []).map(drop => this.renderMonsterItemDrop(drop)).join('');
         const blueprintDrops = (entry.blueprintDrops || []).map(drop => this.renderMonsterBlueprintDrop(drop)).join('');
+        const blueprintSection = blueprintDrops
+            ? `
+                <section class="codex-section">
+                    <h3>圖紙掉落</h3>
+                    <div class="codex-drop-grid">${blueprintDrops}</div>
+                </section>
+            `
+            : '';
         return `
             <section class="codex-section">
                 <h3>掉落物</h3>
