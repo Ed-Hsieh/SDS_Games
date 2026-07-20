@@ -421,7 +421,8 @@ export default class AdventureScene {
                 image: this.images.get(`gate-blocked:${entry.id}`)
             });
         } else if (!this.tryStartLandmarkStory(entry)) {
-            const authoredStoryBoss = Boolean(entry.bossId && entry.sceneIds?.length);
+            const authoredStoryBoss = Boolean(entry.bossId
+                && entry.sceneIds?.some(sceneId => !storySceneManager.isSceneComplete(sceneId)));
             this.openModal({
                 kicker: entry.bossId ? '劇情交會地' : '地標已記錄',
                 title: entry.name,

@@ -13,7 +13,7 @@ export const StandaloneRecipeDatabase = {
         "type": "weapon",
         "weaponForm": "dagger",
         "rarity": "uncommon",
-        "materials": [{"id":"poison_gland","quantity":3},{"id":"spider_queen_fang","quantity":1},{"id":"iron_ore","quantity":2}],
+        "materials": [{"id":"poison_gland","quantity":3},{"id":"wolf_fang","quantity":1},{"id":"iron_ore","quantity":2}],
         "cost": 120,
         "successRate": 90,
         "result": {"id":"crafted_poison_dagger","name":"毒牙匕首","icon":"🗡️","type":"weapon","weaponForm":"dagger","rarity":"uncommon","stats":{"attack":10,"defense":0,"critChance":0.18,"critDamage":1.8,"weaponSpeed":1.2,"attackSpeed":1.2},"specialEffects":[{"type":"poison","value":5}],"desc":"塗有蜘蛛毒液的匕首。","level":8,"requiredLevel":8},
@@ -31,6 +31,21 @@ export const StandaloneRecipeDatabase = {
         "successRate": 100,
         "result": {"id":"crafted_leather_armor","name":"皮甲","icon":"🥋","type":"equipment","rarity":"common","stats":{"attack":0,"defense":8,"critChance":0,"critDamage":0},"specialEffects":[],"desc":"由獸皮製成的輕便護甲。","level":1,"requiredLevel":1},
         "level": 1
+    },
+
+    "wolf_pelt_armor": {
+        "id": "wolf_pelt_armor",
+        "name": "狼皮護甲",
+        "icon": "🛡️",
+        "type": "equipment",
+        "rarity": "uncommon",
+        "materials": [{"id":"wolf_pelt","quantity":2},{"id":"iron_ore","quantity":1}],
+        "cost": 70,
+        "successRate": 100,
+        "acquisitionRole": "basic_monster_craft",
+        "canonicalResult": true,
+        "result": {"id":"wolf_pelt_armor","name":"狼皮護甲","icon":"🛡️","type":"equipment","rarity":"uncommon","level":5,"stats":{"attack":2,"defense":12,"critChance":0.03,"critDamage":1.2},"specialEffects":[],"setId":"wolf_hunter","description":"由狼皮製成的護甲，輕便保暖。","maxDurability":21,"durability":21},
+        "level": 5
     },
 
     "shadow_armor": {

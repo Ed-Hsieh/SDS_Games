@@ -4,14 +4,20 @@ import { ObjectiveType } from '../data/Quests.js';
 import { calculateDrops } from './DropManager.js';
 import { createMonsterInstance, getMonster } from './MonsterManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
-import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
+import {
+    getWeaponCombatElement,
+    getWeaponCombatProfile
+} from '../utils/WeaponCombatProfile.js';
 import {
     getGeneratedItemImage,
     getGeneratedMonsterImage
 } from '../data/AssetManifest.js';
 import { markItemKnown } from './EncyclopediaManager.js';
 import { resolveBattleBlueprintUnlocks } from './BlueprintManager.js';
-import { getRewardEffectTotals } from './EquipmentEffectResolver.js';
+import {
+    getEquipmentEffectTotals,
+    getRewardEffectTotals
+} from './EquipmentEffectResolver.js';
 import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js';
 
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
@@ -41,7 +47,13 @@ function buildWeaponEntry(item, character, monster, slot) {
     const profile = getWeaponCombatProfile({ equipment: { weapon: item } });
     const effect = profile?.id || getWeaponEffect(item, isMain ? 'heavy' : 'dagger');
     const icon = item ? getGeneratedItemImage(item) : '';
-    const element = String(item?.element || item?.affinity || '').toLowerCase();
+    const element = getWeaponCombatElement(item);
+    const combatEffects = item
+        ? getEquipmentEffectTotals({ equipment: { weapon: item } }, {
+            includeSetBonuses: false,
+            includePassiveEffects: false
+        })
+        : null;
 
     return {
         id: item?.id || (isMain ? 'unarmed' : 'empty_offhand'),
@@ -56,6 +68,7 @@ function buildWeaponEntry(item, character, monster, slot) {
         cooldown: Math.max(0.32, 1 / speed),
         windup: ['heavy', 'focus'].includes(effect) ? 0.2 : 0.09,
         critDamage: readNumber(character?.getCritDamage?.(), 1.5),
+        lifesteal: Math.max(0, readNumber(combatEffects?.lifesteal, 0)),
         enabled,
         triggerBuff: element ? {
             id: `${item.id}_${element}_weapon_effect`,

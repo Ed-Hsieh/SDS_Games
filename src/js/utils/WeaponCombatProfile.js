@@ -92,6 +92,37 @@ const BASE_PROFILES = {
     }
 };
 
+const COMBAT_VFX_ELEMENTS = new Set([
+    'fire',
+    'ice',
+    'thunder',
+    'poison',
+    'shadow',
+    'glimmer',
+    'light'
+]);
+
+function normalizeCombatElement(value) {
+    const element = String(value || '').trim().toLowerCase();
+    return COMBAT_VFX_ELEMENTS.has(element) ? element : '';
+}
+
+export function getWeaponCombatElement(item) {
+    if (!item) return '';
+
+    const directElement = normalizeCombatElement(
+        item.elementAttunement?.element || item.element || item.affinity
+    );
+    if (directElement) return directElement;
+
+    for (const effect of item.specialEffects || []) {
+        const effectElement = normalizeCombatElement(effect?.type);
+        if (effectElement) return effectElement;
+    }
+
+    return '';
+}
+
 export function getWeaponCombatProfile(character) {
     const weapon = getEquippedWeapon(character);
     if (!weapon) return { ...BASE_PROFILES.unarmed };
@@ -111,5 +142,6 @@ export function getWeaponProfileTriggerText(character) {
 
 export default {
     getWeaponCombatProfile,
-    getWeaponProfileTriggerText
+    getWeaponProfileTriggerText,
+    getWeaponCombatElement
 };

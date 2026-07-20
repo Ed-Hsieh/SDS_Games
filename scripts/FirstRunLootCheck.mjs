@@ -1,4 +1,4 @@
-import { BlueprintDropDatabase } from '../src/js/data/BlueprintDrops.js';
+import { BlueprintDropDatabase, BlueprintDropRate } from '../src/js/data/BlueprintDrops.js';
 import { MaterialDatabase } from '../src/js/data/Materials.js';
 import { FirstRunMonsterRosters } from '../src/js/data/MonsterEcology.js';
 import { MonsterDatabase, MonsterType } from '../src/js/data/Monsters.js';
@@ -22,11 +22,17 @@ const optionalBosses = new Set(Object.values(FirstRunMonsterRosters).flatMap(row
 const issues = [];
 const materialSources = new Map();
 const approvedDirectEquipment = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.directEquipment));
+const approvedBasicDirectEquipment = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.basicDirectEquipment || []));
 const approvedBaselineCraft = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.baselineCraft));
+const approvedBasicCraft = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.basicCraft || []));
 const approvedSpecialCraft = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.specialCraft));
 const approvedBossEquipment = new Set(Object.values(FirstRunBandAllocationPlan).flatMap(plan => plan.bossEquipment));
 const blueprintEntries = Object.values(BlueprintDropDatabase).flatMap(entries => entries || []);
 const migratedEquipmentRateChapters = new Set(EquipmentDropRateContract.migratedChapters);
+
+if (BlueprintDropRate !== EquipmentDropRateContract.standardByRarity) {
+    issues.push('blueprint drop rates must use the canonical equipment rarity rate table');
+}
 
 const authoredMonsterMaterialRoll = generateDropsFromSources([{
     type: DropSourceType.MonsterUnique,
@@ -38,6 +44,19 @@ if (!authoredMonsterMaterialRoll.some(drop => drop.itemId === 'slime_jelly')) {
 }
 
 for (const [chapter, plan] of Object.entries(FirstRunBandAllocationPlan)) {
+    for (const equipmentId of plan.basicDirectEquipment || []) {
+        const equipment = EquipmentDatabase[equipmentId];
+        if (!equipment) issues.push(`chapter ${chapter}: missing basic direct equipment ${equipmentId}`);
+        else if (equipment.rarity !== WeaponBandAllocationContract.basicMonsterEquipment.rarity) {
+            issues.push(`chapter ${chapter}: basic direct equipment ${equipmentId} must be common`);
+        } else if (!(equipment.dropFrom || []).length) {
+            issues.push(`chapter ${chapter}: ${equipmentId} has no active monster source`);
+        }
+    }
+    for (const recipeId of plan.basicCraft || []) {
+        if (!RecipeDatabase[recipeId]) issues.push(`chapter ${chapter}: missing basic craft ${recipeId}`);
+        else if (!blueprintEntries.some(entry => entry.recipeId === recipeId)) issues.push(`chapter ${chapter}: ${recipeId} has no active blueprint source`);
+    }
     if (plan.baselineCraft.length !== WeaponBandAllocationContract.baselineCraft.finishedItemsPerBand) {
         issues.push(`chapter ${chapter}: baseline series has ${plan.baselineCraft.length} variants`);
     }
@@ -125,7 +144,9 @@ for (const id of ids) {
     const monster = MonsterDatabase[id];
     const equipment = monster?.equipmentDrops || [];
     const blueprints = BlueprintDropDatabase[id] || [];
-    const materials = (monster?.drops || []).filter(drop => MaterialDatabase[drop.itemId]?.type === 'material');
+    const materials = (monster?.drops || []).filter(drop => (
+        MaterialDatabase[drop.itemId]?.type === 'material' && drop.sourceRole !== 'junk'
+    ));
 
     if (!monster) issues.push(`${id}: missing monster record`);
     const maxEquipment = monster?.type === MonsterType.ELITE
@@ -136,12 +157,18 @@ for (const id of ids) {
     if (mainBosses.has(id) && blueprints.length > 0) issues.push(`${id}: main boss has a random blueprint`);
     if (monster?.type === MonsterType.ELITE && equipment.length > 0 && blueprints.length > 0) issues.push(`${id}: elite owns equipment and blueprint lanes`);
     for (const drop of equipment) {
-        if (!approvedDirectEquipment.has(drop.equipmentId) && !approvedBossEquipment.has(drop.equipmentId)) {
+        if (!approvedBasicDirectEquipment.has(drop.equipmentId)
+            && !approvedDirectEquipment.has(drop.equipmentId)
+            && !approvedBossEquipment.has(drop.equipmentId)) {
             issues.push(`${id}: unallocated direct equipment ${drop.equipmentId}`);
         }
     }
     for (const drop of blueprints) {
-        if (drop.recipeId && !approvedSpecialCraft.has(drop.recipeId)) issues.push(`${id}: unallocated special craft ${drop.recipeId}`);
+        if (drop.recipeId
+            && !approvedBasicCraft.has(drop.recipeId)
+            && !approvedSpecialCraft.has(drop.recipeId)) {
+            issues.push(`${id}: unallocated blueprint craft ${drop.recipeId}`);
+        }
     }
     const normalMaterialBudget = MonsterSourceBudget.normal.signatureMaterials + MonsterSourceBudget.normal.commonMaterials;
     if (!mainBosses.has(id) && !optionalBosses.has(id) && materials.length > normalMaterialBudget) issues.push(`${id}: owns ${materials.length} material sources`);

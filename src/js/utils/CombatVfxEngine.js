@@ -668,6 +668,22 @@ export default class CombatVfxEngine {
         return 680;
     }
 
+    playerLifesteal() {
+        const start = this.enemyPoint;
+        const end = this.playerPoint;
+        this.addEffect('projectile', { start, end, duration: 720, color: '#8f2946', core: '#ff9cac' });
+        this.emitBurst(start, {
+            count: 24,
+            speedMin: 35,
+            speedMax: 145,
+            gravity: 0,
+            lifeMax: 0.72,
+            shape: 'orb',
+            colors: ['#711f38', '#bc3b5d', '#ff9cac']
+        });
+        return 520;
+    }
+
     monsterHarden() {
         const point = this.enemyPoint;
         this.addEffect('shockwave', { point, duration: 760, maxRadius: 135, color: '#98958b', width: 14, layer: 'rear' });

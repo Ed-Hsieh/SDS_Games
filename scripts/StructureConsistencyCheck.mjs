@@ -39,6 +39,16 @@ function read(file) {
 
 const jsFiles = walk(path.join(root, 'src/js'), file => file.endsWith('.js'));
 
+const encounterSource = read(path.join(root, 'src/js/managers/AdventureEncounterManager.js'));
+if (!encounterSource.includes('getWeaponCombatElement(item)')) {
+    push('combat-vfx', 'adventure encounters must derive weapon VFX elements through the canonical resolver');
+}
+
+const combatVfxSource = read(path.join(root, 'src/js/scenes/CombatVfxLab.js'));
+if (!combatVfxSource.includes('syncWeaponElement(event.weapon)')) {
+    push('combat-vfx', 'runtime attacks must synchronize equipped weapon elements before rendering VFX');
+}
+
 for (const file of jsFiles) {
     const source = read(file);
     if (/from\s+['"][^'"]+\?v=|import\s*\(\s*['"][^'"]+\?v=/.test(source)) {
@@ -340,11 +350,11 @@ for (const databaseName of ['RecipeDatabase', 'RecipeDiscoveryDatabase', 'Bluepr
         push('recipe-catalog', `recipe data still mutates ${databaseName} after its definition`);
     }
 }
-if (Object.keys(RecipeDatabase).length !== 60) {
-    push('recipe-catalog', `expected 60 final recipes, found ${Object.keys(RecipeDatabase).length}`);
+if (Object.keys(RecipeDatabase).length !== 61) {
+    push('recipe-catalog', `expected 61 final recipes, found ${Object.keys(RecipeDatabase).length}`);
 }
-if (Object.keys(RecipeDiscoveryDatabase).length !== 22) {
-    push('recipe-catalog', `expected 22 explicit discovery records, found ${Object.keys(RecipeDiscoveryDatabase).length}`);
+if (Object.keys(RecipeDiscoveryDatabase).length !== 23) {
+    push('recipe-catalog', `expected 23 explicit discovery records, found ${Object.keys(RecipeDiscoveryDatabase).length}`);
 }
 const encyclopediaManager = read(path.join(root, 'src/js/managers/EncyclopediaManager.js'));
 if (encyclopediaManager.includes('encyclopedia.blueprint.')) {

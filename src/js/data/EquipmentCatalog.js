@@ -30,15 +30,16 @@ export const EquipmentDatabase = {
         "icon": "🔪",
         "type": "weapon",
         "weaponForm": "dagger",
-        "rarity": "uncommon",
-        "level": 3,
-        "stats": {"attack":10,"defense":0,"critChance":0.15,"critDamage":1.6,"weaponSpeed":1,"attackSpeed":1.2},
-        "specialEffects": [{"type":"critDamage","value":10}],
+        "rarity": "common",
+        "level": 2,
+        "stats": {"attack":7,"defense":0,"critChance":0.1,"critDamage":1.5,"weaponSpeed":1.15,"attackSpeed":1.15},
+        "specialEffects": [],
         "setId": null,
-        "description": "哥布林首領的愛刀，鋒利無比。",
-        "dropFrom": [],
-        "maxDurability": 18,
-        "durability": 18
+        "description": "哥布林的愛刀，鋒利無比。",
+        "balanceIntent": "early_basic_monster_drop",
+        "dropFrom": ["goblin"],
+        "maxDurability": 16,
+        "durability": 16
     },
 
     "wolf_fang_blade": {

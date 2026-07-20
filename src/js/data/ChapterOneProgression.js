@@ -54,7 +54,7 @@ export const ChapterOneInvestigations = Object.freeze({
         methodText: '史萊姆覆住了水溝邊的舊足跡。清開田埂後，看看人與野獸究竟往哪裡走。',
         guaranteedRewards: [
             { itemId: 'slime_jelly', quantity: 2, reason: '田埂回收' },
-            { itemId: 'iron_shard', quantity: 1, reason: '廢農具拆料' }
+            { itemId: 'iron_ore', quantity: 1, reason: '廢農具拆料' }
         ]
     }),
     hunter_boardwalk: investigation({
@@ -76,7 +76,7 @@ export const ChapterOneInvestigations = Object.freeze({
         methodTitle: '熄滅的火留下了熱',
         methodText: '野狼守著營火坑，卻始終不肯踩近黑根。逼退牠後翻開冷灰，找出牠真正避開的東西。',
         guaranteedRewards: [
-            { itemId: 'iron_shard', quantity: 1, reason: '營地殘件' }
+            { itemId: 'iron_ore', quantity: 1, reason: '營地殘件' }
         ]
     })
 });
@@ -120,7 +120,7 @@ export const ChapterOneOptionalRoutes = Object.freeze({
         text: '腐根把一只舊補給袋頂出土面。凝膠封住了袋口，裡面的粗鐵仍能回爐。這些材料不足以再免費做完一整套裝備，但能縮短下一次狩獵。',
         guaranteedRewards: Object.freeze([
             { itemId: 'slime_jelly', quantity: 2, reason: '腐根岔路回收' },
-            { itemId: 'iron_shard', quantity: 1, reason: '腐根岔路回收' }
+            { itemId: 'iron_ore', quantity: 1, reason: '腐根岔路回收' }
         ])
     }),
     rootwatch_grove: Object.freeze({

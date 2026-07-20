@@ -781,6 +781,22 @@ export class CombatVfxLab {
         this.engine.elementalImpact(this.engine.enemyPoint, { scale: 0.75 });
     }
 
+    syncWeaponElement(weapon) {
+        if (!this.options.loadout) {
+            this.engine.setElement(this.currentElement);
+            return this.currentElement;
+        }
+        const element = ELEMENT_LABELS[weapon?.element] ? weapon.element : 'neutral';
+        this.currentElement = element;
+        this.engine.setElement(element);
+        const label = this.root.querySelector('#element-label');
+        if (label) label.textContent = ELEMENT_LABELS[element];
+        this.root.querySelectorAll('[data-element]').forEach(button => {
+            button.classList.toggle('is-active', button.dataset.element === element);
+        });
+        return element;
+    }
+
     handleCombatEvent(event) {
         this.options.onCombatEvent?.(event);
         const immediate = event.type === 'session:configured' || event.type === 'battle:reset';
@@ -796,17 +812,28 @@ export class CombatVfxLab {
         } else if (event.type === 'battle:resume') {
             this.setFeed('戰鬥流程繼續');
         } else if (event.type === 'player:attack-start') {
+            this.syncWeaponElement(event.weapon);
             this.playWeaponEffect(event.weapon.effect);
             const judgementLabel = event.hitType === 'crit' ? '暴擊節點' : event.hitType === 'hit' ? '命中節點' : '失誤節點';
             this.setFeed(`${event.weapon.name}於${judgementLabel}出手`);
         } else if (event.type === 'player:hit') {
-            if (!event.intercepted) this.enemyImpactFeedback(event.damage, {
-                critical: event.critical,
-                label: event.critical
-                    ? 'CRITICAL'
-                    : 'HIT',
-                heavy: event.weapon.effect === 'heavy'
-            });
+            if (!event.intercepted) {
+                const element = this.syncWeaponElement(event.weapon);
+                if (element !== 'neutral') {
+                    this.engine.elementalImpact(this.engine.enemyPoint, {
+                        scale: 0.72,
+                        particleScale: 0.72
+                    });
+                }
+                if (event.critical) this.playWeaponEffect('critical');
+                this.enemyImpactFeedback(event.damage, {
+                    critical: event.critical,
+                    label: event.critical
+                        ? 'CRITICAL'
+                        : 'HIT',
+                    heavy: event.weapon.effect === 'heavy'
+                });
+            }
             if (!event.intercepted) this.setFeed(`${event.weapon.name}${event.critical ? '暴擊' : '命中'}，造成 ${event.damage} 點傷害`);
         } else if (event.type === 'player:miss') {
             this.showFloatNumber(0, { target: 'enemy', label: event.evaded ? 'EVADE' : 'MISS' });
@@ -816,6 +843,15 @@ export class CombatVfxLab {
             this.flash('rgba(120, 202, 146, 0.24)');
             this.showFloatNumber(event.amount, { target: 'player', heal: true, label: 'RECOVER' });
             this.setFeed(`生命藥水恢復 ${event.amount} 點生命`);
+        } else if (event.type === 'player:lifesteal') {
+            this.engine.playerLifesteal();
+            this.showSkill('WEAPON', 'LIFE DRAIN');
+            if (event.amount > 0) {
+                this.showFloatNumber(event.amount, { target: 'player', heal: true, label: 'LIFESTEAL' });
+                this.setFeed(`${event.weapon.name}吸取 ${event.amount} 點生命`);
+            } else {
+                this.setFeed(`${event.weapon.name}的吸血效果已觸發，但生命已滿`);
+            }
         } else if (event.type === 'player:buff-added') {
             this.setFeed(`${event.buff.name}${event.refreshed ? '已刷新' : '已生效'}`);
         } else if (event.type === 'player:weapon-trigger') {

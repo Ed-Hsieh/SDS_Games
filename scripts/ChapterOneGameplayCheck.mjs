@@ -27,6 +27,7 @@ const { FirstRunMonsterFixedLevels } = await import('../src/js/data/MonsterEcolo
 const { OverworldHabitats, OverworldLandmarks, OverworldMapConfig } = await import('../src/js/data/OverworldMapRegistry.js');
 const { ChapterRegionRegistry } = await import('../src/js/data/ChapterRegionRegistry.js');
 const { RecipeSeriesDatabase, SeriesRecipeDatabase } = await import('../src/js/data/RecipeSeries.js');
+const { RecipeDatabase } = await import('../src/js/data/Recipes.js');
 const { FirstRunBandAllocationPlan } = await import('../src/js/data/FirstRunLootBalance.js');
 const {
     AdventureOnboardingFlag,
@@ -88,6 +89,22 @@ const progressionManagerSource = fs.readFileSync(new URL('../src/js/managers/Cha
 const lobbySource = fs.readFileSync(new URL('../src/js/scenes/LobbyScene.js', import.meta.url), 'utf8');
 const gameManagerSource = fs.readFileSync(new URL('../src/js/managers/GameManager.js', import.meta.url), 'utf8');
 const devPanelSource = fs.readFileSync(new URL('../src/js/utils/DevPanel.js', import.meta.url), 'utf8');
+const goblinDropIds = new Set((MonsterDatabase.goblin?.drops || []).map(drop => drop.itemId));
+const mantisDropIds = new Set((MonsterDatabase.ambush_mantis?.drops || []).map(drop => drop.itemId));
+const poisonDaggerMaterialIds = new Set((RecipeDatabase.poison_dagger?.materials || []).map(material => material.id));
+check(goblinDropIds.has('iron_ore'), 'Chapter 1 goblins no longer provide their low-rate iron ore source');
+check(
+    mantisDropIds.has('iron_ore') && !mantisDropIds.has('rare_metal'),
+    'Ambush Mantis must provide iron ore instead of premature rare metal'
+);
+check(
+    poisonDaggerMaterialIds.has('wolf_fang') && !poisonDaggerMaterialIds.has('spider_queen_fang'),
+    'Poison Dagger recipe again depends on the unavailable tower fang'
+);
+check(
+    adventureSource.includes("entry.sceneIds?.some(sceneId => !storySceneManager.isSceneComplete(sceneId))"),
+    'Completed authored Boss landmarks no longer expose repeat challenges'
+);
 check(!adventureSource.includes('ArrowUp') && !adventureSource.includes('ArrowDown'), 'Arrow-key map movement returned');
 check(adventureView.includes('id="adventure-onboarding"'), 'Adventure onboarding surface is missing');
 check(
@@ -339,6 +356,17 @@ for (const [index, investigationId] of ChapterOneInvestigationOrder.entries()) {
 const chapterOneRecipes = Object.values(SeriesRecipeDatabase).filter(recipe => recipe.seriesId === 'slime_series');
 check(chapterOneRecipes.length === 5, 'Qingning baseline craft must cover five weapon forms');
 check(new Set(chapterOneRecipes.map(recipe => recipe.weaponForm)).size === 5, 'Qingning baseline craft repeats or misses a weapon form');
+check(
+    chapterOneRecipes.every(recipe => recipe.materials.some(material => material.id === 'iron_ore' && material.quantity === 2)),
+    'Qingning baseline craft must consistently require two iron ore'
+);
+
+const chapterOneIronSources = ['stone_golem_mini']
+    .filter(monsterId => (MonsterDatabase[monsterId]?.drops || []).some(drop => drop.itemId === 'iron_ore'));
+check(
+    chapterOneIronSources.length === 1,
+    'Chapter 1 must provide a stable monster source for iron ore after its guaranteed investigation supply'
+);
 for (const recipe of chapterOneRecipes) {
     for (const material of recipe.materials) {
         check(

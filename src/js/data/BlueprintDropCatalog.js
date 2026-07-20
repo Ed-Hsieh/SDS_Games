@@ -2,13 +2,8 @@
  * Canonical per-monster blueprint drops.
  */
 
-export const BlueprintDropRate = Object.freeze({
-    "NORMAL": 0.05,
-    "ELITE": 0.1,
-    "BOSS": 0.15
-});
-
 export const BlueprintDropDatabase = {
+    "wild_wolf": [{"recipeId":"wolf_pelt_armor"}],
     "skeleton_warrior": [{"recipeId":"bone_etched_lance"}],
     "poison_spider": [{"recipeId":"poison_dagger"}],
     "cave:cave_spider": [{"recipeId":"poison_dagger"}],

@@ -5,6 +5,12 @@
 export const DefaultKnownRecipeIds = Object.freeze(["leather_armor","health_potion_basic"]);
 
 export const RecipeDiscoveryDatabase = {
+    "wolf_pelt_armor": {
+        "source": "野狼掉落",
+        "clue": "從完整狼皮上的切割與縫合痕跡，可以復原出一套輕便護甲的作法。",
+        "interactionId": "monster_blueprint_drop"
+    },
+
     "wolf_fang_necklace": {
         "source": "第一章獵人委託",
         "clue": "整理野狼素材並完成獵人委託後，由工匠還原獸牙護符圖紙。",

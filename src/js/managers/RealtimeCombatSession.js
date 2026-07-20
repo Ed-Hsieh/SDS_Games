@@ -31,6 +31,7 @@ function normalizeWeapon(raw = {}, slot = 'main') {
         cooldown: Math.max(0.1, Number(raw.cooldown) || (slot === 'main' ? 0.72 : 1.05)),
         windup: Math.max(0, Number(raw.windup) || (slot === 'main' ? 0.09 : 0.2)),
         critDamage: clamp(numberOr(raw.critDamage, 1.5), 1, 4),
+        lifesteal: clamp(numberOr(raw.lifesteal, 0), 0, 500),
         damageMultiplier: clamp(numberOr(raw.damageMultiplier, 1), 0.1, 5),
         critDamageMultiplier: clamp(numberOr(raw.critDamageMultiplier, 1), 0.1, 5),
         triggerBuff: raw.triggerBuff ? normalizeBuff(raw.triggerBuff) : null,
@@ -578,16 +579,28 @@ export default class RealtimeCombatSession {
 
         const beforeHp = this.monster.hp;
         this.monster.hp = Math.max(0, this.monster.hp - resolvedDamage);
+        const damageDealt = beforeHp - this.monster.hp;
 
         this.emit('player:hit', {
             slot,
             hitType,
             critical: hitType === 'crit',
             weapon: { ...weapon },
-            damage: beforeHp - this.monster.hp
+            damage: damageDealt
         });
+        if (weapon.lifesteal > 0 && damageDealt > 0) {
+            const requestedAmount = Math.max(1, Math.floor(damageDealt * weapon.lifesteal / 100));
+            const beforePlayerHp = this.player.hp;
+            this.player.hp = Math.min(this.player.maxHp, this.player.hp + requestedAmount);
+            this.emit('player:lifesteal', {
+                slot,
+                weapon: { ...weapon },
+                amount: this.player.hp - beforePlayerHp,
+                requestedAmount
+            });
+        }
         if (weapon.triggerBuff) this.addBuff(weapon.triggerBuff);
-        this.resolveWeaponProfileTrigger(slot, weapon, hitType, beforeHp - this.monster.hp);
+        this.resolveWeaponProfileTrigger(slot, weapon, hitType, damageDealt);
 
         if (this.monster.hp <= 0) {
             this.finish(CombatSessionPhase.VICTORY, 'monster_defeated');

@@ -9,6 +9,9 @@ import {
     getRewardEffectTotals
 } from '../src/js/managers/EquipmentEffectResolver.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
+import { getWeaponCombatElement } from '../src/js/utils/WeaponCombatProfile.js';
+import { createRuntimeItem } from '../src/js/models/ItemFactory.js';
+import RealtimeCombatSession from '../src/js/managers/RealtimeCombatSession.js';
 
 const problems = [];
 
@@ -113,6 +116,45 @@ const custom = {
         specialEffects: [{ type: 'void', value: 25 }]
     }
 };
+
+assert(
+    getWeaponCombatElement({ elementAttunement: { element: 'ice' } }) === 'ice',
+    'combat VFX should read forge element attunements'
+);
+assert(
+    getWeaponCombatElement({ specialEffects: [{ type: 'fire', value: 12 }] }) === 'fire',
+    'combat VFX should read elemental weapon effects'
+);
+assert(
+    getWeaponCombatElement({ specialEffects: [{ type: 'lifesteal', value: 5 }] }) === '',
+    'non-elemental effects must not be presented as elemental VFX'
+);
+
+const droppedQingningBlade = createRuntimeItem(EquipmentDatabase.slime_sword);
+assert(droppedQingningBlade.weaponForm === 'dagger', 'runtime drops must preserve the Qingning Blade weapon form');
+assert(
+    droppedQingningBlade.specialEffects?.some(effect => effect.type === 'lifesteal'),
+    'runtime drops must preserve the Qingning Blade special effect'
+);
+
+const realtimeLifesteal = new RealtimeCombatSession({
+    player: { name: 'Player', maxHp: 100, hp: 40, potions: 0 },
+    monster: { name: 'Target', maxHp: 100, hp: 100, initialDelay: 99, attacks: [] },
+    loadout: {
+        main: { name: 'Qingning Blade', effect: 'dagger', damage: 20, lifesteal: 30, enabled: true },
+        offhand: { name: 'Empty', effect: 'unarmed', damage: 1, enabled: false }
+    }
+});
+const realtimeEvents = [];
+realtimeLifesteal.subscribe(event => realtimeEvents.push(event));
+realtimeLifesteal.phase = 'running';
+realtimeLifesteal.resolvePlayerHit({
+    slot: 'main',
+    weapon: realtimeLifesteal.loadout.main,
+    hitType: 'hit'
+});
+assert(realtimeLifesteal.player.hp === 46, 'realtime combat must apply weapon lifesteal');
+assert(realtimeEvents.some(event => event.type === 'player:lifesteal' && event.amount === 6), 'realtime combat must emit lifesteal feedback');
 
 const visibleDamageMonster = makeMonster({ level: 2, hp: 50, maxHp: 50, attack: 8, defense: 2 });
 const visibleDamagePlayer = makePlayer({}, { def: 2 });

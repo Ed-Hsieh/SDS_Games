@@ -1,6 +1,7 @@
 import { CharacterManager } from '../models/DataModel.js';
 import { createRuntimeItem } from '../models/ItemFactory.js';
 import { cloneData } from '../models/ItemSchema.js';
+import { resolveItemById } from '../utils/ItemResolver.js';
 
 export const SAVE_SCHEMA_VERSION = 7;
 export const SAVE_FILE_BASENAME = 'sds-save';
@@ -47,7 +48,11 @@ function hydrateItem(itemData) {
     if (!itemData) return null;
 
     try {
-        const item = createRuntimeItem(itemData);
+        const catalogItem = resolveItemById(itemData.id);
+        const normalizedData = catalogItem && !itemData.weaponForm && catalogItem.weaponForm
+            ? { ...itemData, weaponForm: catalogItem.weaponForm }
+            : itemData;
+        const item = createRuntimeItem(normalizedData);
         if (itemData.instanceId) item.instanceId = itemData.instanceId;
         if (itemData.acquiredTime) item.acquiredTime = itemData.acquiredTime;
         return item;

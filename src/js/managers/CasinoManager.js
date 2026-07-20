@@ -435,17 +435,7 @@ export default class CasinoManager {
     }
 
     pickDarkTableReward() {
-        const chapter = this.getStoryChapter();
         const roll = Math.random();
-
-        if (chapter >= 3 && roll < 0.12) {
-            return {
-                itemId: 'forbidden_blueprint_fragment',
-                quantity: 1,
-                title: '禁鑄碎頁',
-                attentionDelta: 10
-            };
-        }
 
         if (roll < 0.28) {
             return {

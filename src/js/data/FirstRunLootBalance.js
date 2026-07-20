@@ -7,6 +7,12 @@
 
 export const FirstRunBandAllocationPlan = Object.freeze({
     "1": {
+        "basicDirectEquipment": [
+            "goblin_dagger"
+        ],
+        "basicCraft": [
+            "wolf_pelt_armor"
+        ],
         "baselineCraft": [
             "slime_series_sword",
             "slime_series_dagger",

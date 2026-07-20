@@ -119,12 +119,10 @@ export function unlockBossCraftRecipes(monsterId) {
         .filter(unlock => unlock.newlyUnlocked);
 }
 
-export function getBlueprintDropRate(context = {}) {
-    const monster = context.monster || context;
-    const type = String(monster?.type || '').toLowerCase();
-    if (monster?.isBoss || type === 'boss') return BlueprintDropRate.BOSS;
-    if (monster?.isElite || type === 'elite') return BlueprintDropRate.ELITE;
-    return BlueprintDropRate.NORMAL;
+export function getBlueprintDropRate(recipeOrId = null) {
+    const recipe = typeof recipeOrId === 'string' ? getRecipe(recipeOrId) : recipeOrId;
+    const rarity = String(recipe?.result?.rarity || recipe?.rarity || 'common').toLowerCase();
+    return BlueprintDropRate[rarity] ?? 0;
 }
 
 export function getRecipeBlueprintInfo(recipeId) {
@@ -147,7 +145,7 @@ export function rollRecipeBlueprintDrops(context = {}, options = {}) {
     for (const entry of dropEntries) {
         if (!entry?.recipeId || isRecipeBlueprintKnown(entry.recipeId)) continue;
 
-        const chance = Number(options.rate ?? getBlueprintDropRate(context));
+        const chance = Number(options.rate ?? getBlueprintDropRate(getRecipe(entry.recipeId)));
         if (chance <= 0) continue;
         if (rng() > chance) continue;
 

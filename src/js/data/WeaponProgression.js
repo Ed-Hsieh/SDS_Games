@@ -69,7 +69,15 @@ export const WeaponBandAllocationContract = Object.freeze({
         min: 1,
         max: 2,
         countsFinishedItems: true,
-        excludes: Object.freeze(['baseline_craft', 'boss_dungeon_craft', 'quest_unique'])
+        excludes: Object.freeze(['basic_craft', 'baseline_craft', 'boss_dungeon_craft', 'quest_unique'])
+    }),
+    basicMonsterEquipment: Object.freeze({
+        rarity: 'common',
+        countsTowardSpecialDropQuota: false
+    }),
+    basicCraft: Object.freeze({
+        purpose: 'early_armor_and_utility_access',
+        countsTowardSpecialCraftQuota: false
     }),
     normalEliteSpecialDrops: Object.freeze({
         min: 2,

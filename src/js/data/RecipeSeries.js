@@ -18,7 +18,7 @@ export const RecipeSeriesDatabase = Object.freeze({
         defaultKnown: false,
         unlockSceneId: 'ch1_s08_cold_forge_smoke',
         levelBand: [5, 9],
-        materialTheme: ['slime_jelly', 'iron_shard'],
+        materialTheme: ['slime_jelly', 'iron_ore'],
         description: '以史萊姆凝膠固定粗鐵，成品不強，但便宜、好補、壞了也不心疼。',
         discovery: {
             source: '第一章鐵匠回報',
@@ -171,7 +171,7 @@ const FormDefaults = Object.freeze({
 const SeriesWeaponSpecs = Object.freeze({
     slime_series: Object.freeze({
         level: 5, baseAttack: 9, cost: 40,
-        sharedMaterials: Object.freeze([{ id: 'slime_jelly', quantity: 3 }, { id: 'iron_shard', quantity: 2 }]),
+        sharedMaterials: Object.freeze([{ id: 'slime_jelly', quantity: 3 }, { id: 'iron_ore', quantity: 2 }]),
         names: Object.freeze({ sword: '青凝短劍', dagger: '青凝匕首', heavy: '青凝木槌', lance: '青凝短槍', focus: '青凝枝杖' }),
         descriptions: Object.freeze({ sword: '凝膠固定的粗鐵短劍，平實而容易維修。', dagger: '以凝膠包住握柄的薄刃，提供最早的匕首型選擇。', heavy: '粗鐵與木柄被凝膠綁在一起，慢但扎實。', lance: '凝膠固定的短槍，沒有漂亮工藝，勝在便宜可補。', focus: '以凝膠穩住簡陋導片的枝杖，可維持最低限度的法術導引。' })
     }),

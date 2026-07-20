@@ -195,6 +195,13 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.catalogId) item.catalogId = itemData.catalogId;
     if (itemData.useContext) item.useContext = itemData.useContext;
     if (itemData.useAction) item.useAction = itemData.useAction;
+    if (itemData.weaponForm) item.weaponForm = itemData.weaponForm;
+    if (itemData.element) item.element = itemData.element;
+    if (itemData.affinity) item.affinity = itemData.affinity;
+    if (itemData.elementAttunement) item.elementAttunement = cloneData(itemData.elementAttunement);
+    if (itemData.elementAttunementLocked !== undefined) {
+        item.elementAttunementLocked = Boolean(itemData.elementAttunementLocked);
+    }
 
     for (const key of ['hp', 'exp']) {
         const value = itemData[key] ?? stats[key];

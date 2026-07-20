@@ -78,11 +78,14 @@ export const MonsterDatabase = {
         exp: 25,
         gold: 7,
         drops: [
-            { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3] },
+            { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3], sourceRole: 'junk' },
             { itemId: 'goblin_ear', chance: 0.35, quantity: [1, 1] },
+            { itemId: 'iron_ore', chance: 0.18, quantity: [1, 1] },
             { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
         ],
-        equipmentDrops: [],
+        equipmentDrops: [
+            { equipmentId: 'goblin_dagger', chance: 0.2 }
+        ],
         skills: [],
         description: '矮小但狡猾的哥布林。'
     },
@@ -241,7 +244,7 @@ export const MonsterDatabase = {
         gold: 15,
         drops: [
             { itemId: 'stone_fragment', chance: 0.6, quantity: [2, 3] },
-            { itemId: 'golem_core', chance: 0.1, quantity: [1, 1] }
+            { itemId: 'iron_ore', chance: 0.45, quantity: [1, 2] }
         ],
         equipmentDrops: [],
         skills: ['stone_fist'],
@@ -1345,7 +1348,7 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'poison_gland', chance: 0.7, quantity: [1, 2] },
             { itemId: 'spider_silk', chance: 0.55, quantity: [1, 2] },
-            { itemId: 'rare_metal', chance: 0.16, quantity: [1, 1] }
+            { itemId: 'iron_ore', chance: 0.35, quantity: [1, 2] }
         ],
         equipmentDrops: [],
         skills: ['ambush', 'poison_bite', 'vanish'],

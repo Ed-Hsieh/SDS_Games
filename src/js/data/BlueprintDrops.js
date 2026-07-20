@@ -1,9 +1,8 @@
-import {
-    BlueprintDropDatabase,
-    BlueprintDropRate
-} from './BlueprintDropCatalog.js';
+import { BlueprintDropDatabase } from './BlueprintDropCatalog.js';
+import { EquipmentDropRateContract } from './WeaponProgression.js';
 
-export { BlueprintDropDatabase, BlueprintDropRate };
+export const BlueprintDropRate = EquipmentDropRateContract.standardByRarity;
+export { BlueprintDropDatabase };
 
 export function getBlueprintDropKey(monsterId, dungeonId = null) {
     return dungeonId ? `${dungeonId}:${monsterId}` : monsterId;
