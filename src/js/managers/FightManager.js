@@ -594,7 +594,8 @@ export class BattleController {
             this._weaponProfileSlotState[normalizedSlot] = {
                 steadyStanceStacks: 0,
                 steadyStanceHitZoneBonusPercent: 0,
-                arcaneResonanceStacks: 0
+                arcaneResonanceStacks: 0,
+                daggerConsecutiveHits: 0
             };
         }
         return this._weaponProfileSlotState[normalizedSlot];
@@ -625,7 +626,8 @@ export class BattleController {
             this._weaponProfileSlotState[slotType] = {
                 steadyStanceStacks: 0,
                 steadyStanceHitZoneBonusPercent: 0,
-                arcaneResonanceStacks: 0
+                arcaneResonanceStacks: 0,
+                daggerConsecutiveHits: 0
             };
         } else {
             this._weaponProfileSlotState = {};
@@ -646,7 +648,7 @@ export class BattleController {
             profileId: profile.id,
             slotType,
             percent,
-            name: profile.label || 'Bulwark Guard'
+            name: profile.label || '壁壘防守'
         };
         return this._bulwarkGuard;
     }
@@ -1006,6 +1008,7 @@ export class BattleController {
 
         if (hitType === 'miss') {
             this._weaponProfileCombo = 0;
+            this._getWeaponProfileSlotState(slotType).daggerConsecutiveHits = 0;
             if (profile.steadyStanceHitZoneBonus > 0) {
                 this._clearSteadyStance(slotType);
             }
@@ -1126,7 +1129,7 @@ export class BattleController {
                 } else {
                     effects.extraStrike = {
                         damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.magicBoltDamageRatio || 0.45))),
-                        label: profile.magicBoltLabel || 'Magic Bolt',
+                        label: profile.magicBoltLabel || '元素彈',
                         triggerType: 'magicBolt',
                         useElementBreakdown: false
                     };
@@ -1141,16 +1144,18 @@ export class BattleController {
             }
         }
 
-        if (
-            profile.comboEvery > 0
-            && this._weaponProfileCombo > 0
-            && this._weaponProfileCombo % profile.comboEvery === 0
-        ) {
-            effects.extraStrike = {
-                damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.comboDamageRatio || 0.45))),
-                label: profile.comboLabel || profile.label || 'Weapon Chain',
-                triggerType: 'combo'
-            };
+        if (profile.comboEvery > 0) {
+            const state = this._getWeaponProfileSlotState(slotType);
+            const comboEvery = Math.max(1, Math.floor(Number(profile.comboEvery) || 1));
+            state.daggerConsecutiveHits = (Number(state.daggerConsecutiveHits) || 0) + 1;
+            if (state.daggerConsecutiveHits >= comboEvery) {
+                state.daggerConsecutiveHits = 0;
+                effects.extraStrike = {
+                    damage: Math.max(1, Math.floor((computeRes.damage || 1) * (profile.comboDamageRatio || 0.70))),
+                    label: profile.comboLabel || profile.label || '武器追擊',
+                    triggerType: 'combo'
+                };
+            }
         }
 
         return effects;

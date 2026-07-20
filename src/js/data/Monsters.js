@@ -80,7 +80,7 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'goblin_coin', chance: 0.5, quantity: [1, 3], sourceRole: 'junk' },
             { itemId: 'goblin_ear', chance: 0.35, quantity: [1, 1] },
-            { itemId: 'iron_ore', chance: 0.18, quantity: [1, 1] },
+            { itemId: 'iron_ore', chance: 0.2, quantity: [1, 1] },
             { itemId: 'health_potion_s', chance: 0.15, quantity: [1, 1] }
         ],
         equipmentDrops: [
@@ -285,8 +285,8 @@ export const MonsterDatabase = {
         type: MonsterType.BOSS,
         element: MonsterElement.EARTH,
         level: 10,
-        hp: 310,
-        maxHp: 310,
+        hp: 200,
+        maxHp: 200,
         attack: 20,
         attackSpeed: 0.92,
         defense: 9,
@@ -1232,7 +1232,7 @@ export const MonsterDatabase = {
             { equipmentId: 'aurora_ward_plate', chance: 0.14 }
         ],
         skills: ['annihilation', 'reality_tear', 'chain_lightning'],
-        description: '黎明迴廊的核心 Boss。它不是主線滿版 Boss，但負責讓玩家取得抗衡無盡塔的光明裝備。'
+        description: '黎明迴廊的核心首領。它不是主線滿版首領，但負責讓玩家取得抗衡無盡塔的光明裝備。'
     },
 
     // ==================== 世界故事 BOSS ====================

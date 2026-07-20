@@ -241,7 +241,7 @@ function applyMonsterFrame(root, monster) {
                 nameBar.appendChild(badge);
             }
             badge.className = `combat-rank-badge combat-rank-badge-${rank}`;
-            badge.textContent = rank === 'boss' ? `BOSS P${phase}` : '菁英';
+            badge.textContent = rank === 'boss' ? `首領 第 ${phase} 階段` : '菁英';
         }
     }
 
@@ -783,8 +783,8 @@ export function showCombatPhaseWarning(root, monster, phase = 2) {
     const warning = document.createElement('div');
     warning.className = `combat-phase-warning combat-phase-warning-${phase}`;
     warning.innerHTML = `
-        <span class="phase-kicker">BOSS 階段轉換</span>
-        <strong>${escapeHtml(monster?.name || 'BOSS')} 進入第 ${phase} 階段</strong>
+        <span class="phase-kicker">首領階段轉換</span>
+        <strong>${escapeHtml(monster?.name || '首領')} 進入第 ${phase} 階段</strong>
     `;
     surface.appendChild(warning);
     triggerCombatImpact(surface, { intensity: 'phase', flash: 'phase', slowMotion: true });

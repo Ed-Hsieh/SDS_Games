@@ -89,7 +89,7 @@ const STAT_LABELS = {
     [AffixStat.DEF]: '防禦',
     [AffixStat.HP]: '生命',
     [AffixStat.CRIT_DAMAGE]: '爆擊傷害',
-    [AffixStat.BOSS_BONUS]: 'Boss 傷害',
+    [AffixStat.BOSS_BONUS]: '首領傷害',
     [AffixStat.ARMOR_PENETRATION]: '護甲穿透',
     [AffixStat.CRIT_CHANCE]: '爆擊率',
     [AffixStat.DODGE_CHANCE]: '閃避率',

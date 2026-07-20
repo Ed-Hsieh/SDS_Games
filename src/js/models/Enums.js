@@ -85,13 +85,13 @@ export const SpecialEffectDescriptions = {
     dodge_chance: (value) => `${value}% 機率閃避敵人攻擊`,
     armor_penetration: (value) => `攻擊時無視敵人 ${value}% 防禦`,
     double_strike: (value) => `${value}% 機率發動雙重打擊`,
-    execute: (value) => `對低於 50% HP 的敵人造成額外 ${value}% 傷害`,
+    execute: (value) => `對低於 50% 生命的敵人造成額外 ${value}% 傷害`,
     damage_reflect: (value) => `反彈 ${value}% 受到的傷害`,
 
     gold_bonus: (value) => `金幣獲取 +${value}%`,
     exp_bonus: (value) => `經驗獲取 +${value}%`,
     drop_bonus: (value) => `掉落率 +${value}%`,
-    revive: (value) => `死亡時 ${value}% 機率復活並回復 30% HP`,
+    revive: (value) => `死亡時 ${value}% 機率復活並回復 30% 生命`,
     
     // 火：額外傷害比例
     fire: (value) => `攻擊時造成額外 ${value}% 的傷害`,

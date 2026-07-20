@@ -240,7 +240,7 @@ const ExplicitProfiles = {
     life_drain: { category: '吸收', damagePercent: 110, healPercent: 50, cooldown: 6 },
     soul_drain: { category: '吸收', damagePercent: 125, healPercent: 35, attackReductionPercent: 15, duration: 4, cooldown: 7 },
     devour: { category: '吸收', damagePercent: 140, healPercent: 30, cooldown: 7 },
-    regeneration: { category: '恢復', regenPercent: 5, duration: 6, cooldown: 10 },
+    regeneration: { category: '恢復', regenPercent: 5, duration: 5, cooldown: 15 },
     regen_head: { category: '恢復', healPercent: 18, duration: 3, cooldown: 12 },
     phase_through: { category: '機動', dodgePercent: 45, duration: 2.5, cooldown: 7 },
     vanish: { category: '機動', dodgePercent: 50, critChancePercent: 50, duration: 2, cooldown: 8 },

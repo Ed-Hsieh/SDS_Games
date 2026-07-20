@@ -113,7 +113,7 @@ const ART_READY = Object.freeze({
         'helliron_series', 'leyline_wedge_lance', 'molten_core_maul',
         'runic_series', 'sealstone_ram', 'sealstone_series', 'soul_lantern_focus',
         'shadow_armor', 'silver_thread_hook', 'slime_series',
-        'stormguide_focus', 'wolf_fang_necklace'
+        'stormguide_focus', 'wolf_fang_necklace', 'wolf_pelt_armor'
     ]),
     currencies: readySet([]),
     clues: readySet([

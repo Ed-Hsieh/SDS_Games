@@ -15,11 +15,6 @@ import { ItemDatabase } from '../data/UtilityItems.js';
 import { QuestDatabase } from '../data/Quests.js';
 import { RewardItemDatabase } from '../data/RewardItems.js';
 import { getQuestStory } from '../data/QuestStories.js';
-import {
-    CasinoPrizePools,
-    CasinoShowcaseItems,
-    CasinoSpecialItems
-} from '../data/CasinoRewards.js';
 import { MarketItemCatalog, MarketVendors } from '../data/MarketSupply.js';
 import { getCharacterProfile } from '../data/CharacterProfiles.js';
 import { getGeneratedPortraitImage } from '../data/AssetManifest.js';
@@ -60,8 +55,8 @@ const MonsterRankRarity = {
 const TypeLabels = {
     normal: '普通',
     elite: '菁英',
-    boss: 'BOSS',
-    world_boss: '世界 BOSS',
+    boss: '首領',
+    world_boss: '世界首領',
     weapon: '武器',
     armor: '防具',
     equipment: '防具',
@@ -75,8 +70,7 @@ const ItemSourceLabels = {
     item: '一般物品',
     equipment: '裝備資料',
     material: '素材資料',
-    rewardItem: '特殊物品',
-    casino: '賭場獎池'
+    rewardItem: '特殊物品'
 };
 
 const ElementLabels = {
@@ -94,13 +88,11 @@ const ReadableItemSourceLabels = {
     equipment: '裝備資料',
     material: '素材資料',
     rewardItem: '特殊物品',
-    casino: '賭場',
     shop: '市集'
 };
 
 const SourceTypeIcons = {
     rewardItem: '📜',
-    casino: '🎰',
     shop: '🛒',
     market: '🛒'
 };
@@ -760,39 +752,6 @@ function collectMarketSourceIndex() {
     return index;
 }
 
-function collectCasinoSourceIndex() {
-    const index = new Map();
-
-    for (const pool of Object.values(CasinoPrizePools || {})) {
-        for (const reward of pool.rewards || []) {
-            if (reward.kind !== 'item' || !reward.itemId) continue;
-            addSourceIndexRef(index, reward.itemId, {
-                id: `casino:pool:${pool.id}`,
-                type: 'casino',
-                label: pool.name || '賭場獎池',
-                sourceLabel: '賭場獎池',
-                icon: SourceTypeIcons.casino,
-                quantity: reward.quantity ?? 1,
-                weight: reward.weight ?? null,
-                rarity: reward.rarity || 'common'
-            });
-        }
-    }
-
-    for (const showcase of CasinoShowcaseItems || []) {
-        addSourceIndexRef(index, showcase.itemId, {
-            id: `casino:showcase:${showcase.id}`,
-            type: 'casino',
-            label: showcase.cabinetTitle || showcase.displayTag || '賭場展示櫃',
-            sourceLabel: '賭場展示櫃',
-            icon: SourceTypeIcons.casino,
-            rarity: showcase.rarity || 'legendary'
-        });
-    }
-
-    return index;
-}
-
 function addItemEntry(index, rawItem, sourceType) {
     if (!rawItem) return;
     const id = rawItem.id;
@@ -819,11 +778,6 @@ function addItemEntry(index, rawItem, sourceType) {
                 sourceLabel: source.label,
                 icon: SourceTypeIcons[sourceType] || '◆'
             });
-        }
-        if (sourceType === 'casino') {
-            existing.item = { ...rawItem };
-            existing.sourceType = sourceType;
-            existing.sourceLabel = source.label;
         }
         return;
     }
@@ -883,10 +837,6 @@ export function getItemEntries() {
         addItemEntry(index, { ...item, id: item.id || id }, 'rewardItem');
     }
 
-    for (const [id, item] of Object.entries(CasinoSpecialItems || {})) {
-        addItemEntry(index, { ...item, id: item.id || id }, 'casino');
-    }
-
     const dropSourceIndex = collectItemDropSourceIndex();
     for (const [itemId, sourceRefs] of dropSourceIndex.entries()) {
         const entry = index.get(itemId);
@@ -903,13 +853,6 @@ export function getItemEntries() {
 
     const marketSourceIndex = collectMarketSourceIndex();
     for (const [itemId, sourceRefs] of marketSourceIndex.entries()) {
-        const entry = index.get(itemId);
-        if (!entry) continue;
-        sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));
-    }
-
-    const casinoSourceIndex = collectCasinoSourceIndex();
-    for (const [itemId, sourceRefs] of casinoSourceIndex.entries()) {
         const entry = index.get(itemId);
         if (!entry) continue;
         sourceRefs.forEach(sourceRef => addUniqueSourceRef(entry, sourceRef));

@@ -113,7 +113,7 @@ export const EquipmentSets = {
         pieces: ['hell_knight_armor', 'hell_knight_sword', 'hell_knight_helm'],
         bonuses: {
             2: { fireDamage: 10, fireResist: 0.10, description: '火焰傷害+10, 火焰抗性+10%' },
-            3: { fireDamage: 25, fireResist: 0.20, hp: 100, description: '火焰傷害+25, 火焰抗性+20%, HP+100' }
+            3: { fireDamage: 25, fireResist: 0.20, hp: 100, description: '火焰傷害 +25，火焰抗性 +20%，生命 +100' }
         }
     },
     

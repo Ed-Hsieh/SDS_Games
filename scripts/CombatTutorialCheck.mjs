@@ -190,7 +190,7 @@ function createWeaponProfileSession(form, options = {}) {
 
 for (const weaponCase of [
     { form: 'sword', hits: 1, trigger: 'steadyStance', buff: 'steady-stance' },
-    { form: 'dagger', hits: 3, trigger: 'quickChain' },
+    { form: 'dagger', hits: 2, trigger: 'quickChain' },
     { form: 'heavy', hits: 1, trigger: 'bulwarkGuard', buff: 'bulwark-guard' },
     { form: 'focus', hits: 2, trigger: 'magicBolt' },
     { form: 'lance', hits: 1, trigger: 'piercingLine', buff: 'piercing-line', monsterDefense: 12 }

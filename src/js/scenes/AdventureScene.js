@@ -688,7 +688,7 @@ export default class AdventureScene {
         const isMantisTest = entry.bossId === 'ambush_mantis';
         this.openModal({
             kicker: '強敵警告',
-            title: `Lv.${monster.level} ${monster.name}`,
+            title: `等級 ${monster.level} ${monster.name}`,
             text: isMantisTest
                 ? '路標背對城鎮，銀線也封住了原路。伏獵者已經記住你走過的順序；現在踏進去，牠就會收緊陷阱。'
                 : '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。',

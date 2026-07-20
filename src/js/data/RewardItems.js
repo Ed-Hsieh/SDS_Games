@@ -150,6 +150,7 @@ export const RewardItemDatabase = {
         icon: '💳',
         type: ItemType.KEY,
         rarity: ItemRarity.RARE,
+        codexHidden: true,
         description: '在賭場享有特殊待遇。',
         specialEffects: [],
     },
@@ -159,6 +160,7 @@ export const RewardItemDatabase = {
         icon: '🎲',
         type: ItemType.KEY,
         rarity: ItemRarity.EPIC,
+        codexHidden: true,
         description: '「這骰子好像有點重...」骰子遊戲勝率 +5%。',
         specialEffects: [
             { type: 'diceBonus', value: 0.05 }
@@ -234,7 +236,8 @@ export const RewardItemDatabase = {
         icon: '🪶',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
-        description: '死亡時自動復活一次，HP 恢復 30%。每場戰鬥只能觸發一次。',
+        codexHidden: true,
+        description: '死亡時自動復活一次，生命恢復 30%。每場戰鬥只能觸發一次。',
         specialEffects: [
             { type: 'autoRevive', value: true },
             { type: 'reviveHp', value: 0.3 }
@@ -246,6 +249,7 @@ export const RewardItemDatabase = {
         icon: '🃏',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.EPIC,
+        codexHidden: true,
         description: '「連輸這麼多次，下次一定會贏！」連敗後勝率大幅提升。',
         specialEffects: [
             { type: 'lossStreakBonus', value: true }
@@ -257,11 +261,12 @@ export const RewardItemDatabase = {
         icon: '📋',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
+        codexHidden: true,
         stats: {
             attack: 15,
             defense: 15
         },
-        description: '攻擊力、防禦力 +15。但每場戰鬥開始時損失 5% HP。',
+        description: '攻擊力、防禦力 +15。但每場戰鬥開始時損失 5% 生命。',
         specialEffects: [
             { type: 'battleHpCost', value: 0.05 }
         ],
@@ -272,6 +277,7 @@ export const RewardItemDatabase = {
         icon: '⭐',
         type: EquipmentType.ACCESSORY,
         rarity: ItemRarity.LEGENDARY,
+        codexHidden: true,
         description: '幸運之神的眷顧。所有機率判定 +7%。',
         specialEffects: [
             { type: 'luckBonus', value: 0.07 }
@@ -370,4 +376,3 @@ export const RewardItemDatabase = {
     
     // 每週挑戰獎勵
 };
-

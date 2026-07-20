@@ -221,9 +221,50 @@ Reference examples:
 Blueprint art must show the same object that the recipe creates. This prevents
 the blueprint from feeling like a generic scroll.
 
+Use these three approved files as the visual and composition authority for all
+future blueprint generation:
+
+- `src/assets/images/art/items/blueprints/embercore_focus.webp`: single-item
+  focus/staff blueprint reference.
+- `src/assets/images/art/items/blueprints/poison_dagger.webp`: single-item
+  bladed-weapon blueprint reference.
+- `src/assets/images/art/items/blueprints/expedition_series.webp`: shared
+  five-form series blueprint reference.
+
+Approved blueprint-to-finished-art reference map:
+
+| Blueprint name | Blueprint id and image | Finished item name | Runtime result id | Finished-art image |
+| --- | --- | --- | --- | --- |
+| 毒牙匕首 | `poison_dagger` / `src/assets/images/art/items/blueprints/poison_dagger.webp` | 毒牙匕首 | `crafted_poison_dagger` | `src/assets/images/art/items/equipment/poison_dagger.webp` |
+| 燼核法器 | `embercore_focus` / `src/assets/images/art/items/blueprints/embercore_focus.webp` | 燼核法器 | `crafted_embercore_focus` | `src/assets/images/art/items/equipment/embercore_focus.webp` |
+| 遠征工藝 | `expedition_series` / `src/assets/images/art/items/blueprints/expedition_series.webp` | 遠征短劍 | `crafted_expedition_series_sword` | `src/assets/images/art/items/equipment/expedition_series_sword.webp` |
+| 遠征工藝 | `expedition_series` / same shared sheet | 遠征側刃 | `crafted_expedition_series_dagger` | `src/assets/images/art/items/equipment/expedition_series_dagger.webp` |
+| 遠征工藝 | `expedition_series` / same shared sheet | 遠征戰槌 | `crafted_expedition_series_hammer` | `src/assets/images/art/items/equipment/expedition_series_hammer.webp` |
+| 遠征工藝 | `expedition_series` / same shared sheet | 遠征制式槍 | `crafted_expedition_series_spear` | `src/assets/images/art/items/equipment/expedition_series_spear.webp` |
+| 遠征工藝 | `expedition_series` / same shared sheet | 遠征導杖 | `crafted_expedition_series_staff` | `src/assets/images/art/items/equipment/expedition_series_staff.webp` |
+
+The `crafted_` prefix belongs to runtime recipe results; it is not part of the
+current finished-art filename. Blueprint generation must follow the explicit
+image paths above instead of constructing an asset path directly from a runtime
+result id.
+
+When the user supplies only a blueprint id, filename, or blueprint image, the
+agent owns finished-item discovery. Before generating anything, search the live
+recipe and equipment data, `AssetManifest.js`, and
+`src/assets/images/art/items/equipment/` for the corresponding finished item.
+Use the approved finished-item image as the identity reference. For a shared
+series blueprint, locate all five finished forms. Do not ask the user to provide
+finished-item art that already exists in the project, and do not infer a new
+finished design from the old blueprint alone.
+
+If no finished item exists, or several candidates make the mapping genuinely
+ambiguous, stop and report the missing or conflicting ids before image
+generation. Never solve an uncertain mapping by borrowing an unrelated item or
+inventing a replacement silhouette.
+
 Baseline series are the exception to the single-object composition: one series
 sheet must show the exact sword, dagger, heavy weapon, spear/lance, and
-staff/focus unlocked by that series. Use `slime_series.webp` as the composition
+staff/focus unlocked by that series. Use `expedition_series.webp` as the composition
 reference. Do not generate five separate baseline blueprint sheets.
 
 The shared sheet filename is the series id (`slime_series.webp`,
@@ -260,11 +301,9 @@ Negative constraints: no readable writing, no labels, no numbers, no watermark, 
 
 Reference examples:
 
-- `src/assets/images/art/items/blueprints/slime_series.webp`
-- `src/assets/images/art/items/blueprints/bone_series.webp`
+- `src/assets/images/art/items/blueprints/embercore_focus.webp`
+- `src/assets/images/art/items/blueprints/expedition_series.webp`
 - `src/assets/images/art/items/blueprints/poison_dagger.webp`
-- `src/assets/images/art/items/blueprints/glimmer_focus.webp`
-- `src/assets/images/art/items/blueprints/shadow_armor.webp`
 
 ## Normal Monsters
 

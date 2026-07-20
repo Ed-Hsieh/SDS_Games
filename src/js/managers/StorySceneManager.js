@@ -29,6 +29,7 @@ import {
     hasPostBattlePresentation
 } from '../data/StoryEncounterContracts.js';
 import { isOptionalStoryScene } from '../data/ChapterRegionRegistry.js';
+import { getStoryObjectiveHint } from '../data/StoryObjectiveHints.js';
 import { storyJournalManager } from './StoryJournalManager.js';
 import { unlockRecipeSeriesForScene } from './BlueprintManager.js';
 
@@ -221,6 +222,7 @@ class StorySceneManager {
     buildPresentation(sceneId, options = {}) {
         const scene = getStoryScene(sceneId);
         if (!scene) return null;
+        const objectiveHint = getStoryObjectiveHint(sceneId);
         const encounter = this.getEncounterContract(sceneId);
         const scenePhase = this.getScenePhase(sceneId, options.phase);
         const sourceBeats = encounter
@@ -251,8 +253,8 @@ class StorySceneManager {
             participants,
             lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
             effectMessages: [],
-            narrativeTitle: scene.title || scene.id,
-            narrativeSummary: scene.objective,
+            narrativeTitle: scene.title || objectiveHint?.title || `第 ${scene.chapter} 章事件`,
+            narrativeSummary: objectiveHint?.text || '繼續處理目前事件。',
             tone: scene.stageClass,
             route: null,
             routeLabel: null,
@@ -268,6 +270,7 @@ class StorySceneManager {
         const scene = getStoryScene(sceneId);
         const checkpoint = scene?.checkpoints?.[checkpointId];
         if (!scene || !checkpoint) return null;
+        const objectiveHint = getStoryObjectiveHint(sceneId);
         const beats = (checkpoint.beats || [])
             .filter(beat => this.matchesBeatCondition(beat.condition))
             .map(beat => this.resolveBeat(beat, scene));
@@ -283,8 +286,8 @@ class StorySceneManager {
             participants,
             lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
             effectMessages: [],
-            narrativeTitle: checkpoint.title || scene.title || scene.id,
-            narrativeSummary: checkpoint.title || scene.objective,
+            narrativeTitle: checkpoint.title || scene.title || objectiveHint?.title || `第 ${scene.chapter} 章事件`,
+            narrativeSummary: checkpoint.title || objectiveHint?.text || '繼續處理目前事件。',
             tone: scene.stageClass,
             route: null,
             routeLabel: null,

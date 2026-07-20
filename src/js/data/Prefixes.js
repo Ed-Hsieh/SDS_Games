@@ -133,7 +133,7 @@ export const PrefixDatabase = {
         rarity: ItemRarity.LEGENDARY,
         type: 'prefix',
         stats: { [AffixStat.ATK]: [6, 10], [AffixStat.CRIT_CHANCE]: [10, 15], [AffixStat.CRIT_DAMAGE]: [20, 30], [AffixStat.BOSS_BONUS]: 10 },
-        description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%，對BOSS傷害 +{bossBonus}%',
+        description: '攻擊力 +{atk}，暴擊率 +{critChance}%，暴擊傷害 +{critDamage}%，對首領傷害 +{bossBonus}%',
         applicableTo: ['weapon']
     },
     immortal: {

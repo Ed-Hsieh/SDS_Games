@@ -706,11 +706,11 @@ export default class RealtimeCombatSession {
         }
 
         if (profile.id === 'dagger') {
-            const comboEvery = Math.max(1, Math.floor(numberOr(profile.comboEvery, 3)));
+            const comboEvery = Math.max(1, Math.floor(numberOr(profile.comboEvery, 2)));
             state.combo = (state.combo + 1) % comboEvery;
             if (state.combo === 0) {
                 this.removeBuff(`weapon-form:${slot}:quick-chain`);
-                applyExtraStrike(numberOr(profile.comboDamageRatio, 0.45), 'quickChain', profile.comboLabel || profile.label);
+                applyExtraStrike(numberOr(profile.comboDamageRatio, 0.70), 'quickChain', profile.comboLabel || profile.label);
             } else {
                 addFormBuff({
                     id: `weapon-form:${slot}:quick-chain`,

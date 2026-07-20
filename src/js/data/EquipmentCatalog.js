@@ -11,7 +11,7 @@ export const EquipmentDatabase = {
         "name": "青凝刃",
         "icon": "🗡️",
         "type": "weapon",
-        "weaponForm": "dagger",
+        "weaponForm": "sword",
         "rarity": "epic",
         "level": 1,
         "stats": {"attack":6,"defense":0,"critChance":0.05,"critDamage":1.3,"weaponSpeed":1,"attackSpeed":1.2},
@@ -1014,7 +1014,7 @@ export const EquipmentDatabase = {
         "stats": {"attack":44,"defense":250,"critChance":0.08,"critDamage":1.65,"hp":520},
         "specialEffects": [{"type":"light","value":8},{"type":"damageReduction","value":12}],
         "setId": "radiant_vow",
-        "description": "極光執政官的防具掉落，作為塔 DLC 前的正式光明防線。",
+        "description": "極光執政官的防具掉落，作為塔追加內容前的正式光明防線。",
         "dropFrom": ["radiant_keeper","aurora_archon"],
         "maxDurability": 61,
         "durability": 61

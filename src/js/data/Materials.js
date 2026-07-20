@@ -838,7 +838,7 @@ export const MaterialDatabase = {
         type: ItemType.MATERIAL,
         rarity: ItemRarity.LEGENDARY,
         price: 2400,
-        description: '黎明迴廊 Boss 掉落的核心素材，是光明終局裝備的主要門檻。',
+        description: '黎明迴廊首領掉落的核心素材，是光明終局裝備的主要門檻。',
         craftUse: ['radiant_legendary', 'tower_entry_counter']
     },
     

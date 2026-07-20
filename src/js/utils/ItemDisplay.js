@@ -407,7 +407,7 @@ export function formatItemStatEntryValue(entry, value, options = {}) {
         const speed = Number(value);
         if (!Number.isFinite(speed) || speed <= 0) return '—';
         const seconds = 1 / speed;
-        return `${formatEntryNumber(seconds)} Sec/Hit`;
+        return `${formatEntryNumber(seconds)} 秒／次`;
     }
 
     if (entry.suffix === 'critMultiplier') {
@@ -636,18 +636,18 @@ function buildWeaponProfileDisplay(profile = {}) {
         const maxStacks = formatPlainNumber(profile.steadyStanceMaxStacks || 1);
         return {
             valueText: `${maxStacks} 層`,
-            abilityText: profile.label || 'Steady Stance',
-            description: `命中或暴擊後獲得 {穩定架勢}，每層 ${braceValue(perStack)}；失誤後清空。`,
+            abilityText: profile.label || '穩定架勢',
+            description: `命中或暴擊後獲得 {穩定架勢}，每層 ${braceValue(perStack)}，最高 ${braceValue(maxStacks)} 層；失誤後清空。`,
             iconHtml: getEffectIconHtml({ type: 'hit', name: profile.label }, '⚔️')
         };
     }
     if (id === 'dagger') {
-        const count = formatPlainNumber(profile.comboEvery || 3);
-        const ratio = `${formatPlainNumber((profile.comboDamageRatio || 0.45) * 100)}% 傷害`;
+        const count = formatPlainNumber(profile.comboEvery || 2);
+        const ratio = `${formatPlainNumber((profile.comboDamageRatio || 0.70) * 100)}% 傷害`;
         return {
-            valueText: `${count} 連擊`,
-            abilityText: profile.label || 'Quick Chain',
-            description: `連續命中第 ${braceValue(count)} 下時追加 ${braceValue(ratio)}。`,
+            valueText: `${count} 次命中`,
+            abilityText: profile.label || '爆擊追擊',
+            description: `連續命中 ${braceValue(count)} 次後發動爆擊追擊，追加 ${braceValue(ratio)}；失誤會中斷累積。`,
             iconHtml: getEffectIconHtml({ type: 'double_strike', name: profile.label }, '⚔️')
         };
     }
@@ -655,7 +655,7 @@ function buildWeaponProfileDisplay(profile = {}) {
         const value = `${formatPlainNumber(profile.bulwarkGuardReductionPercent || 0)}% 減傷`;
         return {
             valueText: value,
-            abilityText: profile.label || 'Bulwark Guard',
+            abilityText: profile.label || '壁壘防守',
             description: `命中且穿戴護甲時獲得一次 ${braceValue(value)}。副手改裝武器時不會觸發。`,
             iconHtml: getEffectIconHtml({ type: 'damageReduction', name: profile.label }, '⚔️')
         };
@@ -666,7 +666,7 @@ function buildWeaponProfileDisplay(profile = {}) {
         const bolt = `${formatPlainNumber((profile.magicBoltDamageRatio || 0.45) * 100)}% 傷害`;
         return {
             valueText: `${stacks} 層共鳴`,
-            abilityText: profile.label || 'Arcane Resonance',
+            abilityText: profile.label || '元素共鳴',
             description: `命中累積共鳴；滿 ${braceValue(stacks)} 層後強化火/冰/雷/毒 ${braceValue(value)}。沒有元素時釋放 ${braceValue(bolt)} 的魔法彈。`,
             iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
         };
@@ -676,14 +676,14 @@ function buildWeaponProfileDisplay(profile = {}) {
         const value = `${formatPlainNumber(profile.armorPenetrationBonus || 0)}% 穿甲`;
         return {
             valueText: value,
-            abilityText: profile.label || 'Piercing Line',
+            abilityText: profile.label || '貫穿戰線',
             description: `暴擊或命中防禦達 ${braceValue(defense)} 的目標時獲得 ${braceValue(value)}。`,
             iconHtml: getEffectIconHtml({ type: 'armorPenetration', name: profile.label }, '⚔️')
         };
     }
     return {
         valueText: '',
-        abilityText: profile.label || 'Weapon Art',
+        abilityText: profile.label || '武器能力',
         description: '武器本身的戰鬥能力會以戰鬥中的效果圖示提示。',
         iconHtml: getEffectIconHtml({ type: 'attackSpeed', name: profile.label }, '⚔️')
     };

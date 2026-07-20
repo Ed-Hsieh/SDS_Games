@@ -385,7 +385,9 @@ export default class EncyclopediaScene {
         this.dom.list.innerHTML = entries.map(entry => {
             const known = entry.known;
             const id = getEntryId(entry);
-            const item = getItemFromEntry(entry);
+            const item = this.activeTab === CodexCategoryId.BLUEPRINTS
+                ? { ...entry, type: 'blueprint' }
+                : getItemFromEntry(entry);
             const icon = known && this.activeTab === CodexCategoryId.MONSTERS
                 ? this.renderMonsterVisual(entry)
                 : known
@@ -453,7 +455,8 @@ export default class EncyclopediaScene {
     }
 
     renderMonsterVisual(entry = {}, imageClass = 'codex-item-image') {
-        const image = entry.image || getGeneratedMonsterImage(String(entry.id || entry.entryId || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, ''));
+        const monsterId = String(entry.id || entry.entryId || '').replace(/^monster:|^world:|^tower:|^dungeon:[^:]+:/g, '');
+        const image = getGeneratedMonsterImage(monsterId) || entry.image;
         if (image) {
             return `<img src="${escapeHtml(image)}" alt="${escapeHtml(entry.name || '')}" class="${escapeHtml(imageClass)}">`;
         }
@@ -493,6 +496,14 @@ export default class EncyclopediaScene {
     renderMonsterSkillSection(entry) {
         if (!entry.known) return '';
         const skills = (entry.skills || []).map(skill => normalizeMonsterSkill(skill));
+        const blueprintSection = blueprintDrops
+            ? `
+                <section class="codex-section">
+                    <h3>圖紙掉落</h3>
+                    <div class="codex-drop-grid">${blueprintDrops}</div>
+                </section>
+            `
+            : '';
         return `
             <section class="codex-section">
                 <h3>狀態與技能</h3>
@@ -537,12 +548,7 @@ export default class EncyclopediaScene {
                     ${itemDrops || renderEmpty('尚未整理物品掉落')}
                 </div>
             </section>
-            <section class="codex-section">
-                <h3>圖紙掉落</h3>
-                <div class="codex-drop-grid">
-                    ${blueprintDrops || renderEmpty('尚未整理圖紙掉落')}
-                </div>
-            </section>
+            ${blueprintSection}
         `;
     }
 
@@ -827,7 +833,8 @@ export default class EncyclopediaScene {
     }
 
     renderMonsterSourceVisual(ref = {}) {
-        const image = ref.image || getGeneratedMonsterImage(String(ref.id || '').replace(/^world:|^tower:|^dungeon:[^:]+:/g, ''));
+        const monsterId = String(ref.id || '').replace(/^monster:|^world:|^tower:|^dungeon:[^:]+:/g, '');
+        const image = getGeneratedMonsterImage(monsterId) || ref.image;
         if (image) return `<img src="${escapeHtml(image)}" alt="${escapeHtml(ref.label || '')}">`;
         return escapeHtml(ref.icon || UnknownIcon.monster);
     }
@@ -836,7 +843,6 @@ export default class EncyclopediaScene {
         if (ref.portrait) return `<img src="${escapeHtml(ref.portrait)}" alt="${escapeHtml(ref.npcName || ref.label || '')}">`;
         const iconByType = {
             quest: '📜',
-            casino: '🎰',
             shop: '🛒'
         };
         return escapeHtml(ref.icon || iconByType[ref.type] || UnknownIcon.items);

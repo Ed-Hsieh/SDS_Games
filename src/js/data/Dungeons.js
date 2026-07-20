@@ -522,7 +522,7 @@ export const DungeonDatabase = {
                 { id: 'tribal_hunter', name: '部落獵人', icon: '🏹', hp: 70, attack: 32, defense: 8, exp: 48, gold: [25, 55] }
             ],
             elite: [
-                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, attack: 35, defense: 25, exp: 150, gold: [100, 200], special: '自然治癒：每 3 秒恢復 10% HP' }
+                { id: 'ancient_treant', name: '遠古樹人', icon: '🌳', hp: 200, attack: 35, defense: 25, exp: 150, gold: [100, 200], special: '自然治癒：每 3 秒恢復 10% 生命' }
             ],
             boss: {
                 id: 'jungle_hydra', name: '叢林九頭蛇', icon: '🐍',
@@ -636,7 +636,7 @@ export const DungeonDatabase = {
             common: [
                 { id: 'imp', name: '小惡魔', icon: '😈', hp: 80, attack: 35, defense: 10, exp: 70, gold: [50, 100], special: '火焰彈：遠程攻擊' },
                 { id: 'hell_hound', name: '地獄犬', icon: '🐕‍🦺', hp: 120, attack: 40, defense: 15, exp: 85, gold: [60, 120], special: '烈焰吐息：附帶灼燒效果' },
-                { id: 'tormented_soul', name: '受難亡魂', icon: '💀', hp: 60, attack: 45, defense: 5, exp: 75, gold: [40, 80], special: '生命汲取：傷害的 30% 轉為自身 HP' },
+                { id: 'tormented_soul', name: '受難亡魂', icon: '💀', hp: 60, attack: 45, defense: 5, exp: 75, gold: [40, 80], special: '生命汲取：傷害的 30% 轉為自身生命' },
                 { id: 'lava_golem', name: '熔岩巨像', icon: '🌋', hp: 180, attack: 30, defense: 30, exp: 100, gold: [80, 160], special: '熔岩濺射：攻擊時對攻擊者造成反傷' }
             ],
             elite: [

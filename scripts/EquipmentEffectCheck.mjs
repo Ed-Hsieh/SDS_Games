@@ -12,6 +12,7 @@ import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { getWeaponCombatElement } from '../src/js/utils/WeaponCombatProfile.js';
 import { createRuntimeItem } from '../src/js/models/ItemFactory.js';
 import RealtimeCombatSession from '../src/js/managers/RealtimeCombatSession.js';
+import { hydrateGameState } from '../src/js/managers/SaveManager.js';
 
 const problems = [];
 
@@ -131,11 +132,36 @@ assert(
 );
 
 const droppedQingningBlade = createRuntimeItem(EquipmentDatabase.slime_sword);
-assert(droppedQingningBlade.weaponForm === 'dagger', 'runtime drops must preserve the Qingning Blade weapon form');
+assert(droppedQingningBlade.weaponForm === 'sword', 'runtime drops must preserve the Qingning Blade sword form');
 assert(
     droppedQingningBlade.specialEffects?.some(effect => effect.type === 'lifesteal'),
     'runtime drops must preserve the Qingning Blade special effect'
 );
+
+const hydratedLegacyQingning = hydrateGameState({
+    character: {},
+    inventory: [{
+        item: {
+            ...droppedQingningBlade,
+            weaponForm: 'dagger',
+            durability: 9,
+            affixes: [{ id: 'legacy_test', name: 'Legacy Test', type: 'prefix', rarity: 'rare', stats: { atk: 2 } }],
+            affixBonuses: { atk: 2 }
+        },
+        quantity: 1,
+        instanceId: 'legacy-qingning'
+    }]
+}, () => ({
+    inventory: [],
+    warehouse: [],
+    inventoryCapacity: 10,
+    inventoryUpgradeLevel: 0,
+    mapState: null,
+    flags: {}
+})).inventory[0]?.item;
+assert(hydratedLegacyQingning?.weaponForm === 'sword', 'save hydration must replace stale Qingning Blade weapon forms');
+assert(hydratedLegacyQingning?.durability === 9, 'save hydration must preserve current equipment durability');
+assert(hydratedLegacyQingning?.affixes?.[0]?.id === 'legacy_test', 'save hydration must preserve rolled equipment affixes');
 
 const realtimeLifesteal = new RealtimeCombatSession({
     player: { name: 'Player', maxHp: 100, hp: 40, potions: 0 },

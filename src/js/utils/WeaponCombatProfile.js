@@ -12,7 +12,7 @@ function normalizeWeaponForm(form) {
 const BASE_PROFILES = {
     unarmed: {
         id: 'unarmed',
-        label: 'Unarmed',
+        label: '徒手',
         needleSpeedMultiplier: 0.92,
         cooldownMultiplier: 1.12,
         hitZoneMultiplier: 0.92,
@@ -22,7 +22,7 @@ const BASE_PROFILES = {
     },
     sword: {
         id: 'sword',
-        label: 'Steady Stance',
+        label: '穩定架勢',
         triggerCondition: '命中或暴擊後穩定架勢，失誤時清空',
         needleSpeedMultiplier: 1.00,
         cooldownMultiplier: 1.00,
@@ -35,21 +35,21 @@ const BASE_PROFILES = {
     },
     dagger: {
         id: 'dagger',
-        label: 'Quick Chain',
-        triggerCondition: '連續命中第 3 下追擊',
+        label: '爆擊追擊',
+        triggerCondition: '連續命中 2 次後發動爆擊追擊',
         needleSpeedMultiplier: 1.18,
         cooldownMultiplier: 0.82,
         hitZoneMultiplier: 0.84,
         critZoneMultiplier: 0.62,
         damageMultiplier: 0.84,
         critDamageMultiplier: 0.82,
-        comboEvery: 3,
-        comboDamageRatio: 0.45,
-        comboLabel: 'Quick Chain'
+        comboEvery: 2,
+        comboDamageRatio: 0.70,
+        comboLabel: '爆擊追擊'
     },
     heavy: {
         id: 'heavy',
-        label: 'Bulwark Guard',
+        label: '壁壘防守',
         triggerCondition: '命中且穿戴護甲時獲得一次減傷',
         needleSpeedMultiplier: 0.78,
         cooldownMultiplier: 1.22,
@@ -63,7 +63,7 @@ const BASE_PROFILES = {
     },
     focus: {
         id: 'focus',
-        label: 'Arcane Resonance',
+        label: '元素共鳴',
         triggerCondition: '命中累積 2 層共鳴後強化元素；無元素時發射魔法彈',
         needleSpeedMultiplier: 0.95,
         cooldownMultiplier: 1.08,
@@ -75,11 +75,11 @@ const BASE_PROFILES = {
         resonanceElementBonusPercent: 30,
         resonanceElements: ['fire', 'ice', 'thunder', 'poison'],
         magicBoltDamageRatio: 0.45,
-        magicBoltLabel: 'Magic Bolt'
+        magicBoltLabel: '元素彈'
     },
     lance: {
         id: 'lance',
-        label: 'Piercing Line',
+        label: '貫穿戰線',
         triggerCondition: '暴擊或命中高防目標時穿甲',
         needleSpeedMultiplier: 1.08,
         cooldownMultiplier: 0.95,

@@ -40,13 +40,12 @@ export const CodexTypeText = {
     blueprint: '圖紙',
     consumable: '消耗品',
     achievement: '成就',
-    casino: '賭場',
     rewardItem: '特殊物品',
     material: '素材',
     equipment: '裝備',
     none: '無',
     normal: '普通怪物',
-    elite: '精英怪物',
+    elite: '菁英怪物',
     boss: '首領',
     world_boss: '世界首領',
     clue: '線索',
@@ -67,7 +66,6 @@ const SOURCE_TEXT = {
     equipment: '裝備資料',
     material: '素材資料',
     rewardItem: '特殊物品',
-    casino: '賭場',
     shop: '市集',
     monster: '怪物掉落',
     recipe: '鍛造圖紙',
@@ -204,7 +202,7 @@ export class EquipmentCodexClass extends BaseCodexClass {
     }
 
     static getListMeta(entry) {
-        return entry.level != null ? `Lv.${entry.level}` : '';
+        return entry.level != null ? `等級 ${entry.level}` : '';
     }
 
     static getSubtitle(entry) {
@@ -275,7 +273,7 @@ export class BlueprintCodexClass extends BaseCodexClass {
 
     static getListMeta(entry) {
         const level = getResultLevel(entry);
-        return level != null ? `Lv.${level}` : '';
+        return level != null ? `等級 ${level}` : '';
     }
 
     static getSubtitle(entry) {
@@ -296,7 +294,6 @@ export class ItemCodexClass extends BaseCodexClass {
         [ItemType.SCROLL, '卷軸'],
         [ItemType.BOOK, '手記'],
         [ItemType.QUEST, '任務品'],
-        ['casino', '賭場'],
         ['rewardItem', '特殊物品'],
         ['common', '普通'],
         ['uncommon', '優良'],
@@ -343,7 +340,7 @@ export class MonsterCodexClass extends BaseCodexClass {
     }
 
     static getListMeta(entry) {
-        return entry.level != null ? `Lv.${entry.level}` : '';
+        return entry.level != null ? `等級 ${entry.level}` : '';
     }
 
     static getSubtitle(entry) {

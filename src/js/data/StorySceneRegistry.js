@@ -5851,7 +5851,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "Mia 父親的補給編次停在外圍以前。他的最後位置仍不明，名冊沒有把個人失蹤硬塞進封痕答案。"
+                "text": "米婭父親的補給編次停在外圍以前。他的最後位置仍不明，名冊沒有把個人失蹤硬塞進封痕答案。"
             },
             {
                 "order": 11,
@@ -8108,7 +8108,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "最後一擊由玩家現有裝備完成。沒有指定神劍替代選擇，也沒有光明、虛空、外傳 Boss 獎勵或 DLC 力量介入本傳結局。"
+                "text": "最後一擊由玩家現有裝備完成。沒有指定神劍替代選擇，也沒有光明、虛空、外傳首領獎勵或追加內容力量介入本傳結局。"
             },
             {
                 "order": 7,
@@ -8522,7 +8522,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "Close the base campaign true ending; unfinished external routes remain optional, and later DLC stays separate."
+                "text": "本傳真結局在此收束；尚未完成的外傳路線維持選擇性，後續追加內容另行展開。"
             }
         ]
     }

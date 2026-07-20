@@ -2,8 +2,11 @@ import GameManager from '../managers/GameManager.js';
 import { questManager } from '../managers/QuestManager.js';
 import { QuestStatus } from '../data/Quests.js';
 import { getGeneratedItemImage } from '../data/AssetManifest.js';
+import { buildItemModalOptions } from '../utils/ItemDisplay.js';
 import { buildItemTooltipAttrs } from '../utils/ItemTooltip.js';
+import { confirmAction, showGlobalToast } from '../utils/UIFeedback.js';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
+import itemDetailModal from './ItemDetailModal.js';
 
 const SLOT_LABELS = Object.freeze({
     weapon: '主武器',
@@ -24,30 +27,6 @@ function itemType(item) {
     return String(item?.type || '').toLowerCase();
 }
 
-function getActionButtons(stack) {
-    const type = itemType(stack?.item);
-    if (type === 'weapon') {
-        const offhandAction = GameManager.getCharacter()?.equipment?.weapon
-            ? `<button type="button" data-inventory-action="equip" data-slot="armor" data-instance-id="${escapeHtml(stack.instanceId)}">副手</button>`
-            : '';
-        return `
-            <div class="adventure-inventory-actions">
-                <button type="button" data-inventory-action="equip" data-slot="weapon" data-instance-id="${escapeHtml(stack.instanceId)}">主手</button>
-                ${offhandAction}
-            </div>`;
-    }
-    if (type === 'armor' || type === 'accessory') {
-        return `<button type="button" data-inventory-action="equip" data-slot="${type}" data-instance-id="${escapeHtml(stack.instanceId)}">裝備</button>`;
-    }
-    if (stack?.item?.useContext === 'adventure_map' && stack?.item?.useAction === 'return_to_town') {
-        return `<button type="button" data-inventory-action="context-use" data-instance-id="${escapeHtml(stack.instanceId)}">點燃狼煙</button>`;
-    }
-    if (stack?.item?.effect || stack?.item?.buff) {
-        return `<button type="button" data-inventory-action="use" data-instance-id="${escapeHtml(stack.instanceId)}">使用</button>`;
-    }
-    return '';
-}
-
 export default class AdventurePanelsController {
     constructor(root, options = {}) {
         this.root = root;
@@ -63,7 +42,6 @@ export default class AdventurePanelsController {
         this.inventoryDrawer = this.root.querySelector('#adventure-inventory-drawer');
         this.questList = this.root.querySelector('#adventure-quest-list');
         this.inventoryList = this.root.querySelector('#adventure-inventory-list');
-        this.inventoryDetail = this.root.querySelector('#adventure-inventory-detail');
         this.equipmentSummary = this.root.querySelector('#adventure-equipment-summary');
         this.inventoryCapacity = this.root.querySelector('#adventure-inventory-capacity');
         this.trackerName = this.root.querySelector('#adventure-quest-tracker-name');
@@ -79,6 +57,7 @@ export default class AdventurePanelsController {
         this.root.removeEventListener('click', this.handleClick);
         GameManager.unsubscribe(this.handleGameState);
         questManager.unsubscribe(this.handleQuestState);
+        itemDetailModal.close();
     }
 
     isOpen() {
@@ -129,27 +108,11 @@ export default class AdventurePanelsController {
             return;
         }
 
-        const action = event.target.closest('[data-inventory-action]');
-        if (!action) {
-            const itemCell = event.target.closest('[data-field-item]');
-            if (itemCell) {
-                this.selectedInstanceId = itemCell.dataset.instanceId;
-                this.renderInventory();
-            }
-            return;
-        }
-        const instanceId = action.dataset.instanceId;
-        if (action.dataset.inventoryAction === 'equip') {
-            GameManager.equipItemToSlot(instanceId, action.dataset.slot);
-            this.options.onEquipmentChanged?.(action.dataset.slot);
-        } else if (action.dataset.inventoryAction === 'context-use') {
-            const stack = (GameManager.getInventory() || []).find(entry => entry.instanceId === instanceId);
-            if (this.options.onUseContextItem?.(stack)) return;
-        } else if (action.dataset.inventoryAction === 'use') {
-            GameManager.useConsumable(instanceId);
-        }
+        const itemCell = event.target.closest('[data-field-item]');
+        if (!itemCell) return;
+        this.selectedInstanceId = itemCell.dataset.instanceId;
         this.renderInventory();
-        this.options.onPlayerStateChange?.();
+        this.openInventoryItemModal(this.selectedInstanceId);
     }
 
     toggleDrawer(type) {
@@ -174,6 +137,7 @@ export default class AdventurePanelsController {
         if (this.inventoryDrawer) this.inventoryDrawer.hidden = true;
         this.root.querySelector('#btn-adventure-quests')?.classList.remove('is-active');
         this.root.querySelector('#btn-adventure-inventory')?.classList.remove('is-active');
+        itemDetailModal.close();
         this.options.onOpenStateChange?.(false);
     }
 
@@ -279,27 +243,104 @@ export default class AdventurePanelsController {
                     ${Number(stack.quantity) > 1 ? `<span class="quantity-badge">${Math.max(1, Number(stack.quantity) || 1)}</span>` : ''}
                 </button>`;
         }).join('');
-        this.renderInventoryDetail(inventory);
     }
 
-    renderInventoryDetail(inventory) {
-        if (!this.inventoryDetail) return;
-        const stack = inventory.find(entry => entry.instanceId === this.selectedInstanceId);
-        if (!stack) {
-            this.inventoryDetail.hidden = true;
-            this.inventoryDetail.innerHTML = '';
-            return;
-        }
+    openInventoryItemModal(instanceId) {
+        const stack = (GameManager.getInventory() || []).find(entry => entry.instanceId === instanceId);
+        if (!stack) return false;
         const item = stack.item || {};
-        const image = getGeneratedItemImage(item);
-        this.inventoryDetail.hidden = false;
-        this.inventoryDetail.innerHTML = `
-            <div class="adventure-inventory-detail-icon">${image ? `<img src="${escapeHtml(image)}" alt="">` : escapeHtml(item.icon || '')}</div>
-            <div class="adventure-inventory-detail-copy">
-                <strong>${escapeHtml(item.name || item.id)}</strong>
-                <span>${escapeHtml(itemType(item))} · ${Math.max(1, Number(stack.quantity) || 1)} 個</span>
-                <p>${escapeHtml(item.description || '沒有額外說明。')}</p>
-            </div>
-            ${getActionButtons(stack)}`;
+        const actions = this.createAdventureItemActions(stack);
+        itemDetailModal.open(item, {
+            ...buildItemModalOptions(item),
+            actions,
+            price: null,
+            context: 'adventure'
+        });
+        return true;
+    }
+
+    createAdventureItemActions(stack) {
+        const item = stack?.item || {};
+        const type = itemType(item);
+        const actions = [];
+
+        if (type === 'weapon') {
+            actions.push(this.createModalButton('⚔️ 裝備主手', 'btn-primary', () => {
+                this.equipInventoryItem(stack.instanceId, 'weapon');
+            }));
+            if (GameManager.getCharacter()?.equipment?.weapon && GameManager.canEquipItemToSlot(item, 'armor')) {
+                actions.push(this.createModalButton('🗡️ 裝備副手', 'btn-primary', () => {
+                    this.equipInventoryItem(stack.instanceId, 'armor');
+                }));
+            }
+        } else if (type === 'armor' || type === 'accessory') {
+            actions.push(this.createModalButton('⚔️ 裝備', 'btn-primary', () => {
+                this.equipInventoryItem(stack.instanceId, type);
+            }));
+        }
+
+        if (item.useContext === 'adventure_map' && item.useAction === 'return_to_town') {
+            actions.push(this.createModalButton('🔥 點燃狼煙', 'btn-info', () => {
+                if (this.options.onUseContextItem?.(stack)) itemDetailModal.close();
+            }));
+        } else if (item.effect || item.buff || type === 'potion' || type === 'scroll') {
+            actions.push(this.createModalButton('🧪 使用', 'btn-info', () => {
+                this.useInventoryItem(stack.instanceId);
+            }));
+        }
+
+        actions.push(this.createModalButton('丟棄', 'btn-danger', () => {
+            this.discardInventoryItem(stack.instanceId);
+        }));
+        return actions;
+    }
+
+    createModalButton(text, className, onClick) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn ${className}`;
+        button.textContent = text;
+        button.addEventListener('click', onClick);
+        return button;
+    }
+
+    equipInventoryItem(instanceId, slot) {
+        if (!GameManager.equipItemToSlot(instanceId, slot)) return false;
+        itemDetailModal.close();
+        this.renderInventory();
+        this.options.onEquipmentChanged?.(slot);
+        this.options.onPlayerStateChange?.();
+        return true;
+    }
+
+    useInventoryItem(instanceId) {
+        if (!GameManager.useConsumable(instanceId)) {
+            showGlobalToast('無法使用物品', '這個物品目前不能使用。', 'error');
+            return false;
+        }
+        itemDetailModal.close();
+        this.renderInventory();
+        this.options.onPlayerStateChange?.();
+        return true;
+    }
+
+    async discardInventoryItem(instanceId) {
+        const stack = (GameManager.getInventory() || []).find(entry => entry.instanceId === instanceId);
+        if (!stack) return false;
+        const itemName = stack.item?.name || '這項物品';
+        const quantity = Math.max(1, Number(stack.quantity) || 1);
+        const confirmed = await confirmAction({
+            title: '確認丟棄',
+            message: `丟棄「${itemName}」x${quantity} 後無法復原。`,
+            confirmText: '丟棄',
+            type: 'danger'
+        });
+        if (!confirmed) return false;
+        if (!GameManager.discardItem(instanceId, false, { force: true })) return false;
+        itemDetailModal.close();
+        this.renderInventory();
+        this.options.onPlayerStateChange?.();
+        showGlobalToast('已丟棄', `「${itemName}」已從背包移除。`, 'info');
+        return true;
     }
 }

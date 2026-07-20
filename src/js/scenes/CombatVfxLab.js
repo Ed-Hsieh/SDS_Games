@@ -274,6 +274,7 @@ export class CombatVfxLab {
         this.currentMonsterId = options.monster?.id || root.querySelector('#monster-select')?.value || 'demon';
         this.currentElement = 'neutral';
         this.uiTimers = new Set();
+        this.triggerVfxReadyAt = 0;
         this.showcaseTimers = new Set();
         this.showcaseRunning = false;
         this.lastHealth = { player: null, monster: null };
@@ -475,7 +476,7 @@ export class CombatVfxLab {
         const name = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-name`);
         const state = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-state`);
         if (name) name.textContent = weapon?.name || '武器';
-        if (state) state.textContent = 'READY';
+        if (state) state.textContent = '就緒';
         this.renderWeaponDurability(normalizedSlot);
 
         if (normalizedSlot === 'main') {
@@ -517,19 +518,19 @@ export class CombatVfxLab {
         const offhandState = this.root.querySelector('#lab-offhand-rhythm-state');
         if (mainState) {
             mainState.textContent = this.root.querySelector('.rhythm-control-main')?.classList.contains('is-broken')
-                ? 'BROKEN'
+                ? '損壞'
                 : !active
-                ? 'HOLD'
-                : snapshot.cooldowns.main > 0.001 ? 'RECOVER' : 'READY';
+                ? '暫停'
+                : snapshot.cooldowns.main > 0.001 ? '恢復中' : '就緒';
         }
         if (offhandState) {
             offhandState.textContent = this.root.querySelector('.rhythm-control-offhand')?.classList.contains('is-broken')
-                ? 'BROKEN'
+                ? '損壞'
                 : !active
-                ? 'HOLD'
+                ? '暫停'
                 : this.offhandRhythmSystem?.isWindowActive
-                    ? 'WINDOW'
-                    : snapshot.cooldowns.offhand > 0.001 ? 'RECOVER' : 'WAIT';
+                    ? '連擊窗口'
+                    : snapshot.cooldowns.offhand > 0.001 ? '恢復中' : '等待';
         }
     }
 
@@ -676,7 +677,7 @@ export class CombatVfxLab {
         }
         this.engine.heal({ target: 'player' });
         this.flash('rgba(120, 202, 146, 0.24)');
-        this.showFloatNumber(118, { target: 'player', heal: true, label: 'RECOVER' });
+        this.showFloatNumber(118, { target: 'player', heal: true, label: '恢復' });
         this.setFeed('生命藥水回饋正在播放');
     }
 
@@ -812,42 +813,59 @@ export class CombatVfxLab {
         } else if (event.type === 'battle:resume') {
             this.setFeed('戰鬥流程繼續');
         } else if (event.type === 'player:attack-start') {
-            this.syncWeaponElement(event.weapon);
-            this.playWeaponEffect(event.weapon.effect);
+            const attackElement = this.syncWeaponElement(event.weapon);
+            const shouldPlayAttackVfx = !(event.hitType === 'miss' && event.weapon.effect === 'focus');
+            if (shouldPlayAttackVfx) {
+                const duration = {
+                    sword: 280,
+                    dagger: 360,
+                    heavy: 420,
+                    lance: 380,
+                    focus: 700,
+                    unarmed: 240
+                }[event.weapon.effect] || 320;
+                this.queueTriggerVfx(() => {
+                    this.engine.setElement(attackElement);
+                    this.playWeaponEffect(event.weapon.effect);
+                }, duration);
+            }
             const judgementLabel = event.hitType === 'crit' ? '暴擊節點' : event.hitType === 'hit' ? '命中節點' : '失誤節點';
             this.setFeed(`${event.weapon.name}於${judgementLabel}出手`);
         } else if (event.type === 'player:hit') {
             if (!event.intercepted) {
                 const element = this.syncWeaponElement(event.weapon);
                 if (element !== 'neutral') {
-                    this.engine.elementalImpact(this.engine.enemyPoint, {
-                        scale: 0.72,
-                        particleScale: 0.72
-                    });
+                    this.queueTriggerVfx(() => {
+                        this.engine.setElement(element);
+                        this.engine.elementalImpact(this.engine.enemyPoint, {
+                            scale: 0.72,
+                            particleScale: 0.72
+                        });
+                    }, 360);
                 }
-                if (event.critical) this.playWeaponEffect('critical');
+                if (event.critical) this.queueTriggerVfx(() => this.playWeaponEffect('critical'), 360);
                 this.enemyImpactFeedback(event.damage, {
                     critical: event.critical,
                     label: event.critical
-                        ? 'CRITICAL'
-                        : 'HIT',
+                        ? '暴擊'
+                        : '命中',
                     heavy: event.weapon.effect === 'heavy'
                 });
             }
             if (!event.intercepted) this.setFeed(`${event.weapon.name}${event.critical ? '暴擊' : '命中'}，造成 ${event.damage} 點傷害`);
         } else if (event.type === 'player:miss') {
-            this.showFloatNumber(0, { target: 'enemy', label: event.evaded ? 'EVADE' : 'MISS' });
+            this.showFloatNumber(0, { target: 'enemy', label: event.evaded ? '閃避' : '失誤' });
             this.setFeed(event.evaded ? `${event.snapshot.monster.name}避開了攻擊` : `${event.weapon.name}揮空`);
         } else if (event.type === 'player:potion') {
             this.engine.heal({ target: 'player' });
             this.flash('rgba(120, 202, 146, 0.24)');
-            this.showFloatNumber(event.amount, { target: 'player', heal: true, label: 'RECOVER' });
+            this.showFloatNumber(event.amount, { target: 'player', heal: true, label: '恢復' });
             this.setFeed(`生命藥水恢復 ${event.amount} 點生命`);
         } else if (event.type === 'player:lifesteal') {
             this.engine.playerLifesteal();
-            this.showSkill('WEAPON', 'LIFE DRAIN');
+            this.showSkill('武器', '生命汲取');
             if (event.amount > 0) {
-                this.showFloatNumber(event.amount, { target: 'player', heal: true, label: 'LIFESTEAL' });
+                this.showFloatNumber(event.amount, { target: 'player', heal: true, label: '吸血' });
                 this.setFeed(`${event.weapon.name}吸取 ${event.amount} 點生命`);
             } else {
                 this.setFeed(`${event.weapon.name}的吸血效果已觸發，但生命已滿`);
@@ -866,7 +884,7 @@ export class CombatVfxLab {
             if (event.status.tone === 'heal') this.engine.heal({ target: 'enemy' });
         } else if (event.type === 'monster:heal') {
             this.engine.heal({ target: 'enemy' });
-            this.showFloatNumber(event.amount, { target: 'enemy', heal: true, label: 'RECOVER' });
+            this.showFloatNumber(event.amount, { target: 'enemy', heal: true, label: '恢復' });
         } else if (event.type === 'monster:summon-hit') {
             this.playMonsterEffect('slash');
             this.playerImpactFeedback(event.damage, { label: event.status.name });
@@ -874,9 +892,9 @@ export class CombatVfxLab {
             this.enemyImpactFeedback(event.damage, { label: '侍從擋下' });
         } else if (event.type === 'monster:summon-defeated') {
         } else if (event.type === 'player:flee') {
-            this.showSkill('TACTICAL', '脫離交戰');
+            this.showSkill('戰術', '脫離交戰');
         } else if (event.type === 'player:flee-failed') {
-            this.showSkill('TACTICAL', '撤離失敗');
+            this.showSkill('戰術', '撤離失敗');
             this.setFeed('退路被封住了，撐過攻勢後再找機會。');
         } else if (event.type === 'monster:telegraph') {
             this.restartClass(this.enemyStage, 'is-casting', Math.ceil(event.attack.telegraph * 1000));
@@ -892,7 +910,7 @@ export class CombatVfxLab {
         } else if (event.type === 'monster:hit') {
             if (event.damage > 0) {
                 this.playerImpactFeedback(event.damage, {
-                    label: event.critical ? 'CRITICAL' : event.attack.name,
+                    label: event.critical ? '暴擊' : event.attack.name,
                     critical: event.critical
                 });
                 this.setFeed(`${event.snapshot.monster.name}${event.critical ? '暴擊，' : ''}造成 ${event.damage} 點傷害`);
@@ -952,29 +970,46 @@ export class CombatVfxLab {
 
     handleWeaponProfileTrigger(event) {
         const labels = {
-            steadyStance: 'STEADY STANCE',
-            quickChainCharge: 'QUICK CHAIN',
-            quickChain: 'QUICK CHAIN',
-            bulwarkGuard: 'BULWARK GUARD',
-            arcaneResonanceCharge: 'ARCANE RESONANCE',
-            arcaneElement: 'ARCANE RESONANCE',
-            magicBolt: 'MAGIC BOLT',
-            piercingLine: 'PIERCING LINE'
+            steadyStance: '穩定架勢',
+            quickChainCharge: '追擊蓄勢',
+            quickChain: '爆擊追擊',
+            bulwarkGuard: '壁壘防守',
+            arcaneResonanceCharge: '元素共鳴',
+            arcaneElement: '元素共鳴',
+            magicBolt: '元素彈',
+            piercingLine: '貫穿戰線'
         };
-        const label = labels[event.triggerType] || event.profile?.label || 'WEAPON EFFECT';
-        this.showSkill('WEAPON', label);
+        const label = labels[event.triggerType] || event.profile?.label || '武器效果';
+        this.showSkill('武器', label);
         if (event.damage > 0) {
-            this.playWeaponEffect(event.triggerType === 'magicBolt' ? 'focus' : event.weapon?.effect);
-            this.enemyImpactFeedback(event.damage, {
-                label,
-                heavy: ['heavy', 'lance'].includes(event.weapon?.effect)
-            });
+            this.queueTriggerVfx(() => {
+                const effect = event.triggerType === 'magicBolt'
+                    ? 'focus'
+                    : event.triggerType === 'quickChain'
+                        ? 'critical'
+                        : event.weapon?.effect;
+                this.playWeaponEffect(effect);
+                this.enemyImpactFeedback(event.damage, {
+                    label,
+                    critical: event.triggerType === 'quickChain',
+                    heavy: ['heavy', 'lance'].includes(event.weapon?.effect)
+                });
+            }, event.triggerType === 'magicBolt' ? 700 : 420);
         } else if (event.triggerType === 'bulwarkGuard') {
-            this.engine.guard?.({ target: 'player' });
+            this.queueTriggerVfx(() => this.engine.guard?.({ target: 'player' }), 360);
         } else if (event.triggerType === 'arcaneElement') {
-            this.engine.setElement(event.element || 'neutral');
-            this.engine.elementalImpact(this.engine.enemyPoint, { scale: 0.72 });
+            this.queueTriggerVfx(() => {
+                this.engine.setElement(event.element || 'neutral');
+                this.engine.elementalImpact(this.engine.enemyPoint, { scale: 0.72 });
+            }, 420);
         }
+    }
+
+    queueTriggerVfx(callback, duration = 420) {
+        const now = performance.now();
+        const delay = Math.max(0, this.triggerVfxReadyAt - now);
+        this.triggerVfxReadyAt = Math.max(now, this.triggerVfxReadyAt) + duration;
+        return this.scheduleUi(callback, delay);
     }
 
     renderHealth(target, current, max, immediate) {
@@ -1085,7 +1120,7 @@ export class CombatVfxLab {
         this.intentPanel.hidden = false;
         this.intentPanel.classList.toggle('is-skill', Boolean(intent.attack.isSkill));
         this.root.querySelector('#intent-name').textContent = intent.attack.name;
-        this.root.querySelector('#intent-time').textContent = `${Math.max(0, intent.remaining).toFixed(2)}s`;
+        this.root.querySelector('#intent-time').textContent = `${Math.max(0, intent.remaining).toFixed(2)} 秒`;
         this.root.querySelector('#intent-fill').style.width = `${intent.progress * 100}%`;
     }
 
@@ -1144,13 +1179,13 @@ export class CombatVfxLab {
             this.scheduleUi(() => this.enemyImpactFeedback(damageMap[effectId], {
                 critical: ['lance', 'critical'].includes(effectId),
                 heavy: effectId === 'heavy',
-                label: effectId === 'critical' ? 'CRITICAL' : null
+                label: effectId === 'critical' ? '暴擊' : null
             }), delayMap[effectId]);
             return;
         }
 
         if (effectId === 'boss-phase') {
-            this.showSkill('BOSS PHASE', EFFECT_LABELS[effectId]);
+            this.showSkill('首領階段', EFFECT_LABELS[effectId]);
             this.restartClass(this.enemyStage, 'is-phase', 1800);
             this.engine.bossPhase();
             this.flash('rgba(219, 91, 58, 0.42)');
@@ -1158,7 +1193,7 @@ export class CombatVfxLab {
             return;
         }
 
-        this.showSkill('MONSTER', EFFECT_LABELS[effectId]);
+        this.showSkill('敵人', EFFECT_LABELS[effectId]);
         this.restartClass(this.enemyStage, effectId === 'claw' ? 'is-lunging' : 'is-casting', 860);
         this.playMonsterEffect(effectId);
         if (['vanish', 'phase', 'harden', 'summon', 'regeneration'].includes(effectId)) {
@@ -1202,9 +1237,9 @@ export class CombatVfxLab {
     showResult(phase) {
         if (this.labMode !== 'combat') return;
         const titles = {
-            [CombatSessionPhase.VICTORY]: ['BATTLE COMPLETE', '勝利'],
-            [CombatSessionPhase.DEFEAT]: ['BATTLE FAILED', '敗北'],
-            [CombatSessionPhase.ESCAPED]: ['BATTLE DISENGAGED', '撤離成功']
+            [CombatSessionPhase.VICTORY]: ['戰鬥結束', '勝利'],
+            [CombatSessionPhase.DEFEAT]: ['戰鬥失敗', '敗北'],
+            [CombatSessionPhase.ESCAPED]: ['已脫離戰鬥', '撤離成功']
         };
         const result = titles[phase];
         if (!result) return;
@@ -1324,7 +1359,7 @@ export class CombatVfxLab {
     playFleeFeedback({ quiet = false } = {}) {
         if (!quiet) {
             this.setFeed('撤離回饋正在播放');
-            this.showSkill('TACTICAL', '脫離交戰');
+            this.showSkill('戰術', '脫離交戰');
         }
         this.stage.animate([
             { filter: 'brightness(1)', opacity: 1 },
@@ -1381,6 +1416,7 @@ export class CombatVfxLab {
     clearEffects({ preserveShowcase = false } = {}) {
         if (!preserveShowcase) this.stopShowcaseOnly();
         this.cancelUiTimers();
+        this.triggerVfxReadyAt = 0;
         this.engine.clear();
         this.floatLayer.innerHTML = '';
         this.playerDebuffList.innerHTML = '';

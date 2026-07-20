@@ -44,14 +44,52 @@ function serializeItem(item) {
     return safeClone(item, null);
 }
 
+const SAVED_ITEM_INSTANCE_FIELDS = Object.freeze([
+    'instanceId',
+    'acquiredTime',
+    'durability',
+    'enhanceLevel',
+    'enhancementStability',
+    'maxEnhancementStability',
+    'enhancementMarks',
+    'enhancementBonuses',
+    '_enhanceBaseStats',
+    'affixes',
+    'affixBonuses',
+    'elementAttunement',
+    'elementAttunementLocked'
+]);
+
+function rebuildCatalogItemData(itemData, catalogItem) {
+    if (!catalogItem) return itemData;
+
+    const normalizedData = safeClone(catalogItem, { ...catalogItem });
+    for (const key of SAVED_ITEM_INSTANCE_FIELDS) {
+        if (!Object.hasOwn(itemData, key)) continue;
+        normalizedData[key] = safeClone(itemData[key], itemData[key]);
+    }
+
+    if (Array.isArray(itemData.affixes) && itemData.affixes.length > 0) {
+        normalizedData.name = itemData.name || normalizedData.name;
+        normalizedData.rarity = itemData.rarity || normalizedData.rarity;
+        if (itemData._baseName) normalizedData._baseName = itemData._baseName;
+    }
+
+    const maxDurability = Number(normalizedData.maxDurability ?? normalizedData.stats?.maxDurability);
+    const savedDurability = Number(itemData.durability);
+    if (Number.isFinite(savedDurability) && Number.isFinite(maxDurability)) {
+        normalizedData.durability = Math.max(0, Math.min(savedDurability, maxDurability));
+    }
+
+    return normalizedData;
+}
+
 function hydrateItem(itemData) {
     if (!itemData) return null;
 
     try {
         const catalogItem = resolveItemById(itemData.id);
-        const normalizedData = catalogItem && !itemData.weaponForm && catalogItem.weaponForm
-            ? { ...itemData, weaponForm: catalogItem.weaponForm }
-            : itemData;
+        const normalizedData = rebuildCatalogItemData(itemData, catalogItem);
         const item = createRuntimeItem(normalizedData);
         if (itemData.instanceId) item.instanceId = itemData.instanceId;
         if (itemData.acquiredTime) item.acquiredTime = itemData.acquiredTime;
