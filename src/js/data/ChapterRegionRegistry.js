@@ -104,9 +104,10 @@ export const ChapterRegionRegistry = Object.freeze({
             renderRoutes: false,
             renderBoundary: false
         }),
-        entryNodes: ['south_gate_entry'],
+        entryNodes: ['south_gate_entry', 'prologue_south_approach'],
         exitNodes: ['south_gate_entry'],
         routeSegments: Object.freeze([
+            segment('prologue_mist_approach', 'prologue_south_approach', 'prologue_impact_site', [[8, 29], [8, 24]], { terrain: 'mist_road', encounterTableId: 'ch1_road' }),
             segment('collapsed_approach', 'south_gate_entry', 'south_gate_farmland', [[6, 16], [15, 16]], { terrain: 'broken_road', encounterTableId: 'ch1_road' }),
             segment('three_marks_north', 'south_gate_farmland', 'hunter_boardwalk', [[15, 16], [28, 8]], { terrain: 'farmland_edge', encounterTableId: 'ch1_woodland' }),
             segment('three_marks_south', 'south_gate_farmland', 'old_campfire_site', [[15, 16], [29, 24]], { terrain: 'wet_road', encounterTableId: 'ch1_woodland' }),
@@ -115,7 +116,9 @@ export const ChapterRegionRegistry = Object.freeze({
             segment('forest_reaction_route', 'old_campfire_site', 'old_wolf_den', [[29, 24], [35, 19], [42, 19]], { terrain: 'rotroot_woodland', encounterTableId: 'ch1_forest' })
         ]),
         locationNodes: Object.freeze([
-            location('south_gate_entry', '南門入口', RegionLocationKind.ENTRY, 6, 16, { sceneIds: ['ch1_s01_road_collapse'] }),
+            location('south_gate_entry', '南門入口', RegionLocationKind.ENTRY, 6, 16),
+            location('prologue_south_approach', '南路迷霧', RegionLocationKind.ENTRY, 8, 29),
+            location('prologue_impact_site', '南路斷坡', RegionLocationKind.STORY_TRANSITION, 8, 24, { imageId: 'south-road-broken', sceneIds: ['ch1_s01_road_collapse'] }),
             location('south_gate_farmland', '南門農田', RegionLocationKind.LANDMARK, 15, 16, { imageId: 'south_gate_farmland', sceneIds: ['ch1_s06_three_landmarks'] }),
             location('hunter_boardwalk', '獵人棧道', RegionLocationKind.LANDMARK, 28, 8, { imageId: 'hunter_boardwalk', sceneIds: ['ch1_s06_three_landmarks'] }),
             location('old_campfire_site', '舊營火點', RegionLocationKind.CAMP, 29, 24, { imageId: 'old_campfire_site', sceneIds: ['ch1_s06_three_landmarks'] }),
@@ -125,7 +128,7 @@ export const ChapterRegionRegistry = Object.freeze({
             location('old_wolf_den', '古樹根心', RegionLocationKind.BOSS_ARENA, 42, 19, { imageId: 'old_wolf_den', sceneIds: ['ch1_s10_forest_guardian'], bossId: 'forest_guardian' })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch1_s01_road_collapse', 'regional_canvas', 'collapsed_approach', RegionSceneTrigger.REGION_ENTRY),
+            binding('ch1_s01_road_collapse', 'regional_canvas', 'prologue_impact_site', RegionSceneTrigger.LOCATION_INSPECT),
             binding('ch1_s06_three_landmarks', 'regional_canvas', 'three_marks_north', RegionSceneTrigger.SEGMENT_ENTER),
             binding('ch1_s07_silver_snare', 'location_scene', 'silver_snare_pass', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch1_s09_rotroot_approach', 'regional_canvas', 'forest_reaction_route', RegionSceneTrigger.SEGMENT_ENTER),

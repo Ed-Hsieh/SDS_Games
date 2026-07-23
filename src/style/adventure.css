@@ -512,6 +512,13 @@
     line-height: 1.5;
 }
 
+.adventure-scene.is-prologue-route .adventure-quest-tracker {
+    right: auto;
+    left: 50%;
+    width: min(360px, calc(100% - 48px));
+    transform: translateX(-50%);
+}
+
 .adventure-system-drawer {
     position: fixed;
     z-index: 70;

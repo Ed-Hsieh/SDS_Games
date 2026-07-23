@@ -15,6 +15,7 @@ import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
+import { GuildTutorialCommissionId } from '../data/Quests.js';
 
 const HANDBOOK_TABS = {
     commissions: {
@@ -75,6 +76,10 @@ export default class QuestScene {
     init() {
         this.cacheDOM();
         this.bindEvents();
+        const navigationState = this.app?.consumeNavigationState?.('quest');
+        if (navigationState?.tab && HANDBOOK_TABS[navigationState.tab]) {
+            this.activeTab = navigationState.tab;
+        }
         
         // 訂閱任務系統事件
         questManager.subscribe(this.onQuestEvent);
@@ -83,6 +88,10 @@ export default class QuestScene {
         // 初始渲染
         this.renderQuestList();
         this.updateSummary();
+        if (navigationState?.selectedQuestId) {
+            this.selectedQuestId = navigationState.selectedQuestId;
+            this.renderQuestDetail(navigationState.selectedQuestId);
+        }
     }
 
     cleanup() {
@@ -169,7 +178,7 @@ export default class QuestScene {
 
         // 返回大廳
         this.dom.btnBackLobby?.addEventListener('click', () => {
-            this.app.loadScene('lobby');
+            this.app.navigateTo(this.app?.consumeReturnRoute?.('quest', 'lobby') || 'lobby');
         });
     }
 
@@ -292,7 +301,9 @@ export default class QuestScene {
             case 'commissions':
             default:
                 return [
-                    storyJournalManager.getMainlineRecord(storyGuidanceManager.getCurrent()),
+                    this.shouldShowMainlineRecord()
+                        ? storyJournalManager.getMainlineRecord(storyGuidanceManager.getCurrent())
+                        : null,
                     ...this.getStoryQuestList().map(quest => ({
                     key: `quest:${quest.id}`,
                     kind: 'quest',
@@ -300,6 +311,11 @@ export default class QuestScene {
                     }))
                 ].filter(Boolean);
         }
+    }
+
+    shouldShowMainlineRecord() {
+        const status = questManager.getQuestState(GuildTutorialCommissionId)?.status;
+        return status === QuestStatus.COMPLETED || status === QuestStatus.FINISHED;
     }
 
     createQuestListItem(quest) {
@@ -1501,6 +1517,7 @@ export default class QuestScene {
             case 'quest_accepted':
             case 'quest_abandoned':
             case 'quest_completed':
+            case 'quest_archived':
             case 'quest_unlocked':
                 this.refreshHandbook();
                 break;

@@ -71,7 +71,7 @@ export const TownPlaceDatabase = [
                 id: 'first_report',
                 when: sceneComplete('ch1_s03_broken_crossroads'),
                 title: '南路的斷裂有了名字',
-                text: '村長沒有把黑根與失聯寫成勝利口號，只把下一個需要確認的人與地方圈出來。'
+                text: '村長聽完南路的情況，把黑根出現的位置和失聯者最後經過的地方圈在圖上。'
             },
             {
                 id: 'first_recovery',
@@ -83,8 +83,8 @@ export const TownPlaceDatabase = [
             {
                 id: 'names_returned',
                 when: sceneComplete('ch2_s07_names_return_to_town'),
-                title: '失蹤者不再只是一個數字',
-                text: '伊萊把確認、未確認與死亡分開記錄。廣場第一次承認不知道也是一種誠實。'
+                title: '失蹤者有了確切去向',
+                text: '伊萊把名單分成已確認、仍失聯與死亡三欄，沒有消息的人仍留著空位。'
             },
             {
                 id: 'elder_absent',
@@ -95,7 +95,7 @@ export const TownPlaceDatabase = [
                     ]
                 },
                 title: '椅子沒有被收走',
-                text: '村長的椅子仍在原位。伊萊沒有讓任何人把它移去紀念牆，因為事情還沒有被寫完。'
+                text: '村長的椅子還留在原位。伊萊每天照常把新的回報放在桌上。'
             },
             {
                 id: 'true_return',
@@ -105,8 +105,8 @@ export const TownPlaceDatabase = [
                         sceneComplete('ch7_s08_return_to_town')
                     ]
                 },
-                title: '這次沒有人替所有人負責',
-                text: '村長與伊萊一起整理封痕紀錄。廣場仍然破舊，卻不再靠一個人扛住所有決定。'
+                title: '廣場重新有人商量事情',
+                text: '村長和伊萊一起整理封痕紀錄，巡防與撤離的決定也開始交給更多人討論。'
             }
         ]
     },
@@ -145,7 +145,7 @@ export const TownPlaceDatabase = [
             {
                 id: 'opening_care',
                 when: sceneComplete('ch1_s02_wake_under_bitter_bottles'),
-                title: '苦瓶底下的人醒了',
+                title: '醒來後先喝水',
                 text: '米婭先把水放到手能碰到的位置，再阻止剛醒的人立刻起身。'
             },
             {
@@ -168,7 +168,7 @@ export const TownPlaceDatabase = [
                     ]
                 },
                 title: '窗戶終於打開',
-                text: '米婭讓別人幫忙重排工作桌。風吹進母親留下的房間，沒有任何人因此消失。'
+                text: '米婭請人幫忙重排工作桌，也把一直關著的窗戶打開了。'
             }
         ]
     },
@@ -183,7 +183,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('civic-room-working'),
         sceneImage: townScene('civic-room-working'),
         scenePosition: '50% 56%',
-        description: '伊萊把濕紙、樣本、路線與不知道如何分類的人命放在同一張桌上，直到上下文重新接回來。',
+        description: '伊萊把濕紙、樣本和舊路線分開攤在桌上，一張一張核對日期與來源。',
         when: sceneComplete('ch1_s03_broken_crossroads'),
         residents: [
             {
@@ -223,14 +223,14 @@ export const TownPlaceDatabase = [
             {
                 id: 'first_index',
                 when: sceneComplete('ch1_s04_elder_to_scholar'),
-                title: '第一份索引保留了未知',
-                text: '伊萊沒有替證據補上漂亮答案。來源、範圍與不知道的部分被分開寫下。'
+                title: '第一份索引整理好了',
+                text: '伊萊把證據的來源和範圍分開記錄，沒有查清楚的地方仍標著未知。'
             },
             {
                 id: 'expedition_reopened',
                 when: sceneComplete('ch5_s08_expedition_list'),
                 title: '二十年前的名單重新攤開',
-                text: '遠征不再只剩英雄或失敗兩種說法。誰抵達哪裡、碰了什麼、又漏看了什麼，都重新有了位置。'
+                text: '伊萊在舊名單旁補上每個人抵達的位置、接觸過的東西，以及當年漏掉的紀錄。'
             },
             {
                 id: 'honest_archive',
@@ -240,8 +240,8 @@ export const TownPlaceDatabase = [
                         sceneComplete('ch7_s08_return_to_town')
                     ]
                 },
-                title: '紀錄變得更麻煩，也更完整',
-                text: '伊萊寫下這次沒有人替所有人負責，並把不確定之處原封保留。'
+                title: '紀錄多了幾頁',
+                text: '伊萊保留所有人的回報。彼此說法不同的地方，他沒有擅自合成一個答案。'
             }
         ]
     },
@@ -256,7 +256,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('gate-broken'),
         sceneImage: townScene('gate-broken'),
         scenePosition: '50% 55%',
-        description: '破旗與低燈分別守著前後方向。這裡不保證路安全，只確認出去與回來的人仍能彼此看見。',
+        description: '南門掛著巡路的旗，門後留著回程燈。出城與回來的人都要在這裡登記。',
         when: sceneComplete('ch1_s01_road_collapse'),
         residents: [
             {
@@ -317,7 +317,7 @@ export const TownPlaceDatabase = [
                 id: 'first_departure',
                 when: sceneComplete('ch1_s05_south_gate_introduction'),
                 title: '旗在前，燈在後',
-                text: '芙蕾負責讓人看見方向；塔維把燈留在回頭時仍能找到的位置。'
+                text: '芙蕾在門外標出安全方向，塔維則把回程燈固定在門內。'
             },
             {
                 id: 'working_gate',
@@ -361,7 +361,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('forge-cold'),
         sceneImage: townScene('forge-cold'),
         scenePosition: '50% 58%',
-        description: '爐子先替鍋、門閂、擔架扣與回城工具生火，武器排在能讓人回來的東西後面。',
+        description: '鐵匠先修鍋子、門閂、擔架扣和回城工具，武器得等前面的活做完。',
         when: sceneComplete('ch1_s07_silver_snare'),
         residents: [
             {
@@ -408,13 +408,13 @@ export const TownPlaceDatabase = [
                 when: sceneComplete('ch1_s08_cold_forge_smoke'),
                 sceneImage: townScene('forge'),
                 title: '第一爐先修回城的東西',
-                text: '風箱重新咬住火。最先進爐的不是新劍，而是鍋底、門鉸與壞掉的扣件。'
+                text: '爐火重新升起來。鐵匠先把鍋底、門鉸和壞掉的扣件放進爐裡。'
             },
             {
                 id: 'civilian_first',
                 when: sceneComplete('ch4_s02_fourfold_countergear'),
-                title: '爐子不是只替會打架的人燒',
-                text: '撤離板、燈架與擔架扣排在武器前。鐵匠不再讓急迫等同於殺傷力。'
+                title: '撤離工具排在武器前面',
+                text: '撤離板、燈架和擔架扣先送進工坊，武器只能在後面排隊。'
             },
             {
                 id: 'ordinary_queue',
@@ -425,7 +425,7 @@ export const TownPlaceDatabase = [
                     ]
                 },
                 title: '漏水的鍋重新排回第一位',
-                text: '能再次為普通麻煩排隊，比一把傳說武器更像真正的勝利。'
+                text: '工坊門口又排起日常修繕，最前面是一口漏水的鍋。'
             }
         ]
     },
@@ -440,7 +440,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('market'),
         sceneImage: townScene('market'),
         scenePosition: '50% 60%',
-        description: '公共交易、基礎藥品與補給都在邊棚完成。米婭只研究配方並授權品項，不持有價格、庫存或櫃台。',
+        description: '基礎藥品和補給都在邊棚交易。米婭負責確認配方，商人負責價格和庫存。',
         when: sceneComplete('ch1_s11_roads_breathe_again'),
         residents: [
             {
@@ -470,15 +470,15 @@ export const TownPlaceDatabase = [
                 id: 'empty_crates',
                 when: sceneComplete('ch2_s01_empty_crates'),
                 sceneImage: townScene('market-closed'),
-                title: '空箱先證明路真的斷了',
-                text: '貨印與最後搬運位置被攤在棚下。商人第一次有了可以追查、而不是只能抱怨的缺口。'
+                title: '邊棚只剩空箱',
+                text: '商人把貨印和最後一次搬運的位置攤在棚下，請人沿著這些記號查找失蹤的貨隊。'
             },
             {
                 id: 'public_medicine',
                 when: sceneComplete('ch2_s07_names_return_to_town'),
                 sceneImage: townScene('market-sparse'),
                 title: '藥品回到公開貨架',
-                text: '米婭核對配方批次，商人負責價格與數量。基礎醫藥不會因她的個人命運消失。'
+                text: '米婭核對配方批次，商人負責價格與數量。她不在工作室時，商人也能照著紀錄補貨。'
             }
         ]
     },
@@ -493,7 +493,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('casino'),
         sceneImage: townScene('casino'),
         scenePosition: '50% 58%',
-        description: '展示櫃先把想要的東西放到眼前，賭桌再把每個人的缺口換算成一場自願的下注。',
+        description: '展示櫃擺著獎品，賭桌收票券與籌碼。維斯珀總能看出客人最想拿走哪一件。',
         when: { minChapter: 3 },
         residents: [
             {
@@ -530,8 +530,8 @@ export const TownPlaceDatabase = [
             {
                 id: 'showcase',
                 when: sceneComplete('ch3_s04_showcase_glass'),
-                title: '展示櫃讓資源有了慾望',
-                text: '維斯珀不逼任何人下注。他只把每個人真正想要的東西放到桌上。'
+                title: '展示櫃換了新獎品',
+                text: '維斯珀把客人最想要的東西放進展示櫃，再等他們自己走向賭桌。'
             },
             {
                 id: 'vesper_escaped',
@@ -568,7 +568,7 @@ export const TownPlaceDatabase = [
         cardImage: townScene('alley'),
         sceneImage: townScene('alley'),
         scenePosition: '52% 60%',
-        description: '背巷提供公開市場不願承擔的來源、情報與代價。它不替任何人證明交易值得。',
+        description: '公開市場不收的貨和不願留下名字的消息，都有人帶到這條背巷談。',
         when: sceneComplete('ch3_s04_showcase_glass'),
         residents: [
             {
@@ -598,14 +598,14 @@ export const TownPlaceDatabase = [
             {
                 id: 'blank_contract',
                 when: sceneComplete('ch3_s05_blank_creditor_trace'),
-                title: '空白抵契不是黑市的神話',
+                title: '黑市賣過一張空白抵契',
                 text: '黑市只承認曾把一張來歷不明的空白抵契賣給維斯珀；拿到錢後，它不再保有第二張。'
             },
             {
                 id: 'ailo_gone',
                 when: sceneComplete('ch6_s08_brush_past_or_invitation'),
-                title: '街角少了一個沒人聽懂的人',
-                text: '沒有人知道艾洛去了哪裡。第一輪只少了哨子與一個身影；第二輪則是兩個人一起離開。'
+                title: '艾洛離開了街角',
+                text: '沒有人知道艾洛往哪裡走。原本坐人的地方只剩幾張被風吹動的紙。'
             }
         ]
     }

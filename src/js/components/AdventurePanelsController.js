@@ -289,9 +289,15 @@ export default class AdventurePanelsController {
             }));
         }
 
-        actions.push(this.createModalButton('丟棄', 'btn-danger', () => {
-            this.discardInventoryItem(stack.instanceId);
-        }));
+        if (item.tutorialLocked) {
+            const locked = this.createModalButton('教學期間不可丟棄', 'btn-info', () => {});
+            locked.disabled = true;
+            actions.push(locked);
+        } else {
+            actions.push(this.createModalButton('丟棄', 'btn-danger', () => {
+                this.discardInventoryItem(stack.instanceId);
+            }));
+        }
         return actions;
     }
 

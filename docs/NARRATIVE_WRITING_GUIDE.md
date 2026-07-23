@@ -1,6 +1,6 @@
 # Narrative Writing Guide
 
-Last updated: 2026-07-20
+Last updated: 2026-07-22
 
 ## Purpose
 
@@ -32,6 +32,72 @@ should leave the player with at least one of these:
 For mainline suspense, chapter-level reveals, long-form character arcs, and
 screenwriting structure, use `docs/MAIN_STORY_BIBLE.md`. This guide owns the
 voice and prose quality; the story bible owns the larger plot architecture.
+
+## Story Before Setting
+
+Character dossiers, future payoffs, symbols, and author-only causality are
+writing tools. They are not dialogue content by default.
+
+- Write the present event first: what happened, what the viewpoint character
+  can observe, what each person needs now, and what decision follows.
+- A character trait controls choices, attention, tolerance, and behavior. It
+  does not require the character to display a signature tone, profession,
+  trauma, joke, object, or catchphrase in every scene.
+- Most speech may be ordinary. Distinct characterization should accumulate
+  across decisions and relationships instead of making every line advertise
+  its speaker.
+- Do not make healers continually diagnose, scholars continually mention
+  papers, guards continually recite safety rules, blacksmiths continually insult
+  equipment, or frightened characters continually hesitate unless the current
+  situation gives them a concrete reason.
+- Never turn an author note into narration. Lines that explain what a flag,
+  lamp, wound, silence, object, or repeated action will mean later belong in the
+  planning layer until events earn that meaning.
+
+The player should experience a story through the protagonist's limited view,
+not receive a complete setting briefing. Mainline scenes provide only the facts
+needed to understand the immediate problem and make the next decision. Optional
+stories may later provide private history, another person's view, or missing
+context. They must deepen an event the player already experienced rather than
+repeat the same biography in longer form.
+
+## Information And Foreshadowing Contract
+
+Before writing a scene, separate its information into four layers:
+
+1. `present fact` - directly observable or honestly reported now;
+2. `current inference` - a conclusion the viewpoint character can reasonably
+   make, which may still be incomplete;
+3. `withheld context` - material reserved for later mainline events or optional
+   stories;
+4. `author truth` - final causality that must not leak into player-facing prose.
+
+Apply these rules:
+
+- A clue first appears because it has an ordinary function in the current
+  scene. Do not announce that it is symbolic, suspicious, memorable, or destined
+  to matter.
+- Repetition is not payoff. Once information is understood, later scenes must
+  use it, challenge it, or add a concrete difference. They may not restate it in
+  new poetic wording.
+- A payoff changes the player's interpretation of an earlier event through new
+  action or evidence. It does not explain that the earlier event was a
+  foreshadowing device.
+- Do not protect a clue by making every related character mention it. If it can
+  be missed without breaking the immediate objective, allow it to remain
+  background texture.
+- First-run prose cannot describe future losses, assign later symbolic meaning,
+  or tell the player which ordinary moment should feel precious. Second-run
+  memory may alter attention, but it still cannot narrate the author's theme.
+- When the same fact exists in a commission, dialogue, objective UI, and later
+  scene, each surface has a different job: the commission records it, dialogue
+  motivates a decision, the objective gives direction, and the later scene shows
+  consequences. Do not copy the exposition between them.
+
+Revision test: for every player-facing sentence, ask why this person must say or
+notice it now. If the answer is only `to establish the character`, `to preserve
+a future clue`, `to explain the world`, or `because it matters later`, remove it
+or return it to planning notes.
 
 ## Prose Rules
 
@@ -457,6 +523,47 @@ Use this contrast as the target shape:
 The exchange releases background through conflict. It does not begin with a
 complete explanation of what happened, why it was hidden, and how both people
 feel about it.
+
+### Dialogue Exchange And Choice Contract
+
+A conversation is a social action, not a shortcut between two flags. When a
+request, report, warning, disagreement, or decision requires a response, show
+the necessary exchange on screen instead of compressing the protagonist's part
+into narration and letting the NPC finish in one or two lines.
+
+- There is no fixed minimum line count. Continue only until the participants
+  have asked, answered, corrected, reacted, and decided everything the present
+  action reasonably requires.
+- Important protagonist speech must be spoken. Narration may describe movement
+  or observation, but it must not replace asking a necessary question,
+  accepting a request, refusing it, or reporting evidence.
+- Do not build ambient dialogue from a repeated two-line setup and polished
+  punchline. Let ordinary exchanges contain incomplete thoughts, practical
+  replies, corrections, and small changes of subject when those fit the people.
+- System terms such as `main quest`, `side quest`, `Boss`, `dungeon`, `high
+  value`, `handbook update`, `objective`, or `reward tier` belong to interfaces
+  and records. A character names the road, person, creature, danger, evidence,
+  payment, or work that exists in the world.
+- A request is not accepted merely because its explanation finished. Apply its
+  gameplay effects only after the player explicitly chooses acceptance and the
+  protagonist's full response has played.
+- An information question should receive a useful answer and then return to the
+  unresolved decision when acceptance is still pending.
+- Leaving applies no acceptance effect and does not consume a one-time request.
+- Ailo's fragmented speech is an approved character-specific exception. It is
+  not a model for another character's dialogue structure.
+
+Choice presentation has three separate layers:
+
+1. `kindLabel`: a short interface category such as `接受`, `詢問`, or `離開`.
+2. `title` and optional `summary`: a short description of the player's intent.
+3. `responseLines`: the complete in-character words and the other person's
+   reaction, played only after that choice is selected.
+
+Never put the complete spoken response into the choice card, and never make the
+character say the interface category aloud. `接受委託 / 希望報酬值得這一趟`
+is valid interface copy; the selected response may then be a full sentence in
+the protagonist's established practical, reward-conscious hunter voice.
 
 ## Character Voice
 

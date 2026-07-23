@@ -51,11 +51,6 @@ export function canCraft(recipeId, inventory = [], warehouse = []) {
 function applyCraftedEquipmentProperties(item) {
     if (!EQUIPMENT_TYPES.has(item?.type)) return item;
 
-    if (item.durability === undefined) {
-        item.durability = 18;
-        item.maxDurability = 18;
-    }
-
     affixManager.generateAffixes(item, true);
     item.rarity = (item.affixes || []).reduce((current, affix) => {
         return RARITY_ORDER.indexOf(affix.rarity) > RARITY_ORDER.indexOf(current)

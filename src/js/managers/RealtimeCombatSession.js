@@ -125,6 +125,7 @@ function normalizeConfig(config = {}) {
             name: config.monster?.name || '敵人',
             maxHp: monsterMaxHp,
             hp: monsterMaxHp,
+            healthFloor: Math.floor(monsterMaxHp * clamp(numberOr(config.monster?.healthFloorRatio, 0), 0, 0.95)),
             attacks,
             initialDelay: Math.max(0.35, Number(config.monster?.initialDelay) || 1.25)
         },
@@ -170,6 +171,7 @@ export default class RealtimeCombatSession {
             name: this.config.monster.name,
             maxHp: this.config.monster.maxHp,
             hp: this.config.monster.hp,
+            healthFloor: this.config.monster.healthFloor,
             statuses: []
         };
         this.loadout = {
@@ -504,6 +506,50 @@ export default class RealtimeCombatSession {
         return true;
     }
 
+    replaceWeapon(slot = 'main', rawWeapon = {}, options = {}) {
+        const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
+        const previous = this.loadout[normalizedSlot] || {};
+        const previousCooldown = Math.max(0, Number(this.cooldowns[normalizedSlot]) || 0);
+        const previousDuration = Math.max(0.1, Number(previous.cooldown) || 0.1);
+        const cooldownRatio = clamp(previousCooldown / previousDuration, 0, 1);
+        const weapon = normalizeWeapon(rawWeapon, normalizedSlot);
+
+        this.resetWeaponChain(normalizedSlot, previous);
+        this.loadout[normalizedSlot] = weapon;
+        this.pendingPlayerAttacks = this.pendingPlayerAttacks.filter(entry => entry.slot !== normalizedSlot);
+        this.weaponStates[normalizedSlot] = { combo: 0, steadyStacks: 0, resonanceStacks: 0 };
+        this.cooldowns[normalizedSlot] = options.fullCooldown
+            ? weapon.cooldown
+            : weapon.cooldown * cooldownRatio;
+        this.emit('player:weapon-replaced', {
+            slot: normalizedSlot,
+            previous: { ...previous },
+            weapon: { ...weapon },
+            automatic: Boolean(options.automatic)
+        });
+        return { ...weapon };
+    }
+
+    updateWeaponContext(slot = 'main', patch = {}) {
+        const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
+        if (!this.loadout[normalizedSlot]) return false;
+        this.loadout[normalizedSlot] = { ...this.loadout[normalizedSlot], ...patch };
+        this.emit('player:weapon-context', { slot: normalizedSlot, patch: { ...patch } });
+        return true;
+    }
+
+    replaceMonsterAttacks(rawAttacks = []) {
+        if (!Array.isArray(rawAttacks) || rawAttacks.length === 0) return false;
+        const attacks = rawAttacks.map(normalizeMonsterAttack);
+        this.config.monster.attacks = attacks;
+        this.monsterAttackCooldowns = Object.fromEntries(attacks.map(attack => [
+            attack.id,
+            Math.max(0, Number(this.monsterAttackCooldowns?.[attack.id]) || 0)
+        ]));
+        this.emit('monster:attacks-updated');
+        return true;
+    }
+
     equipUnarmed(slot = 'main') {
         const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
         const previous = this.loadout[normalizedSlot] || {};
@@ -578,7 +624,7 @@ export default class RealtimeCombatSession {
         }
 
         const beforeHp = this.monster.hp;
-        this.monster.hp = Math.max(0, this.monster.hp - resolvedDamage);
+        this.monster.hp = Math.max(this.monster.healthFloor || 0, this.monster.hp - resolvedDamage);
         const damageDealt = beforeHp - this.monster.hp;
 
         this.emit('player:hit', {

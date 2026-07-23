@@ -376,10 +376,12 @@
 .story-dialogue-choices {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    max-height: 104px;
+    grid-auto-rows: 76px;
+    gap: 7px;
+    max-height: 159px;
     margin-top: 6px;
     overflow-y: auto;
+    scrollbar-gutter: stable;
 }
 
 .story-dialogue-choices[hidden] {
@@ -387,17 +389,29 @@
 }
 
 .story-dialogue-choices button {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
     gap: 2px;
     min-width: 0;
-    min-height: 42px;
-    padding: 6px 12px;
+    height: 76px;
+    padding: 8px 14px;
     border: 1px solid rgba(222, 190, 111, 0.28);
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.035);
     color: #eee8d8;
     cursor: pointer;
     text-align: left;
+}
+
+.story-dialogue-choices button:only-child {
+    grid-column: 1 / -1;
+}
+
+.story-dialogue-choices button.is-primary {
+    border-color: rgba(222, 190, 111, 0.62);
+    background: rgba(222, 190, 111, 0.09);
 }
 
 .story-dialogue-choices button:hover,
@@ -407,28 +421,55 @@
 }
 
 .story-dialogue-choices button strong {
+    display: -webkit-box;
+    min-width: 0;
+    overflow: hidden;
     font-size: 14px;
+    line-height: 1.3;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.story-dialogue-choices button.has-summary strong {
+    -webkit-line-clamp: 1;
 }
 
 .story-dialogue-choices button span {
+    display: -webkit-box;
     overflow: hidden;
     color: rgba(222, 226, 224, 0.68);
     font-size: 12px;
     line-height: 1.3;
-    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.story-dialogue-choice-kind {
+    display: block;
+    padding: 0;
+    border: 0;
+    color: #d9bd75;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
     white-space: nowrap;
 }
 
 .story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-box {
-    height: 178px;
-    min-height: 178px;
-    grid-template-rows: auto minmax(0, 1fr);
+    height: 215px;
+    min-height: 215px;
+    grid-template-rows: 22px minmax(0, 1fr);
     align-content: stretch;
     padding-top: 16px;
     padding-bottom: 12px;
 }
 
+.story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-cast {
+    bottom: 214px;
+}
+
 .story-dialogue-overlay[data-visual-mode="choice"] .story-dialogue-copy {
+    height: 22px;
     min-height: 22px;
     overflow: visible;
 }

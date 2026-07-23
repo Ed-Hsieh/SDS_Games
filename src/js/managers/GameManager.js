@@ -798,7 +798,7 @@ class GameManager {
             }
         }
 
-        if (this.state.inventory.length >= this.state.inventoryCapacity) {
+        if (this.state.inventory.length >= this.state.inventoryCapacity && options.ignoreCapacity !== true) {
             console.warn('Inventory is full!');
             return false;
         }
@@ -970,6 +970,7 @@ class GameManager {
         if (index === -1) return false;
 
         const stack = this.state.inventory[index];
+        if (stack.item?.tutorialLocked) return false;
         this.state.inventory.splice(index, 1);
 
         if (this.isStackable(stack.item)) {
@@ -1139,6 +1140,7 @@ class GameManager {
         const stack = source.find(s => s.instanceId === instanceId);
         
         if (!stack) return false;
+        if (stack.item?.tutorialLocked) return false;
         
         // Check rarity for confirmation
         if (this.isHighRarity(stack.item) && !options?.force) {
@@ -1227,6 +1229,48 @@ class GameManager {
     equipItem(instanceId, fromWarehouse = false) {
         return this.equipItemToSlot(instanceId, null, fromWarehouse);
     }
+
+    promoteOffhandWeaponToMain({ breakCurrentMain = false } = {}) {
+        const equipment = this.state.character?.equipment;
+        if (!equipment) return null;
+        if (!equipment.armor || normalizeItemType(equipment.armor.type) !== 'weapon') return null;
+
+        const broken = breakCurrentMain ? equipment.weapon : null;
+        if (equipment.weapon && !breakCurrentMain) return null;
+        if (broken) broken.durability = 0;
+        equipment.weapon = equipment.armor;
+        equipment.armor = null;
+        this.markSaveDirty('promote-offhand-weapon');
+        this.notify('equipment');
+        return { broken, promoted: equipment.weapon };
+    }
+
+    removeTutorialItemGroup(groupId, options = {}) {
+        if (!groupId) return 0;
+        let removed = 0;
+        const equipment = this.state.character?.equipment || {};
+
+        Object.keys(equipment).forEach(slot => {
+            if (equipment[slot]?.tutorialGroup !== groupId) return;
+            equipment[slot] = null;
+            removed += 1;
+        });
+        for (const sourceName of ['inventory', 'warehouse']) {
+            const source = this.state[sourceName] || [];
+            const kept = source.filter(stack => {
+                if (stack.item?.tutorialGroup !== groupId) return true;
+                removed += 1;
+                return false;
+            });
+            this.state[sourceName] = kept;
+        }
+
+        if (removed > 0) {
+            this.markSaveDirty(`tutorial-items-removed:${groupId}`);
+            if (options.notify !== false) this.notify('all');
+        }
+        return removed;
+    }
     
     /**
      * 卸下裝備並放入背包或倉庫
@@ -1302,10 +1346,8 @@ class GameManager {
             return null;
         }
         
-        // 如果沒有耐久度屬性，初始化
-        if (weapon.durability === undefined) {
-            weapon.durability = 18;
-            weapon.maxDurability = 18;
+        if (!Number.isFinite(Number(weapon.durability)) || !Number.isFinite(Number(weapon.maxDurability))) {
+            throw new Error(`Weapon ${weapon.id || '(unknown)'} is missing durability data`);
         }
         
         weapon.durability = Math.max(0, weapon.durability - 1);
@@ -1337,10 +1379,8 @@ class GameManager {
             return null;
         }
         
-        // 如果沒有耐久度屬性，初始化
-        if (armor.durability === undefined) {
-            armor.durability = 18;
-            armor.maxDurability = 18;
+        if (!Number.isFinite(Number(armor.durability)) || !Number.isFinite(Number(armor.maxDurability))) {
+            throw new Error(`Armor ${armor.id || '(unknown)'} is missing durability data`);
         }
         
         armor.durability = Math.max(0, armor.durability - 1);
@@ -1365,10 +1405,10 @@ class GameManager {
         const equipment = this.state.character.equipment[slotType];
         if (!equipment) return null;
         
-        return {
-            current: equipment.durability ?? 18,
-            max: equipment.maxDurability ?? 18
-        };
+        if (!Number.isFinite(Number(equipment.durability)) || !Number.isFinite(Number(equipment.maxDurability))) {
+            throw new Error(`Equipment ${equipment.id || '(unknown)'} is missing durability data`);
+        }
+        return { current: Number(equipment.durability), max: Number(equipment.maxDurability) };
     }
     
     // Character methods

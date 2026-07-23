@@ -1,6 +1,6 @@
 import GameManager, { MIA_EMERGENCY_POTION_LIMIT } from './GameManager.js';
 import { storySceneManager } from './StorySceneManager.js';
-import { markItemKnown } from './EncyclopediaManager.js';
+import { mergeEncounterDrops } from './AdventureEncounterManager.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
 import {
     ChapterOneClosingReportStages,
@@ -139,21 +139,28 @@ class ChapterOneProgressionManager {
         return this.isFirstReportPending() && !this.hasCompletedHomeRecovery();
     }
 
+    shouldAutoStartFirstReport() {
+        return this.shouldStartFirstReport()
+            && Boolean(this.readFlag(ChapterOneProgressFlag.FIRST_REPORT_AUTO_START));
+    }
+
     needsMiaEmergencyPotionSupport() {
         return GameManager.getEmergencyPotionCount() < MIA_EMERGENCY_POTION_LIMIT;
     }
 
-    queueFirstReportOnTownReturn() {
+    queueFirstReportOnTownReturn({ autoStart = false } = {}) {
         const firstEvidence = ChapterOneInvestigations.south_gate_farmland.evidenceFlag;
         if (!this.readFlag(firstEvidence)
             || this.hasCompletedHomeRecovery()
             || this.readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)) return false;
         this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, true);
+        this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_AUTO_START, Boolean(autoStart));
         return true;
     }
 
     completeFirstReport() {
         this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING, false);
+        this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_AUTO_START, false);
         this.setFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE, true);
     }
 
@@ -193,7 +200,7 @@ class ChapterOneProgressionManager {
         return encounter.monster?.id === 'ambush_mantis' ? ChapterOneMantisRecovery : null;
     }
 
-    storeGuaranteedRewards(source) {
+    buildGuaranteedDrops(source) {
         return (source?.guaranteedRewards || []).map((reward, index) => {
             const item = resolveItemById(reward.itemId, { order: ITEM_RESOLUTION_ORDER });
             if (!item) {
@@ -207,18 +214,14 @@ class ChapterOneProgressionManager {
                 };
             }
 
-            const stored = GameManager.addToInventory(item, reward.quantity)
-                ? 'inventory'
-                : (GameManager.addToWarehouse(item, reward.quantity) ? 'warehouse' : 'missing');
-            if (stored !== 'missing') markItemKnown(item.id);
             return {
                 dropId: `chapter1:${source.id}:${index}:${reward.itemId}`,
                 itemId: reward.itemId,
                 item,
                 quantity: reward.quantity,
                 reason: reward.reason,
-                decision: stored === 'missing' ? 'unavailable' : 'claimed',
-                stored
+                decision: 'pending',
+                stored: null
             };
         });
     }
@@ -233,11 +236,10 @@ class ChapterOneProgressionManager {
 
         return {
             ...rewards,
-            rows: [
-                ...(rewards.rows || []),
-                { label: '固定回收', value: '已直接收進背包或倉庫' }
-            ],
-            drops: [...(rewards.drops || []), ...this.storeGuaranteedRewards(source)]
+            drops: mergeEncounterDrops([
+                ...(rewards.drops || []),
+                ...this.buildGuaranteedDrops(source)
+            ])
         };
     }
 

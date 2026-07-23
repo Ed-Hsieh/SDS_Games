@@ -22,6 +22,7 @@ import { isDevModeEnabled } from '../utils/DevMode.js';
 import { ItemUseAction, ItemUseContext } from '../data/UtilityItems.js';
 import { showGlobalToast } from '../utils/UIFeedback.js';
 import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionManager.js';
+import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { questManager } from '../managers/QuestManager.js';
 import { ObjectiveType, QuestStatus } from '../data/Quests.js';
 
@@ -74,14 +75,14 @@ export default class AdventureScene {
         }
 
         this.worldMap = new WorldMap(GameManager.getCharacter(), 1280, 720);
+        this.container.querySelector('.adventure-scene')?.classList.toggle(
+            'is-prologue-route',
+            this.isPrologueInvestigationPending()
+        );
         this.panels = new AdventurePanelsController(this.container, {
             onPlayerStateChange: () => this.renderPlayerStats(),
             onUseContextItem: stack => this.useContextItem(stack),
-            getStoryHintContext: () => ({
-                discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])],
-                ...chapterOneProgressionManager.getObjectiveContext(),
-                playerLevel: Number(GameManager.getCharacter()?.level) || 1
-            })
+            getStoryHintContext: () => this.getStoryGuidanceContext()
         });
         ensureCombatStage(this.container);
         this.combat = new CombatFlowController(this.container, {
@@ -150,7 +151,7 @@ export default class AdventureScene {
         await this.loadMapAssets();
         this.updateLocationUi({ forceToast: true });
         this.requestRender();
-        this.tryStartPendingFieldStory();
+        this.resumeResolvedPrologueIfNeeded();
     }
 
     cacheDom() {
@@ -219,8 +220,18 @@ export default class AdventureScene {
     returnToTown(reason, _options = {}) {
         this.worldMap?.returnPlayerToEntry();
         GameManager.restoreCharacterAtHome(reason);
-        chapterOneProgressionManager.queueFirstReportOnTownReturn();
+        chapterOneProgressionManager.queueFirstReportOnTownReturn({
+            autoStart: reason === 'adventure-walk-return' || reason === 'adventure-wolf-smoke'
+        });
         this.app?.navigateTo?.('lobby');
+    }
+
+    getStoryGuidanceContext() {
+        return {
+            discoveredLandmarkIds: [...(this.worldMap?.discoveredLandmarks || [])],
+            ...chapterOneProgressionManager.getObjectiveContext(),
+            playerLevel: Number(GameManager.getCharacter()?.level) || 1
+        };
     }
 
     useContextItem(stack) {
@@ -332,6 +343,21 @@ export default class AdventureScene {
     }
 
     move(dx, dy) {
+        if (this.isPrologueInvestigationPending()) {
+            const targetX = this.worldMap.playerPos.x + Math.sign(Number(dx) || 0);
+            const targetY = this.worldMap.playerPos.y + Math.sign(Number(dy) || 0);
+            const staysOnApproach = (OverworldMapConfig.prologueRouteBounds || []).some(bounds => (
+                targetX >= bounds.x
+                && targetY >= bounds.y
+                && targetX < bounds.x + bounds.width
+                && targetY < bounds.y + bounds.height
+            ));
+            if (!staysOnApproach) {
+                this.showInteractionHint({ name: '濃霧封路' }, '霧裡看不清落腳處。先沿著還能辨認的南路前進。');
+                this.requestRender();
+                return;
+            }
+        }
         const result = this.worldMap.movePlayer(dx, dy);
         if (result.type === 'blocked' && result.gate) {
             this.showInteractionHint(result.gate, '前方道路中斷，靠近後調查。');
@@ -345,7 +371,7 @@ export default class AdventureScene {
         this.renderPlayerStats();
         this.requestRender();
 
-        if (!result.interaction) {
+        if (!result.interaction && !this.isPrologueInvestigationPending()) {
             const encounter = this.worldMap.rollEncounter();
             if (encounter) this.beginEncounter(encounter);
         }
@@ -477,20 +503,15 @@ export default class AdventureScene {
         this.closeModal();
     }
 
-    tryStartPendingFieldStory() {
-        const nextSceneId = storySceneManager.getNextAvailableSceneId();
-        if (nextSceneId === 'ch1_s01_road_collapse') {
-            if (!storySceneManager.isPrologueTutorialResolved()) {
-                const opening = storySceneManager.startScene(nextSceneId, { force: true });
-                if (opening?.success) {
-                    this.showStoryPresentation({
-                        ...opening,
-                        lines: opening.lines.filter(line => line.presentationPhase === 'pre_battle')
-                    }, { completionAction: 'prologue_combat' });
-                }
-            } else {
-                this.showPrologueRescueStory();
-            }
+    isPrologueInvestigationPending() {
+        return !storySceneManager.isPrologueTutorialResolved()
+            && !storySceneManager.isSceneComplete('ch1_s01_road_collapse');
+    }
+
+    resumeResolvedPrologueIfNeeded() {
+        if (storySceneManager.isPrologueTutorialResolved()
+            && !storySceneManager.isSceneComplete('ch1_s01_road_collapse')) {
+            this.showPrologueRescueStory();
             return true;
         }
         return false;
@@ -500,6 +521,15 @@ export default class AdventureScene {
         const nextSceneId = storySceneManager.getNextAvailableSceneId();
         const sceneId = entry.sceneIds?.[0];
         if (!sceneId || storySceneManager.isSceneComplete(sceneId)) return false;
+
+        if (sceneId === 'ch1_s01_road_collapse' && this.isPrologueInvestigationPending()) {
+            const opening = storySceneManager.startScene(sceneId, { force: true });
+            if (!opening?.success) return false;
+            return this.showStoryPresentation({
+                ...opening,
+                lines: opening.lines.filter(line => line.presentationPhase === 'pre_battle')
+            }, { entry, completionAction: 'prologue_combat' });
+        }
 
         const optionalMoonMossTrace = sceneId === 'ch2_s05_moon_moss_trace';
         if (optionalMoonMossTrace) {
@@ -609,6 +639,7 @@ export default class AdventureScene {
 
     finishPrologueTransition() {
         storySceneManager.completePrologueRescue();
+        questManager.updateProgress(ObjectiveType.EVENT, 'prologue_investigation_report', 1);
         window.setTimeout(() => this.app?.navigateTo?.('lobby'), 80);
     }
 
@@ -1040,7 +1071,9 @@ export default class AdventureScene {
             ...this.worldMap.getVisibleRouteGates()
         ];
         for (const entry of entries) {
-            if (!this.worldMap.isCellExplored(entry.x, entry.y)) continue;
+            const isPendingPrologueTarget = this.isPrologueInvestigationPending()
+                && entry.id === 'prologue_impact_site';
+            if (!isPendingPrologueTarget && !this.worldMap.isCellExplored(entry.x, entry.y)) continue;
             this.renderLandmarkMarker(ctx, entry, time);
         }
     }
@@ -1051,13 +1084,15 @@ export default class AdventureScene {
         const centerY = entry.y * cellSize + cellSize / 2 - this.worldMap.cameraOffsetY;
         const discovered = this.worldMap.isLandmarkDiscovered(entry);
         const size = discovered ? 48 : 38;
-        const pulse = 1 + Math.sin(time / 320) * 0.04;
+        const hasNewInformation = storyGuidanceManager.isAdventureTarget(
+            entry.id,
+            this.getStoryGuidanceContext()
+        );
 
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.scale(pulse, pulse);
-        ctx.shadowColor = discovered ? 'rgba(229, 195, 112, 0.65)' : 'rgba(0, 0, 0, 0.8)';
-        ctx.shadowBlur = discovered ? 14 : 8;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+        ctx.shadowBlur = 8;
 
         if (!discovered) {
             ctx.fillStyle = '#050606';
@@ -1092,11 +1127,33 @@ export default class AdventureScene {
             ctx.strokeRect(-size / 2, -size / 2, size, size);
         }
         ctx.restore();
+        if (hasNewInformation) this.renderNewInformationMarker(ctx, centerX, centerY, size, time);
+    }
+
+    renderNewInformationMarker(ctx, centerX, centerY, landmarkSize, time) {
+        const pulse = 1 + Math.sin(time / 360) * 0.06;
+        const badgeX = centerX + landmarkSize / 2 - 2;
+        const badgeY = centerY - landmarkSize / 2 + 2;
+        ctx.save();
+        ctx.translate(badgeX, badgeY);
+        ctx.scale(pulse, pulse);
+        ctx.fillStyle = '#d8b45f';
+        ctx.strokeStyle = '#17140d';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#17140d';
+        ctx.font = '800 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('!', 0, 1);
+        ctx.restore();
     }
 
     renderReserveMarkers(ctx, time) {
         const prototypePositions = [
-            { chapter: 1, x: 8, y: 28 },
             { chapter: 2, x: 90, y: 5 }
         ];
         for (const position of prototypePositions) {

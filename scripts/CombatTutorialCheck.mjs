@@ -24,6 +24,9 @@ const sharedCombatView = fs.readFileSync(new URL('../src/js/components/CombatSta
 const combatFlowSource = fs.readFileSync(new URL('../src/js/managers/CombatFlowController.js', import.meta.url), 'utf8');
 const combatLabSource = fs.readFileSync(new URL('../src/js/scenes/CombatVfxLab.js', import.meta.url), 'utf8');
 const gameManagerSource = fs.readFileSync(new URL('../src/js/managers/GameManager.js', import.meta.url), 'utf8');
+const encounterManagerSource = fs.readFileSync(new URL('../src/js/managers/AdventureEncounterManager.js', import.meta.url), 'utf8');
+const monsterCombatSource = fs.readFileSync(new URL('../src/js/data/MonsterCombatProfiles.js', import.meta.url), 'utf8');
+const recipeManagerSource = fs.readFileSync(new URL('../src/js/managers/RecipeManager.js', import.meta.url), 'utf8');
 const audioSource = fs.readFileSync(new URL('../src/js/utils/AudioManager.js', import.meta.url), 'utf8');
 check(!adventureView.includes('data-combat-stage'), 'Adventure view still embeds a second combat stage');
 check(
@@ -43,10 +46,29 @@ check(
         && gameManagerSource.includes('if (options.notifyType !== false)'),
     'Combat potion use still applies duplicate character effects or redraws the full adventure UI'
 );
+check(
+    encounterManagerSource.includes('Math.round(attack - defense)')
+        && monsterCombatSource.includes('Math.round(rawAttack - defense)')
+        && !encounterManagerSource.includes('defense * 0.')
+        && !monsterCombatSource.includes('playerDefense) * 0.'),
+    'Combat damage restored a runtime balance multiplier instead of using authored stats directly'
+);
+check(
+    !gameManagerSource.includes('durability = 18')
+        && !gameManagerSource.includes('durability ?? 18')
+        && !recipeManagerSource.includes('durability = 18'),
+    'Runtime code restored a second durability default outside the item schema'
+);
 for (const durabilityId of ['main-weapon-durability', 'offhand-weapon-durability']) {
     check(sharedCombatView.includes(`id="${durabilityId}"`), `Combat HUD is missing #${durabilityId}`);
     check(combatLabView.includes(`id="${durabilityId}"`), `Combat lab HUD is missing #${durabilityId}`);
 }
+check(
+    sharedCombatView.includes('data-combat-change-slot="main"')
+        && sharedCombatView.includes('data-combat-change-slot="secondary"')
+        && sharedCombatView.includes('id="combat-equipment-picker"'),
+    'Combat HUD does not keep both replacement controls available'
+);
 check(
     combatFlowSource.includes("audioManager.play('weapon-break'")
         && audioSource.includes("'weapon-break': this.sfxWeaponBreak")
@@ -64,6 +86,7 @@ const session = new RealtimeCombatSession({
     player: { maxHp: 100, hp: 50, potions: 1, potionHeal: 30 },
     monster: {
         maxHp: 500,
+        healthFloorRatio: 0.4,
         initialDelay: 0.5,
         attacks: [
             { id: 'normal', damage: 10, telegraph: 0.5 },
@@ -72,7 +95,7 @@ const session = new RealtimeCombatSession({
     },
     loadout: {
         main: { damage: 10, windup: 0.01, cooldown: 0.5, enabled: true },
-        offhand: { enabled: false }
+        offhand: { damage: 8, windup: 0.01, cooldown: 0.7, enabled: true }
     }
 });
 session.subscribe(event => events.push(event));
@@ -88,20 +111,24 @@ session.playerAttack('main', 'hit');
 session.tick(performance.now() + 1100);
 check(events.some(event => event.type === 'player:hit'), 'Player could not attack while monster flow was paused');
 check(!events.some(event => event.type === 'monster:telegraph'), 'Monster started an attack during the tutorial lock');
+for (let hit = 0; hit < 80; hit += 1) {
+    session.resolvePlayerHit({ slot: 'main', hitType: 'crit', weapon: session.loadout.main });
+}
+check(session.getSnapshot().monster.hp === 200, 'Prologue monster health did not stop at its 40% floor');
+check(session.getSnapshot().phase === CombatSessionPhase.RUNNING, 'Health-locked tutorial monster was defeated early');
 
 check(session.usePotion(), 'Potion could not be used while monster flow was paused');
 check(events.some(event => event.type === 'player:potion'), 'Potion event was not emitted');
 
-const unarmedMain = session.equipUnarmed('main');
-const unarmedOffhand = session.equipUnarmed('offhand');
-check(unarmedMain?.enabled && unarmedMain.effect === 'unarmed', 'Broken main weapon did not switch to an enabled fist attack');
-check(unarmedOffhand?.enabled && unarmedOffhand.effect === 'unarmed', 'Offhand did not switch to an enabled fist attack');
-check(session.playerAttack('main', 'hit'), 'Main-hand fist could not attack after weapon breakage');
-check(session.playerAttack('offhand', 'hit'), 'Offhand fist could not attack after main weapon breakage');
+const replacement = session.replaceWeapon('main', { id: 'reserve_blade', name: '備用劍', damage: 9, cooldown: 0.8, enabled: true }, { fullCooldown: true });
+check(replacement?.id === 'reserve_blade', 'Main-hand replacement was not installed');
+check(session.getSnapshot().loadout.offhand.enabled, 'Replacing the main hand disabled the surviving offhand');
+check(session.getSnapshot().cooldowns.main > 0, 'Replacement weapon received a free immediate attack');
 check(
-    combatLabSource.includes("if (normalizedSlot === 'main') replaceSlot('offhand')")
-        && combatLabSource.includes("else if (effect === 'unarmed') this.engine.unarmedStrike()"),
-    'Combat presentation does not preserve both fist controls and unarmed impact VFX after main weapon breakage'
+    combatFlowSource.includes('promoteOffhandWeaponToMain({ breakCurrentMain: true })')
+        && gameManagerSource.includes('promoteOffhandWeaponToMain({ breakCurrentMain = false } = {})')
+        && combatFlowSource.includes("this.findAutomaticReplacement('weapon')"),
+    'Automatic replacement and offhand promotion are not connected'
 );
 
 check(session.forceMonsterAttack('prologue_stag_charge'), 'Scripted charge could not be forced');
@@ -114,6 +141,7 @@ tutorial.tutorialState = { stage: 'attack', complete: false };
 tutorial.setTutorialPrompt = () => {};
 let forcedChargeCount = 0;
 tutorial.encounter = { loadout: { main: { name: '公會制式獵刀' } } };
+tutorial.combatRoot = { querySelector: () => ({ classList: { add: () => {}, remove: () => {} } }) };
 tutorial.lab = {
     forceMonsterAttack: id => {
         if (id === 'prologue_stag_charge') forcedChargeCount += 1;
@@ -131,20 +159,32 @@ check(tutorial.tutorialState.stage === 'attack', 'Early flee input advanced the 
 
 tutorial.updateTutorial({ type: 'player:hit', slot: 'main', critical: true });
 check(tutorial.tutorialState.stage === 'offhand', 'Main-hand hit did not advance to the offhand lesson');
-check(tutorial.handleTutorialWeaponAttempt('main'), 'Main-hand input was not locked during the offhand lesson');
+check(tutorial.handleTutorialWeaponAttempt('main') === false, 'Main-hand retry was blocked during the offhand lesson');
 check(tutorial.handleTutorialWeaponAttempt('offhand') === false, 'Offhand input was blocked during the offhand lesson');
 tutorial.updateTutorial({ type: 'player:hit', slot: 'offhand' });
 check(tutorial.tutorialState.stage === 'break', 'Offhand hit did not advance to the durability lesson');
 check(tutorial.handleTutorialWeaponAttempt('main') === false, 'Main-hand input was blocked during the durability lesson');
 tutorial.updateTutorial({ type: 'player:hit', slot: 'main' });
-check(tutorial.tutorialState.stage === 'potion', 'Durability lesson did not advance to the potion lesson');
+check(tutorial.tutorialState.stage === 'replace_offhand', 'Durability lesson did not advance to the offhand replacement lesson');
 check(tutorial.handleTutorialWeaponAttempt('main'), 'Weapon input was not locked after the durability lesson');
+tutorial.tutorialState.stage = 'potion';
 check(tutorial.handleTutorialPotionAttempt() === false, 'Potion was blocked during the potion lesson');
 tutorial.updateTutorial({ type: 'player:potion' });
 check(tutorial.tutorialState.stage === 'flee', 'Potion did not advance to the flee lesson');
 check(tutorial.handleTutorialFleeAttempt(), 'Tutorial flee attempt was not handled');
 check(tutorial.tutorialState.stage === 'complete', 'Flee attempt did not complete the tutorial');
 check(forcedChargeCount === 1, 'Tutorial completion did not queue exactly one scripted charge');
+
+const { default: GameManager } = await import('../src/js/managers/GameManager.js');
+const tutorialMain = { id: 'tutorial_main', name: '測試主武器', type: 'weapon', durability: 1 };
+const tutorialOffhand = { id: 'tutorial_offhand', name: '測試副武器', type: 'weapon', durability: 8 };
+GameManager.state.character.equipment.weapon = tutorialMain;
+GameManager.state.character.equipment.armor = tutorialOffhand;
+const promotion = GameManager.promoteOffhandWeaponToMain({ breakCurrentMain: true });
+check(promotion?.broken === tutorialMain, 'Broken main weapon was not returned by the promotion operation');
+check(GameManager.state.character.equipment.weapon === tutorialOffhand, 'Offhand weapon did not move into the main slot');
+check(GameManager.state.character.equipment.armor === null, 'Secondary slot was not cleared after promotion');
+check(tutorialMain.durability === 0, 'Broken tutorial weapon did not reach zero durability');
 
 session.destroy();
 

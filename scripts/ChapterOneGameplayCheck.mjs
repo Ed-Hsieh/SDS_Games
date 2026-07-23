@@ -41,15 +41,24 @@ const {
     ChapterOneRotrootTrials,
     ChapterOneSpecialGearIds
 } = await import('../src/js/data/ChapterOneProgression.js');
-const { GuildTutorialFlag } = await import('../src/js/data/GuildTutorial.js');
+const { GuildTutorialFlag, GuildTutorialSupply } = await import('../src/js/data/GuildTutorial.js');
 const { getStoryScene } = await import('../src/js/data/StorySceneRegistry.js');
 const { StoryRouteEncounterContracts, StoryEncounterContracts } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
 const { getStoryDiscovery } = await import('../src/js/data/StoryDiscoveries.js');
-const { getStorySceneEffects } = await import('../src/js/data/StoryStateContract.js');
-const { QuestDatabase, ObjectiveType } = await import('../src/js/data/Quests.js');
+const {
+    PROLOGUE_TUTORIAL_RESOLVED_FLAG,
+    getStorySceneEffects
+} = await import('../src/js/data/StoryStateContract.js');
+const {
+    GuildTutorialCommissionId,
+    QuestCompletionMode,
+    QuestDatabase,
+    ObjectiveType
+} = await import('../src/js/data/Quests.js');
 const { QuestStoryDatabase } = await import('../src/js/data/QuestStories.js');
-const { TownDialogueDatabase } = await import('../src/js/data/NPCDialogues.js');
+const { TownDialogueDatabase, TownNPCDatabase } = await import('../src/js/data/NPCDialogues.js');
+const { dialogueManager } = await import('../src/js/managers/DialogueManager.js');
 const { WorldInteractionDatabase } = await import('../src/js/data/WorldInteractions.js');
 const { DungeonDatabase } = await import('../src/js/data/Dungeons.js');
 
@@ -67,14 +76,21 @@ const prologueEncounter = createPrologueTutorialEncounter({
 check(Boolean(prologueEncounter), 'Prologue tutorial encounter cannot be created');
 check(prologueEncounter?.canFlee === false, 'Prologue tutorial encounter allows escape');
 check(
-    prologueEncounter?.visual?.concealIdentity === true
+    prologueEncounter?.monster?.id === 'blood_moon_stag'
+        && prologueEncounter?.visual?.concealIdentity === true
         && prologueEncounter?.visual?.level === '??'
         && prologueEncounter?.visual?.attacks?.length === 3,
     'Prologue tutorial visual or attack contract changed'
 );
 check(
-    prologueEncounter?.loadout?.main?.id === 'prologue_hunter_blade'
-        && prologueEncounter?.loadout?.offhand?.enabled === true,
+    prologueEncounter?.visual?.attacks?.some(attack => attack.id === 'prologue_stag_charge')
+        && prologueEncounter?.canFlee === false,
+    'First-run Stag encounter is not locked as a scripted defeat'
+);
+check(
+    Boolean(prologueEncounter?.loadout?.main)
+        && Boolean(prologueEncounter?.loadout?.offhand)
+        && prologueEncounter?.visual?.healthFloorRatio === 0.4,
     'Prologue tutorial loadout contract changed'
 );
 check(
@@ -91,12 +107,17 @@ const lobbyView = fs.readFileSync(new URL('../src/views/lobby.html', import.meta
 const adventureStyles = fs.readFileSync(new URL('../src/style/adventure.css', import.meta.url), 'utf8');
 const guildView = fs.readFileSync(new URL('../src/views/guild.html', import.meta.url), 'utf8');
 const guildSource = fs.readFileSync(new URL('../src/js/scenes/GuildTutorialScene.js', import.meta.url), 'utf8');
+const guildDataSource = fs.readFileSync(new URL('../src/js/data/GuildTutorial.js', import.meta.url), 'utf8');
+const questDataSource = fs.readFileSync(new URL('../src/js/data/Quests.js', import.meta.url), 'utf8');
 const guildStyles = fs.readFileSync(new URL('../src/style/guild-tutorial.css', import.meta.url), 'utf8');
 const handbookStyles = fs.readFileSync(new URL('../src/style/quest-handbook.css', import.meta.url), 'utf8');
 const foundationStyles = fs.readFileSync(new URL('../src/css/ui-foundation.css', import.meta.url), 'utf8');
 const guidanceSource = fs.readFileSync(new URL('../src/js/managers/StoryGuidanceManager.js', import.meta.url), 'utf8');
 const progressionManagerSource = fs.readFileSync(new URL('../src/js/managers/ChapterOneProgressionManager.js', import.meta.url), 'utf8');
 const lobbySource = fs.readFileSync(new URL('../src/js/scenes/LobbyScene.js', import.meta.url), 'utf8');
+const townPlacesSource = fs.readFileSync(new URL('../src/js/data/TownPlaces.js', import.meta.url), 'utf8');
+const townStateResolverSource = fs.readFileSync(new URL('../src/js/managers/TownStateResolver.js', import.meta.url), 'utf8');
+const worldMapSource = fs.readFileSync(new URL('../src/js/utils/WorldMap.js', import.meta.url), 'utf8');
 const gameManagerSource = fs.readFileSync(new URL('../src/js/managers/GameManager.js', import.meta.url), 'utf8');
 const devPanelSource = fs.readFileSync(new URL('../src/js/utils/DevPanel.js', import.meta.url), 'utf8');
 const goblinDropIds = new Set((MonsterDatabase.goblin?.drops || []).map(drop => drop.itemId));
@@ -119,20 +140,133 @@ check(!adventureSource.includes('ArrowUp') && !adventureSource.includes('ArrowDo
 check(!adventureView.includes('id="adventure-onboarding"'), 'Obsolete field onboarding surface returned');
 check(
     guildView.includes('id="guild-room"')
-        && guildView.includes('id="guild-open-clue"')
-        && guildView.includes('id="guild-open-equipment"'),
+        && guildView.includes('id="guild-interface-host"')
+        && guildSource.includes("source.querySelector('.town-right-rail')")
+        && guildSource.includes("source.querySelector('#lobby-prep-modal')"),
     'Guild onboarding surface is incomplete'
 );
 check(
     GuildTutorialFlag.COMPLETE === 'story.prologue.guildTutorialComplete'
-        && guildSource.includes('GuildTutorialFlag.COMMISSION_ACCEPTED')
-        && guildSource.includes('GuildTutorialFlag.ARMOR_CONFLICT_SEEN'),
+        && GuildTutorialFlag.EVENT_MARK_SEEN === 'story.prologue.guildEventMarkSeen'
+        && guildSource.includes('GuildTutorialFlag.COMMISSION_BOARD_READ')
+        && guildSource.includes('isCommissionAccepted()')
+        && guildSource.includes('GuildTutorialFlag.ARMOR_CONFLICT_SEEN')
+        && guildSource.includes('GuildTutorialFlag.BATTLE_OFFHAND_READY')
+        && GuildTutorialSupply.weaponRecipeIds.length === 5
+        && GuildTutorialSupply.weaponRecipeIds.every(recipeId => RecipeDatabase[recipeId]?.result?.level === 5)
+        && GuildTutorialSupply.armorRecipeId === 'leather_armor'
+        && RecipeDatabase[GuildTutorialSupply.armorRecipeId]?.result?.level === 1
+        && guildSource.includes('getRequiredSupplyResult')
+        && !guildSource.includes('].filter(Boolean)')
+        && !guildSource.includes('this.claimAllSupplyItems({ render: false })')
+        && !guildView.includes('guild-supply-open-inventory')
+        && !guildSource.includes('guild-supply-issued')
+        && guildSource.includes("? '已領取' : '領取'")
+        && guildSource.includes('tutorialLocked: true')
+        && !guildSource.includes('GuildTutorialItems')
+        && guildSource.includes("point.classList.toggle('is-ready'")
+        && !guildSource.includes('requestAnimationFrame')
+        && !guildSource.includes("['w', 'a', 's', 'd']"),
     'Guild onboarding flags or equipment lesson are incomplete'
 );
 check(
+    !guildDataSource.includes('GuildTutorialCommissionId')
+        && (questDataSource.match(/GuildTutorialCommissionId\s*=/g) || []).length === 1,
+    'Guild tutorial commission id has more than one data owner'
+);
+check(
+    guildSource.includes('setPrepTutorialProvider(() => this.getEquipmentTutorialDirective())')
+        && guildSource.includes("progress: '裝備教學 1 / 4'")
+        && guildSource.includes("progress: '裝備教學 2 / 4'")
+        && guildSource.includes("progress: '裝備教學 3 / 4'")
+        && guildSource.includes("progress: '裝備教學 4 / 4'")
+        && lobbySource.includes('renderPrepTutorial()')
+        && lobbySource.includes("tutorial.targetSlot === 'weapon'")
+        && lobbySource.includes("tutorial.targetSlot === 'armor'")
+        && guildStyles.includes('.prep-tutorial-guide')
+        && guildStyles.includes('.is-prep-tutorial-target'),
+    'Guild equipment lesson is not connected to the shared backpack actions'
+);
+check(
     guildStyles.includes('@keyframes guild-breathe')
-        && guildStyles.includes('animation: guild-breathe'),
+        && guildStyles.includes('animation: guild-breathe')
+        && guildStyles.includes('.guild-map-stage .town-place-entry.is-ready .town-place-entry-mark')
+        && guildSource.includes("getGeneratedGuildSceneImage('adventurers-guild-hall')"),
     'Guild tutorial target has no breathing emphasis'
+);
+check(
+    lobbySource.includes("<span class=\"town-place-entry-mark\">${isReady ? '!' : ''}</span>")
+        && !lobbySource.includes("hasFreshDialogue ? '新'"),
+    'Town map still uses more than one event-marker language'
+);
+check(
+    lobbySource.includes('dialogueManager.getAmbientDialogue(npcId)')
+        && lobbySource.includes('.filter(dialogue => !dialogueManager.isFallbackDialogue(dialogue))')
+        && lobbySource.includes("choiceTitle: '現在想談什麼？'")
+        && lobbySource.includes('label: action.title')
+        && lobbySource.includes('summary: action.summary')
+        && guidanceSource.includes('const authored = getTownNpcActionCopy(type)')
+        && guidanceSource.includes('throw new Error(`Town NPC action "${type}" is missing authored presentation copy`)')
+        && !lobbySource.includes("'story-scene': '繼續目前事件'"),
+    'Town NPC interactions do not play ambient conversation before presenting task choices'
+);
+const townNpcAmbientContracts = Object.keys(TownNPCDatabase).map(npcId => {
+    const ambientDialogue = (TownDialogueDatabase[npcId] || [])
+        .find(dialogue => dialogueManager.isFallbackDialogue(dialogue));
+    const outcome = ambientDialogue
+        ? dialogueManager.startDialogue(npcId, { dialogueId: ambientDialogue.id })
+        : null;
+    return { npcId, ambientDialogue, outcome };
+});
+check(
+    townNpcAmbientContracts.every(({ ambientDialogue, outcome }) => (
+        Boolean(ambientDialogue)
+        && outcome?.success === true
+        && outcome.dialogue?.id === ambientDialogue.id
+        && outcome.participants?.length > 0
+    )),
+    `A town NPC is missing a resolvable ambient dialogue: ${townNpcAmbientContracts
+        .filter(({ ambientDialogue, outcome }) => !ambientDialogue || !outcome?.success || !outcome?.participants?.length)
+        .map(({ npcId }) => npcId)
+        .join(', ')}`
+);
+const choiceContractProbe = dialogueManager.getDialogueTopic({
+    id: 'choice_contract_probe',
+    narrativeTitle: '測試委託',
+    narrativeSummary: '確認玩家看得懂這個選項。',
+    effects: [{ type: 'acceptQuest', questId: 'choice_contract_probe' }]
+});
+check(
+    choiceContractProbe.title === '測試委託'
+        && choiceContractProbe.label === '測試委託'
+        && choiceContractProbe.kindLabel === '城鎮委託'
+        && !choiceContractProbe.label.includes('請求'),
+    'NPC choice cards still expose internal dialogue classifications'
+);
+check(
+    !adventureSource.includes('this.tryStartPendingFieldStory()')
+        && adventureSource.includes("sceneId === 'ch1_s01_road_collapse' && this.isPrologueInvestigationPending()")
+        && adventureSource.includes("completionAction: 'prologue_combat'"),
+    'Prologue combat must begin from the authored landmark investigation instead of scene entry'
+);
+const prologueRegion = ChapterRegionRegistry.chapter_01_south_gate;
+const southGateEntry = prologueRegion.locationNodes.find(node => node.id === 'south_gate_entry');
+const prologueSouthApproach = prologueRegion.locationNodes.find(node => node.id === 'prologue_south_approach');
+const prologueImpactSite = prologueRegion.locationNodes.find(node => node.id === 'prologue_impact_site');
+const prologueRoute = prologueRegion.routeSegments.find(segment => segment.id === 'prologue_mist_approach');
+const prologueBinding = prologueRegion.sceneBindings.find(binding => binding.sceneId === 'ch1_s01_road_collapse');
+check(
+    southGateEntry?.sceneIds?.length === 0
+        && prologueSouthApproach?.position?.x === 8
+        && prologueSouthApproach?.position?.y === 29
+        && prologueImpactSite?.name === '南路斷坡'
+        && prologueImpactSite?.position?.x === 8
+        && prologueImpactSite?.position?.y === 24
+        && prologueRoute?.from === 'prologue_south_approach'
+        && prologueRoute?.to === 'prologue_impact_site'
+        && prologueBinding?.targetId === 'prologue_impact_site'
+        && prologueBinding?.trigger === 'location_inspect',
+    'Chapter 1 prologue is still sharing the South Gate return node'
 );
 check(
     /\.adventure-quest-tracker\s*\{[^}]*top:\s*92px;/.test(adventureStyles)
@@ -211,7 +345,20 @@ check(!adventureSource.includes('weaponEquipped'), 'Removed starter-equipment on
 check(!adventureSource.includes('fieldVictories'), 'Obsolete field-victory gate returned');
 check(!adventureSource.includes('getChapterOneSurveyBlock'), 'Obsolete landmark survey gate returned');
 check(adventureSource.includes('按 F 返回城鎮'), 'South Gate interaction does not expose the return action');
-check(lobbySource.includes('生命已恢復'), 'Returning to town does not confirm recovery after it happens');
+check(
+    adventureSource.includes("questManager.updateProgress(ObjectiveType.EVENT, 'prologue_investigation_report', 1)"),
+    'Prologue rescue does not complete the guild investigation objective'
+);
+check(lobbySource.includes('傷勢已經處理好了'), 'Returning to town does not confirm recovery after it happens');
+check(
+    lobbySource.includes("sourceKey: 'town:arrival'")
+        && lobbySource.includes('line?.message === safeMessage')
+        && !lobbySource.includes('getReturnNarrative()')
+        && townStateResolverSource.includes("arrivalText: crossroads?.description")
+        && townPlacesSource.includes('把黑根出現的位置和失聯者最後經過的地方圈在圖上')
+        && !townPlacesSource.includes('勝利口號'),
+    'Town arrival and event-state narratives can duplicate or still use the rejected abstract copy'
+);
 check(adventureSource.includes('把第一份證據帶回南門'), 'The first recovery lesson is not enforced as a gameplay step');
 check(
     !adventureView.includes('adv-player-fatigue')
@@ -226,6 +373,27 @@ check(
 check(
     ChapterOneProgressFlag.FIRST_REPORT_PENDING === 'story.ch1.first_report_pending',
     'First-evidence return report has no stable pending flag'
+);
+check(
+    ChapterOneProgressFlag.FIRST_REPORT_AUTO_START === 'story.ch1.first_report_auto_start'
+        && progressionManagerSource.includes('shouldAutoStartFirstReport()')
+        && guidanceSource.includes('chapterOneProgressionManager.shouldAutoStartFirstReport()'),
+    'Conscious return and defeat return still share the same first-report auto-start state'
+);
+check(
+    adventureSource.includes("autoStart: reason === 'adventure-walk-return' || reason === 'adventure-wolf-smoke'")
+        && !adventureSource.includes('queueFirstReportOnTownReturn();'),
+    'Chapter 1 first report is still queued with unconditional auto-play on every town return'
+);
+check(
+    guidanceSource.includes('getInformationMarker(target = {}, context = {})')
+        && guidanceSource.includes('isAdventureTarget(targetId, context = {})')
+        && adventureSource.includes('renderNewInformationMarker')
+        && adventureSource.includes("ctx.fillText('!', 0, 1)")
+        && lobbySource.includes("const alertText = hasNewInformation ? '!' : ''")
+        && !lobbySource.includes("? `${readyCount} 動向`")
+        && !lobbySource.includes("hasStoryObjective ? '主線'"),
+    'Town and adventure targets do not share the single new-information marker contract'
 );
 check(
     lobbySource.includes("'south_gate_farmland_report'")
@@ -269,7 +437,7 @@ check(
     pendingReportHint?.placeId === 'gate'
         && pendingReportHint?.actorId === 'standard_bearer_frey'
         && guidanceSource.includes("npcId === 'standard_bearer_frey'")
-        && guidanceSource.includes("type: 'chapter-one-first-report'"),
+        && guidanceSource.includes("createTownNpcAction('chapter-one-first-report'"),
     'Returned farmland evidence is not linked to Frey and the South Gate report checkpoint'
 );
 const miaRecoveryHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
@@ -281,8 +449,8 @@ check(
     miaRecoveryHint?.placeId === 'mia_workroom'
         && miaRecoveryHint?.actorId === 'herbalist'
         && lobbySource.includes('playChapterOneMiaRecovery')
-        && guidanceSource.includes("type: 'chapter-one-home-recovery'")
-        && guidanceSource.indexOf("type: 'chapter-one-home-recovery'")
+        && guidanceSource.includes("createTownNpcAction('chapter-one-home-recovery'")
+        && guidanceSource.indexOf("createTownNpcAction('chapter-one-home-recovery'")
             < guidanceSource.indexOf('needsMiaEmergencyPotionSupport()'),
     'Mia injury inspection is still gated behind emergency-potion quantity'
 );
@@ -309,13 +477,18 @@ for (const stage of ChapterOneClosingReportStages) {
     );
 }
 check(
-    guidanceSource.includes("type: 'chapter-one-closing-report'")
+    guidanceSource.includes("createTownNpcAction('chapter-one-closing-report'")
         && lobbySource.includes('completeClosingReportStage(stage.id)')
         && lobbySource.includes('storySceneManager.completeScene(sceneId)'),
     'Chapter 1 closing checkpoints are not connected to staged town interaction and final completion'
 );
 const originalClosingFlags = GameManager.state.flags;
-GameManager.state.flags = { 'story.run': 1, 'story.chapter': 1 };
+GameManager.state.flags = {
+    'story.run': 1,
+    'story.chapter': 1,
+    [GuildTutorialFlag.COMPLETE]: true,
+    [PROLOGUE_TUTORIAL_RESOLVED_FLAG]: true
+};
 for (let index = 1; index <= 10; index += 1) {
     const sceneId = `ch1_s${String(index).padStart(2, '0')}_${[
         'road_collapse',
@@ -439,6 +612,33 @@ check(
         && chapterOneEntry?.position?.y === OverworldMapConfig.startPosition.y,
     'The Chapter 1 region entry must match the overworld spawn position'
 );
+check(
+    OverworldMapConfig.prologueStartPosition?.x === 8
+        && OverworldMapConfig.prologueStartPosition?.y === 29
+        && OverworldMapConfig.prologueRouteBounds?.length === 1
+        && (OverworldMapConfig.prologueStartPosition.x !== OverworldMapConfig.startPosition.x
+            || OverworldMapConfig.prologueStartPosition.y !== OverworldMapConfig.startPosition.y)
+        && worldMapSource.includes("GameManager.saveOverworldMapProgress(state, 'guild-prologue-departure')")
+        && !adventureSource.includes('migrateLegacyPrologueDeparture')
+        && !worldMapSource.includes('migrateLegacyPrologueDeparture')
+        && guildSource.includes('preparePrologueOverworldDeparture();'),
+    'Guild departure still places the player at the town South Gate entry'
+);
+check(
+    !guildSource.includes('syncLegacyTutorialFlags')
+        && !guildSource.includes('syncCommissionFlag')
+        && !guildSource.includes('RETIRED_GUILD_TUTORIAL_ITEM_IDS')
+        && !guildSource.includes('getOwnedSupplyItems'),
+    'Guild onboarding restored obsolete migration or ownership-based claim behavior'
+);
+check(
+    adventureSource.includes("entry.id === 'prologue_impact_site'")
+        && adventureSource.includes("this.showInteractionHint({ name: '濃霧封路' }")
+        && adventureSource.includes('OverworldMapConfig.prologueRouteBounds || []')
+        && adventureSource.includes("'is-prologue-route'")
+        && adventureStyles.includes('.adventure-scene.is-prologue-route .adventure-quest-tracker'),
+    'The prologue route neither exposes its required landmark nor blocks detours'
+);
 const chapterOneLocationIds = new Set(chapterOneRegion.locationNodes.map(entry => entry.id));
 const overworldLandmarkIds = new Set(OverworldLandmarks.map(entry => entry.id));
 for (const id of [...ChapterOneInvestigationOrder, 'silver_snare_pass', 'rotroot_ravine', 'split_vein_cave', 'old_wolf_den']) {
@@ -552,6 +752,13 @@ const chapterOneCommissionIds = [
     'vein_beneath_the_roots'
 ];
 const chapterOneCommissions = new Map(QuestDatabase.commission.map(quest => [quest.id, quest]));
+const guildTutorialCommission = chapterOneCommissions.get(GuildTutorialCommissionId);
+check(
+    guildTutorialCommission?.completionMode === QuestCompletionMode.AUTO_ARCHIVE
+        && guildTutorialCommission?.objectives?.some(objective => objective.target === 'prologue_investigation_report')
+        && !guildTutorialCommission?.description?.includes('帶回公會'),
+    'The guild investigation still requires an inaccessible guild report after reaching town'
+);
 check(
     chapterOneCommissionIds.every(id => chapterOneCommissions.has(id) && QuestStoryDatabase[id]),
     'Chapter 1 side-story quest data or presentation data is incomplete'

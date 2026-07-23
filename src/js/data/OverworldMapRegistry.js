@@ -149,6 +149,10 @@ function landmark(config) {
 }
 
 const ChapterOneLandmarkPresentation = Object.freeze({
+    prologue_impact_site: {
+        firstText: '霧停在斷坡上方，路邊只剩被撞碎的石塊與壓倒的草。',
+        repeatText: '斷坡仍留著第一次調查時看不清全貌的撞擊痕跡。'
+    },
     south_gate_farmland: {
         firstText: '田埂沒有荒到認不出路。半乾的泥裡，一串靴印走到水溝前又折回；獸爪則從四面踩進同一條溝，彼此沒有追逐。\n\n我蹲下比對深淺。人還走過這裡，怪物卻像在同一刻換了方向。',
         repeatText: '腳印仍留在原地。這裡屬於南門荒廢農田。'
@@ -266,7 +270,7 @@ export const SecondRunOvercapBossReserves = Object.freeze([
         workingName: '迷霧中的巨影',
         runtimeBossId: 'blood_moon_stag',
         anchor: '南路斷坡與開場衝撞留下的角痕',
-        mapPlan: Object.freeze({ column: 1, row: 6 }),
+        mapPlan: Object.freeze({ column: 8, row: 24 }),
         revealWindow: '第二輪；路線與挑戰時機暫緩',
         purpose: '讓玩家循著開場的衝撞路徑辨認受詛咒影響的血月角鹿。'
     }),
@@ -329,6 +333,10 @@ export const SecondRunOvercapBossReserves = Object.freeze([
 ]);
 
 const SouthGateEntry = getPlayableLocation(1, 'south_gate_entry');
+const PrologueMistApproach = Object.freeze({ x: 8, y: 29 });
+const PrologueRouteBounds = Object.freeze([
+    Object.freeze({ x: 7, y: 23, width: 3, height: 7 })
+]);
 
 export const OverworldMapConfig = Object.freeze({
     id: OVERWORLD_ID,
@@ -336,6 +344,8 @@ export const OverworldMapConfig = Object.freeze({
     rows: WORLD_ROWS,
     cellSize: WORLD_CELL_SIZE,
     startPosition: Object.freeze({ x: SouthGateEntry.x, y: SouthGateEntry.y }),
+    prologueStartPosition: PrologueMistApproach,
+    prologueRouteBounds: PrologueRouteBounds,
     tiles: OverworldMapTiles,
     habitats: OverworldHabitats,
     landmarks: OverworldLandmarks,

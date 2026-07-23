@@ -43,6 +43,7 @@ class StoryDialogueController {
                 presentation,
                 participants,
                 lines,
+                choices: Array.isArray(presentation.choices) ? presentation.choices.filter(choice => choice?.id) : [],
                 index: 0,
                 currentText: '',
                 typing: false,
@@ -144,12 +145,40 @@ class StoryDialogueController {
             return;
         }
         if (session.index >= session.lines.length - 1) {
+            if (session.choices.length) {
+                this.openFollowUpChoices();
+                return;
+            }
             this.finishSession({ status: 'complete' });
             return;
         }
         session.index += 1;
         audioManager.play('page', { throttleKey: 'story-dialogue-page', throttleMs: 100 });
         this.startCurrentLine();
+    }
+
+    openFollowUpChoices() {
+        const session = this.session;
+        if (!session || session.type !== 'dialogue' || !session.choices.length) return;
+        this.clearTimers();
+        const line = session.lines[session.index] || {};
+        const actor = session.participants.find(participant => (
+            (participant.id || participant.actorId) === line.actorId
+        )) || null;
+        session.type = 'choice';
+        this.view.renderChoices({
+            title: session.presentation.choiceTitle || '你還想詢問什麼？',
+            choices: session.choices,
+            name: line.speaker || actor?.name || '',
+            role: line.role || actor?.role || '',
+            standing: line.standing || actor?.standing || '',
+            standingFacing: line.standingFacing || actor?.standingFacing || 'center',
+            standingScale: line.standingScale ?? actor?.standingScale ?? 1,
+            standingOffsetY: line.standingOffsetY ?? actor?.standingOffsetY ?? 0,
+            portrait: line.portrait || actor?.portrait || actor?.image || '',
+            backgroundImage: line.backgroundImage || session.backgroundImage,
+            backgroundPosition: line.backgroundPosition || session.backgroundPosition
+        });
     }
 
     toggleAuto() {

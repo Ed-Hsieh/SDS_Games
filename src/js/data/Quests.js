@@ -21,6 +21,13 @@ export const QuestStatus = Object.freeze({
     FINISHED: 'finished'
 });
 
+export const QuestCompletionMode = Object.freeze({
+    REPORT: 'report',
+    AUTO_ARCHIVE: 'auto_archive'
+});
+
+export const GuildTutorialCommissionId = 'guild_lost_town_investigation';
+
 export const ObjectiveType = Object.freeze({
     KILL: 'kill',
     COLLECT: 'collect',
@@ -40,10 +47,25 @@ export const ObjectiveType = Object.freeze({
 
 const sceneFlag = sceneId => `story.scene.${sceneId}.complete`;
 
+const GuildTutorialCommission = Object.freeze([
+    commission({
+        id: GuildTutorialCommissionId,
+        name: '南境失聯調查',
+        icon: '函',
+        npc: 'guild_clerk',
+        requiredLevel: 1,
+        trigger: Object.freeze({ afterFlag: 'story.prologue.guildSpoken' }),
+        completionMode: QuestCompletionMode.AUTO_ARCHIVE,
+        description: '南境一座偏遠小鎮已一個月沒有送回稅簿，前後兩名信使也沒有回來。沿南路確認商路；若能抵達小鎮，先查明當地是否仍有人活動。',
+        objectives: [{ type: ObjectiveType.EVENT, target: 'prologue_investigation_report', count: 1, description: '抵達南境失聯小鎮，確認當地狀況' }]
+    })
+]);
+
 function commission(data) {
     return Object.freeze({
         type: QuestType.COMMISSION,
         repeatable: false,
+        completionMode: QuestCompletionMode.REPORT,
         rewards: Object.freeze({ gold: 0, exp: 0, items: Object.freeze([]), materials: Object.freeze([]) }),
         objectives: Object.freeze([]),
         completionFlags: Object.freeze([]),
@@ -134,7 +156,7 @@ const ChapterOneCommissions = Object.freeze([
 
 export const QuestDatabase = Object.freeze({
     bounty: Object.freeze([]),
-    commission: ChapterOneCommissions,
+    commission: Object.freeze([...GuildTutorialCommission, ...ChapterOneCommissions]),
     hidden: Object.freeze([])
 });
 

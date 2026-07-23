@@ -10,7 +10,7 @@ import {
 const STORY_OBJECTIVE_HINTS = Object.freeze({
     ch1_s01_road_collapse: {
         title: '南路沒有風',
-        text: '沿南路前進，查明失聯村鎮外圍發生了什麼。'
+        text: '沿南路前進，找到迷霧中的未知地點並按 F 調查。'
     },
     ch1_s02_wake_under_bitter_bottles: {
         title: '先處理傷勢',
@@ -32,7 +32,7 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
     },
     ch1_s05_south_gate_introduction: {
         title: '從南門重新出發',
-        text: '前往南門，與芙蕾確認外出路線與回程標記。',
+        text: '前往南門登記，再沿三名巡路人員走過的路線出發。',
         placeId: 'gate',
         actorId: 'standard_bearer_frey'
     },
@@ -180,6 +180,25 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
     }
 });
 
+const TOWN_NPC_ACTION_COPY = Object.freeze({
+    'chapter-one-first-report': Object.freeze({
+        title: '回報道路調查',
+        text: '把南路調查的結果交給守門人。'
+    }),
+    'chapter-one-home-recovery': Object.freeze({
+        title: '檢查傷勢',
+        text: '讓米婭確認你目前的身體狀況。'
+    }),
+    'chapter-one-closing-report': Object.freeze({
+        title: '交付道路結果',
+        text: '向目前負責的人交代道路調查結果。'
+    }),
+    'mia-emergency-potions': Object.freeze({
+        title: '補充應急藥',
+        text: '請米婭補足外出所需的應急藥水。'
+    })
+});
+
 function resolveHintText(value, context) {
     return typeof value === 'function' ? value(context) : value;
 }
@@ -215,4 +234,8 @@ export function getStoryObjectiveHint(sceneId, context = {}) {
             : (getSceneRegionBinding(sceneId)?.targetId || null),
         stageClass: scene.stageClass
     });
+}
+
+export function getTownNpcActionCopy(type) {
+    return TOWN_NPC_ACTION_COPY[type] || null;
 }

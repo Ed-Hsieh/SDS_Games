@@ -128,9 +128,10 @@ export function getWeaponCombatProfile(character) {
     if (!weapon) return { ...BASE_PROFILES.unarmed };
 
     const declaredForm = normalizeWeaponForm(weapon.weaponForm);
-    const profile = declaredForm && BASE_PROFILES[declaredForm]
-        ? BASE_PROFILES[declaredForm]
-        : BASE_PROFILES.unarmed;
+    if (!declaredForm || !BASE_PROFILES[declaredForm]) {
+        throw new Error(`Weapon ${weapon.id || '(unknown)'} is missing a valid weaponForm`);
+    }
+    const profile = BASE_PROFILES[declaredForm];
 
     return { ...profile };
 }

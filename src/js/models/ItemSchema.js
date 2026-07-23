@@ -202,6 +202,8 @@ export function copyRuntimeMetadata(item, itemData) {
     if (itemData.elementAttunementLocked !== undefined) {
         item.elementAttunementLocked = Boolean(itemData.elementAttunementLocked);
     }
+    if (itemData.tutorialLocked !== undefined) item.tutorialLocked = Boolean(itemData.tutorialLocked);
+    if (itemData.tutorialGroup) item.tutorialGroup = itemData.tutorialGroup;
 
     for (const key of ['hp', 'exp']) {
         const value = itemData[key] ?? stats[key];

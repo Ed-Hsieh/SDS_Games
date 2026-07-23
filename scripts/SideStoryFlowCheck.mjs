@@ -1,4 +1,4 @@
-import { QuestDatabase } from '../src/js/data/Quests.js';
+import { GuildTutorialCommissionId, QuestDatabase } from '../src/js/data/Quests.js';
 import { ChapterRegionRegistry } from '../src/js/data/ChapterRegionRegistry.js';
 import { StorySceneRegistry } from '../src/js/data/StorySceneRegistry.js';
 import {
@@ -165,7 +165,7 @@ if (OptionalEnsembleStoryRegistry.length < 1) push('ensemble-story-count', 'no e
 const activeOptionalQuests = [
     ...(QuestDatabase.commission || []),
     ...(QuestDatabase.hidden || [])
-];
+].filter(quest => quest.id !== GuildTutorialCommissionId);
 if (activeOptionalQuests.length > 0) {
     push('activation-gate', `${activeOptionalQuests.length} optional quests are active before user review`);
 }

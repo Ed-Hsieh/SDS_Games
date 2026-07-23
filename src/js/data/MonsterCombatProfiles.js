@@ -3,6 +3,12 @@ import { normalizeMonsterSkill } from './MonsterSkills.js';
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const numberOr = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
+function requireNumber(value, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`${label} must be a finite number`);
+    return number;
+}
+
 const BASIC_ATTACK_PROFILES = Object.freeze({
     slime: { name: '撞擊', effect: 'body' },
     goblin: { name: '揮砍', effect: 'slash' },
@@ -139,9 +145,11 @@ function buildMonsterEffect(skill, monsterMaxHp, rawAttack) {
 }
 
 export function buildMonsterCombatActions(monster, playerDefense = 0) {
-    const rawAttack = numberOr(monster?.attack, 5);
-    const baseDamage = Math.max(1, Math.round(rawAttack - numberOr(playerDefense) * 0.5));
-    const speed = Math.max(0.5, numberOr(monster?.attackSpeed, 1));
+    const rawAttack = requireNumber(monster?.attack, `Monster ${monster?.id || '(unknown)'}.attack`);
+    const defense = requireNumber(playerDefense, 'Player defense');
+    const baseDamage = Math.max(1, Math.round(rawAttack - defense));
+    const speed = requireNumber(monster?.attackSpeed, `Monster ${monster?.id || '(unknown)'}.attackSpeed`);
+    if (speed <= 0) throw new Error(`Monster ${monster?.id || '(unknown)'}.attackSpeed must be greater than zero`);
     const telegraphScale = clamp(1.15 / speed, 0.62, 1.45);
     const basic = BASIC_ATTACK_PROFILES[monster?.id] || { name: '普通攻擊', effect: 'claw' };
     const actions = [{

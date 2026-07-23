@@ -19,8 +19,11 @@ import { showGlobalToast } from './utils/UIFeedback.js';
 import { initDevPanel } from './utils/DevPanel.js';
 import storyDialogueController from './managers/StoryDialogueController.js';
 import GuildTutorialScene from './scenes/GuildTutorialScene.js';
+import { GuildTutorialFlag } from './data/GuildTutorial.js';
+import { PROLOGUE_TUTORIAL_RESOLVED_FLAG } from './data/StoryStateContract.js';
+import { isDevModeEnabled } from './utils/DevMode.js';
 
-const APP_ASSET_VERSION = 'codex-runtime-20260720a';
+const APP_ASSET_VERSION = 'codex-runtime-20260721m';
 
 class App {
     constructor() {
@@ -28,6 +31,8 @@ class App {
         this.currentScene = null;
         this.htmlCache = {}; // Cache for HTML content
         this.sceneLoadToken = 0;
+        this.sceneReturnRoutes = new Map();
+        this.sceneNavigationState = new Map();
         
         // Simple router map
         this.routes = {
@@ -60,8 +65,23 @@ class App {
         // 監聽 hash 變化
         window.addEventListener('hashchange', () => this.handleHashChange());
         
-        // Initialize
-        this.handleHashChange() || this.loadScene('lobby');
+        // Initialize from the saved story phase. New runs always begin in the guild.
+        const initialScene = this.resolveInitialScene(window.location.hash.slice(1));
+        if (window.location.hash.slice(1) !== initialScene) {
+            window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${initialScene}`);
+        }
+        this.loadScene(initialScene);
+    }
+
+    resolveInitialScene(requestedScene) {
+        const requestedIsValid = Boolean(requestedScene && this.routes.hasOwnProperty(requestedScene));
+        if (isDevModeEnabled() && requestedIsValid) return requestedScene;
+
+        if (!GameManager.getFlag(GuildTutorialFlag.COMPLETE)) return 'guild';
+        if (!GameManager.getFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG)) return 'adventure';
+
+        if (requestedIsValid && requestedScene !== 'guild') return requestedScene;
+        return 'lobby';
     }
     
     handleHashChange() {
@@ -73,8 +93,11 @@ class App {
         return false;
     }
 
-    navigateTo(sceneName) {
+    navigateTo(sceneName, options = {}) {
         if (!sceneName || !this.routes.hasOwnProperty(sceneName)) return;
+
+        if (options.returnTo) this.sceneReturnRoutes.set(sceneName, options.returnTo);
+        if (options.state) this.sceneNavigationState.set(sceneName, options.state);
 
         if (window.location.hash.slice(1) === sceneName) {
             this.loadScene(sceneName);
@@ -82,6 +105,18 @@ class App {
         }
 
         window.location.hash = sceneName;
+    }
+
+    consumeReturnRoute(sceneName, fallback = 'lobby') {
+        const route = this.sceneReturnRoutes.get(sceneName) || fallback;
+        this.sceneReturnRoutes.delete(sceneName);
+        return route;
+    }
+
+    consumeNavigationState(sceneName) {
+        const state = this.sceneNavigationState.get(sceneName) || null;
+        this.sceneNavigationState.delete(sceneName);
+        return state;
     }
 
     async loadScene(sceneName) {

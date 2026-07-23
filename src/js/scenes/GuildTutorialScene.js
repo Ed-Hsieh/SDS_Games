@@ -1,84 +1,193 @@
 import GameManager from '../managers/GameManager.js';
 import storyDialogueController from '../managers/StoryDialogueController.js';
-import { GuildTutorialFlag, GuildTutorialItems } from '../data/GuildTutorial.js';
-import { Armor, Weapon } from '../models/DataModel.js';
+import { questManager } from '../managers/QuestManager.js';
+import { GuildTutorialCommissionId, QuestStatus } from '../data/Quests.js';
+import {
+    GuildTutorialFlag,
+    GuildTutorialSupply,
+    getGuildTutorialSupplyClaimFlag
+} from '../data/GuildTutorial.js';
+import { getGeneratedGuildSceneImage, getGeneratedItemImage } from '../data/AssetManifest.js';
+import { RecipeDatabase } from '../data/Recipes.js';
+import { preparePrologueOverworldDeparture } from '../utils/WorldMap.js';
+import LobbyScene from './LobbyScene.js';
 
 const STEPS = Object.freeze([
-    { flag: GuildTutorialFlag.MOVED, title: '先熟悉腳步', text: '使用 WASD 在公會大廳移動。', target: null },
-    { flag: GuildTutorialFlag.SPOKEN, title: '和櫃台人員交談', text: '靠近櫃台後按 F，並從對話選項詢問失聯委託。', target: 'clerk' },
-    { flag: GuildTutorialFlag.COMMISSION_ACCEPTED, title: '接下失聯調查', text: '靠近委託板按 F，閱讀內容後親自接取。', target: 'board', tool: 'commission' },
-    { flag: GuildTutorialFlag.CLUE_READ, title: '查看任務線索', text: '使用右側的「線索」按鈕，確認目的地與目前已知情報。', target: null, tool: 'clue' },
-    { flag: GuildTutorialFlag.MAIN_EQUIPPED, title: '裝備主武器', text: '靠近訓練裝備架，將訓練劍裝入主手。', target: 'rack', tool: 'equipment' },
-    { flag: GuildTutorialFlag.OFFHAND_EQUIPPED, title: '理解副手攻擊', text: '將短刃裝入副手；戰鬥中主手命中後，副手才會短暫開放。', target: 'rack', tool: 'equipment' },
-    { flag: GuildTutorialFlag.ARMOR_CONFLICT_SEEN, title: '確認裝備衝突', text: '裝上護甲。護甲與副手共用欄位，因此會自動換下短刃。', target: 'rack', tool: 'equipment' }
+    { flag: GuildTutorialFlag.EVENT_MARK_SEEN, title: '認得事件標記', text: '角色或物件旁的「!」代表有事件。點擊櫃台人員開始。', target: 'clerk' },
+    { flag: GuildTutorialFlag.SPOKEN, title: '詢問失聯狀況', text: '和櫃台人員談談，確認南境小鎮失聯的時間與公會要求。', target: 'clerk' },
+    { flag: GuildTutorialFlag.COMMISSION_BOARD_READ, title: '查看調查委託', text: '點擊委託板，查看公會留下的南境調查內容。', target: 'board' },
+    { complete: () => isCommissionAccepted(), title: '接下調查委託', text: '委託已收入旅人手札。點擊「線索」，親自接下「南境失聯調查」。', target: null, route: 'quest' },
+    { flag: GuildTutorialFlag.MAIN_EQUIPPED, title: '裝備主武器', text: '從裝備架領取整套外勤裝備，再從行囊選一件青凝武器裝入主手。', target: 'rack', prepTab: 'inventory' },
+    { flag: GuildTutorialFlag.OFFHAND_EQUIPPED, title: '理解副手攻擊', text: '再選一件青凝武器裝入副手。主手命中後，副手會開放兩圈攻擊機會。', target: 'rack', prepTab: 'inventory' },
+    { flag: GuildTutorialFlag.ARMOR_CONFLICT_SEEN, title: '確認裝備取捨', text: '裝上皮甲。護甲與副手共用欄位，副手武器會自動回到行囊。', target: 'rack', prepTab: 'inventory' },
+    { flag: GuildTutorialFlag.BATTLE_OFFHAND_READY, title: '準備雙武器', text: '前導實戰會練習副手追擊。離開前，請再把一件青凝武器裝入副手。', target: 'rack', prepTab: 'inventory' }
 ]);
 
-const TUTORIAL_ITEM_IDS = new Set(Object.values(GuildTutorialItems).map(item => item.id));
+function getRequiredSupplyResult(recipeId) {
+    const result = RecipeDatabase[recipeId]?.result;
+    if (!result) throw new Error(`Guild tutorial supply recipe ${recipeId} has no result`);
+    return result;
+}
 
-function createTutorialItem(config) {
-    const common = [config.id, config.name, config.rarity, config.icon, config.description, 0];
-    const item = config.type === 'armor'
-        ? new Armor(...common, 0, config.defense || 0, 0, 1.5, config.maxDurability, config.durability)
-        : new Weapon(...common, config.attack || 0, 0, 0, 1.5, config.stats?.weaponSpeed || 1, config.stats?.attackSpeed || 1, config.maxDurability, config.durability);
-    Object.assign(item, config, { instanceId: item.instanceId });
-    return item;
+const GUILD_SUPPLY_ITEMS = Object.freeze([
+    ...GuildTutorialSupply.weaponRecipeIds.map(getRequiredSupplyResult),
+    getRequiredSupplyResult(GuildTutorialSupply.armorRecipeId)
+]);
+
+const GUILD_SUPPLY_WEAPON_IDS = new Set(
+    GUILD_SUPPLY_ITEMS.filter(item => item.type === 'weapon').map(item => item.id)
+);
+
+function isCommissionAccepted() {
+    const status = questManager.getQuestState(GuildTutorialCommissionId)?.status;
+    return [QuestStatus.ACTIVE, QuestStatus.COMPLETED, QuestStatus.FINISHED].includes(status);
+}
+
+function isStepComplete(step) {
+    if (typeof step.complete === 'function') return Boolean(step.complete());
+    return Boolean(step.flag && GameManager.getFlag(step.flag));
 }
 
 export default class GuildTutorialScene {
     constructor(container, app) {
         this.container = container;
         this.app = app;
-        this.position = { x: 12, y: 74 };
-        this.keys = new Set();
-        this.nearby = null;
-        this.frame = 0;
-        this.lastFrame = 0;
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
-        this.tick = this.tick.bind(this);
+        this.handleGameUpdate = this.handleGameUpdate.bind(this);
+        this.handleQuestUpdate = this.handleQuestUpdate.bind(this);
     }
 
     init() {
+        this.initialize().catch(error => console.error('Unable to initialize guild tutorial:', error));
+    }
+
+    async initialize() {
         this.cacheDom();
-        this.bindEvents();
-        this.ensureTutorialItems();
+        this.bindMapEvents();
+        const image = getGeneratedGuildSceneImage('adventurers-guild-hall');
+        if (image && this.backdrop) this.backdrop.style.backgroundImage = `url("/${image}")`;
+        this.ensureTutorialCommissionUnlocked();
+        this.syncEquipmentFlags();
+        await this.mountSharedTravelerInterface();
         this.render();
-        this.room?.focus();
-        this.frame = requestAnimationFrame(this.tick);
+        GameManager.subscribe(this.handleGameUpdate);
+        questManager.subscribe(this.handleQuestUpdate);
     }
 
     cacheDom() {
         this.room = this.container.querySelector('#guild-room');
-        this.player = this.container.querySelector('#guild-player');
-        this.hint = this.container.querySelector('#guild-interaction-hint');
-        this.stepTitle = this.container.querySelector('#guild-step-title');
-        this.stepText = this.container.querySelector('#guild-step-text');
-        this.stepCount = this.container.querySelector('#guild-step-count');
-        this.keyRow = this.container.querySelector('#guild-key-row');
-        this.tools = this.container.querySelector('#guild-tools');
-        this.modal = this.container.querySelector('#guild-modal');
-        this.modalTitle = this.container.querySelector('#guild-modal-title');
-        this.modalKicker = this.container.querySelector('#guild-modal-kicker');
-        this.modalBody = this.container.querySelector('#guild-modal-body');
+        this.backdrop = this.container.querySelector('.guild-map-backdrop');
+        this.interfaceHost = this.container.querySelector('#guild-interface-host');
+        this.overlayHost = this.container.querySelector('#guild-overlay-host');
+        this.supplyModal = this.container.querySelector('#guild-supply-modal');
+        this.supplyGrid = this.container.querySelector('#guild-supply-grid');
+        this.supplyStatus = this.container.querySelector('#guild-supply-status');
+        this.supplyClaimAll = this.container.querySelector('#guild-supply-claim-all');
     }
 
-    bindEvents() {
-        document.addEventListener('keydown', this.handleKeyDown);
-        document.addEventListener('keyup', this.handleKeyUp);
+    bindMapEvents() {
         this.container.querySelectorAll('[data-guild-point]').forEach(button => {
-            button.addEventListener('click', () => {
-                if (this.nearby === button.dataset.guildPoint) this.interact(button.dataset.guildPoint);
-            });
+            button.addEventListener('click', () => this.interact(button.dataset.guildPoint));
         });
-        this.container.querySelector('#guild-modal-close')?.addEventListener('click', () => this.closeModal());
-        this.modal?.addEventListener('click', event => { if (event.target === this.modal) this.closeModal(); });
-        this.container.querySelector('#guild-open-commission')?.addEventListener('click', () => this.openCommission());
-        this.container.querySelector('#guild-open-clue')?.addEventListener('click', () => this.openClue());
-        this.container.querySelector('#guild-open-equipment')?.addEventListener('click', () => this.openEquipment());
+        this.container.querySelectorAll('[data-supply-close]').forEach(button => {
+            button.addEventListener('click', () => this.closeSupplyModal());
+        });
+        this.supplyClaimAll?.addEventListener('click', () => this.claimAllSupplyItems());
+    }
+
+    async mountSharedTravelerInterface() {
+        if (!this.interfaceHost || !this.overlayHost) return;
+        this.interfaceHost.classList.add('guild-interface-loading');
+        this.interfaceHost.textContent = '整理旅人手札…';
+        const response = await fetch('src/views/lobby.html');
+        if (!response.ok) throw new Error(`Unable to load shared lobby interface (${response.status})`);
+        const source = new DOMParser().parseFromString(await response.text(), 'text/html');
+        const rightRail = source.querySelector('.town-right-rail');
+        const prepModal = source.querySelector('#lobby-prep-modal');
+        const passiveModal = source.querySelector('#passive-effect-modal');
+        if (!rightRail || !prepModal || !passiveModal) throw new Error('Shared traveler interface is incomplete');
+
+        rightRail.classList.add('guild-right-rail');
+
+        const clueButton = rightRail.querySelector('[data-route="quest"]');
+        if (clueButton && !clueButton.querySelector('.guild-handbook-mark')) {
+            const marker = document.createElement('span');
+            marker.className = 'guild-handbook-mark';
+            marker.textContent = '!';
+            marker.hidden = true;
+            marker.setAttribute('aria-hidden', 'true');
+            clueButton.append(marker);
+        }
+
+        this.interfaceHost.replaceWith(rightRail);
+        this.overlayHost.append(prepModal, passiveModal);
+        this.interfaceHost = rightRail;
+
+        rightRail.addEventListener('click', event => {
+            const routeButton = event.target.closest?.('[data-route]');
+            if (!routeButton) return;
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            this.openSharedRoute(routeButton.dataset.route);
+        }, true);
+
+        this.hudController = new LobbyScene(this.container, this.app);
+        this.hudController.cacheDOM();
+        this.hudController.bindEvents();
+        this.hudController.setPrepTutorialProvider(() => this.getEquipmentTutorialDirective());
+        this.hudController.updateUI(null, 'all');
+        this.initializeGuildNarrative();
+    }
+
+    initializeGuildNarrative() {
+        if (!this.hudController) return;
+        this.hudController.narrativeLines = [];
+        this.hudController.renderedNarrativeCount = 0;
+        this.hudController.getTownTitle = () => '冒險者公會';
+
+        this.pushGuildNarrative(
+            '公會大廳',
+            '櫃台後的登記冊仍攤在桌面。委託板上，有一張南境調查被單獨釘在中央。',
+            'ambient',
+            'guild:arrival'
+        );
+
+        if (GameManager.getFlag(GuildTutorialFlag.SPOKEN)) {
+            this.pushGuildNarrative(
+                '失聯紀錄',
+                '南境小鎮已一個月沒有送回稅簿。公會派出的兩名信使也沒有回來。',
+                'discovery',
+                'guild:clerk-record'
+            );
+        }
+        if (GameManager.getFlag(GuildTutorialFlag.COMMISSION_BOARD_READ)) {
+            this.pushCommissionNarrative();
+        }
+        if (isCommissionAccepted()) {
+            this.pushGuildNarrative(
+                '委託已接取',
+                '南境失聯調查已登記在你的名下。出發前，公會允許你從裝備架領取外勤配備。',
+                'discovery',
+                'guild:commission-accepted'
+            );
+        }
+    }
+
+    pushGuildNarrative(title, message, tone, key) {
+        this.hudController?.pushTownNarrativeOnce?.(key, title, message, tone);
+    }
+
+    pushCommissionNarrative() {
+        this.pushGuildNarrative(
+            '南境失聯調查',
+            '沿南路確認商路，查明小鎮失聯的原因。委託內容已抄入旅人手札。',
+            'discovery',
+            'guild:commission-recorded'
+        );
     }
 
     getStepIndex() {
-        return STEPS.findIndex(step => !GameManager.getFlag(step.flag));
+        return STEPS.findIndex(step => !isStepComplete(step));
     }
 
     getStep() {
@@ -86,229 +195,361 @@ export default class GuildTutorialScene {
         return index < 0 ? null : STEPS[index];
     }
 
+    getEquipmentTutorialDirective() {
+        const equipment = GameManager.getCharacter()?.equipment || {};
+        if (!GameManager.getFlag(GuildTutorialFlag.MAIN_EQUIPPED)) {
+            return {
+                progress: '裝備教學 1 / 4',
+                title: '選擇主手武器',
+                text: '點擊一件青凝武器，在物品詳情中選擇「裝備主手」。',
+                targetItemIds: [...GUILD_SUPPLY_WEAPON_IDS],
+                targetSlot: 'weapon'
+            };
+        }
+        if (!GameManager.getFlag(GuildTutorialFlag.OFFHAND_EQUIPPED)) {
+            return {
+                progress: '裝備教學 2 / 4',
+                title: '裝備副手武器',
+                text: '點擊另一件青凝武器，選擇「裝備副手」。主手命中後，副手會開放兩圈攻擊機會。',
+                targetItemIds: [...GUILD_SUPPLY_WEAPON_IDS].filter(itemId => itemId !== equipment.weapon?.id),
+                targetSlot: 'armor'
+            };
+        }
+        if (!GameManager.getFlag(GuildTutorialFlag.ARMOR_CONFLICT_SEEN)) {
+            return {
+                progress: '裝備教學 3 / 4',
+                title: '換上防具',
+                text: '點擊皮甲並裝備。防具與副手共用欄位，原本的副手武器會回到行囊。',
+                targetItemIds: [getRequiredSupplyResult(GuildTutorialSupply.armorRecipeId).id],
+                targetSlot: 'armor'
+            };
+        }
+        if (!GameManager.getFlag(GuildTutorialFlag.BATTLE_OFFHAND_READY)) {
+            return {
+                progress: '裝備教學 4 / 4',
+                title: '帶上副手武器',
+                text: '再次選擇一件青凝武器並裝備副手。前導實戰會用到兩圈副手追擊。',
+                targetItemIds: [...GUILD_SUPPLY_WEAPON_IDS].filter(itemId => itemId !== equipment.weapon?.id),
+                targetSlot: 'armor'
+            };
+        }
+        return null;
+    }
+
     setFlag(flag) {
+        if (GameManager.getFlag(flag)) return;
         GameManager.setFlag(flag, true, { reason: `guild-tutorial:${flag}` });
-        this.render();
-    }
-
-    handleKeyDown(event) {
-        const key = event.key.toLowerCase();
-        if (['w', 'a', 's', 'd'].includes(key)) {
-            this.keys.add(key);
-            event.preventDefault();
-        }
-        if (key === 'f') {
-            if (event.repeat || !this.modal?.hidden) return;
-            if (this.nearby) {
-                event.preventDefault();
-                this.interact(this.nearby);
-            }
-        }
-    }
-
-    handleKeyUp(event) {
-        this.keys.delete(event.key.toLowerCase());
-    }
-
-    tick(now) {
-        const delta = Math.min(0.04, Math.max(0, (now - (this.lastFrame || now)) / 1000));
-        this.lastFrame = now;
-        if (this.keys.size && this.modal?.hidden && !storyDialogueController.isOpen()) {
-            const speed = 25;
-            if (this.keys.has('a')) this.position.x -= speed * delta;
-            if (this.keys.has('d')) this.position.x += speed * delta;
-            if (this.keys.has('w')) this.position.y -= speed * delta;
-            if (this.keys.has('s')) this.position.y += speed * delta;
-            this.position.x = Math.max(7, Math.min(92, this.position.x));
-            this.position.y = Math.max(15, Math.min(86, this.position.y));
-            if (!GameManager.getFlag(GuildTutorialFlag.MOVED)) this.setFlag(GuildTutorialFlag.MOVED);
-            this.renderPosition();
-        }
-        this.updateNearby();
-        this.frame = requestAnimationFrame(this.tick);
-    }
-
-    renderPosition() {
-        if (!this.player) return;
-        this.player.style.left = `${this.position.x}%`;
-        this.player.style.top = `${this.position.y}%`;
-    }
-
-    updateNearby() {
-        let nearest = null;
-        let distance = Infinity;
-        this.container.querySelectorAll('[data-guild-point]').forEach(point => {
-            const rect = point.getBoundingClientRect();
-            const roomRect = this.room.getBoundingClientRect();
-            const x = ((rect.left + rect.width / 2 - roomRect.left) / roomRect.width) * 100;
-            const y = ((rect.top + rect.height / 2 - roomRect.top) / roomRect.height) * 100;
-            const nextDistance = Math.hypot(x - this.position.x, y - this.position.y);
-            point.classList.toggle('is-near', nextDistance < 10);
-            if (nextDistance < distance) { distance = nextDistance; nearest = point.dataset.guildPoint; }
-        });
-        this.nearby = distance < 10 ? nearest : null;
-        if (!this.hint) return;
-        this.hint.hidden = !this.nearby;
-        if (this.nearby) {
-            const point = this.container.querySelector(`[data-guild-point="${this.nearby}"]`);
-            this.hint.querySelector('strong').textContent = point?.querySelector('span')?.textContent || '';
-            this.hint.querySelector('span').textContent = point?.querySelector('small')?.textContent || '';
-        }
     }
 
     async interact(pointId) {
         const step = this.getStep();
         if (pointId === 'clerk') {
-            const selection = await storyDialogueController.choose({
-                title: '櫃台人員把登記冊轉向你。你要先問什麼？',
-                name: '公會櫃台人員',
-                role: '南境委託登記',
-                backgroundImage: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
-                choices: [
-                    { id: 'commission', label: '詢問失聯委託', summary: '確認目的地、失聯範圍與回報要求。' },
-                    { id: 'equipment', label: '詢問整備規則', summary: '了解主手、副手與護甲如何配置。' }
+            if (!GameManager.getFlag(GuildTutorialFlag.EVENT_MARK_SEEN)) {
+                this.setFlag(GuildTutorialFlag.EVENT_MARK_SEEN);
+            }
+            const knownRecord = GameManager.getFlag(GuildTutorialFlag.SPOKEN);
+            const greeting = await storyDialogueController.play({
+                participants: [],
+                lines: [
+                    { text: '我走到櫃台前。櫃台人員把筆放下，抬頭看了我一眼。', isNarration: true },
+                    { text: knownRecord
+                        ? '要再看南境那份紀錄嗎？'
+                        : '來看委託？南境那份還掛著。', speaker: '公會櫃台人員' }
                 ],
-                closable: true
-            });
-            if (selection.status !== 'selected') return;
-            if (selection.choiceId === 'commission') this.setFlag(GuildTutorialFlag.SPOKEN);
-            else this.openModal('整備規則', '<div class="guild-clue-card"><p>主手負責建立攻擊節奏。裝上第二把武器後，主手命中才會短暫開放副手攻擊；護甲和副手武器共用同一欄位，必須在防護與第二把武器之間選擇。</p></div>');
+                choiceTitle: '你要查看什麼？',
+                choices: [
+                    {
+                        id: 'missing-town', kind: 'commission', kindLabel: '委託',
+                        title: knownRecord ? '重看失聯紀錄' : '查看南境調查',
+                        summary: '確認失聯城鎮與信使資料'
+                    },
+                    {
+                        id: 'leave', kind: 'leave', kindLabel: '離開',
+                        title: '暫時離開', summary: '先不查看這份委託'
+                    }
+                ]
+            }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+
+            if (greeting.status !== 'selected' || greeting.choiceId !== 'missing-town') return;
+            const result = await storyDialogueController.play({
+                participants: [],
+                lines: [
+                    { text: '她翻到登記冊最後一頁，把兩張送信紀錄推到我面前。', isNarration: true },
+                    { text: '這座小鎮每個月都會送來稅簿。上一次沒收到，我們派人去催；第一個沒回來，第二個也一樣。', speaker: '公會櫃台人員' },
+                    { text: '兩個人走的是同一條路？', speaker: '玩家' },
+                    { text: '都是南路。公會要你先確認商路；能進鎮就問清楚情況，進不去就把原因帶回來。', speaker: '公會櫃台人員' },
+                    { text: '如果路上已經不是偵查能處理的程度？', speaker: '玩家' },
+                    { text: '撤退。這份委託不要求你拿命換答案。', speaker: '公會櫃台人員' }
+                ]
+            }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+            if (result.status !== 'complete' || knownRecord) return;
+
+            let accepted = false;
+            while (!accepted) {
+                const decision = await storyDialogueController.choose({
+                    title: '你要怎麼回覆？',
+                    name: '公會櫃台人員',
+                    backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall'),
+                    choices: [
+                        {
+                            id: 'accept', kind: 'accept', kindLabel: '接受',
+                            title: '接受委託', summary: '希望報酬值得這一趟', isPrimary: true
+                        },
+                        {
+                            id: 'question', kind: 'question', kindLabel: '詢問',
+                            title: '詢問信使去向', summary: '確認兩人最後的行程'
+                        },
+                        {
+                            id: 'leave', kind: 'leave', kindLabel: '離開',
+                            title: '暫時離開', summary: '再考慮一下'
+                        }
+                    ]
+                });
+                if (decision.status !== 'selected' || decision.choiceId === 'leave') return;
+
+                if (decision.choiceId === 'question') {
+                    const inquiry = await storyDialogueController.play({
+                        lines: [
+                            { text: '關於那兩名失蹤的信使，有更多資料嗎？', speaker: '玩家' },
+                            { text: '第一個十一天前出發，第二個晚三天走。兩人都騎公會的馬，也都沒在下一站簽到。', speaker: '公會櫃台人員' },
+                            { text: '最後有人看見他們的地方呢？', speaker: '玩家' },
+                            { text: '南路最後一個公會回報點。再往後，沒有回報。能找到人最好；只找到東西，也別移動現場，先記下位置。', speaker: '公會櫃台人員' }
+                        ]
+                    }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+                    if (inquiry.status !== 'complete') return;
+                    continue;
+                }
+
+                const acceptance = await storyDialogueController.play({
+                    lines: [
+                        { text: '希望報酬值得我走這一趟。這單我接了；有狀況我會撤離。', speaker: '玩家' },
+                        { text: '報酬按高階偵查計算。先到委託板登記名字，完成後再去領外勤配備。', speaker: '公會櫃台人員' }
+                    ]
+                }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+                if (acceptance.status !== 'complete') return;
+                accepted = true;
+            }
+
+            if (accepted) {
+                this.setFlag(GuildTutorialFlag.SPOKEN);
+                this.ensureTutorialCommissionUnlocked();
+                this.pushGuildNarrative(
+                    '委託資料已查閱',
+                    '南境調查仍需由本人到委託板登記。',
+                    'discovery',
+                    'guild:clerk-record'
+                );
+                this.render();
+            }
             return;
         }
-        if (pointId === 'board') return this.openCommission();
-        if (pointId === 'rack') return this.openEquipment();
+
+        if (pointId === 'board') {
+            if (!GameManager.getFlag(GuildTutorialFlag.SPOKEN)) return this.playNotice('先向櫃台人員確認這份委託。');
+            this.setFlag(GuildTutorialFlag.COMMISSION_BOARD_READ);
+            this.pushCommissionNarrative();
+            this.render();
+            return;
+        }
+
+        if (pointId === 'rack') {
+            if (!isCommissionAccepted()) return this.playNotice('先在旅人手札裡接下南境調查。');
+            this.openSupplyModal();
+            return;
+        }
+
         if (pointId === 'exit') {
-            if (step) {
-                this.openModal('尚未完成出發準備', `<div class="guild-clue-card"><p>${step.text}</p></div>`);
-                return;
-            }
+            if (step) return this.playNotice(step.text);
             this.finishTutorial();
         }
     }
 
-    openCommission() {
-        if (!GameManager.getFlag(GuildTutorialFlag.SPOKEN)) {
-            this.openModal('先確認委託內容', '<div class="guild-clue-card"><p>櫃台人員還沒有替你核對失聯範圍。先和她交談，再從委託板接下工作。</p></div>');
-            return;
-        }
-        const accepted = GameManager.getFlag(GuildTutorialFlag.COMMISSION_ACCEPTED);
-        this.openModal('南境失聯調查', `
-            <div class="guild-commission">
-                <p>南境一座偏遠小鎮已一個月沒有送回稅簿，兩名信使也沒有回來。確認商路、找出斷訊原因，並將答覆帶回公會。</p>
-                <p><strong>目前線索：</strong>最後一封正常回報來自南門道路；沒有已知討伐目標。</p>
-                ${accepted ? '<button type="button" disabled>已接取</button>' : '<button id="guild-accept-commission" type="button">接取委託</button>'}
-            </div>`);
-        this.modalBody.querySelector('#guild-accept-commission')?.addEventListener('click', () => {
-            this.setFlag(GuildTutorialFlag.COMMISSION_ACCEPTED);
-            this.closeModal();
+    playNotice(text) {
+        return storyDialogueController.play({ lines: [{ text, isNarration: true }] }, {
+            closable: true,
+            backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall')
         });
     }
 
-    openClue() {
-        if (!GameManager.getFlag(GuildTutorialFlag.COMMISSION_ACCEPTED)) {
-            this.openModal('尚未接取委託', '<div class="guild-clue-card"><p>接下委託後，公會才會把失聯紀錄交給你。</p></div>');
+    openSharedRoute(route) {
+        if (route === 'quest') {
+            if (!GameManager.getFlag(GuildTutorialFlag.COMMISSION_BOARD_READ)) {
+                this.playNotice('委託板上還有一張需要確認的調查。');
+                return;
+            }
+            this.openQuestLedger();
             return;
         }
-        this.openModal('失聯調查：已知線索', '<div class="guild-clue-card"><p>目的地：南境失聯小鎮。</p><p>已知：稅簿中斷一個月、兩名信使未歸。公會不知道當地是否仍有人存活，也沒有證據證明是怪物襲擊。</p><p>下一步：沿南路前往最後回報位置，確認道路與失聯原因。</p></div>');
-        this.setFlag(GuildTutorialFlag.CLUE_READ);
+        this.app?.navigateTo?.(route, { returnTo: 'guild' });
     }
 
-    ensureTutorialItems() {
-        const owned = new Set([
-            ...(GameManager.getInventory() || []).map(stack => stack.item?.id),
-            ...Object.values(GameManager.getCharacter()?.equipment || {}).map(item => item?.id)
-        ]);
-        Object.values(GuildTutorialItems).forEach(item => {
-            if (!owned.has(item.id)) GameManager.addToInventory(createTutorialItem(item), 1, { notify: false });
+    openQuestLedger() {
+        this.app?.navigateTo?.('quest', {
+            returnTo: 'guild',
+            state: {
+                tab: 'commissions',
+                selectedQuestId: GuildTutorialCommissionId
+            }
         });
     }
 
-    findTutorialStack(itemId) {
-        return (GameManager.getInventory() || []).find(stack => stack.item?.id === itemId) || null;
+    openSupplyModal() {
+        if (!this.supplyModal) return;
+        this.renderSupplyModal();
+        this.supplyModal.hidden = false;
+        this.supplyModal.querySelector('button:not([disabled])')?.focus();
     }
 
-    equipTutorialItem(itemId, slot) {
-        if (!GameManager.getFlag(GuildTutorialFlag.CLUE_READ)) return false;
-        if (itemId === GuildTutorialItems.offhand.id && !GameManager.getFlag(GuildTutorialFlag.MAIN_EQUIPPED)) return false;
-        if (itemId === GuildTutorialItems.armor.id && !GameManager.getFlag(GuildTutorialFlag.OFFHAND_EQUIPPED)) return false;
-        const stack = this.findTutorialStack(itemId);
-        if (!stack || !GameManager.equipItemToSlot(stack.instanceId, slot)) return false;
-        if (itemId === GuildTutorialItems.main.id) this.setFlag(GuildTutorialFlag.MAIN_EQUIPPED);
-        if (itemId === GuildTutorialItems.offhand.id) this.setFlag(GuildTutorialFlag.OFFHAND_EQUIPPED);
-        if (itemId === GuildTutorialItems.armor.id) this.setFlag(GuildTutorialFlag.ARMOR_CONFLICT_SEEN);
-        this.openEquipment();
+    closeSupplyModal() {
+        if (this.supplyModal) this.supplyModal.hidden = true;
+    }
+
+    getSupplyItem(itemId) {
+        return GUILD_SUPPLY_ITEMS.find(item => item.id === itemId) || null;
+    }
+
+    hasClaimedSupplyItem(itemId) {
+        return GameManager.getFlag(getGuildTutorialSupplyClaimFlag(itemId));
+    }
+
+    claimSupplyItem(itemId, { render = true } = {}) {
+        const item = this.getSupplyItem(itemId);
+        if (!item || this.hasClaimedSupplyItem(itemId)) return false;
+        const stored = GameManager.addToInventory({
+            ...item,
+            tutorialLocked: true,
+            tutorialGroup: 'guild-prologue'
+        }, 1, { ignoreCapacity: true });
+        if (!stored) {
+            if (this.supplyStatus) this.supplyStatus.textContent = '行囊已滿。請先整理行囊，再回來領取。';
+            return false;
+        }
+        GameManager.setFlag(getGuildTutorialSupplyClaimFlag(itemId), true, {
+            reason: `guild-supply:${itemId}`
+        });
+        if (this.supplyStatus) this.supplyStatus.textContent = `已領取「${item.name}」。`;
+        if (render) this.renderSupplyModal();
         return true;
     }
 
-    openEquipment() {
-        if (!GameManager.getFlag(GuildTutorialFlag.CLUE_READ)) {
-            this.openModal('先讀取委託線索', '<div class="guild-clue-card"><p>先確認目的地與回報條件，再進行出發整備。</p></div>');
-            return;
-        }
-        const character = GameManager.getCharacter();
-        const equipped = character?.equipment || {};
-        const rows = [
-            { item: GuildTutorialItems.main, slot: 'weapon', label: '主手', flag: GuildTutorialFlag.MAIN_EQUIPPED },
-            { item: GuildTutorialItems.offhand, slot: 'armor', label: '副手', flag: GuildTutorialFlag.OFFHAND_EQUIPPED },
-            { item: GuildTutorialItems.armor, slot: 'armor', label: '護甲', flag: GuildTutorialFlag.ARMOR_CONFLICT_SEEN }
-        ];
-        this.openModal('訓練裝備', `<div class="guild-loadout">
-            <div class="guild-clue-card"><p>副手武器與護甲使用同一欄位。裝上護甲時，短刃會回到背包；這是流派選擇，不是額外裝備欄。</p></div>
-            ${rows.map((row, index) => {
-                const prerequisiteMissing = index > 0 && !GameManager.getFlag(rows[index - 1].flag);
-                const completed = GameManager.getFlag(row.flag);
-                return `<div class="guild-loadout-row"><span>${row.label}<strong>${row.item.icon} ${row.item.name}</strong></span><small>${equipped[row.slot]?.id === row.item.id ? '目前裝備' : '訓練用品'}</small><button type="button" data-equip-tutorial="${row.item.id}" data-slot="${row.slot}" ${prerequisiteMissing || completed ? 'disabled' : ''}>${completed ? '已完成' : '裝備'}</button></div>`;
-            }).join('')}
-        </div>`);
-        this.modalBody.querySelectorAll('[data-equip-tutorial]').forEach(button => {
-            button.addEventListener('click', () => this.equipTutorialItem(button.dataset.equipTutorial, button.dataset.slot));
+    claimAllSupplyItems({ render = true } = {}) {
+        let claimed = 0;
+        GUILD_SUPPLY_ITEMS.forEach(item => {
+            if (this.claimSupplyItem(item.id, { render: false })) claimed += 1;
         });
+        if (this.supplyStatus) {
+            this.supplyStatus.textContent = claimed > 0
+                ? `已領取 ${claimed} 件外勤裝備。`
+                : '這批外勤裝備已全部領取。';
+        }
+        if (render) this.renderSupplyModal({ preserveStatus: true });
     }
 
-    openModal(title, body, kicker = '出發準備') {
-        this.modalTitle.textContent = title;
-        this.modalKicker.textContent = kicker;
-        this.modalBody.innerHTML = body;
-        this.modal.hidden = false;
+    renderSupplyModal({ preserveStatus = false } = {}) {
+        if (!this.supplyGrid) return;
+        const claimedCount = GUILD_SUPPLY_ITEMS.filter(item => this.hasClaimedSupplyItem(item.id)).length;
+        const used = GameManager.getInventory()?.length || 0;
+        const capacity = GameManager.getInventoryCapacity?.() || 0;
+        if (!preserveStatus && this.supplyStatus) {
+            this.supplyStatus.textContent = `已領取 ${claimedCount}/${GUILD_SUPPLY_ITEMS.length} · 行囊 ${used}/${capacity}`;
+        }
+        this.supplyGrid.innerHTML = GUILD_SUPPLY_ITEMS.map(item => {
+            const claimed = this.hasClaimedSupplyItem(item.id);
+            const image = getGeneratedItemImage(item);
+            const level = Number(item.requiredLevel ?? item.level) || 1;
+            const statLabel = item.type === 'weapon'
+                ? `攻擊 ${Number(item.stats?.attack) || 0}`
+                : `防禦 ${Number(item.stats?.defense) || 0}`;
+            return `
+                <article class="guild-supply-card${claimed ? ' is-claimed' : ''}">
+                    <div class="guild-supply-item-icon">
+                        ${image ? `<img src="/${image}" alt="">` : `<span>${item.icon || '?'}</span>`}
+                    </div>
+                    <div class="guild-supply-item-copy">
+                        <strong>${item.name}</strong>
+                        <span>${statLabel}</span>
+                    </div>
+                </article>
+            `;
+        }).join('');
+        if (this.supplyClaimAll) {
+            this.supplyClaimAll.disabled = claimedCount === GUILD_SUPPLY_ITEMS.length;
+            this.supplyClaimAll.textContent = claimedCount === GUILD_SUPPLY_ITEMS.length ? '已領取' : '領取';
+        }
     }
 
-    closeModal() {
-        this.modal.hidden = true;
-        this.room?.focus();
+    ensureTutorialCommissionUnlocked() {
+        if (!GameManager.getFlag(GuildTutorialFlag.SPOKEN)) return;
+        const status = questManager.getQuestState(GuildTutorialCommissionId)?.status;
+        if (!status || status === QuestStatus.LOCKED) {
+            questManager.unlockQuest(GuildTutorialCommissionId);
+        }
+    }
+
+    syncEquipmentFlags() {
+        const equipment = GameManager.getCharacter()?.equipment || {};
+        if (GUILD_SUPPLY_WEAPON_IDS.has(equipment.weapon?.id)) this.setFlag(GuildTutorialFlag.MAIN_EQUIPPED);
+        if (GUILD_SUPPLY_WEAPON_IDS.has(equipment.armor?.id)) this.setFlag(GuildTutorialFlag.OFFHAND_EQUIPPED);
+        if (GameManager.getFlag(GuildTutorialFlag.OFFHAND_EQUIPPED)
+            && equipment.armor?.id === RecipeDatabase[GuildTutorialSupply.armorRecipeId]?.result?.id) {
+            this.setFlag(GuildTutorialFlag.ARMOR_CONFLICT_SEEN);
+        }
+        if (GameManager.getFlag(GuildTutorialFlag.ARMOR_CONFLICT_SEEN)
+            && GUILD_SUPPLY_WEAPON_IDS.has(equipment.armor?.id)) {
+            this.setFlag(GuildTutorialFlag.BATTLE_OFFHAND_READY);
+        }
+    }
+
+    handleGameUpdate(_state, type) {
+        this.hudController?.updateUI(null, type || 'all');
+        this.syncEquipmentFlags();
+        this.render();
+    }
+
+    handleQuestUpdate() {
+        if (isCommissionAccepted()) {
+            this.pushGuildNarrative(
+                '委託已接取',
+                '南境失聯調查已登記在你的名下。出發前，公會允許你從裝備架領取外勤配備。',
+                'discovery',
+                'guild:commission-accepted'
+            );
+        }
+        this.render();
     }
 
     render() {
         const index = this.getStepIndex();
         const step = index < 0 ? null : STEPS[index];
-        this.stepCount.textContent = step ? `${index + 1} / ${STEPS.length}` : '完成';
-        this.stepTitle.textContent = step?.title || '準備完成';
-        this.stepText.textContent = step?.text || '前往南境出口，開始失聯調查。';
-        this.keyRow.hidden = step?.flag !== GuildTutorialFlag.MOVED;
-        this.tools.hidden = !GameManager.getFlag(GuildTutorialFlag.COMMISSION_ACCEPTED);
-        this.container.querySelectorAll('.guild-tools button').forEach(button => button.classList.remove('is-required'));
-        if (step?.tool) this.container.querySelector(`#guild-open-${step.tool}`)?.classList.add('is-required');
-        this.renderPosition();
-    }
 
-    cleanupTutorialItems() {
-        const equipment = GameManager.getCharacter()?.equipment || {};
-        Object.keys(equipment).forEach(slot => {
-            if (TUTORIAL_ITEM_IDS.has(equipment[slot]?.id)) GameManager.unequipItem(slot, false);
+        this.container.querySelectorAll('[data-guild-point]').forEach(point => {
+            const isTarget = point.dataset.guildPoint === step?.target || (!step && point.dataset.guildPoint === 'exit');
+            point.classList.toggle('is-ready', isTarget);
+            point.disabled = !isTarget;
+            const marker = point.querySelector('.town-place-entry-mark');
+            if (marker) marker.textContent = isTarget ? '!' : '';
         });
-        [...(GameManager.getInventory() || [])].forEach(stack => {
-            if (TUTORIAL_ITEM_IDS.has(stack.item?.id)) GameManager.discardItem(stack.instanceId, false, { force: true });
+
+        this.container.querySelectorAll('.traveler-handbook-action').forEach(button => {
+            const required = step?.route === button.dataset.route;
+            button.classList.toggle('is-required', required);
+            button.querySelector('.guild-handbook-mark')?.toggleAttribute('hidden', !required);
         });
+        this.container.querySelector('.satchel-button')?.classList.toggle('is-required', Boolean(step?.prepTab));
+        this.hudController?.renderPrepTutorial();
+        this.hudController?.renderLobbyInventoryGrid(GameManager.getInventory() || []);
     }
 
     finishTutorial() {
-        this.cleanupTutorialItems();
         GameManager.setFlag(GuildTutorialFlag.COMPLETE, true, { reason: 'guild-tutorial-complete' });
+        preparePrologueOverworldDeparture();
         this.app?.navigateTo?.('adventure');
     }
 
     cleanup() {
-        cancelAnimationFrame(this.frame);
-        document.removeEventListener('keydown', this.handleKeyDown);
-        document.removeEventListener('keyup', this.handleKeyUp);
+        GameManager.unsubscribe(this.handleGameUpdate);
+        questManager.unsubscribe(this.handleQuestUpdate);
+        this.hudController?.cleanup();
+        storyDialogueController.resetForSceneChange();
     }
 }

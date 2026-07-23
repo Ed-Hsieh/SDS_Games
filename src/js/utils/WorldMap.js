@@ -24,6 +24,23 @@ export function resetSavedOverworldPlayerToEntry() {
     return true;
 }
 
+export function preparePrologueOverworldDeparture() {
+    const existing = GameManager.getOverworldMapProgress();
+    const state = existing?.version === MAP_STATE_VERSION && existing?.worldId === OverworldMapConfig.id
+        ? existing
+        : {
+            version: MAP_STATE_VERSION,
+            worldId: OverworldMapConfig.id,
+            travelStep: 0,
+            exploredCells: [],
+            discoveredLandmarks: []
+        };
+    state.playerPos = { ...OverworldMapConfig.prologueStartPosition };
+    state.stepsSinceEncounter = 0;
+    GameManager.saveOverworldMapProgress(state, 'guild-prologue-departure');
+    return true;
+}
+
 function manhattan(a, b) {
     return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }

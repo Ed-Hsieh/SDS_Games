@@ -133,18 +133,13 @@ export function getTownOverviewPresentation() {
     const stage = getTownRuntimeStage();
     const assetId = TownOverviewByStage[stage];
     const crossroads = getResolvedTownPlace('crossroads');
-    const latestCrossroadsState = [...(crossroads?.states || [])]
-        .reverse()
-        .find(state => state.runtimeVisibility === TownVisibility.VISIBLE);
 
     return {
         stage,
         assetId,
         image: getGeneratedBackgroundImage(assetId),
         title: crossroads?.displayName || crossroads?.name || '城鎮',
-        arrivalText: latestCrossroadsState?.text
-            || crossroads?.description
-            || '城鎮仍在等待下一個能被確認的變化。'
+        arrivalText: crossroads?.description || '你回到城鎮，街上的情況和離開前差不多。'
     };
 }
 

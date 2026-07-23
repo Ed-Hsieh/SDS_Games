@@ -5,7 +5,7 @@ import RhythmBarSystem from '../utils/RhythmBarSystem.js';
 import { getWeaponCombatProfile } from '../utils/WeaponCombatProfile.js';
 import { MonsterDatabase } from '../data/Monsters.js';
 import { buildMonsterCombatActions, ChapterOneTwoCombatMonsterIds } from '../data/MonsterCombatProfiles.js';
-import { getGeneratedMonsterImage } from '../data/AssetManifest.js';
+import { getGeneratedItemImage, getGeneratedMonsterImage } from '../data/AssetManifest.js';
 import { mountSharedCombatPreview } from '../components/CombatStageView.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -279,6 +279,7 @@ export class CombatVfxLab {
         this.showcaseRunning = false;
         this.lastHealth = { player: null, monster: null };
         this.rhythmCharacter = options.rhythmCharacter || createRhythmCharacter();
+        this.secondaryEquipment = options.secondaryEquipment || this.rhythmCharacter?.equipment?.offhand || null;
 
         this.engine = new CombatVfxEngine({
             rearCanvas: root.querySelector('#vfx-canvas-rear'),
@@ -350,6 +351,7 @@ export class CombatVfxLab {
                 id: monster.id || this.currentMonsterId,
                 name: monster.name,
                 maxHp: monster.maxHp,
+                healthFloorRatio: monster.healthFloorRatio,
                 initialDelay: monster.initialDelay,
                 attacks: monster.attacks
             },
@@ -392,46 +394,50 @@ export class CombatVfxLab {
     applyLoadoutVisual() {
         const mainItem = this.rhythmCharacter?.equipment?.weapon || null;
         const offhandItem = mainItem ? (this.rhythmCharacter?.equipment?.offhand || null) : null;
+        const secondaryItem = offhandItem || this.secondaryEquipment || null;
+        const secondaryIsWeapon = String(secondaryItem?.type || '').toLowerCase() === 'weapon';
         const offhandControl = this.root.querySelector('.rhythm-control-offhand');
-        if (offhandControl) offhandControl.hidden = !offhandItem;
-        this.root.querySelector('.player-hud')?.classList.toggle('has-no-offhand', !offhandItem);
+        offhandControl?.classList.toggle('is-armor', Boolean(secondaryItem && !secondaryIsWeapon));
+        offhandControl?.classList.toggle('is-empty', !secondaryItem);
+        const secondaryLabel = this.root.querySelector('#secondary-slot-label');
+        const secondaryControl = this.root.querySelector('#secondary-slot-control');
+        if (secondaryLabel) secondaryLabel.textContent = secondaryIsWeapon ? '副武器' : '副裝備';
+        if (secondaryControl) secondaryControl.textContent = secondaryIsWeapon ? '滑鼠右鍵' : (secondaryItem ? '防護' : '空缺');
         const slots = [
-            ['main', '#lab-main-rhythm-icon', '#lab-main-rhythm-name'],
-            ['offhand', '#lab-offhand-rhythm-icon', '#lab-offhand-rhythm-name']
+            ['main', mainItem, this.getRuntimeLoadout().main, '#lab-main-rhythm-icon', '#lab-main-rhythm-name'],
+            ['offhand', secondaryItem, this.getRuntimeLoadout().offhand, '#lab-offhand-rhythm-icon', '#lab-offhand-rhythm-name']
         ];
-        slots.forEach(([slot, ringIconSelector, ringNameSelector]) => {
-            const weapon = this.getRuntimeLoadout()[slot];
+        slots.forEach(([slot, item, weapon, ringIconSelector, ringNameSelector]) => {
             const ringIcon = this.root.querySelector(ringIconSelector);
             if (ringIcon) {
-                if (weapon.icon) ringIcon.src = weapon.icon;
+                const icon = item ? getGeneratedItemImage(item) : weapon?.icon;
+                if (icon) ringIcon.src = icon;
                 else ringIcon.removeAttribute('src');
                 ringIcon.alt = '';
-                ringIcon.hidden = !weapon.icon;
+                ringIcon.hidden = !icon;
             }
             const ringName = this.root.querySelector(ringNameSelector);
-            if (ringName) ringName.textContent = weapon.name;
+            if (ringName) ringName.textContent = item?.name || (slot === 'main' ? weapon?.name || '拳頭' : '未裝備');
         });
         this.renderWeaponDurability('main');
         this.renderWeaponDurability('offhand');
     }
 
-    getEquippedWeapon(slot) {
+    getEquippedItem(slot) {
         return slot === 'offhand'
-            ? this.rhythmCharacter?.equipment?.offhand || null
+            ? this.rhythmCharacter?.equipment?.offhand || this.secondaryEquipment || null
             : this.rhythmCharacter?.equipment?.weapon || null;
     }
 
     renderWeaponDurability(slot) {
-        const item = this.getEquippedWeapon(slot);
+        const item = this.getEquippedItem(slot);
         const panel = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability`);
         const value = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability-value`);
         const fill = this.root.querySelector(`#${slot === 'offhand' ? 'offhand' : 'main'}-weapon-durability-fill`);
         if (!panel || !value || !fill) return;
-        const isWeapon = item
-            && String(item.type || '').toLowerCase() === 'weapon'
-            && item.usesDurability !== false;
-        panel.hidden = !isWeapon;
-        if (!isWeapon) return;
+        const usesDurability = item && item.usesDurability !== false;
+        panel.hidden = !usesDurability;
+        if (!usesDurability) return;
 
         const max = Math.max(1, Number(item.maxDurability) || 18);
         const current = Math.max(0, Math.min(max, Number.isFinite(Number(item.durability)) ? Number(item.durability) : max));
@@ -442,7 +448,7 @@ export class CombatVfxLab {
         panel.classList.toggle('is-broken', current <= 0);
     }
 
-    handleWeaponBroken(slot, weapon) {
+    replaceCombatEquipment(slot, item, weaponEntry, options = {}) {
         const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
         const createUnarmedItem = targetSlot => ({
             id: `unarmed_${targetSlot}`,
@@ -457,39 +463,34 @@ export class CombatVfxLab {
             critDamage: 1.5,
             usesDurability: false
         });
-        const replaceSlot = targetSlot => {
-            const unarmedItem = createUnarmedItem(targetSlot);
-            this.session?.equipUnarmed(targetSlot);
-            if (targetSlot === 'main') this.rhythmCharacter.equipment.weapon = unarmedItem;
-            else this.rhythmCharacter.equipment.offhand = unarmedItem;
-            const rhythm = targetSlot === 'main' ? this.mainRhythmSystem : this.offhandRhythmSystem;
-            rhythm?.updateCharacter?.(this.rhythmCharacter);
-            const targetControl = this.root.querySelector(`.rhythm-control-${targetSlot}`);
-            targetControl?.classList.remove('is-broken');
-            targetControl?.classList.add('is-unarmed');
-        };
-
-        replaceSlot(normalizedSlot);
-        if (normalizedSlot === 'main') replaceSlot('offhand');
+        if (normalizedSlot === 'main') {
+            const nextItem = item || createUnarmedItem('main');
+            this.rhythmCharacter.equipment.weapon = nextItem;
+            if (weaponEntry) this.session?.replaceWeapon('main', weaponEntry, options);
+            else this.session?.equipUnarmed('main');
+            this.mainRhythmSystem?.updateCharacter?.(this.rhythmCharacter);
+        } else {
+            const isWeapon = String(item?.type || '').toLowerCase() === 'weapon';
+            this.secondaryEquipment = item || null;
+            this.rhythmCharacter.equipment.offhand = isWeapon ? item : null;
+            if (isWeapon && weaponEntry) this.session?.replaceWeapon('offhand', weaponEntry, options);
+            else this.session?.disableWeapon('offhand');
+            this.session?.updateWeaponContext('main', { hasArmor: Boolean(item && !isWeapon) });
+            this.offhandRhythmSystem?.expireWindow?.();
+            this.offhandRhythmSystem?.updateCharacter?.(this.rhythmCharacter);
+        }
         const control = this.root.querySelector(`.rhythm-control-${normalizedSlot}`);
         control?.classList.remove('is-broken');
-        const name = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-name`);
-        const state = this.root.querySelector(`#lab-${normalizedSlot}-rhythm-state`);
-        if (name) name.textContent = weapon?.name || '武器';
-        if (state) state.textContent = '就緒';
-        this.renderWeaponDurability(normalizedSlot);
-
-        if (normalizedSlot === 'main') {
-            const offhandControl = this.root.querySelector('.rhythm-control-offhand');
-            if (offhandControl) offhandControl.hidden = false;
-            this.root.querySelector('.player-hud')?.classList.remove('has-no-offhand');
-            const offhandName = this.root.querySelector('#lab-offhand-rhythm-name');
-            if (offhandName) offhandName.textContent = '拳頭';
-            this.renderWeaponDurability('offhand');
-        }
-        if (name) name.textContent = '拳頭';
+        control?.classList.toggle('is-unarmed', normalizedSlot === 'main' && !item);
         this.applyLoadoutVisual();
-        this.setFeed(`${weapon?.name || '武器'}已損壞，改用拳頭繼續戰鬥`);
+        this.renderSnapshot(this.session.getSnapshot(), { immediate: true });
+        return true;
+    }
+
+    handleWeaponBroken(slot, weapon) {
+        const normalizedSlot = slot === 'offhand' ? 'offhand' : 'main';
+        this.replaceCombatEquipment(normalizedSlot, null, null, { fullCooldown: true });
+        this.setFeed(`${weapon?.name || '裝備'}已損壞`);
     }
 
     resetRhythmSystems() {
@@ -524,7 +525,13 @@ export class CombatVfxLab {
                 : snapshot.cooldowns.main > 0.001 ? '恢復中' : '就緒';
         }
         if (offhandState) {
-            offhandState.textContent = this.root.querySelector('.rhythm-control-offhand')?.classList.contains('is-broken')
+            const secondary = this.getEquippedItem('offhand');
+            const secondaryIsWeapon = String(secondary?.type || '').toLowerCase() === 'weapon';
+            offhandState.textContent = !secondary
+                ? '空缺'
+                : !secondaryIsWeapon
+                    ? '防護中'
+                    : this.root.querySelector('.rhythm-control-offhand')?.classList.contains('is-broken')
                 ? '損壞'
                 : !active
                 ? '暫停'
@@ -698,6 +705,10 @@ export class CombatVfxLab {
 
     forceMonsterAttack(attackId) {
         return this.session.forceMonsterAttack(attackId);
+    }
+
+    replaceMonsterAttacks(attacks) {
+        return this.session.replaceMonsterAttacks(attacks);
     }
 
     setMode(mode, { announce = true } = {}) {

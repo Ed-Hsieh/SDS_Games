@@ -14,6 +14,7 @@ import { OverworldMapConfig } from '../src/js/data/OverworldMapRegistry.js';
 import {
     getGeneratedBackgroundImage,
     getGeneratedDungeonImage,
+    getGeneratedGuildSceneImage,
     getGeneratedItemImage,
     getGeneratedMonsterImage,
     getGeneratedPortraitImage,
@@ -227,6 +228,11 @@ for (const place of TownPlaceDatabase || []) {
         checkAsset('town-resident', resident.npcId || resident.label, resident.portrait || getGeneratedPortraitImage(resident.npcId), { square: true, minWidth: 256, minHeight: 256 });
     }
 }
+
+checkAsset('guild-scene', 'adventurers-guild-hall', getGeneratedGuildSceneImage('adventurers-guild-hall'), {
+    minWidth: 1280,
+    minHeight: 720
+});
 
 for (const vendor of MarketVendors || []) {
     checkAsset('market-vendor', vendor.id, vendor.portrait || getGeneratedPortraitImage(vendor.id), { square: true, minWidth: 256, minHeight: 256 });

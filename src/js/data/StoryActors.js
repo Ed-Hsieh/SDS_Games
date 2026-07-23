@@ -65,6 +65,7 @@ export const StoryExpressionCoverage = Object.freeze({
 });
 
 export const StoryActorRegistry = Object.freeze({
+    player: { id: 'player', name: '玩家', role: '怪物獵人' },
     village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', portrait: portrait('village_elder'), standing: standing('village_elder'), standingFacing: 'center', nameStatus: 'unresolved_personal_name' },
     town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記', portrait: portrait('town_scholar'), standing: standing('town_scholar'), standingFacing: 'right' },
     herbalist: {

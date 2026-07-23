@@ -753,7 +753,8 @@ class DevPanel {
             <div class="dev-card">
                 <h4>腳本驗證</h4>
                 <small class="dev-muted">需要在終端執行；此處列出本次調平相關命令。</small>
-                <pre class="dev-report">node scripts/EquipmentEffectCheck.mjs
+                <pre class="dev-report">node scripts/BattleSettlementCheck.mjs
+node scripts/EquipmentEffectCheck.mjs
 node scripts/StoryRuntimeCheck.mjs
 node scripts/MonsterBalanceCheck_v4.js</pre>
                 <div class="dev-row">

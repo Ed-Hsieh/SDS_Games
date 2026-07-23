@@ -272,9 +272,17 @@ export default class StoryDialogueView {
             return;
         }
         const activeId = line.actorId || null;
+        const activeLineImage = line.standing
+            || line.portrait
+            || line.image
+            || resolveLayerImage(line.expressionLayer);
         const usable = participants
             .filter(actor => actor?.id || actor?.actorId)
-            .filter(actor => actor.standing || actor.portrait || actor.image || resolveLayerImage(actor.expressionLayer) || actor.id === activeId);
+            .filter(actor => actor.standing
+                || actor.portrait
+                || actor.image
+                || resolveLayerImage(actor.expressionLayer)
+                || (actor.id === activeId && activeLineImage));
         const visible = usable.slice(0, 4);
         this.cast.innerHTML = visible.map((actor, index) => {
             const actorId = actor.id || actor.actorId;
@@ -353,16 +361,24 @@ export default class StoryDialogueView {
             </figure>
         ` : '';
         this.choices.hidden = false;
-        this.choices.innerHTML = choices.map(choice => `
-            <button type="button" data-story-choice-id="${escapeHtml(choice.id)}">
-                <strong>${escapeHtml(choice.label || choice.title || '交談')}</strong>
+        this.choices.dataset.choiceCount = String(choices.length);
+        this.choices.innerHTML = choices.map(choice => {
+            const isLeave = choice.kind === 'leave' || choice.id === 'leave';
+            const choiceKind = choice.kind || (isLeave ? 'leave' : 'conversation');
+            const kindLabel = choice.kindLabel || (isLeave ? '離開' : '交談');
+            return `
+            <button type="button" class="story-dialogue-choice${choice.isPrimary ? ' is-primary' : ''}${choice.summary ? ' has-summary' : ''}" data-story-choice-id="${escapeHtml(choice.id)}" data-choice-kind="${escapeHtml(choiceKind)}">
+                <small class="story-dialogue-choice-kind">${escapeHtml(kindLabel)}</small>
+                <strong>${escapeHtml(choice.title || choice.label || '交談')}</strong>
                 ${choice.summary ? `<span>${escapeHtml(choice.summary)}</span>` : ''}
             </button>
-        `).join('');
+        `;
+        }).join('');
     }
 
     hideChoices() {
         this.choices.hidden = true;
+        delete this.choices.dataset.choiceCount;
         this.choices.innerHTML = '';
     }
 }

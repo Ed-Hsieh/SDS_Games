@@ -10,6 +10,7 @@ export const ChapterOneProgressFlag = Object.freeze({
     MANTIS_RECOVERY_CLAIMED: 'story.ch1.mantis_recovery_claimed',
     HOME_RECOVERY_KNOWN: 'tutorial.adventure.homeRecoveryKnown',
     FIRST_REPORT_PENDING: 'story.ch1.first_report_pending',
+    FIRST_REPORT_AUTO_START: 'story.ch1.first_report_auto_start',
     FIRST_REPORT_COMPLETE: 'story.ch1.first_report_complete',
     CLOSING_GATE_COMPLETE: 'story.ch1.closing.gate_complete',
     CLOSING_ARCHIVE_COMPLETE: 'story.ch1.closing.archive_complete',
@@ -208,6 +209,7 @@ export function readChapterOneObjectiveContext(readFlag) {
         chapterOneRotrootTrialId: getNextChapterOneRotrootTrial(readFlag)?.id || null,
         chapterOneHomeRecoveryKnown: Boolean(readFlag(ChapterOneProgressFlag.HOME_RECOVERY_KNOWN)),
         chapterOneFirstReportPending: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_PENDING)),
+        chapterOneFirstReportAutoStart: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_AUTO_START)),
         chapterOneFirstReportComplete: Boolean(readFlag(ChapterOneProgressFlag.FIRST_REPORT_COMPLETE)),
         chapterOneClosingReportStage: ChapterOneClosingReportStages.find(stage => !readFlag(stage.flag)) || null
     });

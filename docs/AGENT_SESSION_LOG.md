@@ -14,8 +14,9 @@ The intended opening order is now:
 
 1. Guild tutorial: movement, interaction, commission choice, clue review, and
    main-hand/off-hand/armor equipment conflict.
-2. Prologue combat tutorial: main-hand attack, off-hand rhythm window, weapon
-   break and unarmed fallback, potion use, flee attempt, and scripted defeat.
+2. Prologue combat tutorial: main-hand attack, off-hand rhythm window, main-hand
+   break with off-hand promotion, replacement off-hand selection, potion use,
+   flee attempt, and scripted defeat.
 3. Mia rescue and Chapter 1: town entry, field investigation, staged reports,
    forge recovery, optional dungeon introduction, Forest Guardian, and the
    visible town-state result.
@@ -43,7 +44,19 @@ core logic.
   Owner file(s): `src/js/managers/CombatFlowController.js`, `src/js/scenes/CombatVfxLab.js`, `src/js/components/CombatStageView.js`
   Source of truth: `src/js/data/StorySceneRegistry.js`
   Validation: `scripts/CombatTutorialCheck.mjs`
-  Notes: The sequence now teaches both hands, the rhythm window, weapon break, unarmed replacement, an actual potion action, and a flee attempt before the fixed defeat.
+  Notes: The sequence now teaches both hands, the rhythm window, main-hand breakage, automatic off-hand promotion, replacement off-hand selection, an actual potion action, and a flee attempt before the fixed defeat.
+
+- [done] [P0] [first-loot-guidance] Teach the first normal battle settlement
+  Owner file(s): `src/js/managers/CombatFlowController.js`, `src/style/combat-vfx-lab.css`
+  Source of truth: live encounter drops and inventory capacity
+  Validation: `scripts/BattleSettlementCheck.mjs`
+  Notes: New drops use `拿取` / `放棄`; owned backpack stacks use `放下` during settlement and remain reclaimable from the loot side until departure. The inline guide remains stable through the first settlement.
+
+- [done] [P0] [first-report-guidance] Teach the first quest report
+  Owner file(s): `src/js/scenes/LobbyScene.js`, `src/js/managers/DialogueManager.js`
+  Source of truth: completed quest data and `QuestStories.js` report ownership
+  Validation: first completed quest returned to its actual reporting NPC
+  Notes: The town narrative names the real quest and reporter, points to the NPC `!`, and tells the player to choose `回報任務`; no second report interface is introduced.
 
 - [done] [P1] [flee] Set the common flee chance and expose cooldown feedback
   Owner file(s): `src/js/managers/CombatFlowController.js`, `src/js/managers/RealtimeCombatSession.js`, `src/js/scenes/CombatVfxLab.js`, `src/style/combat-vfx-lab.css`
@@ -66,8 +79,8 @@ core logic.
 - [done] [P0] [battle-settlement] Add inventory decisions to battle rewards
   Owner file(s): `src/js/managers/AdventureEncounterManager.js`, `src/js/managers/BlueprintManager.js`, `src/js/scenes/AdventureScene.js`, `src/style/inventory-grid.css`
   Source of truth: live encounter drops and player inventory
-  Validation: `scripts/ItemFlowCheck.mjs`, manual settlement review
-  Notes: Rewards are no longer silently moved to storage when the backpack is full; settlement shows the five-column backpack, allows discarding an owned item, and displays blueprint art as a visible reward.
+  Validation: `scripts/BattleSettlementCheck.mjs`, `scripts/ItemFlowCheck.mjs`, manual settlement review
+  Notes: Physical rewards never bypass the decision surface or fall back to the warehouse. Matching stackable drops merge into one row; the five-column backpack can place a stack back on the loot side, and abandoned items remain reclaimable until the player leaves settlement.
 
 - [done] [P0] [chapter-1-map] Remove obsolete fixed landmarks and join Rotroot investigation beats
   Owner file(s): `src/js/data/ChapterOneProgression.js`, `src/js/data/ChapterRegionRegistry.js`, `src/js/data/OverworldMapRegistry.js`, `src/js/scenes/AdventureScene.js`
@@ -130,6 +143,12 @@ core logic.
   Source of truth: live databases and user playtest feedback
   Validation: `scripts/DifficultyProgressionCheck.mjs`
   Notes: Keep the current data-first rule; do not add runtime multipliers or compatibility patches.
+
+- [deferred] [P1] [wolf-smoke-onboarding] Introduce return travel through a merchant
+  Owner file(s): future market stock, merchant dialogue, and `src/js/data/UtilityItems.js`
+  Source of truth: approved merchant story event
+  Validation: merchant grants the first wolf smoke before it becomes purchasable
+  Notes: Do not teach wolf smoke during the opening. Its first copy will be a merchant gift explained in story, followed by normal shop availability.
 
 - [deferred] [P2] [material-classification] Give `cursed_shard` an approved use
   Owner file(s): `src/js/data/Materials.js`, `src/js/data/Recipes.js`, `src/js/data/FirstRunLootBalance.js`

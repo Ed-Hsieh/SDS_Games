@@ -37,7 +37,8 @@ function parseMetadata(block) {
 function parseBeats(block, sceneId) {
     const beats = [];
     const lines = block.split(/\r?\n/);
-    const headerLine = lines.find(line => /^\|\s*Order\s*\|/.test(line));
+    const headerIndex = lines.findIndex(line => /^\|\s*Order\s*\|/.test(line));
+    const headerLine = headerIndex >= 0 ? lines[headerIndex] : null;
     const headers = headerLine
         ? headerLine.slice(1, -1).split('|').map(cell => cell.trim())
         : [];
@@ -51,7 +52,8 @@ function parseBeats(block, sceneId) {
     const visualColumn = column('Visual Mode');
     const textColumn = column('Runtime Text / Stage Action');
 
-    for (const line of lines) {
+    for (const line of lines.slice(headerIndex + 2)) {
+        if (!/^\|/.test(line)) break;
         if (!/^\|\s*\d+\s*\|/.test(line)) continue;
         const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
         if (cells.length < headers.length || textColumn < 0) {
@@ -84,32 +86,47 @@ function parseCheckpoints(block, sceneId) {
     const checkpoints = {};
     const lines = block.split(/\r?\n/);
     const headerLine = lines.find(line => /^\|\s*Checkpoint\s*\|/.test(line));
-    if (!headerLine) return checkpoints;
+    if (headerLine) {
+        const headers = headerLine.slice(1, -1).split('|').map(cell => cell.trim());
+        const column = label => headers.indexOf(label);
+        const checkpointColumn = column('Checkpoint');
+        const titleColumn = column('Title');
+        const rangeColumn = column('Beat Range');
+        const backgroundColumn = column('Background');
+        const imageColumn = column('Background Image');
 
-    const headers = headerLine.slice(1, -1).split('|').map(cell => cell.trim());
-    const column = label => headers.indexOf(label);
-    const checkpointColumn = column('Checkpoint');
-    const titleColumn = column('Title');
-    const rangeColumn = column('Beat Range');
-    const backgroundColumn = column('Background');
-    const imageColumn = column('Background Image');
-
-    for (const line of lines) {
-        if (!/^\|\s*`[a-z0-9_]+`\s*\|/.test(line)) continue;
-        const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
-        if (cells.length < headers.length) continue;
-        const checkpointId = stripTicks(cells[checkpointColumn]);
-        const range = stripTicks(cells[rangeColumn]).match(/^(\d+)-(\d+)$/);
-        if (!checkpointId || !range) {
-            throw new Error(`Malformed checkpoint row in ${sceneId}: ${line}`);
+        for (const line of lines) {
+            if (!/^\|\s*`[a-z0-9_]+`\s*\|/.test(line)) continue;
+            const cells = line.slice(1, -1).split('|').map(cell => cell.trim());
+            if (cells.length < headers.length) continue;
+            const checkpointId = stripTicks(cells[checkpointColumn]);
+            const range = stripTicks(cells[rangeColumn]).match(/^(\d+)-(\d+)$/);
+            if (!checkpointId || !range) {
+                throw new Error(`Malformed checkpoint row in ${sceneId}: ${line}`);
+            }
+            checkpoints[checkpointId] = {
+                title: stripTicks(cells[titleColumn]),
+                beatRange: [Number(range[1]), Number(range[2])],
+                background: stripTicks(cells[backgroundColumn]),
+                backgroundImage: stripTicks(cells[imageColumn])
+            };
         }
-        checkpoints[checkpointId] = {
-            title: stripTicks(cells[titleColumn]),
-            beatRange: [Number(range[1]), Number(range[2])],
-            background: stripTicks(cells[backgroundColumn]),
-            backgroundImage: stripTicks(cells[imageColumn])
-        };
     }
+
+    const checkpointHeadingPattern = /^#### Checkpoint `([a-z0-9_]+)`: (.+)$/gm;
+    const checkpointMatches = [...block.matchAll(checkpointHeadingPattern)];
+    checkpointMatches.forEach((match, index) => {
+        const checkpointId = match[1];
+        const start = match.index;
+        const end = checkpointMatches[index + 1]?.index ?? block.length;
+        const checkpointBlock = block.slice(start, end);
+        checkpoints[checkpointId] = {
+            ...(checkpoints[checkpointId] || {}),
+            id: checkpointId,
+            title: match[2].trim(),
+            beats: parseBeats(checkpointBlock, `${sceneId}/${checkpointId}`)
+        };
+    });
 
     return checkpoints;
 }

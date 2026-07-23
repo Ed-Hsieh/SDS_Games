@@ -1,38 +1,55 @@
-<main class="guild-tutorial-scene">
-    <header class="guild-tutorial-header">
-        <div><span>ADVENTURERS' GUILD</span><h1>南境冒險者公會</h1></div>
-        <div class="guild-tutorial-progress"><span>出發準備</span><strong id="guild-step-count">1 / 7</strong></div>
-    </header>
+<div class="hall-scene hall-scene-town guild-hall-scene">
+    <main class="lobby-shell lobby-shell-town guild-shell">
+        <section class="lobby-world lobby-world-town guild-world">
+            <section class="world-stage world-stage-town town-place-view has-scene-image guild-map-stage" id="guild-room" aria-label="冒險者公會">
+                <div class="world-stage-backdrop guild-map-backdrop" aria-hidden="true"></div>
+                <div class="guild-map-shade" aria-hidden="true"></div>
 
-    <section class="guild-room" id="guild-room" tabindex="0" aria-label="公會大廳教學場景">
-        <div class="guild-room-backdrop" aria-hidden="true"></div>
-        <button class="guild-point guild-clerk" data-guild-point="clerk" type="button"><span>櫃台人員</span><small>F 交談</small></button>
-        <button class="guild-point guild-board" data-guild-point="board" type="button"><span>委託板</span><small>F 查看</small></button>
-        <button class="guild-point guild-rack" data-guild-point="rack" type="button"><span>訓練裝備架</span><small>F 整備</small></button>
-        <button class="guild-point guild-exit" data-guild-point="exit" type="button"><span>南境出口</span><small>F 出發</small></button>
-        <div class="guild-player" id="guild-player" aria-label="玩家位置"><span></span></div>
-        <aside class="guild-interaction-hint" id="guild-interaction-hint" hidden><kbd>F</kbd><div><strong></strong><span></span></div></aside>
-    </section>
+                <button class="town-place-entry town-place-resident guild-clerk" data-guild-point="clerk" type="button" aria-label="櫃台人員，委託登記">
+                    <span class="town-place-entry-icon"><img src="src/assets/images/art/characters/portraits/merchant.webp" alt=""></span>
+                    <span class="town-place-entry-copy"><strong>櫃台人員</strong></span>
+                    <span class="town-place-entry-mark" aria-hidden="true"></span>
+                </button>
 
-    <aside class="guild-tutorial-panel" aria-live="polite">
-        <span>目前步驟</span>
-        <h2 id="guild-step-title">先熟悉腳步</h2>
-        <p id="guild-step-text">使用 WASD 在公會大廳移動。</p>
-        <div class="guild-key-row" id="guild-key-row"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></div>
-        <div class="guild-tools" id="guild-tools" hidden>
-            <button id="guild-open-commission" type="button">委託</button>
-            <button id="guild-open-clue" type="button">線索</button>
-            <button id="guild-open-equipment" type="button">裝備</button>
-        </div>
-    </aside>
+                <button class="town-place-entry town-place-resident guild-board" data-guild-point="board" type="button" aria-label="委託板，失聯調查">
+                    <span class="town-place-entry-icon" aria-hidden="true">▤</span>
+                    <span class="town-place-entry-copy"><strong>委託板</strong></span>
+                    <span class="town-place-entry-mark" aria-hidden="true"></span>
+                </button>
 
-    <div class="guild-modal" id="guild-modal" hidden>
-        <section role="dialog" aria-modal="true" aria-labelledby="guild-modal-title">
-            <button class="guild-modal-close" id="guild-modal-close" type="button" aria-label="關閉">×</button>
-            <span id="guild-modal-kicker">公會教學</span>
-            <h2 id="guild-modal-title"></h2>
-            <div id="guild-modal-body"></div>
+                <button class="town-place-entry town-place-resident guild-rack" data-guild-point="rack" type="button" aria-label="裝備架，外勤整備">
+                    <span class="town-place-entry-icon" aria-hidden="true">⚔</span>
+                    <span class="town-place-entry-copy"><strong>裝備架</strong></span>
+                    <span class="town-place-entry-mark" aria-hidden="true"></span>
+                </button>
+
+                <button class="town-place-entry town-place-resident guild-exit" data-guild-point="exit" type="button" aria-label="公會出口，前往南境">
+                    <span class="town-place-entry-icon" aria-hidden="true">↗</span>
+                    <span class="town-place-entry-copy"><strong>公會出口</strong></span>
+                    <span class="town-place-entry-mark" aria-hidden="true"></span>
+                </button>
+            </section>
+
+            <div id="guild-interface-host" class="guild-interface-host" aria-live="polite"></div>
+        </section>
+    </main>
+    <div class="guild-supply-modal" id="guild-supply-modal" hidden>
+        <button class="guild-supply-backdrop" type="button" data-supply-close aria-label="關閉外勤配給"></button>
+        <section class="guild-supply-dialog" role="dialog" aria-modal="true" aria-labelledby="guild-supply-title">
+            <header class="guild-supply-head">
+                <div>
+                    <span>外勤整備</span>
+                    <h2 id="guild-supply-title">公會配給架</h2>
+                    <p>整套外勤裝備只能領取一次。</p>
+                </div>
+                <button class="guild-supply-close" type="button" data-supply-close aria-label="關閉">×</button>
+            </header>
+            <div class="guild-supply-status" id="guild-supply-status" aria-live="polite"></div>
+            <div class="guild-supply-grid" id="guild-supply-grid"></div>
+            <footer class="guild-supply-actions">
+                <button class="guild-supply-action guild-supply-action-primary" id="guild-supply-claim-all" type="button">領取</button>
+            </footer>
         </section>
     </div>
-</main>
-
+    <div id="guild-overlay-host"></div>
+</div>

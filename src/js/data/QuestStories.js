@@ -18,8 +18,9 @@ export const QuestStoryDatabase = Object.freeze({
         nextLead: '到檔案室找伊萊辨認舊記號。',
         reportLines: [
             { actorId: 'player', text: '伊萊說那不是污痕。是一段被紙角蓋住的撤退線。' },
-            { actorId: 'village_elder', expression: 'guarded', text: '那就別把它修漂亮。錯過一次的路，留著難看一點比較有用。' },
-            { actorId: 'village_elder', expression: 'pleased', text: '鎮紙用這個。能隨手搬開。空格可比好看的答案安全。' }
+            { actorId: 'village_elder', expression: 'guarded', text: '他能確認是哪一年的嗎？' },
+            { actorId: 'player', text: '二十年前。其他部分沒有足夠資料，他沒有往下猜。' },
+            { actorId: 'village_elder', expression: 'neutral', text: '這樣就夠了。先照原樣收著，別把捲角壓死。以後找到別的紀錄，還要重新比對。' }
         ]
     }),
     one_blank_too_many: Object.freeze({
@@ -32,9 +33,10 @@ export const QuestStoryDatabase = Object.freeze({
         finished: '三種未知被分開保存，手札可以依證據範圍檢視紀錄。',
         nextLead: '到裂痕廣場向村長確認回報者的行程。',
         reportLines: [
-            { actorId: 'town_scholar', expression: 'guarded', text: '所以不是「沒有」。他只是沒走到。很好，表格更難看了。' },
-            { actorId: 'player', text: '你聽起來反而放心了。' },
-            { actorId: 'town_scholar', expression: 'pleased', text: '整齊很誘人。誠實通常比較佔位置。' }
+            { actorId: 'player', text: '第三個人只走到南門水溝，沒有進林，也沒到棧道。' },
+            { actorId: 'town_scholar', expression: 'guarded', text: '那他寫的「沒有」，只能代表水溝附近沒有。' },
+            { actorId: 'player', text: '另外兩份要一起改嗎？' },
+            { actorId: 'town_scholar', expression: 'pleased', text: '先把每個人走過的範圍補上，再分開保存。這樣下次才不會把沒看到當成不存在。' }
         ]
     }),
     patrol_soles: Object.freeze({
@@ -46,9 +48,10 @@ export const QuestStoryDatabase = Object.freeze({
         completed: '兩段路都留下了返程者的視線缺口。把位置帶回南門。',
         finished: '方向牌被補在最後一列也看得見的位置。', nextLead: '實際走訪兩處地標並調查。',
         reportLines: [
-            { actorId: 'standard_bearer_frey', expression: 'guarded', text: '你標的位置都在出發者背後。' },
-            { actorId: 'player', text: '但回來的人正好看得見。' },
-            { actorId: 'standard_bearer_frey', expression: 'pleased', text: '很好。這次你沒有只顧著往前。' }
+            { actorId: 'player', text: '農田的標記被草擋住了。棧道那一面則只看得到木樁背面。' },
+            { actorId: 'standard_bearer_frey', expression: 'guarded', text: '都是回城時才會遇到的角度。你把位置畫給我。' },
+            { actorId: 'player', text: '農田這裡要移高，棧道最好補一塊朝南的牌。' },
+            { actorId: 'standard_bearer_frey', expression: 'pleased', text: '好。我換班前先把農田那塊移好，棧道的木牌明早帶過去。' }
         ]
     }),
     lamp_glass_for_every_door: Object.freeze({
@@ -60,9 +63,10 @@ export const QuestStoryDatabase = Object.freeze({
         completed: '居民燈與巡線燈都重新分到適合的扣件。', finished: '塔維答應至少先替自己的巡線燈留一份備件。',
         nextLead: '調查南門場景中的燈罩扣。',
         reportLines: [
-            { actorId: 'lamplighter_tavi', expression: 'pleased', text: '我就說每盞燈只是角度稍微有個性。' },
-            { actorId: 'player', text: '三種扣件全被你放錯了。' },
-            { actorId: 'lamplighter_tavi', expression: 'soft', text: '好吧。下次我會先替自己留一份，再去拯救那些很有個性的門。' }
+            { actorId: 'player', text: '三組扣件都重新配好了。南門巡線燈的那一個也留回來了。' },
+            { actorId: 'lamplighter_tavi', expression: 'guarded', text: '三組都錯了，是不是？' },
+            { actorId: 'player', text: '尺寸全錯。好在沒有一個真的壞掉。' },
+            { actorId: 'lamplighter_tavi', expression: 'soft', text: '我會在盒子上寫門的位置。這次寫大一點，也不再把巡線燈的備件送出去。' }
         ]
     }),
     pot_lid_is_not_a_shield: Object.freeze({
@@ -73,9 +77,10 @@ export const QuestStoryDatabase = Object.freeze({
         active: '在爐邊依照三處受力痕跡安排回火與敲擊順序。', completed: '鍋蓋已恢復能蓋住鍋子的形狀。',
         finished: '鐵匠沒有把它掛成紀念品。今晚的鍋終於能正常煮飯。', nextLead: '調查鐵匠鋪中的凹陷鍋蓋。',
         reportLines: [
-            { actorId: 'blacksmith', expression: 'guarded', text: '鍋蓋不是盾。下次再有人這樣用，我先罵他。' },
-            { actorId: 'player', text: '它保住了共用水桶。' },
-            { actorId: 'blacksmith', expression: 'soft', text: '所以我才把每道凹痕都修好。城裡要的是晚餐，不是第二面盾。' }
+            { actorId: 'player', text: '最深的凹痕是第一次落石，邊緣兩處是後來才壓上去的。' },
+            { actorId: 'blacksmith', expression: 'guarded', text: '順序確定？敲錯第一下，裂口就會穿到底。' },
+            { actorId: 'player', text: '確定。背面殘留的石粉也照這個順序疊著。' },
+            { actorId: 'blacksmith', expression: 'pleased', text: '行。你把鍋蓋放下，接下來交給我。今晚至少不用拿木板蓋鍋了。' }
         ]
     }),
     vein_beneath_the_roots: Object.freeze({
@@ -83,14 +88,15 @@ export const QuestStoryDatabase = Object.freeze({
         route: 'adventure',
         speaker: npc('town_scholar', '伊萊'), requestFrom: npc('town_scholar', '伊萊'), reportTo: npc('town_scholar', '伊萊'),
         available: '腐根溪谷下方傳回規律空響。伊萊認為那是一條被地脈震裂、又被黑根重新頂開的舊礦道。',
-        active: '腐根側路已出現洞窟入口。這條路不是森林 Boss 的必要門檻，但洞內可能留有更適合迎戰強敵的素材與裝備。',
+        active: '腐根側路已出現洞窟入口。這條路不在前往根心的必經方向，但洞內可能留有舊礦材與裝備。',
         completed: '岩石巨人倒下後，布蘭的日誌與地脈斷裂紀錄被帶回地面。',
-        finished: '城鎮確認副本是高風險的獨立探索區，也可能保存野外找不到的素材、圖紙與裝備。',
+        finished: '城鎮確認舊礦道能獨立探索，也可能保存野外找不到的素材、圖紙與裝備。',
         nextLead: '從腐根溪谷北側岔路進入幽暗洞窟。',
         reportLines: [
             { actorId: 'player', text: '洞裡不是根室。礦道先被地脈震裂，黑根只是沿著裂口鑽進去。' },
-            { actorId: 'town_scholar', expression: 'guarded', text: '那就不能把洞窟寫成森林守護者的巢。兩件事相連，不代表其中一件製造了另一件。' },
-            { actorId: 'town_scholar', expression: 'soft', text: '我會把入口、風險和可能取得的東西分開記。下次你進副本，是因為你選擇承擔風險，不是主線替你關上其他路。' }
+            { actorId: 'town_scholar', expression: 'guarded', text: '你在裡面看見守護者留下的痕跡嗎？' },
+            { actorId: 'player', text: '沒有。只有舊採礦痕跡、岩石巨人和後來鑽進去的黑根。' },
+            { actorId: 'town_scholar', expression: 'soft', text: '那就分開記。入口的位置、裡面的危險和找到的礦材各寫一欄，別把它算成守護者的巢。' }
         ]
     })
 });

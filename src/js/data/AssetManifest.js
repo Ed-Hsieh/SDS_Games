@@ -11,6 +11,7 @@ const ART_CATEGORY_PATHS = Object.freeze({
     relics: 'items/key-items/relics',
     portraits: 'characters/portraits',
     monsters: 'entities/monsters',
+    guildScenes: 'scenes/guild',
     townLocations: 'scenes/town/locations',
     dungeonAreas: 'scenes/dungeons/areas',
     worldLandmarks: 'scenes/world/landmarks',
@@ -147,6 +148,9 @@ const ART_READY = Object.freeze({
         'stone_golem_mini', 'thorn_witch', 'thunder_elemental', 'tormented_soul',
         'treant', 'vine_beast', 'void_walker', 'wild_wolf', 'wyvern'
     ]),
+    guildScenes: readySet([
+        'adventurers-guild-hall'
+    ]),
     townLocations: readySet([
         'alley', 'casino', 'civic-room-working', 'crossroads',
         'crossroads-broken', 'crossroads-recovery-1', 'forge', 'forge-cold',
@@ -229,6 +233,10 @@ export function getGeneratedAssetIds(category) {
 
 export function getGeneratedTownPlaceImage(placeId) {
     return readyAssetPath('townLocations', placeId);
+}
+
+export function getGeneratedGuildSceneImage(sceneId) {
+    return readyAssetPath('guildScenes', sceneId);
 }
 
 export function getGeneratedPortraitImage(npcId) {

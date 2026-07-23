@@ -200,7 +200,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "三天前，冒險者公會把一張失聯調查委託推到我面前。目的地是南境一座偏遠小鎮；稅簿一個月沒送到，兩名信使也沒有回來。我要確認商路、找出斷訊原因，再把答覆帶回去。",
+                "text": "第三天下午，南路只剩一條被雨沖窄的車轍。上一個公會路標倒在泥裡，往小鎮的箭頭被踩斷了。",
                 "presentationPhase": "pre_battle"
             },
             {
@@ -209,7 +209,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "報酬高得不像普通巡查。委託紙只寫了路遠，沒提黑霧，也沒提沿路那些枯得不像活物的東西。",
+                "text": "霧從林間壓到路面以後，我再也沒看見車輪印。偶爾有枯枝折斷，聲音都離得很近。",
                 "presentationPhase": "pre_battle"
             },
             {
@@ -218,7 +218,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "我在南路外圍已經放倒三隻枯瘦的東西。公會制式獵刀崩了一角，公會外勤皮甲的左肩也被抓開；傷口又冷又麻，草葉擦過靴面時全朝同一個方向伏倒。北方。",
+                "text": "我已經放倒三隻從霧裡撲出的怪物。公會獵刀崩了一角，皮甲左肩也被抓開；傷口沒有流多少血，手指卻越來越麻。",
                 "presentationPhase": "pre_battle"
             },
             {
@@ -245,7 +245,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成主手命中、副手追擊、看見武器耐久耗盡並改以拳頭應戰、實際使用應急藥劑，再嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。"
+                "text": "收起事件層，進入前導戰鬥。怪物行動先被教學鎖定；玩家依序完成主手命中、副手追擊、看見主手耐久耗盡與副手自動遞補、補上新的副武器、實際使用應急藥劑，再嘗試撤離。撤離嘗試完成後才解除鎖定，立即固定觸發斷坡衝撞。"
             },
             {
                 "order": 7,
@@ -253,7 +253,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "巨角撞上刀脊。金屬的低鳴貼著掌骨鑽進來；刀身折斷，視野也從上下兩端猛地闔上。",
+                "text": "巨角撞上刀脊。刀身在手裡折斷，我連退兩步，腳後跟踩空了。",
                 "presentationPhase": "post_battle",
                 "visualMode": "eyes-closing"
             },
@@ -273,7 +273,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "坡頂傳來一聲嘶鳴。那頭巨影沒有追來，只在霧裡踩碎石塊，聲音越來越遠。",
+                "text": "坡頂傳來一聲嘶鳴。碎石又落了幾次，那頭怪物沒有跟著下來。",
                 "presentationPhase": "post_battle",
                 "visualMode": "blackout"
             },
@@ -303,7 +303,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "她撐開我的眼皮，又俐落地探過頸側。藥草、冷水，還有被急促呼吸壓住的一點汗味。",
+                "text": "她撐開我的眼皮，又摸過頸側。冷水淋過傷口，鑷子碰到金屬時發出很輕的一聲。",
                 "presentationPhase": "post_battle",
                 "visualMode": "blackout"
             },
@@ -323,7 +323,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "苦藥壓過嘴裡的血味。她朝城門方向喊了兩個名字；布帶勒緊胸口以前，聲音已經沉了下去。",
+                "text": "苦藥灌進嘴裡。她朝遠處喊人；我只聽見有人跑近，之後便失去了知覺。",
                 "presentationPhase": "post_battle",
                 "visualMode": "blackout"
             }
@@ -331,7 +331,7 @@ export const StorySceneRegistry = Object.freeze({
     },
     "ch1_s02_wake_under_bitter_bottles": {
         "id": "ch1_s02_wake_under_bitter_bottles",
-        "title": "苦瓶底下的水",
+        "title": "醒在藥草工作間",
         "chapter": 1,
         "chapterOrder": 2,
         "stageClass": "town_scene",
@@ -361,7 +361,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "杯子的位置熟悉得讓人胸口發緊。米婭還活著，窗仍關著，一切都尚未走到那聲棘輪。"
+                "text": "米婭正背對著我倒水。看到她轉身，我才發現自己一直沒有呼吸。"
             },
             {
                 "order": 3,
@@ -377,7 +377,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "你照做。指尖仍麻，但已能分辨冷熱。"
+                "text": "我照她說的抬起手。指尖仍麻，但已經能感覺到她掌心的溫度。"
             },
             {
                 "order": 5,
@@ -390,34 +390,34 @@ export const StorySceneRegistry = Object.freeze({
             {
                 "order": 6,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你問起地點與救命的人。她把杯子遞近，沒有先談價錢。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "這裡是哪裡？是你把我帶回來的？"
             },
             {
                 "order": 7,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "herbalist",
-                "expression": "pleased",
-                "text": "這裡是我的工作間。我叫米婭。傷口已經處理好了，你很安全。先休息一會兒。"
+                "expression": "neutral",
+                "text": "這裡是我的工作間。我叫米婭。你倒在南路的斷坡下，我和守門的人把你抬了回來。"
             },
             {
                 "order": 8,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "herbalist",
-                "expression": "guarded",
-                "text": "傷口不深，但麻痺還沒有完全退。我用了苦葉止痛，再用甜膠固定藥粉。今晚如果又發燒，立刻叫我。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "那頭長角的怪物呢？"
             },
             {
                 "order": 9,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你提到報酬。米婭把換下的染血布折到看不見的一面。"
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "guarded",
+                "text": "沒有追下來。你身上的毒和金屬碎屑比較急，我先處理了傷口。"
             },
             {
                 "order": 10,
@@ -425,18 +425,50 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "speaker",
                 "actorId": "herbalist",
                 "expression": "guarded",
-                "text": "報酬先放著。今晚不再發燒，明天再談別的。"
+                "text": "傷口不深，麻痺還沒有完全退。今晚如果又發燒，立刻叫我。"
             },
             {
                 "order": 11,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "herbalist",
+                "actorId": "player",
                 "expression": "neutral",
-                "text": "能走以後去十字路口。村長正在等南路的消息。慢慢來，頭暈就坐下。"
+                "text": "藥和治療要多少錢？"
             },
             {
                 "order": 12,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "米婭把換下的染血布折好，放進一旁的木盆。"
+            },
+            {
+                "order": 13,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "neutral",
+                "text": "先不用談錢。等今晚沒有再發燒，你能站穩了，我們再說。"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "neutral",
+                "text": "能走以後去十字路口。村長在等南路的消息。慢慢來，頭暈就坐下。"
+            },
+            {
+                "order": 15,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "知道了。謝謝你。"
+            },
+            {
+                "order": 16,
                 "condition": "any",
                 "beat": "exit",
                 "actorId": null,
@@ -469,7 +501,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "十字路口比一座正常城鎮安靜太多。鐵匠鋪沒有煙，市集棚布只剩繩子，南門旁的回程板空了大半。"
+                "text": "十字路口很安靜。鐵匠鋪沒有生火，市集棚布被收在柱邊，南門旁的回程板空了大半。"
             },
             {
                 "order": 2,
@@ -477,7 +509,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "井邊排著共用水桶；一塊木牌輪流記著哪戶今天能點爐、哪張床必須留給傷者。連抱怨都說得很小聲，像怕浪費別人的力氣。"
+                "text": "井邊排著幾只共用水桶。有人把一袋乾糧拆開，照門牌分成更小的份量；排隊的人看了一眼，沒有人多拿。"
             },
             {
                 "order": 3,
@@ -485,7 +517,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "那些空位都還只是空位。記憶知道誰會消失，街道卻尚未失去任何人。"
+                "text": "我認得這條街，也認得此刻還在街上的人。我站了一會兒，直到身後有人要我讓路。"
             },
             {
                 "order": 4,
@@ -517,7 +549,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "你還沒追問，一名老人已從公務室的方向走來。他先看你的步子，再看包紮。"
+                "text": "我還沒來得及追問，一名老人已從公務室走來。他看了看我的包紮，停在兩步外。"
             },
             {
                 "order": 8,
@@ -525,45 +557,85 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Village elder 進入；站位刻意留出通往米婭工作間的路。"
+                "text": "Village elder 進入；公務室的門留在他身後。"
             },
             {
                 "order": 9,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "village_elder",
-                "expression": "guarded",
-                "text": "米婭說，你是在南路被找到的。還記得那裡發生了什麼嗎？"
+                "expression": "neutral",
+                "text": "你是公會派來的人？"
             },
             {
                 "order": 10,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你說明聚集的怪物、土下的黑根，以及所有痕跡朝北偏去。老人聽到「朝北」時停了一瞬。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "是。我在南路遭到襲擊，路邊還有一大片黑色樹根。"
             },
             {
                 "order": 11,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "village_elder",
-                "expression": "neutral",
-                "text": "最近出去巡路的人沒有回來。你看見的東西，也許和他們有關。跟我來，伊萊那裡留著以前的路圖。"
+                "expression": "guarded",
+                "text": "你有看見三個巡路的人嗎？"
             },
             {
                 "order": 12,
                 "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "沒有。路上只剩怪物，斷坡那裡還有一頭長角的東西。"
+            },
+            {
+                "order": 13,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "老人看向回程板。最下面三行只有出發時間，後面都是空的。"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "neutral",
+                "text": "他們走過哪些路，伊萊那裡有紀錄。你把南路的情況告訴他，請他找出最後能對上的位置。"
+            },
+            {
+                "order": 15,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "伊萊在哪裡？"
+            },
+            {
+                "order": 16,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "neutral",
+                "text": "公務室裡，靠窗那張桌子。慢慢走，米婭交代過你還不能逞強。"
+            },
+            {
+                "order": 17,
+                "condition": "any",
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "Elder 轉向 civic room；開啟跟隨與下一場景。"
+                "text": "Elder 留在 crossroads；開啟公務室與伊萊的事件標記。"
             }
         ]
     },
     "ch1_s04_elder_to_scholar": {
         "id": "ch1_s04_elder_to_scholar",
-        "title": "三個沒有名字的地點",
+        "title": "三處最後紀錄",
         "chapter": 1,
         "chapterOrder": 4,
         "stageClass": "town_scene",
@@ -571,8 +643,8 @@ export const StorySceneRegistry = Object.freeze({
         "worldState": "Chapter 1; repair notices and missing-person lists interrupt ordinary records",
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
-        "participantsRaw": "village elder, town scholar",
-        "entry": "elder and protagonist enter while 伊萊 is moving papers away from a damp wall",
+        "participantsRaw": "town scholar",
+        "entry": "protagonist enters while 伊萊 is moving papers away from a damp wall",
         "exit": "traveler handbook opens with three fixed unknown `?` location nodes",
         "objective": "inspect the farmland, hunter boardwalk, and old campfire site, then return with physical evidence",
         "inputsRaw": "south-road report",
@@ -593,93 +665,125 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Town scholar 抬頭；elder 留在桌側，不替他說明。"
+                "text": "Town scholar 把椅上的卷宗抱到桌角，示意我坐下。"
             },
             {
                 "order": 3,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "town_scholar",
-                "expression": "pleased",
-                "text": "你就是米婭救回來的那位？請坐。椅子會響，但不會塌——至少昨天還不會。"
+                "expression": "neutral",
+                "text": "村長讓你來找巡路紀錄？"
             },
             {
                 "order": 4,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "village_elder",
-                "expression": "guarded",
-                "text": "南路的怪物突然聚集，附近還發現一路向北延伸的黑色樹根。失蹤的巡路人可能經過那一帶。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "三個人沒有回來。我在南路也沒看見他們。"
             },
             {
                 "order": 5,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "伊萊把一張舊稅路、一份巡線記錄與今天的空白回程板並排。"
+                "beat": "speaker",
+                "actorId": "town_scholar",
+                "expression": "guarded",
+                "text": "南路現在是什麼情況？從你還能確定的地方說。"
             },
             {
                 "order": 6,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "town_scholar",
+                "actorId": "player",
                 "expression": "neutral",
-                "text": "這張圖只能告訴我們舊路怎麼走。南門外的田埂、獵人棧道，還有這處舊營地。那裡若有人經過，多少會留下些東西。"
+                "text": "車轍進霧後就斷了。路邊有黑色樹根，怪物比外圍密得多，斷坡附近還有一頭長角的怪物。"
             },
             {
                 "order": 7,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "town_scholar",
-                "expression": "guarded",
-                "text": "看到什麼就記什麼，沒看到也記下一筆。這張圖已經夠會誤導人了，連水漬都想冒充山脈。"
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "伊萊從架上抽出巡線簿，又找來一張邊角受潮的舊路圖。"
             },
             {
                 "order": 8,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "village_elder",
-                "expression": "resolute",
-                "text": "天黑以前回來。路斷了就記下，怪物太多就繞開。實在過不去，就回頭。"
+                "actorId": "town_scholar",
+                "expression": "neutral",
+                "text": "三個人不是同一天出去的，但路線有重疊。田埂、獵人棧道、舊營地——過了這三處，紀錄就接不上了。"
             },
             {
                 "order": 9,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你問為何不直接清掉沿路怪物。老人看向那塊被潮氣抹去的北線。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "我沿著這三處找。你要帶回什麼？"
             },
             {
                 "order": 10,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "village_elder",
+                "actorId": "town_scholar",
                 "expression": "neutral",
-                "text": "我們需要的是能把消息帶回來的人。多殺幾隻怪物，現在救不了那些失蹤的人。"
+                "text": "先找人。找不到，就記腳印、血跡、遺落物，還有道路哪裡不能走。別只帶猜測回來。"
             },
             {
                 "order": 11,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "town_scholar",
-                "expression": "pleased",
-                "text": "手札拿好。不確定的地方就留白，別看著舊圖替它猜答案。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "路上的怪物呢？"
             },
             {
                 "order": 12,
                 "condition": "any",
+                "beat": "speaker",
+                "actorId": "town_scholar",
+                "expression": "neutral",
+                "text": "能避就避。路不對就回來，別為了把三個地方都走完去冒險。"
+            },
+            {
+                "order": 13,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "他把三處位置圈在手札上，停了一下，又把最外側那條模糊的線擦掉。"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "town_scholar",
+                "expression": "neutral",
+                "text": "這張圖是舊的。看不清的路不要硬走，回來再一起核對。"
+            },
+            {
+                "order": 15,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "我先去南門。"
+            },
+            {
+                "order": 16,
+                "condition": "any",
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "開啟旅途手札與三個黑色 `?` 地標；控制權回到 civic room 出口。"
+                "text": "開啟旅途手札與三個黑色 `?` 地標；控制權回到公務室出口。"
             }
         ]
     },
     "ch1_s05_south_gate_introduction": {
         "id": "ch1_s05_south_gate_introduction",
-        "title": "出去一行，回來一行",
+        "title": "南門的回程板",
         "chapter": 1,
         "chapterOrder": 5,
         "stageClass": "town_scene",
@@ -701,7 +805,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "南門的木料換過幾種顏色，最新的補板也已裂開。芙蕾把巡線旗靠在肩上，正逐筆核對空蕩的回程板。"
+                "text": "南門外側補了兩層木板，門洞只夠一輛車通過。芙蕾站在回程板前，塔維正在把一捆繩索搬進門房。"
             },
             {
                 "order": 2,
@@ -709,82 +813,114 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Frey 進入前景；Tavi 留在後方拆開一盞普通巡燈的玻璃罩。"
+                "text": "Frey 進入前景；Tavi 放下繩索後留在門房旁。"
             },
             {
                 "order": 3,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
-                "expression": "pleased",
-                "text": "要出門？名字寫這裡。回來後在旁邊補上時間。"
+                "expression": "neutral",
+                "text": "出城先登記。名字、目的地，還有預計回來的時間。"
             },
             {
                 "order": 4,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "你出示伊萊的手札。芙蕾看完三處標記，收起笑意。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "我要查田埂、獵人棧道和舊營地。天黑前回來。"
             },
             {
                 "order": 5,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "standard_bearer_frey",
-                "expression": "resolute",
-                "text": "先走田埂。棧道的木板不太穩，天黑後不要走那邊。舊營地傍晚會起霧，來不及就明天再去。"
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "芙蕾接過手札，逐一看完伊萊圈出的地方。"
             },
             {
                 "order": 6,
                 "condition": "any",
-                "beat": "enter",
-                "actorId": null,
-                "expression": null,
-                "text": "Tavi 把玻璃罩裝回燈框，向前半步又停住。"
+                "beat": "speaker",
+                "actorId": "standard_bearer_frey",
+                "expression": "guarded",
+                "text": "這是三個巡路人最後可能經過的地方。你知道自己在找誰嗎？"
             },
             {
                 "order": 7,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "lamplighter_tavi",
-                "expression": "guarded",
-                "text": "霧要是提早下來……看左邊那盞燈。火小了些，別離它太遠就好。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "三名巡路人。找到痕跡也要記下位置。"
             },
             {
                 "order": 8,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "standard_bearer_frey",
-                "expression": "pleased",
-                "text": "他剛檢查過。燈的位置可以信。"
+                "actorId": "lamplighter_tavi",
+                "expression": "neutral",
+                "text": "最後一個人是清晨從這裡出去的。他說先看田埂，再沿棧道回來。"
             },
             {
                 "order": 9,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "lamplighter_tavi",
+                "actorId": "player",
                 "expression": "neutral",
-                "text": "我不知道這算不算……只是那盞燈，今晚滅了四次。"
+                "text": "他當時有受傷嗎？"
             },
             {
                 "order": 10,
-                "condition": "second_run",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "旗在前，燈在後。位置與記憶完全相同，但現在還沒有任何理由要求他們交換責任。"
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "lamplighter_tavi",
+                "expression": "neutral",
+                "text": "沒有。他走路也很正常。中午以前本來就該回來。"
             },
             {
                 "order": 11,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
-                "expression": "soft",
-                "text": "去吧。進門前喊一聲，起霧後看不清臉。"
+                "expression": "neutral",
+                "text": "先查田埂。若那裡接不上，再往棧道走。舊營地最遠，時間不夠就回來。"
             },
             {
                 "order": 12,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "明白。"
+            },
+            {
+                "order": 13,
+                "condition": "second_run",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "我簽完名字，筆尖在回程欄上停了一下。芙蕾伸手把筆抽走，繼續登記下一項。"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "standard_bearer_frey",
+                "expression": "neutral",
+                "text": "回來就在同一行補時間。別讓我們猜外面少了誰。"
+            },
+            {
+                "order": 15,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "我會回來報到。"
+            },
+            {
+                "order": 16,
                 "condition": "any",
                 "beat": "exit",
                 "actorId": null,
@@ -795,7 +931,7 @@ export const StorySceneRegistry = Object.freeze({
     },
     "ch1_s06_three_landmarks": {
         "id": "ch1_s06_three_landmarks",
-        "title": "泥、銀線與冷灰",
+        "title": "三處失聯地點",
         "chapter": 1,
         "chapterOrder": 6,
         "stageClass": "regional_canvas",
@@ -813,7 +949,7 @@ export const StorySceneRegistry = Object.freeze({
         "checkpoints": {
             "south_gate_farmland": {
                 "id": "south_gate_farmland",
-                "title": "獸爪先改了方向",
+                "title": "靴印離開田埂",
                 "beats": [
                     {
                         "order": 1,
@@ -821,7 +957,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "史萊姆退進水溝後，泥面終於沒有新的痕跡覆上來。牠留下的凝膠黏住一塊廢農具鐵片，我把兩樣東西一起收進袋裡。"
+                        "text": "水溝裡的史萊姆散開後，田埂終於露出完整的泥面。我在靠近棧道的一側找到一排靴印。"
                     },
                     {
                         "order": 2,
@@ -829,7 +965,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "靴印仍直向棧道，獸爪卻在碰到黑根前突然轉開。沒有追逐、拖行或搏鬥。人不是在這裡被襲擊，野獸也不是主動往城鎮聚集。"
+                        "text": "靴印沒有停留，也沒有拖行的痕跡。旁邊幾道獸爪印走到黑根前便折向林邊，泥裡看不見血。"
                     },
                     {
                         "order": 3,
@@ -837,13 +973,13 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "手札追加：材料先保留。鐵匠鋪現在沒有火，但這些東西不只是能賣掉的殘渣。"
+                        "text": "我量下靴印的方向，把黏在廢農具上的凝膠分開裝好，沿原路回南門。"
                     }
                 ]
             },
             "south_gate_farmland_report": {
                 "id": "south_gate_farmland_report",
-                "title": "第一頁先回到城裡",
+                "title": "第一份回報",
                 "beats": [
                     {
                         "order": 1,
@@ -851,7 +987,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "南門在身後闔上時，芙蕾先看見我靴邊的泥，再看見手札上分開的兩種足跡。"
+                        "text": "芙蕾闔上門，等我把手札翻到田埂那一頁。"
                     },
                     {
                         "order": 2,
@@ -859,23 +995,23 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "speaker",
                         "actorId": "standard_bearer_frey",
                         "expression": "neutral",
-                        "text": "巡路人的靴印還往棧道走，獸爪卻先轉開了。那裡沒有搏鬥？"
+                        "text": "找到人了嗎？"
                     },
                     {
                         "order": 3,
                         "condition": "any",
-                        "beat": "narration",
-                        "actorId": null,
-                        "expression": null,
-                        "text": "我搖頭，把沒有拖痕、血跡與追逐痕跡的那一行指給她看。"
+                        "beat": "speaker",
+                        "actorId": "player",
+                        "expression": "neutral",
+                        "text": "沒有。靴印還往棧道走，田埂上沒有血，也沒有拖痕。"
                     },
                     {
                         "order": 4,
                         "condition": "any",
                         "beat": "speaker",
                         "actorId": "standard_bearer_frey",
-                        "expression": "resolute",
-                        "text": "那人不是在田埂失蹤的。下一段是棧道，但今天先別急著折回去。"
+                        "expression": "neutral",
+                        "text": "那就接著查棧道。先去給米婭看一下手，你握筆時一直在抖。"
                     },
                     {
                         "order": 5,
@@ -883,51 +1019,59 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "exit",
                         "actorId": null,
                         "expression": null,
-                        "text": "芙蕾把手札留在門房桌上，沒有放我立刻出城。她朝米婭的工作間偏了偏頭：先讓她看過，再談下一段路。"
+                        "text": "芙蕾在回程板補上時間，將下一個事件標記放到米婭的工作間。"
                     }
                 ]
             },
             "south_gate_farmland_recovery": {
                 "id": "south_gate_farmland_recovery",
-                "title": "能走不等於不必檢查",
+                "title": "再確認一次傷勢",
                 "beats": [
                     {
                         "order": 1,
                         "condition": "any",
                         "beat": "speaker",
                         "actorId": "herbalist",
-                        "expression": "guarded",
-                        "text": "我知道你現在站得住。檢查不是等人倒下才做。左手給我。"
+                        "expression": "neutral",
+                        "text": "左手給我。握緊，再放開。"
                     },
                     {
                         "order": 2,
                         "condition": "any",
-                        "beat": "narration",
-                        "actorId": null,
-                        "expression": null,
-                        "text": "米婭依序看過瞳孔、指尖反應與舊傷附近的溫度。她問的是路上曾經出現的麻木與顫抖，不是我此刻還剩多少力氣。"
+                        "beat": "speaker",
+                        "actorId": "player",
+                        "expression": "neutral",
+                        "text": "路上沒有再麻，只是握武器久了會抖。"
                     },
                     {
                         "order": 3,
                         "condition": "any",
-                        "beat": "speaker",
-                        "actorId": "herbalist",
-                        "expression": "soft",
-                        "text": "沒有惡化，可以繼續巡路。下一次若同一隻手先麻，別等傷口裂開才回來。"
+                        "beat": "narration",
+                        "actorId": null,
+                        "expression": null,
+                        "text": "米婭摸過我的指尖，又按了按舊傷周圍。她等了一會兒，才鬆開手。"
                     },
                     {
                         "order": 4,
                         "condition": "any",
+                        "beat": "speaker",
+                        "actorId": "herbalist",
+                        "expression": "neutral",
+                        "text": "傷口沒有腫，手也還有力。可以繼續走；麻痺若再出現，直接回來。"
+                    },
+                    {
+                        "order": 5,
+                        "condition": "any",
                         "beat": "exit",
                         "actorId": null,
                         "expression": null,
-                        "text": "她放開我的手腕，才看了一眼行囊裡的應急藥。傷勢檢查與補給是兩件事。"
+                        "text": "傷勢檢查完成；下一個地標恢復可追蹤狀態。"
                     }
                 ]
             },
             "hunter_boardwalk": {
                 "id": "hunter_boardwalk",
-                "title": "回程標記被重新打過",
+                "title": "被拆下的銀線",
                 "beats": [
                     {
                         "order": 1,
@@ -935,7 +1079,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "巨鼠從棧板下逃開。我沒有順著牠追，而是從回城方向逐節檢查護欄。銀線原本用來標記回程，其中一段卻被拆下，繃在旅人膝後的高度。"
+                        "text": "棧道下的巨鼠逃進草叢。我沿護欄往前找，在兩塊木板之間看見一截銀線。"
                     },
                     {
                         "order": 2,
@@ -943,7 +1087,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "樹脂、落腳點和反覆磨亮的木面都指向同一件事：有捕食者在觀察人怎麼使用這條路，並把人留下的標記改成陷阱。"
+                        "text": "線的一端還繫在回程標記上，另一端被拉到膝蓋高度。附近木面有反覆踩過的亮痕，不像偶然勾住。"
                     },
                     {
                         "order": 3,
@@ -951,13 +1095,13 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "這能解釋棧道上的伏擊，卻解釋不了田埂的獸群為何一起避開黑根。"
+                        "text": "我沒有解開銀線，只畫下位置。靴印在這裡變得混亂，再往前便看不清了。"
                     }
                 ]
             },
             "old_campfire_site": {
                 "id": "old_campfire_site",
-                "title": "冷灰下面仍有溫度",
+                "title": "冷灰下的黑根",
                 "beats": [
                     {
                         "order": 1,
@@ -965,7 +1109,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "野狼退到林緣後仍不肯靠近火坑。我握住武器的手已被震得發麻，舊護具也多了一道被黑根汁蝕出的裂痕。"
+                        "text": "舊營地只剩倒塌的遮棚和一圈濕灰。野狼退進林邊，始終不肯跨過火坑旁的黑根。"
                     },
                     {
                         "order": 2,
@@ -973,7 +1117,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "表層灰燼濕冷，灰層下的黑根卻仍微溫。煙漬留在石塊下方，不在火堆上方；根系正一下一下向北收縮。"
+                        "text": "灰燼表面是冷的，埋在下面的根卻帶著熱。我用刀背撥開泥土，看見它穿過石縫繼續往林子裡延伸。"
                     },
                     {
                         "order": 3,
@@ -981,7 +1125,7 @@ export const StorySceneRegistry = Object.freeze({
                         "beat": "narration",
                         "actorId": null,
                         "expression": null,
-                        "text": "聰明的捕食者可以利用道路，卻不能讓熄滅多時的地下根脈保持溫度。先前那個合理答案，到這裡已經不夠用了。"
+                        "text": "巡路人的痕跡到這裡完全斷了。我記下根的位置，收起手札。"
                     }
                 ]
             }
@@ -993,7 +1137,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "三頁紀錄沒有指向同一種怪物。田埂留下突然改向的獸爪，棧道有人為回程準備的銀線，冷灰下則有仍在向北收縮的根。"
+                "text": "我把三處紀錄攤在膝上。田埂的靴印走向棧道；棧道上的銀線被人拆過；舊營地的灰底下，黑根仍有溫度。"
             },
             {
                 "order": 2,
@@ -1001,7 +1145,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "我把觀察與猜測分開寫下。能確定的只有一件事：這三處不是三場互不相干的麻煩。"
+                "text": "三名巡路人都沒有找到。我只能把看見的東西逐項記下，等回去再和舊紀錄核對。"
             },
             {
                 "order": 3,
@@ -1009,7 +1153,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "記憶知道北方藏著什麼，此刻的證據卻還不夠。我沒有替這一頁補上答案。"
+                "text": "三頁紀錄都沒有三名巡路人員的下落。我把它們照原樣收好，準備帶回去核對。"
             },
             {
                 "order": 4,
@@ -1017,7 +1161,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "我收起手札。來時看過的那段銀線，已經不在原來的位置。"
+                "text": "起身時，棧道方向傳來木板斷裂的聲音。來路上的銀線已經換了位置。"
             },
             {
                 "order": 5,
@@ -1053,7 +1197,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "回程路標被轉了半圈，箭頭指向沒有腳印的灌木。你停下時，膝後傳來一聲極輕的繃響。"
+                "text": "回程路標被轉了半圈，箭頭指向沒有腳印的灌木。我停下時，膝後傳來一聲極輕的繃響。"
             },
             {
                 "order": 2,
@@ -1061,7 +1205,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "銀線不只攔在前方。它沿著你剛才走過的路逐段收緊，把折返也算進陷阱。"
+                "text": "銀線不只攔在前方。它沿著我剛才走過的路逐段收緊，連折返的路也封住了。"
             },
             {
                 "order": 3,
@@ -1093,7 +1237,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "銀線末端纏著黑褐樹脂與細碎焦皮，和舊營火地的根汁相同。伏擊者不是源頭；牠只是把那股變化學成了獵法。"
+                "text": "伏獵者的前肢纏著幾圈銀線，打結的位置沾滿黑褐樹脂。我刮下一點，氣味和舊營地的黑根相同。"
             },
             {
                 "order": 7,
@@ -1101,7 +1245,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "手札追加：怪物會讀取人的路線；黑根壓力正改變捕食行為。線索指向更深的林地。"
+                "text": "路標旁有幾道新刮痕，銀線也被反覆拉動過。我把位置和樹脂記進手札，沒有拆走現場。"
             },
             {
                 "order": 8,
@@ -1115,7 +1259,7 @@ export const StorySceneRegistry = Object.freeze({
     },
     "ch1_s08_cold_forge_smoke": {
         "id": "ch1_s08_cold_forge_smoke",
-        "title": "冷爐重新喘氣",
+        "title": "冷爐重新點火",
         "chapter": 1,
         "chapterOrder": 8,
         "stageClass": "town_scene",
@@ -1124,11 +1268,11 @@ export const StorySceneRegistry = Object.freeze({
         "viewpoint": "protagonist_limited",
         "knowledgeBoundary": null,
         "participantsRaw": "village elder, town scholar, blacksmith",
-        "entry": "protagonist reports the three records and Ambush Mantis evidence before bringing the empty weapon strap, worn gear, and any recovered drop to the forge",
-        "exit": "forge actions open; the next objective requires one Qingning form or an equipped Chapter 1 special drop before entering Rotroot",
-        "objective": "turn the recovered evidence and materials into one usable equipment improvement before entering the forest",
-        "inputsRaw": "Ambush Mantis cleared; early equipment pressure recorded; protagonist may be unarmed or carrying a random special drop",
-        "outputsRaw": "three clues synthesized; bellows repaired with recovered silver thread; five-form Qingning starter crafting opened; one-equipment preparation gate; blacksmith relationship seed",
+        "entry": "protagonist reports the three records and Ambush Mantis evidence before taking damaged gear to the forge",
+        "exit": "forge actions open and the evidence-backed forest route becomes the next objective",
+        "objective": "report the evidence, restore damaged equipment, and decide whether the shared residue justifies entering the forest",
+        "inputsRaw": "Ambush Mantis cleared; protagonist equipment damaged",
+        "outputsRaw": "three clues synthesized; forest investigation chosen; basic repair and starter crafting opened; blacksmith relationship seed",
         "assetNotes": "reuse forge background with cold/relit state treatment; no apprentice asset or new NPC",
         "beats": [
             {
@@ -1137,42 +1281,58 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "南門在我身後重新落閂。公務室裡，伊萊把三頁紀錄排開，又在旁邊留了一塊位置給伏獵者身上的銀線與黑褐樹脂。"
+                "text": "我回到公務室，把三頁紀錄和沾著樹脂的銀線放在桌上。伊萊先拿起銀線，村長站在另一側等我說完。"
             },
             {
                 "order": 2,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "town_scholar",
-                "expression": "guarded",
-                "text": "腳印在半路改了方向，銀線封住回程，線上的樹脂也和舊營地的黑根一樣。這些一定有關，但我們還不知道是什麼關係。"
+                "expression": "neutral",
+                "text": "這個結不是公會常用的打法。你在哪裡找到的？"
             },
             {
                 "order": 3,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "village_elder",
-                "expression": "guarded",
-                "text": "三條路你都親自走過。那些黑根只出現在路邊，還是一路延伸進了林子？"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "回程路標旁。伏獵者用它封住棧道，線上的樹脂和舊營地黑根一樣。"
             },
             {
                 "order": 4,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "我指向三頁上共同朝北的痕跡。伏獵者會死，陷阱也能拆掉；只要地下那股壓力還在，下一種東西仍會學會利用它。"
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "guarded",
+                "text": "黑根到舊營地就停了嗎？"
             },
             {
                 "order": 5,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "village_elder",
-                "expression": "resolute",
-                "text": "好。那就繼續查。先讓鐵匠看看你的裝備。既然要進林子，我至少得確定你還有東西能保住自己。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "沒有。它穿過石縫，繼續往林子裡。巡路人的痕跡也在那附近斷掉。"
             },
             {
                 "order": 6,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "town_scholar",
+                "expression": "neutral",
+                "text": "銀線只能證明伏獵者碰過黑根。要查源頭，還得沿根走。"
+            },
+            {
+                "order": 7,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "neutral",
+                "text": "先去鐵匠鋪。你的刀口裂了，別拿它進林子。"
+            },
+            {
+                "order": 8,
                 "condition": "any",
                 "beat": "narration",
                 "actorId": null,
@@ -1180,60 +1340,44 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。"
             },
             {
-                "order": 7,
+                "order": 9,
                 "condition": "any",
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Blacksmith 從風箱後抬頭，先看空著的武器扣帶與磨損護具；若有拾得裝備，他只用指節敲了一下受力處，最後才看主角的包紮。"
-            },
-            {
-                "order": 8,
-                "condition": "any",
-                "beat": "speaker",
-                "actorId": "blacksmith",
-                "expression": "guarded",
-                "text": "手給我看。再把你現在靠著活下來的東西放桌上；什麼都沒撿到，就把那條空扣帶放下。"
-            },
-            {
-                "order": 9,
-                "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "他扯了扯回收的銀線，確認韌度，再指向脫槽的風箱接帶。"
+                "text": "Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。"
             },
             {
                 "order": 10,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "blacksmith",
-                "expression": "neutral",
-                "text": "風箱的接帶脫槽了。你拉住那邊，我把線穿回去。別鬆手，它彈回來先打我，再打你。"
+                "expression": "guarded",
+                "text": "先站好。你那把刀給我。"
             },
             {
                 "order": 11,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "風箱第一次完整抬起時，冷灰往煙道深處退了一截。第二次，火星終於咬住煤面。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "爐子不是還沒點起來？"
             },
             {
                 "order": 12,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "blacksmith",
-                "expression": "pleased",
-                "text": "行，火回來了。別再拿歪鐵片、空扣帶，或剛撿到卻不合手的東西當作準備。"
+                "expression": "neutral",
+                "text": "煤有，風箱的接帶脫槽了。你拉住那邊，我把線穿回去。手別鬆，它彈回來很疼。"
             },
             {
                 "order": 13,
-                "condition": "second_run",
+                "condition": "any",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "他的大嗓門仍在。記憶知道這間鋪子日後會只剩一聲沉默的錘響，但現在火才剛回來。"
+                "text": "他扯了扯回收的銀線，確認韌度，再把它繞過脫槽的接帶。我照他指的位置壓住拉桿。"
             },
             {
                 "order": 14,
@@ -1241,53 +1385,85 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "他沒有先碰我的武器。漏水的鍋、脫落的門鉸與歪掉的車輪先排到火邊；直到居民用品能重新使用，他才把三份史萊姆凝膠與兩塊粗鐵碎片攤在工作臺上。"
+                "text": "風箱第一次完整抬起時，冷灰往煙道深處退了一截。第二次，火星終於點著煤面。"
             },
             {
                 "order": 15,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "blacksmith",
-                "expression": "resolute",
-                "text": "這些剛好只夠做一件。短劍、匕首、重槌、短槍、枝杖，五種都能用同一批材料；選你會用的，別因為我先畫了劍就把手也換掉。"
+                "expression": "pleased",
+                "text": "行，火回來了。現在說說看，你是拿這把刀砍怪物，還是一路拿它敲石頭？"
             },
             {
                 "order": 16,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "我在五種輪廓間選定慣用的形式。若先前已撿到更合手的武器，也不必為了新圖紙丟下它；真正重要的是帶著能信任的東西走進林子。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "兩樣都有。它還能修嗎？"
             },
             {
                 "order": 17,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "他把還能使用的扣帶與護具推回來，手指停在那塊染血的護面上。"
+                "beat": "speaker",
+                "actorId": "blacksmith",
+                "expression": "neutral",
+                "text": "能。基本修補我現在就能做。要換更好的材料，得等庫房有東西。"
             },
             {
                 "order": 18,
-                "condition": "any",
-                "beat": "speaker",
-                "actorId": "blacksmith",
-                "expression": "soft",
-                "text": "下次把人帶回來。裝備怎樣都行。"
+                "condition": "second_run",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "風箱抬起時，鐵匠罵了一聲鬆掉的接帶。我聽完才把壓著拉桿的手放開。"
             },
             {
                 "order": 19,
                 "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "他把修好的裝備推回來，又重新扣緊鬆掉的護面。"
+            },
+            {
+                "order": 20,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "blacksmith",
+                "expression": "neutral",
+                "text": "護面的扣環也換了。路上若又鬆開，別硬撐著穿。"
+            },
+            {
+                "order": 21,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "我會回來。林子裡的事查清楚後，這把刀可能還得麻煩你。"
+            },
+            {
+                "order": 22,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "blacksmith",
+                "expression": "pleased",
+                "text": "那就少拿它敲石頭。去吧。"
+            },
+            {
+                "order": 23,
+                "condition": "any",
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "Open the forge with all five Qingning forms. Keep the Rotroot route blocked until the player crafts one form or equips an approved Chapter 1 special drop."
+                "text": "Basic forge actions unlock; protagonist returns to crossroads with forest route objective."
             }
         ]
     },
     "ch1_s09_rotroot_approach": {
         "id": "ch1_s09_rotroot_approach",
-        "title": "根脈向北",
+        "title": "腐根裂谷",
         "chapter": 1,
         "chapterOrder": 9,
         "stageClass": "regional_canvas",
@@ -1299,8 +1475,8 @@ export const StorySceneRegistry = Object.freeze({
         "entry": "handbook aligns Ambush Mantis resin with black-root traces",
         "exit": "player reaches the ancient root-heart threshold",
         "objective": "follow the shared residue without treating every forest creature as the source",
-        "inputsRaw": "silver-thread evidence recorded; basic forge available; qualifying equipment prepared; two Rotroot combat trials cleared",
-        "outputsRaw": "Forest Guardian convergence opened; northbound pressure recorded; optional elite and extra-material routes remain player-chosen",
+        "inputsRaw": "silver-thread evidence recorded; basic forge available",
+        "outputsRaw": "Forest Guardian convergence opened; northbound pressure recorded",
         "assetNotes": "regional route and root-heart threshold backgrounds required later",
         "beats": [
             {
@@ -1317,7 +1493,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "越接近腐根裂谷，野獸的足跡越少。牠們不是聚向這裡，而是在繞開一條會搏動的地下根脈。"
+                "text": "越接近腐根裂谷，野獸的足跡越少。幾條足跡在黑根露出地面的地方轉彎，沒有再靠近。"
             },
             {
                 "order": 3,
@@ -1325,7 +1501,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "米婭在手札邊角留下的症狀記錄與眼前一致：先麻木，再發熱；接觸時間越長，方向感越差。這不是可供交易的鑑定，只是她不想再看見同一種傷。"
+                "text": "我用布裹住手，撥開一截露出地面的根。指尖很快開始發麻，和南路受傷時一樣。"
             },
             {
                 "order": 4,
@@ -1333,7 +1509,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "伊萊的舊圖把裂谷畫成死路。現況卻顯示根脈穿過岩縫，繼續朝北。"
+                "text": "舊圖把裂谷畫成死路，黑根卻從岩縫穿了過去。我繞到高處，才找到一條能下去的坡。"
             },
             {
                 "order": 5,
@@ -1341,7 +1517,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "你知道北方的答案遠比這一章殘酷，仍只能記下此刻能證明的事：森林正在承受從別處傳來的壓力。"
+                "text": "岩縫的位置和記憶裡一樣。我沒有直接下去，先確認兩側沒有新的足跡。"
             },
             {
                 "order": 6,
@@ -1363,7 +1539,7 @@ export const StorySceneRegistry = Object.freeze({
     },
     "ch1_s10_forest_guardian": {
         "id": "ch1_s10_forest_guardian",
-        "title": "守門者不是傷口",
+        "title": "古樹根心的守衛",
         "chapter": 1,
         "chapterOrder": 10,
         "stageClass": "location_scene",
@@ -1385,7 +1561,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "守護者的前肢沾滿黑汁，肩背的舊木甲卻留下人為剝取的痕跡。牠守著受傷的根心，也把每一個靠近者當成下一把刀。"
+                "text": "守護者的前肢沾滿黑汁，肩背缺了幾塊樹皮。牠擋在根心前方，爪痕一路留到我腳邊。"
             },
             {
                 "order": 2,
@@ -1393,7 +1569,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "根心在牠身後收縮。每一次搏動都比牠的呼吸早半拍，壓力並不由牠發出。"
+                "text": "牠停下時，身後的黑根仍在收縮。地面的震動先傳過來，牠才跟著抬頭。"
             },
             {
                 "order": 3,
@@ -1425,7 +1601,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "沒有守護者阻擋後，黑色細根反而更清楚。它們穿過根心，不在此處生長；像某種更遠的脈動借森林傳遞。"
+                "text": "守護者倒下後，根心沒有停。黑色細根穿過它底下的土層，震動仍從更遠的地方傳來。"
             },
             {
                 "order": 7,
@@ -1433,7 +1609,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "手札結論：守護者是被傷口逼瘋的守門者，不是傷口本身。附近道路可重新判讀，但北向壓力仍在。"
+                "text": "我記下震動的間隔和根伸出的方向。回程路已經打開，三名巡路人仍沒有下落。"
             },
             {
                 "order": 8,
@@ -1447,7 +1623,7 @@ export const StorySceneRegistry = Object.freeze({
     },
     "ch1_s11_roads_breathe_again": {
         "id": "ch1_s11_roads_breathe_again",
-        "title": "第一批送進爐火的東西",
+        "title": "南門重新開放",
         "chapter": 1,
         "chapterOrder": 11,
         "stageClass": "town_scene",
@@ -1467,7 +1643,7 @@ export const StorySceneRegistry = Object.freeze({
                 "title": "名字重新劃回回程欄",
                 "beatRange": [
                     1,
-                    4
+                    7
                 ],
                 "background": "South Gate after the Forest Guardian route",
                 "backgroundImage": "src/assets/images/art/scenes/town/locations/gate-broken.webp"
@@ -1475,8 +1651,8 @@ export const StorySceneRegistry = Object.freeze({
             "archive_report": {
                 "title": "守護者與源頭是兩件事",
                 "beatRange": [
-                    5,
-                    8
+                    8,
+                    15
                 ],
                 "background": "the civic archive desk",
                 "backgroundImage": "src/assets/images/art/scenes/town/locations/civic-room-working.webp"
@@ -1484,8 +1660,8 @@ export const StorySceneRegistry = Object.freeze({
             "mia_check": {
                 "title": "冷水與溫杯",
                 "beatRange": [
-                    9,
-                    12
+                    16,
+                    21
                 ],
                 "background": "Mia's herb workroom",
                 "backgroundImage": "src/assets/images/art/scenes/town/locations/mia_workroom.webp"
@@ -1493,8 +1669,8 @@ export const StorySceneRegistry = Object.freeze({
             "forge_recovery": {
                 "title": "第一爐先修普通東西",
                 "beatRange": [
-                    13,
-                    17
+                    22,
+                    27
                 ],
                 "background": "the relit forge and its civilian repair queue",
                 "backgroundImage": "src/assets/images/art/scenes/town/locations/forge.webp"
@@ -1502,8 +1678,8 @@ export const StorySceneRegistry = Object.freeze({
             "crossroads_hint": {
                 "title": "北邊不是北邊",
                 "beatRange": [
-                    18,
-                    20
+                    28,
+                    31
                 ],
                 "background": "the recovering crossroads beside empty freight crates",
                 "backgroundImage": "src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp"
@@ -1516,7 +1692,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "南門先看見的是人影，接著才是手札。芙蕾在回程板上把同一個名字劃回原欄。"
+                "text": "我敲了兩下門。芙蕾認出我後叫人抬閂，塔維把回程板從牆上取了下來。"
             },
             {
                 "order": 2,
@@ -1524,90 +1700,162 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "enter",
                 "actorId": null,
                 "expression": null,
-                "text": "Frey 與 Tavi 進入；旗回到門側，Tavi 點亮一盞供晚歸者辨認的燈。"
+                "text": "Frey 與 Tavi 進入門房前景。"
             },
             {
                 "order": 3,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "standard_bearer_frey",
-                "expression": "pleased",
-                "text": "回來了？正好。名字後面補上時間，省得我換班後還得沿路找人。"
+                "expression": "neutral",
+                "text": "三個人呢？"
             },
             {
                 "order": 4,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "lamplighter_tavi",
-                "expression": "soft",
-                "text": "左邊那盞有亮到嗎？我把燈芯剪短了，霧裡比較不會亂跳。"
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "沒找到。棧道有伏擊，林子裡還有一頭守護者。"
             },
             {
                 "order": 5,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "報告在公務室攤開。伊萊把「守護者」與「源頭」分成兩欄，村長盯著那條北向根線。"
+                "beat": "speaker",
+                "actorId": "lamplighter_tavi",
+                "expression": "guarded",
+                "text": "他們的路線就在那一帶。你找到衣物或公會標記了嗎？"
             },
             {
                 "order": 6,
                 "condition": "any",
-                "beat": "enter",
-                "actorId": null,
-                "expression": null,
-                "text": "Elder、town scholar 與 Mia 進入桌邊場景。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "沒有。我先把現場和黑根的位置帶回來了。"
             },
             {
                 "order": 7,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "town_scholar",
-                "expression": "guarded",
-                "text": "三處的紀錄都對得上。目前沒有發現新的痕跡，但我還不能說道路已經安全。"
+                "actorId": "standard_bearer_frey",
+                "expression": "neutral",
+                "text": "去找村長和伊萊。我替你補回程時間，今晚不再放人出去。"
             },
             {
                 "order": 8,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "village_elder",
-                "expression": "neutral",
-                "text": "照實寫。哪裡能走，哪裡還有怪物，都標清楚。明天還會有人照著這一頁出門。"
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "伊萊把新紀錄壓在舊路圖旁。村長沒有坐，視線一直停在巡路人失去痕跡的位置。"
             },
             {
                 "order": 9,
                 "condition": "any",
-                "beat": "speaker",
-                "actorId": "herbalist",
-                "expression": "neutral",
-                "text": "我把治療南路麻痺的配方寫好了。貨路恢復以後，市集才有材料配藥。現在還做不出來。"
+                "beat": "enter",
+                "actorId": null,
+                "expression": null,
+                "text": "Elder 與 town scholar 進入桌邊場景。"
             },
             {
                 "order": 10,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "herbalist",
+                "actorId": "town_scholar",
                 "expression": "guarded",
-                "text": "手給我。先確認麻痺真的退了。"
+                "text": "守護者倒下以後，地面還在震？"
             },
             {
                 "order": 11,
                 "condition": "any",
-                "beat": "narration",
-                "actorId": null,
-                "expression": null,
-                "text": "米婭依序碰過指尖，讓你閉眼分辨冷水與溫杯。她確認答案後才把手放開。"
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "還在震。黑色細根穿過根心，延伸到更深的土層裡。守護者不是源頭。"
             },
             {
                 "order": 12,
                 "condition": "any",
                 "beat": "speaker",
-                "actorId": "herbalist",
-                "expression": "pleased",
-                "text": "冷熱都分得出來。今晚不再發麻，就不用重新換藥。"
+                "actorId": "town_scholar",
+                "expression": "neutral",
+                "text": "我會把守護者和黑根分開記。三條路先標成可以通行，旁邊保留怪物位置。"
             },
             {
                 "order": 13,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "neutral",
+                "text": "巡路的人還沒找到，不能說安全。讓南門照這份圖安排人手。"
+            },
+            {
+                "order": 14,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "南路的麻痺也和黑根有關。我想再去問米婭，她可能認得症狀。"
+            },
+            {
+                "order": 15,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "village_elder",
+                "expression": "neutral",
+                "text": "去吧。也讓她看看你的手。你在林子裡待得太久了。"
+            },
+            {
+                "order": 16,
+                "condition": "any",
+                "beat": "enter",
+                "actorId": null,
+                "expression": null,
+                "text": "Mia 在工作桌旁放下剛寫完的配方。"
+            },
+            {
+                "order": 17,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "neutral",
+                "text": "先坐下。手給我。"
+            },
+            {
+                "order": 18,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "林子裡的黑根會讓人先麻木，再發熱。和我在南路中的毒很像。"
+            },
+            {
+                "order": 19,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "guarded",
+                "text": "先不下結論。我要確認你現在還能不能分辨冷熱。閉上眼睛。"
+            },
+            {
+                "order": 20,
+                "condition": "any",
+                "beat": "narration",
+                "actorId": null,
+                "expression": null,
+                "text": "米婭依序碰過我的指尖，先用冷水，再換成溫杯。她等我回答完才把手放開。"
+            },
+            {
+                "order": 21,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "herbalist",
+                "expression": "pleased",
+                "text": "都分得出來。今晚不再發麻，就不用重新換藥。配方我已經寫好，等貨路恢復才有材料能做。"
+            },
+            {
+                "order": 22,
                 "condition": "any",
                 "beat": "narration",
                 "actorId": null,
@@ -1615,7 +1863,7 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "遠處的鐵匠鋪傳來風箱聲。鐵匠走到門邊，手上仍沾著冷灰。"
             },
             {
-                "order": 14,
+                "order": 23,
                 "condition": "any",
                 "beat": "enter",
                 "actorId": null,
@@ -1623,31 +1871,47 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "Blacksmith 短暫進入 crossroads 邊緣。"
             },
             {
-                "order": 15,
+                "order": 24,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "blacksmith",
                 "expression": "pleased",
-                "text": "爐子能用了。我可以先修鍋和門鉸。煤和鐵運不進來，武器的事還得等。"
+                "text": "你的刀還在。看來這次沒拿它敲石頭。"
             },
             {
-                "order": 16,
+                "order": 25,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "player",
+                "expression": "neutral",
+                "text": "接下來能做新裝備了？"
+            },
+            {
+                "order": 26,
+                "condition": "any",
+                "beat": "speaker",
+                "actorId": "blacksmith",
+                "expression": "neutral",
+                "text": "先別急。煤和鐵還運不進來。我現在先修鍋、門鉸和車輪，這些東西每天都有人等。"
+            },
+            {
+                "order": 27,
                 "condition": "any",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "爐前排起的第一批東西沒有一把武器：漏水的鍋、鬆掉的門鉸、裂開的手推車輪。鐵匠嘴上罵著順序，卻把鍋放到最前面。"
+                "text": "爐前排起的第一批東西沒有一把武器：漏水的鍋、鬆掉的門鉸、裂開的手推車輪。鐵匠一邊抱怨數量，一邊把漏水的鍋放到最前面。"
             },
             {
-                "order": 17,
+                "order": 28,
                 "condition": "second_run",
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "這些聲音都回到了原位：旗布、燈罩、風箱、紙頁。記憶沒有讓任何人知道未來，只讓你聽見它們將來可能缺席。"
+                "text": "我在回程欄簽名時停了一下。芙蕾在後面催我別擋著門，我才把筆放回去。"
             },
             {
-                "order": 18,
+                "order": 29,
                 "condition": "any",
                 "beat": "enter",
                 "actorId": null,
@@ -1655,7 +1919,7 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "Street beggar 從空市集棚後探出身，手裡換成一片彎曲木屑。"
             },
             {
-                "order": 19,
+                "order": 30,
                 "condition": "any",
                 "beat": "speaker",
                 "actorId": "street_beggar",
@@ -1663,7 +1927,7 @@ export const StorySceneRegistry = Object.freeze({
                 "text": "北邊不是北邊。花在上面，路在下面。你們的紙走反了。"
             },
             {
-                "order": 20,
+                "order": 31,
                 "condition": "any",
                 "beat": "exit",
                 "actorId": null,
@@ -5898,7 +6162,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "米婭父親的補給編次停在外圍以前。他的最後位置仍不明，名冊沒有把個人失蹤硬塞進封痕答案。"
+                "text": "Mia 父親的補給編次停在外圍以前。他的最後位置仍不明，名冊沒有把個人失蹤硬塞進封痕答案。"
             },
             {
                 "order": 11,
@@ -8155,7 +8419,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "narration",
                 "actorId": null,
                 "expression": null,
-                "text": "最後一擊由玩家現有裝備完成。沒有指定神劍替代選擇，也沒有光明、虛空、外傳首領獎勵或追加內容力量介入本傳結局。"
+                "text": "最後一擊由玩家現有裝備完成。沒有指定神劍替代選擇，也沒有光明、虛空、外傳 Boss 獎勵或 DLC 力量介入本傳結局。"
             },
             {
                 "order": 7,
@@ -8569,7 +8833,7 @@ export const StorySceneRegistry = Object.freeze({
                 "beat": "exit",
                 "actorId": null,
                 "expression": null,
-                "text": "本傳真結局在此收束；尚未完成的外傳路線維持選擇性，後續追加內容另行展開。"
+                "text": "Close the base campaign true ending; unfinished external routes remain optional, and later DLC stays separate."
             }
         ]
     }

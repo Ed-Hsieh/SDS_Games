@@ -185,7 +185,8 @@ export default class EncyclopediaScene {
 
     bindEvents() {
         this.dom.backButton?.addEventListener('click', () => {
-            if (typeof this.app?.navigateTo === 'function') this.app.navigateTo('lobby');
+            const returnRoute = this.app?.consumeReturnRoute?.('encyclopedia', 'lobby') || 'lobby';
+            if (typeof this.app?.navigateTo === 'function') this.app.navigateTo(returnRoute);
             else this.app?.loadScene?.('lobby');
         });
 

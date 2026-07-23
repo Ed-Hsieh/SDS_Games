@@ -22,30 +22,35 @@ import { buildMonsterCombatActions } from '../data/MonsterCombatProfiles.js';
 
 const readNumber = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 
+function requireNumber(value, label) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) throw new Error(`${label} must be a finite number`);
+    return number;
+}
+
 function getItemAttack(item) {
-    return readNumber(item?.attack, 0);
+    return requireNumber(item?.attack, `Weapon ${item?.id || '(unknown)'}.attack`);
 }
 
 function getItemSpeed(item) {
-    return Math.max(0.35, readNumber(item?.attackSpeed, 1));
+    const speed = requireNumber(item?.attackSpeed, `Weapon ${item?.id || '(unknown)'}.attackSpeed`);
+    if (speed <= 0) throw new Error(`Weapon ${item?.id || '(unknown)'}.attackSpeed must be greater than zero`);
+    return speed;
 }
 
-function getWeaponEffect(item, fallback = 'sword') {
-    if (!item) return fallback;
-    return getWeaponCombatProfile({ equipment: { weapon: item } })?.id || fallback;
-}
-
-function buildWeaponEntry(item, character, monster, slot) {
+export function buildCombatWeaponEntry(item, character, monster, slot) {
     const isMain = slot === 'main';
     const enabled = isMain || Boolean(item);
-    const attack = isMain
-        ? Math.max(5, readNumber(character?.getTotalAtk?.(), character?.baseAtk || 5))
-        : Math.max(4, readNumber(character?.baseAtk, 5) + getItemAttack(item));
-    const defense = readNumber(monster?.defense, 0);
-    const damage = Math.max(1, Math.round(attack - defense * (isMain ? 0.42 : 0.36)));
+    const attack = !enabled
+        ? 0
+        : (isMain
+            ? requireNumber(character?.getTotalAtk?.(), 'Character total attack')
+            : requireNumber(character?.baseAtk, 'Character base attack') + getItemAttack(item));
+    const defense = requireNumber(monster?.defense, `Monster ${monster?.id || '(unknown)'}.defense`);
+    const damage = enabled ? Math.max(1, Math.round(attack - defense)) : 0;
     const speed = item ? getItemSpeed(item) : 0.82;
     const profile = getWeaponCombatProfile({ equipment: { weapon: item } });
-    const effect = profile?.id || getWeaponEffect(item, isMain ? 'heavy' : 'dagger');
+    const effect = profile.id;
     const icon = item ? getGeneratedItemImage(item) : '';
     const element = getWeaponCombatElement(item);
     const combatEffects = item
@@ -87,10 +92,10 @@ export function createCombatEncounter(monster, options = {}) {
     const armorSlot = character?.equipment?.armor;
     const offhand = mainWeapon && String(armorSlot?.type || '').toLowerCase() === 'weapon' ? armorSlot : null;
     const loadout = {
-        main: buildWeaponEntry(mainWeapon, character, monster, 'main'),
-        offhand: buildWeaponEntry(offhand, character, monster, 'offhand')
+        main: buildCombatWeaponEntry(mainWeapon, character, monster, 'main'),
+        offhand: buildCombatWeaponEntry(offhand, character, monster, 'offhand')
     };
-    const playerDefense = Math.max(0, readNumber(character?.getTotalDef?.(), character?.baseDef || 0));
+    const playerDefense = Math.max(0, requireNumber(character?.getTotalDef?.(), 'Character total defense'));
 
     return {
         monster,
@@ -117,8 +122,8 @@ export function createCombatEncounter(monster, options = {}) {
         },
         player: {
             name: character?.name || '玩家',
-            maxHp: Math.max(1, readNumber(character?.maxHp, 120)),
-            hp: Math.max(1, readNumber(character?.hp, 120)),
+            maxHp: Math.max(1, requireNumber(character?.maxHp, 'Character maxHp')),
+            hp: Math.max(1, requireNumber(character?.hp, 'Character hp')),
             potions: 0,
             potionHeal: 30,
             potionCooldown: 1.2,
@@ -165,7 +170,7 @@ export function settleEncounterVictory(encounter) {
         : Math.max(0, readNumber(monster.gold, 0));
     const gold = Math.floor(baseGold * (1 + (rewardEffects.goldBonus || 0) / 100));
     const exp = Math.floor(Math.max(0, readNumber(monster.exp, 0)) * (1 + (rewardEffects.expBonus || 0) / 100));
-    const drops = calculateDrops(monster, {
+    const drops = mergeEncounterDrops(calculateDrops(monster, {
         dungeonId,
         dropBonus: rewardEffects.dropBonus || 0
     }).map((drop, index) => {
@@ -179,7 +184,7 @@ export function settleEncounterVictory(encounter) {
             decision: item ? 'pending' : 'unavailable',
             stored: item ? null : 'missing'
         };
-    });
+    }));
     const blueprintUnlocks = resolveBattleBlueprintUnlocks({
         monster,
         dungeonId
@@ -203,6 +208,34 @@ export function settleEncounterVictory(encounter) {
     };
 }
 
+export function mergeEncounterDrops(drops = []) {
+    const merged = [];
+    const stackIndexByItemId = new Map();
+
+    for (const sourceDrop of drops) {
+        if (!sourceDrop) continue;
+        const drop = { ...sourceDrop };
+        const itemId = drop.item?.id || drop.itemId;
+        const canMerge = drop.decision === 'pending'
+            && itemId
+            && drop.item
+            && GameManager.isStackable(drop.item);
+        const existingIndex = canMerge ? stackIndexByItemId.get(itemId) : undefined;
+
+        if (existingIndex !== undefined) {
+            const existing = merged[existingIndex];
+            existing.quantity = Math.max(1, Number(existing.quantity) || 1)
+                + Math.max(1, Number(drop.quantity) || 1);
+            continue;
+        }
+
+        if (canMerge) stackIndexByItemId.set(itemId, merged.length);
+        merged.push(drop);
+    }
+
+    return merged;
+}
+
 export function createPrologueTutorialEncounter(habitat, tile) {
     const encounter = createLocationEncounter({
         monsterId: 'blood_moon_stag',
@@ -219,6 +252,7 @@ export function createPrologueTutorialEncounter(habitat, tile) {
         className: '未知巨獸 · 異常個體',
         level: '??',
         maxHp: 1200,
+        healthFloorRatio: 0.4,
         background: 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp',
         backgroundAlt: '黑根蔓延的南路斷坡',
         visualScale: '1.08',
@@ -261,36 +295,14 @@ export function createPrologueTutorialEncounter(habitat, tile) {
         potions: 1,
         potionHeal: 30
     };
-    encounter.loadout = {
-        ...encounter.loadout,
-        main: {
-            ...encounter.loadout.main,
-            id: 'prologue_hunter_blade',
-            name: '公會制式獵刀',
-            damage: 9,
-            cooldown: 0.9,
-            windup: 0.09,
-            critDamage: 1.5,
-            enabled: true,
-            triggerBuff: null
-        },
-        offhand: {
-            ...encounter.loadout.offhand,
-            id: 'prologue_hunter_knife',
-            name: '公會副手獵刀',
-            effect: 'dagger',
-            damage: 6,
-            cooldown: 0.72,
-            enabled: true,
-            triggerBuff: null
-        }
-    };
+    encounter.loadout.main.damage = Math.min(12, encounter.loadout.main.damage);
+    encounter.loadout.offhand.damage = Math.min(9, encounter.loadout.offhand.damage);
     encounter.context = {
         ...(encounter.context || {}),
         prologueTutorial: true,
         prologueIssuedGear: Object.freeze({
-            weapon: '公會制式獵刀',
-            armor: '公會外勤皮甲'
+            weapon: encounter.loadout.main.name,
+            armor: encounter.loadout.offhand.name
         })
     };
     encounter.monster.exp = 0;
@@ -301,8 +313,9 @@ export function createPrologueTutorialEncounter(habitat, tile) {
 }
 
 export function resolveEncounterDrop(drop, decision) {
-    if (!drop || drop.decision !== 'pending') return drop;
-    if (decision === 'discard') {
+    if (!drop || !['pending', 'discarded'].includes(drop.decision)) return drop;
+    const wasDiscarded = drop.decision === 'discarded';
+    if (decision === 'discard' && !wasDiscarded) {
         drop.decision = 'discarded';
         drop.stored = 'discarded';
         return drop;
@@ -318,7 +331,9 @@ export function resolveEncounterDrop(drop, decision) {
     const added = GameManager.addToInventory(item, quantity);
     const stored = added ? 'inventory' : 'inventory-full';
     drop.stored = stored;
-    drop.decision = stored === 'inventory-full' ? 'pending' : 'claimed';
+    drop.decision = stored === 'inventory-full'
+        ? (wasDiscarded ? 'discarded' : 'pending')
+        : 'claimed';
     if (drop.decision === 'claimed') markItemKnown(item.id);
     return drop;
 }

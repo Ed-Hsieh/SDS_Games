@@ -111,7 +111,9 @@ const ambient = (id, lines, options = {}) => ({
     id,
     priority: options.priority || 1,
     tone: options.tone || 'ambient',
-    lines: lines.map(text => ({ speaker: 'npc', text })),
+    lines: lines.map(line => typeof line === 'string'
+        ? { speaker: 'npc', text: line }
+        : line),
     route: options.route,
     routeLabel: options.routeLabel
 });
@@ -128,6 +130,39 @@ const questRequest = (id, questId, afterSceneId, lines, options = {}) => ({
         { type: 'questStatus', questId, status: 'locked' }
     ],
     lines,
+    decision: {
+        title: options.decisionTitle || '你要怎麼回覆？',
+        choices: [
+            {
+                id: 'accept',
+                kind: 'accept',
+                kindLabel: '接受',
+                title: options.acceptTitle || '接下請求',
+                summary: options.acceptSummary || '答應處理這件事',
+                commitsEffects: true,
+                responseLines: options.acceptLines || [
+                    { actorId: 'player', text: '好，我去看看。' },
+                    { actorId: options.npcId, text: '先確認情況。遇到危險就回來。' }
+                ]
+            },
+            ...(options.questionLines?.length ? [{
+                id: 'question',
+                kind: 'question',
+                kindLabel: '詢問',
+                title: options.questionTitle || '詢問細節',
+                summary: options.questionSummary || '先確認已知情況',
+                returnsToDecision: true,
+                responseLines: options.questionLines
+            }] : []),
+            {
+                id: 'leave',
+                kind: 'leave',
+                kindLabel: '離開',
+                title: '暫時離開',
+                summary: '先不答應這件事'
+            }
+        ]
+    },
     effects: [
         { type: 'unlockQuest', questId },
         { type: 'acceptQuest', questId, message: `已接取：${options.title}` }
@@ -154,71 +189,140 @@ export const TownDialogueDatabase = {
             { actorId: 'player', text: '伊萊要確認第三份回報的人走到哪裡。' },
             { actorId: 'village_elder', expression: 'guarded', text: '只到南門水溝。他沒進林，也沒看見那條棧道。' },
             { actorId: 'player', text: '所以他寫的「沒有」，其實只是「沒看見」。' },
-            { actorId: 'village_elder', expression: 'neutral', text: '把這句帶回去。伊萊會很高興多出一種麻煩。' }
+            { actorId: 'village_elder', expression: 'neutral', text: '對。把他實際走到的位置也告訴伊萊，免得這份回報被用錯。' }
         ], 'talk', 'village_elder:blank_reports', {
             title: '回報者走到哪裡', summary: '第三名回報者沒有抵達現場；他的否定不能被當成不存在。'
         }),
         questRequest('elder_offers_map_corners', 'map_corners_never_lie', 'ch1_s04_elder_to_scholar', [
-            { actorId: 'village_elder', expression: 'guarded', text: '別拿釘子。這張地圖底下還壓著一段舊記號。' },
-            { actorId: 'player', text: '你看不清楚？' },
-            { actorId: 'village_elder', expression: 'neutral', text: '我看得太清楚，才需要另一個人確認。拿去給伊萊。只問那是什麼，別替它補結局。' }
-        ], { title: '地圖總是不平', summary: '村長交出受潮地圖，要伊萊只辨認捲角下的舊記號。' }),
+            { actorId: 'village_elder', expression: 'guarded', text: '先等一下。這張舊地圖的捲角下還有一道記號。' },
+            { actorId: 'player', text: '你認得那道記號嗎？' },
+            { actorId: 'village_elder', expression: 'neutral', text: '我有印象，但不想只憑印象下判斷。伊萊保留了以前的往來文件，他能幫忙核對。' }
+        ], {
+            title: '捲角下的舊記號', summary: '村長想請伊萊核對受潮地圖上的舊線。',
+            acceptTitle: '帶去給伊萊', acceptSummary: '請伊萊核對舊記號',
+            acceptLines: [
+                { actorId: 'player', text: '好，我拿去請伊萊看看。' },
+                { actorId: 'village_elder', text: '別把地圖壓平。捲角的位置也可能有用。' }
+            ],
+            questionTitle: '詢問地圖來歷', questionSummary: '確認這張地圖從哪裡來',
+            questionLines: [
+                { actorId: 'player', text: '這張地圖是誰留下的？' },
+                { actorId: 'village_elder', expression: 'guarded', text: '二十年前巡路隊用過。其他資料不在我手上，伊萊那裡可能還有當年的收件紀錄。' }
+            ]
+        }),
         ambient('elder_ordinary_paper', [
-            '伊萊說這疊紙不能再壓杯子。我說如果它連一杯水都承受不了，可能也不適合承受城鎮。',
-            '他沒有笑，只把杯子移到我的地圖上。這就是我們目前對休息的共識。'
+            { actorId: 'player', text: '桌上那些都是今天要處理的？' },
+            { actorId: 'village_elder', text: '伊萊剛送來的。有幾份要我簽，剩下的還得找人核對。' },
+            { actorId: 'player', text: '看起來不少。' },
+            { actorId: 'village_elder', text: '是啊。先放著吧，我晚一點會看。' }
         ])
     ],
     town_scholar: [
         questStep('ilai_reads_map_corner', 'map_corners_never_lie', [
             { actorId: 'town_scholar', expression: 'guarded', text: '先別壓平。墨線在紙纖維下面，不是後來沾上的污痕。' },
             { actorId: 'player', text: '是路？' },
-            { actorId: 'town_scholar', expression: 'neutral', text: '一段撤退線。年份是二十年前。其他部分我沒有證據，不替你猜。' }
+            { actorId: 'town_scholar', expression: 'neutral', text: '是一段撤退線，年份是二十年前。其他部分已經糊掉了，我現在只能確認這些。' }
         ], 'talk', 'town_scholar:map_corners', {
             title: '捲角下的線', summary: '伊萊確認捲角下是二十年前的撤退線，但拒絕替空白補上答案。'
         }),
         questRequest('ilai_offers_blank_reports', 'one_blank_too_many', 'ch1_s04_elder_to_scholar', [
-            { actorId: 'town_scholar', expression: 'guarded', text: '三張回報。一張寫沒看見，一張寫沒有，一張寫不知道。村長要我整理成一欄。' },
-            { actorId: 'player', text: '你不打算照做。' },
-            { actorId: 'town_scholar', expression: 'pleased', text: '我打算先證明他為什麼不該這樣要求。去問他第三個人到底走到哪裡。' }
-        ], { title: '空格不是答案', summary: '伊萊拒絕把三種未知壓成同一個答案。' }),
+            { actorId: 'town_scholar', expression: 'guarded', text: '我這裡有三份回報。一個人寫沒看見，一個人寫沒有，第三個只寫不知道。' },
+            { actorId: 'player', text: '差別在他們走到了哪裡。' },
+            { actorId: 'town_scholar', expression: 'pleased', text: '對。至少你沒有先替空白填答案。第三份是村長收的，我需要知道那個人走過哪一段路。' }
+        ], {
+            title: '第三份回報', summary: '伊萊需要確認回報者實際走過的路。',
+            acceptTitle: '去問村長', acceptSummary: '查清第三人的行程',
+            acceptLines: [
+                { actorId: 'player', text: '我去問村長。知道他走到哪裡，這三份回報才有辦法比較。' },
+                { actorId: 'town_scholar', text: '正是。問路線就好，先別問他記不記得結論。' }
+            ],
+            questionTitle: '查看三份回報', questionSummary: '確認三人的原文',
+            questionLines: [
+                { actorId: 'player', text: '先讓我看看三份回報的原文。' },
+                { actorId: 'town_scholar', text: '都在這裡。字很少，問題也正在這裡；我們不知道他們是不是看過同一處地方。' }
+            ]
+        }),
         questRequest('ilai_offers_cave_trace', 'vein_beneath_the_roots', 'ch1_s09_rotroot_approach', [
             { actorId: 'town_scholar', expression: 'guarded', text: '你從腐根溪谷帶回的聲音紀錄，有第二層回音。根室不會這樣響。' },
             { actorId: 'player', text: '地下還有空間。' },
-            { actorId: 'town_scholar', expression: 'neutral', text: '舊礦道。入口被黑根頂開了。那不是森林守護者的必經路，但洞裡留下的礦材或裝備，可能讓那場戰鬥少一點勉強。' },
-            { actorId: 'town_scholar', expression: 'guarded', text: '先說清楚：高價值通常只是高風險留下的另一種名字。要不要進去，由你決定。' }
-        ], { title: '根下的斷脈', summary: '腐根側路顯露幽暗洞窟入口；它是可選的高風險準備路線。' }),
+            { actorId: 'town_scholar', expression: 'neutral', text: '可能是舊礦道。黑根把入口附近的土石撐開了，裡面也許還留著以前的礦材。' },
+            { actorId: 'town_scholar', expression: 'guarded', text: '那裡不在我們原本要走的路上。你若進去，只能自己判斷什麼時候該回頭。' }
+        ], {
+            title: '根下的舊礦道', summary: '回音顯示腐根側路下方另有空間。',
+            acceptTitle: '調查礦道', acceptSummary: '先查看入口是否能通行',
+            acceptLines: [
+                { actorId: 'player', text: '我先去看入口。裡面不對勁，我就撤回來。' },
+                { actorId: 'town_scholar', text: '把回程的位置記清楚。地底的聲音很容易讓人判錯距離。' }
+            ],
+            questionTitle: '詢問舊礦紀錄', questionSummary: '確認礦道原本的用途',
+            questionLines: [
+                { actorId: 'player', text: '你手上有那條礦道的紀錄嗎？' },
+                { actorId: 'town_scholar', text: '只有停採前的運送單。入口位置大致相符，裡面的狀況沒有人能保證。' }
+            ]
+        }),
         ambient('ilai_margin_order', [
-            '村長又把三種不同年份的紙疊在一起。我分開了，他又拿去壓桌腳。',
-            '友情有很多形式。替某人保留錯誤原稿，大概是比較累的那一種。'
+            { actorId: 'player', text: '這三疊文件有什麼差別？' },
+            { actorId: 'town_scholar', text: '年份不同。村長剛才順手疊在一起，我只好重新分開。' },
+            { actorId: 'player', text: '需要幫忙嗎？' },
+            { actorId: 'town_scholar', text: '先不用。我知道每一疊原本放在哪裡，只是得多花一點時間。' }
         ], { route: 'encyclopedia', routeLabel: '翻閱百科' })
     ],
     herbalist: [
         ambient('mia_water_first', [
-            '先喝水。你今天沒有受傷也一樣。',
-            '別露出那種表情。照顧活人不是只有快死的時候才開始。'
+            { actorId: 'herbalist', text: '先喝一口水。' },
+            { actorId: 'player', text: '我今天沒有受傷。' },
+            { actorId: 'herbalist', text: '我知道。你一路走回來，嘴唇都乾了。喝完再說。' }
         ])
     ],
     standard_bearer_frey: [
         questRequest('frey_offers_patrol_soles', 'patrol_soles', 'ch1_s05_south_gate_introduction', [
-            { actorId: 'standard_bearer_frey', expression: 'neutral', text: '出發的人看得見前標。真正缺的是返程。' },
+            { actorId: 'standard_bearer_frey', expression: 'neutral', text: '出去時看得到路標，回來時不一定。尤其是傍晚起霧以後。' },
             { actorId: 'player', text: '要我重走一次？' },
-            { actorId: 'standard_bearer_frey', expression: 'guarded', text: '南門農田和獵人棧道。到現場後轉身，從回城者的方向看。別只顧著往前。' }
-        ], { title: '巡線靴底', summary: '芙蕾要求從返程者的視線檢查兩段既有道路。' }),
+            { actorId: 'standard_bearer_frey', expression: 'guarded', text: '南門農田和獵人棧道。走到那裡後轉身，看看回城的人能不能找到下一個標記。' }
+        ], {
+            title: '返程路標', summary: '芙蕾想確認兩段回程路是否看得清楚。',
+            acceptTitle: '重走兩段路', acceptSummary: '從返程方向檢查路標',
+            acceptLines: [
+                { actorId: 'player', text: '我會從回程方向再走一次，把看不見的標記記下來。' },
+                { actorId: 'standard_bearer_frey', text: '好。天色不夠就明天再去，別摸黑走棧道。' }
+            ],
+            questionTitle: '詢問起霧時間', questionSummary: '確認何時該折返',
+            questionLines: [
+                { actorId: 'player', text: '這幾天大概什麼時候起霧？' },
+                { actorId: 'standard_bearer_frey', text: '比以前早。太陽碰到西邊屋頂，你就該往回走了。' }
+            ]
+        }),
         ambient('frey_flag_rope', [
-            '塔維又把燈繩繫到旗繩上。她說這樣不會忘，我說這樣兩個人會一起摔。',
-            '她改口說這叫團隊精神。我正在考慮把團隊精神剪斷。'
+            { actorId: 'player', text: '這兩捆繩子要放在一起嗎？' },
+            { actorId: 'standard_bearer_frey', text: '左邊的留在門上，右邊的拿去補路標。別混了。' },
+            { actorId: 'player', text: '右邊這捆？' },
+            { actorId: 'standard_bearer_frey', text: '對。幫我擺到門邊就好，等換班的人帶出去。' }
         ])
     ],
     lamplighter_tavi: [
         questRequest('tavi_offers_lamp_clasps', 'lamp_glass_for_every_door', 'ch1_s05_south_gate_introduction', [
-            { actorId: 'lamplighter_tavi', expression: 'pleased', text: '三扇門，三盞燈，三種尺寸。理論上非常簡單。' },
+            { actorId: 'lamplighter_tavi', expression: 'pleased', text: '三扇門的燈扣尺寸不一樣。我本來以為重新分一次就好。' },
             { actorId: 'player', text: '實際上呢？' },
-            { actorId: 'lamplighter_tavi', expression: 'guarded', text: '實際上每扇門都覺得自己的燈最急，而我可能把巡線燈的備用扣也分出去了。' },
-            { actorId: 'lamplighter_tavi', expression: 'soft', text: '幫我在南門重新配一次。我負責在芙蕾發現以前承認錯誤。' }
-        ], { title: '每扇門都嫌燈歪', summary: '塔維需要把居民燈與巡線燈的扣件重新分配。' }),
+            { actorId: 'lamplighter_tavi', expression: 'guarded', text: '我把巡線燈的備用扣也分出去了。現在南門少了一個能用的。' },
+            { actorId: 'lamplighter_tavi', expression: 'soft', text: '你能陪我重新核對一次嗎？我一個人去說，可能會越說越亂。' }
+        ], {
+            title: '重新分配燈扣', summary: '塔維少算了一個南門巡線燈扣。',
+            acceptTitle: '陪他核對', acceptSummary: '重新確認三扇門的尺寸',
+            acceptLines: [
+                { actorId: 'player', text: '走吧。我陪你把尺寸重新量一遍。' },
+                { actorId: 'lamplighter_tavi', text: '好。先從南門開始，那一盞最不能少。' }
+            ],
+            questionTitle: '詢問缺少數量', questionSummary: '確認要補幾個燈扣',
+            questionLines: [
+                { actorId: 'player', text: '現在到底少了幾個？' },
+                { actorId: 'lamplighter_tavi', text: '南門少一個。其他兩扇門有替代品，只是尺寸需要重新配。' }
+            ]
+        }),
         ambient('tavi_spare_lamp', [
-            '我帶了三盞備燈。芙蕾說太多，我說她也帶了三段備繩。',
-            '所以我們現在非常專業，而且誰都不能先笑對方。'
+            { actorId: 'player', text: '今天怎麼帶了這麼多燈？' },
+            { actorId: 'lamplighter_tavi', text: '昨晚風大，北邊那盞滅了兩次。我想多帶一盞備用。' },
+            { actorId: 'player', text: '可是這裡有三盞。' },
+            { actorId: 'lamplighter_tavi', text: '嗯……我裝好第二盞後，又覺得只多一盞可能不夠。' }
         ])
     ],
     blacksmith: [
@@ -226,11 +330,24 @@ export const TownDialogueDatabase = {
             { actorId: 'blacksmith', expression: 'guarded', text: '看見那只鍋蓋了？先別笑，也別拿錘子。' },
             { actorId: 'player', text: '它像一面被砸壞的盾。' },
             { actorId: 'blacksmith', expression: 'neutral', text: '它不是盾。有人拿它替共用水桶擋了落石。直接敲平，裂口會一路跑到底。' },
-            { actorId: 'blacksmith', expression: 'guarded', text: '先替我把三處受力順序找出來。要修東西，就先承認它經歷過什麼。' }
-        ], { title: '鍋蓋不是盾', summary: '鐵匠要求先讀懂鍋蓋的受力痕跡，再開始修理。' }),
+            { actorId: 'blacksmith', expression: 'guarded', text: '先幫我看清楚三處凹痕是怎麼疊上去的。敲錯順序，這只鍋蓋就真的只能丟了。' }
+        ], {
+            title: '鍋蓋上的凹痕', summary: '鐵匠要先確認三處受力順序。',
+            acceptTitle: '檢查凹痕', acceptSummary: '找出落石撞擊的先後',
+            acceptLines: [
+                { actorId: 'player', text: '我先把三處痕跡看清楚，再回來告訴你順序。' },
+                { actorId: 'blacksmith', text: '這才對。別拿錘子，尤其別拿我的。' }
+            ],
+            questionTitle: '詢問修理方法', questionSummary: '確認為何不能直接敲平',
+            questionLines: [
+                { actorId: 'player', text: '從邊緣慢慢敲回去也不行？' },
+                { actorId: 'blacksmith', text: '不行。裂口已經受過三次力，先敲錯那一面，裂縫會直接穿到底。' }
+            ]
+        }),
         ambient('blacksmith_pot_queue', [
-            '武器先放旁邊。那只鍋漏得比你的護甲有決心。',
-            '等它不再把湯送回地板，我才處理你那些想把怪物送回地裡的東西。'
+            { actorId: 'blacksmith', text: '武器先放旁邊。那只鍋漏了兩天，今天得先補。' },
+            { actorId: 'player', text: '我的護甲還能撐多久？' },
+            { actorId: 'blacksmith', text: '照你現在這樣用，撐得到下午。要是又拿肩甲去撞東西，就早點回來。' }
         ], { route: 'forge', routeLabel: '使用鍛造' })
     ],
     street_beggar: [

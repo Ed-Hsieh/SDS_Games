@@ -36,7 +36,11 @@ import {
 import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
-import { QuestDatabase } from '../src/js/data/Quests.js';
+import {
+    GuildTutorialCommissionId,
+    QuestCompletionMode,
+    QuestDatabase
+} from '../src/js/data/Quests.js';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { getTownRuntimeSummary } from '../src/js/managers/TownStateResolver.js';
 import StorySceneManager from '../src/js/managers/StorySceneManager.js';
@@ -552,10 +556,19 @@ function validateQuests() {
     if (actualGroups.join(',') !== expectedGroups.sort().join(',')) {
         error('optional-quests', `Unexpected quest groups: ${actualGroups.join(',')}`);
     }
-    for (const [group, quests] of Object.entries(QuestDatabase)) {
-        if (!Array.isArray(quests) || quests.length > 0) {
-            error('optional-quests', `${group} must remain empty until an optional quest runtime contract is approved`);
-        }
+    const guildTutorial = QuestDatabase.commission.find(quest => quest.id === GuildTutorialCommissionId);
+    if (guildTutorial?.completionMode !== QuestCompletionMode.AUTO_ARCHIVE) {
+        error('guild-tutorial-quest', 'Guild investigation must auto-archive after the prologue reaches town');
+    }
+
+    const unapprovedOptionalQuests = Object.values(QuestDatabase)
+        .flat()
+        .filter(quest => quest.id !== GuildTutorialCommissionId);
+    if (unapprovedOptionalQuests.length > 0) {
+        error(
+            'optional-quests',
+            `${unapprovedOptionalQuests.length} optional quest(s) remain active before review: ${unapprovedOptionalQuests.map(quest => quest.id).join(', ')}`
+        );
     }
 }
 

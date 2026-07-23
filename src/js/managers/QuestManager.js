@@ -4,7 +4,14 @@
  * (從 scenes/QuestSystem.js 搬移而來)
  */
 import GameManager from './GameManager.js';
-import { QuestDatabase, QuestStatus, QuestType, ObjectiveType, getQuestById } from '../data/Quests.js';
+import {
+    QuestCompletionMode,
+    QuestDatabase,
+    QuestStatus,
+    QuestType,
+    ObjectiveType,
+    getQuestById
+} from '../data/Quests.js';
 import { MonsterDatabase, MonsterType } from '../data/Monsters.js';
 import { getMaterial } from '../data/Materials.js';
 import { resolveItemById } from '../utils/ItemResolver.js';
@@ -155,6 +162,28 @@ class QuestManager {
         };
     }
 
+    resolveObjectiveCompletion(questId, quest, state) {
+        if (quest.completionMode === QuestCompletionMode.AUTO_ARCHIVE) {
+            state.status = QuestStatus.FINISHED;
+            state.progress = [];
+            state.startTime = null;
+
+            GameManager.setFlag?.(`quest.${questId}.finished`, true, { reason: 'quest-auto-archived' });
+            GameManager.setFlag?.(`quest.${questId}.archived`, true, { reason: 'quest-auto-archived' });
+            for (const flag of quest.completionFlags || []) {
+                GameManager.setFlag?.(flag, true, { reason: `quest-auto-archived:${questId}` });
+            }
+            GameManager.markSaveDirty('quest-auto-archived');
+            this.notify('quest_archived', { questId, quest });
+            return QuestStatus.FINISHED;
+        }
+
+        state.status = QuestStatus.COMPLETED;
+        GameManager.markSaveDirty('quest-ready');
+        this.notify('quest_ready', { questId, quest });
+        return QuestStatus.COMPLETED;
+    }
+
     /**
      * 解鎖任務
      */
@@ -269,8 +298,7 @@ class QuestManager {
 
             // 檢查是否所有目標都完成
             if (this.checkQuestCompletion(questId)) {
-                state.status = QuestStatus.COMPLETED;
-                this.notify('quest_ready', { questId, quest });
+                this.resolveObjectiveCompletion(questId, quest, state);
             }
         }
 
@@ -368,8 +396,7 @@ class QuestManager {
             });
 
             if (this.checkQuestCompletion(questId)) {
-                questState.status = QuestStatus.COMPLETED;
-                this.notify('quest_ready', { questId, quest });
+                this.resolveObjectiveCompletion(questId, quest, questState);
             }
         }
 
@@ -404,8 +431,7 @@ class QuestManager {
             });
 
             if (this.checkQuestCompletion(questId)) {
-                questState.status = QuestStatus.COMPLETED;
-                this.notify('quest_ready', { questId, quest });
+                this.resolveObjectiveCompletion(questId, quest, questState);
             }
         }
 
@@ -594,10 +620,8 @@ class QuestManager {
         for (const progress of state.progress || []) {
             progress.current = progress.required;
         }
-        state.status = QuestStatus.COMPLETED;
-        GameManager.markSaveDirty('quest-objectives-completed');
-        this.notify('quest_ready', { questId, quest });
-        return { success: true, quest };
+        const status = this.resolveObjectiveCompletion(questId, quest, state);
+        return { success: true, quest, status };
     }
 
     /**

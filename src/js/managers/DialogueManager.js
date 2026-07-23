@@ -52,8 +52,20 @@ class DialogueManager {
         return this.getAvailableDialogues(npcId)[0] || null;
     }
 
+    getAmbientDialogue(npcId) {
+        return getTownNPCDialogues(npcId)
+            .filter(dialogue => this.isFallbackDialogue(dialogue))
+            .find(dialogue => this.canUseDialogue(npcId, dialogue)) || null;
+    }
+
     getAvailableDialogues(npcId) {
-        const dialogues = [
+        const dialogues = this.getResolvableDialogues(npcId);
+        const storyDialogues = dialogues.filter(dialogue => !this.isFallbackDialogue(dialogue));
+        return storyDialogues.length > 0 ? storyDialogues : dialogues;
+    }
+
+    getResolvableDialogues(npcId) {
+        return [
             ...this.getCompletedQuestReportDialogues(npcId),
             ...this.getAvailableQuestRequestDialogues(npcId),
             ...getTownNPCDialogues(npcId)
@@ -64,9 +76,6 @@ class DialogueManager {
                 if (priorityDiff !== 0) return priorityDiff;
                 return String(a.id).localeCompare(String(b.id), 'zh-Hant');
             });
-
-        const storyDialogues = dialogues.filter(dialogue => !this.isFallbackDialogue(dialogue));
-        return storyDialogues.length > 0 ? storyDialogues : dialogues;
     }
 
     getAvailableQuestRequestDialogues(npcId) {
@@ -102,6 +111,27 @@ class DialogueManager {
             narrativeTitle: story.requestTitle || story.source || '新的委託',
             narrativeSummary: story.requestSummary || opening,
             lines,
+            decision: {
+                title: '你要怎麼回覆？',
+                choices: [
+                    {
+                        id: 'accept',
+                        kind: 'accept',
+                        kindLabel: '接受',
+                        title: '接下委託',
+                        summary: '確認工作與報酬',
+                        commitsEffects: true,
+                        responseLines: [{ actorId: 'player', text: '我接下這件事。把需要確認的地方再說一次。' }]
+                    },
+                    {
+                        id: 'leave',
+                        kind: 'leave',
+                        kindLabel: '離開',
+                        title: '暫時離開',
+                        summary: '先不接下這件事'
+                    }
+                ]
+            },
             effects: [
                 { type: 'acceptQuest', questId: availableQuest.id, message: story.acceptMessage || `已接取：${questName}` }
             ],
@@ -270,17 +300,41 @@ class DialogueManager {
     getDialogueTopic(dialogue = {}) {
         const type = this.getDialogueTopicType(dialogue);
         const category = this.getDialogueTopicCategory(dialogue, type);
+        const kind = this.getDialogueChoiceKind(category, type);
+        const title = dialogue.narrativeTitle || dialogue.topicTitle || dialogue.id || '交談';
         return {
             id: dialogue.id,
             type,
             category,
-            categoryLabel: this.getDialogueCategoryLabel(category),
-            label: this.getDialogueTopicLabel(dialogue, type),
-            title: dialogue.narrativeTitle || this.getDialogueTopicLabel(dialogue, type),
+            kind,
+            kindLabel: this.getDialogueChoiceKindLabel(kind),
+            label: title,
+            title,
             summary: this.getDialogueTopicSummary(dialogue, type),
             icon: this.getDialogueTopicIcon(dialogue, type),
-            priority: Number(dialogue.priority) || 0
+            priority: Number(dialogue.priority) || 0,
+            isPrimary: kind === 'report'
         };
+    }
+
+    getDialogueChoiceKind(category = 'chat', type = 'status') {
+        if (type === 'report') return 'report';
+        if (category === 'side') return type === 'request' ? 'side-request' : 'side-progress';
+        if (category === 'town') return type === 'request' ? 'town-request' : 'town-event';
+        if (category === 'function') return 'function';
+        return 'conversation';
+    }
+
+    getDialogueChoiceKindLabel(kind = 'conversation') {
+        return {
+            report: '回報任務',
+            'side-request': '接下支線',
+            'side-progress': '推進支線',
+            'town-request': '城鎮委託',
+            'town-event': '了解此事',
+            function: '開啟功能',
+            conversation: '交談'
+        }[kind] || '交談';
     }
 
     getDialogueRelatedQuestIds(dialogue = {}) {
@@ -316,16 +370,6 @@ class DialogueManager {
         return 'chat';
     }
 
-    getDialogueCategoryLabel(category = 'chat') {
-        return {
-            report: '回報',
-            side: '支線',
-            town: '城鎮',
-            function: '功能',
-            chat: '交談'
-        }[category] || '交談';
-    }
-
     getDialogueTopicType(dialogue = {}) {
         const effects = dialogue.effects || [];
         if (dialogue.id?.startsWith?.('report_') || effects.some(effect => effect.type === 'completeQuest')) return 'report';
@@ -337,19 +381,6 @@ class DialogueManager {
             return hasConditions ? 'guidance' : 'destination';
         }
         return 'status';
-    }
-
-    getDialogueTopicLabel(dialogue = {}, type = 'status') {
-        const title = dialogue.narrativeTitle || dialogue.topicTitle || dialogue.id || '';
-        const labelMap = {
-            report: '回報',
-            request: '請求',
-            discovery: '發現',
-            guidance: '指引',
-            destination: '前往',
-            status: '交談'
-        };
-        return title ? `${labelMap[type] || '交談'}：${title}` : (labelMap[type] || '交談');
     }
 
     getDialogueTopicSummary(dialogue = {}, type = 'status') {
@@ -476,7 +507,7 @@ class DialogueManager {
         const dialogues = this.getAvailableDialogues(npcId);
         const requestedDialogueId = context.dialogueId || context.topicId || null;
         const dialogue = requestedDialogueId
-            ? dialogues.find(entry => entry.id === requestedDialogueId)
+            ? this.getResolvableDialogues(npcId).find(entry => entry.id === requestedDialogueId)
             : dialogues[0];
 
         if (!dialogue) {
@@ -495,6 +526,17 @@ class DialogueManager {
         const participants = this.getDialogueParticipants(dialogue, npc);
         const participantMap = this.getParticipantMap(participants);
         const lines = (dialogue.lines || []).map(line => this.resolveLine(line, npc, participantMap));
+        const resolveDecisionLines = source => (source || [])
+            .map(line => this.resolveLine(line, npc, participantMap))
+            .filter(line => line?.text);
+        const decision = dialogue.decision ? {
+            ...dialogue.decision,
+            choices: (dialogue.decision.choices || []).map(choice => ({
+                ...choice,
+                responseLines: resolveDecisionLines(choice.responseLines),
+                followUpLines: resolveDecisionLines(choice.followUpLines)
+            }))
+        } : null;
         const effectContext = {
             ...context,
             npcId,
@@ -509,6 +551,7 @@ class DialogueManager {
             topic: this.getDialogueTopic(dialogue),
             participants,
             lines,
+            decision,
             effectMessages: [],
             pendingEffects,
             pendingSeen: { npcId, dialogueId: dialogue.id },

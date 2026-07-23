@@ -27,6 +27,8 @@ import { resetSavedOverworldPlayerToEntry } from '../utils/WorldMap.js';
 import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionManager.js';
 import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
 import itemDetailModal from '../components/ItemDetailModal.js';
+import { getQuestStory } from '../data/QuestStories.js';
+import { GuildTutorialFlag } from '../data/GuildTutorial.js';
 
 const AchievementPlaceholders = [
     { id: 'first-commission', icon: '🏅', title: '第一份委託', text: '完成第一份城鎮委託。', unlocked: false },
@@ -65,6 +67,7 @@ export default class LobbyScene {
         this.activeTownPlaceId = null;
         this.narrativeLines = [];
         this.renderedNarrativeCount = 0;
+        this.prepTutorialProvider = null;
     }
 
     init() {
@@ -313,15 +316,26 @@ export default class LobbyScene {
         const isEquipment = GameManager.canEquipItemToSlot(item);
         const isConsumable = item.type === 'potion' || item.type === 'scroll';
         const buttons = [];
+        const tutorial = this.getPrepTutorialDirective();
+        const isTutorialItem = tutorial?.targetItemIds?.includes(item.id);
 
         if (isEquipment) {
             if (item.type === 'weapon') {
-                buttons.push(this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon')));
+                const mainButton = this.createButton('⚔️ 裝備主手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'weapon'));
+                mainButton.dataset.equipSlot = 'weapon';
+                if (isTutorialItem && tutorial.targetSlot === 'weapon') mainButton.classList.add('is-prep-tutorial-target');
+                buttons.push(mainButton);
                 if (GameManager.canEquipItemToSlot(item, 'armor')) {
-                    buttons.push(this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor')));
+                    const offhandButton = this.createButton('🗡️ 裝備副手', 'btn-primary', () => this.equipItem(stack.instanceId, source, 'armor'));
+                    offhandButton.dataset.equipSlot = 'armor';
+                    if (isTutorialItem && tutorial.targetSlot === 'armor') offhandButton.classList.add('is-prep-tutorial-target');
+                    buttons.push(offhandButton);
                 }
             } else {
-                buttons.push(this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source)));
+                const equipButton = this.createButton('⚔️ 裝備', 'btn-primary', () => this.equipItem(stack.instanceId, source));
+                equipButton.dataset.equipSlot = item.type;
+                if (isTutorialItem && tutorial.targetSlot === item.type) equipButton.classList.add('is-prep-tutorial-target');
+                buttons.push(equipButton);
             }
         }
         if (isConsumable) {
@@ -441,6 +455,9 @@ export default class LobbyScene {
             'quest_accepted'
         ]);
         if (!townRefreshEvents.has(eventType)) return;
+        if (eventType === 'quest_ready') {
+            this.showFirstQuestReportGuidance(data.quest);
+        }
         if (eventType === 'quest_completed' && data?.townStateUpdate?.changed) {
             const title = data.townStateUpdate.title || (data.quest?.name ? `完成：${data.quest.name}` : '城鎮有了變化');
             const message = data.townStateUpdate.text || '這件事被城鎮記住了。';
@@ -551,10 +568,13 @@ export default class LobbyScene {
 
         const action = storyGuidanceManager.getTownNpcAction(npcId);
         const dialogues = dialogueManager.getAvailableDialogues(npcId);
-        const dialogueTopics = dialogues.map(dialogue => dialogueManager.getDialogueTopic(dialogue));
+        const ambientDialogue = dialogueManager.getAmbientDialogue(npcId);
+        const dialogueTopics = dialogues
+            .filter(dialogue => !dialogueManager.isFallbackDialogue(dialogue))
+            .map(dialogue => dialogueManager.getDialogueTopic(dialogue));
         const hasStoryAction = action.type !== 'dialogue';
         const shouldChooseTopic = hasStoryAction
-            || dialogues.length > 1
+            || dialogueTopics.length > 1
             || dialogueTopics.some(topic => topic.category === 'side');
 
         if (shouldChooseTopic) {
@@ -563,26 +583,50 @@ export default class LobbyScene {
             const choices = [
                 ...(hasStoryAction ? [{
                     id: '__story_action__',
-                    label: this.getTownStoryActionLabel(action),
-                    description: '推進目前與這名角色相關的事件。'
+                    label: action.title,
+                    title: action.title,
+                    summary: action.summary,
+                    kind: 'main-story',
+                    kindLabel: '主線事件',
+                    isPrimary: true
                 }] : []),
                 ...dialogueTopics
             ];
-            const selection = await storyDialogueController.choose({
-                title: '現在想談什麼？',
-                choices,
-                standing: actor?.standing || '',
-                standingFacing: actor?.standingFacing || 'center',
-                standingScale: actor?.standingScale || 1,
-                standingOffsetY: actor?.standingOffsetY || 0,
-                portrait: npc?.portrait || npc?.image || '',
-                name: npc?.name || '居民',
-                role: npc?.role || npc?.location || '',
-                backgroundImage: this.getTownDialogueBackground(),
-                backgroundPosition: this.getTownDialogueBackgroundPosition(),
-                scopeElement: this.getTownDialogueScopeElement(),
-                closable: true
-            });
+            let selection;
+            if (ambientDialogue) {
+                const ambientOutcome = dialogueManager.startDialogue(npcId, {
+                    source: 'lobby',
+                    dialogueId: ambientDialogue.id
+                });
+                const presentation = this.enrichDialoguePresentation(ambientOutcome);
+                selection = await storyDialogueController.play({
+                    ...presentation,
+                    choiceTitle: '現在想談什麼？',
+                    choices
+                }, {
+                    closable: true,
+                    backgroundImage: this.getTownDialogueBackground(),
+                    backgroundPosition: this.getTownDialogueBackgroundPosition(),
+                    scopeElement: this.getTownDialogueScopeElement()
+                });
+                if (selection.status === 'selected') dialogueManager.commitDialogue(ambientOutcome);
+            } else {
+                selection = await storyDialogueController.choose({
+                    title: '現在想談什麼？',
+                    choices,
+                    standing: actor?.standing || '',
+                    standingFacing: actor?.standingFacing || 'center',
+                    standingScale: actor?.standingScale || 1,
+                    standingOffsetY: actor?.standingOffsetY || 0,
+                    portrait: npc?.portrait || npc?.image || '',
+                    name: npc?.name || '居民',
+                    role: npc?.role || npc?.location || '',
+                    backgroundImage: this.getTownDialogueBackground(),
+                    backgroundPosition: this.getTownDialogueBackgroundPosition(),
+                    scopeElement: this.getTownDialogueScopeElement(),
+                    closable: true
+                });
+            }
             if (selection.status !== 'selected') return;
             if (selection.choiceId === '__story_action__') {
                 await this.executeTownNpcAction(action);
@@ -609,16 +653,6 @@ export default class LobbyScene {
         });
         await this.playTownDialogueOutcome(outcome);
         this.renderWorldStage();
-    }
-
-    getTownStoryActionLabel(action) {
-        return ({
-            'chapter-one-first-report': '回報道路調查',
-            'chapter-one-home-recovery': '請米婭檢查傷勢',
-            'chapter-one-closing-report': '交付道路結果',
-            'story-scene': '繼續目前事件',
-            'mia-emergency-potions': '補充應急藥'
-        })[action?.type] || '談談目前的事';
     }
 
     async executeTownNpcAction(action) {
@@ -724,6 +758,11 @@ export default class LobbyScene {
         });
         if (result.status !== 'complete') return presentation;
 
+        if (presentation.decision) {
+            const accepted = await this.playTownDialogueDecision(presentation);
+            if (!accepted) return presentation;
+        }
+
         if (presentation.sceneId) {
             dialogueManager.completeStoryScene(presentation.sceneId);
             if (presentation.sceneId === 'ch1_s02_wake_under_bitter_bottles') {
@@ -743,6 +782,50 @@ export default class LobbyScene {
         }
         this.renderWorldStage();
         return presentation;
+    }
+
+    async playTownDialogueDecision(presentation) {
+        const decision = presentation.decision;
+        if (!decision?.choices?.length) return true;
+        const npc = presentation.npc || {};
+
+        while (true) {
+            const selection = await storyDialogueController.choose({
+                title: decision.title || '你要怎麼回覆？',
+                choices: decision.choices,
+                standing: npc.standing || '',
+                standingFacing: npc.standingFacing || 'center',
+                standingScale: npc.standingScale || 1,
+                standingOffsetY: npc.standingOffsetY || 0,
+                portrait: npc.portrait || npc.image || '',
+                name: npc.name || '',
+                role: npc.role || npc.location || '',
+                backgroundImage: this.getTownDialogueBackground(),
+                backgroundPosition: this.getTownDialogueBackgroundPosition(),
+                scopeElement: this.getTownDialogueScopeElement(),
+                closable: true
+            });
+            if (selection.status !== 'selected') return false;
+
+            const choice = decision.choices.find(entry => entry.id === selection.choiceId);
+            if (!choice || choice.kind === 'leave') return false;
+
+            if (choice.responseLines?.length) {
+                const response = await storyDialogueController.play({
+                    participants: presentation.participants,
+                    lines: choice.responseLines
+                }, {
+                    closable: true,
+                    backgroundImage: this.getTownDialogueBackground(),
+                    backgroundPosition: this.getTownDialogueBackgroundPosition(),
+                    scopeElement: this.getTownDialogueScopeElement()
+                });
+                if (response.status !== 'complete') return false;
+            }
+
+            if (choice.commitsEffects) return true;
+            if (!choice.returnsToDecision) return false;
+        }
     }
 
     async playChapterOneFirstReturnReport() {
@@ -957,10 +1040,7 @@ export default class LobbyScene {
         if (!confirmed) return;
 
         GameManager.resetSaveData();
-        if (!storySceneManager.isPrologueTutorialResolved()) {
-            window.setTimeout(() => this.app?.navigateTo?.('adventure'), 120);
-        }
-        this.pushTownNarrative('進度重置', '已重置為新遊戲狀態。需要保留時請再匯出 JSON 存檔。', 'warning');
+        this.app?.navigateTo?.('guild');
     }
 
     initializeTownNarrative() {
@@ -975,11 +1055,31 @@ export default class LobbyScene {
         const currentHp = Math.max(0, Number(character?.hp) || 0);
         const maxHp = Math.max(1, Number(character?.maxHp) || 1);
         const recoveryText = currentHp >= maxHp
-            ? '你在城鎮稍作休息，生命已恢復。'
-            : '';
-        this.pushTownNarrative('抵達', `${recoveryText}${this.getReturnNarrative()}`, 'ambient');
+            ? '你回到裂痕廣場，傷勢已經處理好了。'
+            : '你回到裂痕廣場，先在城裡喘口氣。';
+        this.pushTownNarrative('抵達', recoveryText, 'ambient', { sourceKey: 'town:arrival' });
 
         this.consumeHandbookRouteIntent();
+        this.showFirstQuestReportGuidance();
+    }
+
+    showFirstQuestReportGuidance(readyQuest = null) {
+        if (GameManager.getFlag(GuildTutorialFlag.FIRST_QUEST_REPORT_GUIDANCE_SEEN)) return;
+
+        const quest = readyQuest || questManager.getCompletedQuests?.()[0];
+        if (!quest) return;
+
+        const story = getQuestStory(quest, quest.state) || {};
+        const reportName = story.reportTo?.name || quest.reportTo?.name || '委託人';
+        this.pushTownNarrative(
+            '任務可以回報',
+            `「${quest.name}」的紀錄已補齊。找到${reportName}頭上的 !，點擊後選擇「回報任務」，親自交代結果。`,
+            'discovery',
+            { sourceKey: 'tutorial:first-quest-report' }
+        );
+        GameManager.setFlag(GuildTutorialFlag.FIRST_QUEST_REPORT_GUIDANCE_SEEN, true, {
+            reason: 'first-quest-report-guidance-seen'
+        });
     }
 
 
@@ -1004,10 +1104,6 @@ export default class LobbyScene {
         );
     }
 
-    getReturnNarrative() {
-        return getTownOverviewPresentation().arrivalText;
-    }
-
     getTownTitle() {
         const activePlace = getResolvedTownPlace(this.activeTownPlaceId);
         if (activePlace) return activePlace.name;
@@ -1019,12 +1115,21 @@ export default class LobbyScene {
 
         const allowedTones = new Set(['ambient', 'discovery', 'warning']);
         const safeTone = allowedTones.has(tone) ? tone : 'ambient';
+        const safeTitle = String(title || '城鎮片刻').trim();
+        const safeMessage = String(message || '街道暫時安靜下來。').trim();
+        const sourceKey = options.sourceKey || null;
+        const alreadyLogged = this.narrativeLines.some(line => (
+            (sourceKey && line?.sourceKey === sourceKey)
+            || line?.message === safeMessage
+        ));
+
+        if (alreadyLogged) return;
 
         this.narrativeLines.push({
-            title: title || '城鎮片刻',
-            message: message || '街道暫時安靜下來。',
+            title: safeTitle,
+            message: safeMessage,
             tone: safeTone,
-            sourceKey: options.sourceKey || null,
+            sourceKey,
             createdAt: Date.now()
         });
 
@@ -1105,12 +1210,21 @@ export default class LobbyScene {
 
         this.dom.worldStage.querySelectorAll('[data-interaction-id]').forEach(hotspot => {
             const interactionId = hotspot.dataset.interactionId;
-            hotspot.classList.toggle('is-resolved', worldInteractionManager.hasResolved(interactionId));
+            const isResolved = worldInteractionManager.hasResolved(interactionId);
+            const marker = storyGuidanceManager.getInformationMarker({
+                hasUnreadInteraction: !isResolved
+            });
+            hotspot.classList.toggle('is-resolved', isResolved);
+            hotspot.classList.toggle('is-ready', marker.visible);
         });
 
         this.dom.worldStage.querySelectorAll('[data-npc-id]').forEach(hotspot => {
             const npcId = hotspot.dataset.npcId;
-            hotspot.classList.toggle('is-ready', dialogueManager.hasFreshDialogue(npcId));
+            const marker = storyGuidanceManager.getInformationMarker({
+                actorId: npcId,
+                hasUnreadDialogue: dialogueManager.hasFreshDialogue(npcId)
+            });
+            hotspot.classList.toggle('is-ready', marker.visible);
         });
     }
 
@@ -1141,9 +1255,10 @@ export default class LobbyScene {
         getResolvedTownPlaces().filter(place => this.shouldShowTownPlaceCard(place)).forEach(place => {
             const readyCount = this.getTownPlaceReadyCount(place);
             const hasStoryObjective = this.hasPendingTownStoryAtPlace(place);
+            const hasNewInformation = readyCount > 0 || hasStoryObjective;
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = `town-place-card ${place.mapClass || ''}${readyCount > 0 ? ' is-ready' : ''}`;
+            button.className = `town-place-card ${place.mapClass || ''}${hasNewInformation ? ' is-ready' : ''}`;
             button.dataset.townPlaceId = place.id;
             const cardImage = place.cardImage || place.sceneImage;
             if (cardImage) {
@@ -1152,9 +1267,7 @@ export default class LobbyScene {
             if (place.scenePosition) {
                 button.style.setProperty('--town-place-card-image-position', place.scenePosition);
             }
-            const alertText = hasStoryObjective
-                ? '主線'
-                : (readyCount > 0 ? `${readyCount} 動向` : '');
+            const alertText = hasNewInformation ? '!' : '';
             const placeDisplay = getTownPlaceDisplay(place);
 
             button.innerHTML = `
@@ -1165,7 +1278,7 @@ export default class LobbyScene {
                 ${alertText ? `<span class="town-place-card-signal">${escapeHtml(alertText)}</span>` : ''}
             `;
             button.title = placeDisplay.fullName;
-            button.setAttribute('aria-label', `${placeDisplay.fullName}${alertText ? `，${alertText}` : ''}`);
+            button.setAttribute('aria-label', `${placeDisplay.fullName}${hasNewInformation ? '，有新資訊' : ''}`);
             button.addEventListener('click', event => {
                 event.stopPropagation();
                 this.enterTownPlace(place.id);
@@ -1276,7 +1389,10 @@ export default class LobbyScene {
             const role = resident.role || npc.role || npc.location || '城鎮居民';
             const hasFreshDialogue = dialogueManager.hasFreshDialogue(resident.npcId);
             const hasStoryObjective = this.hasPendingTownStoryForResident(resident.npcId);
-            const isReady = hasFreshDialogue || hasStoryObjective;
+            const isReady = storyGuidanceManager.getInformationMarker({
+                actorId: resident.npcId,
+                hasUnreadDialogue: hasFreshDialogue
+            }).visible;
             const iconHTML = this.renderTownEntryIcon(resident, npc, '💬');
             button.type = 'button';
             button.className = `town-place-entry town-place-resident${isReady ? ' is-ready' : ''}`;
@@ -1288,7 +1404,7 @@ export default class LobbyScene {
                 <span class="town-place-entry-copy">
                     <strong>${escapeHtml(label)}</strong>
                 </span>
-                <span class="town-place-entry-mark">${hasStoryObjective ? '!' : (hasFreshDialogue ? '新' : '')}</span>
+                <span class="town-place-entry-mark">${isReady ? '!' : ''}</span>
             `;
             list.appendChild(button);
         });
@@ -1321,9 +1437,12 @@ export default class LobbyScene {
             const isInteraction = action.type === 'interaction';
             const isAchievement = action.type === 'achievement';
             const isResolved = isInteraction && worldInteractionManager.hasResolved(action.id);
+            const hasNewInformation = storyGuidanceManager.getInformationMarker({
+                hasUnreadInteraction: isInteraction && !isResolved
+            }).visible;
             const label = action.shortLabel || action.label || '行動';
             const description = action.description || '';
-            button.className = `town-place-entry town-place-action${isAchievement ? ' town-achievement-action' : ''}${isResolved ? ' is-resolved' : ''}`;
+            button.className = `town-place-entry town-place-action${isAchievement ? ' town-achievement-action' : ''}${isResolved ? ' is-resolved' : ''}${hasNewInformation ? ' is-ready' : ''}`;
             if (action.type === 'route') button.dataset.route = action.route;
             if (isInteraction) button.dataset.interactionId = action.id;
             if (isAchievement) button.dataset.achievementsOpen = action.id || 'achievements';
@@ -1335,7 +1454,7 @@ export default class LobbyScene {
                 <span class="town-place-entry-copy">
                     <strong>${escapeHtml(label)}</strong>
                 </span>
-                <span class="town-place-entry-mark">${isAchievement ? '☆' : (isResolved ? '✓' : '→')}</span>
+                <span class="town-place-entry-mark">${hasNewInformation ? '!' : ''}</span>
             `;
             list.appendChild(button);
         });
@@ -1396,13 +1515,17 @@ export default class LobbyScene {
 
     getTownPlaceReadyCount(place) {
         const residentReady = (place?.residents || [])
-            .filter(resident => resident?.npcId && (
-                dialogueManager.hasFreshDialogue(resident.npcId)
-                || this.hasPendingTownStoryForResident(resident.npcId)
-            ))
+            .filter(resident => resident?.npcId && storyGuidanceManager.getInformationMarker({
+                actorId: resident.npcId,
+                hasUnreadDialogue: dialogueManager.hasFreshDialogue(resident.npcId)
+            }).visible)
             .length;
         const interactionReady = (place?.actions || [])
-            .filter(action => action?.type === 'interaction' && action.id && !worldInteractionManager.hasResolved(action.id))
+            .filter(action => action?.type === 'interaction'
+                && action.id
+                && storyGuidanceManager.getInformationMarker({
+                    hasUnreadInteraction: !worldInteractionManager.hasResolved(action.id)
+                }).visible)
             .length;
         return residentReady + interactionReady;
     }
@@ -1448,7 +1571,7 @@ export default class LobbyScene {
         const safeKey = String(key || `${title}:${message}`);
         const alreadyLogged = this.narrativeLines.some(line => (
             line?.sourceKey === safeKey
-            || (line?.title === title && line?.message === message)
+            || line?.message === message
         ));
 
         if (alreadyLogged) return;
@@ -1524,10 +1647,43 @@ export default class LobbyScene {
     openPrepModal(tab = 'character') {
         if (!this.dom?.prepModal) return;
         this.dom.prepModal.hidden = false;
+        this.renderPrepTutorial();
         this.switchPrepTab(tab);
         this.dom.prepModal.classList.add('active');
         this.dom.prepModal.setAttribute('aria-hidden', 'false');
         this.dom.prepClose?.focus?.();
+    }
+
+    setPrepTutorialProvider(provider) {
+        this.prepTutorialProvider = typeof provider === 'function' ? provider : null;
+        this.renderPrepTutorial();
+        this.renderLobbyInventoryGrid(GameManager.getInventory() || []);
+    }
+
+    getPrepTutorialDirective() {
+        return this.prepTutorialProvider?.() || null;
+    }
+
+    renderPrepTutorial() {
+        const pane = this.dom?.lobbyInventoryPane;
+        if (!pane) return;
+        let guide = pane.querySelector('.prep-tutorial-guide');
+        const directive = this.getPrepTutorialDirective();
+        if (!directive) {
+            guide?.remove();
+            return;
+        }
+        if (!guide) {
+            guide = document.createElement('aside');
+            guide.className = 'prep-tutorial-guide';
+            guide.setAttribute('aria-live', 'polite');
+            pane.prepend(guide);
+        }
+        guide.innerHTML = `
+            <span>${escapeHtml(directive.progress || '裝備教學')}</span>
+            <strong>${escapeHtml(directive.title || '')}</strong>
+            <p>${escapeHtml(directive.text || '')}</p>
+        `;
     }
 
     closePrepModal() {
@@ -1793,6 +1949,10 @@ export default class LobbyScene {
             itemEl.className = 'inventory-item field-item-cell';
             itemEl.dataset.rarity = rarity;
             itemEl.dataset.instanceId = stack.instanceId || '';
+            const tutorial = this.getPrepTutorialDirective();
+            if (tutorial?.targetItemIds?.includes(item.id)) {
+                itemEl.classList.add('is-prep-tutorial-target');
+            }
             itemEl.setAttribute('aria-label', `${item.name || '未知物品'}，點擊查看與操作`);
 
             const iconHTML = getItemVisualHtml(item, '📦');
