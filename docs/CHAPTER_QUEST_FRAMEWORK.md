@@ -1,6 +1,6 @@
 # Chapter Quest Framework
 
-Last updated: 2026-07-19
+Last updated: 2026-07-24
 
 ## Purpose
 
@@ -158,10 +158,10 @@ reward or quest-placement tables.
 | Chapter | Level | Title | Core Focus |
 | ---: | ---: | --- | --- |
 | 1 | 1-10 | 南門以外 / Beyond The South Gate | Broken town, south gate, first route investigation, early equipment pressure, `forest_guardian` convergence. |
-| 2 | 11-20 | 斷路上的藥味 / Medicine On The Broken Road | Supply, medicine, market recovery, old evacuation records, `lich` convergence. |
-| 3 | 21-30 | 影子仍守夜 / Shadows Still Keep Watch | Shadow precursor routes, old orders, rumor pressure, `shadow_commander` convergence. |
-| 4 | 31-40 | 石心與灰雨 / Stone Heart, Ash Rain | Stone routes, forge weight, regional instability, and `ancient_titan` convergence. `ash_baron` remains outside mandatory convergence and is reserved for an optional second-run external route. |
-| 5 | 41-50 | 元素失衡 / The Elements Lose Their Shape | Elemental fronts, dungeon preparation, advanced forge planning, `elemental_lord` convergence, old expedition truth, elder death bridge. |
+| 2 | 11-20 | 斷路上的藥味 / Medicine On The Broken Road | Recovered cargo records, medicine authorization, old evacuation records, and `lich` convergence. Public trade remains closed. |
+| 3 | 21-30 | 影子仍守夜 / Shadows Still Keep Watch | Shadow precursor routes, old orders, rumor pressure, `shadow_commander` convergence, road reopening, caravan return, and public market recovery. |
+| 4 | 31-40 | 石心與灰雨 / Stone Heart, Ash Rain | Gray Ridge caravan rescue, quake and collapse pressure, exposed ancient vein-regulation ruins, and `ancient_titan` convergence. The Titan is a distinct ancient people awakened by the Demon King's drain, not a machine or a servant. `ash_baron` remains outside mandatory convergence and is reserved for an optional second-run external route. |
+| 5 | 41-50 | 元素失衡 / The Elements Lose Their Shape | Four damaged regulation channels, elemental fronts, dungeon preparation, advanced forge planning, `elemental_lord` convergence, old expedition truth, and the elder death bridge. |
 | 6 | 51-60 | 龍守封痕 / The Dragon Guards The Scar | Immediate elder pursuit, dragon route pressure, first-run war, second-run evidence-bound non-attack, `elder_dragon` convergence, then return-town casino settlement. |
 | 7 | 61-70 | 墜落之地 / Where The Demon Fell | Echo Whistle route and corrected Ailo memory lead to Demon King convergence. First run achieves a genuine body kill but misses vitality, echo, and rooted core; second run closes all layers with current-run Life Seed, Ancient Rune, Forest Essence, and glimmer. Full light and Void remain outside mandatory mainline progression and may open only through optional second-run external routes. |
 
@@ -318,6 +318,50 @@ participants, and scene action create the distinction. The registry must still
 give every scene a location/stage id, run conditions, entry and exit, and output
 flags. No scene may remain an unplaced prose block when full scripting begins.
 
+### Mandatory Scene Reachability Contract
+
+Every mandatory scene must have exactly one runtime trigger owner. Scene order,
+trigger placement, player guidance, and the visible `!` marker must not each
+carry separate copies of the same destination.
+
+The ownership boundary is:
+
+- `StorySceneRegistry.js` owns scene order, run conditions, performed content,
+  and outputs.
+- `ChapterRegionRegistry.js` owns adventure-map target ids and trigger types.
+- `TownPlaces.js` owns town-place, resident, object, and town-arrival bindings.
+- `StoryObjectiveHints.js` owns player-facing title and objective copy only. It
+  must not independently choose an actor, town place, or map target.
+- `StoryGuidanceManager.js` resolves the next available scene against the
+  authoritative map or town binding and supplies the same result to markers,
+  interactions, navigation, and validation.
+
+The closed trigger vocabulary is:
+
+| Trigger | Use |
+| --- | --- |
+| `npc_interact` | Speak to one currently visible town resident. |
+| `place_interact` | Inspect one authored object or hotspot inside a town place. |
+| `landmark_interact` | Inspect one authored adventure-map location. |
+| `encounter_result` | Continue from the resolved story encounter owned by the scene. |
+| `town_arrival` | Start only after a normal authored return to town; defeat return does not qualify. |
+| `scene_continue` | Continue immediately from the preceding completed scene without another world interaction. |
+
+Several scenes may share one landmark. Runtime must select the first incomplete
+scene whose run and prerequisite conditions currently pass; it must never assume
+that `sceneIds[0]` remains the active scene.
+
+Acceptance requires a player-reachability walk rather than forced scene starts:
+
+`complete previous scene -> resolve one actionable trigger -> confirm target is
+visible and usable -> perform trigger -> start expected scene -> expose the next
+actionable trigger`
+
+Validation fails when a mandatory scene points to a hidden resident, an
+unregistered landmark, a guidance-only target, an unavailable run condition, a
+defeat-only return, or no trigger at all. Chapter-open flags and successful
+forced playback do not count as proof of reachability.
+
 ### Travel, Fatigue, And Encounter Rules
 
 - Fatigue is proportional to authored segment distance and modifiers, not the
@@ -356,9 +400,11 @@ Before runtime rewrite, verify:
 - External routes are staggered across the second run so replay is not limited
   to revised dialogue on identical geography. Exact route stories and authored
   map branches must be approved before placement.
-- The accepted chapter identities are the prologue stag rematch, 無名之咒, the
-  expedition supreme commander, `ash_baron`, 熵, the Chapter 6 light trial, and
-  the Chapter 7 Void Boss. Their routes, rewards, combat, and art remain paused.
+- The accepted optional second-run chapter identities are the prologue stag
+  rematch, 無名之咒, the expedition supreme commander, `ash_baron`, 熵, the
+  Chapter 6 light trial, and the Chapter 7 Void Boss. Their routes, rewards,
+  combat, and art remain paused and do not replace the Chapter 6 dragon-seal or
+  Chapter 7 fall-site mainline.
 - Light/Void routes and their physical rewards may be discovered only in the
   current second run. They never replace the Life Seed, Ancient Rune, Forest
   Essence, and glimmer true-kill chain.
@@ -384,8 +430,8 @@ Chapter 1 should land before later chapter rewrites.
 - First boss: `forest_guardian` is the convergence of broken route signal, forest
   reaction, and old perimeter pressure.
 - First reward direction: route clarity, handbook records, modest survival
-  supplies, and a controlled path toward forge/market recovery. Avoid excess
-  material rewards.
+  supplies, and a controlled path toward forge recovery and later road-based
+  market recovery. Avoid excess material rewards.
 
 ## Early-Game Lived Recovery Contract
 
@@ -396,12 +442,15 @@ named resident, service NPC, location, or reward is created for these beats.
 - Chapter 1 damage uses shared water, reserved sickbeds, tied doors, an empty
   return board, and a cold forge. After the route return, the forge receives a
   pot, hinges, and a cart wheel before weapons. The market remains unavailable.
-- Chapter 2 turns restored travel into finite public stock. Authorized medicine
-  is wrapped for waiting residents at the market; Mia checks the batch and does
-  not own pricing, sale, inventory, or a service counter.
-- Chapter 3 contrasts finite honest preparation with manufactured abundance.
-  Gate oil, forge coal, medicine, and records visibly require work; the casino
-  presents itself as the one place that never lacks power or prizes.
+- Chapter 2 authorizes a medicine formula but does not invent stock before the
+  road exists. Recovered crates, carrier records, and waiting residents show
+  what the closed market still lacks.
+- Chapter 3 returns the caravan after the road is reopened. Existing town
+  merchants and outside traders restore finite public stock; Mia checks the
+  authorized medicine batch but owns no pricing, sale, inventory, or service
+  counter. Gate oil, forge coal, medicine, and records visibly require work,
+  while the casino presents itself as the one place that never lacks power or
+  prizes.
 - Core cast entry remains sequential: Mia through rescue, elder through civic
   duty, Ailo as an unanswered street image, 伊萊 through evidence, Frey/Tavi
   through departure, and blacksmith through returned damage. Chapter 1 gives no
@@ -484,16 +533,16 @@ Placement rule:
 | 1 | 冷爐回煙 / Cold Forge Smoke | Medium | `blacksmith` | Makes equipment pressure human before the first boss. | Basic repair, starter forge, first simple recipe. | No new blacksmith trauma; avoid new apprentice asset here. |
 | 2 | 藥籃底的名字 / Name Under The Herb Basket | Medium | Mia, `town_scholar` | Connects Mia's father to the expedition and shows the difference between a family memory and an incomplete civic record. Shared herb sorting and her reaction to passing footsteps deepen the relationship without a confession. | Relationship record, expedition name entry, and one researched market prescription. | No missing gatherer, notebook item, or new NPC is required. |
 | 2 | 未結的名冊 / Ledger That Would Not Close | Medium | `town_scholar`, `village_elder` | Shows ordinary paperwork breaking after the old expedition and evacuation failures. | Handbook records, old route hints, `lich` route context. | No conspiracy or stolen-record plot unless approved later. |
-| 2 | 空箱到貨 / Empty Crates Arrive | Short / Medium | `merchant` | Makes market recovery depend on route safety rather than an abstract UI unlock. | Market stalls, basic material/medicine delivery state, and route-based stock changes. | No supply captain is required; crate and carrier consequences may remain environmental records. |
-| 3 | 霧裡的燈油 / Lamp Oil In Fog | Medium | `lamplighter_tavi`, `standard_bearer_frey`, `blacksmith` | Places the childhood mist before the fatal flag crisis. First run leaves the far marker unmeasured, so no safe wind guard can be built. Second run makes Tavi walk the route, provide exact dimensions, and admit why he took the lamp. | Night route markers, fog readability, first-run `rear_marker_unmeasured`, or second-run wind guard plus `tavi_role_admitted`. | No magic lamp or new material; use ordinary oil, glass, and a measured metal guard. |
+| 2 | 空箱先回來了 / Empty Crates Returned First | Short / Medium | `town_scholar`, Mia | Uses recovered empty crates and carrier records to establish what failed on the road without pretending trade has resumed. | Medicine authorization, missing-carrier evidence, and a deferred stock requirement. | No merchant entrance, supply captain, or transaction unlock occurs in Chapter 2. |
+| 3 | 霧裡的燈油 / Lamp Oil In Fog | Medium | `lamplighter_tavi`, `standard_bearer_frey`, `blacksmith` | Uses an ordinary night inspection to show Tavi maintaining the front lamp, avoiding the fogged rear marker, and Frey covering the unfinished work. First run leaves the far marker unmeasured, so no safe wind guard can be built. Second run changes the physical task: the protagonist watches the front, Frey takes over the repair, and Tavi measures the rear while still afraid. | Night route markers, fog readability, first-run `rear_marker_unmeasured`, or second-run `rear_marker_ready`. No confession or childhood explanation is required in the mainline. | No magic lamp or new material; use ordinary oil, glass, and a measured metal guard. |
 | 3 | 展櫃玻璃 / Showcase Glass | Medium | `casino_dealer`, `casino_owner` | Lets desire come first: the player sees prizes before Vesper becomes a story target. | Casino floor, showcase inspection, ticket pools, odds visibility. | Uses existing casino UI; no final owner punishment yet. |
 | 3 | 仍在點名的影 / Shadows Still Count Names | Medium | `town_scholar`, `blacksmith`, Mia | Shadow soldiers become old orders, not random dark enemies. The protagonist's concealed wound creates a mutual Mia conflict, then one honest-return beat repairs behavior without resolving the romance. | Shadow material source around Lv24-30, first shadow gear clue, and Mia relationship state. | Void remains an optional second-run external reveal, not a mainline progression requirement. |
 | 4 | 旗與燈 / Flag And Lamp | Long | `standard_bearer_frey`, `lamplighter_tavi`, `village_elder`, `blacksmith` | First run: Tavi freezes, the protagonist is physically committed to the civilian crossing, and Frey dies holding direction. Second run: Tavi acts from the measured rear marker, Frey trusts his light, and later understands the elder's fear of opening the gate. | Route crisis, south gate morale, Frey/elder relationship state, possible shared flag-lamp relic later. | Death/rescue staging needs Gray Ridge background and Frey CG planning; no new NPC, magical flag, or alternate rescue path. |
-| 4 | 四相備裝 / Fourfold Countergear | Short / Medium | `blacksmith`, Mia | Makes fire, ice, thunder, and poison threats readable in gear damage and patient records before they converge. | Elemental counter recipes, controlled material requests, dungeon prep. | Do not overfeed materials; keep requirements low. |
+| 4 | 回來的只到前半 / Only The Front Returned | Short / Medium | `merchant`, `blacksmith`, `standard_bearer_frey`, `lamplighter_tavi` | Counts the arrived and missing caravan wagons, then turns the Gray Ridge danger into a concrete civilian evacuation. | Missing-caravan ledger, rescue equipment, route-marker assignments, and Chapter 4 baseline craft supply. | Reuse the existing merchant and caravan background population; do not add named guards, drivers, materials, or portraits. |
 | 5 | 棘輪之後 / After The Ratchet | Long | Mia, `town_scholar`, `blacksmith` | First run: 伊萊 compresses four accurate separated-residue records into the unscoped line `標準二格固定可安全處理`; Mia removes the combined shard and dies when the trusted fixed-pressure procedure crushes it after extraction. Second run: remembered sound makes him reopen the source pages, reject the generalization, and join current-run pressure-free tests. | First/second-run achievement pair, Mia fate, 伊萊 confidence collapse/correction, relationship record, and scoped shard-handling method. | Reuse source pages, standard forceps, spider silk, and purified slime gel; no new miracle material, gather route, inherited document, or notebook item. |
 | 5 | 遠征名冊 / Expedition List | Long | `village_elder`, `town_scholar` | Reveals enough old expedition truth for the elder to recognize the dragon-sealed perimeter. | Unlocks `seal_scar_shard` context and Chapter 6 non-war proof chain. | Do not add a new expedition boss silently. |
 | 5 | 爐契與菁英素材 / Forge Contracts | Medium | `blacksmith`, `town_scholar`, Mia | Moves forging from repair into deliberate preparation for elite routes and dungeons while establishing the handling summary that matters in `After The Ratchet`. | Advanced forge, blueprint contracts, elite material requests, and run-specific evidence-scope state. | Blueprint art and exact equipment list are later asset/data work; no supply-captain dependency is introduced. |
-| 6 | 封痕外圍 / Outside The Seal Scar | Main-support Long | `village_elder`, `town_scholar`, `elder_dragon` | First run immediately pursues the elder, finds an ambiguous pressure-and-fire death, crosses under advancing danger, and erases the local seal-keeping clan. Second run receives the shard alive, keeps shard/weapon/body outside the line, and earns non-attack without a granted road. | Dragon war or `dragon_non_attack_observed`, broad-seal state, old-route search, handbook memory. | Reuse `elder_dragon` boss art; no spokesperson, honor contract, dragon trust, passage grant, or new route asset is implied. |
+| 6 | 封痕外圍 / Outside The Seal Scar | Main-support Long | `village_elder`, `town_scholar`, `elder_dragon` | First run immediately pursues the elder and reconstructs his final action from tracks, a sheathed weapon, the matched fragment, and burn direction. It crosses under advancing danger and erases the local seal-keeping clan without receiving an audience-only death cutaway or private confession. Second run receives the shard alive, keeps shard/weapon/body outside the line, and earns non-attack without a granted road. | Dragon war or `dragon_non_attack_observed`, broad-seal state, old-route search, handbook memory. | Reuse `elder_dragon` boss art for the same dialogue-and-combat character; no separate portrait, spokesperson, honor contract, dragon trust, passage grant, or formal light/Void mainline route is implied. |
 | 6 | 灌鉛骰子 / Loaded Dice | Long | `casino_owner`, `casino_dealer` | First run exposes cheating but Vesper escapes. Second run uses achievement memory to identify the current run's loaded set and turn the contract against him. | Loaded Dice current-run key item, final showcase choice after second-run punishment. | Final game UI and unnamed contract-collection staging need later implementation planning. |
 | 6 | 空白抵契 / Blank Collateral | Medium | `casino_dealer`, `black_market` | Explains how Vesper commercialized a contract with a nonhuman creditor without making black market the mastermind. | Forbidden information, risky stock, casino route proof. | The mandatory casino route does not name the creditor as Void or give the black market endless contracts; a later optional second-run route may reveal its nature. |
 | 7 | 回聲哨 / Echo Whistle | Main-support Long | `street_beggar` / Ailo | First run: Ailo steals the whistle, opens the old mountain road, and an audience-only cutaway reveals an unfinished promise before his bloody trail ends at the upper escape cliff. Second run: accompaniment and memory correct his fatal inversion of Neelu's last order. | Old mountain road access, second-run dragon-route meaning, `先行的回聲`, Ailo survival state. | Young Ailo, Neelu, whistle, and memory scene art are deferred; no corpse or death CG. |

@@ -316,7 +316,7 @@ export const StandaloneRecipeDatabase = {
         "level": 40,
         "type": "equipment",
         "rarity": "legendary",
-        "materials": [{"id":"titan_heart","quantity":1},{"id":"primordial_stone","quantity":1},{"id":"mithril_ore","quantity":2}],
+        "materials": [{"id":"primordial_stone","quantity":2},{"id":"mithril_ore","quantity":2},{"id":"earth_essence","quantity":2}],
         "cost": 1050,
         "successRate": 100,
         "acquisitionRole": "boss_dungeon_craft",

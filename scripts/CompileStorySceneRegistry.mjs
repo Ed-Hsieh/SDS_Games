@@ -63,14 +63,22 @@ function parseBeats(block, sceneId) {
         const expression = cells[expressionColumn];
         const phase = phaseColumn >= 0 ? stripTicks(cells[phaseColumn]) : '';
         const visualMode = visualColumn >= 0 ? stripTicks(cells[visualColumn]) : '';
+        const beat = stripTicks(cells[beatColumn]);
+        const actorIds = stripTicks(speaker) === '-'
+            ? []
+            : stripTicks(speaker).split(',').map(value => value.trim()).filter(Boolean);
         const entry = {
             order: Number(cells[orderColumn]),
             condition: stripTicks(cells[conditionColumn]),
-            beat: stripTicks(cells[beatColumn]),
-            actorId: stripTicks(speaker) === '-' ? null : stripTicks(speaker),
+            beat,
+            actorId: actorIds[0] || null,
             expression: stripTicks(expression) === '-' ? null : stripTicks(expression),
             text: cells.slice(textColumn).join('|').trim()
         };
+        if (['enter', 'exit'].includes(beat) && actorIds.length) {
+            entry.actorIds = actorIds;
+            entry.stageAction = beat;
+        }
         if (phase && phase !== '-') entry.presentationPhase = phase;
         if (visualMode && visualMode !== '-') entry.visualMode = visualMode;
         beats.push(entry);

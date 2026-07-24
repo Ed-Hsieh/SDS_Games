@@ -25,6 +25,12 @@ import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionM
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { questManager } from '../managers/QuestManager.js';
 import { ObjectiveType, QuestStatus } from '../data/Quests.js';
+import {
+    getRegionSceneBindingsForTarget,
+    getSceneRegionBinding,
+    isOptionalStoryScene
+} from '../data/ChapterRegionRegistry.js';
+import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
 
 const MOVE_REPEAT_MS = 80;
 
@@ -220,6 +226,7 @@ export default class AdventureScene {
     returnToTown(reason, _options = {}) {
         this.worldMap?.returnPlayerToEntry();
         GameManager.restoreCharacterAtHome(reason);
+        navigationIntentManager.setTownArrivalReason(reason);
         chapterOneProgressionManager.queueFirstReportOnTownReturn({
             autoStart: reason === 'adventure-walk-return' || reason === 'adventure-wolf-smoke'
         });
@@ -406,7 +413,9 @@ export default class AdventureScene {
         if (this.tryHandleChapterOneProgression(entry)) return;
 
         const pendingEncounter = storySceneManager.getPendingEncounter();
-        if (entry.bossId && pendingEncounter?.monsterId === entry.bossId) {
+        const pendingEncounterMatchesEntry = pendingEncounter?.locationId === entry.id
+            || (entry.bossId && pendingEncounter?.monsterId === entry.bossId);
+        if (pendingEncounterMatchesEntry) {
             this.showBossWarning(entry, pendingEncounter);
             return;
         }
@@ -519,7 +528,20 @@ export default class AdventureScene {
 
     tryStartLandmarkStory(entry) {
         const nextSceneId = storySceneManager.getNextAvailableSceneId();
-        const sceneId = entry.sceneIds?.[0];
+        const nextBinding = getSceneRegionBinding(nextSceneId);
+        let sceneId = nextBinding?.targetId === entry.id ? nextSceneId : null;
+
+        if (!sceneId) {
+            const optionalBinding = getRegionSceneBindingsForTarget(
+                entry.id,
+                Number(this.worldMap?.getCurrentChapter?.()) || null
+            ).find(binding => (
+                isOptionalStoryScene(binding.sceneId)
+                && !storySceneManager.isSceneComplete(binding.sceneId)
+                && storySceneManager.canStartScene(binding.sceneId).success
+            ));
+            sceneId = optionalBinding?.sceneId || null;
+        }
         if (!sceneId || storySceneManager.isSceneComplete(sceneId)) return false;
 
         if (sceneId === 'ch1_s01_road_collapse' && this.isPrologueInvestigationPending()) {
@@ -531,9 +553,9 @@ export default class AdventureScene {
             }, { entry, completionAction: 'prologue_combat' });
         }
 
-        const optionalMoonMossTrace = sceneId === 'ch2_s05_moon_moss_trace';
-        if (optionalMoonMossTrace) {
-            if (!storySceneManager.isSceneComplete('ch2_s04_mist_and_tomb_route')) return false;
+        if (isOptionalStoryScene(sceneId)) {
+            const gate = storySceneManager.canStartScene(sceneId);
+            if (!gate.success) return false;
             return this.startMapStoryScene(sceneId, { entry, force: true });
         }
         if (sceneId !== nextSceneId) return false;
@@ -708,26 +730,31 @@ export default class AdventureScene {
     }
 
     beginBossEncounter(entry, options = {}) {
-        const monster = MonsterManager.getMonster(entry.bossId);
+        const monsterId = options.storyContract?.monsterId || entry.bossId;
+        const monster = MonsterManager.getMonster(monsterId);
         if (!monster) return false;
         return this.beginEncounter({
-            monsterId: entry.bossId,
+            monsterId,
             habitat: this.worldMap.getCurrentHabitat()
         }, { storyBoss: entry, storyContract: options.storyContract || null });
     }
 
     showBossWarning(entry, encounterContract) {
-        const monster = MonsterManager.getMonster(entry?.bossId);
+        const monsterId = encounterContract?.monsterId || entry?.bossId;
+        const monster = MonsterManager.getMonster(monsterId);
         if (!entry || !monster || !encounterContract) return false;
-        const isMantisTest = entry.bossId === 'ambush_mantis';
+        const isMantisTest = monsterId === 'ambush_mantis';
+        const isBossEncounter = entry.bossId === monsterId;
         this.openModal({
-            kicker: '強敵警告',
+            kicker: isBossEncounter ? '強敵警告' : '遭遇',
             title: `等級 ${monster.level} ${monster.name}`,
             text: isMantisTest
                 ? '路標背對城鎮，銀線也封住了原路。伏獵者已經記住你走過的順序；現在踏進去，牠就會收緊陷阱。'
-                : '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。',
+                : isBossEncounter
+                    ? '前方已經進入首領的攻擊範圍。現在可以迎戰，也可以關閉畫面返回村落，恢復生命並整理裝備後再來。'
+                    : '前方的敵人封住了去路。可以立即迎戰，也可以先退開整理裝備。',
             image: this.images.get(`landmark:${entry.id}`),
-            actionLabel: '做好準備，進入戰鬥',
+            actionLabel: isBossEncounter ? '做好準備，進入戰鬥' : '迎戰',
             onConfirm: () => {
                 const started = storySceneManager.beginEncounter(encounterContract.id);
                 if (!started?.success) return false;
@@ -914,6 +941,18 @@ export default class AdventureScene {
                 if (!this.worldMap.isGateOpen(gate)) this.worldMap.setGateOpen(gate.id, true);
                 this.worldMap.teleportTo(53, 16);
                 this.setDevStatus('已移動到第二區起點');
+                break;
+            case 'goto-chapter-three':
+                this.worldMap.teleportTo(99, 18);
+                this.setDevStatus('已移動到第三區起點');
+                break;
+            case 'goto-chapter-four':
+                this.worldMap.teleportTo(147, 18);
+                this.setDevStatus('已移動到第四區起點');
+                break;
+            case 'goto-chapter-six':
+                this.worldMap.teleportTo(243, 18);
+                this.setDevStatus('已移動到第六區起點');
                 break;
             case 'repair-gate':
                 this.worldMap.discoverLandmark(gate);

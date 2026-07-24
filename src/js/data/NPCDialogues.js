@@ -211,10 +211,7 @@ export const TownDialogueDatabase = {
             ]
         }),
         ambient('elder_ordinary_paper', [
-            { actorId: 'player', text: '桌上那些都是今天要處理的？' },
-            { actorId: 'village_elder', text: '伊萊剛送來的。有幾份要我簽，剩下的還得找人核對。' },
-            { actorId: 'player', text: '看起來不少。' },
-            { actorId: 'village_elder', text: '是啊。先放著吧，我晚一點會看。' }
+            { actorId: 'village_elder', text: '這幾份還沒核完。你若有事，先說你的。' }
         ])
     ],
     town_scholar: [
@@ -261,17 +258,12 @@ export const TownDialogueDatabase = {
             ]
         }),
         ambient('ilai_margin_order', [
-            { actorId: 'player', text: '這三疊文件有什麼差別？' },
-            { actorId: 'town_scholar', text: '年份不同。村長剛才順手疊在一起，我只好重新分開。' },
-            { actorId: 'player', text: '需要幫忙嗎？' },
-            { actorId: 'town_scholar', text: '先不用。我知道每一疊原本放在哪裡，只是得多花一點時間。' }
+            { actorId: 'town_scholar', text: '稍等，我先把這三疊分開。年份混了，查起來會出錯。' }
         ], { route: 'encyclopedia', routeLabel: '翻閱百科' })
     ],
     herbalist: [
         ambient('mia_water_first', [
-            { actorId: 'herbalist', text: '先喝一口水。' },
-            { actorId: 'player', text: '我今天沒有受傷。' },
-            { actorId: 'herbalist', text: '我知道。你一路走回來，嘴唇都乾了。喝完再說。' }
+            { actorId: 'herbalist', text: '先坐。等呼吸慢下來，再告訴我怎麼了。' }
         ])
     ],
     standard_bearer_frey: [
@@ -293,10 +285,7 @@ export const TownDialogueDatabase = {
             ]
         }),
         ambient('frey_flag_rope', [
-            { actorId: 'player', text: '這兩捆繩子要放在一起嗎？' },
-            { actorId: 'standard_bearer_frey', text: '左邊的留在門上，右邊的拿去補路標。別混了。' },
-            { actorId: 'player', text: '右邊這捆？' },
-            { actorId: 'standard_bearer_frey', text: '對。幫我擺到門邊就好，等換班的人帶出去。' }
+            { actorId: 'standard_bearer_frey', text: '要出門就先看天色。今天的霧來得早。' }
         ])
     ],
     lamplighter_tavi: [
@@ -319,10 +308,7 @@ export const TownDialogueDatabase = {
             ]
         }),
         ambient('tavi_spare_lamp', [
-            { actorId: 'player', text: '今天怎麼帶了這麼多燈？' },
-            { actorId: 'lamplighter_tavi', text: '昨晚風大，北邊那盞滅了兩次。我想多帶一盞備用。' },
-            { actorId: 'player', text: '可是這裡有三盞。' },
-            { actorId: 'lamplighter_tavi', text: '嗯……我裝好第二盞後，又覺得只多一盞可能不夠。' }
+            { actorId: 'lamplighter_tavi', text: '等一下，我先把燈掛好。好了，你找我嗎？' }
         ])
     ],
     blacksmith: [
@@ -345,9 +331,7 @@ export const TownDialogueDatabase = {
             ]
         }),
         ambient('blacksmith_pot_queue', [
-            { actorId: 'blacksmith', text: '武器先放旁邊。那只鍋漏了兩天，今天得先補。' },
-            { actorId: 'player', text: '我的護甲還能撐多久？' },
-            { actorId: 'blacksmith', text: '照你現在這樣用，撐得到下午。要是又拿肩甲去撞東西，就早點回來。' }
+            { actorId: 'blacksmith', text: '東西放桌上。人先站穩，再說哪裡壞了。' }
         ], { route: 'forge', routeLabel: '使用鍛造' })
     ],
     street_beggar: [
@@ -358,27 +342,22 @@ export const TownDialogueDatabase = {
     ],
     merchant: [
         ambient('merchant_finite_stock', [
-            '貨架看起來空，不代表我不會做生意。代表我至少沒有把空氣標成限量。',
-            '等路回來，貨才回來。這條規矩不華麗，但不會半夜來收利息。'
+            '要買什麼直接說。架上沒有的，我也不拿空話充數。'
         ], { route: 'shop', routeLabel: '查看市集' })
     ],
     black_market: [
         ambient('black_market_one_contract', [
-            '我說過，空白抵契只有一張。賣出去以後，空白和後果都不再是我的庫存。',
-            '你可以不喜歡這個答案。來源不會因為你的喜好長出第二份。'
+            '先說你要找什麼。這裡不替人保留貨，也不替人保留後悔。'
         ])
     ],
     casino_dealer: [
         ambient('lorne_guest_dice', [
-            '桌面公開，不代表桌下沒有東西。我以前靠這句差別活著，也靠它害過人。',
-            '別把這當道歉。先看客方骰，再決定要不要坐下。'
+            '想上桌就先看清規則。骰子在這裡，我不催你下注。'
         ], { route: 'casino', routeLabel: '進入賭場' })
     ],
     casino_owner: [
         ambient('vesper_fairness', [
-            '輸的人，總是比較會談公平。',
-            '我從不逼人下注。我只是把他們真正想要的東西放到桌上。',
-            '公平？當然公平。每個人都有輸光的權利。'
+            '歡迎。先看看桌面，再決定今晚要不要留下。'
         ], { route: 'casino', routeLabel: '查看展示櫃' })
     ]
 };

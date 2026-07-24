@@ -58,7 +58,7 @@ export const RecipeSeriesDatabase = Object.freeze({
         rarity: ItemRarity.UNCOMMON,
         role: 'fallback',
         strength: 'weak',
-        unlockSceneId: 'ch4_s02_fourfold_countergear',
+        unlockSceneId: 'ch4_s02_caravan_rear_missing',
         levelBand: [31, 40],
         materialTheme: ['mithril_ore', 'rune_stone', 'earth_essence'],
         description: '利用淺層符文穩定結構的五種武器，效果克制但能承受第四章戰鬥。',

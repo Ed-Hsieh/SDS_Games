@@ -28,6 +28,7 @@ export default class StoryDialogueView {
         this.copyTargetScroll = 0;
         this.copyTyping = false;
         this.actorPresentationState = new Map();
+        this.castRenderKey = '';
         this.updateScopeBounds = this.updateScopeBounds.bind(this);
         this.handleCopyWheel = this.handleCopyWheel.bind(this);
         this.handleCopyScroll = this.handleCopyScroll.bind(this);
@@ -112,6 +113,7 @@ export default class StoryDialogueView {
 
     show({ closable = false, autoPlay = false, scopeElement = null } = {}) {
         this.actorPresentationState.clear();
+        this.castRenderKey = '';
         this.setScope(scopeElement);
         this.root.hidden = false;
         this.closeButton.hidden = !closable;
@@ -128,6 +130,7 @@ export default class StoryDialogueView {
         this.copyTyping = false;
         this.renderedLineKey = null;
         this.actorPresentationState.clear();
+        this.castRenderKey = '';
         this.cast.innerHTML = '';
         this.choices.innerHTML = '';
         this.choices.hidden = true;
@@ -238,7 +241,7 @@ export default class StoryDialogueView {
         this.autoButton.textContent = enabled ? '自動播放中' : '自動閱讀';
     }
 
-    renderLine({ line, text, participants = [], index = 0, total = 1, typing = false, backgroundImage = '', backgroundPosition = 'center' }) {
+    renderLine({ line, text, participants = [], index = 0, total = 1, typing = false, backgroundImage = '', backgroundPosition = 'center', castState = {} }) {
         const lineKey = `${index}:${line.order ?? ''}:${line.actorId ?? ''}:${line.text ?? ''}`;
         if (lineKey !== this.renderedLineKey) {
             this.renderedLineKey = lineKey;
@@ -263,32 +266,46 @@ export default class StoryDialogueView {
         this.cursor.hidden = !typing;
         this.progress.textContent = `${Math.min(index + 1, total)} / ${total}`;
         this.updateCopyOverflowState();
-        this.renderCast(participants, line, hidesCast);
+        this.renderCast(participants, line, hidesCast, castState);
     }
 
-    renderCast(participants = [], line = {}, hidden = false) {
+    renderStage({ participants = [], line = {}, castState = {} } = {}) {
+        this.renderCast(participants, line, false, castState);
+    }
+
+    renderCast(participants = [], line = {}, hidden = false, castState = {}) {
         if (hidden) {
-            this.cast.innerHTML = '';
+            if (this.castRenderKey !== 'hidden') {
+                this.cast.innerHTML = '';
+                this.castRenderKey = 'hidden';
+            }
             return;
         }
         const activeId = line.actorId || null;
+        const visibleActorIds = castState.visibleActorIds instanceof Set
+            ? castState.visibleActorIds
+            : null;
+        const enteringActorIds = castState.enteringActorIds || new Set();
+        const exitingActorIds = castState.exitingActorIds || new Set();
         const activeLineImage = line.standing
             || line.portrait
             || line.image
             || resolveLayerImage(line.expressionLayer);
         const usable = participants
-            .filter(actor => actor?.id || actor?.actorId)
-            .filter(actor => actor.standing
+            .map((actor, participantIndex) => ({ actor, participantIndex }))
+            .filter(({ actor }) => !visibleActorIds || visibleActorIds.has(actor?.id || actor?.actorId))
+            .filter(({ actor }) => actor?.id || actor?.actorId)
+            .filter(({ actor }) => actor.standing
                 || actor.portrait
                 || actor.image
                 || resolveLayerImage(actor.expressionLayer)
                 || (actor.id === activeId && activeLineImage));
         const visible = usable.slice(0, 4);
-        this.cast.innerHTML = visible.map((actor, index) => {
+        const markup = visible.map(({ actor, participantIndex }) => {
             const actorId = actor.id || actor.actorId;
             const isActive = !activeId || actorId === activeId;
-            const side = index % 2 === 0 ? 'left' : 'right';
-            const slot = Math.floor(index / 2);
+            const side = participantIndex % 2 === 0 ? 'left' : 'right';
+            const slot = Math.floor(participantIndex / 2);
             const lineExpression = resolveLayerImage(line.expressionLayer);
             const actorExpression = resolveLayerImage(actor.expressionLayer);
             const remembered = this.actorPresentationState.get(actorId);
@@ -328,13 +345,18 @@ export default class StoryDialogueView {
             }
 
             const facingClass = shouldMirrorStanding(side, facing) ? ' is-mirrored' : '';
+            const enteringClass = enteringActorIds.has(actorId) ? ' is-entering' : '';
+            const exitingClass = exitingActorIds.has(actorId) ? ' is-exiting' : '';
             if (!image) return '';
             return `
-                <figure class="story-dialogue-actor ${isActive ? 'is-active' : 'is-inactive'}${facingClass}" data-side="${side}" data-slot="${slot}" style="--story-actor-scale: ${resolvedScale}; --story-actor-offset-y: ${resolvedOffsetY}%">
+                <figure class="story-dialogue-actor ${isActive ? 'is-active' : 'is-inactive'}${facingClass}${enteringClass}${exitingClass}" data-actor-id="${escapeHtml(actorId)}" data-side="${side}" data-slot="${slot}" style="--story-actor-scale: ${resolvedScale}; --story-actor-offset-y: ${resolvedOffsetY}%">
                     <img src="${escapeHtml(resolveImage(image))}" alt="${escapeHtml(actor.name || line.speaker || '')}">
                 </figure>
             `;
         }).join('');
+        if (markup === this.castRenderKey) return;
+        this.cast.innerHTML = markup;
+        this.castRenderKey = markup;
     }
 
     renderChoices({ title = '選擇話題', choices = [], standing = '', standingFacing = 'center', standingScale = 1, standingOffsetY = 0, portrait = '', name = '', role = '', backgroundImage = '', backgroundPosition = 'center' }) {
@@ -360,6 +382,7 @@ export default class StoryDialogueView {
                 <img src="${escapeHtml(resolveImage(characterImage))}" alt="${escapeHtml(name)}">
             </figure>
         ` : '';
+        this.castRenderKey = this.cast.innerHTML;
         this.choices.hidden = false;
         this.choices.dataset.choiceCount = String(choices.length);
         this.choices.innerHTML = choices.map(choice => {

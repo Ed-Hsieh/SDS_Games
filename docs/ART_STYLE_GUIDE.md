@@ -166,13 +166,13 @@ Current first-run narrative-art result:
 
 | Category | Ready baseline | Missing | Notes |
 | --- | ---: | ---: | --- |
-| Human actor-expression combinations | 26 physical files | 27 | 53 unique first-run combinations after static Boss exclusions; only the Chapter 1 set is fully registered in `StoryActors.js` |
-| Chapter overworld canvases | 2 | 5 | Chapters 1-2 exist; Chapters 3-7 are absent |
-| Town overview/state backgrounds | existing partial set plus 6 generated review assets | 8 | Approved overview direction is now fixed; new files still need scene binding |
-| Field/location backgrounds | existing Chapter 1-2 landmark set | 15 | Consolidated reusable scenes, not one image per screenplay scene |
-| Mandatory first-run CGs | 0 | 2 | Frey's last stand and the surviving Demon King reveal |
-| Mandatory physical story-object icons | 1 | 2 | Loaded Dice exists; Echo Whistle and seal-scar shard do not |
-| **Remaining first-run narrative images** |  | **59** | 27 + 5 + 8 + 15 + 2 + 2 |
+| Human actor-expression combinations | 45 physical files | 8 | 53 unique first-run combinations after static Boss exclusions; newly generated Chapter 4-5 layers still require review and registration |
+| Chapter overworld canvases | 5 | 2 | Chapters 1-2, 4-5, and 7 exist; Chapters 3 and 6 are absent |
+| Town overview/state backgrounds | existing partial set plus 13 generated review assets | 1 | Approved overview direction is fixed; generated state files still need visual review |
+| Field/location backgrounds | existing Chapter 1-2 landmark set plus 10 generated review assets | 5 | Consolidated reusable scenes, not one image per screenplay scene |
+| Mandatory first-run CGs | 2 | 0 | Frey's last stand and the surviving Demon King reveal exist pending review |
+| Mandatory physical story-object icons | 2 | 1 | Loaded Dice and Echo Whistle exist; the seal-scar shard is absent |
+| **Remaining first-run narrative images** |  | **17** | 8 + 2 + 1 + 5 + 0 + 1 |
 
 ### Optional Side-Story Derived Art Ledger
 
@@ -296,10 +296,10 @@ Do not paint visible route lines into the terrain.
 | Proposed asset id | Chapter | Required region |
 | --- | ---: | --- |
 | `overworld_shadow_watch` | 3 | `chapter_03_shadow_watch` |
-| `overworld_gray_ridge` | 4 | `chapter_04_gray_ridge` |
-| `overworld_four_fronts` | 5 | `chapter_05_four_fronts` |
+| `overworld_gray_ridge` | 4 | `chapter_04_gray_ridge` (generated and bound; approved locations only, no painted route lines or visible Titan) |
+| `overworld_four_fronts` | 5 | `chapter_05_four_fronts` (generated; pending visual review and binding) |
 | `overworld_dragon_scar` | 6 | `chapter_06_dragon_scar` |
-| `overworld_fall_site` | 7 | `chapter_07_fall_site` |
+| `overworld_fall_site` | 7 | `chapter_07_fall_site` (generated and bound; high mountain approach, ruined settlement, and central fall-site wound) |
 
 ### Town Background Ledger
 
@@ -311,15 +311,15 @@ location image.
 | --- | --- | --- | --- |
 | `town-overview-broken` | `in_progress` | Chapter 1 lobby/town entry | Generated from the accepted town topology; pending visual review and runtime binding |
 | `town-overview-recovery` | `in_progress` | Chapters 2-4 town returns | User-approved visual direction and saved as the state/topology master; pending runtime binding |
-| `town-overview-hollow-victory` | `planned` | `ch7_s08_return_to_town`, `ch7_s09_first_or_second_epilogue` | First-run victory with visible absences, not celebration spectacle |
-| `crossroads-first-run-loss` | `planned` | `ch5_s11_town_loses_its_voice`, Chapter 7 return montage | Same crossroads after the town has lost key people |
-| `mia-workroom-operation` | `planned` | `ch5_s06_mia_operation` | Character-free operation state; fixed-ratchet tools readable |
-| `mia-workroom-after-loss` | `planned` | `ch5_s07_after_the_ratchet`, `ch7_s08_return_to_town` | Same room after Mia's first-run death |
+| `town-overview-hollow-victory` | `generated_bound_pending_review` | `ch7_s08_return_to_town`, `ch7_s09_first_or_second_epilogue` | First-run victory with visible absences, not celebration spectacle |
+| `crossroads-first-run-loss` | `generated_pending_review` | `ch5_s11_town_loses_its_voice`, Chapter 7 return montage | Same crossroads after the town has lost key people |
+| `mia-workroom-operation` | `generated_pending_review` | `ch5_s06_mia_operation` | Character-free operation state; fixed-ratchet tools readable |
+| `mia-workroom-after-loss` | `generated_pending_review` | `ch5_s07_after_the_ratchet`, `ch7_s08_return_to_town` | Same room after Mia's first-run death |
 | `civic-room-working` | `in_progress` | `ch1_s04_elder_to_scholar` through `ch5_s08_expedition_list` | Generated dedicated damp-paper civic/archive room; pending visual review and binding |
-| `civic-room-depleted` | `planned` | `ch5_s11_town_loses_its_voice`, `ch7_s08_return_to_town` | Same room after cumulative first-run losses |
+| `civic-room-depleted` | `generated_pending_review` | `ch5_s11_town_loses_its_voice`, `ch7_s08_return_to_town` | Same room after cumulative first-run losses |
 | `gate-working` | `in_progress` | `ch2_s08_shadow_at_the_checkpoint`, `ch3_s09_temptation_and_orders` | Generated ordinary repaired gate with plain flag and patrol lamp; pending visual review and binding |
-| `gate-after-frey` | `planned` | `ch4_s08_returned_objects`, `ch7_s08_return_to_town` | Old flag hardware and Tavi's lamp; no heroic monument |
-| `forge-grief` | `planned` | `ch4_s08_returned_objects`, `ch5_s07_after_the_ratchet`, `ch7_s08_return_to_town` | Same usable forge with reduced human warmth |
+| `gate-after-frey` | `generated_pending_review` | `ch4_s08_returned_objects`, `ch7_s08_return_to_town` | Old flag hardware and Tavi's lamp; no heroic monument |
+| `forge-grief` | `generated_pending_review` | `ch4_s08_returned_objects`, `ch5_s07_after_the_ratchet`, `ch7_s08_return_to_town` | Same usable forge with reduced human warmth |
 | `market-closed` | `in_progress` | `ch2_s01_empty_crates` | Generated closed public market with empty crates; pending visual review and binding |
 | `market-sparse` | `in_progress` | `ch2_s07_names_return_to_town` | Generated as the same market with limited restored stock; pending visual review and binding |
 | `market-service-alley` | `planned` | `ch3_s05_blank_creditor_trace` | Closed service passage to the retained black-market contact point |
@@ -339,14 +339,15 @@ prize-wall set remain reusable pending visual review.
 | `gray-ridge-causeway` | `ch4_s04_gray_ridge_evacuates` | Causeway before the central span breaks |
 | `gray-ridge-rear-marker` | `ch4_s05_body_locks` | Rear marker under ash wind |
 | `gray-ridge-center-span-aftermath` | `ch4_s06_flag_returns` | Reusable aftermath background; separate from the Frey CG |
+| `titan-vein-ruins-awakened` | `ch4_s07_titan_rises` | Collapsed regulation ruins exposed beneath Gray Ridge; separate from the existing Ancient Titan Boss image |
 | `four-front-convergence` | `ch5_s03_elemental_convergence` | Four physical elemental fronts converging on one pressure line |
 | `four-front-emergency-return` | `ch5_s05_fourfold_shrapnel` | Exposed return route from the convergence core |
 | `old-waystation-cache` | `ch5_s09_whistle_cache` | Cache built by the destroyed mountain settlement |
-| `seal-warning-line-body` | `ch6_s02_scar_aftermath` | First-run warning line with the elder's body; no second-run variant yet |
+| `seal-warning-line-body` | `ch6_s02_scar_aftermath` | First-run investigation composition only: the elder lies outside the warning line, his weapon remains sheathed, the bloodied fragment rests near his hand, and opposing black pressure / dragon-fire marks remain readable. Do not depict his departure, private decision, or moment of death; no second-run variant yet |
 | `mountain-base-collapsed-road` | `ch6_s05_after_the_broad_road` | Constructed broad road ending in collapsed stone |
 | `old-route-mouth` | `ch6_s09_the_old_note_answers` | Acoustic blind turns and concealed human route mouth |
-| `ruined-flower-field` | `ch7_s02_ruined_flower_field` | Present ruin with one identifiable white/pale-green flower |
-| `final-mountain-camp` | `ch7_s04_three_anchor_check` | Three neutral forge housings; no story-exclusive sword |
+| `ruined-flower-field` | `ch7_s02_ruined_flower_field` | Generated and bound: present ruin with one identifiable white/pale-green flower |
+| `final-mountain-camp` | `ch7_s04_three_anchor_check` | Generated and bound: three neutral forge housings; no story-exclusive sword |
 
 Chapter 1 landmark art and the Chapter 2 mist hill, moon-moss slope, opened tomb,
 drowned coast, and sunken altar already exist. Bind and review those files before
@@ -357,9 +358,67 @@ requesting replacements.
 | Proposed asset id | Type | Scene ids | Requirement |
 | --- | --- | --- | --- |
 | `frey-last-standard` | CG | `ch4_s06_flag_returns` | Frey's final first-run moment still holding the ordinary village standard |
-| `demon-survives-ending` | CG | `ch7_s09_first_or_second_epilogue` | Post-ending reveal: broken combat body still fed by a slow black pulse |
+| `demon-survives-ending` | CG | `ch7_s09_first_or_second_epilogue` | Generated and bound: post-ending reveal, with the broken combat body still fed by a slow black pulse |
 | `echo_whistle` | key-item icon | `ch5_s09_whistle_cache` onward | Ordinary acoustic route tool, not a magical guide artifact |
 | `seal_scar_shard` | key-item icon | `ch6_s02_scar_aftermath` onward | Current-run physical evidence; no formal light/Void styling |
+
+### Chapter 4 Generated Image Review Batch
+
+Chapter 4's locked batch contains exactly 18 chapter-specific image files.
+All 18 were generated on 2026-07-24 and placed under
+`src/assets/images/art/`. They remain `generated_pending_review`: physical
+file coverage is complete, but none of these files count as visually accepted
+or runtime-bound until the user reviews them.
+
+- Eight scene/CG files: `stone-route-moving-wall`,
+  `gray-ridge-causeway`, `gray-ridge-rear-marker`,
+  `gray-ridge-center-span-aftermath`, `titan-vein-ruins-awakened`,
+  `gate-after-frey`, `forge-grief`, and `frey-last-standard`.
+- Ten expression files: `blacksmith/angry`,
+  `blacksmith/grieving`, `casino_dealer/guarded`,
+  `casino_owner/soft`, `casino_owner/pleased`,
+  `herbalist/grieving`, `herbalist/hurt`,
+  `lamplighter_tavi/afraid`, `village_elder/grieving`, and
+  `village_elder/afraid`.
+
+The existing `overworld_gray_ridge`, `thorn_glasshouse_ruin`,
+`thorn_witch`, and `ancient_titan` files remain valid assets and are not part of
+this review batch.
+
+### Chapter 5 Generated Image Review Batch
+
+Chapter 5's locked batch contains exactly 24 chapter-specific image references.
+All 24 were generated on 2026-07-24 and placed under
+`src/assets/images/art/`. They remain `generated_pending_review`: physical
+file coverage is complete, but none of these files count as visually accepted
+or runtime-bound until the user reviews them. Temporary bindings to ordinary
+town states still do not count as accepted chapter-specific art.
+
+- One chapter canvas: `overworld_four_fronts`.
+- Eight scene backgrounds: `four-front-convergence`,
+  `four-front-emergency-return`, `old-waystation-cache`,
+  `mia-workroom-operation`, `mia-workroom-after-loss`,
+  `crossroads-first-run-loss`, `civic-room-depleted`, and `forge-grief`.
+- One story-object icon: `echo_whistle`.
+- Fourteen expression files: `blacksmith/grieving`, `blacksmith/hurt`,
+  `casino_dealer/guarded`, `casino_owner/pleased`, `casino_owner/soft`,
+  `street_beggar/afraid`, `town_scholar/afraid`,
+  `town_scholar/grieving`, `town_scholar/hurt`,
+  `town_scholar/resolute`, `town_scholar/soft`,
+  `village_elder/angry`, `village_elder/grieving`, and
+  `village_elder/soft`.
+
+Six Chapter 5 references are shared with the Chapter 4 review batch:
+`forge-grief`, `blacksmith/grieving`, `casino_dealer/guarded`,
+`casino_owner/pleased`, `casino_owner/soft`, and
+`village_elder/grieving`. Chapters 4 and 5 therefore contain 42 chapter
+references but require 36 unique image files. All 36 unique files now exist and
+await visual review.
+
+The existing Elemental Lord Boss image, ordinary forge, Mia workroom, working
+civic room, working gate, and recovery crossroads remain valid temporary or
+shared assets. They do not satisfy the dedicated Chapter 5 state images listed
+above.
 
 The six generated town files use the accepted blue-gray recovering frontier-town
 direction. Their runtime WebP files are committed under `src/assets/images/art/`;

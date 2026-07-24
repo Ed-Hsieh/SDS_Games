@@ -176,11 +176,13 @@ Their tension is quiet:
 - 伊萊 fears handing people the paper that sends them out.
 - Both are trying to protect the protagonist in different ways.
 
-The accepted Chapter 2 ledger scene makes this friendship visible without a
-flashback. 伊萊 remembers writing inside while the elder waited outside until
-dawn, then asks him not to announce another solitary departure through an empty
-chair. The elder answers with old-friend humor but does not promise. This line
-must remain mandatory mainline setup for the Chapter 5 empty-chair payoff.
+The Chapter 2 ledger scene does not announce this friendship as a relationship
+milestone. It lets the player see how they divide familiar work: 伊萊 replaces a
+page, the elder signs what is ready, and each knows which unfinished task the
+other will try to carry into the night. Their deeper history belongs to later
+events and optional character material. Chapter 5 must earn the empty-chair
+payoff through additional shared decisions rather than relying on one early
+speech.
 
 ## Relationship With Mia
 

@@ -9,7 +9,8 @@ export const OVERWORLD_ID = 'frontier_overworld_v2';
 export const WORLD_CELL_SIZE = 32;
 export const WORLD_TILE_COLS = 48;
 export const WORLD_TILE_ROWS = 32;
-export const WORLD_COLS = 96;
+const READY_OVERWORLD_CHAPTERS = Object.freeze([1, 2, 3, 4, 5, 6, 7]);
+export const WORLD_COLS = WORLD_TILE_COLS * Math.max(...READY_OVERWORLD_CHAPTERS);
 export const WORLD_ROWS = 32;
 
 function createOverworldTile(chapter) {
@@ -33,7 +34,7 @@ function createOverworldTile(chapter) {
     });
 }
 
-export const OverworldMapTiles = Object.freeze([1, 2].map(createOverworldTile));
+export const OverworldMapTiles = Object.freeze(READY_OVERWORLD_CHAPTERS.map(createOverworldTile));
 
 export const OverworldHabitats = Object.freeze([
     Object.freeze({
@@ -134,6 +135,132 @@ export const OverworldHabitats = Object.freeze([
         encounterRate: 0.14,
         safeSteps: 4,
         monsterIds: Object.freeze(['skeleton_warrior', 'stone_golem', 'rune_wisp'])
+    }),
+    Object.freeze({
+        id: 'dead_checkpoint_country',
+        chapter: 3,
+        name: '廢棄關卡地',
+        rect: Object.freeze({ x: 96, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([13, 24]),
+        threat: 'guarded',
+        encounterRate: 0.1,
+        safeSteps: 5,
+        monsterIds: Object.freeze(['ghost', 'skeleton_warrior', 'shadow_soldier'])
+    }),
+    Object.freeze({
+        id: 'shadow_watch_country',
+        chapter: 3,
+        name: '霧中守夜線',
+        rect: Object.freeze({ x: 112, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([21, 27]),
+        threat: 'dangerous',
+        encounterRate: 0.115,
+        safeSteps: 5,
+        monsterIds: Object.freeze(['shadow_soldier', 'shadow_archer', 'shadow_halberdier'])
+    }),
+    Object.freeze({
+        id: 'black_iron_command_country',
+        chapter: 3,
+        name: '黑鐵指揮線',
+        rect: Object.freeze({ x: 128, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([23, 29]),
+        threat: 'severe',
+        encounterRate: 0.13,
+        safeSteps: 4,
+        monsterIds: Object.freeze(['shadow_archer', 'shadow_halberdier', 'shadow_mage'])
+    }),
+    Object.freeze({
+        id: 'gray_ridge_highlands',
+        chapter: 4,
+        name: '灰脊山路',
+        rect: Object.freeze({ x: 144, y: 0, width: 48, height: 32 }),
+        levelRange: Object.freeze([31, 37]),
+        threat: 'dangerous',
+        encounterRate: 0.11,
+        safeSteps: 5,
+        monsterIds: Object.freeze([
+            'ancient_guardian',
+            'crystal_golem',
+            'earth_elemental',
+            'rune_keeper'
+        ])
+    }),
+    Object.freeze({
+        id: 'four_front_fire',
+        chapter: 5,
+        name: '熾熱前線',
+        rect: Object.freeze({ x: 192, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([41, 46]),
+        threat: 'dangerous',
+        encounterRate: 0.115,
+        safeSteps: 5,
+        monsterIds: Object.freeze(['fire_elemental', 'ember_beast'])
+    }),
+    Object.freeze({
+        id: 'four_front_ice',
+        chapter: 5,
+        name: '霜寒前線',
+        rect: Object.freeze({ x: 204, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([41, 47]),
+        threat: 'dangerous',
+        encounterRate: 0.115,
+        safeSteps: 5,
+        monsterIds: Object.freeze(['ice_elemental', 'frost_wolf'])
+    }),
+    Object.freeze({
+        id: 'four_front_thunder',
+        chapter: 5,
+        name: '雷暴前線',
+        rect: Object.freeze({ x: 216, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([43, 49]),
+        threat: 'dangerous',
+        encounterRate: 0.12,
+        safeSteps: 4,
+        monsterIds: Object.freeze(['thunder_elemental', 'storm_raptor', 'starvein_lurker'])
+    }),
+    Object.freeze({
+        id: 'four_front_poison',
+        chapter: 5,
+        name: '毒瘴前線',
+        rect: Object.freeze({ x: 228, y: 0, width: 12, height: 32 }),
+        levelRange: Object.freeze([44, 49]),
+        threat: 'severe',
+        encounterRate: 0.125,
+        safeSteps: 4,
+        monsterIds: Object.freeze(['poison_frog', 'vine_beast', 'starvein_lurker'])
+    }),
+    Object.freeze({
+        id: 'northern_drake_country',
+        chapter: 6,
+        name: '北境龍哨',
+        rect: Object.freeze({ x: 240, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([51, 54]),
+        threat: 'dangerous',
+        encounterRate: 0.11,
+        safeSteps: 5,
+        monsterIds: Object.freeze(['cliffscale_hatchling', 'wyvern', 'sealstone_guardian'])
+    }),
+    Object.freeze({
+        id: 'seal_scar_perimeter',
+        chapter: 6,
+        name: '封痕外圍',
+        rect: Object.freeze({ x: 256, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([52, 57]),
+        threat: 'dangerous',
+        encounterRate: 0.12,
+        safeSteps: 4,
+        monsterIds: Object.freeze(['wyvern', 'drake', 'dragon_seal_sentinel'])
+    }),
+    Object.freeze({
+        id: 'dragon_held_line',
+        chapter: 6,
+        name: '龍族守線',
+        rect: Object.freeze({ x: 272, y: 0, width: 16, height: 32 }),
+        levelRange: Object.freeze([53, 59]),
+        threat: 'severe',
+        encounterRate: 0.135,
+        safeSteps: 4,
+        monsterIds: Object.freeze(['sealstone_guardian', 'dragon_seal_adept', 'dragon_knight'])
     })
 ]);
 
@@ -205,6 +332,121 @@ const ChapterTwoLandmarkPresentation = Object.freeze({
     }
 });
 
+const ChapterThreeLandmarkPresentation = Object.freeze({
+    dead_checkpoint: {
+        firstText: '關卡的門扇倒在路旁，地上還留著整齊站位的痕跡。守在這裡的影子沒有離開。',
+        repeatText: '廢棄關卡仍維持著舊日隊列，通往北側的路已記入手札。'
+    },
+    night_watch_line: {
+        firstText: '幾盞舊燈隔著霧排開，燈油早已乾涸，石座旁卻留著近期踩過的泥痕。',
+        repeatText: '守夜線沿著霧地延伸，熄滅的燈座仍能辨認方向。'
+    },
+    sunken_altar_reef: {
+        firstText: '退水露出半座石壇，濕泥裡傳來斷續的人聲。聲音沒有隨潮水退去。',
+        repeatText: '石壇仍泡在淺水裡，回聲從裂開的基座下方傳出。'
+    },
+    old_command_post: {
+        firstText: '黑鐵倉門半開，命令牌與空箭囊散在桌邊。最後一份調度令沒有寫下撤退。',
+        repeatText: '舊指揮所保留著未完成的調度，前方就是仍被守住的缺口。'
+    },
+    shadow_command_yard: {
+        firstText: '指揮場沒有屍體，只有被反覆踩實的隊列。甲片碰撞聲從霧後逐步靠近。',
+        repeatText: '左線指揮場仍留著守軍站位，黑鐵地面沒有被風沙掩去。'
+    }
+});
+
+const ChapterFourLandmarkPresentation = Object.freeze({
+    stone_route_entry: {
+        firstText: '石路在腳下輕輕震動。碎石沿著坡面滑落，前方的車轍被新裂縫截斷。',
+        repeatText: '裂縫還在擴大。灰脊方向不時傳來石塊落下的聲音。'
+    },
+    thorn_glasshouse_ruin: {
+        firstText: '傾倒的溫室被荊棘封住。玻璃後方仍有枝條摩擦的聲音。',
+        repeatText: '荊棘纏住破裂的窗架，溫室內部仍然無法看清。'
+    },
+    gray_ridge_entry: {
+        firstText: '入口旁有翻倒的貨車，輪軸還沾著新泥。灰脊後段傳來斷續的呼喊。',
+        repeatText: '貨車仍堵在入口旁。撤離的人正沿著灰脊往回走。'
+    },
+    rear_marker: {
+        firstText: '後標木樁倒在路邊。貨車堵住窄口，還有人困在另一側。',
+        repeatText: '窄口尚未清空。後方的人只能依序穿過貨車留下的空隙。'
+    },
+    center_span_marker: {
+        firstText: '橋面不斷落石，中央跨度已經裂開。撤離隊伍正從兩側通過。',
+        repeatText: '橋上的裂口繼續加深。留在後方的人正在加快腳步。'
+    },
+    titan_vein_ruins: {
+        firstText: '地面向上抬起，埋在山腹裡的古代石構露了出來。城鎮的退路就在遺跡前方。',
+        repeatText: '古代石構仍在震動，裸露的刻槽一路延伸進山裡。'
+    }
+});
+
+const ChapterFiveLandmarkPresentation = Object.freeze({
+    four_front_nexus: {
+        firstText: '四條路在裸露的岩盤上交會。熱氣、霜痕、焦痕與腐蝕留下的色澤彼此壓在一起。',
+        repeatText: '四線仍在這裡交會，岩縫間的震動沒有停下。'
+    },
+    elemental_core: {
+        firstText: '前方的地面不斷隆起又落下。四股力量都朝同一處擠壓，連站穩都變得困難。',
+        repeatText: '元素核心留下的裂口仍在發熱，周圍沒有恢復平靜。'
+    },
+    emergency_return_marker: {
+        firstText: '回程線上散著剛崩落的碎石。原本平直的路被截成兩段，只剩側邊還能勉強通過。',
+        repeatText: '崩落處已經不再擴大，碎石下仍傳來細小的摩擦聲。'
+    },
+    old_waystation_cache: {
+        firstText: '廢棄驛站的牆根有一塊石板被人重新挪過。灰塵很厚，縫裡卻留著新鮮刮痕。',
+        repeatText: '石板下的藏庫已經打開，舊驛站又只剩風聲。'
+    }
+});
+
+const ChapterSixLandmarkPresentation = Object.freeze({
+    northern_drake_watch: {
+        firstText: '龍哨的圍欄多處燒黑，守望台仍朝著封痕方向。山風帶來焦石與硫磺的氣味。',
+        repeatText: '北境龍哨仍能辨認封痕方向，沿途沒有新的撤回標記。'
+    },
+    dragon_heat_crag: {
+        firstText: '裂脊下方冒著熱氣，幼龍留下的抓痕停在岩縫前。這條支路不通往封痕主線。',
+        repeatText: '熱氣仍從岩縫升起，龍類活動的痕跡沒有越過裂脊。'
+    },
+    seal_warning_line: {
+        firstText: '成排封石攔在山路中央。碎片散落在界線外側，沒有爪痕，也沒有拔出武器的痕跡。',
+        repeatText: '封石界線仍在原地，散落碎片的位置已被完整記下。'
+    },
+    elder_dragon_line: {
+        firstText: '寬路在龍族守線前停住。焦黑石面沒有衝鋒痕跡，只有長久駐守留下的磨損。',
+        repeatText: '龍族守線仍封住寬路，界線後方的地面持續震動。'
+    },
+    broad_road_collapse: {
+        firstText: '寬路在前方整片坍塌，斷面露出被抽空的岩層。繼續前進已經不可能。',
+        repeatText: '坍塌沒有停止，能走的只剩折回山腹的舊路。'
+    },
+    old_route_mouth: {
+        firstText: '狹窄舊路藏在倒石後方。風穿過彎道，帶回比腳步更早抵達的回聲。',
+        repeatText: '舊路回音口仍通往更高處，手札已記下入口的位置。'
+    }
+});
+
+const ChapterSevenLandmarkPresentation = Object.freeze({
+    old_mountain_road: {
+        firstText: '舊山路沿著岩壁往上。轉角太窄，前方的腳印總會先消失一段。',
+        repeatText: '山路仍沿著岩壁向上，碎石間留著通往高處的足跡。'
+    },
+    ruined_flower_field: {
+        firstText: '焦土間還留著一朵白瓣淡綠花心的小花。有人剛來過，卻沒有留下回程腳印。',
+        repeatText: '倒石中央仍留著那朵花，山風穿過崩壞的舊田界。'
+    },
+    final_mountain_camp: {
+        firstText: '營地只剩磨刀石、繃帶與最後一份補給。再往前就是墜落地。',
+        repeatText: '三只外殼與工具仍放在桌上，前方的黑色脈絡緩慢鼓動。'
+    },
+    demon_fall_site: {
+        firstText: '岩層向內塌成巨大的凹地。黑色脈絡從中央鑽入四周石壁。',
+        repeatText: '墜落地深處仍傳來低沉的搏動。'
+    }
+});
+
 function getPlayableLocation(chapter, locationId) {
     const region = getChapterRegion(chapter);
     const tile = OverworldMapTiles.find(entry => entry.chapter === chapter);
@@ -221,24 +463,29 @@ function getPlayableLocation(chapter, locationId) {
 function createChapterLandmarks(chapter, presentations) {
     return Object.entries(presentations).map(([locationId, presentation]) => {
         const { node, x, y } = getPlayableLocation(chapter, locationId);
-        if (!node.imageId) throw new Error(`Chapter location ${locationId} has no imageId`);
         return landmark({
             ...presentation,
             id: node.id,
             name: node.name,
             x,
             y,
-            imageId: node.imageId,
+            imageId: node.imageId || null,
             bossId: node.bossId,
             dungeonId: node.dungeonId || null,
-            sceneIds: node.sceneIds
+            sceneIds: node.sceneIds,
+            prerequisites: node.prerequisites
         });
     });
 }
 
 export const OverworldLandmarks = Object.freeze([
     ...createChapterLandmarks(1, ChapterOneLandmarkPresentation),
-    ...createChapterLandmarks(2, ChapterTwoLandmarkPresentation)
+    ...createChapterLandmarks(2, ChapterTwoLandmarkPresentation),
+    ...createChapterLandmarks(3, ChapterThreeLandmarkPresentation),
+    ...createChapterLandmarks(4, ChapterFourLandmarkPresentation),
+    ...createChapterLandmarks(5, ChapterFiveLandmarkPresentation),
+    ...createChapterLandmarks(6, ChapterSixLandmarkPresentation),
+    ...createChapterLandmarks(7, ChapterSevenLandmarkPresentation)
 ]);
 
 export const OverworldRouteGates = Object.freeze([

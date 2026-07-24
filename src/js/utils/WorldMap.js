@@ -239,6 +239,9 @@ export default class WorldMap {
     }
 
     isLandmarkAvailable(entry) {
+        if (entry.prerequisites?.some(flag => !GameManager.getFlag(flag))) {
+            return false;
+        }
         if (entry.progressionRequirement) {
             return chapterOneProgressionManager.meetsRequirement(entry.progressionRequirement);
         }

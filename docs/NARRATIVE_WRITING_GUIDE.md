@@ -648,6 +648,12 @@ Supported scene beats should include:
 - `enter`: a character temporarily enters the scene presentation.
 - `exit`: a character leaves the scene presentation.
 
+For character presentation, the `Speaker` cell of an `enter` or `exit` beat must
+contain the affected actor id. Separate multiple ids with commas. An `enter` or
+`exit` beat whose `Speaker` cell is `-` is a flow direction only, such as
+opening combat, returning to the map, or ending the scene; it must never be
+interpreted as a portrait transition by reading names from its prose.
+
 These beats should also carry the layered scene metadata above whenever the
 background, visible participants, or expression changes.
 

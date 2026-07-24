@@ -120,11 +120,12 @@ This event defines Frey's belief:
 > I was once saved by a flag in the mist. If someone else is lost, I will be the
 > foolish person who keeps waving one until they find their way home.
 
-Accepted screenplay placement: Chapter 3 `Lamp Oil In Fog`. The old patrol flag
-base at the rear-marker route prompts Frey to name the childhood mist before the
-Gray Ridge crisis. Tavi remembers clinging to her and being unable to make his
-legs move. The audience therefore knows what the flag means before her first-run
-death rather than learning it as posthumous exposition.
+The childhood rescue remains accepted character history, but it is not recited
+inside the mandatory Chapter 3 `Lamp Oil In Fog` scene. That scene shows only
+current work: Tavi maintains the front lamp, avoids the rear marker, and Frey
+covers the unfinished task. The memory may surface later through an optional
+relationship event after the player has already experienced their ordinary
+patrol habits. It cannot own the wind-guard rescue condition.
 
 ## Personality
 

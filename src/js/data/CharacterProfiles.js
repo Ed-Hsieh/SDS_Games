@@ -31,7 +31,7 @@ export const CharacterProfileDatabase = {
         },
         stages: [
             { id: 'burden', label: '一個人扛住城鎮', mood: '平靜得過度用力' },
-            { id: 'friendship_visible', label: '伊萊門外等他', fromFlag: sceneFlag('ch2_s07_names_return_to_town'), mood: '開始讓疲憊被朋友看見' },
+            { id: 'ledger_revision', label: '與伊萊核對名冊', fromFlag: sceneFlag('ch2_s07_names_return_to_town'), mood: '仍把疲憊留在工作裡' },
             { id: 'scar_choice', label: '封痕前的選擇', fromFlag: sceneFlag('ch5_s10_before_dawn'), mood: '第一輪獨行，第二輪肯停下' }
         ],
         reportClosings: [
@@ -181,7 +181,7 @@ export const CharacterProfileDatabase = {
         },
         stages: [
             { id: 'cold_forge', label: '冷爐重新生火', mood: '先修回城工具' },
-            { id: 'civilian_first', label: '民生排在武器前', fromFlag: sceneFlag('ch4_s02_fourfold_countergear'), mood: '主動做出價值選擇' },
+            { id: 'civilian_first', label: '先修回程用的東西', fromFlag: sceneFlag('ch4_s02_caravan_rear_missing'), mood: '把撤離與運輸器材排在武器前' },
             { id: 'ordinary_queue', label: '普通麻煩重新排隊', fromFlag: sceneFlag('ch7_s08_return_to_town'), mood: '能開玩笑，也能讓別人幫忙' }
         ],
         reportClosings: [

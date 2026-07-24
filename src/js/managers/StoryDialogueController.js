@@ -8,6 +8,7 @@ class StoryDialogueController {
         this.session = null;
         this.typeTimer = null;
         this.autoTimer = null;
+        this.stageTimer = null;
         this.autoPlay = localStorage.getItem('sds.storyDialogueAuto') === 'true';
     }
 
@@ -31,23 +32,47 @@ class StoryDialogueController {
     play(presentation = {}, options = {}) {
         this.mount();
         this.finishSession({ status: 'replaced' });
-        const lines = mergeConsecutiveNarration((presentation.lines || []).filter(line => line?.text));
-        if (!lines.length) return Promise.resolve({ status: 'empty' });
+        const sourceTimeline = presentation.timeline || presentation.lines || [];
+        const timeline = mergeConsecutiveNarration(
+            sourceTimeline.filter(entry => entry?.stageAction || entry?.text)
+        );
+        const displayTotal = timeline.filter(entry => !entry.stageAction && entry?.text).length;
+        if (!displayTotal) return Promise.resolve({ status: 'empty' });
 
         return new Promise(resolve => {
-            const usedActorIds = new Set(lines.map(line => line.actorId).filter(Boolean));
+            let displayIndex = 0;
+            const indexedTimeline = timeline.map(entry => (
+                entry.stageAction
+                    ? entry
+                    : { ...entry, displayIndex: displayIndex++ }
+            ));
+            const usedActorIds = new Set(indexedTimeline.flatMap(entry => (
+                entry.actorIds?.length ? entry.actorIds : [entry.actorId]
+            )).filter(Boolean));
             const participants = (presentation.participants || [])
                 .filter(actor => usedActorIds.has(actor?.id || actor?.actorId));
+            const stagedEntrants = new Set(indexedTimeline
+                .filter(entry => entry.stageAction === 'enter')
+                .flatMap(entry => entry.actorIds || []));
+            const visibleActorIds = new Set(participants
+                .map(actor => actor?.id || actor?.actorId)
+                .filter(actorId => actorId && !stagedEntrants.has(actorId)));
             this.session = {
                 type: 'dialogue',
                 presentation,
                 participants,
-                lines,
+                timeline: indexedTimeline,
+                displayTotal,
+                visibleActorIds,
+                enteringActorIds: new Set(),
+                exitingActorIds: new Set(),
                 choices: Array.isArray(presentation.choices) ? presentation.choices.filter(choice => choice?.id) : [],
                 index: 0,
                 currentText: '',
                 typing: false,
                 complete: false,
+                stageProcessing: false,
+                lastDisplayLine: null,
                 closable: Boolean(options.closable),
                 backgroundImage: options.backgroundImage || '',
                 backgroundPosition: options.backgroundPosition || 'center',
@@ -82,11 +107,21 @@ class StoryDialogueController {
         const session = this.session;
         if (!session || session.type !== 'dialogue') return;
         this.clearTimers();
+        const line = session.timeline[session.index];
+        if (!line) {
+            this.finishDialogueTimeline();
+            return;
+        }
+        if (line.stageAction) {
+            this.processStageAction(line);
+            return;
+        }
+        if (line.actorId) session.visibleActorIds.add(line.actorId);
+        session.lastDisplayLine = line;
         session.currentText = '';
         session.typing = true;
         session.complete = false;
         this.renderCurrentLine();
-        const line = session.lines[session.index];
         const fullText = String(line.text || '');
 
         const typeNext = () => {
@@ -109,16 +144,18 @@ class StoryDialogueController {
     renderCurrentLine() {
         const session = this.session;
         if (!session || session.type !== 'dialogue') return;
-        const line = session.lines[session.index];
+        const line = session.timeline[session.index];
+        if (!line || line.stageAction) return;
         this.view.renderLine({
             line,
             text: session.currentText,
             participants: session.participants,
-            index: session.index,
-            total: session.lines.length,
+            index: line.displayIndex,
+            total: session.displayTotal,
             typing: session.typing,
             backgroundImage: session.backgroundImage,
-            backgroundPosition: session.backgroundPosition
+            backgroundPosition: session.backgroundPosition,
+            castState: this.getCastState(session)
         });
     }
 
@@ -126,7 +163,7 @@ class StoryDialogueController {
         const session = this.session;
         if (!session || session.type !== 'dialogue') return;
         this.clearTimers();
-        const line = session.lines[session.index];
+        const line = session.timeline[session.index];
         session.currentText = line.text || '';
         session.typing = false;
         session.complete = true;
@@ -140,28 +177,91 @@ class StoryDialogueController {
     advance() {
         const session = this.session;
         if (!session || session.type !== 'dialogue') return;
+        if (session.stageProcessing) return;
         if (session.typing) {
             this.completeCurrentLine();
             return;
         }
-        if (session.index >= session.lines.length - 1) {
-            if (session.choices.length) {
-                this.openFollowUpChoices();
-                return;
-            }
-            this.finishSession({ status: 'complete' });
+        session.index += 1;
+        if (session.index >= session.timeline.length) {
+            this.finishDialogueTimeline();
             return;
         }
-        session.index += 1;
         audioManager.play('page', { throttleKey: 'story-dialogue-page', throttleMs: 100 });
         this.startCurrentLine();
+    }
+
+    getCastState(session = this.session) {
+        return {
+            visibleActorIds: session?.visibleActorIds || new Set(),
+            enteringActorIds: session?.enteringActorIds || new Set(),
+            exitingActorIds: session?.exitingActorIds || new Set()
+        };
+    }
+
+    processStageAction(action) {
+        const session = this.session;
+        if (!session || session.type !== 'dialogue') return;
+        const actorIds = action.actorIds || [];
+        if (!actorIds.length) {
+            session.index += 1;
+            this.startCurrentLine();
+            return;
+        }
+
+        session.stageProcessing = true;
+        if (action.stageAction === 'enter') {
+            actorIds.forEach(actorId => {
+                session.visibleActorIds.add(actorId);
+                session.enteringActorIds.add(actorId);
+            });
+        } else {
+            actorIds.forEach(actorId => {
+                if (session.visibleActorIds.has(actorId)) session.exitingActorIds.add(actorId);
+            });
+        }
+
+        this.view.renderStage({
+            participants: session.participants,
+            line: session.lastDisplayLine || {},
+            castState: this.getCastState(session)
+        });
+
+        this.stageTimer = setTimeout(() => {
+            if (this.session !== session) return;
+            if (action.stageAction === 'exit') {
+                actorIds.forEach(actorId => session.visibleActorIds.delete(actorId));
+            }
+            actorIds.forEach(actorId => {
+                session.enteringActorIds.delete(actorId);
+                session.exitingActorIds.delete(actorId);
+            });
+            session.stageProcessing = false;
+            session.index += 1;
+            this.view.renderStage({
+                participants: session.participants,
+                line: session.lastDisplayLine || {},
+                castState: this.getCastState(session)
+            });
+            this.startCurrentLine();
+        }, 240);
+    }
+
+    finishDialogueTimeline() {
+        const session = this.session;
+        if (!session || session.type !== 'dialogue') return;
+        if (session.choices.length) {
+            this.openFollowUpChoices();
+            return;
+        }
+        this.finishSession({ status: 'complete' });
     }
 
     openFollowUpChoices() {
         const session = this.session;
         if (!session || session.type !== 'dialogue' || !session.choices.length) return;
         this.clearTimers();
-        const line = session.lines[session.index] || {};
+        const line = session.lastDisplayLine || {};
         const actor = session.participants.find(participant => (
             (participant.id || participant.actorId) === line.actorId
         )) || null;
@@ -219,8 +319,10 @@ class StoryDialogueController {
     clearTimers() {
         if (this.typeTimer) clearTimeout(this.typeTimer);
         if (this.autoTimer) clearTimeout(this.autoTimer);
+        if (this.stageTimer) clearTimeout(this.stageTimer);
         this.typeTimer = null;
         this.autoTimer = null;
+        this.stageTimer = null;
     }
 }
 

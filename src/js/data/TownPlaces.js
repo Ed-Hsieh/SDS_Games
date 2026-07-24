@@ -412,7 +412,7 @@ export const TownPlaceDatabase = [
             },
             {
                 id: 'civilian_first',
-                when: sceneComplete('ch4_s02_fourfold_countergear'),
+                when: sceneComplete('ch4_s02_caravan_rear_missing'),
                 title: '撤離工具排在武器前面',
                 text: '撤離板、燈架和擔架扣先送進工坊，武器只能在後面排隊。'
             },
@@ -449,7 +449,7 @@ export const TownPlaceDatabase = [
                 role: '公開庫存與交易',
                 portrait: portrait('merchant'),
                 position: { x: 48, y: 60 },
-                when: { always: true }
+                when: sceneComplete('ch3_s09_temptation_and_orders')
             }
         ],
         actions: [
@@ -462,7 +462,7 @@ export const TownPlaceDatabase = [
                 imageId: 'merchant_wagon',
                 description: '只顯示由道路、研究與城鎮狀態實際支持的庫存。',
                 position: { x: 72, y: 67 },
-                when: sceneComplete('ch2_s07_names_return_to_town')
+                when: sceneComplete('ch3_s09_temptation_and_orders')
             }
         ],
         states: [
@@ -471,14 +471,21 @@ export const TownPlaceDatabase = [
                 when: sceneComplete('ch2_s01_empty_crates'),
                 sceneImage: townScene('market-closed'),
                 title: '邊棚只剩空箱',
-                text: '商人把貨印和最後一次搬運的位置攤在棚下，請人沿著這些記號查找失蹤的貨隊。'
+                text: '巡線的人拖回幾只空箱。貨印和送貨者姓名先交給伊萊核對，攤位仍沒有人經營。'
             },
             {
-                id: 'public_medicine',
+                id: 'medicine_authorized',
                 when: sceneComplete('ch2_s07_names_return_to_town'),
+                sceneImage: townScene('market-closed'),
+                title: '配方已核對，貨架仍空著',
+                text: '米婭整理好能公開調配的基礎藥品，斷路另一端的貨與商人還沒有回來。'
+            },
+            {
+                id: 'caravan_returns',
+                when: sceneComplete('ch3_s09_temptation_and_orders'),
                 sceneImage: townScene('market-sparse'),
-                title: '藥品回到公開貨架',
-                text: '米婭核對配方批次，商人負責價格與數量。她不在工作室時，商人也能照著紀錄補貨。'
+                title: '商隊回到邊棚',
+                text: '返鄉商人重新掛起貨牌，外來商販也帶來第一批補給。米婭核過的藥品終於能擺上公開貨架。'
             }
         ]
     },
@@ -628,4 +635,105 @@ export function getTownPlaceDisplay(place = {}) {
         fullName,
         fullTag
     };
+}
+
+export const TownSceneTrigger = Object.freeze({
+    NPC_INTERACT: 'npc_interact',
+    PLACE_INTERACT: 'place_interact',
+    TOWN_ARRIVAL: 'town_arrival',
+    SCENE_CONTINUE: 'scene_continue'
+});
+
+function townBinding(sceneId, placeId, trigger, options = {}) {
+    return Object.freeze({
+        sceneId,
+        placeId,
+        trigger,
+        actorId: options.actorId || null,
+        targetId: options.targetId || null,
+        label: options.label || null,
+        shortLabel: options.shortLabel || null,
+        icon: options.icon || null,
+        imageId: options.imageId || null,
+        description: options.description || null,
+        position: options.position ? Object.freeze({ ...options.position }) : null,
+        allowedArrivalReasons: Object.freeze(options.allowedArrivalReasons || [])
+    });
+}
+
+/**
+ * Canonical town-side story triggers.
+ * Objective hints provide copy only; they must not redefine these routes.
+ */
+export const TownSceneBindings = Object.freeze([
+    townBinding('ch1_s02_wake_under_bitter_bottles', 'mia_workroom', TownSceneTrigger.NPC_INTERACT, { actorId: 'herbalist' }),
+    townBinding('ch1_s03_broken_crossroads', 'crossroads', TownSceneTrigger.NPC_INTERACT, { actorId: 'village_elder' }),
+    townBinding('ch1_s04_elder_to_scholar', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch1_s05_south_gate_introduction', 'gate', TownSceneTrigger.NPC_INTERACT, { actorId: 'standard_bearer_frey' }),
+    townBinding('ch1_s08_cold_forge_smoke', 'forge', TownSceneTrigger.NPC_INTERACT, { actorId: 'blacksmith' }),
+    townBinding('ch1_s11_roads_breathe_again', 'gate', TownSceneTrigger.NPC_INTERACT, { actorId: 'standard_bearer_frey' }),
+
+    townBinding('ch2_s01_empty_crates', 'market', TownSceneTrigger.PLACE_INTERACT, {
+        targetId: 'empty_crates',
+        label: '查看空箱',
+        shortLabel: '空箱',
+        icon: '□',
+        description: '市場只剩幾只沒有送出去的空箱。'
+    }),
+    townBinding('ch2_s02_name_under_basket', 'mia_workroom', TownSceneTrigger.NPC_INTERACT, { actorId: 'herbalist' }),
+    townBinding('ch2_s03_ledger_that_would_not_close', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch2_s07_names_return_to_town', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+
+    townBinding('ch3_s02_shadows_count_names', 'forge', TownSceneTrigger.NPC_INTERACT, { actorId: 'blacksmith' }),
+    townBinding('ch3_s04_showcase_glass', 'casino', TownSceneTrigger.PLACE_INTERACT, {
+        targetId: 'showcase_glass',
+        label: '查看展示櫃',
+        shortLabel: '展示櫃',
+        icon: '$',
+        imageId: 'random_event_spark',
+        description: '玻璃櫃裡放著一件沒有標價的獎品。',
+        position: { x: 64, y: 70 }
+    }),
+    townBinding('ch3_s05_blank_creditor_trace', 'alley', TownSceneTrigger.PLACE_INTERACT, {
+        targetId: 'creditor_mark',
+        label: '查看賣方記號',
+        shortLabel: '賣方記號',
+        icon: '◇',
+        description: '牆角留著一枚沒有署名的賣方記號。',
+        position: { x: 69, y: 62 }
+    }),
+    townBinding('ch3_s09_temptation_and_orders', 'crossroads', TownSceneTrigger.NPC_INTERACT, { actorId: 'village_elder' }),
+
+    townBinding('ch4_s02_caravan_rear_missing', 'market', TownSceneTrigger.NPC_INTERACT, { actorId: 'merchant' }),
+    townBinding('ch4_s08_returned_objects', 'forge', TownSceneTrigger.NPC_INTERACT, { actorId: 'blacksmith' }),
+    townBinding('ch4_s09_four_elements_one_report', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+
+    townBinding('ch5_s01_four_fronts_converge', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch5_s02_forge_contracts', 'forge', TownSceneTrigger.NPC_INTERACT, { actorId: 'blacksmith' }),
+    townBinding('ch5_s06_mia_operation', 'mia_workroom', TownSceneTrigger.NPC_INTERACT, { actorId: 'herbalist' }),
+    townBinding('ch5_s07_after_the_ratchet', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch5_s08_expedition_list', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch5_s10_before_dawn', 'handbook', TownSceneTrigger.NPC_INTERACT, { actorId: 'town_scholar' }),
+    townBinding('ch5_s11_town_loses_its_voice', 'casino', TownSceneTrigger.NPC_INTERACT, { actorId: 'casino_dealer' }),
+
+    townBinding('ch6_s06_settlement_throw', 'casino', TownSceneTrigger.NPC_INTERACT, { actorId: 'casino_owner' }),
+    townBinding('ch6_s07_house_changes_seats', 'casino', TownSceneTrigger.NPC_INTERACT, { actorId: 'casino_dealer' }),
+    townBinding('ch6_s08_brush_past_or_invitation', 'alley', TownSceneTrigger.NPC_INTERACT, { actorId: 'street_beggar' }),
+
+    townBinding('ch7_s08_return_to_town', 'crossroads', TownSceneTrigger.TOWN_ARRIVAL, {
+        allowedArrivalReasons: ['adventure-walk-return', 'adventure-wolf-smoke']
+    }),
+    townBinding('ch7_s09_first_or_second_epilogue', 'crossroads', TownSceneTrigger.SCENE_CONTINUE)
+]);
+
+const TownSceneBindingIndex = new Map(
+    TownSceneBindings.map(entry => [entry.sceneId, entry])
+);
+
+export function getTownSceneBinding(sceneId) {
+    return TownSceneBindingIndex.get(sceneId) || null;
+}
+
+export function getTownSceneBindingsForPlace(placeId) {
+    return TownSceneBindings.filter(entry => entry.placeId === placeId);
 }

@@ -155,12 +155,17 @@ Final truth:
 Story promise:
 
 - Chapter 1 asks the player to prove which roads still breathe.
-- Chapter 2 turns safe travel into supply, medicine, and civic recovery.
+- Chapter 2 follows missing deliveries, medicine needs, and civic records, but
+  does not restore the market before a complete trade road exists.
 - Chapter 3 shows that shadow is not a random element; it remembers soldiers,
-  debt, and old orders.
-- Chapter 4 makes the land itself unstable through stone and elemental pressure.
-- Chapter 5 makes strength expensive: old expedition truth, advanced forge
-  routes, and heavy choices force preparation.
+  debt, and old orders. Ending that command reopens the first complete road and
+  lets the stranded caravan return.
+- Chapter 4 begins with the returned caravan, then breaks its rear half apart
+  under earthquakes caused by an awakened Titan moving through ancient
+  leyline-regulation ruins.
+- Chapter 5 follows the damage left after that movement and proves that the four
+  elemental fronts are losing balance because the Demon King is still draining
+  the mountain veins.
 - Chapter 6 brings the dragon clan into focus. First run turns into war because
   the player lacks a usable alternate route; second run earns non-attack because
   current evidence and behavior show the player will leave the sealed line
@@ -204,26 +209,34 @@ chapter bosses, and accepted character routes.
 These rules keep later chapters from inventing a different explanation for the
 same disaster.
 
-1. The dragon seal restrains the Demon King's body and concentrates the disaster
+1. Ancient ruins beneath the mountain predate the Demon King. They regulate
+   natural leyline pressure and keep four ordinary elemental flows from colliding.
+   Titans are an ancient people tied to that deep terrain, not machines,
+   guardians built by humans, or parts of the road.
+2. The dragon seal restrains the Demon King's body and concentrates the disaster
    near the mountain. It does not perfectly stop curse seepage.
-2. The curse follows existing physical and human channels: roots, water, soil,
+3. The curse follows existing physical and human channels: roots, water, soil,
    ruins, corpses, abandoned orders, roads, trade, fear, and violence. It twists
    what is already present instead of creating every evil in the story.
-3. The dragon clan protects its territory and maintains containment. It does not
+4. The Demon King's recovery drains the natural vein beneath the old ruins.
+   This causes pressure loss, earthquakes, ruin collapse, and the Ancient
+   Titan's awakening. The Titan moves toward the thief of that energy by instinct;
+   it does not wake to punish humanity.
+5. The dragon clan protects its territory and maintains containment. It does not
    protect humanity out of affection, and it does not explain itself patiently to
    armed trespassers.
-4. Most chapter bosses are real dangers and may still need to be defeated. The
+6. Most chapter bosses are real dangers and may still need to be defeated. The
    first-run tragedy is not caused by fighting every monster; the decisive error
    is destroying the living dragon authority that is still holding the damaged
    containment together.
-5. The Echo Whistle is an ordinary mountain-route tool. The
+7. The Echo Whistle is an ordinary mountain-route tool. The
    `seal_scar_shard` is evidence of human damage. Neither object is a magical
    answer by itself.
-6. The Demon King's existence at the mountain becomes common knowledge over
+8. The Demon King's existence at the mountain becomes common knowledge over
    time. What people do not understand is that the scattered mist, mutations,
    dead routes, and elemental failures all descend from the same fall and damaged
    containment.
-7. After humans create the seal scar, the dragon clan can hold the remaining line
+9. After humans create the seal scar, the dragon clan can hold the remaining line
    from outside but cannot fully restore it while the Demon King continues
    pressing from within. If `elder_dragon` leaves the containment position to
    enter the core, the broad approaches fail first. This is why the dragons do
@@ -233,8 +246,8 @@ same disaster.
 
 | Time | Omniscient Event | What People Know Then | Causal Result |
 | --- | --- | --- | --- |
-| Before the fall | The mountain region contains a natural convergence of underground pressure and routes. Ordinary mountain villagers, including 艾洛 and 妮露, use narrow local paths and the Echo Whistle. The dragon clan occupies and guards the greater mountain territory. | Villagers know dragons are dangerous and territorial. The old road and whistle are practical local knowledge, not sacred secrets. | The mountain has two kinds of access: broad approaches controlled by dragons and narrow human paths understood by locals. |
-| More than twenty years ago | The Demon King attempts to seize or corrupt the mountain convergence so his power can recover and spread through the region. The dragon clan attacks because this would destroy its territory and make the mountain uninhabitable. | Humans nearby see signs of an enormous conflict but do not understand either side's purpose. | Dragon and Demon King enter a battle neither can win cleanly. The dragons are not fighting for humanity, but their territorial defense incidentally prevents immediate expansion. |
+| Before the fall | Ancient ruins regulate the mountain's natural veins and keep fire, ice, thunder, and poison-bearing flows apart. Titans are one of the old peoples associated with that deep terrain. Ordinary mountain villagers, including 艾洛 and 妮露, use narrow local paths and the Echo Whistle. The dragon clan occupies and guards the greater mountain territory. | Humans know the ruins are old and the dragons are territorial. They use the roads and mines without understanding the complete regulation network. | The mountain has a stable elemental circulation, broad approaches controlled by dragons, and narrow human paths understood by locals. |
+| More than twenty years ago | The Demon King attempts to seize the mountain convergence so his power can recover and spread through the region. The dragon clan attacks because this would destroy its territory and make the mountain uninhabitable. | Humans nearby see signs of an enormous conflict but do not understand either side's purpose. | Dragon and Demon King enter a battle neither can win cleanly. The dragons are not fighting for humanity, but their territorial defense incidentally prevents immediate expansion. |
 | The fall | `elder_dragon` and the dragon clan wound the Demon King badly enough to throw him from the high mountain route. The Demon King falls near the mountain-side village. The dragon side is also severely wounded and cannot finish the kill. | Surrounding settlements know a great enemy and dragons fought near the mountain. They do not yet understand where the curse begins or whether the Demon King survived. | Physical impact, monsters, and the first curse pressure destroy the mountain village. The Demon King enters sleep or partial dormancy instead of dying. |
 | 艾洛 and 妮露's escape | The village is overwhelmed. 妮露 pushes 艾洛 down a valley or mountain drop so he survives. She dies; he suffers head trauma, grief, and fragmented memory. | No one outside receives a complete account. 艾洛 cannot tell one. | The only surviving human route knowledge remains inside a person nobody can understand. His promise, the flowers, the road, and the whistle survive as broken fragments. |
 | Emergency containment | The wounded dragon clan cannot kill the dormant Demon King. It closes the broad approaches and binds the worst pressure inside the mountain perimeter. `elder_dragon` remains the living authority that maintains and judges passage at the damaged line. | Humans experience lost roads, dragon hostility, and an unreachable mountain. They interpret these as territorial blockade, disaster, or taboo. | The Demon King's body is contained. The curse still leaks slowly through roots, water, soil, ruins, dead bodies, and abandoned routes. The narrow local Echo Whistle path falls out of use because its villagers are dead. |
@@ -242,7 +255,7 @@ same disaster.
 | Twenty years ago: the joint expedition | The present village elder, then a young militia captain, helps nearby villages form a joint force. Its goal is to repel monsters, reopen routes, recover contact, and stop the spreading regional collapse. It is not initially a legendary Demon King assault. | The expedition knows a Demon King is associated with the mountain, but it does not know the seal structure, the dragon clan's containment role, or how the curse travels. | The expedition is strong by ordinary human standards: numbers, discipline, local weapons, supply, and courage let it clear outer monsters and several lost roads. Early victories create dangerous confidence. |
 | The expedition reaches the perimeter | Following a route that appears blocked rather than sealed, the force finds the dragon-closed outer line. It interprets the barrier and dragon warnings as another hostile obstruction between the villages and the source of their suffering. | The elder and the force believe they must break through before the region dies. They do not possess Echo Whistle route knowledge, and the mountain villagers who knew the alternate path are gone. | Humans damage the sealed perimeter with ordinary force and tools. A fragment becomes the `seal_scar_shard`. The breach releases a violent pressure surge from inside. |
 | The one-sided slaughter | In this proposal, `elder_dragon` and the dragon defenders counterattack while curse pressure and mutated creatures surge through the damaged line. The human force has enough strength to reach the perimeter but no strength that matters against a dragon authority and the released disaster together. | Survivors see heat, shadow, collapse, monsters, and broken formation. They cannot reconstruct a clean account. The dragon clan sees only armed humans repeating damage at a line they never understood. | The expedition is destroyed. The elder survives by chance because retreat, terrain collapse, and separation leave him outside the killing center; he is not spared. He returns with the shard but without the knowledge needed to interpret it. |
-| The following twenty years | The dragon clan holds what remains of the perimeter, but the human-made scar widens under recurring pressure. The dormant Demon King slowly recovers. The town loses young people, services, supply, and confidence. | The elder knows courage was annihilated but not why the route was sealed. 伊萊 holds incomplete records. Mia grows up inside the expedition's family damage. Younger characters inherit fear without context. | Broken routes become the town's daily reality. Forest, dead, shadow, stone, ash, and elements begin showing different symptoms of the same pressure. |
+| The following twenty years | The dragon clan holds what remains of the perimeter, but the human-made scar widens under recurring pressure. The dormant Demon King slowly recovers by drawing from the mountain vein. The town loses young people, services, supply, and confidence. | The elder knows courage was annihilated but not why the route was sealed. 伊萊 holds incomplete records. Mia grows up inside the expedition's family damage. Younger characters inherit fear without context. | Broken routes become the town's daily reality. Forest, dead, shadow, stone, ash, and elements begin showing different symptoms of the same pressure. Deep pressure loss remains too slow to identify until the present surge. |
 | Present surge | The Demon King's recovering body and the widening seal scar reach a threshold. Mutations and route failures become frequent enough for an outside guild to issue rescue or reconnaissance work. | The town knows the situation is worsening but still lacks one causal map. | The protagonist arrives wounded near the village and is saved by Mia in her private workroom. The playable story begins. |
 
 ### Chapter Causality
@@ -253,10 +266,10 @@ working set until the user revises them.
 | Chapter | Visible Crisis | Hidden Cause | Why The Boss Matters | Causal Output |
 | ---: | --- | --- | --- | --- |
 | 1 | South-gate routes, forest behavior, fog, and weak equipment make even nearby travel unreliable. | Curse pressure has reached roots and old route wounds. The forest is reacting to pressure moving through the land. | `forest_guardian` is a dangerous responder at the first convergence; `ambush_mantis` teaches that monster bodies and behavior carry route evidence. | Defeating the threat makes nearby roads readable and proves that route failure and monster behavior are connected. It does not reveal the Demon King yet. |
-| 2 | Medicine, supplies, old evacuation paths, and the dead stop behaving like separate civic problems. | Curse leakage has reached abandoned routes, corpses, and records left incomplete after earlier disasters. | `lich` concentrates the chapter's dead-route pressure. Its exact personal identity can be written later without changing the global cause. | The town recovers supply and medicine, while 伊萊 learns that an accurate old document may still be lethally outdated. |
-| 3 | Shadow soldiers, old commands, casino temptation, black-market shortcuts, and debt all become useful and dangerous. | The curse can preserve fear, violence, and unfinished orders as shadow. Human exploitation such as 維斯珀's casino is not caused by the Demon King; it grows because the crisis creates desperate people. | `shadow_commander` proves shadow is an echo of command and conflict, not a random new element. | The player sees two responses to collapse: prepare honestly, or use shortcuts that convert desperation into power and debt. Shadow remains the mandatory mainline dark-affinity ceiling; an optional second-run route may later reveal its relation to Void. |
-| 4 | Stone, ash, structures, mines, and roads begin failing together. 芙蕾 and 塔維 face the route crisis. | The damaged containment is no longer affecting only living things; pressure is moving through terrain and constructed routes. | `ancient_titan` is the main convergence. `ash_baron` is reserved as an optional second-run external Boss and does not occupy the mandatory chapter. | The map itself is revealed as part of containment. First run loses 芙蕾 because direction and light are not both held; second run changes this through 塔維. |
-| 5 | Fire, ice, thunder, poison, and forge preparation stop looking like separate regional hazards. The old expedition record becomes readable. | All elemental fronts are different physical expressions of pressure escaping the same damaged mountain containment. | `elemental_lord` is the convergence proving one source lies behind the four ordinary elements. | 伊萊's records, the elder's memory, and the `seal_scar_shard` finally align. The Echo Whistle enters the mainline as an unidentified mountain tool before the dragon approach. |
+| 2 | Missing deliveries, medicine needs, old evacuation paths, and the dead stop behaving like separate civic problems. | Curse leakage has reached abandoned routes, corpses, and records left incomplete after earlier disasters. | `lich` concentrates the chapter's dead-route pressure. Its exact personal identity can be written later without changing the global cause. | The town can authorize medicine and identify missing carriers, but the market stays closed because no complete trade road exists. 伊萊 learns that an accurate old document may still be lethally outdated. |
+| 3 | Shadow soldiers and an unfinished command block the first complete trade road. Casino temptation, black-market shortcuts, and debt become useful and dangerous around the same scarcity. | The curse can preserve fear, violence, and unfinished orders as shadow. Human exploitation such as 維斯珀's casino is not caused by the Demon King; it grows because the crisis creates desperate people. | `shadow_commander` proves shadow is an echo of command and conflict, not a random new element. | Ending Kaedren's command lets the stranded caravan return. Familiar market traders and a few outside merchants reopen the public market; the caravan's rear half remains on the road when the first coordinated quake begins. |
+| 4 | The returned caravan's rear half is trapped at Gray Ridge while earthquakes break retaining walls, roads, and an ancient ruin line. | The Demon King is drawing energy from the mountain vein. The pressure loss wakes an Ancient Titan, which moves toward the drain by instinct and causes the quakes through its scale. | `ancient_titan` is the main convergence. The player blocks it because its path will crush the caravan and destroy the remaining road, not because it serves the Demon King. `ash_baron` remains optional second-run external content. | The caravan's named and functional NPCs can return, while background drivers and guards may be lost. First run loses 芙蕾; second run changes this through 塔維. The collapsed ruins expose the four regulated flows and open Chapter 5. |
+| 5 | Fire, ice, thunder, poison, and forge preparation stop looking like separate regional hazards. The old expedition record becomes readable. | The Titan's defeat ends the immediate quakes but not the Demon King's drain. Damage to the ancient regulation network lets four natural flows collide around one failing convergence. | `elemental_lord` is the new unstable body formed by that collision, not an ancient ruler or Demon general. | The four-front evidence, 伊萊's records, the elder's memory, and the `seal_scar_shard` finally align. The Echo Whistle enters the mainline as an unidentified mountain tool before the dragon approach. |
 | 6 | The broad mountain approach ends at the dragon-held perimeter. | The player has reached the living containment authority, not another servant of the Demon King. | `elder_dragon` is both Boss and dialogue actor. It warns the player from the existing Boss presentation. | First run has no decoded alternate route and crosses under immediate regional pressure. Second run leaves the shard, weapon, and player outside the line, demonstrates an outside echo route, and earns only non-attack while the dragon keeps holding the seal. |
 | 7 | The obvious road still cannot reach the fall site. The lost local route and the Demon King's body become the final problem. | Dragon containment closed broad approaches; the only non-destructive human approach survived in 艾洛's fragmented memory. | The Echo Whistle route leads to the fall site. `demon_lord_asariel` is the current runtime final Boss id; the final script name remains revisable. | The Demon King is a genuine threat in both runs and must still be defeated. The ending changes according to whether the dragon containment and key characters survived the approach. |
 
@@ -481,7 +494,7 @@ Required first-run tragedy coverage:
 | --- | --- | --- | --- |
 | Frey | `split_limited`: protagonist across the raised span, then one brief Frey close-up. | Why she chooses to keep the ordinary flag visible after rescue becomes impossible. | Tavi's measured rear-light intervention and shared survival. |
 | Mia | `split_limited`: protagonist's broken hearing gives way to Mia's operation view. | Her questions, successful extraction, relief, and the unforeseeable post-extraction contraction. | Pressure-free preparation and operator protection. |
-| Village elder | `split_limited`: trail pursuit cuts ahead to the elder alone at the scar, then returns to the protagonist. | Why he refuses to send another person and tries to replace the fragment himself. | Dragon containment purpose, non-attack proof, and the living handoff. |
+| Village elder | `protagonist_limited`: the protagonist follows his boot prints and reconstructs the failed replacement from his body, sheathed weapon, bloodied fragment, and opposing burn directions. His private departure and death are never shown. | Observable proof that he approached the scar without drawing his weapon and tried to return the fragment; his exact private thoughts remain unknown. | Dragon containment purpose, complete non-attack proof, and the living handoff. |
 | Ailo | `split_limited`: route traces cut ahead to his solitary climb without showing a corpse. | He is following the whistle and an unfinished promise, not stealing for profit. | Neelu's identity, marriage, fall, complete promise, and the accompanied route. |
 
 The first-run ending may replay sensory fragments from these scenes, but it does
@@ -491,7 +504,7 @@ not convert their audience-only thoughts into protagonist knowledge retroactivel
 
 | Order | Chapter | Fixed Event | Immediate Consequence | Second-Run Correction |
 | ---: | ---: | --- | --- | --- |
-| 1 | 4 | Tavi freezes at the unmeasured rear route marker during the Ancient Titan evacuation. The protagonist is locked at the central civilian crossing; Frey returns to keep the flag visible and dies as the span rises between them. | The South Gate flag is returned without her. Tavi becomes quiet and mechanically functional; the blacksmith's humor first breaks; the elder identifies a route that depended on one person replacing another. | Revisit the childhood mist route, make Tavi personally measure the far lamp, complete his role admission and wind guard, then have him light the rear marker before the ground splits. |
+| 1 | 4 | Tavi freezes at the unmeasured rear route marker during the Ancient Titan evacuation. The protagonist is locked at the central civilian crossing; Frey returns to keep the flag visible and dies as the span rises between them. | The South Gate flag is returned without her. Tavi becomes quiet and mechanically functional; the blacksmith's humor first breaks; the elder identifies a route that depended on one person replacing another. | During the Chapter 3 night inspection, make Tavi personally measure the far lamp while Frey and the protagonist take over the work he normally uses as a reason to remain at the front. The completed wind guard lets him light the rear marker before the ground splits. |
 | 2 | 5 | The Elemental Lord dies in a four-element burst. An intact shard penetrates and disables the protagonist. Mia removes it in her herb workroom, but the standard forceps crush the extracted shard and its point-blank release kills her. | The protagonist survives; Mia's workroom remains physically present but loses all later research and relationship events. Beside the broken forceps is 伊萊's handling summary: four accurate separated-sample records compressed into the unscoped line `標準二格固定可安全處理`. | Achievement memory recognizes the forceps ratchet. 伊萊 reopens the current-run source pages, refuses to apply separated-sample safety to a converged object, and joins pressure-free tests so Mia survives the same surgery. |
 | 3 | 5-to-6 bridge | The elder recognizes the old perimeter pattern, takes the scar shard, and leaves before dawn. At the seal scar he is caught between a curse surge and dragon sealing fire. | The player finds his body and the shard at the perimeter and interprets the dragon as his killer. | Use the expedition list and achievement memory to stop him at the town gate; he gives the shard alive and remains in town. |
 | 4 | 6 | The player interrupts the dealer's rigged settlement throw and saves him, but Vesper tears open a contract escape and flees. | The dealer hands over the Loaded Dice and admits his part in the rigged house. The casino remains poisoned by an absent owner. | Remember the die's abnormal weight, identify the current run's guest set before settlement, turn the dealer, and force Vesper into the guest position under his own rule. |
@@ -505,9 +518,11 @@ not convert their audience-only thoughts into protagonist knowledge retroactivel
   shifting under the Ancient Titan's movement and ash-heavy wind.
 - Immediate objective: evacuate trapped travelers and keep two route markers
   visible while the protagonist holds a central civilian footbridge open.
-- Chapter 3 has already shown the childhood mist, why the flag matters to Frey,
-  and why the first-run wind guard cannot be built without Tavi's far-marker
-  measurements.
+- Chapter 3 has already shown Tavi maintaining the front lamp, avoiding the
+  fogged rear marker, and Frey covering the unfinished work. It also establishes
+  why the first-run wind guard cannot be built without the missing measurements.
+  Their childhood memory may deepen the relationship in optional material, but
+  it does not explain the rescue condition or interrupt the mainline setup.
 - Tavi is assigned the rear lamp. A violent ground break and the sound of people
   below make his body lock.
 - Titan movement separates front flag, rear lamp, and protagonist into three
@@ -583,8 +598,8 @@ not convert their audience-only thoughts into protagonist knowledge retroactivel
 | `forest_guardian` | A real ancient forest defender driven into indiscriminate defense by curse pressure moving through roots and stripped core bark. | Attacks routes as wounds in its territory; it is not a Demon King lieutenant. | First proof that monster behavior and broken roads share a cause. |
 | `lich` | Accepted record name: `守名者赫恩 / Hern`. Former evacuation mortuary registrar who bound name tags and unburied dead to one reliquary when the old road collapsed. Curse pressure preserved the refusal until care became possession. His crown-like frame, chains, and ornate outer shell are accumulated reliquary hardware, funeral tags, and dead belongings, not evidence that he was royalty in life. | Recites incomplete names, redirects corpses toward a route that no longer exists, and attacks anyone who disturbs the register. | `lich_phylactery`, dead-route evidence, and the scholar's first proof that accurate records can become lethal after the world changes. Existing Boss art remains valid through the reliquary-shell explanation. |
 | `shadow_commander` | Accepted record name: `左線指揮凱德倫 / Kaedren`. He commanded one local line inside the twenty-year expedition, not the expedition's supreme commander. His last order was to hold one breach approach and allow no retreat. The present ornate shadow armor is assembled from the abandoned weapons, armor, chains, and banners of the whole line; it does not represent his living rank. | Shadow soldiers are not Demon King troops; they are one unfinished human command repeating without living judgment. | `commander_blade`, shadow precursor materials, and a direct emotional bridge into the elder's guilt without consuming the future supreme-commander Boss slot. Existing Boss art remains valid as a collective command echo. |
-| `ancient_titan` | A natural stone colossus whose sleeping ribs became the foundation of old roads and retaining walls. The builders never created or understood it. Curse pressure wakes the body beneath the route. It has no human personality. | Each movement changes routes, collapses bridges, and creates the Chapter 4 evacuation crisis. | `titan_heart`; proof that the map itself is part of containment. |
-| `elemental_lord` | A new convergence consciousness formed during the present surge where fire, ice, thunder, and poison-bearing flows collide around the widening scar. It is neither an ancient god, a human, nor a Demon King general. | Changes phases because four regional symptoms are being pulled into one unstable body and cannot remain balanced. | `elemental_core`; physical proof that the four fronts share one mountain source. |
+| `ancient_titan` | An ancient member of a nonhuman people sleeping near the mountain vein and its regulation ruins. The Demon King's energy drain wakes it. It moves toward the thief by instinct; it is neither a human-built guardian nor part of the road. | Its scale turns each step into an earthquake. The player blocks it only after its route threatens the trapped caravan and the sole remaining approach. | Guaranteed `titan_hammer` loot decision; collapse exposes the ancient regulation channels and the direction of the continuing drain. |
+| `elemental_lord` | A new convergence consciousness formed when the damaged ancient regulation network can no longer keep fire, ice, thunder, and poison-bearing flows apart. It is neither an ancient god, a human, nor a Demon King general. | Changes phases because four natural flows are being pulled into one unstable body and cannot remain balanced. | `elemental_core`; physical proof that the four fronts share one mountain source and that the drain continues after the Titan falls. |
 | `elder_dragon` | Dragon-clan authority and living seal keeper. It fought for territory and survival, never for humanity. | Uses short imperatives and concrete judgments. It knows the fall, the broad containment, the human scar, and that mountain villagers once used outside acoustic paths; it does not know Ailo, Neelu, Vesper, exact blind-turn sequences, or human private motives. | First-run local seal-keeping clan erased and containment collapse, or second-run non-attack while the player withdraws toward the old human route. |
 | `demon_lord_asariel` | Accepted display name: `魔王赫爾薩恩 / Helsarn`. It sought the mountain convergence as a second heart: a way to recover, root its life into the region, and spread without depending on one body. | Patient, contemptuous, and economical. It does not explain cosmology during battle and resets with the rest of the world in the second run. | First-run surviving body; second-run true execution through remembered preparation. Runtime id remains `demon_lord_asariel`; obsolete display name `阿薩謝爾` is removed only during the approved runtime migration. |
 
@@ -650,8 +665,9 @@ materially different, but never become a true-ending requirement.
   poison lose their mutual restraint. It is not a fifth element and must not
   retroactively cause the Elemental Lord. Its final body, route, reward, combat,
   and art remain paused.
-- Chapter 6 owns the first optional formal-light Boss route and a current-run
-  light weapon answer; Chapter 7 owns the paired Void Boss route. Light must
+- Chapter 6 owns the first optional second-run formal-light Boss route and a
+  current-run light weapon answer; Chapter 7 owns the paired optional second-run
+  Void Boss route. Neither identity appears in the mandatory first-run chapters. Light must
   reveal, anchor, or make the Void target interactable rather than acting as a
   flat damage multiplier, and the reward must not force one weapon form. These
   routes remain optional and never gate the true ending.
@@ -787,8 +803,9 @@ external Boss feel like a missing mainline chapter.
   and names of people who never reached town.
 - Opening question: why do old evacuation instructions and the dead still try to
   complete routes that no longer exist?
-- Main movement: market recovery, herb-basket record, evacuation list, opened
-  tomb route, Lich confrontation.
+- Main movement: recovered cargo records, herb-basket record, evacuation list,
+  opened tomb route, Lich confrontation. The market remains closed until the
+  Chapter 3 road and caravan return.
 - Character work: deepen Mia's relationship through her father's unresolved
   record, shared herb sorting, and her involuntary attention to returning
   footsteps; show the scholar's useful confidence without turning the elder
@@ -847,9 +864,9 @@ external Boss feel like a missing mainline chapter.
 - Character work: Frey dies in the first run after the causeway physically locks
   the protagonist at the civilian crossing; Tavi survives hollowed; the elder
   lowers the flag and recognizes another route built around one expendable
-  person. In the second run Tavi admits why he took the lamp and acts while
-  afraid. Frey entrusts him with the rear marker and finally understands the
-  elder's fear without abandoning courage.
+  person. In the second run Tavi has already completed the rear-marker work and
+  acts while afraid. Frey entrusts him with the rear marker and finally
+  understands the elder's fear without abandoning courage.
 - Boss convergence: `ancient_titan` turns terrain failure into a visible body.
 - Chapter answer: constructed roads and deep stone are part of the damaged
   containment network.
@@ -961,7 +978,7 @@ inside that class and must record their internal transition during full scriptin
 | --- | --- | ---: |
 | `regional_canvas` | `ch1_s01_road_collapse`, `ch1_s06_three_landmarks`, `ch1_s09_rotroot_approach`, `ch2_s04_mist_and_tomb_route`, `ch2_s08_shadow_at_the_checkpoint`, `ch3_s03_lamp_oil_in_fog`, `ch4_s01_road_moves_underfoot`, `ch4_s04_gray_ridge_evacuates`, `ch5_s03_elemental_convergence`, `ch5_s05_fourfold_shrapnel`, `ch6_s01_northern_drake_watch`, `ch6_s05_after_the_broad_road`, `ch7_s01_narrow_human_road` | 13 |
 | `location_scene` | `ch1_s07_silver_snare`, `ch1_s10_forest_guardian`, `ch2_s05_moon_moss_trace`, `ch2_s06_keeper_of_names`, `ch3_s01_dead_checkpoint`, `ch3_s06_drowned_voice`, `ch3_s07_old_command_post`, `ch3_s08_shadow_commander`, `ch4_s03_thorn_value_rule`, `ch4_s05_body_locks`, `ch4_s06_flag_returns`, `ch4_s07_titan_rises`, `ch5_s04_elemental_lord`, `ch5_s09_whistle_cache`, `ch6_s02_scar_aftermath`, `ch6_s03_stop_before_the_line`, `ch6_s04_dragon_convergence`, `ch6_s09_the_old_note_answers`, `ch7_s02_ruined_flower_field`, `ch7_s04_three_anchor_check`, `ch7_s05_fall_site_audience`, `ch7_s06_combat_body_falls`, `ch7_s07_last_core` | 23 |
-| `town_scene` | `ch1_s02_wake_under_bitter_bottles`, `ch1_s03_broken_crossroads`, `ch1_s04_elder_to_scholar`, `ch1_s05_south_gate_introduction`, `ch1_s08_cold_forge_smoke`, `ch1_s11_roads_breathe_again`, `ch2_s01_empty_crates`, `ch2_s02_name_under_basket`, `ch2_s03_ledger_that_would_not_close`, `ch2_s07_names_return_to_town`, `ch3_s02_shadows_count_names`, `ch3_s04_showcase_glass`, `ch3_s05_blank_creditor_trace`, `ch3_s09_temptation_and_orders`, `ch4_s02_fourfold_countergear`, `ch4_s08_returned_objects`, `ch4_s09_four_elements_one_report`, `ch5_s01_four_fronts_converge`, `ch5_s02_forge_contracts`, `ch5_s06_mia_operation`, `ch5_s07_after_the_ratchet`, `ch5_s08_expedition_list`, `ch5_s10_before_dawn`, `ch6_s06_settlement_throw`, `ch6_s07_house_changes_seats`, `ch6_s08_brush_past_or_invitation` | 26 |
+| `town_scene` | `ch1_s02_wake_under_bitter_bottles`, `ch1_s03_broken_crossroads`, `ch1_s04_elder_to_scholar`, `ch1_s05_south_gate_introduction`, `ch1_s08_cold_forge_smoke`, `ch1_s11_roads_breathe_again`, `ch2_s01_empty_crates`, `ch2_s02_name_under_basket`, `ch2_s03_ledger_that_would_not_close`, `ch2_s07_names_return_to_town`, `ch3_s02_shadows_count_names`, `ch3_s04_showcase_glass`, `ch3_s05_blank_creditor_trace`, `ch3_s09_temptation_and_orders`, `ch4_s02_caravan_rear_missing`, `ch4_s08_returned_objects`, `ch4_s09_four_elements_one_report`, `ch5_s01_four_fronts_converge`, `ch5_s02_forge_contracts`, `ch5_s06_mia_operation`, `ch5_s07_after_the_ratchet`, `ch5_s08_expedition_list`, `ch5_s10_before_dawn`, `ch6_s06_settlement_throw`, `ch6_s07_house_changes_seats`, `ch6_s08_brush_past_or_invitation` | 26 |
 | `memory_or_ending` | `ch5_s11_town_loses_its_voice`, `ch7_s03_echo_memory`, `ch7_s08_return_to_town`, `ch7_s09_first_or_second_epilogue` | 4 |
 
 Total: 66 scenes. A validator must later compare this index with scene data and
@@ -981,19 +998,19 @@ fail on missing, duplicated, or unplaced ids.
 | `ch1_s08_cold_forge_smoke` | Forge | Eli limits what the silver line proves. The elder sends the protagonist to repair damaged gear, and the protagonist helps restore the forge bellows. | Basic forge access follows a visible repair task. | The same service restoration occurs without commentary about future losses. | The blacksmith reacts to damaged equipment and the stuck bellows; his care stays inside practical instructions. | Basic repair and starter craft access. |
 | `ch1_s09_rotroot_approach` | `broken_horn_camp`, `rotroot_ravine` | The protagonist follows visible black-root exposure, animal avoidance, and the route shown on the old map toward the ravine. | The route is dangerous and its cause remains unknown. | The protagonist checks the same terrain more carefully but gains no early conclusion. | No remote character explanation interrupts the field investigation. | Forest Guardian gate opens. |
 | `ch1_s10_forest_guardian` | `old_wolf_den` / ancient root heart | The Forest Guardian blocks access to the root heart. After the battle, the ground still shakes and fine roots continue into deeper soil. | Defeating the regional threat does not resolve the missing patrols or identify the source. | Same necessary battle; remembered context changes attention, not outcome. | The Boss is understood through visible wounds and behavior, without a new explanatory speaker. | `forest_guardian` convergence cleared; deeper-root evidence recovered. |
-| `ch1_s11_roads_breathe_again` | Town crossroads | Nearby roads become readable, not safe. The town restores only the functions justified by the chapter. | A modest first victory includes Mia rechecking the return and the forge receiving household repairs before weapons. | The achievement-memory system remains quiet until the ending has been earned. | Elder, 伊萊, Mia, Frey, Tavi, and blacksmith receive short state reactions; Ailo mutters about a road that does not match the map. | Chapter 2 opens; Mia relationship records, forge, gate, and handbook enter stage one. Market medicine waits for a real supply route. |
+| `ch1_s11_roads_breathe_again` | Town crossroads | Nearby roads become readable, not safe. The town restores only the functions justified by the chapter. | A modest first victory includes Mia rechecking the return and the forge receiving household repairs before weapons. | The achievement-memory system remains quiet until the ending has been earned. | The player physically carries the result through gate registration, archive review, treatment, and civilian repair work. Character change is shown through those tasks rather than a round of chapter-closing speeches. | Chapter 2 opens; the treatment baseline, forge, gate, and handbook enter stage one. Market medicine waits for a real supply route. |
 
 #### Chapter 2 Scene Order
 
 | Scene | Working Location | Omniscient Event | First Run | Second Run | Character / Side-Story Work | Story-State Output |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ch2_s01_empty_crates` | Market edge | The reopened road delivers empty or damaged crates and names of carriers who never arrived. | Supply shortage appears to be a new task. | The protagonist recognizes the pattern of routes continuing after people are gone. | Merchant remains functional; no supply captain is introduced. | Market recovery objective and missing-carrier record open. |
-| `ch2_s02_name_under_basket` | Mia's herb workroom | A name beneath an old herb basket connects Mia's family loss to the expedition and evacuation years. | Relationship deepens through shared work and the way Mia still looks up at every passing footstep. | The protagonist understands the emotional weight but gains no false foreknowledge about her later surgery. | `Name Under The Herb Basket`; Mia/伊萊 tension becomes visible without ending her ordinary work. | Mia's father record enters the handbook and town relationships. |
+| `ch2_s01_empty_crates` | Empty market edge | Patrols recover damaged crates and names of carriers who never arrived. The merchants remain stranded beyond the broken trade road. | Supply shortage appears as a civic problem with no shop solution. | The protagonist recognizes the pattern of routes continuing after people are gone. | Existing town workers inspect the evidence; no merchant or supply captain is inserted early. | Missing-carrier record and medicine-authorization work open; market remains closed. |
+| `ch2_s02_name_under_basket` | Mia's herb workroom | A name beneath an old herb basket connects Mia's family loss to the expedition and evacuation years. | Mia recognizes the name, waits for the supply number to be verified, and returns to sorting medicine before she is ready to say more. | The protagonist recognizes the same pause but gains no false foreknowledge about her later surgery. | `Name Under The Herb Basket` exposes one unresolved family record through an ordinary work task. It is evidence and observed behavior, not an automatic relationship milestone. | Mia's father remains listed as missing; the expedition link and prescription-supply need enter the handbook. |
 | `ch2_s03_ledger_that_would_not_close` | Scholar desk | 伊萊 and the elder compare evacuation lists, funeral tags, and one route instruction that was once correct. | The document is accepted as useful evidence. | The protagonist notices the missing revision layer but cannot yet prove the later terrain change. | `Ledger That Would Not Close`; elder guilt remains restrained. | Ancient tomb and mist-tablet route open. |
 | `ch2_s04_mist_and_tomb_route` | `mist_tablet_hill`, `opened_ancient_tomb` | Funeral markers point toward a route whose dead still try to complete evacuation. | Horror and investigation converge. | Memory highlights that names, not necromancy alone, are binding the dead. | Mia names the human cost; blacksmith supplies practical anti-undead preparation. | Lich phylactery clues gathered. |
 | `ch2_s05_moon_moss_trace` | `moon_moss_slope` | Repeated hoof marks cross the reopened route, but the animal itself has already moved west. | Optional environmental evidence only; no Boss, reward, or required detour. | The same current-run trace remains environmental evidence; paused second-run Boss work does not enter this scene. | Establishes that large wildlife is being displaced without identifying the prologue attacker. | Moon-moss route observation only. |
 | `ch2_s06_keeper_of_names` | Opened tomb reliquary | Hern's records reveal that he bound tags, bodies, and route duty together when burial became impossible. | Player reads him as a tragic Lich after the battle. | Same battle; achievement memory makes the glimmer-bearing residue worth reserving. | 伊萊 confronts the danger of records surviving context. | `lich` defeated; `lich_phylactery` and reserved `glimmer_shard` acquired. |
-| `ch2_s07_names_return_to_town` | Civic room | The dead are re-entered into an honest ledger rather than praised as a faceless sacrifice. | 伊萊's confidence grows because his records solved a real crisis; finite medicine visibly reaches waiting residents. | His confidence is tempered by the protagonist's insistence on revision dates. | Elder/Mia share the unresolved name; elder/伊萊 expose the old pattern of one waiting outside while the other writes; Ailo recognizes the useless dye flower. | Evacuation record closes; the market stocks Mia-authorized medicine; elder/Ilai friendship and Ailo flower breadcrumbs enter the mainline. |
+| `ch2_s07_names_return_to_town` | Civic room | The dead are re-entered into an honest ledger rather than praised as a faceless sacrifice. | 伊萊's records resolve two missing carriers while Mia's father remains honestly unresolved. Medicine formulas are ready, but there is still no delivery route or public stock. | Revision dates are added because the protagonist has seen what obsolete instructions can do. | Mia keeps the unresolved tag available for later checks. The elder and 伊萊 show long familiarity only through how they divide the remaining work; Ailo recognizes the useless dye flower. | Evacuation record closes; public medicine is authorized but unavailable until the caravan returns; unresolved family evidence and Ailo's flower breadcrumb remain active. |
 | `ch2_s08_shadow_at_the_checkpoint` | Northbound road marker | A recovered route sign is found guarded by shadows using an old human formation. | New threat teaser. | The order pattern is immediately disturbing but still lacks a commander identity. | Tavi is assigned later lamp work; Frey volunteers for route marking. | Chapter 3 shadow investigation opens. |
 
 #### Chapter 3 Scene Order
@@ -1001,34 +1018,34 @@ fail on missing, duplicated, or unplaced ids.
 | Scene | Working Location | Omniscient Event | First Run | Second Run | Character / Side-Story Work | Story-State Output |
 | --- | --- | --- | --- | --- | --- | --- |
 | `ch3_s01_dead_checkpoint` | Reauthored `obsidian_keep_gate` | Shadow soldiers continue inspection, formation, and denial procedures from the old expedition. | They initially resemble Demon King troops. | The protagonist notices human equipment habits and command spacing. | 伊萊 and elder disagree over whether to publish the resemblance. | Shadow-command evidence chain opens. |
-| `ch3_s02_shadows_count_names` | Blacksmith and scholar work table, then Mia's workroom | The commander's blade fragments and old fittings match expedition issue patterns. The protagonist's concealed shadow wound makes the same chapter cost personal. | `Shadows Still Count Names` reframes the enemy late; Mia confronts the protagonist, who in turn names her refusal to count herself among people needing care. | The player asks for the comparison before another patrol is destroyed, but the relationship conflict still occurs because NPCs do not inherit future memory. | Blacksmith/伊萊 evidence chain; mutual Mia/protagonist conflict; shadow craft remains weaker than future optional Void. | Shadow equipment, command-post route, and explicit Mia relationship state unlock. |
-| `ch3_s03_lamp_oil_in_fog` | Night watch route | The childhood mist and patrol flag explain why Frey became direction while Tavi retained the freeze. Tavi avoids the far rear marker and lets Frey cover it. | Frey can report wind direction, but without Tavi standing at the lamp the forge lacks frame, intake, and fastener measurements; no safe wind guard can be built. | `旗沒有回來` makes the player require Tavi to walk the route. He measures the lamp, admits he took the light only to remain where Frey's flag could see him, and is told to stand where she cannot. | Mandatory Tavi route seed becomes a relationship decision rather than an equipment errand. | First run records `rear_marker_unmeasured`; second run records `rear_marker_ready` and `tavi_role_admitted`. |
+| `ch3_s02_shadows_count_names` | Blacksmith and scholar work table, then Mia's workroom | The commander's blade fragments and old fittings match expedition issue patterns. The protagonist's concealed shadow wound makes the same chapter cost personal. | The enemy is reframed through physical evidence. Mia treats a wound the protagonist delayed reporting, but neither person turns the treatment into a declaration about their relationship. | The player asks for the comparison before another patrol is destroyed and still receives the same treatment because Mia has no inherited memory. | Blacksmith/伊萊 evidence chain; Mia notices the delayed report and the protagonist notices her fatigue through concrete actions; shadow craft remains weaker than future optional Void. | Shadow equipment and the command-post route unlock; the delayed wound becomes a behavior the protagonist can correct later. |
+| `ch3_s03_lamp_oil_in_fog` | Night watch route | A routine night inspection exposes an unmeasured rear marker. Tavi repairs the front lamp while avoiding the fogged rear route, and Frey quietly covers the part he leaves unfinished. | Frey can report direction, but no one records the rear frame, intake, or fastener measurements; no safe wind guard can be built. | The protagonist keeps the front marker under watch, Frey takes over Tavi's repair, and Tavi completes the rear measurement while still visibly afraid. No childhood explanation or confession is required. | Repeated work behavior, not symbolic dialogue, establishes that Tavi can function under fear and that Frey has a habit of filling his gaps. | First run records `rear_marker_unmeasured`; second run records only the completed physical state `rear_marker_ready`. |
 | `ch3_s04_showcase_glass` | Casino display hall | Visible unique prizes tempt the player before Vesper becomes a quest target. Lorne operates the table and studies reactions. | The casino feels useful and dangerous. | `莊家離席` makes the player watch Lorne's hands and die selection, but proof is not yet available. | Vesper and Lorne enter; `Showcase Glass` begins their long route. | Casino floor, ticket pools, and showcase inspection open. |
 | `ch3_s05_blank_creditor_trace` | Black-market contact point | One contract record has no human creditor line. The trader confirms it was sold once and has no duplicate. | Ominous side evidence; base story does not name Void. | The player understands this will become Vesper's escape route and presses Lorne earlier. | Black market remains functional, unnamed, and separate from Vesper's guilt. | Blank Collateral clue enters handbook. |
 | `ch3_s06_drowned_voice` | `drowned_bell_coast`, `sunken_altar_reef` | Bell tones continue after the diviner's body and ritual shell should be silent. | Optional exploration Boss with an Ancient Rune reward. | Mandatory memory route because `未竟的弒王` makes bodiless continuation legible. | No new coastal NPC is required; route is carried by environment and Boss. | `ancient_rune_bound` current-run quest state. |
 | `ch3_s07_old_command_post` | Reauthored `black_iron_storehouse` | Expedition supply marks identify Kaedren as one local line commander, not the supreme commander. His last signal never arrived. | Elder finally admits he knew the formation. | The player separates Kaedren's local order from the still-unknown supreme command. | Seeds a future overcap commander without occupying that identity. | Kaedren record and command phrase verified. |
 | `ch3_s08_shadow_commander` | Old line-command yard | Kaedren repeats the order to hold one breach approach and refuses all retreat. | Battle ends the local command echo. | Same battle; the protagonist preserves evidence more deliberately. | Elder reacts off-screen through the returned blade; blacksmith sees human wear. | `shadow_commander` defeated; command route closes. |
-| `ch3_s09_temptation_and_orders` | Town night state | The town now has both honest preparation and seductive shortcuts. | The protagonist voluntarily reports to Mia before discovery; Vesper notices the protagonist; Tavi remains unready. | The player has begun all future corrections but none is complete. | Mia conflict receives a small behavioral repair; finite market/forge/gate light contrasts with the casino; no reserve service NPCs enter. | Chapter 4 opens; casino, night routes, shadow craft, and Mia's honest-return state reach stage one. |
+| `ch3_s09_temptation_and_orders` | Town night state and reopened trade road | Kaedren's order ends and the first complete road reopens. The stranded caravan reaches town in sections while the town still has both honest preparation and seductive shortcuts. | The protagonist brings the wound back to Mia before it worsens. Returning town merchants reopen the public market; outside traders arrive with them. The caravan rear remains on the road when the first quake report arrives. | The player has begun several corrections through current-run actions, but none is complete. | Mia sees a changed reporting habit rather than receiving a relationship speech. Frey and Tavi prepare to guide the remaining caravan section. Vesper appears only if the player entered his optional route. | Market and authorized medicine stock open; Chapter 4 begins with a real caravan still exposed at Gray Ridge. |
 
 #### Chapter 4 Scene Order
 
 | Scene | Working Location | Omniscient Event | First Run | Second Run | Character / Side-Story Work | Story-State Output |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ch4_s01_road_moves_underfoot` | Stone-route approach | Retaining walls shift together and expose surfaces that resemble one enormous rib cage. | Terrain failure is treated as an escalating disaster. | The protagonist recognizes a containment body, not a random quake. | Elder orders evacuation; Frey takes route marking; Tavi handles lamps. | Ancient Titan investigation opens. |
-| `ch4_s02_fourfold_countergear` | Forge and Mia's workroom | Blacksmith and Mia prepare ordinary protection against ash, heat, venom, and shock. | Preparation improves survival but cannot predict the first combined shard. | Same preparation plus Tavi's completed wind guard. | `Fourfold Countergear`; Mia/blacksmith act as parallel caretakers, while the blacksmith actively places evacuation and household fittings before new weapons. | Controlled prescriptions are authorized, evacuation gear is issued, and the blacksmith's civilian-first priority becomes mainline character evidence. |
-| `ch4_s03_thorn_value_rule` | `thorn_glasshouse_ruin` | Thorn Witch tests whether the player understands exchange, contamination, and biological cost. | Optional Boss/bargain route; Forest Essence is useful craft stock. | Mandatory confrontation. She withholds uncontaminated essence until the player proves parasite and host must be separated. | Mia interprets the returned symptoms inside a story scene; no material-identification menu, chapel, or light NPC appears. | `forest_essence_pure` and glimmer-refinement knowledge. |
-| `ch4_s04_gray_ridge_evacuates` | Planned Gray Ridge causeway | Titan movement splits the route while ash-heavy wind hides the rear group. Two visible markers are required, while the protagonist must hold the central civilian踏板 open. | Frey takes the front flag; Tavi is assigned the rear lamp; rising stone physically prevents the protagonist from replacing either marker. | Same assignment and separation, but Tavi has rehearsed and repaired the wind guard. | `Flag And Lamp` enters its irreversible crisis without creating a false question about why the protagonist did not simply save Frey. | Evacuation timer, protagonist central-hold state, and marker states begin. |
+| `ch4_s01_road_moves_underfoot` | Gray Ridge approach | The first returning caravan reports repeating quakes. Retaining walls and exposed ruin channels fail in a line leading toward the mountain. | Terrain failure is treated as an escalating natural disaster. | The protagonist remembers the Titan but must still establish the current evacuation route from present evidence. | Elder orders the rear caravan located; Frey takes route marking; Tavi handles lamps. | Gray Ridge rescue and ancient-ruin investigation open. |
+| `ch4_s02_caravan_rear_missing` | Market and forge | The recently reopened market is counting its first caravan when the ledger shows that the rear wagons and escorts never arrived. | The brief return celebration ends as a rescue preparation. | The same people return; prior knowledge changes readiness, not who exists. | The merchant identifies the missing cargo section. Blacksmith places bridge plates, lamp guards, stretchers, and wagon fittings before new weapons. | Public trade remains active; chapter-four baseline craft arrives; Gray Ridge evacuation equipment and second-run wind guard are issued. |
+| `ch4_s03_thorn_value_rule` | `thorn_glasshouse_ruin` after `ch4_s08` | The collapsed ruin line exposes a separate overgrown glasshouse only after the Gray Ridge evacuation and town aftermath. | Optional combat route; ordinary Forest Essence enters normal craft stock without interrupting the rescue. | Mandatory confrontation. She withholds uncontaminated essence until the player proves parasite and host must be separated. | Mia interprets the returned symptoms inside a story scene; no material-identification menu, chapel, or light NPC appears. | `forest_essence_pure` and glimmer-refinement knowledge. |
+| `ch4_s04_gray_ridge_evacuates` | Gray Ridge causeway | The rear caravan is found among broken wagons. Another quake splits survivors and cargo across the causeway. Two visible markers are required while the protagonist holds the central crossing open. | Frey takes the front flag; Tavi is assigned the rear lamp; collapse physically prevents the protagonist from replacing either marker. | Same assignment and separation, but Tavi has rehearsed and repaired the wind guard. | Named and functional NPCs are accounted for; unnamed drivers or guards may already be dead or lost without becoming disposable dramatic props. `Flag And Lamp` enters its irreversible crisis. | Evacuation timer, protagonist central-hold state, and marker states begin. |
 | `ch4_s05_body_locks` | Rear causeway marker | A ground break and trapped voices trigger Tavi's physical freeze. | Lamp remains unlit; Frey sees the rear group lose direction. | Tavi is still terrified but lights the marker before the break reaches him. | His difference is action under fear, not cured fear. | First run `rear_marker_failed`; second run `rear_marker_lit`. |
 | `ch4_s06_flag_returns` | Cracked center span | Frey chooses whether she must return to hold direction while the protagonist remains trapped across the central break. | She fixes the patrol flag into stone and remains until the last figures cross; the span rises as the protagonist finally moves toward her. | She sees Tavi's light and stays at the front marker; neither abandons the other group. | First-run final Frey CG candidate; second-run shared courage payoff. | First run Frey death; second run both survive. |
-| `ch4_s07_titan_rises` | Causeway foundation / Titan body | The natural colossus stands, destroying the road built on its sleeping ribs. | The protagonist fights immediately after witnessing Frey's death. | The protagonist fights after the successful evacuation. | Boss emotion differs without changing combat identity. | `ancient_titan` defeated; `titan_heart` recovered. |
+| `ch4_s07_titan_rises` | Ancient vein-regulation ruins | The awakened Titan crosses the exposed ruins toward the mountain drain. Its next steps will crush the remaining caravan route. | The protagonist fights immediately after witnessing Frey's death. | The protagonist fights after the successful evacuation. | Boss emotion differs without changing its nonhuman motive. The Titan does not serve the Demon King and is not judged as evil. | `ancient_titan` defeated; `titan_hammer` enters the normal loot decision; the collapsed ruins expose four regulation channels and the direction of the drain. |
 | `ch4_s08_returned_objects` | Forge, South Gate, and Mia's workroom | The flag fitting and lamp return to town, then the evacuation's bodily cost reaches Mia's workroom. | Blacksmith cannot restore Frey; Tavi becomes hollowed; the elder lowers the gate flag and identifies the route's one-person dependency as the failure. Mia overworks after treating evacuees. | Frey and Tavi argue because both were frightened for the other. Frey admits that seeing Tavi in danger made her want to call him back; the elder names that as the fear behind every opened gate. Mia still confronts how narrowly everyone returned. | Blacksmith remains the town-temperature gauge; Frey finally understands the elder without abandoning courage; Mia's Chapter 4 relationship beat deepens without stealing the flag/lamp climax. | Run-specific gate, forge, Tavi, Frey/elder, and Mia relationship states lock. |
-| `ch4_s09_four_elements_one_report` | Scholar desk and town night | Titan-heart pressure aligns with reports of heat, frost, thunder, and poison. Ailo hears a lower road opening; Vesper turns the Gray Ridge result into a personalized offer. | New crisis begins after a personal loss; Vesper prices grief. | The living patrol pair helps gather complete timings; Vesper prices fear of the next near-loss. | 伊萊 finds the elemental pattern, Ailo supplies a second whistle breadcrumb, and Lorne refuses to open the private table despite Vesper's pressure. | Chapter 5 opens with four-front evidence, Ailo continuity, and the casino dealer's first costly defiance recorded. |
+| `ch4_s09_four_elements_one_report` | Scholar desk and town night | Survey marks from the collapsed ruins align four old channels with new reports of heat, frost, thunder, and poison. Ailo hears a lower road opening; Vesper turns the Gray Ridge result into a personalized offer. | New crisis begins after a personal loss; Vesper prices grief. | The living patrol pair helps gather complete timings; Vesper prices fear of the next near-loss. | 伊萊 identifies an old regulation network rather than a magic heart rhythm. Ailo supplies a second whistle breadcrumb, and Lorne refuses to open the private table despite Vesper's pressure. | Chapter 5 opens with four-front evidence, the continuing mountain drain, Ailo continuity, and the casino dealer's first costly defiance recorded. |
 
 #### Chapter 5 Scene Order
 
 | Scene | Working Location | Omniscient Event | First Run | Second Run | Character / Side-Story Work | Story-State Output |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ch5_s01_four_fronts_converge` | Civic room with four route reports | Fire, ice, thunder, and poison symptoms are shown to pulse in one rhythm. | The town treats them as simultaneous emergencies. | Reserved materials and prior evidence let the protagonist see one pattern earlier. | Mia reads patient records; blacksmith reads gear; 伊萊 reads route time. | Elemental Lord route opens. |
+| `ch5_s01_four_fronts_converge` | Civic room with ruin survey and four route reports | Fire, ice, thunder, and poison symptoms follow four damaged regulation channels toward one mountain drain. | The town treats them as linked emergencies only after comparing current evidence. | Reserved materials and prior evidence let the protagonist ask for scoped residue tests earlier. | Mia reads patient records; blacksmith reads gear; 伊萊 maps route time and ruin channels. | Elemental Lord route opens without relying on a removed Titan-heart clock. |
 | `ch5_s02_forge_contracts` | Advanced forge | The blacksmith turns elite materials into deliberate preparation rather than grind. | Stronger gear supports the required Boss. 伊萊 turns four accurate separated-residue records into a field summary whose line `標準二格固定可安全處理` omits its tested scope; the standard forceps therefore carries documentary as well as technical confidence. | The ratchet click triggers `醒來時，水已經涼了`. The protagonist cannot cite the future, but asks what the summary actually proves. 伊萊 reopens the source pages, refuses to sign a combined-object conclusion, and joins pressure tests before departure. The neutral execution housings are also completed from current-run true-kill materials. | `Forge Contracts`; useful paperwork becomes character causality rather than a miracle warning or a reckless mistake. | Advanced forge; first run records `unscoped_handling_summary`; second run records `ratchet_memory_triggered`, `summary_scope_challenged`, and `execution_housings_ready`. |
 | `ch5_s03_elemental_convergence` | Handcrafted four-front regional canvas | Each element is traced to one widening mountain pressure line. | The answer arrives through danger; no combined-shard handling record exists, and 伊萊's concise separated-sample summary is treated as the best available field rule. | Small current-run residues from the four fronts are brought together and tested without crushing: the ratchet is removed, spider silk spreads contact, and purified slime gel receives the unstable residue. The result cannot predict the exact wound, but proves fixed pressure is unsafe. 伊萊 writes the tested scope on the same line as the result. | Elder recognizes geometry from the old expedition; 伊萊 owns the evidence boundary, the blacksmith modifies the tool, and Mia owns the procedure decision. | Boss convergence unlocked; second run records `pressure_free_handling_proven` and `scoped_handling_record`. |
 | `ch5_s04_elemental_lord` | Convergence core | Four unstable flows form one temporary consciousness and attack in phase changes. Its death produces the first combined shard burst. | The nearest intact shard penetrates the protagonist during the victory collapse. | Same Boss and same injury; true-kill materials remain reserved for the final route rather than acting as medicine. | No human villain or random infection is inserted. | `elemental_lord` defeated; protagonist disabled; intact four-element shard embedded. |
@@ -1044,14 +1061,14 @@ fail on missing, duplicated, or unplaced ids.
 
 | Scene | Working Location | Omniscient Event | First Run | Second Run | Character / Side-Story Work | Story-State Output |
 | --- | --- | --- | --- | --- | --- | --- |
-| `ch6_s01_northern_drake_watch` | `northern_drake_watch`, `dragon_heat_crag` | The player pursues the elder immediately. Dragon heat and warning marks show deliberate containment rather than invasion. | Patched-sole tracks pull the player toward the body while the undecoded whistle yields only overlapping echoes. | The living elder's shard and Ailo's current-run one-hole reaction let the player demonstrate an outside echo without knowing the route sequence. | 伊萊 remains in town interpreting reports; Ailo remains in town rather than becoming a convenient dragon interpreter. | Dragon warning-line objective and observed containment evidence. |
-| `ch6_s02_scar_aftermath` | Planned seal warning line near `charred_obelisk` | A scar surge meets sealing fire at the fragment's matching break. | Player finds the elder's body and `seal_scar_shard`, then sees the dragon beyond it; fire has struck him, but its target remains ambiguous. | No corpse exists; the shard remains in the player's hand outside the line and the recorded whistle reaction proves only that another route exists. | Elder first-run exit or second-run survival becomes undeniable. | First-run anger/urgency or second-run proof chain complete. |
+| `ch6_s01_northern_drake_watch` | `northern_drake_watch`, `dragon_heat_crag` | The player pursues the elder immediately. Tracks, sheathed travel, inward-facing scorch marks, and dragon patrol distance establish observable facts without leaving the protagonist's viewpoint. | The elder's patched-sole tracks pull the player toward the warning line while the undecoded whistle yields only overlapping echoes. | The living elder's shard and Ailo's current-run one-hole reaction let the player demonstrate an outside echo without knowing the route sequence. | 伊萊 remains in town interpreting reports; Ailo remains in town rather than becoming a convenient dragon interpreter. | Dragon warning-line objective and observed containment evidence. |
+| `ch6_s02_scar_aftermath` | Planned seal warning line near `charred_obelisk` | The protagonist reconstructs the elder's last action from the body, the sheathed weapon, the matched fragment, and the direction of the burn. | Player can establish that the elder came alone and tried to return the shard, but cannot read a farewell, certainty of survival, or complete inner motive into the scene. | No corpse exists; the shard remains in the player's hand outside the line and the recorded whistle reaction proves only that another route exists. | Elder first-run exit or second-run survival becomes undeniable without an audience-only death cutaway. | First-run anger/urgency or second-run proof chain complete. |
 | `ch6_s03_stop_before_the_line` | Dragon perimeter | `elder_dragon` orders the armed human to stop and offers retreat, not aid. | With pressure already traveling toward town and no readable alternate road, the player crosses armed; combat becomes unavoidable. | Player stops, puts weapon and shard down outside the line, demonstrates the outside echo, and does not cross during the next surge. | Dragon speaks for its clan using Boss art; no spokesperson NPC. | First-run war gate / second-run evidence-bound non-attack. |
 | `ch6_s04_dragon_convergence` | Broad sealed approach | Dragon clan defends the line it has held since the fall. | The protagonist kills `elder_dragon` and erases the remaining local seal-keeping clan. | No battle occurs; `elder_dragon` keeps holding containment while the player withdraws to search outside its line. | The dragon does not forgive, ally, thank, open a road, or grant human passage. | First-run containment collapse / second-run containment preserved. |
 | `ch6_s05_after_the_broad_road` | Mountain base / town return point | The obvious approach cannot reach the fall site after either dragon result. | With the clan dead, the ruined broad verge still ends at a blind collapse. | The player follows the outside boundary without crossing the seal and reaches the same unreadable blind turns. | The whistle needs local human memory; dragon victory or restraint cannot replace Ailo. | Return to town with old-road objective unresolved. |
 | `ch6_s06_settlement_throw` | Casino main table after the mountain return | Vesper uses a rigged guest set to settle Lorne's remaining collateral once the required witness returns. | Player interrupts the table anchor and saves Lorne, but cannot prove the full reversal before Vesper escapes. | `莊家離席` makes the protagonist identify the current run's abnormal die weight before settlement; Lorne marks the set. | Loaded Dice route reaches confrontation without delaying the urgent elder pursuit. | First run Vesper escape / Loaded Dice evidence; second run final wager opens. |
 | `ch6_s07_house_changes_seats` | Same table and display hall | Contract rules decide who occupies host and guest positions. | Vesper tears a contract slit and leaves; Lorne gives the die after failure. | Vesper accepts the fairness challenge, rolls from the guest set, loses his own collateral, and is taken by the unnamed creditor. | Lorne survives both; only second run begins restitution. | First run casino poisoned; second run showcase choice and contract removal. |
-| `ch6_s08_brush_past_or_invitation` | Town edge after the failed broad-road return | Ailo acts on the whistle after the protagonist reports that the mountain has no usable human road. | He brushes past without dialogue, steals it, and disappears. Inventory inspection reveals the loss; no one else understands his destination. | The protagonist recognizes the remembered theft before contact, names the whistle, asks Ailo to lead, and refuses to let him go alone. | Ailo becomes active companion only here in the second run. | First run whistle lost and Ailo missing; second run Ailo companion state. |
+| `ch6_s08_brush_past_or_invitation` | Town edge after the failed broad-road return | The protagonist tests the Echo Whistle again after leaving the casino; its short and long notes make Ailo react before anyone explains the mountain failure to him. | He approaches the sound, brushes past without explanation, steals the whistle, and disappears. Inventory inspection reveals the loss; no one else understands his destination. | The protagonist recognizes the remembered approach before contact, names the whistle, asks Ailo to lead, and refuses to let him go alone. | Ailo becomes active companion only here in the second run. | First run whistle lost and Ailo missing; second run Ailo companion state. |
 | `ch6_s09_the_old_note_answers` | Old route mouth | The whistle activates an acoustic route marker hidden by collapsed terrain. | The road opens after Ailo has already gone ahead. | Ailo uses it beside the protagonist and explains only practical fragments. | No new magical guide or chosen-one lore. | Chapter 7 old mountain route opens. |
 
 #### Chapter 7 Scene Order
@@ -1078,9 +1095,9 @@ or personality dossier.
 | --- | --- | --- | --- | --- | --- |
 | Village elder | Chapter 1 civic anchor; sends player to 伊萊 and limits unsafe town access. | Ch2 evacuation ledger exposes the twenty-year pattern between him and 伊萊; Ch3 recognizes Kaedren's formation; Ch4 coordinates evacuation; Ch5 reconstructs expedition and plans solitary departure. | Leaves before dawn at Ch5 close, dies at seal scar in Ch6, body found before dragon battle. | Stopped at town gate, gives shard alive, remains civic anchor, and explicitly asks the true-ending record to say he was stopped and finally agreed to share responsibility. | `Patrol Soles`, `Ledger That Would Not Close`, `Expedition List`, `Outside The Seal Scar`; town-state authority and dragon proof. |
 | 伊萊 | Chapter 1 route investigator and handbook owner. | Ch2 Lich/name records and private friendship with the elder; Ch3 command identification; Ch4 terrain timing; Ch5 four-front, handling-summary, shard-contraction, and expedition reconstruction. | Compresses four accurate separated-residue records into an unscoped `標準二格固定可安全處理` field line. Mia's death leaves that word in his handwriting beside the broken forceps; later he loses the elder and writes the first ending without claiming more than can be proven. | Reopens the source pages, refuses unsafe generalization, supports Mia's survival, helps stop the elder, and closes by recording that the town finally stopped making one person answer for everyone. | `Name Under The Herb Basket`, `Ledger That Would Not Close`, `Shadows Still Count Names`, `After The Ratchet`, `Expedition List`, `Glimmer Reveals The Core`. |
-| Mia / 米婭 | Saves the protagonist in her private herb workroom before town introduction; owns no shop. | Ch2 family record and market prescription authorization; Ch3 bodily cost and relationship conflict; Ch4 countergear research; Ch5 Elemental Lord shard surgery. | Removes the shard and saves the protagonist, then dies when fixed-pressure forceps crush it in her grasp. Her workroom and final relationship tile remain; baseline market medicine continues. | The remembered ratchet click opens a pressure-free procedure. She survives, accepts shared protection, changes the inherited workroom, and completes the romance when the protagonist returns without an injury. | `Bitter Bottles`, `Name Under The Herb Basket`, `Fourfold Countergear`, `After The Ratchet`; recipe authorization, patient records, and town relationships only. |
-| 芙蕾 | Appears at South Gate in Ch1 as ordinary patrol flag bearer. | Ch2 tracks who returns; Ch3 names the childhood flag rescue and covers Tavi's unmeasured rear marker; Ch4 evacuation places her at the fatal route decision while the protagonist is physically isolated. | Dies holding the flag at Gray Ridge; later appears only through returned object and town absence. | Tavi's measured rear light lets her remain at the front; she survives, understands the elder's fear of watching others leave, and shares route duty without surrendering courage. | `Patrol Soles`, `Lamp Oil In Fog`, `Flag And Lamp`; South Gate, morale, route readability, future Frey CG. |
-| 塔維 | Seeded behind Frey's Ch1 gate scene as practical lamplighter. | Ch2 maintains reopened route lights; Ch3 revisits the childhood mist, personally measures the far marker only in the second run, and admits why he took the lamp; Ch4 rear-marker crisis tests that admission. | Freezes, survives Frey's death, becomes hollow but functional through Ch5-7, and lights the final bad-ending gate lamp. | Acts while afraid, saves Frey, remains an ordinary lamplighter, and signals beside her in the true ending. | `Lamp Oil In Fog`, `Flag And Lamp`; night-route safety, `tavi_role_admitted`, and run-specific rescue condition. |
+| Mia / 米婭 | Saves the protagonist in her private herb workroom before town introduction; owns no shop. | Ch2 family record and market prescription authorization; Ch3 treats the concealed shadow wound and later sees the protagonist return before it worsens; Ch4 countergear research; Ch5 Elemental Lord shard surgery. | Removes the shard and saves the protagonist, then dies when fixed-pressure forceps crush it in her grasp. Her workroom and final relationship tile remain; baseline market medicine continues. | The remembered ratchet click opens a pressure-free procedure. She survives, accepts shared protection, changes the inherited workroom, and completes the romance when the protagonist returns without an injury. | `Bitter Bottles`, `Name Under The Herb Basket`, `Fourfold Countergear`, `After The Ratchet`; recipe authorization, patient records, and town relationships only. |
+| 芙蕾 | Appears at South Gate in Ch1 as ordinary patrol flag bearer. | Ch2 tracks who returns; Ch3 covers Tavi's unmeasured rear marker as part of their ordinary work; Ch4 evacuation places her at the fatal route decision while the protagonist is physically isolated. | Dies holding the flag at Gray Ridge; later appears only through returned object and town absence. | Tavi's measured rear light lets her remain at the front; she survives, understands the elder's fear of watching others leave, and shares route duty without surrendering courage. | `Patrol Soles`, `Lamp Oil In Fog`, `Flag And Lamp`; South Gate, morale, route readability, future Frey CG. |
+| 塔維 | Seeded behind Frey's Ch1 gate scene as practical lamplighter. | Ch2 maintains reopened route lights; Ch3 repairs the front marker in both runs, leaves the rear measurement unfinished in the first, and physically completes it in the second; Ch4 tests whether the prepared rear marker can be lit under real danger. | Freezes, survives Frey's death, becomes hollow but functional through Ch5-7, and lights the final bad-ending gate lamp. | Acts while afraid, saves Frey, remains an ordinary lamplighter, and signals beside her in the true ending. | `Lamp Oil In Fog`, `Flag And Lamp`; night-route safety, `rear_marker_ready`, and the run-specific rescue condition. |
 | Blacksmith | Ch1 Cold Forge reopens basic repair and makes equipment pressure human. | Ch2 undead preparation; Ch3 shadow fittings; Ch4 places evacuation fittings before new weapons and handles flag/lamp returns; Ch5 modifies the surgery tools and completes anchor housings. | Survives as town-temperature gauge; after the false victory he values the protagonist's return but admits the day's human losses cannot be repaired. | Living cast preserves his loud warmth; he resumes full forge rhythm and places a leaking pot before the hero's weapon because ordinary repair is his proof of victory. | `Cold Forge Smoke`, `Shadows Still Count Names`, `Flag And Lamp`, `Fourfold Countergear`, `Forge Contracts`, `Glimmer Reveals The Core`. |
 | 艾洛 | Visible but unexplained in Ch1; searches scraps and route sounds. | Ch2 separates the useless dye flower from market packing; Ch3 mistakes commands for road fragments; Ch4 hears a lower road and names the missing whistle; Ch5 recognizes its sound. | Steals whistle after dragon war, opens old road, dies unseen near mountain; no body or letter. | Approached before theft, accompanies player, witnesses Neelu memory, survives, later leaves voluntarily and sends unsigned flower. | `Echo Whistle`, `Flower At The Echo's End`; old-road access, memory scene, achievement without material reward. |
 | 維斯珀 | Absent from early broken town; first appears through Ch3 showcase temptation. | Ch4 directly prices Frey's death or the fear created by her near-loss; Ch5 converts Lorne's repeated interference into a settlement; Ch6 forces the wager. | Cheating exposed but escapes; remains an unresolved predator in the hollow ending. | Current-run loaded set is exposed; he loses from guest position and is collected by the unnamed creditor; no redemption. | `Showcase Glass`, `Loaded Dice`, `Blank Collateral`; ticket pools, display case, contract removal, one prize choice. |
@@ -1111,8 +1128,8 @@ choice that the mainline failed to establish.
 | Character | Mandatory Mainline Ownership | Optional Side-Story Deepening |
 | --- | --- | --- |
 | Village elder / 伊萊 | Their opposite sides of the old gate, the danger of solitary responsibility, the empty-chair payoff, the Chapter 5-6 divergence, and their spoken true-ending answer. | Civic routines, resident notices, old-friend irritation, quiet meals, damp-paper humor, and additional memories that do not supply expedition proof. |
-| Mia | Rescue, family wound, mutual self-neglect conflict, honest return, Chapter 4 fear, operation, death/rescue, and final invitation without an injury. | Workroom routine, romance, ordinary rest, recipe research, and relationships not needed to discover the pressure-free procedure. |
-| Frey / Tavi | Flag/lamp introduction, childhood mist, Tavi's required measurement, Gray Ridge separation, death/rescue, aftermath, and final shared signal. | Patrol banter, route-marking habits, friendship, and humor that does not own the wind-guard rescue condition. |
+| Mia | Rescue, family wound, delayed wound report, voluntary medical return, Chapter 4 fear, operation, death/rescue, and final invitation without an injury. | Workroom routine, romance, ordinary rest, recipe research, and relationships not needed to discover the pressure-free procedure. |
+| Frey / Tavi | Flag/lamp workplace introduction, Tavi's repeated front-position habit, Frey covering the unmeasured rear marker, the second-run measurement, Gray Ridge separation, death/rescue, aftermath, and final shared signal. | Childhood mist, patrol banter, route-marking habits, friendship, and humor that does not own the wind-guard rescue condition. |
 | Blacksmith | Civilian-first forge choice, object-based care, flag/lamp aftermath, surgery-tool responsibility, anchor housings, and both ending performances. | Household repair stories, blunt humor, resident relationships, and forge life that does not gate required equipment progression. |
 | Ailo / Neelu | Recurring flower, road, and whistle fragments; theft/accompaniment; old-road operation; fatal route inversion; memory; survival result; and unsigned flower. | Scrap sorting, strange daily behavior, tenderness, and second-run reinterpretations that reveal no required road instruction. |
 | Vesper / Lorne | Showcase temptation, Chapter 4 trauma-targeted offer and refusal, witness settlement, loaded-die proof, escape/reversal, collection, restitution limit, and public ledger ending. | Public-floor patrons, Lorne's smaller acts of guilt, Vesper's varied temptation methods, and casino life that does not hide proof needed for punishment. |
@@ -1630,10 +1647,10 @@ the situation assign one shared voice to the entire cast.
   塔維 freezes; the protagonist is locked at the central civilian footbridge;
   she takes the fatal center position, fixes the flag as visible direction, and
   dies after the last evacuee crosses.
-- Second-run arc: after 塔維 personally measures the rear marker and admits why
-  he took the lamp, he acts first while still afraid. She remains at the front
-  flag, survives, and tells the elder that seeing 塔維 in danger made her want to
-  call him back. Her courage becomes shared rather than solitary.
+- Second-run arc: after 塔維 personally measures the rear marker, he acts first
+  while still afraid. She remains at the front flag, survives, and tells the
+  elder that seeing 塔維 in danger made her want to call him back. Her courage
+  becomes shared rather than solitary.
 - Entrusted flame: direction.
 - Story-system link: South Gate state, route safety, fog readability, patrol flag,
   watchposts, morale, and 塔維 rescue condition.
@@ -2140,7 +2157,7 @@ Design rule:
 | Chapter Window | Reframed Action | Characters Saved Or Re-read | Result |
 | --- | --- | --- | --- |
 | Chapters 1-2 | The player notices that route warnings, Mia's care, and 伊萊's paperwork were not generic tutorial text. | The ratchet memory does not solve anything early; it makes the player attend to ordinary tools and the distinction between a recipe record and a material-handling record. | Early town recovery becomes emotionally precise without granting false foreknowledge. |
-| Chapters 3-4 | The player completes Tavi's route before the flag crisis. | Tavi admits why he became the lamplighter and acts while still afraid; Frey no longer has to die. | The south gate becomes a living proof that second-run understanding can change a fate without making the first run meaningless. |
+| Chapters 3-4 | The player changes the division of work during Tavi's night route, allowing him to measure the rear marker before the flag crisis. | Tavi acts while still afraid; Frey no longer has to leave the front marker and die. The rescue follows from completed work, not from a required confession. | The south gate becomes a living proof that second-run understanding can change a fate without making the first run meaningless. |
 | Chapter 5 | The player recognizes the forceps ratchet click and asks what 伊萊's field summary actually proves. He reopens the current-run source pages, rejects the generalized conclusion, joins the combined-residue test, and uses old expedition evidence to help stop the elder before he leaves alone. | Mia performs the same operation with pressure-free handling and survives; 伊萊's scoped record reaches the room in time; the elder gives `seal_scar_shard` alive. | Two losses are prevented through present-run preparation rather than inherited objects, and 伊萊 corrects the exact documentary habit that wounded him. |
 | Chapter 6 | The player approaches the dragon perimeter with `seal_scar_shard`, the Echo Whistle route meaning, and a non-hostile choice. The casino route can also be reversed with the Loaded Dice. | The dragon sees that no trespass is occurring and withholds attack without granting a road; Vesper is punished by his own contract logic instead of escaping. | The second run turns two first-run frustrations into earned reversals: no dragon slaughter and no escaped casino predator. |
 | Chapter 7 | The player accompanies Ailo rather than letting him vanish alone. The memory event reveals Neelu, the flower-field promise, and the old mountain road's human meaning. | Ailo survives somewhere beyond the town; Neelu's memory restores the promise without turning her into a lore machine. | The final route is no longer only a stronger march to the Demon King. It is a road understood through people, tools, and losses carried correctly. |
@@ -2277,11 +2294,11 @@ optional character story that supplies the missing viewpoint.
 | 1 | any | narration | - | - | 十字路口很安靜。鐵匠鋪沒有生火，市集棚布被收在柱邊，南門旁的回程板空了大半。 |
 | 2 | any | narration | - | - | 井邊排著幾只共用水桶。有人把一袋乾糧拆開，照門牌分成更小的份量；排隊的人看了一眼，沒有人多拿。 |
 | 3 | second_run | narration | - | - | 我認得這條街，也認得此刻還在街上的人。我站了一會兒，直到身後有人要我讓路。 |
-| 4 | any | enter | - | - | 一名衣衫破舊的乞丐從廢木箱後探出手，把一段爛繩貼到耳邊。 |
+| 4 | any | enter | `street_beggar` | - | 一名衣衫破舊的乞丐從廢木箱後探出手，把一段爛繩貼到耳邊。 |
 | 5 | any | speaker | `street_beggar` | `guarded` | 這條沒聲音。路把嘴咬掉了。花也聽不見。 |
-| 6 | any | exit | - | - | 乞丐抱著爛繩離開畫面，不等待回答。 |
+| 6 | any | exit | `street_beggar` | - | 乞丐抱著爛繩離開畫面，不等待回答。 |
 | 7 | any | narration | - | - | 我還沒來得及追問，一名老人已從公務室走來。他看了看我的包紮，停在兩步外。 |
-| 8 | any | enter | - | - | Village elder 進入；公務室的門留在他身後。 |
+| 8 | any | enter | `village_elder` | - | Village elder 進入；公務室的門留在他身後。 |
 | 9 | any | speaker | `village_elder` | `neutral` | 你是公會派來的人？ |
 | 10 | any | speaker | `player` | `neutral` | 是。我在南路遭到襲擊，路邊還有一大片黑色樹根。 |
 | 11 | any | speaker | `village_elder` | `guarded` | 你有看見三個巡路的人嗎？ |
@@ -2310,7 +2327,7 @@ optional character story that supplies the missing viewpoint.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 伊萊用三只杯子壓住同一張路圖。牆角受潮，墨線在南側暈成一片。 |
-| 2 | any | enter | - | - | Town scholar 把椅上的卷宗抱到桌角，示意我坐下。 |
+| 2 | any | enter | `town_scholar` | - | Town scholar 把椅上的卷宗抱到桌角，示意我坐下。 |
 | 3 | any | speaker | `town_scholar` | `neutral` | 村長讓你來找巡路紀錄？ |
 | 4 | any | speaker | `player` | `neutral` | 三個人沒有回來。我在南路也沒看見他們。 |
 | 5 | any | speaker | `town_scholar` | `guarded` | 南路現在是什麼情況？從你還能確定的地方說。 |
@@ -2344,7 +2361,7 @@ optional character story that supplies the missing viewpoint.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 南門外側補了兩層木板，門洞只夠一輛車通過。芙蕾站在回程板前，塔維正在把一捆繩索搬進門房。 |
-| 2 | any | enter | - | - | Frey 進入前景；Tavi 放下繩索後留在門房旁。 |
+| 2 | any | enter | `standard_bearer_frey,lamplighter_tavi` | - | Frey 進入前景；Tavi 放下繩索後留在門房旁。 |
 | 3 | any | speaker | `standard_bearer_frey` | `neutral` | 出城先登記。名字、目的地，還有預計回來的時間。 |
 | 4 | any | speaker | `player` | `neutral` | 我要查田埂、獵人棧道和舊營地。天黑前回來。 |
 | 5 | any | narration | - | - | 芙蕾接過手札，逐一看完伊萊圈出的地方。 |
@@ -2478,7 +2495,7 @@ optional character story that supplies the missing viewpoint.
 | 6 | any | speaker | `town_scholar` | `neutral` | 銀線只能證明伏獵者碰過黑根。要查源頭，還得沿根走。 |
 | 7 | any | speaker | `village_elder` | `neutral` | 先去鐵匠鋪。你的刀口裂了，別拿它進林子。 |
 | 8 | any | narration | - | - | 鐵匠鋪的門只開一半。爐膛有煤，風箱卻卡在最低處，拉桿每動一下就撞回原位。 |
-| 9 | any | enter | - | - | Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。 |
+| 9 | any | enter | `blacksmith` | - | Blacksmith 從風箱後抬頭，先看裝備裂口，再看主角的包紮。 |
 | 10 | any | speaker | `blacksmith` | `guarded` | 先站好。你那把刀給我。 |
 | 11 | any | speaker | `player` | `neutral` | 爐子不是還沒點起來？ |
 | 12 | any | speaker | `blacksmith` | `neutral` | 煤有，風箱的接帶脫槽了。你拉住那邊，我把線穿回去。手別鬆，它彈回來很疼。 |
@@ -2576,69 +2593,73 @@ crossroads checkpoint.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 我敲了兩下門。芙蕾認出我後叫人抬閂，塔維把回程板從牆上取了下來。 |
-| 2 | any | enter | - | - | Frey 與 Tavi 進入門房前景。 |
+| 2 | any | enter | `standard_bearer_frey,lamplighter_tavi` | - | Frey 與 Tavi 進入門房前景。 |
 | 3 | any | speaker | `standard_bearer_frey` | `neutral` | 三個人呢？ |
 | 4 | any | speaker | `player` | `neutral` | 沒找到。棧道有伏擊，林子裡還有一頭守護者。 |
 | 5 | any | speaker | `lamplighter_tavi` | `guarded` | 他們的路線就在那一帶。你找到衣物或公會標記了嗎？ |
 | 6 | any | speaker | `player` | `neutral` | 沒有。我先把現場和黑根的位置帶回來了。 |
 | 7 | any | speaker | `standard_bearer_frey` | `neutral` | 去找村長和伊萊。我替你補回程時間，今晚不再放人出去。 |
 | 8 | any | narration | - | - | 伊萊把新紀錄壓在舊路圖旁。村長沒有坐，視線一直停在巡路人失去痕跡的位置。 |
-| 9 | any | enter | - | - | Elder 與 town scholar 進入桌邊場景。 |
+| 9 | any | enter | `village_elder,town_scholar` | - | Elder 與 town scholar 進入桌邊場景。 |
 | 10 | any | speaker | `town_scholar` | `guarded` | 守護者倒下以後，地面還在震？ |
 | 11 | any | speaker | `player` | `neutral` | 還在震。黑色細根穿過根心，延伸到更深的土層裡。守護者不是源頭。 |
 | 12 | any | speaker | `town_scholar` | `neutral` | 我會把守護者和黑根分開記。三條路先標成可以通行，旁邊保留怪物位置。 |
 | 13 | any | speaker | `village_elder` | `neutral` | 巡路的人還沒找到，不能說安全。讓南門照這份圖安排人手。 |
 | 14 | any | speaker | `player` | `neutral` | 南路的麻痺也和黑根有關。我想再去問米婭，她可能認得症狀。 |
 | 15 | any | speaker | `village_elder` | `neutral` | 去吧。也讓她看看你的手。你在林子裡待得太久了。 |
-| 16 | any | enter | - | - | Mia 在工作桌旁放下剛寫完的配方。 |
+| 16 | any | enter | `herbalist` | - | Mia 在工作桌旁放下剛寫完的配方。 |
 | 17 | any | speaker | `herbalist` | `neutral` | 先坐下。手給我。 |
 | 18 | any | speaker | `player` | `neutral` | 林子裡的黑根會讓人先麻木，再發熱。和我在南路中的毒很像。 |
 | 19 | any | speaker | `herbalist` | `guarded` | 先不下結論。我要確認你現在還能不能分辨冷熱。閉上眼睛。 |
 | 20 | any | narration | - | - | 米婭依序碰過我的指尖，先用冷水，再換成溫杯。她等我回答完才把手放開。 |
 | 21 | any | speaker | `herbalist` | `pleased` | 都分得出來。今晚不再發麻，就不用重新換藥。配方我已經寫好，等貨路恢復才有材料能做。 |
 | 22 | any | narration | - | - | 遠處的鐵匠鋪傳來風箱聲。鐵匠走到門邊，手上仍沾著冷灰。 |
-| 23 | any | enter | - | - | Blacksmith 短暫進入 crossroads 邊緣。 |
+| 23 | any | enter | `blacksmith` | - | Blacksmith 短暫進入 crossroads 邊緣。 |
 | 24 | any | speaker | `blacksmith` | `pleased` | 你的刀還在。看來這次沒拿它敲石頭。 |
 | 25 | any | speaker | `player` | `neutral` | 接下來能做新裝備了？ |
 | 26 | any | speaker | `blacksmith` | `neutral` | 先別急。煤和鐵還運不進來。我現在先修鍋、門鉸和車輪，這些東西每天都有人等。 |
 | 27 | any | narration | - | - | 爐前排起的第一批東西沒有一把武器：漏水的鍋、鬆掉的門鉸、裂開的手推車輪。鐵匠一邊抱怨數量，一邊把漏水的鍋放到最前面。 |
 | 28 | second_run | narration | - | - | 我在回程欄簽名時停了一下。芙蕾在後面催我別擋著門，我才把筆放回去。 |
-| 29 | any | enter | - | - | Street beggar 從空市集棚後探出身，手裡換成一片彎曲木屑。 |
+| 29 | any | enter | `street_beggar` | - | Street beggar 從空市集棚後探出身，手裡換成一片彎曲木屑。 |
 | 30 | any | speaker | `street_beggar` | `guarded` | 北邊不是北邊。花在上面，路在下面。你們的紙走反了。 |
-| 31 | any | exit | - | - | 乞丐離開。鏡頭停在空箱與斷掉的運貨繩；Chapter 2 market-supply objective opens. |
+| 31 | any | exit | `street_beggar` | - | 乞丐離開。鏡頭停在空箱與斷掉的運貨繩；Chapter 2 market-supply objective opens. |
 
 ## Chapter 2 Detailed Screenplay V1
 
-Status: `complete_pending_user_review`. Chapter 2 joins market recovery, Mia's
-family wound, the evacuation ledger, and the Lich route into one causal line.
+Status: `complete_pending_user_review`. Chapter 2 joins recovered cargo records,
+Mia's family wound, the evacuation ledger, and the Lich route into one causal
+line. Medicine supply is authorized here, but public trade waits for the
+Chapter 3 caravan return.
 
 ### `ch2_s01_empty_crates`
 
+- `title`: 空箱先回來了
 - `stageClass`: `town_scene`
-- `background`: market edge in closed-to-sparse recovery state
+- `background`: empty market edge with recovered crates and no active stalls
 - `worldState`: Chapter 2 opening; first nearby road reopened; recovered crates damaged or empty
 - `viewpoint`: `protagonist_limited`
-- `participants`: merchant as a functional role only
+- `participants`: player, town scholar
 - `entry`: protagonist follows the Chapter 1 return camera toward the empty market stalls
 - `exit`: market remains non-transactional while the missing delivery route becomes active
 - `objective`: inspect the recovered cargo marks and trace where the carriers stopped
 - `inputs`: Chapter 1 complete; nearby road readable
-- `outputs`: market recovery objective; carrier names recorded; empty-crate route source identified
-- `assetNotes`: reuse market background in sparse state; merchant personality and final portrait remain unresolved
+- `outputs`: carrier names recorded; empty-crate route source identified; medicine supply need opened while market remains closed
+- `assetNotes`: reuse closed-market background; merchant does not appear before the Chapter 3 caravan return
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 三只貨箱排在空攤前。第一只裂了底，第二只只剩濕布，第三只的繩結仍完整，裡面卻什麼也沒有。 |
-| 2 | any | enter | - | - | Merchant 站在箱後，將運貨牌依序攤開；不建立私人角色弧線。 |
-| 3 | any | speaker | `merchant` | `guarded` | 箱子在路邊找到了。送箱的人沒有。要開市，先得知道貨是在哪一段變成空箱。 |
-| 4 | any | narration | - | - | 每張運貨牌都有姓名、出發日與預定回程。最後一筆仍照舊路寫著「傍晚前抵達」。 |
-| 5 | second_run | narration | - | - | 這種字句已經出現過太多次：事情照規則繼續，人卻沒有回到規則裡。 |
-| 6 | any | speaker | `merchant` | `neutral` | 米婭的方子我收到了。沒有甜膠、乾布和乾淨瓶子，紙再好也賣不了藥。把路找回來，攤子才有東西可放。 |
-| 7 | any | narration | - | - | 箱底黏著霧丘的白泥，側板則擦過刻有葬名的石角。兩種痕跡不該同時出現在正常貨路上。 |
-| 8 | any | exit | - | - | Market remains sparse; open the carrier-record handoff to Mia and 伊萊. |
+| 1 | any | narration | - | - | 空攤前擺著三只貨箱。第一只裂了底，第二只只剩幾塊濕布，第三只的繩結還綁得好好的，裡面卻是空的。 |
+| 2 | any | narration | - | - | 巡線的人在南路邊找到箱子，只能把它們拖回空著的邊棚。伊萊把運貨牌攤在箱蓋上，手指停在最後兩個名字旁。 |
+| 3 | any | speaker | `town_scholar` | `neutral` | 貨牌上有兩名送貨人。他們沒有回來，箱子也不是在原定路線上找到的。 |
+| 4 | any | speaker | `player` | - | 他們原本走哪一條路？ |
+| 5 | second_run | narration | - | - | 我記得這兩個名字。上一回，我只查了貨去了哪裡。 |
+| 6 | any | speaker | `town_scholar` | `neutral` | 照舊路程，他們傍晚前該經過霧碑丘。米婭等著這批乾布和瓶子。先讓她看看貨印，我再查兩人的登記。 |
+| 7 | any | narration | - | - | 我翻過箱底。縫裡卡著一層發白的濕泥，側板還留著石頭擦過的粉末；粉末裡混著淡淡的防腐香。 |
+| 8 | any | narration | - | - | 我記下失聯者的姓名，帶著貨牌與箱底的泥痕離開市集。 |
 
 ### `ch2_s02_name_under_basket`
 
+- `title`: 籃底的木牌
 - `stageClass`: `town_scene`
 - `background`: Mia's herb workroom / working state
 - `worldState`: Chapter 2; recovered empty crate and old herb baskets being checked for usable supply
@@ -2648,29 +2669,30 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 - `exit`: 伊萊 carries the discovered name tag to the civic archive; the protagonist remains briefly while Mia finishes one prescription record
 - `objective`: identify the expedition-era name and connect it to the broken delivery road
 - `inputs`: empty-crate inspection complete
-- `outputs`: Mia's father entered into handbook relationship record; expedition link opened; one later market prescription researched; shared-work relationship beat
+- `outputs`: Mia's father remains listed as missing; expedition link opened; one later market prescription researched; Mia's work habit and response to the name are observed without assigning a relationship milestone
 - `assetNotes`: workroom working-state background; no missing gatherer or notebook item
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 米婭把舊籃裡能用的乾葉一一挑出。籃底的補片受潮翹起，露出一塊被編進藤條裡的薄木牌。 |
-| 2 | any | enter | - | - | Mia 翻過木牌；看見姓名後，手指停在磨平的邊角。 |
-| 3 | any | speaker | `herbalist` | `guarded` | 這是我父親的名字。母親把籃子留著，卻從沒拆過底。 |
-| 4 | any | narration | - | - | 木牌背面不是藥材記號，而是二十年前遠征的補給編次。你去請伊萊辨認那排褪色數字。 |
-| 5 | any | enter | - | - | Town scholar 進入工作間，先向 Mia 點頭，再把眼鏡推近木牌。 |
-| 6 | any | speaker | `town_scholar` | `guarded` | 是我寫的編次。出發物資收了回條，返還欄……沒有。這只籃子後來被當成遺物送回來。 |
-| 7 | any | speaker | `herbalist` | `grieving` | 籃子回來了。人沒有。你們很擅長讓物件知道回家的路。 |
-| 8 | any | narration | - | - | 伊萊沒有辯解。米婭也沒有要求他替二十年前的人回答。工作間只剩藤條被輕輕壓回桌面的聲音。 |
-| 9 | any | speaker | `town_scholar` | `soft` | 名冊裡仍是失蹤。我沒有證據替他死，也不會替你把那一格劃掉。 |
-| 10 | any | speaker | `herbalist` | `neutral` | 那就先留著。把同一批的路牌找出來，我要知道他們當時被送去哪裡。 |
-| 11 | any | exit | - | - | 伊萊帶走木牌拓記。米婭把情緒收進一次深呼吸，轉身寫完一張以現有材料為限的處方授權。 |
-| 12 | any | narration | - | - | 你留下幫她把乾葉分回兩只籃子。巷口每次有腳步經過，她都先抬頭，等聲音走遠才繼續寫。 |
-| 13 | any | speaker | `herbalist` | `pleased` | 左邊能用，右邊丟掉。分錯一片，我就讓你親自確認藥效。 |
-| 14 | any | narration | - | - | 門其實關得很緊。你沒有拆穿她，只把下一把乾葉放到左邊。照顧沒有抹掉傷口，傷口也沒有取消她的工作。 |
-| 15 | any | exit | - | - | Open `Ledger That Would Not Close`, Mia relationship record, and the researched prescription state. |
+| 1 | any | narration | - | - | 米婭把舊藥籃裡的乾葉一片片挑出來。籃底受了潮，補上去的藤條翹開一角，下面壓著一塊薄木牌。 |
+| 2 | any | narration | - | - | 她把木牌翻過來。看清上面的名字後，手指停住了。 |
+| 3 | any | speaker | `herbalist` | `guarded` | 這是我父親的名字。這只籃子是他出發前帶走的。 |
+| 4 | any | speaker | `player` | - | 背面還有一排數字。伊萊也許認得。 |
+| 5 | any | narration | - | - | 伊萊來得很快。他向米婭點了點頭，接過木牌，湊到窗邊的光下。 |
+| 6 | any | speaker | `town_scholar` | `guarded` | 是遠征補給的編號。物資出城時有登記，返還那一欄是空的。這只籃子應該是後來單獨送回來的。 |
+| 7 | any | speaker | `herbalist` | `guarded` | 誰送的？ |
+| 8 | any | speaker | `town_scholar` | `neutral` | 這張木牌上沒有寫。我回去找當年的收件簿，也只能先從同一批編號查起。 |
+| 9 | any | speaker | `herbalist` | `guarded` | 名冊上呢？ |
+| 10 | any | speaker | `town_scholar` | `neutral` | 還是失蹤。沒有遺骨，也沒有最後見到他的人。我不能替那一格改字。 |
+| 11 | any | narration | - | - | 伊萊拓下木牌上的編號，帶著貨牌回去查帳。米婭把木牌留在桌邊。 |
+| 12 | any | narration | - | - | 我留下來幫她分乾葉。巷子裡有人踩過積水，她抬了一次頭，聽見腳步走遠，才重新低下眼睛。 |
+| 13 | any | speaker | `herbalist` | `pleased` | 左邊能用，右邊丟掉。這片發黑了，別因為捨不得就留下。 |
+| 14 | any | narration | - | - | 她把那片乾葉從我手裡抽走，又推來一只空籃。窗邊的處方紙上，補了乾布、甜膠和乾淨瓶子的數量。 |
+| 15 | any | narration | - | - | 我帶著處方離開工作間。伊萊已經在等那塊貨牌。 |
 
 ### `ch2_s03_ledger_that_would_not_close`
 
+- `title`: 沒有人改過的路
 - `stageClass`: `town_scene`
 - `background`: scholar desk, then short town-stage preparation inserts within the same class
 - `worldState`: Chapter 2; expedition and evacuation records spread across an ordinary civic table
@@ -2685,22 +2707,23 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 同一張長桌上放著三種紙：遠征補給、撤離名冊、無人領取的葬牌。它們原本不該屬於同一件事。 |
-| 2 | any | enter | - | - | Elder 與 town scholar 分坐兩側；Mia's father's tag stays between them. |
-| 3 | any | speaker | `town_scholar` | `neutral` | 這條指示在當年沒有錯。霧丘東側能繞過塌方，開墓地也還沒有開。問題是後來沒有人補上「道路已改」。 |
-| 4 | any | speaker | `village_elder` | `guarded` | 因為後來的人都在搬屍體、找活人。紙排在最後。 |
-| 5 | any | speaker | `town_scholar` | `guarded` | 我知道。可紙留得比我們久。它現在還在叫人往那裡走。 |
-| 6 | second_run | narration | - | - | 你指出名冊日期後缺少任何修訂頁。伊萊接受這個疑問，卻不假裝已知道墓裡發生了什麼。 |
-| 7 | any | narration | - | - | 你問那些運貨人是否照著同一條舊指示前進。老人把手壓在路線轉折處。 |
-| 8 | any | speaker | `village_elder` | `resolute` | 去霧碑丘，先找路標，不追聲音。抵達開墓地以前，每一塊葬牌都當成有人在用。 |
-| 9 | any | narration | - | - | 場景短暫切到米婭工作間。她交出處理屍霧與擦傷的普通布包，沒有開啟診斷或交易介面。 |
-| 10 | any | speaker | `herbalist` | `guarded` | 霧進到喉嚨就退。那不是逞強能咳掉的東西。回來以後，先讓我看手指顏色。 |
-| 11 | any | narration | - | - | 場景再切到冷爐。鐵匠收緊護具縫隙，把鬆動的扣件全換到不會勾住葬布的位置。 |
-| 12 | any | speaker | `blacksmith` | `neutral` | 活人的裝備別去勾死人的東西。看見布就繞，非得砍再砍。 |
-| 13 | any | exit | - | - | Route preparation completes; open mist-tablet and tomb regional nodes. |
+| 1 | any | narration | - | - | 伊萊把遠征補給單、撤離名冊和無人領取的葬牌分成三排。米婭父親的木牌放在中間，邊角正好壓住一條褪色的路線。 |
+| 2 | any | narration | - | - | 村長坐在桌子另一側。伊萊翻到最後一張有日期的撤離指示，把紙轉向他。 |
+| 3 | any | speaker | `town_scholar` | `neutral` | 當年霧丘東邊還能走。這張指示本身沒有錯，但後面找不到改路的通知。 |
+| 4 | any | speaker | `village_elder` | `guarded` | 那幾天沒人顧得上通知。能動的人都在找失蹤的隊伍。 |
+| 5 | any | speaker | `town_scholar` | `guarded` | 我不是要追究誰漏了這張紙。現在還有人照著它走，才是麻煩。 |
+| 6 | second_run | narration | - | - | 我翻過名冊後幾頁。沒有修訂日期，也沒有新的路線。我請伊萊把這一點另外記下。 |
+| 7 | any | speaker | `player` | - | 兩名送貨的人很可能看過這張指示。我要從霧碑丘開始查。 |
+| 8 | any | speaker | `village_elder` | `resolute` | 先看路標和葬牌，別跟著霧裡的聲音走。開墓地就在更北邊；路不對就回來，別硬闖。 |
+| 9 | any | narration | - | - | 出門前，我去了一趟米婭的工作間。她把乾布和清水包好，又檢查了一次瓶塞。 |
+| 10 | any | speaker | `herbalist` | `guarded` | 喉嚨一發麻就往回走。回來先讓我看手指，不要自己判斷有沒有中毒。 |
+| 11 | any | narration | - | - | 鐵匠替我收緊護具，把會勾住布條的扣環換掉。金屬在鉗口裡響了兩聲。 |
+| 12 | any | speaker | `blacksmith` | `neutral` | 碰到掛在路上的布就繞開。真躲不掉再動手，別拿肩甲往裡撞。 |
+| 13 | any | narration | - | - | 我收好霧丘的舊路圖，從城鎮北側出發。 |
 
 ### `ch2_s04_mist_and_tomb_route`
 
+- `title`: 葬牌指向的方向
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted route through `mist_tablet_hill` to `opened_ancient_tomb`
 - `worldState`: Chapter 2; white ground mist; funeral markers still aligned to an obsolete evacuation road
@@ -2715,19 +2738,20 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | enter | - | - | Discover `mist_tablet_hill`; replace the unknown `?` with its location record. |
-| 2 | any | narration | - | - | 石碑上的箭頭仍清楚，名字卻被一筆筆補在箭頭旁。最晚的字跡不是二十年前，而是這幾天。 |
-| 3 | any | narration | - | - | 白霧裡有拖行聲。幾具屍體背著空貨繩，沿著舊箭頭反覆走到塌壁，再轉回起點。 |
-| 4 | any | narration | - | - | 你沒有跟著箭頭，而是依照葬牌姓名的編次往反方向查找。編次越早，泥土與防腐香的氣味越重。 |
-| 5 | any | enter | - | - | Discover `opened_ancient_tomb`; transition to the tomb threshold image. |
-| 6 | any | narration | - | - | 墓門不是從外面破開。石塊被整齊推向兩側，像有人仍按一套早已無人監督的程序出入。 |
-| 7 | second_run | narration | - | - | 記憶讓你先看名字，再看屍體。綁住牠們的不是單純死氣，而是「尚未送達」的職責。 |
-| 8 | any | narration | - | - | 墓內每隔一段便有一只空釘孔。某件承載所有葬牌的核心物被移進更深處，死者的路也跟著它移動。 |
-| 9 | any | narration | - | - | 手札追加：運貨人並未被單一怪物獵殺；他們走入一條仍在執行舊撤離程序的死路。 |
-| 10 | any | exit | - | - | Open the tomb reliquary and `keeper_of_names` Boss convergence; the moon-moss side route remains an optional observation. |
+| 1 | any | narration | - | - | 我抵達霧碑丘。迷霧裡的黑色方標退去，石碑和周圍的葬牌露了出來。 |
+| 2 | any | narration | - | - | 石碑上的箭頭還看得清楚。箭頭旁多了許多姓名，最新幾筆的墨尚未完全褪色。 |
+| 3 | any | narration | - | - | 白霧裡傳來拖行聲。幾具屍體背著空貨繩，走到塌壁前，又轉身回到石碑旁。 |
+| 4 | any | narration | - | - | 我避開箭頭指的斷路，按葬牌編號往回找。越靠北，泥土裡的防腐香越重，兩名送貨人的貨牌也出現在路邊。 |
+| 5 | any | narration | - | - | 霧後的山壁裂開一道入口。掘開的古墓就在裡面。 |
+| 6 | any | narration | - | - | 墓門的石塊整齊堆在兩側，不像被人硬砸開。門內有新泥，拖痕一條接著一條。 |
+| 7 | second_run | narration | - | - | 我先看葬牌，再看那些屍體。每一具都繫著姓名和去處；拔掉其中一塊，整列腳步便停了一瞬。 |
+| 8 | any | narration | - | - | 墓道兩側留著一排空釘孔。拆下的葬牌全被帶往深處，細線在地上拖出同一個方向。 |
+| 9 | any | narration | - | - | 我在手札記下兩名送貨人的最後位置。他們不是在路上被搶，而是跟著屍群走進了墓裡。 |
+| 10 | any | narration | - | - | 古墓深處傳來翻頁聲。我收起手札，沿著細線繼續往裡走。 |
 
 ### `ch2_s05_moon_moss_trace`
 
+- `title`: 月苔上的蹄印
 - `stageClass`: `location_scene`
 - `background`: moon-moss slope beside the reopened evacuation road
 - `worldState`: Chapter 2 optional environmental branch; displaced wildlife has crossed the road and moved on
@@ -2742,13 +2766,14 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 月苔全朝同一邊伏倒。泥裡疊著深淺不同的蹄印，新的壓過舊的，卻沒有一枚轉向古墓。 |
-| 2 | any | narration | - | - | 斷角留下的刮痕很高。那頭大型生物曾在這裡停留，後來沿西坡離開，只剩草葉摩擦的細響。 |
-| 3 | any | narration | - | - | 這不是另一場狩獵。你記下方向、步距與日期，沒有替看不見的東西取名。 |
-| 4 | any | exit | - | - | Record the moon-moss trace and return to the opened-tomb route without combat or reward. |
+| 1 | any | narration | - | - | 西坡的月苔全朝同一邊伏倒。泥裡疊著幾列蹄印，新痕壓著舊痕，沒有一列轉向古墓。 |
+| 2 | any | narration | - | - | 樹皮上的刮痕高過我的肩。那頭大型生物曾在這裡停留，後來繼續往西；林子裡只剩草葉摩擦的聲音。 |
+| 3 | any | narration | - | - | 我量了蹄印的寬度和步距，記下日期。附近沒有血，也沒有新鮮糞便，現在追上去只會離古墓更遠。 |
+| 4 | any | narration | - | - | 我回到霧碑丘的主路。月苔坡沒有發生戰鬥，也沒有留下可帶走的東西。 |
 
 ### `ch2_s06_keeper_of_names`
 
+- `title`: 守名者赫恩
 - `stageClass`: `location_scene`
 - `background`: opened tomb reliquary filled with route tags, unclosed registers, and displaced dead
 - `worldState`: Chapter 2 Boss convergence; curse pressure preserves an obsolete duty
@@ -2763,66 +2788,69 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 靈匣外纏滿葬牌。每一塊木牌都用細線接回同一本名冊，頁角磨得像被翻過數千次。 |
-| 2 | any | narration | - | - | 乾裂的聲音從墓室中央響起。它沒有先問你是誰，只念出三個已死者的姓名與一條不再存在的撤離路。 |
-| 3 | any | enter | - | - | 守名者赫恩以滿版 Boss 形象進入；冠架由靈匣構件、葬牌細鏈與死者遺物層層聚合，不是生前王冠。固定法杖與裝備外觀保持一致。 |
+| 1 | any | narration | - | - | 靈匣外纏滿葬牌。每一塊木牌都用細線接回同一本名冊，翻動的紙頁帶起一股乾冷的灰味。 |
+| 2 | any | narration | - | - | 墓室中央傳來乾裂的聲音。它念出三個死者的姓名，接著報出一條早已塌毀的撤離路。 |
+| 3 | any | narration | - | - | 守名者赫恩從葬牌與遺物堆成的冠架下抬起頭。細鏈繞過靈匣，另一端全繫在死者身上。 |
 | 4 | any | speaker | `lich` | `neutral` | 名列未清。道路未閉。未抵達者，回到隊列。 |
-| 5 | any | narration | - | - | 你指出前路早已塌毀。赫恩翻過空白的修訂頁，像那句話從未進入它的程序。 |
+| 5 | any | speaker | `player` | - | 那條路已經斷了。你送出去的人，只會走回同一面塌壁。 |
 | 6 | any | speaker | `lich` | `guarded` | 名列未清。不得停留。不得遺失。 |
-| 7 | any | exit | - | - | 收起事件層，進入 Lich Boss 戰鬥。 |
-| 8 | any | enter | - | - | 戰鬥結束；法杖落地，所有葬牌同時失去拉力。 |
-| 9 | any | narration | - | - | 名冊末頁留下赫恩自己的筆跡：墓地容不下新死者時，他把姓名、屍體與送達職責綁進同一只靈匣。那是照顧，也是在世界改變後仍拒絕停下的佔有。 |
-| 10 | any | narration | - | - | 靈匣裂縫裡留著一片微弱發亮的碎屑。它不灼傷皮膚，只讓墨跡與附著其上的暗痕分得更清楚。 |
-| 11 | second_run | narration | - | - | 你依 `未竟的弒王` 保存這片微光碎片，不把它耗在一般製作上。它日後必須協助顯露魔王藏在地形與詛咒裡的核心。 |
-| 12 | any | exit | - | - | Dead-route pressure ends; return to town with the phylactery and honest records. |
+| 7 | any | narration | - | - | 赫恩舉起法杖。墓道裡所有腳步同時轉向我。 |
+| 8 | any | exit | - | - | 收起事件層，進入守名者赫恩戰鬥。 |
+| 9 | any | enter | - | - | 戰鬥結束後回到墓室。 |
+| 10 | any | narration | - | - | 法杖落地，繃緊的細線一根根鬆開，屍群也停了下來。 |
+| 11 | any | narration | - | - | 名冊末頁是赫恩自己的筆跡。墓地再也容不下死者後，他把姓名、屍體和送達紀錄一同繫進靈匣，日期停在舊路塌毀之前。 |
+| 12 | any | narration | - | - | 靈匣裂縫裡卡著一片微弱發亮的碎屑。我用布包起來；靠近它時，紙上的墨和黑色污痕變得更容易分辨。 |
+| 13 | second_run | narration | - | - | 我認得這片微光。上一回它被當成普通材料用掉了；這次我把它另外收好，沒有交給工坊。 |
+| 14 | any | narration | - | - | 我取走赫恩的名冊與靈匣殘片，沿著安靜下來的墓道返回城鎮。 |
 
 ### `ch2_s07_names_return_to_town`
 
+- `title`: 名字回到鎮上
 - `stageClass`: `town_scene`
-- `background`: civic room and market edge in first-network recovery state
-- `worldState`: Chapter 2 close; recovered names replace anonymous loss; basic delivery resumes
+- `background`: civic room, then the still-empty market edge
+- `worldState`: Chapter 2 close; recovered names replace anonymous loss; medicine is authorized but delivery has not resumed
 - `viewpoint`: `protagonist_limited`
-- `participants`: town scholar, village elder, Mia, merchant, street_beggar
+- `participants`: town scholar, village elder, Mia, street_beggar
 - `entry`: recovered register is placed beside the village's incomplete evacuation ledger
-- `exit`: basic market actions open; northbound checkpoint route becomes the next investigation
+- `exit`: medicine authorization is filed; northbound checkpoint route becomes the next investigation
 - `objective`: reconcile the dead and missing without converting uncertainty into heroic propaganda
 - `inputs`: Lich defeated; records recovered; Chapter 2 supply route cleared
-- `outputs`: honest evacuation ledger; elder/Ilai friendship beat; Mia/elder relationship beat; Ailo flower breadcrumb; market baseline and authorized medicine stock; Chapter 3 seed
-- `assetNotes`: civic and sparse-market recovery states; Ailo reuses his existing portrait and the flower remains a deferred prop; no apothecary location or assistant portrait
+- `outputs`: honest evacuation ledger; Mia's unresolved family tag retained; elder and 伊萊 divide the remaining work; Ailo flower breadcrumb; authorized medicine formula waiting for supply; Chapter 3 seed
+- `assetNotes`: civic and closed-market states; Ailo reuses his existing portrait and the flower remains a deferred prop; no apothecary location, assistant portrait, or early merchant
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 伊萊把赫恩的名冊拆開，不是為了銷毀，而是把每個名字重新放回家屬、出發日與最後可證實的位置。 |
-| 2 | any | enter | - | - | Town scholar、elder 與 Mia 圍在長桌旁；Mia's father tag remains separate from confirmed dead. |
-| 3 | first_run | speaker | `town_scholar` | `pleased` | 至少這一次，紙把人帶回來了。不是身體……但名字不必再替一條死路工作。 |
-| 4 | second_run | speaker | `town_scholar` | `guarded` | 名字回來了。現在把修訂日期也寫上。今天正確的路，不該再假裝永遠正確。 |
+| 1 | any | narration | - | - | 伊萊把赫恩的名冊拆成幾疊，逐一核對姓名、出發日和最後可確認的位置。我報出墓道裡看見的貨牌，他便在兩名送貨人的名字旁補上日期。 |
+| 2 | any | narration | - | - | 村長和米婭站在長桌旁。米婭父親的木牌單獨放在一角，沒有混進已確認的死者名單。 |
+| 3 | first_run | speaker | `town_scholar` | `pleased` | 兩名送貨人的紀錄補上了。其他名字還得慢慢核對，但至少家屬不必再等一張空白回條。 |
+| 4 | second_run | speaker | `town_scholar` | `guarded` | 我會把道路修訂日期寫在每一頁上。往後若路又變了，舊指示不能繼續留在最上面。 |
 | 5 | any | speaker | `herbalist` | `neutral` | 我父親那一格呢？ |
-| 6 | any | speaker | `town_scholar` | `soft` | 仍是失蹤。沒有遺骨，沒有最後位置。我不替你結束他。 |
-| 7 | any | narration | - | - | 米婭看向村長。老人沒有要求原諒，也沒有把遠征說成值得歌頌的犧牲。 |
-| 8 | any | speaker | `village_elder` | `grieving` | 留著。那一格是我們欠他的，不是你欠這本名冊的。 |
-| 9 | any | speaker | `herbalist` | `guarded` | 我知道他自己選擇出發。知道，和不痛，是兩回事。 |
-| 10 | any | speaker | `village_elder` | `neutral` | 是。 |
-| 11 | any | narration | - | - | 伊萊把標記筆放回老人手邊。兩人都認得對方沉默時會把手停在哪一頁。 |
-| 12 | any | speaker | `town_scholar` | `soft` | 二十年前你站在門外，我在裡面把名冊改到天亮。你沒進來，我也沒出去。到今天還是一樣。 |
-| 13 | any | speaker | `village_elder` | `pleased` | 你現在說話比那扇門更難開。 |
-| 14 | any | speaker | `town_scholar` | `guarded` | 那就別再讓我只從一張空椅子知道你走了。 |
-| 15 | any | narration | - | - | 老人沒有答應，也沒有把話推開。沒有更完整的回答，場景轉到市集，第一批乾布、甜膠與普通瓶罐被放回攤位。 |
-| 16 | any | enter | - | - | Merchant 進入 market action stage；Mia is not presented as a vendor. |
-| 17 | any | speaker | `merchant` | `neutral` | 路通一段，先賣一段能送到的東西。米婭核過的基礎藥也在這裡，價錢和庫存問我，不必去敲她的工作間。 |
-| 18 | any | narration | - | - | 第一批藥沒有堆成漂亮陳列，而是依傷勢與可用天數包成有限的小份。米婭只核對封瓶與批次，隨即把櫃台交還商人。 |
-| 19 | any | narration | - | - | 一只空貨箱被翻成凳子。等候的人抱著包好的藥坐下，這次不必再空手回去。 |
-| 20 | any | enter | - | - | Ailo 從包貨用的乾草裡撿起一朵外白、花心淡綠的小花，將它與能染色的碎葉分開。 |
-| 21 | any | speaker | `street_beggar` | `soft` | 這朵不能染。她說沒用，所以要留下。不是這裡……上面才多。 |
-| 22 | any | exit | - | - | Ailo leaves with the flower before anyone can ask who `她` is. Open market baseline, route-supply layer, Mia-authorized medicine, and the northbound marker. |
+| 6 | any | speaker | `town_scholar` | `neutral` | 還是失蹤。墓裡沒有他的遺物，也沒有能確認去向的紀錄。我先不改。 |
+| 7 | any | narration | - | - | 米婭看向村長。她沒有移開木牌，村長也沒有伸手去碰。 |
+| 8 | any | speaker | `village_elder` | `guarded` | 先留著。沒有找到人，也沒有找到遺骨，不能只為了把帳寫完就改掉。 |
+| 9 | any | speaker | `herbalist` | `guarded` | 那塊木牌先留在這裡。我之後還會來查。 |
+| 10 | any | speaker | `village_elder` | `neutral` | 好。找到能確認的紀錄以前，不改。 |
+| 11 | any | narration | - | - | 米婭用乾布包好木牌，放回失蹤名單旁。伊萊換了一張紙，從兩名送貨人的紀錄重新抄起。 |
+| 12 | any | speaker | `town_scholar` | `neutral` | 這頁我重抄。前兩頁還要你的簽名。 |
+| 13 | any | speaker | `village_elder` | `neutral` | 現在簽。你抄完這頁就停。 |
+| 14 | any | speaker | `town_scholar` | `guarded` | 我會停。明早你再來核一次日期。 |
+| 15 | any | narration | - | - | 村長應了一聲。我們把名冊帶到空著的邊棚，將能公開調配的藥品另外列成一頁。 |
+| 16 | any | narration | - | - | 米婭寫下保存天數與調配份量。清單有了，乾布、瓶子和甜膠仍在斷路另一端。 |
+| 17 | any | speaker | `herbalist` | `neutral` | 等貨真的到了，再照這張配。現在先別把空架子算成庫存。 |
+| 18 | any | narration | - | - | 伊萊在清單上加註日期，將它收進市集檔案。邊棚沒有開門，至少下一批貨不必再從頭確認。 |
+| 19 | any | narration | - | - | 艾洛蹲在空箱旁，從填縫的乾草裡撿出一朵外白、花心淡綠的小花。 |
+| 20 | any | speaker | `street_beggar` | `neutral` | 這朵不能染。她說沒用，所以要留下。不是這裡……上面才多。 |
+| 21 | any | narration | - | - | 我還沒來得及問他在說誰，艾洛已把花塞進袖口，穿過空攤走了。北向關卡的路標排進下一次巡查，市集仍等著一條完整的路。 |
 
 ### `ch2_s08_shadow_at_the_checkpoint`
 
+- `title`: 關卡前的隊列
 - `stageClass`: `regional_canvas`
 - `background`: northbound road marker and abandoned checkpoint at the edge of the Chapter 3 region
 - `worldState`: Chapter 2 epilogue; dusk; recovered sign guarded by shadow figures using human spacing
 - `viewpoint`: `protagonist_limited`
 - `participants`: standard_bearer_frey, lamplighter_tavi
-- `entry`: protagonist joins a short route-marking check after market recovery
+- `entry`: protagonist joins a short route-marking check after the carrier ledger closes
 - `exit`: party withdraws rather than pursuing the formation into Chapter 3 early
 - `objective`: observe and record the shadow formation; do not mistake the teaser for a random invasion
 - `inputs`: Chapter 2 ledger closed; north route readable
@@ -2831,16 +2859,16 @@ family wound, the evacuation ledger, and the Lich route into one causal line.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 北向路標被人從泥裡扶正，箭面卻留下五道等距的黑手印。前方影子沒有散開獵食，而是兩列站在關卡兩側。 |
-| 2 | any | enter | - | - | Frey enters with the patrol flag lowered; Tavi follows carrying an unlit lamp to inspect reflected edges. |
-| 3 | any | speaker | `standard_bearer_frey` | `guarded` | 別越線。牠們不是堵路，是在等我們進到檢查的位置。 |
-| 4 | any | narration | - | - | 最前方的影子抬手。後排同時轉身，間距與南門換哨時幾乎一致。 |
-| 5 | any | speaker | `lamplighter_tavi` | `afraid` | 那個動作……像巡線。不是像怪物，是像有人教過牠們。 |
-| 6 | second_run | narration | - | - | 你已知道影子會保留人的命令，但眼前仍沒有足夠證據指出命令來自哪一支隊伍。 |
-| 7 | any | narration | - | - | 一道影刃落在路標前，沒有追擊。它只把「未經檢查不得通行」的界線重新刻深。 |
-| 8 | any | speaker | `standard_bearer_frey` | `resolute` | 今天不追。我回去補路標，塔維，明晚這一線需要燈。 |
-| 9 | any | speaker | `lamplighter_tavi` | `guarded` | 我會先量風。燈放錯邊，霧會把影子照成兩倍。 |
-| 10 | any | exit | - | - | Withdraw to town; open Chapter 3 dead-checkpoint investigation and lamp-oil side route. |
+| 1 | any | narration | - | - | 北向路標剛從泥裡扶正，箭面上卻多了五道等距的黑手印。關卡前的影子沒有撲過來，只分成兩列站著。 |
+| 2 | any | narration | - | - | 芙蕾放低旗桿，示意我停下。塔維抱著沒有點燃的提燈，跟在她身後。 |
+| 3 | any | speaker | `standard_bearer_frey` | `neutral` | 先別過去。前面那兩列不是亂站的。 |
+| 4 | any | narration | - | - | 最前面的影子抬起一隻手。後排同時轉身，彼此間距和南門換哨時一樣。 |
+| 5 | any | speaker | `lamplighter_tavi` | `guarded` | 剛才那個動作……我看過。巡線的人要後隊轉向，也會這樣抬手。 |
+| 6 | second_run | narration | - | - | 我知道這些影子會照著留下的命令行動，卻還看不出命令是誰下的。 |
+| 7 | any | narration | - | - | 一道黑色刃痕落在路標前。影子沒有追擊，只守著那條刻痕不動。 |
+| 8 | any | speaker | `standard_bearer_frey` | `resolute` | 今天先回去。這不是三個人能摸清的地方。塔維，明晚巡線前把燈準備好。 |
+| 9 | any | speaker | `lamplighter_tavi` | `guarded` | 好。我先來量風，再決定燈放哪一邊。 |
+| 10 | any | narration | - | - | 我們退回路標後方。關卡仍被影子守著，第三章的調查由此開始。 |
 
 ## Chapter 3 Detailed Screenplay V1
 
@@ -2849,276 +2877,274 @@ name; all scene logic remains bound to runtime id `casino_dealer` until migratio
 
 ### `ch3_s01_dead_checkpoint`
 
+- `title`: 廢棄關卡仍有人守著
 - `stageClass`: `location_scene`
-- `background`: reauthored abandoned checkpoint at the old `obsidian_keep_gate`
-- `worldState`: Chapter 3 opening; shadow patrol active; barrier markings use old human spacing
+- `background`: abandoned checkpoint at the old obsidian keep gate
+- `worldState`: Chapter 3 opening; a shadow patrol repeats an old inspection route
 - `viewpoint`: `protagonist_limited`
-- `participants`: none; shadow soldiers use monster presentation
+- `participants`: player; shadow soldiers use monster presentation
 - `entry`: player approaches the north checkpoint opened at Chapter 2 close
-- `exit`: after a limited patrol encounter, recovered fittings return to town for comparison
-- `objective`: pass the checkpoint and determine whether the shadows are invaders or a repeating guard line
+- `exit`: recovered fittings return to town for comparison
+- `objective`: pass the checkpoint and determine why the patrol never leaves its assigned line
 - `inputs`: Chapter 3 open; checkpoint formation recorded
-- `outputs`: expedition-issue fitting fragments; command spacing; old checkpoint location discovered
-- `assetNotes`: reauthor the checkpoint background; reuse normal shadow-soldier assets
+- `outputs`: expedition fittings; command spacing; old checkpoint discovered
+- `assetNotes`: reuse obsidian keep gate and normal shadow-soldier assets
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 關卡沒有旗，地上卻留著旗座。兩列影兵站在磨平的腳印上，連空缺的位置都刻意保留。 |
-| 2 | any | narration | - | - | 第一名影兵抬手，第二列同時轉向你的武器。動作不是撲擊，而是檢查、等待、拒絕通行。 |
-| 3 | second_run | narration | - | - | 你記得這些動作屬於人類隊伍，但記憶沒有告訴你是哪一隊。證據仍得在這一輪取得。 |
-| 4 | any | narration | - | - | 你把武器放低一步。影兵沒有放行，只把拒絕線往前推了一格，像命令裡從來沒有「交涉」。 |
-| 5 | any | exit | - | - | 收起事件層，進入固定 shadow patrol encounter。 |
-| 6 | any | enter | - | - | 遭遇結束；一塊黑化肩扣與半截刀柄留在舊檢查桌旁。 |
-| 7 | any | narration | - | - | 肩扣背面有被人手反覆磨亮的凹處，刀柄纏法也為戴手套的五指預留了固定間隔。這些不是為影子打造的裝備。 |
-| 8 | any | exit | - | - | Mark checkpoint discovered; return evidence to scholar and blacksmith. |
+| 1 | any | narration | - | - | 關卡的木門只剩半扇。三道黑影仍在門前來回，停步、轉身，再逐一查看空無一人的道路。 |
+| 2 | any | narration | - | - | 我伏在倒塌的石牆後看了兩輪。牠們每次都踩進相同的腳印，連轉身的位置也沒有偏過。 |
+| 3 | second_run | narration | - | - | 這一次我先看地面。石縫裡留著舊靴釘的刮痕，隊形早在影子出現以前就被人走過。 |
+| 4 | any | exit | - | - | Begin the shadow-soldier checkpoint encounter. |
+| 5 | any | enter | - | - | Resume after the shadow patrol is defeated. |
+| 6 | any | narration | - | - | 最後一具黑影散去，幾枚肩扣掉在門邊。背面的皮墊磨得很薄，尺寸也只適合人穿戴。 |
+| 7 | any | speaker | `player` | `neutral` | 先帶回去。伊萊可能認得上面的配發印。 |
+| 8 | any | narration | - | - | 我收起肩扣和一截斷刃。門後的道路空了，關卡上的巡查卻沒有因此變得合理。 |
 
 ### `ch3_s02_shadows_count_names`
 
+- `title`: 影子留下的人用痕跡
 - `stageClass`: `town_scene`
-- `background`: blacksmith and scholar shared work table, followed by Mia's workroom
+- `background`: blacksmith and scholar work table, followed by Mia's workroom
 - `worldState`: Chapter 3; first shadow evidence in town; protagonist conceals a fresh side wound
 - `viewpoint`: `protagonist_limited`
-- `participants`: town scholar, blacksmith, village elder, Mia
-- `entry`: fittings and blade fragment are placed beside expedition issue records
-- `exit`: shadow equipment preparation opens; Mia relationship conflict closes the scene
-- `objective`: identify the human source of the formation and receive treatment before returning outside
+- `participants`: player, town scholar, blacksmith, village elder, Mia
+- `entry`: fittings and blade fragment are placed beside expedition records
+- `exit`: old command-post search opens after Mia treats the concealed wound
+- `objective`: identify the equipment and prepare to follow its former command route
 - `inputs`: dead-checkpoint evidence
-- `outputs`: shadow equipment clue; old expedition resemblance; Mia/protagonist Chapter 3 conflict; command-post route
-- `assetNotes`: town work-table and workroom backgrounds; no new NPC or shadow/void tier
+- `outputs`: expedition resemblance; old command-post route; concealed wound treated; delayed reporting established as a behavior that can change through later action
+- `assetNotes`: reuse forge, handbook, and Mia workroom backgrounds
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 鐵匠把肩扣上的黑層刮到露出底金。伊萊從櫃底抽出二十年前的配發尺寸，兩道孔位完全重合。 |
-| 2 | any | enter | - | - | Blacksmith、town scholar 與 elder 進入工作桌場景。 |
-| 3 | any | speaker | `blacksmith` | `guarded` | 這東西先被人穿舊，後來才變成影子。虎口這裡磨得最深，活著的時候用的是右手刀。 |
-| 4 | any | speaker | `town_scholar` | `guarded` | 配發批次屬於遠征左線。名冊缺了指揮頁，只留下補充數量和一個未結案的訊號。 |
-| 5 | any | speaker | `village_elder` | `angry` | 先別把「遠征」寫上公告。像，不等於就是。村裡已經怕了二十年，不必再拿猜測餵它。 |
-| 6 | any | speaker | `town_scholar` | `resolute` | 我不寫結論。我寫孔位、磨痕和批次。讓證據先比我們活得久一點。 |
-| 7 | any | narration | - | - | 鐵匠接過你卸下的護具，手指碰到內側仍濕的血。他沒有問，只朝米婭的巷子抬了抬下巴。 |
-| 8 | any | speaker | `blacksmith` | `neutral` | 護具會漏，是因為裡面那個人先漏了。去。這次別讓她從血跡猜。 |
-| 9 | any | narration | - | - | 場景轉入米婭工作間。你把傷說成擦到，米婭掀開衣料，看見影刃留下的深口。 |
-| 10 | any | enter | - | - | Mia 進入近景；先處理出血，再抬眼。 |
-| 11 | any | speaker | `herbalist` | `angry` | 這不是擦到。你什麼時候打算告訴我？等它替你開口嗎？ |
-| 12 | any | narration | - | - | 你提起鎮外仍需要有人查路，也表示傷沒有妨礙行動。她收緊最後一道繃帶。 |
-| 13 | any | speaker | `herbalist` | `hurt` | 我知道你得出去。我沒有叫你別走。我要你別把「回不來」當成一種效率。 |
-| 14 | any | narration | - | - | 你反問她，上一次把自己算進「需要被照顧的人」是什麼時候。她手上的繃帶停了一瞬。 |
-| 15 | any | speaker | `herbalist` | `guarded` | 這不是同一件事。現在受傷的是你。 |
-| 16 | any | narration | - | - | 你指出正因為不是同一件事，她才總把自己排到最後。這次輪到米婭沒有能讓答案變輕。 |
-| 17 | any | speaker | `herbalist` | `hurt` | 別在我生氣的時候說對的話。很不公平。 |
-| 18 | any | narration | - | - | 她沒有要求承諾，只把下一卷乾淨繃帶塞進你手裡。 |
-| 19 | any | speaker | `herbalist` | `guarded` | 下次在你決定「沒事」以前，先讓我看。這不是命令，是我不想總當最後一個知道的人。 |
-| 20 | any | exit | - | - | Treatment ends; open shadow command-post route and explicit Mia relationship flag. |
+| 1 | any | narration | - | - | 鐵匠把肩扣翻到背面。伊萊從舊箱裡找出一張發黃的配發單，壓在旁邊。兩個印記少了一角，位置卻完全相同。 |
+| 2 | any | speaker | `blacksmith` | `guarded` | 不是怪物做的。皮墊換過兩次，扣眼也有人重新鑿過。穿它的人很愛惜這副甲。 |
+| 3 | any | speaker | `town_scholar` | `guarded` | 二十年前的遠征裝備。我只能確認配發批次，不能只憑這幾塊東西認人。 |
+| 4 | any | speaker | `player` | `neutral` | 關卡外的影子一直照同一條路巡查。舊紀錄裡有附近的指揮所嗎？ |
+| 5 | any | narration | - | - | 伊萊翻了幾頁，停在一張補給路線上。墨跡已經淡了，北側倉庫的圈記還看得清楚。 |
+| 6 | any | speaker | `town_scholar` | `neutral` | 有。從關卡往東北走，先經過守夜線，再到舊指揮所。後面的頁不在這裡。 |
+| 7 | any | speaker | `village_elder` | `guarded` | 先查到那裡。別再往前猜。二十年前死的人夠多了，不必替他們補一個方便的答案。 |
+| 8 | any | narration | - | - | 我伸手收起斷刃，腰側忽然抽痛。血從內襯滲出來，滴在桌腳旁。 |
+| 9 | any | speaker | `blacksmith` | `neutral` | 先別碰。你把地板弄髒以前，去找米婭。 |
+| 10 | any | narration | - | - | 米婭剪開黏住傷口的布。黑色細痕沿著皮膚往外爬了半指，她沒有立刻說話。 |
+| 11 | any | speaker | `herbalist` | `guarded` | 這不是擦傷。你什麼時候發現的？ |
+| 12 | any | speaker | `player` | `neutral` | 回程才開始痛。我以為撐到城裡再處理就好。 |
+| 13 | any | speaker | `herbalist` | `guarded` | 下次先告訴我。傷口越晚清，留在裡面的東西就越難取。 |
+| 14 | any | narration | - | - | 她把浸過藥的布按上去。刺痛很快變成麻木，黑痕也停在原處。 |
+| 15 | any | speaker | `player` | `neutral` | 妳的手在抖。 |
+| 16 | any | narration | - | - | 米婭看了一眼握著鑷子的手，把工具放下，活動幾次手指，再換另一隻手拿起來。 |
+| 17 | any | speaker | `herbalist` | `neutral` | 我換手。你先別動，剩下這一點很快。 |
 
 ### `ch3_s03_lamp_oil_in_fog`
 
+- `title`: 守夜線少了一個位置
 - `stageClass`: `regional_canvas`
-- `background`: Chapter 3 night watch route with front and rear markers visible across fog
-- `worldState`: Chapter 3 night; ordinary lamp oil; crosswind exposes rear-marker weakness
+- `background`: Chapter 3 night watch route with front and rear markers across fog
+- `worldState`: Chapter 3 night; crosswind exposes an unmeasured rear marker
 - `viewpoint`: `protagonist_limited`
-- `participants`: lamplighter_tavi, standard_bearer_frey
-- `entry`: player joins Tavi's first full night-route check
-- `exit`: first run records incomplete preparation; second run opens wind-guard repair and rehearsal
-- `objective`: verify marker visibility and learn why Tavi avoids the far rear position
-- `inputs`: shadow checkpoint route; `旗沒有回來` only in second run
-- `outputs`: childhood-mist meaning; Tavi fear seed; first-run rear marker unmeasured/unprepared or second-run `rear_marker_ready` and role-admission chain
-- `assetNotes`: night-route background required; ordinary lamp and flag only
+- `participants`: player, lamplighter_tavi, standard_bearer_frey
+- `entry`: player joins the first full night-route check
+- `exit`: the old command road opens; optional casino and coastal branches become available
+- `objective`: verify the night route before crossing toward the old command post
+- `inputs`: shadow checkpoint route; flag did not return only in second run
+- `outputs`: first-run rear marker unmeasured or second-run rear marker ready; command road open
+- `assetNotes`: reuse gate-working as temporary town-side background until the night-route asset exists
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 前標燈能從南門看見，後標燈卻隔著一段受風的低地。霧每次掠過，火光就像被推離原位。 |
-| 2 | any | enter | - | - | Tavi kneels beside the nearer lamp; Frey checks the farther marker with the patrol flag rolled under one arm. |
-| 3 | any | speaker | `lamplighter_tavi` | `neutral` | 油夠，芯也夠。問題是後面那盞沒有擋風。風從石縫上來，正好打在火根。 |
-| 4 | any | speaker | `standard_bearer_frey` | `pleased` | 所以我們替它加一片鐵。你說得像它欠你道歉一樣。 |
-| 5 | any | narration | - | - | 芙蕾要塔維一起走到遠標。他抬頭看了一眼低地，手仍按在燈蓋上。 |
-| 6 | any | speaker | `standard_bearer_frey` | `soft` | 我們小時候就是在這片霧裡走丟的。巡隊先把旗舉過霧面，我才知道家還在。 |
-| 7 | any | speaker | `lamplighter_tavi` | `guarded` | 妳先看到。我只記得抓著妳，連腳要怎麼走都忘了。 |
-| 8 | any | speaker | `standard_bearer_frey` | `pleased` | 現在至少記得修燈。走吧，遠標不會自己量。 |
-| 9 | first_run | speaker | `lamplighter_tavi` | `afraid` | 我在這邊看火。妳過去喊一聲，我就知道位置。這樣……比較不會兩盞一起滅。 |
-| 10 | first_run | speaker | `standard_bearer_frey` | `soft` | 好。我去。你別把燈盯到害它緊張。 |
-| 11 | first_run | narration | - | - | 芙蕾帶回風向，卻沒有燈框高度、進氣縫與扣件尺寸。鐵匠不能憑「加一片鐵」打造風擋；做窄會熄火，做鬆會被風掀走。第一輪只留下「需要修」的紀錄，沒有能安裝的部件。 |
-| 12 | second_run | narration | - | - | `旗沒有回來` 讓你知道這份分工日後會留下致命空隙。你指出後標必須由塔維親自測風，不能只靠芙蕾替他喊位置。 |
-| 13 | second_run | speaker | `lamplighter_tavi` | `afraid` | 我知道該去。每次都知道。只是路一變窄，腿就會先替我決定。 |
-| 14 | second_run | speaker | `standard_bearer_frey` | `guarded` | 那就先走一次。不是危險來了才第一次站過去。 |
-| 15 | second_run | narration | - | - | 塔維沒有變勇敢。他帶著抖動的燈走完低地，量下風口高度、燈框進氣與扣件尺寸，將完整規格交給鐵匠。 |
-| 16 | second_run | speaker | `lamplighter_tavi` | `soft` | 我不是因為想守路才拿這盞燈。我只是想站在妳的旗還看得見我的地方。 |
-| 17 | second_run | speaker | `standard_bearer_frey` | `soft` | 那就別只站在我旁邊。去站我不能站的位置，讓我也看得見你。 |
-| 18 | any | exit | - | - | Return to town; first run closes with an unmeasured marker and no buildable guard, while second run opens wind-guard crafting with Tavi's role admission recorded. |
+| 1 | any | narration | - | - | 天黑後，霧從低地漫上守夜線。前標的火被風吹偏，塔維蹲在燈架旁，用細繩重新綁住鬆動的進風片。 |
+| 2 | any | narration | - | - | 風把後標短暫遮住時，他的手停了一下。火還在，他重新拉緊繩結，直到前標不再晃動。 |
+| 3 | any | speaker | `standard_bearer_frey` | `neutral` | 前標好了嗎？後面那盞還沒量。 |
+| 4 | any | speaker | `lamplighter_tavi` | `guarded` | 這裡的進風口還會鬆。我先守著，免得兩盞一起滅。 |
+| 5 | any | speaker | `player` | `neutral` | 指揮所的路從後標旁通過。我們至少要知道燈架能不能擋住這個風。 |
+| 6 | first_run | speaker | `lamplighter_tavi` | `guarded` | 我知道。等霧薄一點，我再帶量尺過去。 |
+| 7 | first_run | speaker | `standard_bearer_frey` | `neutral` | 我先去看風從哪裡灌進來。看不清就退，不往前走。 |
+| 8 | first_run | narration | - | - | 芙蕾沿著路標走進霧裡，不久便折返回來。她記下風向，靴底全是濕泥；後標的燈罩、進風口和固定扣仍沒有尺寸。 |
+| 9 | second_run | speaker | `player` | `neutral` | 前標我看著。塔維，帶量尺去後標。 |
+| 10 | second_run | speaker | `lamplighter_tavi` | `guarded` | 這裡的繩還沒綁牢。 |
+| 11 | second_run | speaker | `standard_bearer_frey` | `neutral` | 交給我。你去量，起霧就回來。 |
+| 12 | second_run | narration | - | - | 塔維握著量尺站了一會兒，才把細繩交給芙蕾。他走到後標，依序量下燈罩、進風口和固定扣，途中兩次回頭確認前標仍亮著。 |
+| 13 | any | narration | - | - | 霧散開一小段。往舊指揮所的石路露了出來，另一條濕冷的小徑則沿低地轉向海岸。 |
 
 ### `ch3_s04_showcase_glass`
 
+- `title`: 玻璃櫃裡的價碼
 - `stageClass`: `town_scene`
 - `background`: existing casino hall and prize-wall backgrounds
-- `worldState`: Chapter 3 casino opening; rates visible; showcase inaccessible but fully inspectable
+- `worldState`: optional Chapter 3 casino branch; public rates visible; showcase prizes inspectable
 - `viewpoint`: `protagonist_limited`
-- `participants`: casino_dealer, casino_owner
-- `entry`: casino floor opens through visible prize curiosity rather than an urgent quest order
-- `exit`: ticket pools and inspection remain available; owner-attention route begins after two cases are viewed
-- `objective`: inspect the display cases and understand the difference between ordinary ticket play and personalized collateral
-- `inputs`: Chapter 3 town state; casino floor access
-- `outputs`: showcase inspections; ticket pools and published rates; Vesper attention; dealer-hand/die observation in second run
-- `assetNotes`: reuse casino hall, game-table, prize-wall, owner and dealer portraits; future expression layers deferred
+- `participants`: player, casino dealer, casino owner
+- `entry`: player enters the newly opened casino by choice
+- `exit`: casino games remain available and a seller mark points toward the black market
+- `objective`: inspect the display cases and learn how ordinary tickets differ from private collateral
+- `inputs`: night watch route complete; casino open
+- `outputs`: showcase inspected; Vesper notices player; black-market seller mark
+- `assetNotes`: reuse casino hall, prize wall, owner, and dealer assets
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 賭場先讓你看見獎品，再讓你看見賭桌。不死鳥羽、七星護符與封蠟武器匣各有獨立展櫃，玻璃乾淨得像從沒有人真正碰過。 |
-| 2 | any | enter | - | - | Casino dealer enters at the table; his thumb checks the edge of the guest dice before he smiles. |
-| 3 | any | speaker | `casino_dealer` | `pleased` | 展櫃不用籌碼，看多久都行。想帶走才需要運氣。或者，比運氣更昂貴的東西。 |
-| 4 | any | narration | - | - | 每個公開獎池旁都列著機率。普通桌只收籌碼與票券，最深處的私人桌沒有任何價目。 |
-| 5 | any | speaker | `casino_dealer` | `neutral` | 公開桌照表走。輸贏難看，但至少寫得出來。沒有標價的桌，先問清楚你拿什麼結帳。 |
-| 6 | second_run | narration | - | - | `莊家離席` 讓你注意他的手。荷官每次發客方骰前都會先用拇指掂一次重量，隨後若無其事地換回桌面。現在還不是證據。 |
-| 7 | any | enter | - | - | Vesper enters from the display-hall side after the second case is inspected. The dealer's smile becomes fixed. |
-| 8 | any | speaker | `casino_owner` | `soft` | 喜歡哪一件？不必急著回答。人對自己真正想要的東西，通常會多看第二次。 |
-| 9 | any | narration | - | - | 你問展示櫃最終如何取得。維斯珀沒有看獎品，只看你。 |
-| 10 | any | speaker | `casino_owner` | `pleased` | 我從不逼人下注。我只是把他們真正想要的東西放到桌上。 |
-| 11 | any | speaker | `casino_dealer` | `guarded` | 先從票券桌開始。至少那裡輸光時，失去的東西還能數。 |
-| 12 | any | exit | - | - | Open casino games, rate tables, ticket pools, showcase inspection, and Vesper owner-attention flag. |
+| 1 | any | narration | - | - | 賭場裡比街上暖得多。票價與賠率寫在每張桌旁，只有最深處的玻璃櫃沒有標價。 |
+| 2 | any | speaker | `casino_dealer` | `neutral` | 第一次來？公開桌只收票券。桌邊寫多少，就是多少。 |
+| 3 | any | speaker | `player` | `neutral` | 那些展示品呢？ |
+| 4 | any | speaker | `casino_dealer` | `guarded` | 不在公開獎池。真想問，得等主人願意談。 |
+| 5 | second_run | narration | - | - | 洛恩收回骰子時，拇指在客方那顆的邊角停了一下。我記下那個動作，沒有當場拆穿。 |
+| 6 | any | narration | - | - | 我看完第二只櫃子，維斯珀才從內側走出來。他沒有催洛恩，也沒有先介紹自己。 |
+| 7 | any | speaker | `casino_owner` | `soft` | 公開桌給人消遣。玻璃櫃裡的東西，要看客人願意拿什麼來談。 |
+| 8 | any | speaker | `player` | `neutral` | 金幣不算？ |
+| 9 | any | speaker | `casino_owner` | `pleased` | 有時候算。等你真的想拿走其中一件，我們再談價錢。 |
+| 10 | any | narration | - | - | 櫃底壓著一張舊收據。賣方沒有名字，只留下一個背巷商人的記號。 |
 
 ### `ch3_s05_blank_creditor_trace`
 
+- `title`: 沒有名字的債權欄
 - `stageClass`: `town_scene`
-- `background`: hidden black-market contact point reached from the market's closed service passage
-- `worldState`: Chapter 3; one old casino acquisition receipt traces to a seller mark, not an active contract supply
+- `background`: hidden black-market contact point in the market service passage
+- `worldState`: optional Chapter 3 black-market branch; one old receipt traces to a single contract sale
 - `viewpoint`: `protagonist_limited`
-- `participants`: black_market as an unnamed functional trader
-- `entry`: protagonist follows the seller mark from a showcase acquisition record
-- `exit`: contact closes after one answer; black market remains controlled and separate from ordinary market trade
-- `objective`: identify who sold the contract paper and whether more blank contracts exist
-- `inputs`: two showcase inspections; acquisition record clue
-- `outputs`: Blank Collateral origin clue; unnamed nonhuman creditor line; confirmation that Vesper owns the only known contract
-- `assetNotes`: reuse black-market portrait/background if retained; no new recurring profile or Void presentation
+- `participants`: player, black market trader
+- `entry`: player follows the seller mark from the casino receipt
+- `exit`: the only known blank contract remains with Vesper; branch returns to the command-road investigation
+- `objective`: identify what was sold and whether another copy exists
+- `inputs`: showcase inspected; seller mark recorded
+- `outputs`: Blank Collateral clue; no duplicate contract; creditor remains unnamed
+- `assetNotes`: reuse alley and black-market portrait; do not reveal Void
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 展櫃的舊進貨頁有一筆不像獎品的支出：沒有品名，只有「空白抵押」與一個已被刮掉的人名。賣方記號指向市集後方的封閉通道。 |
-| 2 | any | enter | - | - | Black-market trader appears behind a narrow counter; no personal name is shown. |
-| 3 | any | speaker | `black_market` | `guarded` | 那張紙我賣過一次。買主是維斯珀。你要第二張，沒有。你要我替他負責，也沒有。 |
-| 4 | any | narration | - | - | 你指出契約沒有債權人姓名。對方把燈移近，紙背拓印顯出一條不屬於任何人類商會的空欄。 |
-| 5 | any | speaker | `black_market` | `neutral` | 我警告過他，債權那一格不是空著等人填。是有東西不肯把名字寫給我們看。 |
-| 6 | any | narration | - | - | 你問維斯珀如何使用它。商人把拓印推回，不替賭場編造神祕儀式。 |
-| 7 | any | speaker | `black_market` | `guarded` | 我賣危險的東西。他把危險做成生意。後面的帳，問他。 |
-| 8 | second_run | narration | - | - | 你知道契約將成為維斯珀的逃路，因此更早記下賣方警告與客方位置規則；這仍不能在當下直接定罪或反噬他。 |
-| 9 | any | exit | - | - | Close contact; add Blank Collateral clue to handbook and retain one controlled black-market route. |
+| 1 | any | narration | - | - | 背巷盡頭只有一扇半開的木窗。我把收據放上窄桌，裡面的人看過記號，才把燈往前推。 |
+| 2 | any | speaker | `black_market` | `guarded` | 這張紙我賣過。買主是維斯珀。 |
+| 3 | any | speaker | `player` | `neutral` | 它原本是什麼？ |
+| 4 | any | speaker | `black_market` | `neutral` | 一份空白抵契。債權欄沒有名字，抵押人簽下去才會生效。 |
+| 5 | any | speaker | `player` | `neutral` | 還有第二張嗎？ |
+| 6 | any | speaker | `black_market` | `guarded` | 沒有。我只收過一張，也只賣過一次。 |
+| 7 | any | narration | - | - | 商人把收據推回來。紙角留著一行警告：簽約以前，先確認桌邊誰是主人，誰是客人。 |
+| 8 | second_run | narration | - | - | 我把那行字抄進手札。現在還不足以扳倒維斯珀，但這次不會等到契約打開才想起它。 |
 
 ### `ch3_s06_drowned_voice`
 
+- `title`: 退潮後仍有鐘聲
 - `stageClass`: `location_scene`
-- `background`: `drowned_bell_coast` leading to `sunken_altar_reef`
-- `worldState`: Chapter 3 optional branch; waterlogged ritual shell continues carrying warning tones after bodily death
+- `background`: drowned bell coast leading to sunken altar reef
+- `worldState`: optional Chapter 3 route Boss; a waterlogged ritual shell continues sounding after death
 - `viewpoint`: `protagonist_limited`
-- `participants`: Drowned Oracle through full Boss presentation
-- `entry`: first run follows an optional coastal resonance; second run marks it mandatory through `未竟的弒王`
-- `exit`: Ancient Rune is recovered after the lingering voice is bound
-- `objective`: silence the Drowned Oracle and determine how a voice persists without its original body
-- `inputs`: Chapter 3 regional side route; true-kill achievement when applicable
-- `outputs`: Ancient Rune ordinary discovery in first run; `ancient_rune_bound` current-run execution anchor in second run
-- `assetNotes`: reuse Drowned Oracle Boss art; coastal bells belong only to this route, not the village
+- `participants`: player, Drowned Oracle through Boss presentation
+- `entry`: player follows a coastal sound by choice; second run recognizes it as unfinished work
+- `exit`: Ancient Rune is recovered and the branch returns to the old command road
+- `objective`: silence the Drowned Oracle and inspect the object carrying its voice
+- `inputs`: coastal side route; unfinished regicide only in second run
+- `outputs`: Ancient Rune discovery; ancient rune bound in second run
+- `assetNotes`: reuse drowned coast, sunken altar, and Drowned Oracle Boss art
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 海水退去後，礁面仍傳出一段沉鐘聲。鐘體早已陷在水下，聲音卻從更靠岸的祭殼裡回答。 |
-| 2 | first_run | narration | - | - | 手札把它列為異常殘響：危險、可追查，但尚未與最終敵人的存續方式相連。 |
-| 3 | second_run | narration | - | - | `未竟的弒王` 讓你聽懂第一輪忽略的事：肉身沉沒不代表聲音已停止移動。這條路成為必要的真殺準備。 |
-| 4 | any | enter | - | - | Drowned Oracle rises in the ritual shell, using the approved full Boss image. |
-| 5 | any | speaker | `drowned_oracle` | `grieving` | 鐘已沉。人已走。警告仍未送達。 |
-| 6 | any | narration | - | - | 它抬起手，水珠在指間倒流。下一句同時像預言、回憶與二十年前沒能傳出的警報。 |
-| 7 | any | speaker | `drowned_oracle` | `afraid` | 身體倒下……聲音往更深處去。不要讓它回山裡。不要讓它—— |
-| 8 | any | exit | - | - | 收起事件層，進入 Drowned Oracle 戰鬥。 |
-| 9 | any | enter | - | - | 戰鬥結束；祭殼破裂，殘響聚進一枚刻有閉合回路的古代符文。 |
-| 10 | first_run | narration | - | - | 符文能約束殘響，是罕見而實用的古物。它與魔王假死之間的關係仍不可見。 |
-| 11 | second_run | narration | - | - | 你在當前周目封存古代符文。它日後必須釘住魔王離開肉身的聲音與魂響。 |
-| 12 | any | exit | - | - | Return to Chapter 3 route with the Ancient Rune state resolved. |
+| 1 | any | narration | - | - | 退潮後，礁石下傳來一聲沉響。水裡看不見鐘，聲音卻一次比一次靠近岸邊。 |
+| 2 | first_run | narration | - | - | 我沿著聲音走到浮出的祭壇。碎裂的石殼裡還有東西在呼吸。 |
+| 3 | second_run | narration | - | - | 我認得這種沒有肉身仍能留下的聲音。這次我沒有從海岸離開。 |
+| 4 | any | speaker | `drowned_oracle` | `grieving` | 潮水退了。受問的人還沒有回來。 |
+| 5 | any | exit | - | - | Begin the Drowned Oracle route-Boss encounter. |
+| 6 | any | enter | - | - | Resume after the Drowned Oracle is defeated. |
+| 7 | any | narration | - | - | 祭殼裂開，聲音終於停下。底部卡著一枚古代符文，入水多年仍沒有被磨平。 |
+| 8 | first_run | speaker | `player` | `neutral` | 先帶回去。伊萊也許能找到相同的刻法。 |
+| 9 | second_run | narration | - | - | 我用布把符文分層包好。它不是前往舊指揮所的必需品，但之後會用得上。 |
 
 ### `ch3_s07_old_command_post`
 
+- `title`: 舊指揮所的最後一頁
 - `stageClass`: `location_scene`
-- `background`: reauthored black-iron storehouse and old line-command yard threshold
-- `worldState`: Chapter 3; local expedition command records preserved in shadow residue
+- `background`: black iron storehouse and old line-command yard threshold
+- `worldState`: Chapter 3; local expedition records remain under shadow residue
 - `viewpoint`: `protagonist_limited`
-- `participants`: village elder
-- `entry`: after the route is cleared, the elder joins at the secured storehouse to identify the recovered formation
-- `exit`: elder withdraws before the Boss yard; protagonist carries the evidence forward
-- `objective`: identify the local commander without confusing him with the expedition supreme commander
-- `inputs`: shadow fitting match; command-post route open
-- `outputs`: Kaedren identified as local line commander; last signal missing; supreme commander reserved for later optional content
-- `assetNotes`: storehouse/yard background required; no supreme-commander art or encounter
+- `participants`: player, village elder
+- `entry`: elder joins only after the storehouse approach is secured
+- `exit`: elder stays behind while player enters Kaedren's command yard
+- `objective`: identify the local commander and the order still holding the yard
+- `inputs`: expedition fitting match; old command road open
+- `outputs`: Kaedren identified; missing final signal; supreme commander reserved but unnamed
+- `assetNotes`: reuse black iron storehouse; no supreme-commander art or encounter
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 黑鐵庫門內的物資沒有被搶走。每一箱都按左線編次堆好，只是領用人早已成了影子。 |
-| 2 | any | enter | - | - | Elder enters only after the approach is secured; he stops at a carved line-command mark. |
-| 3 | any | speaker | `village_elder` | `grieving` | 凱德倫。左線指揮。他總說隊伍一亂，死得比怪物動手還快。 |
-| 4 | any | narration | - | - | 你問他是否是二十年前遠征的總隊長。老人立刻搖頭。 |
-| 5 | any | speaker | `village_elder` | `resolute` | 不是。凱德倫只管一條線。總隊長在更前面，我最後一次看見他時，命令還沒傳回來。別把兩個人寫成一個。 |
-| 6 | any | narration | - | - | 訊號簿最後一頁寫著「守住缺口，等待撤回令」。撤回欄空白，傳令標記也從未抵達。 |
-| 7 | second_run | narration | - | - | 你知道未完成命令會繼續殺人，卻沒有虛構一張撤退令。這一輪仍必須終止凱德倫本身。 |
-| 8 | any | speaker | `village_elder` | `guarded` | 他會把每個靠近的人當成要穿過缺口的東西。我留在這裡。你回來時，把他的刀帶回，不是帶戰利品，是帶磨痕。 |
-| 9 | any | exit | - | - | Elder leaves active stage; open the old line-command yard Boss node. |
+| 1 | any | narration | - | - | 舊倉庫的門被黑色鏽層黏住。我撬開一道縫，裡面仍按隊列堆著補給箱，只是布料和木頭早已腐爛。 |
+| 2 | any | narration | - | - | 村長在入口等到四周安靜才走進來。他停在牆上一枚刻痕前，用袖口擦掉灰。 |
+| 3 | any | speaker | `village_elder` | `guarded` | 凱德倫。左線指揮。這是他的記號。 |
+| 4 | any | speaker | `player` | `neutral` | 關卡的巡查路線也是他安排的？ |
+| 5 | any | speaker | `village_elder` | `neutral` | 是。他守這條缺口，收到撤令才會退。 |
+| 6 | any | narration | - | - | 伊萊抄給我的補給表停在同一天。最後一欄寫著「等候總隊訊號」，下面沒有簽收。 |
+| 7 | any | speaker | `player` | `neutral` | 訊號沒有送到。 |
+| 8 | any | speaker | `village_elder` | `guarded` | 沒有。凱德倫只管左線，前面的總隊出了什麼事，我也不知道。 |
+| 9 | any | narration | - | - | 指揮場就在倉庫後方。村長沒有跟進去，只把通往側門的路讓開。 |
+| 10 | any | speaker | `village_elder` | `guarded` | 我留在這裡。你若能把他的刀帶回來，別先磨掉握柄上的痕跡。 |
 
 ### `ch3_s08_shadow_commander`
 
+- `title`: 左線仍未撤退
 - `stageClass`: `location_scene`
-- `background`: old line-command yard with a permanently held breach approach
-- `worldState`: Chapter 3 Boss convergence; shadow repeats Kaedren's final local order
+- `background`: old line-command yard with a permanently held breach
+- `worldState`: Chapter 3 Boss convergence; Kaedren repeats his last local order
 - `viewpoint`: `protagonist_limited`
-- `participants`: Shadow Commander Kaedren through Boss presentation
-- `entry`: protagonist crosses the unchanged hold line
-- `exit`: command echo ends and the commander's blade returns to town as evidence
-- `objective`: defeat Kaedren and close the local order without inventing a peaceful override
-- `inputs`: Kaedren identified; line-command yard open
-- `outputs`: Shadow Commander cleared; `commander_blade`; shadow precursor source; local command route closed
-- `assetNotes`: reuse approved Shadow Commander art; its ornate armor and banners are the collective shadow shell of the whole left line, not Kaedren's living rank; blade image must match the Boss-held weapon
+- `participants`: player, Shadow Commander Kaedren through Boss presentation
+- `entry`: player crosses the unchanged hold line
+- `exit`: the local command echo ends and Kaedren's blade returns to town
+- `objective`: defeat Kaedren and end the order still holding the breach
+- `inputs`: Kaedren identified; command yard open
+- `outputs`: Shadow Commander defeated; commander blade recovered; local command closed
+- `assetNotes`: reuse approved Shadow Commander art and matching commander blade
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 凱德倫站在缺口中央。黑甲上混著不同配發批次的肩片、鏈條與破旗，那是整條左線被暗影縫成的外殼，不是他生前的軍階。身後沒有仍需保護的隊伍，身前也沒有二十年前的敵人；只有一條命令保持完整。 |
-| 2 | any | enter | - | - | Shadow Commander enters with the approved weapon and a less ornate scene than mainline final Bosses. |
-| 3 | any | speaker | `shadow_commander` | `resolute` | 左線守住。未得撤令，不准後退。 |
-| 4 | any | narration | - | - | 你出示空白的撤回欄。影子沒有閱讀，只再次把刀尖放回同一處。 |
-| 5 | any | speaker | `shadow_commander` | `angry` | 不准後退。 |
-| 6 | any | exit | - | - | 收起事件層，進入 Shadow Commander 戰鬥。 |
-| 7 | any | enter | - | - | 戰鬥結束；影子散去，刀仍保持人手長年磨出的握痕。 |
-| 8 | first_run | narration | - | - | 你帶回刀與訊號簿。戰鬥終止了命令，卻沒有回答誰讓整場遠征走到需要這道命令。 |
-| 9 | second_run | narration | - | - | 你額外保存刀柄纏法、站位刻線與未抵達的訊號記號，避免證據只剩一把看似強力的掉落武器。 |
-| 10 | any | exit | - | - | Close local shadow-command route; return to town night state. |
+| 1 | any | narration | - | - | 指揮場中央立著一副黑甲。不同尺寸的肩片、鎖鏈和破旗纏在一起，握刀的右手卻仍停在同一個備戰位置。 |
+| 2 | any | narration | - | - | 我跨過地面的界線。空著的甲片同時轉向，像整支隊伍一起聽見了腳步。 |
+| 3 | any | speaker | `shadow_commander` | `resolute` | 左線守住。不得後退。 |
+| 4 | any | speaker | `player` | `neutral` | 這裡已經沒有需要你攔下的人了。 |
+| 5 | any | exit | - | - | Begin the Shadow Commander Boss encounter. |
+| 6 | any | enter | - | - | Resume after Shadow Commander Kaedren is defeated. |
+| 7 | any | narration | - | - | 黑甲從接縫處散開。破旗落在石地上，凱德倫的刀最後才鬆手。 |
+| 8 | any | narration | - | - | 握柄內側磨出五道深痕，和關卡肩扣上的使用痕跡一樣，都是活人長年留下的。 |
+| 9 | second_run | narration | - | - | 我把站位刻線與沒有送達的訊號一併抄下。結束凱德倫的命令，仍沒有回答前線究竟發生了什麼。 |
 
 ### `ch3_s09_temptation_and_orders`
 
+- `title`: 刀回來了，命令沒有
 - `stageClass`: `town_scene`
-- `background`: Chapter 3 town at night, moving between civic table, South Gate lamps, and casino entrance
-- `worldState`: honest shadow preparation and seductive casino/black-market shortcuts now coexist
+- `background`: Chapter 3 town at night, moving between civic table, reopened road, market edge, and South Gate
+- `worldState`: the local shadow command is closed; optional casino evidence depends on player exploration
 - `viewpoint`: `protagonist_limited`
-- `participants`: village elder, town scholar, blacksmith, Mia, lamplighter_tavi, standard_bearer_frey, casino_owner, street_beggar
-- `entry`: commander's blade is returned to the civic table
-- `exit`: town camera settles on stone-route reports that open Chapter 4
-- `objective`: close the local command record and choose how to prepare for the widening regional pressure
-- `inputs`: Shadow Commander cleared; casino and black-market routes introduced
-- `outputs`: Chapter 3 town state; shadow crafting stage one; Mia relationship repair; Tavi remains unready in first run; Vesper begins personalized observation; Chapter 4 opened
-- `assetNotes`: reuse existing civic, workroom, gate, market, and casino backgrounds; no reserve service NPCs
+- `participants`: player, village elder, town scholar, blacksmith, Mia, lamplighter Tavi, standard bearer Frey, optional casino owner, street beggar
+- `entry`: commander blade is returned to the civic table
+- `exit`: the caravan front reaches town; a quake cuts off the rear section at Gray Ridge and opens Chapter 4
+- `objective`: close Kaedren's record and decide the next route from the evidence now available
+- `inputs`: Shadow Commander defeated; optional casino, black-market, and Drowned Oracle branches may be complete
+- `outputs`: Chapter 3 closed; shadow crafting stage one; Mia honest-return state; merchant and public market return; rear caravan trapped; Chapter 4 open
+- `assetNotes`: reuse civic room, gate, Mia workroom, closed-market, and optional casino backgrounds; merchant uses the existing canonical profile
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 凱德倫的刀橫放在公務桌上。鐵匠沒有先磨刃，伊萊也沒有把它列成戰利品；兩人先拓下握痕與配發印。 |
-| 2 | any | enter | - | - | Elder、town scholar and blacksmith enter the civic-stage foreground. |
-| 3 | any | speaker | `town_scholar` | `guarded` | 凱德倫的命令結束了，但總隊長、撤令和前線發生了什麼仍是空白。這一頁只能寫到這裡。 |
-| 4 | any | speaker | `village_elder` | `grieving` | 空白就留白。二十年前已經有太多人用勇氣把不知道的地方填滿。 |
-| 5 | any | speaker | `blacksmith` | `neutral` | 暗影碎片能做裝備，強度也夠。但它記得的是一個死人不肯放手的動作。穿上以前，先知道你拿的是什麼。 |
-| 6 | any | narration | - | - | 離開公務室後，你先敲了米婭工作間的門，沒有等血跡或鐵匠替你報到。 |
-| 7 | any | enter | - | - | Mia 進入門邊近景；你主動卸下護具，說明哪裡擦到、哪裡沒有發麻。 |
-| 8 | any | speaker | `herbalist` | `guarded` | 這次是你自己來的，還是鐵匠又用眼神把你趕過來？ |
-| 9 | any | narration | - | - | 你把回程時間、影刃接觸與目前感覺依序說完。她檢查舊傷，肩膀才慢慢放下一點。 |
-| 10 | any | speaker | `herbalist` | `soft` | 我沒有要你每次都平安。我只是不想每次都最後一個知道。 |
-| 11 | any | speaker | `herbalist` | `pleased` | 今天算你有進步。標準很低，但進步還是進步。 |
-| 12 | any | narration | - | - | 場景轉到南門。塔維依舊站在較近的燈旁，芙蕾替遠標補上新的路線布條。 |
-| 13 | first_run | speaker | `lamplighter_tavi` | `guarded` | 後標的風擋……我還沒做好。先用舊的也能亮，只是風大時得有人看著。 |
-| 14 | second_run | speaker | `lamplighter_tavi` | `resolute` | 風擋尺寸交了。明天我再走一次低地，不等真的需要才去。 |
-| 15 | any | narration | - | - | 市集逐攤收燈，鐵匠鋪仍在替路標敲扣件。這些光都有限，必須有人補油、添煤、計算存貨。 |
-| 16 | any | narration | - | - | 賭場門在同一晚亮起，明亮得像從來沒有缺過任何東西。維斯珀站在玻璃後，看見你先看刀的磨痕，再看展示櫃裡完美無缺的獎品。 |
-| 17 | any | enter | - | - | Casino owner enters alone; the dealer remains at the table in the background. |
-| 18 | any | speaker | `casino_owner` | `pleased` | 外面的力量總帶著前任主人的傷。我的獎品乾淨得多。你只需要決定，願意為哪一種結果付錢。 |
-| 19 | any | narration | - | - | 你沒有下注。維斯珀仍像已經得到一部分答案。 |
-| 20 | any | narration | - | - | 空市集棚旁，乞丐把一片黑鐵當成彎曲的路牌，對著石路方向反覆比劃。 |
-| 21 | any | speaker | `street_beggar` | `guarded` | 他們叫石頭站住。石頭聽太久，就要起來走了。 |
-| 22 | any | exit | - | - | Camera follows new retaining-wall movement report; open Chapter 4 stone-route investigation. |
+| 1 | any | narration | - | - | 凱德倫的刀橫放在公務桌上。鐵匠沒有先碰刀刃，只用炭筆拓下握柄內側的磨痕。 |
+| 2 | any | speaker | `town_scholar` | `guarded` | 左線的配發記錄能對上。撤令那一頁仍是空的，總隊的去向也沒有資料。 |
+| 3 | any | speaker | `village_elder` | `guarded` | 那就照空白寫。不要替死人補話。 |
+| 4 | any | speaker | `blacksmith` | `neutral` | 刀上的黑層可以分離。我先做小片測試，能用再談裝備。 |
+| 5 | any | speaker | `player` | `neutral` | 關卡和指揮場都清了。明天我再看前面的路。 |
+| 6 | any | narration | - | - | 我主動去了米婭的工作間。她指了指椅子，等我自己拆開繃帶。黑痕沒有再往外長。 |
+| 7 | any | speaker | `herbalist` | `neutral` | 傷口很乾淨。這次不用重新上藥。 |
+| 8 | any | speaker | `player` | `neutral` | 我想先讓妳看過，再決定明天能不能出門。 |
+| 9 | any | narration | - | - | 米婭把繃帶收好。桌邊的湯沒有動過，表面已經結了一層薄膜。 |
+| 10 | any | speaker | `player` | `neutral` | 妳還沒吃？ |
+| 11 | any | narration | - | - | 她看了一眼空著的門口，拉開椅子坐下，把湯碗挪到面前。 |
+| 12 | any | speaker | `herbalist` | `pleased` | 現在吃。你不趕時間的話，坐一下。 |
+| 13 | first_run | speaker | `lamplighter_tavi` | `guarded` | 前標修好了，後標還沒量。我明早帶量尺過去。 |
+| 14 | first_run | speaker | `standard_bearer_frey` | `neutral` | 天亮前我守前標。你去後面，別再等風自己停。 |
+| 15 | second_run | speaker | `lamplighter_tavi` | `soft` | 後標的尺寸都在這裡。鐵匠說天亮後能先做一個擋風扣。 |
+| 16 | second_run | speaker | `standard_bearer_frey` | `pleased` | 好。明早一起裝。 |
+| 17 | any | narration | - | - | 入夜後，北門外先傳來車輪聲。第一輛貨車進門時，市集原本空著的攤主從車板上跳下來，還沒站穩便回頭數後面的燈。 |
+| 18 | any | enter | `merchant` | - | The canonical merchant enters with the first caravan section; outside traders remain background figures until separately approved. |
+| 19 | any | speaker | `merchant` | `guarded` | 前面的車到了。後面還有三輛貨車和護衛，他們在灰脊換輪，照理不該差這麼久。 |
+| 20 | any | narration | - | - | 米婭核過的藥品清單終於能交給攤主。有人卸乾布，有人搬瓶子；空了兩章的邊棚第一次重新亮燈。 |
+| 21 | any | narration | - | - | 第二聲車輪沒有來。桌上的杯水先起了細紋，接著整棟房子往同一側晃了一下。 |
+| 22 | any | narration | - | - | 午夜前，東邊送回三份報告。相隔很遠的石牆在同一刻裂開，灰塵都朝山裡落。 |
+| 23 | any | speaker | `town_scholar` | `guarded` | 不是一處塌方。灰脊剛好在三條裂線中間，後面的車隊可能還在那裡。 |
+| 24 | any | speaker | `standard_bearer_frey` | `resolute` | 我去南門叫人。天亮前先把入口和回程標記好。 |
+| 25 | any | narration | - | - | 伊萊把三處裂點和商隊最後回報的位置圈在同一張圖上，筆尖停在灰脊。 |
 
 ## Chapter 4 Detailed Screenplay V1
 
@@ -3129,121 +3155,124 @@ preparation route and Ash Baron stays outside the base chapter.
 
 ### `ch4_s01_road_moves_underfoot`
 
+- `title`: 灰脊的路在移動
 - `stageClass`: `regional_canvas`
-- `background`: handcrafted stone-route approach with retaining walls exposing rib-like strata
-- `worldState`: Chapter 4 opening; coordinated terrain movement; ash-bearing wind begins
+- `background`: handcrafted Gray Ridge approach with cracked retaining walls and exposed ancient channel stones
+- `worldState`: Chapter 4 opening; rear caravan overdue; coordinated earthquakes and ash-bearing wind begin
 - `viewpoint`: `protagonist_limited`
 - `participants`: village elder, standard_bearer_frey, lamplighter_tavi
-- `entry`: player joins the first inspection after several roads shift in the same interval
-- `exit`: evacuation routes and Ancient Titan investigation open simultaneously
-- `objective`: map which structures are moving together and mark people who must be evacuated
-- `inputs`: Chapter 4 open; Chapter 3 stone-route warning
-- `outputs`: Titan-body hypothesis; Gray Ridge evacuation order; flag/lamp assignments
+- `entry`: player joins the search for the missing rear caravan after several roads shift in the same interval
+- `exit`: the caravan position, evacuation route, and ancient-ruin disturbance are identified
+- `objective`: find where the rear caravan stopped and map which structures will fail in the next quake
+- `inputs`: Chapter 4 open; merchant's rear-caravan ledger; coordinated quake report
+- `outputs`: rear caravan located at Gray Ridge; ancient regulation channels exposed; evacuation order; flag/lamp assignments
 - `assetNotes`: regional stone/ash canvas and moving-wall state required later
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 第一面擋土牆向外移了半尺。遠處第二面牆在同一瞬間回縮，埋在土裡的弧形石層一節接一節露出。 |
-| 2 | second_run | narration | - | - | 你記得這不是零散崩塌，而是一具巨大身體的動作；仍必須用當前周目的測量證明道路如何連在它身上。 |
-| 3 | any | enter | - | - | Elder、Frey 與 Tavi 進入區域事件層；Frey marks the front route while Tavi checks lamp positions. |
-| 4 | any | speaker | `village_elder` | `guarded` | 不追裂縫。先看哪些屋、橋和路會跟著一起動。地面要起來，跑得快的人也會被自己的路摔死。 |
+| 1 | any | narration | - | - | 第一面擋土牆向外移了半尺。遠處第二面牆在同一瞬間裂開，埋在土裡的刻槽石板露出一長段。 |
+| 2 | second_run | narration | - | - | 我記得地震之後會有更大的東西醒來。眼前能確認的，仍只有商隊留下的輪痕、倒向山裡的灰和正在擴大的裂縫。 |
+| 3 | any | enter | `village_elder,standard_bearer_frey,lamplighter_tavi` | - | Elder、Frey 與 Tavi 進入區域事件層；Frey marks the front route while Tavi checks lamp positions. |
+| 4 | any | speaker | `village_elder` | `guarded` | 先找車隊。裂縫往哪裡走、哪座橋還能過，一起記。下一次再震，跑得快也未必跑得出去。 |
 | 5 | any | narration | - | - | 芙蕾把旗插在仍穩定的高點，塔維則逐一測試低處燈位。灰風從山脊壓下，後方標記最先消失。 |
 | 6 | any | speaker | `standard_bearer_frey` | `resolute` | 灰脊還有人。前旗帶隊，後燈確認尾端，兩邊都看見才能走。 |
-| 7 | any | speaker | `lamplighter_tavi` | `guarded` | 低地的風比昨晚更硬。普通燈罩撐不住，我需要風擋，也需要先知道哪一段會斷。 |
+| 7 | any | speaker | `lamplighter_tavi` | `guarded` | 低地的風比昨晚更硬。普通燈罩撐不住。先找到他們，我再沿回程放燈。 |
 | 8 | any | speaker | `village_elder` | `resolute` | 那就別等它斷。芙蕾標撤離線，塔維標燈位。其餘人回鎮準備。 |
-| 9 | any | narration | - | - | 地底傳來一聲不像岩石的低沉摩擦。弧形石層整體抬高，第一次顯出完整肋骨的輪廓。 |
-| 10 | any | exit | - | - | Open Chapter 4 regional routes, Gray Ridge evacuation preparation, and Ancient Titan investigation. |
+| 9 | any | narration | - | - | 地底傳來低沉的摩擦聲。刻槽石板一段接一段錯位，槽裡殘留的礦光朝四個方向分開；更深處則留下一道持續往山裡延伸的空痕。 |
+| 10 | any | exit | - | - | Open Chapter 4 Gray Ridge rescue, caravan preparation, and ancient-ruin investigation. |
 
-### `ch4_s02_fourfold_countergear`
+### `ch4_s02_caravan_rear_missing`
 
+- `title`: 回來的只到前半
 - `stageClass`: `town_scene`
-- `background`: forge and Mia's workroom in active preparation states
-- `worldState`: Chapter 4; ash, heat, shock, frost, and poison symptoms arriving from separate routes
+- `background`: reopened market edge and forge in evacuation-preparation state
+- `worldState`: Chapter 4; front caravan section has returned; rear wagons and escorts remain at Gray Ridge
 - `viewpoint`: `protagonist_limited`
-- `participants`: blacksmith, Mia, lamplighter_tavi in second-run preparation insert
-- `entry`: damaged gear and patient records are compared before the evacuation
-- `exit`: market prescription authorizations and evacuation equipment are issued by their owning systems
-- `objective`: prepare ordinary protection for known hazards without pretending to predict the combined shard
-- `inputs`: stone-route investigation; market and forge active
-- `outputs`: fourfold countergear; controlled market prescriptions; blacksmith civilian-first priority; second-run wind guard completed
-- `assetNotes`: reuse forge/workroom; no new miracle material or light/Void equipment
+- `participants`: merchant, blacksmith, standard bearer Frey, lamplighter Tavi
+- `entry`: the merchant compares arrived wagons with the caravan ledger while the search party reports the Gray Ridge break
+- `exit`: rescue equipment, route markers, and chapter-four baseline craft access are issued
+- `objective`: identify who and what remain behind, then prepare a real evacuation rather than a vague rescue order
+- `inputs`: rear caravan located; public market reopened; forge active
+- `outputs`: missing caravan ledger; evacuation equipment; blacksmith civilian-first priority; second-run wind guard completed
+- `assetNotes`: reuse sparse-market and forge backgrounds; no new named trader, driver, guard, material, or portrait
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 同一張清單被分成兩半：鐵匠記錄焦裂、脆化與扣件熔痕；米婭記錄灼痛、失溫、抽搐與毒斑。 |
-| 2 | any | enter | - | - | Blacksmith and Mia enter on opposite sides of the shared preparation table. |
-| 3 | any | speaker | `blacksmith` | `neutral` | 火就隔熱，冰就留活動縫，雷別讓金屬一路連到骨頭。毒交給她，我不替血管打鐵。 |
-| 4 | any | speaker | `herbalist` | `pleased` | 謝謝。你上次替血管提出的建議是「別流出來」，我還沒找到能授權市集販售的做法。 |
-| 5 | any | speaker | `blacksmith` | `pleased` | 很實用。病人都聽得懂。 |
-| 6 | any | narration | - | - | 玩笑只停一瞬。米婭把四種症狀排列後，發現出現時間正在逐日靠近。 |
-| 7 | any | speaker | `herbalist` | `guarded` | 它們還是四種傷，暫時。處方只能降低已知風險，不能保證下一次不會一起來。 |
-| 8 | any | narration | - | - | 她完成可由市集調配的處方授權；交易、庫存與價格仍由市集處理。 |
-| 9 | any | narration | - | - | 爐前同時排著新武器、撤離踏板、門鉸、燈框與擔架扣。鐵匠把武器單整疊移到最後。 |
-| 10 | any | speaker | `blacksmith` | `resolute` | 今天先修能讓人回來的東西。想要新刃的，等路上的人都回來再排。爐子不是只替會打架的人燒。 |
-| 11 | second_run | enter | - | - | Tavi enters carrying the measured dimensions for the rear-marker wind guard. |
-| 12 | second_run | speaker | `lamplighter_tavi` | `guarded` | 風口在這裡。不要封死，燈也得進氣。我……會自己拿去試。 |
-| 13 | second_run | speaker | `blacksmith` | `neutral` | 知道會進氣，表示你終於沒只顧著怕它滅。半天後來拿。 |
-| 14 | any | exit | - | - | Unlock countergear and approved market stock; record blacksmith civilian-first priority; second run records wind guard ready. |
+| 1 | any | narration | - | - | 商隊名冊上有六輛車。三輛已停在市集外，一輛在灰脊入口翻覆，最後兩輛和護衛沒有通過斷口。 |
+| 2 | any | enter | `merchant,blacksmith,standard_bearer_frey,lamplighter_tavi` | - | Merchant owns the ledger; blacksmith, Frey, and Tavi enter only after the missing section is concrete. |
+| 3 | any | speaker | `merchant` | `guarded` | 後車有藥材、礦料和兩個返鄉的人。車可以不要，人得先帶回來。 |
+| 4 | any | speaker | `standard_bearer_frey` | `resolute` | 我帶前隊走高處。塔維從低地放回程燈，兩邊都能看見再動。 |
+| 5 | any | speaker | `lamplighter_tavi` | `guarded` | 灰脊後段有側風。前標的燈罩撐得住，後標那一盞不一定。 |
+| 6 | any | narration | - | - | 爐前排著新武器、橋板扣、燈框、擔架環和兩只待補的車輪鐵箍。鐵匠把武器單整疊移到最後。 |
+| 7 | any | speaker | `blacksmith` | `resolute` | 先修能把人帶回來的東西。要新武器的，等路上的人都進門再排。 |
+| 8 | any | narration | - | - | 商隊帶回的圖樣與礦料重新補上工坊缺了很久的幾種做法。這些東西一路跟著車隊回來，不是誰臨時變出來的。 |
+| 9 | second_run | enter | `lamplighter_tavi` | - | Tavi enters carrying the measured dimensions for the rear-marker wind guard. |
+| 10 | second_run | speaker | `lamplighter_tavi` | `guarded` | 風口在這裡。不要封死，燈也得進氣。我……會自己拿去試。 |
+| 11 | second_run | speaker | `blacksmith` | `neutral` | 知道會進氣，表示你終於沒只顧著怕它滅。半天後來拿。 |
+| 12 | any | exit | - | - | Unlock Chapter 4 baseline craft and public stock; issue evacuation equipment; record blacksmith civilian-first priority; second run records wind guard ready. |
 
 ### `ch4_s03_thorn_value_rule`
 
+- `title`: 荊棘溫室
 - `stageClass`: `location_scene`
 - `background`: `thorn_glasshouse_ruin`, where host vines and black parasitic growth share one structure
-- `worldState`: Chapter 4 optional first-run trial; mandatory second-run execution-material route
+- `worldState`: Chapter 4 post-evacuation optional first-run trial; mandatory second-run execution-material route after the Titan aftermath
 - `viewpoint`: `protagonist_limited`
 - `participants`: Thorn Witch through elite/Boss presentation
-- `entry`: player follows biological contamination signs separate from the Titan route
+- `entry`: after the Gray Ridge evacuation, Titan battle, and town aftermath, the player follows biological contamination signs exposed by the collapsed ruin line
 - `exit`: ordinary or pure Forest Essence resolves according to run understanding
 - `objective`: survive the Thorn Witch's trial and determine whether parasite can be separated from host
-- `inputs`: Chapter 4 regional access; Glimmer Shard; `未竟的弒王` in second run
+- `inputs`: `story.ch4.town_aftermath_recorded`; Glimmer Shard; `未竟的弒王` in second run
 - `outputs`: ordinary Forest Essence in first run; `forest_essence_pure` and core-revealing method in second run
 - `assetNotes`: reuse Thorn Witch art; no chapel, light NPC, or material-identification service
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 溫室骨架被兩種藤蔓共用。綠色主藤仍在輸送水分，黑色寄生刺卻把每一次生長都導向自己的囊核。 |
-| 2 | any | enter | - | - | Thorn Witch emerges from the living structure; her scene dressing remains below mainline Boss spectacle. |
+| 2 | any | enter | `thorn_witch` | - | Thorn Witch emerges from the living structure; her scene dressing remains below mainline Boss spectacle. |
 | 3 | any | speaker | `thorn_witch` | `guarded` | 你要精華，還是要這座溫室活著？別說兩個都要。想拿兩個的人，通常連差別都看不見。 |
-| 4 | first_run | narration | - | - | 你能擊敗她、完成交換或取走普通森林精華，但尚未理解純淨宿主與寄生核心在最終戰的用途。 |
+| 4 | first_run | narration | - | - | 溫室裡沒有可用的交換物。要帶走精華，只能先讓纏住出口的黑刺停下來。 |
 | 5 | second_run | narration | - | - | `未竟的弒王` 與微光碎片讓寄生刺的邊界短暫顯形。要取得完整精華，必須切斷黑囊而不燒毀主藤。 |
 | 6 | second_run | speaker | `thorn_witch` | `pleased` | 這次看見了？好。那就別用「力量太大」替手笨找理由。把不屬於它的東西分出去。 |
 | 7 | any | exit | - | - | 收起事件層，進入 Thorn Witch trial/Boss encounter; second-run objective marks parasite nodes separately. |
 | 8 | any | enter | - | - | Encounter ends; the host vines either survive the separation or collapse with ordinary extraction according to run state. |
-| 9 | first_run | narration | - | - | 取得的森林精華可供正常製作。它混有宿主與寄生反應，沒有保持顯核所需的單一性。 |
+| 9 | first_run | narration | - | - | 黑刺倒下後，仍有幾段主藤保持濕潤。你從斷口收起普通森林精華，剩下的根很快縮回溫室深處。 |
 | 10 | second_run | narration | - | - | 純淨森林精華保留宿主自身的生命邊界。與微光結合後，它能讓藏在地形裡的寄生核心顯出輪廓。 |
-| 11 | any | speaker | `thorn_witch` | `neutral` | 拿走你看得懂的那一份。其餘的代價，留給還活著的根自己結算。 |
+| 11 | any | speaker | `thorn_witch` | `neutral` | 這一份能帶走。別再碰剩下的根。 |
 | 12 | any | exit | - | - | Return to Chapter 4 canvas; preserve the appropriate current-run essence state. |
 
 ### `ch4_s04_gray_ridge_evacuates`
 
+- `title`: 灰脊撤離
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted Gray Ridge stone causeway before the central span breaks
-- `worldState`: Chapter 4 crisis; ash-heavy crosswind; Titan movement; front and rear civilian groups separated
+- `worldState`: Chapter 4 crisis; rear caravan found among broken wagons; ash-heavy crosswind and repeated quakes separate survivors
 - `viewpoint`: `protagonist_limited`
 - `participants`: village elder, standard_bearer_frey, lamplighter_tavi
-- `entry`: evacuation begins before the Titan fully rises
+- `entry`: the rescue party reaches the rear caravan before the next major quake
 - `exit`: camera splits toward front flag and rear lamp; irreversible marker crisis starts
-- `objective`: move both groups across while keeping two independent direction markers visible
-- `inputs`: Gray Ridge mapped; countergear issued; second-run wind guard when prepared
+- `objective`: move survivors from both sides of the broken caravan line while keeping two independent direction markers visible
+- `inputs`: Gray Ridge mapped; evacuation equipment issued; second-run wind guard when prepared
 - `outputs`: evacuation timer; Frey front assignment; Tavi rear assignment; run-specific marker readiness
 - `assetNotes`: Gray Ridge full background required; future Frey death CG is recorded but not generated
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 灰脊橋面每隔數息便向上拱起。前方的人能看見南門旗，後方的人只能在灰風裡等一盞尚未點亮的燈。 |
-| 2 | any | enter | - | - | Elder remains at the stable entry; Frey takes the front flag; Tavi carries the rear lamp toward the low marker. |
+| 1 | any | narration | - | - | 第一輛後車側翻在橋頭，貨箱一路滾到斷面。活著的人分在兩側，前方能看見南門旗，後方只能在灰風裡等一盞尚未點亮的燈。 |
+| 2 | any | enter | `village_elder,standard_bearer_frey,lamplighter_tavi` | - | Elder remains at the stable entry; Frey takes the front flag; Tavi carries the rear lamp toward the low marker. |
 | 3 | any | speaker | `village_elder` | `resolute` | 前後都要有方向。芙蕾帶前隊，塔維守後標。誰看不見自己的標記，就停，不准往聲音裡擠。 |
 | 4 | any | speaker | `standard_bearer_frey` | `resolute` | 前隊看旗，不看裂縫。走到下一塊白石再停。 |
 | 5 | any | speaker | `lamplighter_tavi` | `guarded` | 後標到位以後我會連遮三次。看見三次再走，不要猜。 |
 | 6 | any | speaker | `village_elder` | `guarded` | 你守中央白石。先清落石，再壓住臨時踏板；標記有人負責，別讓所有人都去做同一件事。 |
 | 7 | second_run | narration | - | - | 修好的風擋扣在燈罩外，塔維也已走過這段低地。準備沒有消除恐懼，只讓他的身體多記得一次正確動作。 |
-| 8 | any | narration | - | - | 巨響從橋下傳來。中央石肋抬升，兩隊視線同時被灰幕切斷。你壓住的踏板下方裂開，正在通過的人只能踩著它繼續走。 |
+| 8 | any | narration | - | - | 巨響從橋下傳來。中央橋面整段抬升，兩隊視線同時被灰幕切斷。你壓住的踏板下方裂開，正在通過的人只能踩著它繼續走。 |
 | 9 | any | speaker | `village_elder` | `afraid` | 標記別滅！兩邊都別動！ |
 | 10 | any | narration | - | - | 前旗、後燈與中央白石被抬到三個互不相通的高度。你若離開踏板，中央的人會先墜下；主角不能替代任何一端的標記。 |
 | 11 | any | exit | - | - | Split crisis state; continue immediately to rear marker `body_locks`. |
 
 ### `ch4_s05_body_locks`
 
+- `title`: 後標燈位
 - `stageClass`: `location_scene`
 - `background`: Gray Ridge rear causeway marker under ash wind and rising stone
 - `worldState`: Chapter 4 irreversible crisis; rear group cannot see front flag
@@ -3259,7 +3288,7 @@ preparation route and Ash Baron stays outside the base chapter.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 後標石就在三步外。橋下先傳來碎石，再傳來被困者的喊聲。塔維停住，手裡的火摺已經打開。 |
-| 2 | any | enter | - | - | Tavi fills the foreground; the lamp and marker remain visible behind his locked stance. |
+| 2 | any | enter | `lamplighter_tavi` | - | Tavi fills the foreground; the lamp and marker remain visible behind his locked stance. |
 | 3 | first_run | narration | - | - | 他知道要做什麼。拇指抵著火輪，肩膀朝前，腿卻像被聲音釘在原地。第一道火星掉進灰裡。 |
 | 4 | first_run | speaker | `lamplighter_tavi` | `afraid` | 動……快動。拜託。 |
 | 5 | first_run | narration | - | - | 第二次地裂把後隊的影子吞進灰幕。燈仍沒有亮，前方也再看不見他們。 |
@@ -3271,6 +3300,7 @@ preparation route and Ash Baron stays outside the base chapter.
 
 ### `ch4_s06_flag_returns`
 
+- `title`: 前旗與後燈
 - `stageClass`: `location_scene`
 - `background`: Gray Ridge cracked center span with front flag and rear-marker sightline
 - `worldState`: Chapter 4 crisis resolution; run state determines whether rear light is visible
@@ -3292,43 +3322,47 @@ preparation route and Ash Baron stays outside the base chapter.
 | 4 | first_run | narration | - | - | 她把旗桿楔進裂開的石縫，用全身重量壓住。旗布重新出現在兩隊都看得見的位置。 |
 | 5 | first_run | narration | - | - | 最後一人越過白石時，你放開踏板朝她起步；中央跨度在同一瞬間再次抬升，把兩人隔在裂縫兩側。畫面切入芙蕾抱住旗桿的最後一刻；她沒有力量阻止道路，只拒絕讓方向先消失。 |
 | 6 | first_run | cutaway | - | - | Audience-only Frey close-up: the camera crosses the raised span while the protagonist remains visible and unreachable on the far side. Wind strips every sound except her breath and the flag rope. |
-| 7 | first_run | speaker | `standard_bearer_frey` | `soft` | 小時候，是那面旗把我們帶回去。這一次，換我把它留到最後。 |
+| 7 | first_run | speaker | `standard_bearer_frey` | `resolute` | 再走幾步！看著旗，別停！ |
 | 8 | first_run | narration | - | - | 她把繩尾再纏過手腕，沒有再看裂縫另一端。灰幕吞掉人影以前，旗仍在最高處。 |
 | 9 | first_run | exit | - | - | Deferred story CG: Frey holds the ordinary patrol flag as the span breaks. Return on the fixed flag and her still body after evacuation. |
 | 10 | second_run | narration | - | - | 灰幕裡亮起一次、兩次、三次。塔維的後燈沒有靠近，卻穩定待在它該在的位置。 |
 | 11 | second_run | speaker | `standard_bearer_frey` | `afraid` | 塔維……我看見了。別過來。守住那裡！ |
 | 12 | second_run | speaker | `lamplighter_tavi` | `resolute` | 妳也別回來！前面看旗，後面看我！ |
-| 13 | second_run | narration | - | - | 芙蕾第一次必須把一群人的生死交給害怕的人。她握緊旗桿，留在前標，沒有替他回頭。 |
+| 13 | second_run | narration | - | - | 芙蕾的視線在後燈停了一瞬。她沒有拔起前旗，只把旗桿重新壓進石縫，留在原位。 |
 | 14 | second_run | speaker | `standard_bearer_frey` | `resolute` | 最後一列，走！兩邊都有人，不准往回擠！ |
 | 15 | second_run | exit | - | - | Evacuation completes with both markers visible; Frey and Tavi survive without leaving their assigned positions. |
 
 ### `ch4_s07_titan_rises`
 
+- `title`: 地脈遺跡甦醒
 - `stageClass`: `location_scene`
-- `background`: Gray Ridge foundation revealed as part of the Ancient Titan's rib cage
+- `background`: collapsed Gray Ridge approach opening into ancient vein-regulation ruins
 - `worldState`: Chapter 4 Boss convergence; evacuation result carries into tone, not Boss identity
 - `viewpoint`: `protagonist_limited`
 - `participants`: none; Ancient Titan uses full mainline Boss presentation
-- `entry`: Titan stands after the last evacuation state resolves
-- `exit`: Titan Heart is recovered and the changed route is recorded
-- `objective`: defeat the Ancient Titan before its next movement destroys the remaining approach
+- `entry`: after the last evacuation state resolves, the Ancient Titan climbs from the exposed ruin line and turns toward the mountain
+- `exit`: the Titan falls away from the road; its hammer enters loot selection and the exposed regulation channels are recorded
+- `objective`: stop the Ancient Titan before its route crushes the remaining caravan approach
 - `inputs`: Gray Ridge evacuation complete; Frey fate locked
-- `outputs`: Ancient Titan cleared; `titan_heart`; proof that constructed roads are part of a living containment body
+- `outputs`: Ancient Titan cleared; guaranteed `titan_hammer` loot decision; proof of an ancient regulation network and a continuing energy drain toward the mountain
 - `assetNotes`: retain mainline full Boss style; equipment drop must match Titan-held/worn form
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 旗仍在身後，持旗的人已不再動。你沒有時間把死亡整理成一句話；整座灰脊正從她腳下站起來。 |
-| 2 | second_run | narration | - | - | 最後一列離開時，前旗與後燈仍同時可見。下一次抬升來臨前，兩人都已撤出石肋。 |
-| 3 | any | narration | - | - | 擋土牆、橋墩與路基被同一具身體撐開。人類在它沉睡的肋骨上築了道路，從未知道腳下有東西正在呼吸。 |
-| 4 | any | enter | - | - | Ancient Titan enters full-screen Boss presentation; cracked causeway remains visible as environmental cause. |
-| 5 | any | exit | - | - | 收起事件層，進入 Ancient Titan 戰鬥。 |
-| 6 | any | enter | - | - | 戰鬥結束；Titan collapses away from the evacuation line and exposes the heart core. |
-| 7 | any | narration | - | - | 泰坦心核仍按固定間隔震動。每一次震動，都與遠處某條火、冰、雷或毒害路線的報告時間相近。 |
-| 8 | any | exit | - | - | Recover Titan Heart; return to town with run-specific survivors and objects. |
+| 1 | first_run | narration | - | - | 旗仍在身後，持旗的人已不再動。下一次地震從更深處傳來，斷橋外的遺跡整片向上崩開。 |
+| 2 | second_run | narration | - | - | 最後一列離開時，前旗與後燈仍同時可見。兩人剛撤出灰脊，斷橋外的遺跡便整片向上崩開。 |
+| 3 | any | narration | - | - | 一隻覆滿岩層與舊礦痕的巨手撐出地面。泰坦沒有看向車隊；它轉向山裡那道失去光澤的礦脈，一步便讓剩下的橋墩全部傾斜。 |
+| 4 | any | narration | - | - | 它若繼續往前，灰脊與商隊唯一能退回城鎮的路都會被踩斷。我走到遺跡出口，擋在它與山路之間。 |
+| 5 | any | enter | - | - | Ancient Titan enters full-screen Boss presentation; the cracked ruin channel and remaining caravan road stay visible. |
+| 6 | any | exit | - | - | 收起事件層，進入 Ancient Titan 戰鬥。 |
+| 7 | any | enter | - | - | 戰鬥結束；Titan collapses away from the evacuation line. Its stone hammer breaks free and enters the normal loot-decision panel. |
+| 8 | any | narration | - | - | 泰坦倒下後，遺跡底部露出四條分離的刻槽。火色、霜白、雷痕與帶毒的綠光都在變淡；四條槽的空缺則一起指向山裡。 |
+| 9 | any | narration | - | - | 它是在追逐被抽走的力量。眼前的道路只是擋在它與山之間。 |
+| 10 | any | exit | - | - | Offer `titan_hammer` through loot selection; return to town with run-specific survivors, route objects, and the ruin survey. |
 
 ### `ch4_s08_returned_objects`
 
+- `title`: 回來的物件
 - `stageClass`: `town_scene`
 - `background`: forge, South Gate, and Mia's workroom in run-specific aftermath states
 - `worldState`: Chapter 4 aftermath; first run mourning or second run exhausted relief
@@ -3337,72 +3371,73 @@ preparation route and Ash Baron stays outside the base chapter.
 - `entry`: flag fitting and lamp are placed on the forge table
 - `exit`: Mia/protagonist relationship beat closes before the Titan report moves to 伊萊
 - `objective`: return the route objects, account for who came home, and treat the evacuation cost
-- `inputs`: Ancient Titan cleared; Frey fate state
+- `inputs`: Ancient Titan cleared; Frey fate state; ruin survey returned
 - `outputs`: run-specific forge/gate/Tavi states; Frey/elder fear understanding in second run; elder guilt pressure in first run; Mia Chapter 4 emotional admission; town-temperature change
 - `assetNotes`: forge and workroom aftermath variants; no death reward item implemented yet
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 鐵匠先接過旗扣，再接過燈。兩件東西都有刮痕，只有第一輪的旗扣沒有主人伸手要回。 |
-| 2 | first_run | enter | - | - | Blacksmith and Tavi enter; Tavi stands too straight and keeps the lamp lit indoors. |
+| 2 | first_run | enter | `blacksmith,lamplighter_tavi` | - | Blacksmith and Tavi enter; Tavi stands too straight and keeps the lamp lit indoors. |
 | 3 | first_run | speaker | `blacksmith` | `grieving` | 扣子能修。旗桿也能。別問我剩下那個。 |
-| 4 | first_run | narration | - | - | 塔維把燈罩擦得一塵不留。他的手不再抖，像恐懼連同某一部分人一起被壓死在橋上。 |
+| 4 | first_run | narration | - | - | 塔維把燈罩擦了一遍，又翻過來擦裡側。布已經沾不到灰，他仍沿著同一圈慢慢擦。 |
 | 5 | first_run | speaker | `lamplighter_tavi` | `neutral` | 後標以後我來。每次都來。這樣就不會再缺人。 |
-| 6 | first_run | speaker | `blacksmith` | `angry` | 那不是補班。你別拿自己剩下的東西替她填洞。 |
-| 7 | first_run | enter | - | - | Elder enters at South Gate after the forge exchange; no one asks Tavi to carry the flag outside again. |
+| 6 | first_run | speaker | `blacksmith` | `angry` | 燈先放下。手給我看。你今晚不用接後標。 |
+| 7 | first_run | enter | `village_elder` | - | Elder enters at South Gate after the forge exchange; no one asks Tavi to carry the flag outside again. |
 | 8 | first_run | narration | - | - | 老人親手把南門旗降到半高，將灰脊撤離令折回自己簽名的那一面。 |
-| 9 | first_run | speaker | `village_elder` | `grieving` | 她守住了自己的位置。錯的是我們又把一條路做成只能靠一個人補上。 |
-| 10 | second_run | enter | - | - | Blacksmith, Frey and Tavi enter together; Frey holds the flag clasp while Tavi protects the lamp glass. |
+| 9 | first_run | speaker | `village_elder` | `grieving` | 撤離令是我簽的。下一次，前後標都要另外留人接手。 |
+| 10 | second_run | enter | `blacksmith,standard_bearer_frey,lamplighter_tavi` | - | Blacksmith, Frey and Tavi enter together; Frey holds the flag clasp while Tavi protects the lamp glass. |
 | 11 | second_run | speaker | `standard_bearer_frey` | `angry` | 你點了燈就該退，不是站在裂口旁等它證明你有膽。 |
 | 12 | second_run | speaker | `lamplighter_tavi` | `angry` | 妳回頭就比較合理嗎？我至少待在自己的位置！ |
 | 13 | second_run | speaker | `blacksmith` | `pleased` | 很好，都活著，才有力氣互相嫌。東西放下，我只修金屬，不修你們的吵架。 |
-| 14 | second_run | enter | - | - | Elder enters at the forge threshold after hearing both assigned markers returned. |
+| 14 | second_run | enter | `village_elder` | - | Elder enters at the forge threshold after hearing both assigned markers returned. |
 | 15 | second_run | speaker | `standard_bearer_frey` | `guarded` | 我看見他的燈時，第一個念頭不是放心，是叫他回來。 |
 | 16 | second_run | speaker | `village_elder` | `soft` | 我每次看你們走出南門，都在想同一句。 |
 | 17 | second_run | speaker | `standard_bearer_frey` | `hurt` | 我以前以為那只是膽小。 |
 | 18 | second_run | speaker | `village_elder` | `neutral` | 有時是。有時只是還記得誰沒回來。別只學會怕，也別再把整條路交給一個人。 |
 | 19 | any | narration | - | - | 場景轉到米婭工作間。傷者離開後，她仍在重排藥瓶，將已經整齊的布又折一次。 |
-| 20 | any | enter | - | - | Mia enters with visible exhaustion; protagonist remains through second-person narration. |
+| 20 | any | enter | `herbalist` | - | Mia enters with visible exhaustion; protagonist remains through second-person narration. |
 | 21 | first_run | speaker | `herbalist` | `grieving` | 芙蕾早上還在門口。她問我灰進眼睛要怎麼洗。我給了她水，像那會保證她晚上回來。 |
-| 22 | second_run | speaker | `herbalist` | `hurt` | 他們都回來了，我還是停不下來。差一點，跟失去之間只隔著一盞燈。 |
+| 22 | second_run | speaker | `herbalist` | `hurt` | 我知道他們都回來了。把這瓶放回去，我的手還是停不下來。 |
 | 23 | any | narration | - | - | 你叫她坐下。她先想拒絕，最後只把手撐在桌邊，沒有再拿下一只藥瓶。 |
-| 24 | any | speaker | `herbalist` | `hurt` | 每次你們走出去，我都會想，這是不是最後一次。不是因為我不信你們，是因為我太清楚「來不及」長什麼樣子。 |
+| 24 | any | speaker | `herbalist` | `hurt` | 我一閉上眼，還是會先數少了誰。 |
 | 25 | any | speaker | `herbalist` | `soft` | 陪我坐一下。只要一下。今天先別拿傷口當理由。 |
-| 26 | any | exit | - | - | Lock run-specific town aftermath, Frey/elder understanding, and Mia Chapter 4 relationship state; move Titan Heart to scholar analysis. |
+| 26 | any | exit | - | - | Lock run-specific town aftermath, Frey/elder understanding, and Mia Chapter 4 relationship state; move the exposed-ruin survey to scholar analysis. |
 
 ### `ch4_s09_four_elements_one_report`
 
+- `title`: 四條刻槽
 - `stageClass`: `town_scene`
-- `background`: scholar desk with Titan Heart and four regional reports
+- `background`: scholar desk with the exposed-ruin survey, caravan timings, and four regional reports
 - `worldState`: Chapter 4 close; first run town quiet after Frey's death, second run patrol pair contributes complete timings; casino remains unnaturally bright in both states
 - `viewpoint`: `protagonist_limited`
 - `participants`: town scholar, village elder, blacksmith, Mia, street_beggar, casino_owner, casino_dealer; Frey and Tavi enter only in second run
-- `entry`: Titan Heart pulse is timed against heat, frost, thunder, and poison reports
+- `entry`: four ancient channel markings are compared with heat, frost, thunder, and poison reports
 - `exit`: Chapter 5 four-front investigation and advanced preparation open
 - `objective`: prove whether the four elemental crises share one timing source
-- `inputs`: Titan Heart recovered; fourfold patient/equipment records
-- `outputs`: one-rhythm hypothesis; Ailo whistle breadcrumb; Vesper personalized temptation; Lorne visible defiance; Chapter 5 opened; character participation reflects run state
+- `inputs`: ancient regulation channels exposed; caravan and quake timings; patient/equipment records
+- `outputs`: four-channel regulation hypothesis and continuing mountain drain; Ailo whistle breadcrumb; Vesper personalized temptation; Lorne visible defiance; Chapter 5 opened; character participation reflects run state
 - `assetNotes`: reuse scholar/civic, retaining-wall, and casino backgrounds; no new elemental creature, material, patron, or reward authorized here
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 泰坦心核每隔四十七息震動一次。伊萊把四條路的報告移到同一刻度上，火、冰、雷與毒斑都在那一息惡化。 |
-| 2 | any | enter | - | - | Town scholar, elder, blacksmith and Mia enter around the civic table. |
-| 3 | any | speaker | `town_scholar` | `guarded` | 不是四場災害互相碰巧。它們在回應同一個節拍，只是經過不同的地和東西，才長成不同症狀。 |
-| 4 | any | speaker | `blacksmith` | `neutral` | 裝備也是。四種裂法，開始時間一樣。有人在山裡敲一下，整片地方各壞各的。 |
-| 5 | any | speaker | `herbalist` | `guarded` | 病人也是同一刻惡化。下次如果四種一起出現在一個人身上，我們現在的處方不夠。 |
+| 1 | any | narration | - | - | 伊萊把遺跡拓圖攤在桌上。四條刻槽各自通向火災、霜裂、雷擊與毒斑最嚴重的地區，中央缺口則朝向山裡。 |
+| 2 | any | enter | `town_scholar,village_elder,blacksmith,herbalist` | - | Town scholar, elder, blacksmith and Mia enter around the civic table. |
+| 3 | any | speaker | `town_scholar` | `guarded` | 這些槽原本把四種流向分開。現在每一條都在往中央失去力量，流動時間也一天比一天接近。 |
+| 4 | any | speaker | `blacksmith` | `neutral` | 遺跡旁的舊固定件不是拿來鎖住泰坦，是替這四條槽分擔震動。現在多半斷了。 |
+| 5 | any | speaker | `herbalist` | `guarded` | 四種症狀目前還出現在不同病人身上。照這個速度靠近，下一次未必會分開。 |
 | 6 | first_run | narration | - | - | 芙蕾的位置空著。塔維送來的後標時間筆直、完整，字卻像從一個已經不允許自己害怕的人手裡寫出來。 |
-| 7 | second_run | enter | - | - | Frey and Tavi enter with separate front/rear timing sheets; both are tired and visibly alive. |
-| 8 | second_run | speaker | `standard_bearer_frey` | `neutral` | 前旗先晃，後燈晚兩息。不是風，是地底的動作從前面傳過去。 |
+| 7 | second_run | enter | `standard_bearer_frey,lamplighter_tavi` | - | Frey and Tavi enter with separate front/rear timing sheets; both are tired and visibly alive. |
+| 8 | second_run | speaker | `standard_bearer_frey` | `neutral` | 前旗先晃，後燈晚兩息。地震是從山的方向一路傳到灰脊。 |
 | 9 | second_run | speaker | `lamplighter_tavi` | `guarded` | 我記了三次。每次都一樣。我怕記錯，所以……多記了一次。 |
-| 10 | any | speaker | `village_elder` | `guarded` | 二十年前也有不同地方同時出事。我們把它們當成一路上的麻煩，沒有想過它們在替同一個東西呼吸。 |
-| 11 | any | narration | - | - | 老人第一次把現在的四條線與遠征路形重疊。所有線都朝山邊同一片壓力區靠攏。 |
-| 12 | any | narration | - | - | 公務室外，艾洛蹲在被泰坦推歪的擋土石旁，把耳朵貼向新露出的縫。 |
-| 13 | any | enter | - | - | Ailo enters at the retaining wall without joining the evidence table. |
+| 10 | any | speaker | `village_elder` | `guarded` | 二十年前也有不同地方接連出事。我們一處一處處理，沒有人把地下的走向疊在一起看。 |
+| 11 | any | narration | - | - | 老人把現在的四條線與遠征路形重疊。所有缺口都朝山邊同一片區域靠攏。 |
+| 12 | any | narration | - | - | 公務室外，艾洛蹲在從遺跡帶回的斷石旁，把耳朵貼近新露出的槽口。 |
+| 13 | any | enter | `street_beggar` | - | Ailo enters at the retaining wall without joining the evidence table. |
 | 14 | any | speaker | `street_beggar` | `guarded` | 石頭開始走了。下面那條路會露一口。哨子不在，山聽不見。她又要說我吹太快。 |
-| 15 | any | exit | - | - | Ailo leaves before the wall settles; the protagonist records only the repeated words `下面` and `哨子`. |
+| 15 | any | exit | `street_beggar` | - | Ailo leaves before the wall settles; the protagonist records only the repeated words `下面` and `哨子`. |
 | 16 | any | narration | - | - | 你離開公務室時，市集與鐵匠鋪都已減燈，賭場卻亮得像城鎮從未缺過油、煤或人。維斯珀在門內等著，不需要別人通知他灰脊的結果。 |
-| 17 | any | enter | - | - | Vesper enters beside the showcase corridor; Lorne remains between him and the private table. |
+| 17 | any | enter | `casino_owner,casino_dealer` | - | Vesper enters beside the showcase corridor; Lorne remains between him and the private table. |
 | 18 | first_run | speaker | `casino_owner` | `soft` | 失去一個人以後，金幣突然顯得很便宜。你若想讓下一次不同，展示櫃還在。 |
 | 19 | second_run | speaker | `casino_owner` | `soft` | 把兩個人都帶回來，只會更清楚「差一點」值多少。你若想讓下一次也不同，展示櫃還在。 |
 | 20 | any | speaker | `casino_dealer` | `guarded` | 公開桌已經結算。今晚不接私人抵押。 |
@@ -3418,33 +3453,35 @@ from every true-kill material route.
 
 ### `ch5_s01_four_fronts_converge`
 
+- `title`: 四條異常指向同一處
 - `stageClass`: `town_scene`
 - `background`: civic room with four route reports, patient records, and damaged equipment arranged around one map
 - `worldState`: Chapter 5 opening; fire, ice, thunder, and poison fronts now peak on one rhythm
 - `viewpoint`: `protagonist_limited`
 - `participants`: town scholar, Mia, blacksmith, village elder
-- `entry`: Titan Heart pulse is used as the shared clock for all reports
+- `entry`: the exposed ruin-channel survey is placed beside four current route reports
 - `exit`: four-front regional canvas and required preparation open
 - `objective`: prove whether four regional hazards are expressions of one mountain pressure line
-- `inputs`: Chapter 4 one-rhythm hypothesis; Titan Heart
+- `inputs`: Chapter 4 four-channel hypothesis; ruin survey; patient and equipment records
 - `outputs`: Elemental Lord route hypothesis; role division among Mia, 伊萊, blacksmith, and elder
 - `assetNotes`: reuse civic background; no new NPC, affinity, or material introduced
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 四張地圖疊在泰坦心核周圍。火線焦痕、冰層裂口、雷擊金屬與毒斑病例各自不同，惡化時間卻落在同一個刻度。 |
-| 2 | any | enter | - | - | Town scholar, Mia, blacksmith and elder enter around the evidence table. |
-| 3 | any | speaker | `town_scholar` | `guarded` | 每四十七息一次。路程距離不同，傳到各處的延遲也固定。這不是四個源頭，是一個節拍經過四種環境。 |
+| 1 | any | narration | - | - | 四張地圖壓在遺跡拓圖四周。火線焦痕、冰層裂口、雷擊金屬與毒斑病例各自不同，位置卻正好沿著四條受損刻槽向山裡靠攏。 |
+| 2 | any | enter | `town_scholar,herbalist,blacksmith,village_elder` | - | Town scholar, Mia, blacksmith and elder enter around the evidence table. |
+| 3 | any | speaker | `town_scholar` | `guarded` | 四處回報的時間對不上同一場地震，位置卻都沿著遺跡的刻槽。先別把它們當成四個源頭；我們得去現場確認這些力量最後流向哪裡。 |
 | 4 | any | speaker | `herbalist` | `guarded` | 症狀會輪替。先灼熱，再失溫，接著抽搐，最後出現毒性麻痺。現在還分散在人身上，不能假設永遠如此。 |
 | 5 | any | speaker | `blacksmith` | `neutral` | 裝備也照這順序壞。先軟、再脆、再被雷沿著裂口走一遍，最後連皮帶都發黑。 |
 | 6 | any | speaker | `village_elder` | `grieving` | 遠征時也看過。當時我們只顧著一處一處打過去，以為麻煩變多代表快到源頭。 |
 | 7 | any | narration | - | - | 老人把四條線延長。它們沒有停在各自的區域，而是在山邊同一處尚未標名的壓力帶交會。 |
-| 8 | second_run | narration | - | - | 你知道交會處會產生第一塊四象裂片，卻不能用未發生的死亡當證據。能做的是要求每種殘留都在當前周目留下可比較的處理紀錄。 |
+| 8 | second_run | narration | - | - | 你記得交會處會產生第一塊四象裂片，卻不能拿尚未發生的事說服眾人。這一次，每種殘留都會留下可比較的處理紀錄。 |
 | 9 | any | speaker | `herbalist` | `resolute` | 先準備能準備的。任何人接觸殘留都要記時間、溫度和症狀，不准只寫「撐得住」。 |
 | 10 | any | exit | - | - | Open four-front routes, advanced forge preparation, and evidence-return requirements. |
 
 ### `ch5_s02_forge_contracts`
 
+- `title`: 鍛爐前的準備
 - `stageClass`: `town_scene`
 - `background`: advanced forge with blueprint table, standard extraction tools, and neutral anchor housings
 - `worldState`: Chapter 5 preparation; first run ordinary Boss gear; second run achievement-informed tool audit and true-kill housings
@@ -3460,14 +3497,14 @@ from every true-kill material route.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 鐵匠把委託分成三疊：能用現有材料完成的、必須等菁英來源的，以及寫得再漂亮也不會憑空長出材料的。 |
-| 2 | any | enter | - | - | Blacksmith enters at the blueprint table; Mia checks tongs and forceps intended for sample handling. |
-| 3 | any | speaker | `blacksmith` | `neutral` | 這章的料做這章的裝備。別拿一塊稀有礦就問我能不能打出畢業用的東西，礦也會覺得丟臉。 |
-| 4 | any | speaker | `herbalist` | `pleased` | 它如果會說話，我先問它接觸後有沒有麻。 |
+| 2 | any | enter | `blacksmith,herbalist` | - | Blacksmith enters at the blueprint table; Mia checks tongs and forceps intended for sample handling. |
+| 3 | any | speaker | `blacksmith` | `neutral` | 能用的料放左邊，還缺的放右邊。先說你要它擋火、抗寒，還是撐住雷擊。別指著一塊礦要我什麼都做。 |
+| 4 | any | speaker | `herbalist` | `guarded` | 先讓我看接觸紀錄。有些殘留會讓手指發麻，別直接送上砧台。 |
 | 5 | any | narration | - | - | 米婭把標準取物鉗交回。鐵匠壓下固定棘輪，金屬發出清楚的一聲喀響。 |
-| 6 | any | narration | - | - | 伊萊攤開四份原始頁。那是巡路人員在交會調查前分別帶回的少量殘留，每頁只記一種元素，也都在標準鉗第二格下保持完整。它們不是接下來由你從四條前線取得的新鮮測試批次。現場不可能同時翻四本，他準備把共同結果濃縮成一張處理摘要。 |
+| 6 | any | narration | - | - | 伊萊攤開四份原始頁。每頁紙角都註有採樣地點、鉗具編號與棘輪格數。他另取一張空白紙，準備整理成能貼在工具箱裡的現場摘要。 |
 | 7 | first_run | speaker | `town_scholar` | `neutral` | 原頁都留著。現場先看這行就好：標準二格固定，可安全處理。短一點，才有人真的會看。 |
-| 8 | first_run | narration | - | - | 四份原頁都寫著「分離樣本」；摘要的結論卻沒有把這四個字留在同一行。資料沒有造假，也沒有人見過需要懷疑它的交會物。 |
-| 9 | second_run | narration | - | - | `醒來時，水已經涼了` 把同一聲喀響從記憶深處拉回來。你立刻阻止鐵匠再次收緊鉗口，並指向伊萊手邊尚未簽定的摘要。 |
+| 8 | first_run | narration | - | - | 米婭核對鉗具編號，鐵匠核對棘輪格數。伊萊等兩人簽過名字，才把原頁收回夾冊，將摘要貼到工具箱內側。 |
+| 9 | second_run | narration | - | - | 棘輪再次發出喀響。你想起上一輪醒來時床邊那杯冷水，立刻阻止鐵匠繼續收緊鉗口，並指向伊萊手邊尚未簽定的摘要。 |
 | 10 | second_run | speaker | `blacksmith` | `guarded` | 哪裡不對？這棘輪每一格我都量過。四份紀錄也都說撐得住。 |
 | 11 | second_run | narration | - | - | 你無法說明未發生的手術，只問了一件現在就能回答的事：那四頁證明的是四種分開的殘留，還是四種元素交會後的同一件東西。 |
 | 12 | second_run | speaker | `town_scholar` | `guarded` | 等等。四頁證明的是分開，不是交會。這張摘要不能簽；我把不知道的地方抄掉了。 |
@@ -3479,6 +3516,7 @@ from every true-kill material route.
 
 ### `ch5_s03_elemental_convergence`
 
+- `title`: 四象交會
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted four-front approaches converging on one widening mountain pressure line
 - `worldState`: Chapter 5; cycling fire, ice, thunder, and poison conditions
@@ -3494,20 +3532,21 @@ from every true-kill material route.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 四條前線沒有在地圖中心相撞，而是依序被同一條山脈裂線吸入。火熄後結霜，霜裂後引雷，雷痕最後滲出毒色。 |
-| 2 | any | enter | - | - | Elder enters at the final survey marker, comparing the geometry with expedition memory. |
-| 3 | any | speaker | `village_elder` | `guarded` | 二十年前我們也走過這個形狀。每一線都像勝利，合起來卻是在替裡面的東西開口。 |
-| 4 | first_run | narration | - | - | 現有工具能安全收集分離的單元素殘留。伊萊的摘要把共同結果寫成 `標準二格固定可安全處理`；沒有任何樣本曾在體外同時收縮四次，隊伍卻還沒有一件實物能迫使那句話接受更窄的範圍。 |
-| 5 | second_run | narration | - | - | 場景切入出發前的當前周目測試。你從四條前線新帶回的少量殘留被引到同一只耐熱盤中；這不是伊萊先前摘要使用的分離批次。四者接觸後開始依固定節拍收縮。 |
-| 6 | second_run | enter | - | - | Mia, town scholar and blacksmith enter the test insert; the fixed ratchet has been removed. |
+| 2 | any | enter | `village_elder` | - | Elder enters at the final survey marker, comparing the geometry with expedition memory. |
+| 3 | any | speaker | `village_elder` | `guarded` | 二十年前，我們也是沿著四處異常一路往裡走。每處都清掉了一些怪物，卻沒發現它們正把我們帶到同一個地方。 |
+| 4 | first_run | narration | - | - | 現有工具能安全收集分離的單元素殘留。伊萊的摘要寫著「標準二格固定，可安全處理」。沒有任何樣本曾在體外同時收縮四次，隊伍手上也還沒有交會後的實物可供測試。 |
+| 5 | second_run | narration | - | - | 出發前，你從四條前線帶回少量殘留，讓它們在同一只耐熱盤中接觸。這不是伊萊先前紀錄的分離樣本。四者相遇後，開始依固定節拍收縮。 |
+| 6 | second_run | enter | `herbalist,town_scholar,blacksmith` | - | Mia, town scholar and blacksmith enter the test insert; the fixed ratchet has been removed. |
 | 7 | second_run | speaker | `town_scholar` | `guarded` | 第一次收縮在接觸後兩息。第二次更快。固定鉗口會在第三次前把壓力全部留在同一點。這次的頁首寫「交會樣本」，不准省。 |
 | 8 | second_run | narration | - | - | 鐵匠以柔韌蛛絲環托住殘留，米婭只控制方向，不夾緊。樣本落入淨化史萊姆凝膠後仍保持完整。 |
 | 9 | second_run | speaker | `blacksmith` | `pleased` | 好。它要縮就讓它縮，別給它一個能撞碎自己的硬角。 |
 | 10 | second_run | speaker | `herbalist` | `guarded` | 把這套東西和那張寫清楚範圍的紀錄一起留在工作間。不是因為一定會用到，是因為需要時不會有時間重做。 |
-| 11 | any | narration | - | - | 最後一道壓力線打開。四種元素在核心處輪流取得形體，像一個尚未學會維持自身的意識。 |
+| 11 | any | narration | - | - | 最後一道壓力線打開。四種元素在核心處反覆塑成同一具身體，每次轉換都讓周圍的地面再次裂開。 |
 | 12 | any | exit | - | - | Open Elemental Lord Boss location; lock second-run pressure-free setup in Mia's workroom. |
 
 ### `ch5_s04_elemental_lord`
 
+- `title`: 元素之主
 - `stageClass`: `location_scene`
 - `background`: convergence core where four elemental flows form one unstable body
 - `worldState`: Chapter 5 mainline Boss; same battle and same fatal-risk burst in both runs
@@ -3534,6 +3573,7 @@ from every true-kill material route.
 
 ### `ch5_s05_fourfold_shrapnel`
 
+- `title`: 肋間的四象裂片
 - `stageClass`: `regional_canvas`
 - `background`: authored emergency return segment from convergence core to town, then workroom threshold
 - `worldState`: Chapter 5 emergency; travel encounters suppressed by fixed mainline transport; four symptoms cycle visibly
@@ -3551,8 +3591,8 @@ from every true-kill material route.
 | 1 | any | narration | - | - | 回程架每一次傾斜都讓碎片邊緣貼近脈搏。固定帶只限制身體，不碰那塊仍在肋間循環變色的核心。 |
 | 2 | any | narration | - | - | 灼熱過後是幾乎感覺不到自己的寒冷；雷相讓手指抽動，毒相則把下一次呼吸拖得更長。 |
 | 3 | first_run | narration | - | - | 城裡只有米婭具備足夠的傷口與取物經驗。標準鉗具、止血與鎮靜已備妥，沒有人知道體外收縮才是真正的新風險。 |
-| 4 | second_run | narration | - | - | 工作間裡，拆掉棘輪的工具、蛛絲環與淨化凝膠都已就位。這不是預知帶來的奇蹟，而是當前周目已完成的測試。 |
-| 5 | any | enter | - | - | Mia opens the workroom door, checks the shard angle before anyone crosses the threshold. |
+| 4 | second_run | narration | - | - | 工作間裡，拆掉棘輪的工具、蛛絲環與淨化凝膠都已就位。出發前完成的測試，現在成了唯一能立刻採用的處理方式。 |
+| 5 | any | enter | `herbalist` | - | Mia opens the workroom door, checks the shard angle before anyone crosses the threshold. |
 | 6 | any | speaker | `herbalist` | `resolute` | 不要拔。整張架一起進來，右邊先抬。有人去叫鐵匠，工具照我說的位置放。 |
 | 7 | any | narration | - | - | 你被抬上工作台。米婭的聲音比視野清楚，她逐一要求你辨認呼吸、手指與疼痛位置。 |
 | 8 | any | speaker | `herbalist` | `soft` | 聽著我。你不用幫忙，也不用證明清醒。把下一口氣交給我就好。 |
@@ -3561,6 +3601,7 @@ from every true-kill material route.
 
 ### `ch5_s06_mia_operation`
 
+- `title`: 米婭的手
 - `stageClass`: `town_scene`
 - `background`: Mia's herb workroom / operation state
 - `worldState`: Chapter 5 fixed surgery; protagonist sedated with broken hearing; run state changes only shard handling and Mia's survival
@@ -3585,7 +3626,7 @@ from every true-kill material route.
 | 7 | first_run | speaker | `herbalist` | `soft` | 好了。你回來了。 |
 | 8 | first_run | narration | - | - | 體外失去組織支撐的碎片突然收縮。棘輪把鉗口固定在同一格，所有變化都擠回米婭掌前的一點。金屬發出第二聲喀響。 |
 | 9 | first_run | narration | - | - | 碎片被壓碎。火、冰、雷與毒光在她掌中同時迸開，距離近得沒有反應或告別的時間。 |
-| 10 | first_run | exit | - | - | Mia dies immediately in the point-blank release. Cut sound before impact finishes; fade to protagonist waking later. |
+| 10 | first_run | exit | `herbalist` | - | Mia dies immediately in the point-blank release. Cut sound before impact finishes; fade to protagonist waking later. |
 | 11 | second_run | speaker | `blacksmith` | `guarded` | 棘輪已拆。蛛絲環受力均勻，凝膠在下方。沒有硬角。 |
 | 12 | second_run | speaker | `herbalist` | `resolute` | 我控制方向，你只托住環。它縮就跟著縮，不准夾。 |
 | 13 | second_run | narration | - | - | 碎片沿同一角度離開肋間。蛛絲環隨第一次收縮讓出空間，核心沒有撞上任何固定鉗口。 |
@@ -3597,6 +3638,7 @@ from every true-kill material route.
 
 ### `ch5_s07_after_the_ratchet`
 
+- `title`: 第二聲喀響之後
 - `stageClass`: `town_scene`
 - `background`: run-specific Mia workroom aftermath, then scholar desk review
 - `worldState`: first run quiet loss or second run exhausted survival
@@ -3612,16 +3654,16 @@ from every true-kill material route.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | first_run | narration | - | - | 醒來時，床邊的水已經涼了。工作台清空，窗仍關著，米婭平常坐的椅子被推到牆邊。 |
-| 2 | first_run | narration | - | - | 城鎮人際紀錄新增 `最後一頁`。它不是物品：`《藥師手記》最後一頁只寫著：「醒來後先給他水。別讓他立刻起身。」` |
-| 3 | first_run | enter | - | - | Scene shifts to scholar desk; town scholar and blacksmith enter with the broken forceps and 伊萊's field summary sealed on the same cloth. |
-| 4 | first_run | speaker | `town_scholar` | `grieving` | 那個「安全」是我寫的。四份原頁說的是四種殘留各自安全，我把它們抄成一句現場能看的話。紙沒有說謊……是我把不知道的地方抄掉了。 |
-| 5 | first_run | speaker | `blacksmith` | `grieving` | 就算沒有那張紙，我也會拿這把鉗。棘輪沒滑，鉗口沒壞。別把所有死人都抄到自己名下。 |
-| 6 | first_run | speaker | `town_scholar` | `hurt` | 可她看見那張紙，就少了一個再問一次的理由。那個理由是我拿走的。 |
-| 7 | first_run | narration | - | - | 伊萊沒有離開書桌，但從這一天起，他的玩笑停了，手也不再先於證據寫下「安全」。這不是全部責任，卻是他無法推回工具上的那一部分。 |
-| 8 | first_run | speaker | `blacksmith` | `hurt` | 我能修這把鉗。沒有意義。 |
+| 2 | first_run | narration | - | - | 米婭的手記停在最後一頁。上面只留下兩句話：「醒來後先給他水。別讓他立刻起身。」 |
+| 3 | first_run | enter | `town_scholar,blacksmith` | - | Scene shifts to scholar desk; town scholar and blacksmith enter with the broken forceps and 伊萊's field summary sealed on the same cloth. |
+| 4 | first_run | speaker | `town_scholar` | `grieving` | 摘要是我寫的。原頁都在這裡。我把它們抄短了。 |
+| 5 | first_run | speaker | `blacksmith` | `grieving` | 鉗口沒滑，棘輪也沒壞。我看過那行字，沒有再問。 |
+| 6 | first_run | speaker | `town_scholar` | `hurt` | 她也沒有。 |
+| 7 | first_run | narration | - | - | 伊萊把摘要拆下來，與四份原頁並排放好。筆尖停在「安全」兩字旁，許久沒有落下。 |
+| 8 | first_run | speaker | `blacksmith` | `hurt` | 鉗子先放這裡。今天別修。 |
 | 9 | first_run | exit | - | - | Unlock hidden achievement `醒來時，水已經涼了`; Mia research stops, baseline market medicine remains; 伊萊 enters the first-run confidence-collapse state. |
 | 10 | second_run | narration | - | - | 醒來時，水仍溫著。米婭坐在床邊，兩手捧著自己的杯子，沒有假裝那只是一次普通手術。 |
-| 11 | second_run | enter | - | - | Mia enters foreground; later transition includes town scholar and blacksmith with the intact shard, four source pages, and the revised record. |
+| 11 | second_run | enter | `herbalist,town_scholar,blacksmith` | - | Mia enters foreground; later transition includes town scholar and blacksmith with the intact shard, four source pages, and the revised record. |
 | 12 | second_run | speaker | `herbalist` | `pleased` | 先喝水。這次我可以親自確定你沒有立刻起身。 |
 | 13 | second_run | narration | - | - | 你問她的手。她看了一眼掌心，沒有用「沒事」敷衍。 |
 | 14 | second_run | speaker | `herbalist` | `guarded` | 在發抖。會停。下一次準備裡要寫操作者的位置，不只寫病人。 |
@@ -3633,6 +3675,7 @@ from every true-kill material route.
 
 ### `ch5_s08_expedition_list`
 
+- `title`: 二十年前的遠征名冊
 - `stageClass`: `town_scene`
 - `background`: civic archive with twenty-year expedition lists, Kaedren evidence, and the old seal-scar shard record
 - `worldState`: Chapter 5 late; run-specific town loss affects who is absent, not the historical evidence
@@ -3648,7 +3691,7 @@ from every true-kill material route.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | any | narration | - | - | 伊萊把遠征分成三層：村鎮自發的隊伍、凱德倫等地方線指揮，以及更前方尚未具名的總隊長。沒有一張紙能把三者簡化成同一個人。 |
-| 2 | any | enter | - | - | Elder and town scholar enter; the protagonist remains through narration and questions. |
+| 2 | any | enter | `village_elder,town_scholar` | - | Elder and town scholar enter; the protagonist remains through narration and questions. |
 | 3 | first_run | narration | - | - | 他把預先印好的「安全通路」抬頭裁掉，只留下「最後可證實位置」，又將四份原頁、摘要與碎片收縮時間全部攤開，決定在天亮前重建每一處被省略的範圍。從米婭死後，那個字必須比他的手更慢。 |
 | 4 | second_run | narration | - | - | 新的處理頁在入夜前便完成歸檔，把樣本狀態、測試方法、適用範圍與未知項目留在同一欄。伊萊把它釘在舊摘要上，不讓修正抹掉曾經的錯。 |
 | 5 | any | speaker | `town_scholar` | `neutral` | 前段確實有勝利。路上的怪物被清掉，失聯點逐一往山裡推。這也是他們相信自己能處理下一道阻礙的原因。 |
@@ -3657,14 +3700,15 @@ from every true-kill material route.
 | 8 | any | speaker | `village_elder` | `guarded` | 龍沒有救我們，也不在乎為什麼來。牠們只看見一群拿武器的人把封住的地方再打開。 |
 | 9 | any | speaker | `town_scholar` | `guarded` | 這能證明人類造成過傷口，不能證明龍會相信下一個人類。還缺一條不去破壞寬路的辦法。 |
 | 10 | any | narration | - | - | Mia 父親的補給編次停在外圍以前。他的最後位置仍不明，名冊沒有把個人失蹤硬塞進封痕答案。 |
-| 11 | first_run | narration | - | - | 老人把封痕碎片的收存欄默默合上。米婭與芙蕾的死讓他確信，下一個走到外圍的人不能再替他的錯誤付代價。 |
+| 11 | first_run | narration | - | - | 老人把封痕碎片的收存欄默默合上。他的手停在米婭與芙蕾的名字旁，過了一會兒才把名冊推回伊萊面前。 |
 | 12 | first_run | speaker | `village_elder` | `soft` | 夠了。今天先到這裡。你們都該睡。 |
-| 13 | second_run | narration | - | - | `封痕前的老人` 讓你注意到他的靴底已補、乾糧少了一份，封痕碎片收存欄也被提前清空。這些都是當前周目的準備。 |
+| 13 | second_run | narration | - | - | 你注意到村長的靴底剛補過，乾糧少了一份，封痕碎片的收存欄也被提前清空。他正在準備獨自離開。 |
 | 14 | second_run | speaker | `town_scholar` | `guarded` | 你又想一個人去。二十年前是大家太相信人多，現在別用人少重演一次。 |
 | 15 | any | exit | - | - | Seal-scar truth locks; open whistle cache and before-dawn town gate sequence. |
 
 ### `ch5_s09_whistle_cache`
 
+- `title`: 舊驛站的雙孔哨
 - `stageClass`: `location_scene`
 - `background`: newly exposed old waystation cache built by the destroyed mountain settlement
 - `worldState`: Chapter 5 after elemental movement; acoustic route tool preserved in a dry stone recess
@@ -3683,7 +3727,7 @@ from every true-kill material route.
 | 2 | any | narration | - | - | 哨子不打開門，也不召喚道路。兩個固定音高會在山中盲彎產生不同回聲，熟悉地形的人能用回音長短判斷藏在崩壁後的轉向。 |
 | 3 | first_run | narration | - | - | 沒有人能完整讀懂音紋。它被登記為山地路具，放進你的背包等待實際用途。 |
 | 4 | second_run | narration | - | - | 你依艾洛長期重複的聲音碎片帶他來到路站。乞丐看見哨子時，先用手遮住其中一孔。 |
-| 5 | second_run | enter | - | - | Street beggar enters; he does not become a lucid lore guide. |
+| 5 | second_run | enter | `street_beggar` | - | Street beggar enters; he does not become a lucid lore guide. |
 | 6 | second_run | speaker | `street_beggar` | `afraid` | 不能一起吹。山會把兩條路疊起來。她討厭我吹錯，說花都被我嚇跑。 |
 | 7 | second_run | narration | - | - | 你問「她」是誰。他立刻把哨子推回，答案又碎成摸得到卻排不好的片段。 |
 | 8 | second_run | speaker | `street_beggar` | `guarded` | 先上去，再回來。她在上面等，不在這塊爛石頭裡。 |
@@ -3692,6 +3736,7 @@ from every true-kill material route.
 
 ### `ch5_s10_before_dawn`
 
+- `title`: 天亮以前
 - `stageClass`: `town_scene`
 - `background`: civic room and South Gate before dawn
 - `worldState`: Chapter 5-to-6 bridge; first run elder already gone when discovered, second run intercepted alive
@@ -3706,13 +3751,13 @@ from every true-kill material route.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 伊萊整夜在副桌重抄四份原頁與那張摘要。等他從「安全」兩字抬頭，村長的椅子已冷；封痕碎片、補過的靴與一份乾糧同時不見，南門記錄沒有他的名字。 |
-| 2 | first_run | enter | - | - | Town scholar crosses from the record-covered side table into the empty civic room and reads the omissions rather than a farewell note. |
-| 3 | first_run | speaker | `town_scholar` | `afraid` | 他不是去查路。他是去把自己放回二十年前那個缺口。 |
-| 4 | first_run | narration | - | - | 追蹤路線指向龍守外圍。老人沒有留下命令，因為他不想任何人跟去，也不認為自己值得被阻止。 |
+| 1 | first_run | narration | - | - | 伊萊整夜在副桌重抄四份原頁與那張摘要。等他從「安全」兩字抬頭，村長的椅子已冷。 |
+| 2 | first_run | enter | `town_scholar` | - | Town scholar crosses from the record-covered side table into the empty civic room and reads the omissions rather than a farewell note. |
+| 3 | first_run | speaker | `town_scholar` | `afraid` | 封痕碎片不在。乾糧少一份。南門也沒有登記。 |
+| 4 | first_run | narration | - | - | 桌上沒有命令或告別。補過的靴印從南門外開始，沿著二十年前遠征留下的舊路往北。 |
 | 5 | first_run | exit | - | - | Lock elder departed; open Chapter 6 pursuit and seal-scar aftermath. |
 | 6 | second_run | narration | - | - | 同一輪裡，處理紀錄在入夜前完成。伊萊有時間發現封痕收存欄提早清空，並把靴底、乾糧與缺頁交給你。清晨，你在南門開啟前等著；老人沒有料到兩個人已讀懂他的準備。 |
-| 7 | second_run | enter | - | - | Elder enters at the closed gate; town scholar arrives after the confrontation begins. |
+| 7 | second_run | enter | `village_elder,town_scholar` | - | Elder enters at the closed gate; town scholar arrives after the confrontation begins. |
 | 8 | second_run | speaker | `village_elder` | `angry` | 讓開。這不是你該替我付的東西。 |
 | 9 | second_run | narration | - | - | 你提出三項當前證據：遠征破壞過封痕、龍守的是寬路、艾洛認得回聲哨所代表的另一條人路。你也表明到警戒線前會先停下。 |
 | 10 | second_run | speaker | `village_elder` | `guarded` | 知道另一條路，不代表龍會信你。牠們二十年前不在乎我們為什麼來，現在也一樣。 |
@@ -3724,6 +3769,7 @@ from every true-kill material route.
 
 ### `ch5_s11_town_loses_its_voice`
 
+- `title`: 城鎮少了幾種聲音
 - `stageClass`: `memory_or_ending`
 - `background`: fixed town montage across workroom, South Gate, forge, civic room, and casino table
 - `worldState`: Chapter 5 close; first-run losses or second-run strained survival
@@ -3746,7 +3792,7 @@ from every true-kill material route.
 | 4 | second_run | narration | - | - | 米婭的窗仍關著，但她把母親房間堆在門前的一只箱子移開。芙蕾與塔維各自守著旗和燈，村長則第一次把封痕紀錄留在公務桌上。 |
 | 5 | second_run | narration | - | - | 鐵匠的笑罵仍能越過街道，伊萊把新處理紀錄釘在舊頁旁。所有人都疲倦，卻沒有人被迫用缺席完成自己的弧線。 |
 | 6 | any | narration | - | - | 賭場深處，維斯珀在兩周目都翻開洛恩的抵押頁。角色不記得上一輪，懷疑仍由本輪相同的細小違抗累積。 |
-| 7 | any | enter | - | - | Casino owner and dealer enter at the main table; Vesper places the guest dice beside Lorne's contract. |
+| 7 | any | enter | `casino_owner,casino_dealer` | - | Casino owner and dealer enter at the main table; Vesper places the guest dice beside Lorne's contract. |
 | 8 | any | speaker | `casino_owner` | `pleased` | 你最近讓太多人帶著尚未輸完的東西離桌。洛恩，我想我們該重新結算你的忠誠。 |
 | 9 | any | speaker | `casino_dealer` | `guarded` | 規則寫明結算需要見證人。你不會反對自己的規則。 |
 | 10 | any | speaker | `casino_owner` | `soft` | 當然不會。公平，是這間屋子最昂貴的表演。 |
@@ -3761,37 +3807,35 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 ### `ch6_s01_northern_drake_watch`
 
+- `title`: 北境龍哨
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted `northern_drake_watch` and `dragon_heat_crag` approach
 - `worldState`: Chapter 6 dawn pursuit; dragon heat marks form a containment boundary rather than an invasion path
-- `viewpoint`: `split_limited` (`protagonist_limited` -> `character_limited:village_elder` -> `protagonist_limited`)
-- `knowledgeBoundary`: Audience learns why the elder acts and sees only what he perceives; the protagonist follows tracks and later finds aftermath, while the dragon's containment role remains unresolved.
-- `participants`: village_elder only in the first-run audience cutaway
+- `viewpoint`: `protagonist_limited`
+- `knowledgeBoundary`: The protagonist sees tracks, carried weight, scorch direction, and patrol behavior. The elder's private thoughts, expectation of survival, and exact final words remain unknown.
+- `participants`: none
 - `entry`: player leaves South Gate immediately after discovering or preventing the elder's solitary departure
 - `exit`: seal warning line becomes visible
 - `objective`: follow the elder while distinguishing deliberate dragon containment from outward conquest
 - `inputs`: elder departed or elder alive; current-run Echo Whistle; current-run seal-scar shard only in second run
-- `outputs`: audience-only elder motive; protagonist-observed inward-fire evidence; unresolved or demonstrated outside echo; warning-line objective
-- `assetNotes`: regional dragon approach backgrounds; reuse the seal-scar approach for the elder cutaway; no new dragon spokesperson
+- `outputs`: protagonist-observed elder route and inward-fire evidence; unresolved or demonstrated outside echo; warning-line objective
+- `assetNotes`: regional dragon approach backgrounds; no elder death cutaway or new dragon spokesperson
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 村長補過的右靴在濕土留下較淺的半月紋。腳印沒有繞往賭場或市集，從南門一路直上龍火留下的焦界；你沒有被任何城內事件拖住。 |
-| 2 | first_run | cutaway | - | - | 鏡頭沿腳印先行。村長已獨自抵達焦黑警戒石，主角仍在更低的山路上；風裡只有他的呼吸與碎片碰到石面的聲音。 |
-| 3 | first_run | speaker | `village_elder` | `grieving` | 二十年前，是我叫他們跟上。這一次，不該再叫任何人來。 |
-| 4 | first_run | narration | - | - | 他跪下比對斷面。人類鑿痕朝外，龍火熔痕朝內；缺口與碎片只差他把手再往前伸一段。 |
-| 5 | first_run | speaker | `village_elder` | `resolute` | 如果這真是我們敲下來的……至少讓我親手放回去。 |
-| 6 | first_run | narration | - | - | 他把碎片推向缺口。內側黑壓先鼓起，龍影隨後覆住石面；封火落下時畫面切白，沒有回答火是衝著老人，還是衝著他碰到的傷口。 |
-| 7 | first_run | cutaway | - | - | 畫面回到主角。最後一枚半月靴印停在焦界下方，前面只剩剛被火照亮的山霧。 |
-| 8 | second_run | narration | - | - | 同一條路沒有老人的足跡。封痕碎片在你行囊裡，乾糧與補靴仍留在城內，證明改變不是龍忽然仁慈，而是老人根本沒有獨自走到這裡。 |
-| 9 | any | narration | - | - | 龍火沒有向村鎮蔓延。所有焦痕都朝山內彎折；高處飛影只驅離接近封痕的生物，從不追出警戒距離。牠們守的是邊界，不是人類。 |
-| 10 | first_run | narration | - | - | 你試吹雙孔，兩個回音在崩壁前重疊。哨子或許屬於山路，卻沒有告訴你先遮哪一孔、在哪裡轉；眼前唯一讀得懂的仍是寬路與老人的足跡。 |
-| 11 | second_run | narration | - | - | 依艾洛本輪的反應，你遮住一孔，只吹一短音。回聲沒有穿過焦界，而是沿山壁外側晚半息返回；它證明別路存在，仍未給出第一個盲彎的完整順序。 |
-| 12 | second_run | narration | - | - | 碎片一面保留人類鑿痕，另一面被龍火熔成黑玻璃。它靠近前方缺口時發熱，斷面輪廓與遠征圖上遺失的一角一致。 |
-| 13 | any | exit | - | - | Mark inward fire and run-specific echo evidence; open the authored seal-scar aftermath without resolving the road. |
+| 1 | first_run | narration | - | - | 濕土裡只有一行腳印。村長補過的右靴壓得較淺，半月形的鞋紋從南門一路朝焦黑山坡延伸。 |
+| 2 | first_run | narration | - | - | 腳印沒有折返，也沒有第二個人跟上。幾處較深的落腳旁留著細小石屑，像是他一路握著某件有重量的東西。 |
+| 3 | second_run | narration | - | - | 這一輪，濕土上沒有老人的鞋印。封痕碎片仍在你的行囊裡，山路只留下昨夜巡防與獸群踩過的痕跡。 |
+| 4 | any | narration | - | - | 越接近高處，燒痕越密。焦黑草葉全朝山內倒伏，高處的飛影只驅趕靠近警戒石的生物，沒有追下山坡。 |
+| 5 | first_run | narration | - | - | 你試吹雙孔。兩個回音在崩壁前撞在一起，分不出哪一聲來自前方，哪一聲貼著山壁折返。 |
+| 6 | second_run | narration | - | - | 依艾洛本輪聽見哨聲時的動作，你遮住一孔，只吹一短音。回聲沿焦界外側返回，仍沒有給出第一個盲彎的轉向。 |
+| 7 | second_run | narration | - | - | 碎片一面保留鑿痕，另一面被高熱熔成黑亮的薄層。靠近警戒石時，它隔著布袋開始發熱。 |
+| 8 | any | narration | - | - | 前方忽然亮了一次。熱風從山內壓下來，霧裡短暫露出一塊焦黑石碑，以及停在碑前的最後一段路。 |
+| 9 | any | exit | - | - | Mark inward fire and run-specific echo evidence; open the seal-scar investigation without resolving the road. |
 
 ### `ch6_s02_scar_aftermath`
 
+- `title`: 封痕前的老人
 - `stageClass`: `location_scene`
 - `background`: seal warning line near the charred obelisk, where dragon fire meets recurring scar pressure
 - `worldState`: first-run elder death aftermath or second-run empty warning line before the same recurring surge
@@ -3806,16 +3850,18 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 村長倒在警戒石外，沒有龍爪撕裂。他曾把碎片壓向相合的缺口；人類鑿痕朝外，熔黑的一面朝內，位置正確，力量卻不足以承受下一次湧動。 |
-| 2 | first_run | narration | - | - | 內側黑壓把碎片和老人一起推出，外側龍火同時灌進缺口。灼痕穿過他的身體，也在身後石面封成一條直線。你能確定龍火殺了他，不能確定牠瞄準的是人還是傷口。 |
-| 3 | first_run | narration | - | - | 他的隨身武器仍留在衣側，手卻伸向碎片。龍沒有救他，也沒有收走屍體；對守線者而言，他只是又一個碰了封痕的人類。 |
-| 4 | first_run | narration | - | - | 你取回碎片。老人最後理解了傷口，卻沒有找到不碰傷口的路。隱藏成就 `封痕前的老人` 解鎖。 |
-| 5 | second_run | narration | - | - | 同一位置沒有屍體，也沒有新填補痕。碎片仍在你手中；你把相合斷面看清，卻不替老人重做那個動作。 |
-| 6 | any | narration | - | - | 封痕再次向外鼓起，巨大陰影落在警戒線內側。龍火沿缺口壓回黑流，沒有越線追擊。牠停下來看你下一步把腳放在哪裡。 |
-| 7 | any | exit | - | - | Open the direct Elder Dragon warning at the same location; first run carries ambiguity and urgency, second run carries observable restraint. |
+| 1 | first_run | narration | - | - | 村長倒在警戒石外。身上沒有爪痕，腰側的武器也沒有出鞘；最後幾枚鞋印停在石碑前，旁邊壓著一處清楚的膝痕。 |
+| 2 | first_run | narration | - | - | 封痕碎片落在他伸出的手前。斷面與石碑缺口相合，碎片邊緣還沾著掌心擦破留下的血；他曾用手把它往前推。 |
+| 3 | first_run | narration | - | - | 缺口內側覆著向外鼓起的黑痕，外側則有一道龍火灼痕迎面壓回。兩股力量在村長倒下的位置交會，又沿他身後的石面燒成直線。 |
+| 4 | first_run | narration | - | - | 沒有遺書。收在鞘裡的武器、只有一人的腳印，以及被推向缺口的碎片，已經留下他最後做過的事。你把碎片收回行囊。 |
+| 5 | first_run | narration | - | - | 隱藏成就 `封痕前的老人` 解鎖。 |
+| 6 | second_run | narration | - | - | 同一位置沒有屍體，也沒有新填補痕。碎片仍在你手中；你看清相合的斷面，沒有把它推進缺口。 |
+| 7 | any | narration | - | - | 封痕再次向外鼓起，巨大陰影落在警戒線內側。龍火沿缺口壓回黑流，沒有越線追擊。牠停下來看你下一步把腳放在哪裡。 |
+| 8 | any | exit | - | - | Open the direct Elder Dragon warning at the same location; first run carries physical evidence and urgency, second run carries observable restraint. |
 
 ### `ch6_s03_stop_before_the_line`
 
+- `title`: 停在線外
 - `stageClass`: `location_scene`
 - `background`: same seal warning line with Elder Dragon occupying the full depth beyond it
 - `worldState`: Chapter 6 confrontation under a recurring pressure pulse; first-run armed crossing or second-run evidence-bound stop
@@ -3830,14 +3876,14 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | enter | - | - | Elder Dragon enters in the existing full Boss illustration; other dragons remain distant silhouettes, not new speaking characters. |
+| 1 | any | enter | `elder_dragon` | - | Elder Dragon enters in the existing full Boss illustration; other dragons remain distant silhouettes, not new speaking characters. |
 | 2 | any | speaker | `elder_dragon` | `resolute` | 停下。 |
 | 3 | any | narration | - | - | 聲音不是邀請。龍爪停在封線內側，沒有越過牠自己守的界；牠只看你的腳、武器與那塊相合的碎片。 |
 | 4 | first_run | narration | - | - | 你在警戒石前短暫停下，指向村長與山內正在搏動的黑壓。背包裡的哨子吹不出可走的順序，眼前也沒有第二條看得見的路。 |
-| 5 | first_run | speaker | `elder_dragon` | `guarded` | 又是鐵。又是傷口。二十年前，你們撕開這裡；今天仍拿著它往前。 |
+| 5 | first_run | speaker | `elder_dragon` | `guarded` | 二十年前，人類用鐵器打開這道缺口。放下武器，退回去。 |
 | 6 | first_run | narration | - | - | 你舉起碎片。它能承認人類造成損傷，不能說明如何繞開；腳下同一個四相節律沿來路震回，下一輪外洩已朝村鎮方向延伸。 |
-| 7 | first_run | speaker | `elder_dragon` | `angry` | 你們受苦，便以為山該讓路。外面死多少，不歸我。退回去。 |
-| 8 | first_run | narration | - | - | 退回去代表帶著村長的屍體和一支無法使用的哨子等待下一次外洩。你沒有龍族知道的答案，也沒有第二條可執行的路；你跨過警戒線，武器沒有放下。 |
+| 7 | first_run | speaker | `elder_dragon` | `angry` | 山外的死傷與我無關。再往前，我會動手。 |
+| 8 | first_run | narration | - | - | 龍身後仍看得見寬路的石沿。腳下的震動卻已沿來路傳向山下；你不知道龍火壓住了什麼，只知道村長死在這裡，而唯一看得見的路就在警戒線後方。你沒有放下武器。 |
 | 9 | first_run | exit | - | - | Lock the armed crossing as a rational decision under incomplete knowledge; open Elder Dragon battle. |
 | 10 | second_run | narration | - | - | 你在線外停下，把武器完整放在身後地面，再將碎片放到相合缺口前方、仍屬警戒線外的位置。你沒有把它塞回傷口。 |
 | 11 | second_run | speaker | `elder_dragon` | `guarded` | 那是你們留下的傷。帶回來，不是贖清。 |
@@ -3850,6 +3896,7 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 ### `ch6_s04_dragon_convergence`
 
+- `title`: 龍守封痕
 - `stageClass`: `location_scene`
 - `background`: broad sealed approach held by Elder Dragon and distant clan silhouettes
 - `worldState`: Chapter 6 convergence; first-run destruction of the local seal-keeping clan or second-run preserved containment
@@ -3867,17 +3914,18 @@ evidence plus achievement memory; no NPC remembers the first run.
 | 1 | first_run | speaker | `elder_dragon` | `angry` | 你跨了線。那就死在線內。 |
 | 2 | first_run | exit | - | - | 收起事件層，進入 Elder Dragon mainline Boss battle. Arena phases represent the remaining mountain seal-keeping clan joining through wing shadows and containment fire; no new speaking dragon or portrait is created. |
 | 3 | first_run | enter | - | - | Battle ends. Elder Dragon falls; the last answering silhouettes crash or vanish from the perimeter. The protagonist has erased this mountain's remaining seal-keeping clan, not every dragon species in the world. |
-| 4 | first_run | narration | - | - | 龍火熄滅後，沒有門、階梯或勝利道路出現。封痕內的黑壓第一次向外完整搏動，沿著第五章四相裂線回灌。 |
-| 5 | first_run | narration | - | - | 這不是因龍族愛護人類而顯得悲劇。牠們不在乎人族；牠們死後，魔王壓力失去的卻是實際存在的鎮壓。你贏了這場戰爭，也真的殺錯了維持局面的對象。 |
+| 4 | first_run | narration | - | - | 最後一道龍火熄滅。石碑缺口立刻向外鼓起，黑色裂紋越過原本停住的位置，沿地面爬向山下。 |
+| 5 | first_run | narration | - | - | 警戒線兩側的飛影不再出現。寬路沒有因此打開；前方只有崩塌的石壁，身後則傳來第二次更深的震動。 |
 | 6 | first_run | exit | - | - | Lock `dragon_clan_erased` and containment collapse; open the ruined broad-verge search. |
 | 7 | second_run | speaker | `elder_dragon` | `guarded` | 你們的窄聲在封火之外。那條路不歸我開，也不歸我准。離開我的線，自己去找。 |
 | 8 | second_run | narration | - | - | 你先後退，再拾回仍在線外的碎片與武器。龍沒有側身讓路，沒有露出一條門，也沒有派同族領行；牠只是沒有追擊。 |
 | 9 | second_run | speaker | `elder_dragon` | `resolute` | 我離開一步，裡面的東西就把傷口撐開一步。我不替你走。你也別回來碰。 |
-| 10 | second_run | narration | - | - | 這回答了龍為何不親自進入核心：牠的力量與位置正被用來壓住寬線。玩家的窄路若存在，只能從封火外側自行找到。 |
+| 10 | second_run | narration | - | - | 龍把前爪重新壓回裂口旁。黑痕退了一寸，牠身後的寬路也隨著山壁再次崩落；封火外側仍傳回另一道較窄的回音。 |
 | 11 | second_run | exit | - | - | Preserve dragon containment and lock `broad_seal_untouched`; withdraw along the outside boundary toward the same unresolved old-route objective. |
 
 ### `ch6_s05_after_the_broad_road`
 
+- `title`: 寬路盡頭
 - `stageClass`: `regional_canvas`
 - `background`: mountain base where the obvious constructed approach ends in collapsed stone
 - `worldState`: Chapter 6 middle; dragon result changes containment ambience but not the missing human path
@@ -3892,15 +3940,16 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 龍族已死，失去封火的寬路仍在三面崩壁前結束。沒有守衛、沒有門，也沒有能繼續擊碎而不讓整座山塌下的方向。殺光守線者沒有把地形變成答案。 |
-| 2 | second_run | narration | - | - | 你沒有穿過寬線，而是沿龍火外側退出警戒地。那條自然邊界同樣停在三面盲崩壁前；龍沒有攻擊，和龍替你開路，是兩件完全不同的事。 |
+| 1 | first_run | narration | - | - | 失去封火後，寬路仍在三面崩壁前結束。最外層石板已被震鬆，再往前敲一次，頭頂整片岩層都會落下來。 |
+| 2 | second_run | narration | - | - | 你沿龍火外側退出警戒地。山壁在前方分成三處盲彎，每一處都像死路；龍仍守在身後，沒有替你指出其中任何一條。 |
 | 3 | any | narration | - | - | 回聲哨吹出的兩種音都會返回，但回音重疊，無法判斷哪一孔該在第一個盲彎使用。工具存在，使用記憶不在你身上。 |
 | 4 | second_run | narration | - | - | 三個中性錨具仍固定在行囊裡，證明最終準備已到位；缺少的不是戰力，而是一個理解本地路聲的人。 |
-| 5 | any | narration | - | - | 你只能先回城找懂聲音的人。第一輪這像勝利後的小挫折；第二輪則清楚指向早已對哨聲有反應的艾洛。 |
+| 5 | any | narration | - | - | 你記下三處回音，把哨子收回行囊。山上已沒有能確認的人，只能先把聲音與地形帶回城裡。 |
 | 6 | any | exit | - | - | Open the witnessed casino settlement on town return; `brush_past_or_invitation` follows that fixed confrontation without another mountain detour. |
 
 ### `ch6_s06_settlement_throw`
 
+- `title`: 未結清的賭局
 - `stageClass`: `town_scene`
 - `background`: casino main table with guest dice, Lorne's collateral page, and one visible contract anchor
 - `worldState`: Chapter 6 town return after the unresolved old-road search; Vesper settles suspected disloyalty under house rules
@@ -3915,8 +3964,8 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 你從山路返城時，主桌仍只留兩個位置。維斯珀坐在莊家側，洛恩站在客方，抵押頁壓在骰盅下；契約要求的見證人終於回來，客方骰仍比公開桌的同款稍重。 |
-| 2 | any | enter | - | - | Casino owner and dealer enter; Lorne's usual table smile is absent. |
+| 1 | any | narration | - | - | 你把山上的紀錄交給伊萊。村長的外套留在椅背，沒有人把它收走。入夜後，洛恩派人來找你；主桌仍只留兩個位置，抵押頁壓在骰盅下，客方骰也仍比公開桌的同款稍重。 |
+| 2 | any | enter | `casino_owner,casino_dealer` | - | Casino owner and dealer enter; Lorne's usual table smile is absent. |
 | 3 | any | speaker | `casino_owner` | `soft` | 我們不談背叛，只談未結清的債。你想活著離桌，當然可以。贏一次就好。 |
 | 4 | any | speaker | `casino_dealer` | `guarded` | 客方要求見證人。規則第七行。 |
 | 5 | any | narration | - | - | 維斯珀允許你站在桌側。他知道見證不會改變被動過手腳的骰子，反而讓結果更像自願。 |
@@ -3933,6 +3982,7 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 ### `ch6_s07_house_changes_seats`
 
+- `title`: 莊家換位
 - `stageClass`: `town_scene`
 - `background`: same casino table, then display hall after owner removal
 - `worldState`: first-run poisoned aftermath or second-run witnessed final wager and contract collection
@@ -3970,12 +4020,13 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 ### `ch6_s08_brush_past_or_invitation`
 
+- `title`: 哨聲引來的人
 - `stageClass`: `town_scene`
 - `background`: town edge after the failed mountain return and fixed casino confrontation
-- `worldState`: Chapter 6 dusk; Ailo hears that neither force nor dragon restraint revealed a usable human continuation
+- `worldState`: Chapter 6 dusk; Ailo hears the Echo Whistle after neither force nor dragon restraint revealed a usable human continuation
 - `viewpoint`: `protagonist_limited`
 - `participants`: street_beggar
-- `entry`: protagonist leaves the resolved casino scene and crosses the town edge with the Echo Whistle still in current-run inventory
+- `entry`: protagonist leaves the resolved casino scene and tests the Echo Whistle again at the town edge
 - `exit`: first run loses the whistle and Ailo; second run gains Ailo as an active companion
 - `objective`: first run discover the theft; second run recognize and interrupt the same intention
 - `inputs`: broad road failed; `先行的回聲` only in second run
@@ -3984,13 +4035,13 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 你在鎮邊提到山上沒有路。艾洛原本蹲在牆根，聽見「沒有路」後第一次完整抬頭。 |
-| 2 | first_run | enter | - | - | Street beggar approaches. Dialogue UI opens with his portrait and name label `乞丐`, but the text field remains empty. |
+| 1 | any | narration | - | - | 離開賭場後，你在鎮邊再次吹響回聲哨。短音剛停，蹲在牆根的艾洛便抬起頭；長音還沒散去，他已經站了起來。 |
+| 2 | first_run | enter | `street_beggar` | - | Street beggar approaches. Dialogue UI opens with his portrait and name label `乞丐`, but the text field remains empty. |
 | 3 | first_run | narration | - | - | 他與你擦身而過，沒有一句對話。介面立刻關閉，人也混進轉角後的陰影。 |
 | 4 | first_run | narration | - | - | 系統提示檢查背包。回聲哨已不在原格，地上只留著一小片被揉爛的花瓣。 |
 | 5 | first_run | exit | - | - | Lock Ailo missing and Echo Whistle stolen; open old route mouth after a short delay. |
-| 6 | second_run | narration | - | - | `先行的回聲` 讓你在他靠近前握住哨子，直接指出他打算拿走它並獨自上山。 |
-| 7 | second_run | enter | - | - | Street beggar stops at arm's length; expression shifts from guarded to afraid. |
+| 6 | second_run | narration | - | - | `先行的回聲` 讓你認出同一個動作。艾洛靠近前，你先握住哨子，問他是不是知道山上的盲彎該怎麼走。 |
+| 7 | second_run | enter | `street_beggar` | - | Street beggar stops at arm's length; expression shifts from guarded to afraid. |
 | 8 | second_run | speaker | `street_beggar` | `angry` | 不是偷。那是我們的。你吹錯了，山把路藏起來，她還在等。 |
 | 9 | second_run | narration | - | - | 你不要求他解釋妻子、村落或魔王，只說既然只有他知道先吹哪一孔，就由他帶路，而你不會讓他一個人去。 |
 | 10 | second_run | speaker | `street_beggar` | `afraid` | 你走太重，會把花踩爛。也可能死。她不喜歡我帶死人去。 |
@@ -4000,6 +4051,7 @@ evidence plus achievement memory; no NPC remembers the first run.
 
 ### `ch6_s09_the_old_note_answers`
 
+- `title`: 舊路回音
 - `stageClass`: `location_scene`
 - `background`: old route mouth hidden by collapsed terrain and acoustic blind turns
 - `worldState`: Chapter 6-to-7 bridge; first run path already opened by Ailo, second run opened beside him
@@ -4017,11 +4069,11 @@ evidence plus achievement memory; no NPC remembers the first run.
 | 1 | first_run | narration | - | - | 崩壁前出現新的腳印。第一個盲彎留有一短音的粉塵震落痕，第二處則是遮住右孔後的長音。艾洛已經先走。 |
 | 2 | first_run | narration | - | - | 回音沒有移開石頭。它讓人辨認哪一道看似封死的裂隙後方仍有空腔；沿著新鮮刮痕側身進入，舊路便從視線死角出現。 |
 | 3 | first_run | exit | - | - | Open Chapter 7 route with Ailo fresh traces and no living companion. |
-| 4 | second_run | enter | - | - | Ailo enters at the route mouth, covering one whistle hole with a scarred fingertip. |
+| 4 | second_run | enter | `street_beggar` | - | Ailo enters at the route mouth, covering one whistle hole with a scarred fingertip. |
 | 5 | second_run | speaker | `street_beggar` | `neutral` | 第一聲問石頭還在不在。第二聲問後面有沒有空。它們不回答人，只回答形狀。 |
 | 6 | second_run | narration | - | - | 他吹一短一長。左側回音重疊，右側長音晚半息返回，指出崩壁後仍有可走的窄腔。 |
 | 7 | second_run | speaker | `street_beggar` | `guarded` | 三次才轉。以前她會數，我老是搶第二次。不要笑，走錯的人沒資格笑。 |
-| 8 | second_run | narration | - | - | 艾洛先側身進入，又停在能看見你的地方。這個微小等待就是兩周目真正改變的第一步。 |
+| 8 | second_run | narration | - | - | 艾洛先側身進入，又在石縫另一端停下。等你跟進視線，他才繼續往下一個盲彎走。 |
 | 9 | second_run | exit | - | - | Open Chapter 7 old mountain canvas with Ailo companion and Echo Whistle route rules. |
 
 ## Chapter 7 Detailed Screenplay V1
@@ -4033,6 +4085,7 @@ endings now form one completed review draft awaiting user approval.
 
 ### `ch7_s01_narrow_human_road`
 
+- `title`: 舊山路
 - `stageClass`: `regional_canvas`
 - `background`: handcrafted old mountain road with blind rock turns, acoustic notches, and destroyed settlement traces
 - `worldState`: Chapter 7 opening; first run follows Ailo ahead, second run travels beside him
@@ -4054,7 +4107,7 @@ endings now form one completed review draft awaiting user approval.
 | 4 | first_run | narration | - | - | 他遮住右孔吹出長音，等回聲晚半息才側身進入裂縫。嘴裡反覆念著沒有名字的「她」，沒有回頭。 |
 | 5 | first_run | cutaway | - | - | 鏡頭回到主角。長音已在岩層裡散掉，只剩前方新落的碎石與一點血。 |
 | 6 | first_run | narration | - | - | 幾處血痕落在尖石上，沒有拖行或屍體。手札只能寫下：有人帶傷繼續往墜落地前進。 |
-| 7 | second_run | enter | - | - | Ailo enters at the first blind turn, listening to the return echo before moving. |
+| 7 | second_run | enter | `street_beggar` | - | Ailo enters at the first blind turn, listening to the return echo before moving. |
 | 8 | second_run | speaker | `street_beggar` | `neutral` | 兩次停，三次轉。以前我總搶快，她就在後面罵我把路走得像逃命。 |
 | 9 | second_run | narration | - | - | 有時他準確指出石縫，有時又蹲在一片普通苔痕前叫錯名字。你不替他把破碎記憶整理成預言，只等他重新聽見路。 |
 | 10 | second_run | speaker | `street_beggar` | `guarded` | 別扶。我會忘記腳要放哪。你站近一點就好。 |
@@ -4065,6 +4118,7 @@ endings now form one completed review draft awaiting user approval.
 
 ### `ch7_s02_ruined_flower_field`
 
+- `title`: 約定之地
 - `stageClass`: `location_scene`
 - `background`: present-day ruined flower field and remains of Ailo/Neelu's settlement edge
 - `worldState`: first run silent ruin; second run Echo Whistle and emphasized flower align memory
@@ -4083,7 +4137,7 @@ endings now form one completed review draft awaiting user approval.
 | 2 | first_run | narration | - | - | 一朵外白、花心淡綠的小花被刻意留在倒石中央，旁邊有剛放下的爛布與木屑。艾洛來過，之後的痕跡沒有回城，而是朝當年逃生的舊崖口往上。 |
 | 3 | first_run | narration | - | - | 最後一枚帶血手印停在崖口新裂的岩面，下面只有被黑霧遮住的深谷。你沒有找到屍體，也沒有聽見告別；手札只能留下「有人把這裡當成約定地，之後仍往上走」。 |
 | 4 | first_run | exit | - | - | Lock incomplete flower-field entry; continue to final camp without revealing Neelu or Ailo's name. |
-| 5 | second_run | enter | - | - | Ailo enters and kneels beside the white-petaled, pale-green-centered flower; the Echo Whistle slips from his hand but does not sound by itself. |
+| 5 | second_run | enter | `street_beggar` | - | Ailo enters and kneels beside the white-petaled, pale-green-centered flower; the Echo Whistle slips from his hand but does not sound by itself. |
 | 6 | second_run | speaker | `street_beggar` | `grieving` | 不是這樣。這裡以前很多。她說不准採，今天不用工作……我還帶了袋子。 |
 | 7 | second_run | narration | - | - | 你把空袋放到一旁，只留下花與哨子。山風穿過雙孔，回出一短一長，與舊田界的形狀重合。 |
 | 8 | second_run | speaker | `street_beggar` | `afraid` | 她要叫我了。別回答，那是我的名字。 |
@@ -4091,6 +4145,7 @@ endings now form one completed review draft awaiting user approval.
 
 ### `ch7_s03_echo_memory`
 
+- `title`: 花田回聲
 - `stageClass`: `memory_or_ending`
 - `background`: full-scene old-photo-filter sequence blending remembered flower field, village work, disaster, valley fall, and present ruin
 - `worldState`: second run only; memory performance, not a ghost encounter or lore vision
@@ -4107,8 +4162,8 @@ endings now form one completed review draft awaiting user approval.
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
 | 1 | second_run | narration | - | - | 焦土先恢復顏色，接著是田界、屋頂與曬在繩上的布。畫面像舊照片被水慢慢洗回原貌。 |
-| 2 | second_run | enter | - | - | Young Ailo enters carrying one bag mixed with edible herbs, dye flowers, and useless trail scraps. |
-| 3 | second_run | enter | - | - | Neelu enters with dark hair tied by faded green cloth, dye-stained fingertips, and a mending needle at her collar. |
+| 2 | second_run | enter | `young_ailo` | - | Young Ailo enters carrying one bag mixed with edible herbs, dye flowers, and useless trail scraps. |
+| 3 | second_run | enter | `neelu` | - | Neelu enters with dark hair tied by faded green cloth, dye-stained fingertips, and a mending needle at her collar. |
 | 4 | second_run | speaker | `neelu` | `pleased` | 艾洛，你又把能吃的、能染的和路邊撿來騙我的東西塞在一起。這片木頭到底要做什麼？ |
 | 5 | second_run | speaker | `young_ailo` | `pleased` | 它長得像一只鳥。等我削完，妳就會承認。 |
 | 6 | second_run | speaker | `neelu` | `neutral` | 等你削完，它會像一只被你害死的鳥。先把花分出來，我明天要交染布。 |
@@ -4126,19 +4181,20 @@ endings now form one completed review draft awaiting user approval.
 | 18 | second_run | speaker | `neelu` | `soft` | 所以你要活著，艾洛。到下面等我。 |
 | 19 | second_run | narration | - | - | 她把他推下山谷。艾洛撞上岩面，頭部重創；最後看見的是妮露轉回斷路，而不是一場可被英雄改寫的告別。 |
 | 20 | second_run | narration | - | - | 畫面重新疊回現在。年老的艾洛站在完整花田記憶裡，手中仍抱著多年來誤認成她的破布。 |
-| 21 | second_run | enter | - | - | Present Ailo enters; Neelu remains a memory participant, not a living ghost in the current world. |
-| 22 | second_run | speaker | `street_beggar` | `grieving` | 我沒等到妳。我一直往崖口上面走，以為妳還在那裡。我把路忘了，把妳的臉也弄丟了。我恨那座山，也恨活下來的是我。 |
-| 23 | second_run | speaker | `neelu` | `soft` | 我知道。你有來。你一直都在來。 |
-| 24 | second_run | speaker | `street_beggar` | `grieving` | 花都死了。約定也被我拖爛了。 |
-| 25 | second_run | speaker | `neelu` | `soft` | 我叫你往下，是要你活，不是叫你回頭找我。約定也不是要你死在這裡。艾洛，看我——現在你已經來了。 |
-| 26 | second_run | narration | - | - | 她接過記憶裡那只永遠混亂的袋子，將花與廢木分開，像過去無數次一樣。畫面沒有提供魔王弱點，只把一段人生還給他。 |
+| 21 | second_run | enter | `street_beggar` | - | Present Ailo enters; Neelu remains a memory participant, not a living ghost in the current world. |
+| 22 | second_run | speaker | `street_beggar` | `grieving` | 我沒等到妳。我一直往崖口上面走，以為妳還在那裡。我把路忘了，把妳的臉也弄丟了。 |
+| 23 | second_run | narration | - | - | 記憶裡的妮露沒有回答。斷路、黑霧與她最後那句「到下面等我」重新響了一次。 |
+| 24 | second_run | speaker | `street_beggar` | `hurt` | 原來妳說的是下面。 |
+| 25 | second_run | narration | - | - | 畫面退回更早的花田。妮露蹲在染料堆旁，把那朵染不出顏色的小花放回他的袋口。 |
+| 26 | second_run | narration | - | - | 艾洛伸手去碰。記憶散去時，他的指尖碰到的是現今石縫裡一片乾掉的花瓣。 |
 | 27 | second_run | exit | - | - | Old-photo image fades; protagonist wakes in present ruin beside living Ailo. |
 | 28 | second_run | speaker | `street_beggar` | `hurt` | 她叫我艾洛。原來是這個。 |
-| 29 | second_run | narration | - | - | 他沒有恢復成完全正常的人，也沒有立刻走回城鎮生活。他只是終於知道妮露當年指的是下山方向，不再把舊崖口上方當成她仍在等待的地方。 |
+| 29 | second_run | narration | - | - | 他把懷裡的破布放在倒石旁，沒有再往崖口上方走。下一陣風來時，他轉身朝下山的路看去。 |
 | 30 | second_run | exit | - | - | Lock Ailo survived, old-cliff misreading corrected, and memory complete; open final camp with him resting outside the combat route. |
 
 ### `ch7_s04_three_anchor_check`
 
+- `title`: 最後的準備
 - `stageClass`: `location_scene`
 - `background`: final mountain camp with three neutral forge housings and the equipped weapon visible only as the player's current gear
 - `worldState`: first run ordinary final preparation; second run true-kill assembly
@@ -4153,17 +4209,18 @@ endings now form one completed review draft awaiting user approval.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 行囊裡有足以完成戰鬥的裝備與補給，卻沒有任何方法證明敵人的生命只留在可見身體。你只能按第一次遠征的邏輯前進：找到，擊倒。 |
-| 2 | second_run | narration | - | - | 第一只中性外殼裝入完整生命種子。它會把借用大地的活力逼回一具可死的身體。 |
-| 3 | second_run | narration | - | - | 第二只外殼固定古代符文。它不增加傷害，只在肉身崩潰時釘住企圖離開的聲音與魂響。 |
-| 4 | second_run | narration | - | - | 第三只外殼承載純淨森林精華與微光媒介。宿主與寄生核心的邊界將在最後一刻顯形。 |
-| 5 | second_run | narration | - | - | 鐵匠的結構可以接在任何現有武器形式上。劍、斧、槍、弓、法器或其他裝備都由玩家當前選擇完成最後一擊。 |
-| 6 | second_run | narration | - | - | 伊萊留下的順序只有三行：先還生命，再鎖回聲，最後照出核心。紙沒有替你戰鬥，只確保證據在正確時刻相遇。 |
+| 1 | first_run | narration | - | - | 營地只剩磨刀石、繃帶與最後一份補給。你檢查武器的刃口與扣帶；眼前能準備的，仍只有一場正面戰鬥。 |
+| 2 | second_run | narration | - | - | 你把完整生命種子放進第一只外殼。種子貼上金屬後規律收縮，像在回應山裡緩慢的搏動。 |
+| 3 | second_run | narration | - | - | 古代符文嵌入第二只外殼。敲定最後一角時，營地裡散開的回音忽然短了一截。 |
+| 4 | second_run | narration | - | - | 純淨森林精華流進第三只外殼，微光沿刻槽停在邊緣，沒有向外擴散。三只外殼依序接上你正在使用的武器。 |
+| 5 | second_run | narration | - | - | 接合處不改變武器原本的握法與重量。鐵匠留下的扣件只在三只外殼同時啟動時閉合。 |
+| 6 | second_run | narration | - | - | 伊萊的紙條壓在工具底下。上面只有三行：先還生命，再鎖回聲，最後照出核心。末尾沾著鐵匠按過的黑指印。 |
 | 7 | second_run | speaker | `street_beggar` | `neutral` | 上面那個不是她。別聽它拿死人說話。它不認識我們。 |
 | 8 | any | exit | - | - | Lock final preparation state and open Demon King fall-site audience. |
 
 ### `ch7_s05_fall_site_audience`
 
+- `title`: 墜落之地
 - `stageClass`: `location_scene`
 - `background`: Demon King fall site, a mountain wound where body, land, and curse converge
 - `worldState`: Chapter 7 final confrontation; dragon containment absent first run or active beyond the narrow route second run
@@ -4178,16 +4235,17 @@ endings now form one completed review draft awaiting user approval.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 墜落地不是王座。岩層向內凹陷，黑色脈絡從中央伸進整座山，像一顆外來心臟把自己縫進土地。 |
-| 2 | any | enter | - | - | 魔王赫爾薩恩 enters in the existing full mainline Boss illustration; no sympathetic human portrait or alternate form is added. |
-| 3 | first_run | speaker | `demon_lord_asariel` | `pleased` | 翼火熄了。你替我除掉守在傷口上的東西，現在又帶著武器來索取勝利。人類的順序總是方便。 |
+| 1 | any | narration | - | - | 岩層向內塌成巨大的凹地。黑色脈絡從中央鑽入四周石壁，每隔數息便同時鼓起一次；碎石也跟著輕顫。 |
+| 2 | any | enter | `demon_lord_asariel` | - | 魔王赫爾薩恩 enters in the existing full mainline Boss illustration; no sympathetic human portrait or alternate form is added. |
+| 3 | first_run | speaker | `demon_lord_asariel` | `pleased` | 翼火熄了。你把守在外面的龍都殺了。現在只剩你和我。 |
 | 4 | second_run | speaker | `demon_lord_asariel` | `guarded` | 翼火仍在。你從死村的小路爬進來，還帶著幾件不屬於你的生命。這次學會準備了。 |
-| 5 | any | narration | - | - | 你沒有要求它解釋龍、村落或詛咒。所有答案已由活人、死者、道路與當前周目材料拼出；眼前只剩必須被終止的敵人。 |
-| 6 | any | speaker | `demon_lord_asariel` | `resolute` | 短命者總把抵達誤認成資格。來。讓我記住你能留下多久。 |
+| 5 | any | narration | - | - | 你握緊武器。一路帶來的碎片、哨聲與傷亡都停在身後，眼前只剩黑脈中央仍在呼吸的身體。 |
+| 6 | any | speaker | `demon_lord_asariel` | `resolute` | 走到這裡還不夠。來吧。 |
 | 7 | any | exit | - | - | 收起事件層，進入 Demon King combat-body Boss battle. |
 
 ### `ch7_s06_combat_body_falls`
 
+- `title`: 倒下的身體
 - `stageClass`: `location_scene`
 - `background`: same fall-site arena during combat-body collapse
 - `worldState`: first run false kill or second-run three-anchor execution transition
@@ -4202,7 +4260,7 @@ endings now form one completed review draft awaiting user approval.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | any | narration | - | - | 魔王的可見身體跪下，胸口裂開。一般戰鬥判定已完成：敵方軍事形體失去行動能力。 |
+| 1 | any | narration | - | - | 魔王單膝砸進碎石，胸口裂開。手臂垂下後再也沒有抬起，武器也從指間滑落。 |
 | 2 | first_run | narration | - | - | 黑色脈絡沒有停止。它們只把搏動壓低，從屍體退回岩層與遠處尚未封住的回聲。你沒有能標記的第二個目標。 |
 | 3 | first_run | speaker | `demon_lord_asariel` | `hurt` | ……很好。 |
 | 4 | first_run | exit | - | - | Body appears dead; no valid core target exists. Continue to first-run ending transition. |
@@ -4216,6 +4274,7 @@ endings now form one completed review draft awaiting user approval.
 
 ### `ch7_s07_last_core`
 
+- `title`: 最後的核心
 - `stageClass`: `location_scene`
 - `background`: fall-site core phase transitioning into run-specific ending light
 - `worldState`: first run no target or second run true execution
@@ -4230,12 +4289,12 @@ endings now form one completed review draft awaiting user approval.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 沒有第二階段介面，也沒有可攻擊核心。屍體停止反應，山中搏動低到手札與戰鬥系統都只能記為勝利。 |
+| 1 | first_run | narration | - | - | 屍體沒有再動。胸口的裂縫裡只有冷掉的黑灰，四周岩層也安靜下來；你找不到另一個能下手的位置。 |
 | 2 | first_run | narration | - | - | 你離開時，最後一道黑脈縮進岩下，隨後再沒有可見搏動。手札、戰鬥判定與現場感知都找不到能繼續攻擊的目標。 |
 | 3 | first_run | exit | - | - | Lock hollow-victory state and return to town; surviving-Demon reveal is held for the final post-ending image. |
-| 4 | second_run | narration | - | - | 核心被生命、回聲與微光三重限制在一個可攻擊位置。系統保留玩家當前武器、技能與戰鬥身份。 |
+| 4 | second_run | narration | - | - | 三只外殼同時閉合。原本散進岩層的黑脈被拉回胸口，凝成一枚不斷收縮的核心。你手中的武器仍維持原本的重量。 |
 | 5 | second_run | speaker | `demon_lord_asariel` | `angry` | 你只是山上一瞬的灰。它會比你活得久。 |
-| 6 | second_run | narration | - | - | 最後一擊由玩家現有裝備完成。沒有指定神劍替代選擇，也沒有光明、虛空、外傳 Boss 獎勵或 DLC 力量介入本傳結局。 |
+| 6 | second_run | narration | - | - | 你用一路帶到這裡的武器擊中核心。刃、槍尖、箭矢或法器留下的傷口不同，核心碎裂的聲音只有一次。 |
 | 7 | second_run | narration | - | - | 核心破裂後，古代符文先失去需要鎖住的聲音，生命種子停止反向搏動，微光則照見岩層重新只屬於岩層。 |
 | 8 | second_run | speaker | `demon_lord_asariel` | `hurt` | 不—— |
 | 9 | second_run | narration | - | - | 聲音沒有逃往別處。三個錨具依序失去反應，岩層也不再替核心搏動；魔王在當前世界中真正死亡，乾淨的山風第一次穿過墜落地。 |
@@ -4245,6 +4304,7 @@ endings now form one completed review draft awaiting user approval.
 
 ### `ch7_s08_return_to_town`
 
+- `title`: 回到城鎮
 - `stageClass`: `memory_or_ending`
 - `background`: fixed town return montage using the same places in first-run loss and second-run survival states
 - `worldState`: run-specific ending; first run celebrates a false military kill, second run feels quiet rather than triumphant
@@ -4263,7 +4323,7 @@ endings now form one completed review draft awaiting user approval.
 | 1 | first_run | narration | - | - | 南門只亮著塔維的燈。旗桿換了新木，芙蕾留下的旗扣仍是舊的。塔維沒有問戰鬥，只先確認你的影子是一個人。 |
 | 2 | first_run | speaker | `lamplighter_tavi` | `neutral` | 回來了。好。我把名字劃回去。 |
 | 3 | first_run | narration | - | - | 米婭的工作間維持原樣，床邊沒有新的水。村長的椅子空著，鐵匠鋪只響了一次錘。 |
-| 4 | first_run | enter | - | - | Blacksmith enters at the forge table with the protagonist's damaged gear still untouched. |
+| 4 | first_run | enter | `blacksmith` | - | Blacksmith enters at the forge table with the protagonist's damaged gear still untouched. |
 | 5 | first_run | speaker | `blacksmith` | `neutral` | 裝備放下。你回來就好。剩下的……今天沒有東西修得好。 |
 | 6 | first_run | narration | - | - | 賭場主人席仍空著，但不是因正義完成。維斯珀逃走，洛恩看著他離開的那道門，灌鉛骰只能證明一部分罪。艾洛也沒有回來。 |
 | 7 | first_run | speaker | `town_scholar` | `grieving` | 我會寫你擊倒了魔王。這是我們現在能證明的事。其餘的空白……我不會替勝利填滿。 |
@@ -4272,24 +4332,25 @@ endings now form one completed review draft awaiting user approval.
 | 10 | second_run | speaker | `standard_bearer_frey` | `pleased` | 一行出去，一行回來。規矩還是很好用。 |
 | 11 | second_run | speaker | `lamplighter_tavi` | `pleased` | 我看見了。這次不是「應該」。 |
 | 12 | second_run | narration | - | - | 米婭的工作間開著。她先找血、灰與不自然的步子，直到確定你真的沒有帶傷。 |
-| 13 | second_run | enter | - | - | Mia enters in the living-after-rescue workroom state; the long-closed inner window is now open. |
+| 13 | second_run | enter | `herbalist` | - | Mia enters in the living-after-rescue workroom state; the long-closed inner window is now open. |
 | 14 | second_run | speaker | `herbalist` | `guarded` | 哪裡受傷？不要先說沒事。 |
 | 15 | second_run | narration | - | - | 你讓她檢查，確實沒有需要治療的傷。你仍留在門口，沒有拿病歷當成見她的理由。 |
 | 16 | second_run | speaker | `herbalist` | `soft` | 下次回來，別再拿傷口當理由。 |
-| 17 | second_run | narration | - | - | 城鎮人際紀錄新增 `沒有傷也能回來`：`今天沒有新增病歷。她只多準備了一只杯子。` |
+| 17 | second_run | narration | - | - | 今天沒有新增病歷。米婭把藥箱推回牆邊，桌上只多放了一只乾淨的杯子。 |
 | 18 | second_run | narration | - | - | 場景轉到公務室。村長與伊萊把遠征、龍族與封痕攤在同一張不再避開彼此的桌上。 |
-| 19 | second_run | enter | - | - | Village elder and town scholar enter together at the archive table. |
-| 20 | second_run | speaker | `village_elder` | `soft` | 別寫成我終於做對。寫有人攔住我，而我這次肯停。 |
-| 21 | second_run | speaker | `town_scholar` | `pleased` | 我會寫得更麻煩一點：我們終於沒有讓一個人替所有人負責。 |
+| 19 | second_run | enter | `village_elder,town_scholar` | - | Village elder and town scholar enter together at the archive table. |
+| 20 | second_run | speaker | `village_elder` | `soft` | 那一頁先別寫結論。誰攔住我、我在哪裡停下，都記清楚。 |
+| 21 | second_run | speaker | `town_scholar` | `pleased` | 好。名字分開寫，誰也不省。 |
 | 22 | second_run | narration | - | - | 鐵匠鋪恢復完整節奏。主角把武器放上桌時，前面仍排著生活用具。 |
-| 23 | second_run | enter | - | - | Blacksmith enters with soot on both hands and a repaired pot cooling beside the anvil. |
-| 24 | second_run | speaker | `blacksmith` | `pleased` | 先別把武器放爐邊。前面還有一只漏水的鍋。能排回這種東西，才算真的贏。 |
+| 23 | second_run | enter | `blacksmith` | - | Blacksmith enters with soot on both hands and a repaired pot cooling beside the anvil. |
+| 24 | second_run | speaker | `blacksmith` | `pleased` | 武器先放旁邊。前面還有一只漏水的鍋。 |
 | 25 | second_run | narration | - | - | 賭場展示牆已有一格空位，那是你在第六章取回的獎品。洛恩把債務總帳放在公開桌上，所有剩餘票券遊戲列出真實機率。 |
 | 26 | second_run | speaker | `casino_dealer` | `guarded` | 帳在這裡。看完再決定要不要坐下。這句話以前應該更早說。 |
 | 27 | second_run | exit | - | - | Lock core NPC endpoint performances and true-ending town closure; move to Ailo/flower-letter epilogue. |
 
 ### `ch7_s09_first_or_second_epilogue`
 
+- `title`: 回聲盡頭
 - `stageClass`: `memory_or_ending`
 - `background`: first-run civic remembrance and surviving-Demon image, or second-run clean mountain wind and unsigned flower letter
 - `worldState`: final run-specific ending
@@ -4305,20 +4366,20 @@ endings now form one completed review draft awaiting user approval.
 
 | Order | Condition | Beat | Speaker | Expression | Runtime Text / Stage Action |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | first_run | narration | - | - | 城鎮為戰鬥結果點起有限的燈。結算依序回看：沒有回來的旗、涼掉的水、封痕前的老人、逃走的莊家、先行的回聲。 |
-| 2 | first_run | narration | - | - | 每段回想都只顯示玩家當時能理解的表面，再留下不完整細節：後標沒亮、棘輪第二聲、老人補過的靴、客方骰重量、艾洛空白的對話框。 |
-| 3 | first_run | narration | - | - | `未竟的弒王` 解鎖。第二周目將只保留成就記憶；所有哨子、碎片、骰子、錨具與實體材料都必須在新周目重新取得。 |
+| 1 | first_run | narration | - | - | 南門點起了燈。塔維把我的名字劃回簿裡，空著的另一行沒有動。 |
+| 2 | first_run | narration | - | - | 米婭工作間的水杯仍在原位。公務室的椅背掛著村長的外套，鐵匠鋪隔了很久才又響一聲。 |
+| 3 | first_run | narration | - | - | 廣場有人低聲談起魔王已死。話傳到賭場門口便散了；主人席空著，艾洛也沒有回來。 |
 | 4 | first_run | narration | - | - | 最後一幕離開城鎮，回到墜落地深處。魔王的戰鬥身體殘破地伏在岩層中，黑脈仍以極慢速度為它輸送生命。 |
-| 5 | first_run | enter | - | - | Deferred surviving-Demon full image appears after the apparent ending. |
+| 5 | first_run | enter | `demon_lord_asariel` | - | Deferred surviving-Demon full image appears after the apparent ending. |
 | 6 | first_run | speaker | `demon_lord_asariel` | `hurt` | 我記住你了，凡人。 |
 | 7 | first_run | exit | - | - | Fade to black; unlock second run with achievement-only story persistence. |
 | 8 | second_run | narration | - | - | 真結局後，艾洛沒有成為城鎮居民。他在某個清晨自行離開，這次沒有偷走工具，也沒有留下死亡方向。 |
 | 9 | second_run | narration | - | - | 幾日後，主角收到一封沒有署名、沒有文字的信。信裡只有那朵外白、花心淡綠、在記憶中被妮露挑出染料堆的花，壓得很平，仍保留一點顏色。 |
-| 10 | second_run | narration | - | - | 沒有人替它加上解說。看過記憶的人會明白：艾洛活在某個地方，也終於能把花當成花寄回來。 |
-| 11 | second_run | narration | - | - | `回聲盡頭，花仍會開` 解鎖。沒有金幣、裝備或額外系統獎勵。 |
+| 10 | second_run | narration | - | - | 信封裡沒有其他東西。花莖壓得有些歪，邊緣還沾著路上的細灰。 |
+| 11 | second_run | narration | - | - | 你把花收進信紙裡，沒有替它補上文字。 |
 | 12 | second_run | narration | - | - | 畫面回到山邊。花梗在乾淨的風裡移動，封痕仍有龍火守著，岩下不再傳來黑色搏動。 |
-| 13 | second_run | narration | - | - | 城鎮沒有被恢復成災難前的樣子。它只終於能讓修復、爭吵、工作、愛與休息繼續發生。 |
-| 14 | second_run | exit | - | - | Close the base campaign true ending; unfinished external routes remain optional, and later DLC stays separate. |
+| 13 | second_run | narration | - | - | 清晨的市集先響起搬箱聲。鐵匠在巷口催人把漏鍋拿走，米婭推開窗，讓藥草的氣味散進街上。 |
+| 14 | second_run | exit | - | - | Close the base campaign true ending and return control to the completed-campaign title state. |
 
 ## Story Ambition
 

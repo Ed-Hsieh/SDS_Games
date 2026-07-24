@@ -162,6 +162,14 @@
     transform: none;
 }
 
+.story-dialogue-actor.is-entering {
+    animation: story-actor-enter 240ms ease-out both;
+}
+
+.story-dialogue-actor.is-exiting {
+    animation: story-actor-exit 240ms ease-in both;
+}
+
 .story-dialogue-actor img {
     position: absolute;
     top: -8%;
@@ -515,6 +523,20 @@
 
 @keyframes story-dialogue-next {
     to { transform: translateY(4px); }
+}
+
+@keyframes story-actor-enter {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
+@keyframes story-actor-exit {
+    to {
+        opacity: 0;
+        transform: translateY(8px);
+    }
 }
 
 @keyframes story-eyes-closing {

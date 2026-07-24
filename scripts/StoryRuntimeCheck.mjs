@@ -33,7 +33,12 @@ import {
     hasPostBattlePresentation,
     validateStoryEncounterContract
 } from '../src/js/data/StoryEncounterContracts.js';
-import { TownPlaceDatabase } from '../src/js/data/TownPlaces.js';
+import {
+    TownPlaceDatabase,
+    TownSceneBindings,
+    TownSceneTrigger,
+    getTownSceneBinding
+} from '../src/js/data/TownPlaces.js';
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
 import {
@@ -110,7 +115,21 @@ function validateScenes() {
         if (count !== 1) error('scene-binding', `${sceneId} has ${count} region bindings`);
     }
     for (const sceneId of bindingIds) {
-        if (!mapSceneIds.includes(sceneId)) error('scene-binding', `${sceneId} is bound to the map but is not a map-stage scene`);
+        const scene = StorySceneRegistry[sceneId];
+        const isSecondRunLocationMemory = sceneId === 'ch7_s03_echo_memory'
+            && scene?.stageClass === 'memory_or_ending'
+            && !sceneSupportsRun(scene, 1);
+        if (!mapSceneIds.includes(sceneId) && !isSecondRunLocationMemory) {
+            error('scene-binding', `${sceneId} is bound to the map but is not a map-stage scene`);
+        }
+    }
+    const townBindingIds = TownSceneBindings.map(binding => binding.sceneId);
+    for (const sceneId of StorySceneOrder) {
+        const count = bindingIds.filter(id => id === sceneId).length
+            + townBindingIds.filter(id => id === sceneId).length;
+        if (count !== 1) {
+            error('scene-reachability', `${sceneId} has ${count} canonical story triggers`);
+        }
     }
 }
 
@@ -144,21 +163,45 @@ function validateMainlineCharacterContracts() {
                 error('character-contract', `${actorId} references missing scene ${sceneId}`);
                 continue;
             }
-            if (!scene.beats.some(beat => beat.actorId === actorId)) {
+            const evidenceOnlyEndpoint = (
+                sceneId === contract.endpointSceneIds?.first_run
+                && contract.endpointModes?.first_run === 'evidence'
+            ) || (
+                sceneId === contract.endpointSceneIds?.second_run
+                && contract.endpointModes?.second_run === 'evidence'
+            );
+            if (!evidenceOnlyEndpoint && !scene.beats.some(beat => beat.actorId === actorId)) {
                 error('character-contract', `${actorId} does not participate in owned scene ${sceneId}`);
+            }
+        }
+
+        for (const sceneId of contract.evidenceSceneIds || []) {
+            const scene = StorySceneRegistry[sceneId];
+            if (!scene) {
+                error('character-contract', `${actorId} references missing evidence scene ${sceneId}`);
+            } else if (scene.beats.some(beat => beat.actorId === actorId)) {
+                error('character-contract', `${actorId} appears inside evidence-only scene ${sceneId}`);
             }
         }
 
         const firstEndpoint = StorySceneRegistry[contract.endpointSceneIds?.first_run];
         const secondEndpoint = StorySceneRegistry[contract.endpointSceneIds?.second_run];
-        if (firstEndpoint && !firstEndpoint.beats.some(beat =>
+        if (
+            firstEndpoint
+            && contract.endpointModes?.first_run !== 'evidence'
+            && !firstEndpoint.beats.some(beat =>
             beat.actorId === actorId && ['any', 'first_run'].includes(beat.condition)
-        )) {
+            )
+        ) {
             error('character-endpoint', `${actorId} lacks a first-run endpoint performance`);
         }
-        if (secondEndpoint && !secondEndpoint.beats.some(beat =>
+        if (
+            secondEndpoint
+            && contract.endpointModes?.second_run !== 'evidence'
+            && !secondEndpoint.beats.some(beat =>
             beat.actorId === actorId && ['any', 'second_run'].includes(beat.condition)
-        )) {
+            )
+        ) {
             error('character-endpoint', `${actorId} lacks a second-run endpoint performance`);
         }
     }
@@ -254,8 +297,18 @@ function validateOverworldPrototype() {
     GameManager.state.mapState = null;
     const map = new WorldMap(GameManager.getCharacter(), 1000, 600);
 
-    if (OverworldMapConfig.tiles.length !== 2) {
-        error('overworld-prototype', `Expected two ready map tiles, got ${OverworldMapConfig.tiles.length}`);
+    const expectedTileRegionIds = Object.values(ChapterRegionRegistry)
+        .filter(region => region.visual?.mode === 'continuous_overworld_tile')
+        .map(region => region.regionId)
+        .sort();
+    const actualTileRegionIds = OverworldMapConfig.tiles
+        .map(tile => tile.regionId)
+        .sort();
+    if (actualTileRegionIds.join(',') !== expectedTileRegionIds.join(',')) {
+        error(
+            'overworld-prototype',
+            `Ready map tiles do not match region visual contracts: expected ${expectedTileRegionIds.join(', ')}, got ${actualTileRegionIds.join(', ')}`
+        );
     }
     for (const tile of OverworldMapConfig.tiles) {
         const region = ChapterRegionRegistry[tile.regionId];
@@ -643,22 +696,27 @@ function validateStoryObjectiveHints() {
         'ch1_s05_south_gate_introduction',
         'ch1_s08_cold_forge_smoke',
         'ch1_s11_roads_breathe_again',
-        'ch2_s01_empty_crates',
         'ch2_s02_name_under_basket',
         'ch2_s03_ledger_that_would_not_close',
         'ch2_s07_names_return_to_town'
     ]) {
-        const hint = getStoryObjectiveHint(sceneId);
-        if (!hint?.placeId || !hint?.actorId) error('objective-entry', `${sceneId} has no explicit town entry contract`);
+        const binding = getTownSceneBinding(sceneId);
+        if (!binding?.placeId || !binding?.actorId) error('objective-entry', `${sceneId} has no explicit town entry contract`);
     }
 
-    const scholarHandoff = getStoryObjectiveHint('ch1_s04_elder_to_scholar');
+    const scholarHandoff = getTownSceneBinding('ch1_s04_elder_to_scholar');
     if (scholarHandoff?.actorId !== 'town_scholar' || scholarHandoff?.placeId !== 'handbook') {
         error('objective-entry', 'Chapter 1 scholar handoff must only target the scholar at the handbook');
     }
-    const southGate = getStoryObjectiveHint('ch1_s05_south_gate_introduction');
+    const southGate = getTownSceneBinding('ch1_s05_south_gate_introduction');
     if (southGate?.placeId !== 'gate') {
         error('objective-entry', 'Chapter 1 south-gate introduction targets an unknown town place');
+    }
+    const emptyCrates = getTownSceneBinding('ch2_s01_empty_crates');
+    if (emptyCrates?.placeId !== 'market'
+        || emptyCrates?.trigger !== TownSceneTrigger.PLACE_INTERACT
+        || emptyCrates?.actorId) {
+        error('objective-entry', 'Chapter 2 empty-crates scene must be a market place interaction without an NPC');
     }
 }
 

@@ -14,6 +14,34 @@ const addIssue = (message, details = {}) => issues.push({ message, ...details })
 const addWarning = (message, details = {}) => warnings.push({ message, ...details });
 const hasText = value => typeof value === 'string' && value.trim().length > 0;
 
+function hasVisibleCharacterEndpoint(actorId, contract, runCondition, sceneId) {
+    const scene = StorySceneRegistry[sceneId];
+    if (!scene) return false;
+
+    const endpointMode = contract.endpointModes?.[runCondition] || 'performance';
+    const matchesRun = beat => ['any', runCondition].includes(beat.condition);
+
+    if (endpointMode === 'performance') {
+        return scene.beats?.some(beat => beat.actorId === actorId && matchesRun(beat));
+    }
+
+    if (endpointMode === 'evidence') {
+        const isDeclaredEvidenceScene = contract.evidenceSceneIds?.includes(sceneId);
+        const hasVisibleEvidence = scene.beats?.some(beat =>
+            beat.beat === 'narration' && hasText(beat.text) && matchesRun(beat)
+        );
+        return Boolean(isDeclaredEvidenceScene && hasVisibleEvidence);
+    }
+
+    addIssue('角色終點使用未知的演出模式', {
+        actorId,
+        runCondition,
+        sceneId,
+        endpointMode
+    });
+    return false;
+}
+
 function auditMainlineExperience() {
     const expectedChapterScenes = { 1: 11, 2: 8, 3: 9, 4: 9, 5: 11, 6: 9, 7: 9 };
     const stageCounts = {};
@@ -75,10 +103,14 @@ function auditCharacterWeight() {
         if (chapters.size < 4) addIssue('核心角色沒有形成跨章長線', { actorId, chapters: [...chapters] });
 
         for (const [runCondition, sceneId] of Object.entries(contract.endpointSceneIds || {})) {
-            const hasEndpointBeat = StorySceneRegistry[sceneId]?.beats?.some(beat =>
-                beat.actorId === actorId && ['any', runCondition].includes(beat.condition)
-            );
-            if (!hasEndpointBeat) addIssue('角色缺少當輪可見的終點演出', { actorId, runCondition, sceneId });
+            if (!hasVisibleCharacterEndpoint(actorId, contract, runCondition, sceneId)) {
+                addIssue('角色缺少當輪可見的終點演出', {
+                    actorId,
+                    runCondition,
+                    sceneId,
+                    endpointMode: contract.endpointModes?.[runCondition] || 'performance'
+                });
+            }
         }
     }
 

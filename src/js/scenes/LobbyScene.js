@@ -68,6 +68,7 @@ export default class LobbyScene {
         this.narrativeLines = [];
         this.renderedNarrativeCount = 0;
         this.prepTutorialProvider = null;
+        this.townArrivalReason = null;
     }
 
     init() {
@@ -79,6 +80,7 @@ export default class LobbyScene {
             GameManager.subscribe(this.updateUI);
             questManager.subscribe(this.handleQuestEvent);
 
+            this.townArrivalReason = navigationIntentManager.getTownArrivalReason();
             this.restoreTownPlaceReturn();
             this.initializeTownNarrative();
             // Force initial UI update with current state
@@ -514,6 +516,12 @@ export default class LobbyScene {
             return;
         }
 
+        const storySceneButton = event.target?.closest?.('[data-story-scene-id]');
+        if (storySceneButton && this.dom.worldStage?.contains(storySceneButton)) {
+            this.openStoryScene(storySceneButton.dataset.storySceneId);
+            return;
+        }
+
         const npcButton = event.target?.closest?.('[data-npc-id]');
         if (npcButton && this.dom.worldStage?.contains(npcButton)) {
             this.openTownNpc(npcButton.dataset.npcId);
@@ -680,7 +688,9 @@ export default class LobbyScene {
     }
 
     openInitialStoryFlow() {
-        const action = storyGuidanceManager.getInitialTownAction();
+        const action = storyGuidanceManager.getInitialTownAction({
+            townArrivalReason: this.townArrivalReason
+        });
         if (!action) return;
         window.setTimeout(() => {
             if (storyDialogueController.isOpen()) return;
@@ -694,7 +704,11 @@ export default class LobbyScene {
             }
             if (action.type === 'story-scene') {
                 if (action.placeId) this.enterTownPlace(action.placeId);
-                this.openStoryScene(action.sceneId);
+                const result = this.openStoryScene(action.sceneId);
+                if (result?.success && this.townArrivalReason) {
+                    navigationIntentManager.clearTownArrivalReason();
+                    this.townArrivalReason = null;
+                }
             }
         }, 120);
     }
@@ -781,6 +795,16 @@ export default class LobbyScene {
             );
         }
         this.renderWorldStage();
+        const continuation = presentation.sceneId
+            ? storyGuidanceManager.getSceneContinuation(presentation.sceneId)
+            : null;
+        if (continuation) {
+            window.setTimeout(() => {
+                if (storyDialogueController.isOpen()) return;
+                if (continuation.placeId) this.enterTownPlace(continuation.placeId);
+                this.openStoryScene(continuation.sceneId);
+            }, 120);
+        }
         return presentation;
     }
 
@@ -1322,7 +1346,14 @@ export default class LobbyScene {
         this.syncTownPlaceNarrative(place);
 
         const residents = place.residents || [];
-        const actions = place.actions || [];
+        const authoredActions = place.actions || [];
+        const storyAction = storyGuidanceManager.getTownPlaceAction(place.id);
+        const actions = storyAction
+            ? [
+                ...authoredActions.filter(action => action.sceneId !== storyAction.sceneId),
+                storyAction
+            ]
+            : authoredActions;
 
         if (this.dom.townPlaceResidentCount) this.dom.townPlaceResidentCount.textContent = String(residents.length);
         if (this.dom.townPlaceActionCount) this.dom.townPlaceActionCount.textContent = String(actions.length);
@@ -1436,9 +1467,10 @@ export default class LobbyScene {
             button.type = 'button';
             const isInteraction = action.type === 'interaction';
             const isAchievement = action.type === 'achievement';
+            const isStoryScene = action.type === 'story-scene';
             const isResolved = isInteraction && worldInteractionManager.hasResolved(action.id);
             const hasNewInformation = storyGuidanceManager.getInformationMarker({
-                hasUnreadInteraction: isInteraction && !isResolved
+                hasUnreadInteraction: (isInteraction && !isResolved) || isStoryScene
             }).visible;
             const label = action.shortLabel || action.label || '行動';
             const description = action.description || '';
@@ -1446,6 +1478,7 @@ export default class LobbyScene {
             if (action.type === 'route') button.dataset.route = action.route;
             if (isInteraction) button.dataset.interactionId = action.id;
             if (isAchievement) button.dataset.achievementsOpen = action.id || 'achievements';
+            if (isStoryScene) button.dataset.storySceneId = action.sceneId;
             button.setAttribute('aria-label', description ? `${label}，${description}` : label);
             this.applyTownPlaceEntryPosition(button, action, index, 'action');
             const actionIcon = this.renderTownActionIcon(action);

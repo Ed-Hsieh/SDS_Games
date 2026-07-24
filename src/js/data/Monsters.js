@@ -579,7 +579,7 @@ export const MonsterDatabase = {
         description: '守護古代符文的神秘存在。'
     },
     
-    // 第5章 BOSS
+    // 第4章 BOSS
     ancient_titan: {
         id: 'ancient_titan',
         name: '遠古泰坦',
@@ -595,16 +595,15 @@ export const MonsterDatabase = {
         exp: 4920,
         gold: 290,
         drops: [
-            { itemId: 'titan_heart', chance: 1.0, quantity: [1, 1] },
             { itemId: 'primordial_stone', chance: 0.32, quantity: [1, 1] },
             { itemId: 'earth_essence', chance: 0.12, quantity: [1, 1] },
             { itemId: 'ember_stone', chance: 1.0, quantity: [1, 1] }
         ],
         equipmentDrops: [
-            { equipmentId: 'titan_hammer', chance: 0.20 }
+            { equipmentId: 'titan_hammer', chance: 1.0 }
         ],
         skills: ['titan_slam', 'earthquake', 'ancient_power'],
-        description: '沉睡萬年的遠古巨人。'
+        description: '沉睡在古代地脈遺跡旁的遠古巨人，因山中力量持續流失而甦醒。'
     },
 
     // ==================== 第五章：元素失衡區 (Lv.41-50) ====================
@@ -1324,7 +1323,7 @@ export const MonsterDatabase = {
         drops: [
             { itemId: 'poison_gland', chance: 0.65, quantity: [1, 2] },
             { itemId: 'spider_silk', chance: 0.45, quantity: [1, 2] },
-            { itemId: 'forest_essence', chance: 0.3, quantity: [1, 1] }
+            { itemId: 'forest_essence', chance: 1, quantity: [1, 1] }
         ],
         equipmentDrops: [],
         skills: ['poison_spore', 'root_bind', 'life_drain'],
@@ -1988,7 +1987,6 @@ export const TowerMonsterData = {
         exp: 350,
         gold: 900,
         drops: [
-            { itemId: 'titan_heart', chance: 1.0, quantity: [1, 1] },       // 100% 保底
             { itemId: 'primordial_stone', chance: 0.7, quantity: [1, 2] }, // 提高掉落
             { itemId: 'legendary_shard', chance: 0.15, quantity: [1, 1] }   // 稀有掉落傳說碎片
         ],
@@ -2015,7 +2013,6 @@ export const TowerMonsterData = {
             { itemId: 'legendary_shard', chance: 1.0, quantity: [2, 3] },
             { itemId: 'boss_void_crown', chance: 1.0, quantity: [1, 1] },
             { itemId: 'elemental_core', chance: 0.5, quantity: [1, 1] },
-            { itemId: 'titan_heart', chance: 0.3, quantity: [1, 1] }
         ],
         equipmentDrops: [
             { equipmentId: 'tower_void_blade', chance: 0.30 },

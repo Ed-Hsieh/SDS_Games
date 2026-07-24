@@ -476,17 +476,6 @@ export const MaterialDatabase = {
         craftUse: ['rune_accessory']
     },
     
-    titan_heart: {
-        id: 'titan_heart',
-        name: '泰坦之心',
-        icon: '❤️',
-        type: ItemType.MATERIAL,
-        rarity: ItemRarity.LEGENDARY,
-        price: 1000,
-        description: '泰坦的心臟，蘊含遠古之力。',
-        craftUse: ['titan_weapon', 'titan_armor']
-    },
-    
     ancient_artifact: {
         id: 'ancient_artifact',
         name: '古代神器碎片',

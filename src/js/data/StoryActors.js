@@ -55,13 +55,24 @@ const StoryStandingPresentation = Object.freeze({
 });
 
 export const StoryExpressionCoverage = Object.freeze({
-    village_elder: Object.freeze(['neutral', 'guarded', 'resolute']),
-    town_scholar: Object.freeze(['neutral', 'pleased', 'guarded']),
-    herbalist: Object.freeze(['neutral', 'soft', 'pleased', 'guarded', 'resolute']),
+    village_elder: Object.freeze([
+        'neutral', 'soft', 'guarded', 'resolute', 'angry', 'afraid', 'grieving'
+    ]),
+    town_scholar: Object.freeze([
+        'neutral', 'soft', 'pleased', 'guarded', 'resolute', 'afraid', 'grieving', 'hurt'
+    ]),
+    herbalist: Object.freeze([
+        'neutral', 'soft', 'pleased', 'guarded', 'resolute', 'grieving', 'hurt'
+    ]),
     standard_bearer_frey: Object.freeze(['neutral', 'soft', 'pleased', 'resolute']),
-    lamplighter_tavi: Object.freeze(['neutral', 'soft', 'guarded']),
-    blacksmith: Object.freeze(['neutral', 'soft', 'pleased', 'guarded', 'resolute']),
-    street_beggar: Object.freeze(['neutral', 'guarded'])
+    lamplighter_tavi: Object.freeze(['neutral', 'soft', 'guarded', 'afraid']),
+    blacksmith: Object.freeze([
+        'neutral', 'soft', 'pleased', 'guarded', 'resolute', 'angry', 'grieving', 'hurt'
+    ]),
+    street_beggar: Object.freeze(['neutral', 'guarded', 'afraid']),
+    casino_owner: Object.freeze(['neutral', 'soft', 'pleased']),
+    casino_dealer: Object.freeze(['neutral', 'guarded']),
+    merchant: Object.freeze(['neutral'])
 });
 
 export const StoryActorRegistry = Object.freeze({
@@ -97,9 +108,30 @@ export const StoryActorRegistry = Object.freeze({
     black_market: { id: 'black_market', name: '黑市商人', role: '禁用品交易者', portrait: portrait('black_market'), standing: standing('black_market'), standingFacing: 'left' },
     elder_dragon: { id: 'elder_dragon', name: '龍族長者', role: '封痕守線者' },
     demon_lord_asariel: { id: 'demon_lord_asariel', name: '魔王赫爾薩恩', role: '墜落的魔王' },
-    lich: { id: 'lich', name: '守名者赫恩', role: '守名巫妖' },
-    shadow_commander: { id: 'shadow_commander', name: '左線指揮凱德倫', role: '遠征殘響' },
-    drowned_oracle: { id: 'drowned_oracle', name: '沉鐘神諭', role: '沉沒的預言者' },
+    lich: {
+        id: 'lich',
+        name: '守名者赫恩',
+        role: '守名巫妖',
+        portrait: 'src/assets/images/art/entities/monsters/lich.webp',
+        standing: 'src/assets/images/art/entities/monsters/lich.webp',
+        standingFacing: 'center'
+    },
+    shadow_commander: {
+        id: 'shadow_commander',
+        name: '左線指揮凱德倫',
+        role: '遠征殘響',
+        portrait: 'src/assets/images/art/entities/monsters/shadow_commander.webp',
+        standing: 'src/assets/images/art/entities/monsters/shadow_commander.webp',
+        standingFacing: 'center'
+    },
+    drowned_oracle: {
+        id: 'drowned_oracle',
+        name: '沉鐘神諭',
+        role: '沉沒的預言者',
+        portrait: 'src/assets/images/art/entities/monsters/drowned_oracle.webp',
+        standing: 'src/assets/images/art/entities/monsters/drowned_oracle.webp',
+        standingFacing: 'center'
+    },
     thorn_witch: { id: 'thorn_witch', name: '荊棘女巫', role: '荊棘交易者' }
 });
 
@@ -111,10 +143,15 @@ export const StoryActorRegistry = Object.freeze({
 export const MainlineCharacterContracts = Object.freeze({
     village_elder: {
         introductionSceneId: 'ch1_s03_broken_crossroads',
-        decisiveSceneIds: ['ch5_s10_before_dawn', 'ch6_s01_northern_drake_watch'],
+        decisiveSceneIds: ['ch5_s10_before_dawn'],
+        evidenceSceneIds: ['ch6_s01_northern_drake_watch', 'ch6_s02_scar_aftermath'],
         endpointSceneIds: {
-            first_run: 'ch6_s01_northern_drake_watch',
+            first_run: 'ch6_s02_scar_aftermath',
             second_run: 'ch7_s08_return_to_town'
+        },
+        endpointModes: {
+            first_run: 'evidence',
+            second_run: 'performance'
         }
     },
     town_scholar: {
@@ -151,7 +188,7 @@ export const MainlineCharacterContracts = Object.freeze({
     },
     blacksmith: {
         introductionSceneId: 'ch1_s08_cold_forge_smoke',
-        decisiveSceneIds: ['ch4_s02_fourfold_countergear', 'ch5_s06_mia_operation'],
+        decisiveSceneIds: ['ch4_s08_returned_objects', 'ch5_s06_mia_operation'],
         endpointSceneIds: {
             first_run: 'ch7_s08_return_to_town',
             second_run: 'ch7_s08_return_to_town'

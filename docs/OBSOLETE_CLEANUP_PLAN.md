@@ -1,6 +1,6 @@
 # Obsolete Cleanup Plan
 
-Last updated: 2026-07-18
+Last updated: 2026-07-24
 
 This file tracks only cleanup that is still active or whose completed removal is
 important enough to prevent accidental restoration. Runtime JS/data remains the
@@ -16,6 +16,21 @@ source of truth.
   folder is intentionally gitignored.
 
 ## Story And Quest Cleanup
+
+- [in_progress] [P0] story trigger routing duplicated across hints, map nodes,
+  region bindings, and Chapter 1 special handling
+  Reason: `StoryObjectiveHints.js` currently carries routing ids,
+  `AdventureScene.js` starts `locationNodes[].sceneIds[0]`, and
+  `ChapterRegionRegistry.sceneBindings` is not the sole runtime map authority.
+  This permits a marker, declared binding, and clickable scene to disagree.
+  Safe when: Every mandatory scene resolves through one town or region binding,
+  shared landmarks select the first startable incomplete scene, and Chapter 1
+  special checkpoints do not become a second chapter engine.
+  Follow-up: Remove actor/place/target routing from objective hints, remove
+  direct `sceneIds[0]` progression, and keep only reusable Chapter 1 checkpoint
+  mechanics after the opening flow remains equivalent.
+  Validation: `scripts/StoryReachabilityCheck.mjs`,
+  `scripts/StoryRuntimeCheck.mjs`, and one no-skip Chapter 1-7 progression run.
 
 - [in_progress] [P0] `QuestScene.js`, `NPCDialogues.js`, relationship bridges
   Reason: Mandatory screenplay dialogue now belongs to `StorySceneRegistry.js`

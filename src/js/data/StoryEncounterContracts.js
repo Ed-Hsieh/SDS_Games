@@ -44,8 +44,8 @@ export const StoryEncounterContracts = Object.freeze({
         monsterId: 'lich',
         regionId: 'chapter_02_broken_evacuations',
         locationId: 'opened_ancient_tomb',
-        combatStartBeatIndex: 6,
-        postBattleBeatIndex: 7
+        combatStartBeatIndex: 7,
+        postBattleBeatIndex: 8
     }),
     ch3_s08_shadow_commander: contract({
         id: 'mainline_ch3_shadow_commander',
@@ -53,17 +53,17 @@ export const StoryEncounterContracts = Object.freeze({
         monsterId: 'shadow_commander',
         regionId: 'chapter_03_shadow_watch',
         locationId: 'shadow_command_yard',
-        combatStartBeatIndex: 5,
-        postBattleBeatIndex: 6
+        combatStartBeatIndex: 4,
+        postBattleBeatIndex: 5
     }),
     ch4_s07_titan_rises: contract({
         id: 'mainline_ch4_ancient_titan',
         sceneId: 'ch4_s07_titan_rises',
         monsterId: 'ancient_titan',
         regionId: 'chapter_04_gray_ridge',
-        locationId: 'ancient_titan_ribcage',
-        combatStartBeatIndex: 4,
-        postBattleBeatIndex: 5
+        locationId: 'titan_vein_ruins',
+        combatStartBeatIndex: 5,
+        postBattleBeatIndex: 6
     }),
     ch5_s04_elemental_lord: contract({
         id: 'mainline_ch5_elemental_lord',
@@ -104,6 +104,33 @@ export const StoryRouteEncounterContracts = Object.freeze({
         locationId: 'silver_snare_pass',
         combatStartBeatIndex: 3,
         postBattleBeatIndex: 4
+    }),
+    ch3_s01_dead_checkpoint: contract({
+        id: 'route_ch3_shadow_checkpoint',
+        sceneId: 'ch3_s01_dead_checkpoint',
+        monsterId: 'shadow_soldier',
+        regionId: 'chapter_03_shadow_watch',
+        locationId: 'dead_checkpoint',
+        combatStartBeatIndex: 3,
+        postBattleBeatIndex: 4
+    }),
+    ch3_s06_drowned_voice: contract({
+        id: 'route_ch3_drowned_oracle',
+        sceneId: 'ch3_s06_drowned_voice',
+        monsterId: 'drowned_oracle',
+        regionId: 'chapter_03_shadow_watch',
+        locationId: 'sunken_altar_reef',
+        combatStartBeatIndex: 4,
+        postBattleBeatIndex: 5
+    }),
+    ch4_s03_thorn_value_rule: contract({
+        id: 'route_ch4_thorn_witch',
+        sceneId: 'ch4_s03_thorn_value_rule',
+        monsterId: 'thorn_witch',
+        regionId: 'chapter_04_gray_ridge',
+        locationId: 'thorn_glasshouse_ruin',
+        combatStartBeatIndex: 6,
+        postBattleBeatIndex: 7
     })
 });
 

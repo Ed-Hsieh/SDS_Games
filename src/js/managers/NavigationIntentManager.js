@@ -8,6 +8,7 @@ class NavigationIntentManager {
 
     reset() {
         this.returnTownPlaceId = null;
+        this.townArrivalReason = null;
         this.handbookRouteIntent = null;
     }
 
@@ -31,6 +32,32 @@ class NavigationIntentManager {
         }
 
         return placeId || null;
+    }
+
+    setTownArrivalReason(reason) {
+        const normalizedReason = String(reason || '').trim();
+        this.townArrivalReason = normalizedReason || null;
+        GameManager.markSaveDirty('town-arrival-reason');
+        return this.townArrivalReason;
+    }
+
+    consumeTownArrivalReason() {
+        const reason = this.getTownArrivalReason();
+        this.clearTownArrivalReason();
+        return reason;
+    }
+
+    getTownArrivalReason() {
+        const reason = typeof this.townArrivalReason === 'string'
+            ? this.townArrivalReason.trim()
+            : '';
+        return reason || null;
+    }
+
+    clearTownArrivalReason() {
+        if (this.townArrivalReason === null) return;
+        this.townArrivalReason = null;
+        GameManager.markSaveDirty('town-arrival-reason-consumed');
     }
 
     setHandbookRouteIntent(intent = {}) {
@@ -67,6 +94,7 @@ class NavigationIntentManager {
     serialize() {
         return {
             returnTownPlaceId: this.returnTownPlaceId,
+            townArrivalReason: this.townArrivalReason,
             handbookRouteIntent: this.handbookRouteIntent ? { ...this.handbookRouteIntent } : null
         };
     }
@@ -76,6 +104,9 @@ class NavigationIntentManager {
             ? data.returnTownPlaceId.trim()
             : '';
         this.returnTownPlaceId = returnTownPlaceId || null;
+        this.townArrivalReason = typeof data.townArrivalReason === 'string'
+            ? (data.townArrivalReason.trim() || null)
+            : null;
         this.handbookRouteIntent = data.handbookRouteIntent && typeof data.handbookRouteIntent === 'object'
             ? { ...data.handbookRouteIntent }
             : null;

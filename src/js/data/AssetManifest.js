@@ -99,7 +99,7 @@ const ART_READY = Object.freeze({
         'shadow_core', 'shadow_essence', 'shadow_insignia', 'shadow_shard', 'slime_crown',
         'slime_jelly', 'soul_fragment', 'spectral_staff', 'spider_queen_fang',
         'spider_silk', 'spirit_essence', 'stone_fragment', 'storm_crystal',
-        'storm_essence', 'thunder_essence', 'thunder_feather', 'titan_heart',
+        'storm_essence', 'thunder_essence', 'thunder_feather',
         'vine_core', 'void_essence', 'wolf_fang', 'wolf_pelt', 'world_shard',
         'wyvern_scale', 'wyvern_wing'
     ]),
@@ -118,7 +118,7 @@ const ART_READY = Object.freeze({
     ]),
     currencies: readySet([]),
     clues: readySet([
-        'loaded_dice'
+        'echo_whistle', 'loaded_dice'
     ]),
     relics: readySet([]),
     portraits: readySet([
@@ -152,10 +152,11 @@ const ART_READY = Object.freeze({
         'adventurers-guild-hall'
     ]),
     townLocations: readySet([
-        'alley', 'casino', 'civic-room-working', 'crossroads',
+        'alley', 'casino', 'civic-room-depleted', 'civic-room-working', 'crossroads',
         'crossroads-broken', 'crossroads-recovery-1', 'forge', 'forge-cold',
-        'gate', 'gate-broken', 'gate-working', 'handbook', 'market',
-        'market-closed', 'market-sparse'
+        'forge-grief', 'gate', 'gate-after-frey', 'gate-broken', 'gate-working',
+        'handbook', 'market', 'market-closed', 'market-sparse',
+        'mia-workroom-after-loss', 'mia-workroom-operation'
     ]),
     dungeonAreas: readySet([
         'dungeon_cave', 'dungeon_hell', 'dungeon_jungle',
@@ -164,22 +165,31 @@ const ART_READY = Object.freeze({
     worldLandmarks: readySet([
         'abyssal_seal_break', 'black_iron_storehouse', 'broken_horn_camp',
         'charred_obelisk', 'cut_roadsign', 'dragon_heat_crag', 'drowned_bell_coast',
+        'four-front-convergence', 'four-front-emergency-return',
+        'gray-ridge-causeway', 'gray-ridge-center-span-aftermath',
+        'gray-ridge-rear-marker',
         'hunter_boardwalk', 'mist_tablet_hill', 'moon_moss_slope',
         'northern_drake_watch', 'obsidian_keep_gate', 'old_campfire_site',
-        'old_wolf_den', 'opened_ancient_tomb', 'rotroot_bridge_blocked',
+        'old-waystation-cache', 'old_wolf_den', 'opened_ancient_tomb',
+        'rotroot_bridge_blocked',
         'rotroot_bridge_repaired', 'rotroot_ravine', 'silver_snare_pass',
-        'south_gate_farmland', 'south-road-broken', 'sunken_altar_reef',
-        'thorn_glasshouse_ruin'
+        'south_gate_farmland', 'south-road-broken', 'stone-route-moving-wall',
+        'sunken_altar_reef', 'thorn_glasshouse_ruin',
+        'titan-vein-ruins-awakened', 'ruined-flower-field',
+        'final-mountain-camp'
     ]),
     worldMaps: readySet([
-        'overworld_evacuation_basin', 'overworld_south_gate'
+        'overworld_evacuation_basin', 'overworld_gray_ridge',
+        'overworld_four_fronts', 'overworld_south_gate',
+        'overworld_shadow_watch', 'overworld_dragon_scar',
+        'overworld_fall_site'
     ]),
     mapProps: readySet([]),
     combatEffects: readySet([]),
     backgrounds: readySet([
         'casino-game-table', 'casino-hall',
         'casino-prize-wall', 'town-overview', 'town-overview-broken',
-        'town-overview-recovery'
+        'town-overview-recovery', 'town-overview-hollow-victory'
     ])
 });
 

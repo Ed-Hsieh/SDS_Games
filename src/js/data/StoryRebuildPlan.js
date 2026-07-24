@@ -110,7 +110,7 @@ export const StoryRebuildNarrativeTarget = Object.freeze({
             levelRange: [11, 20],
             title: '斷路上的藥味 / Medicine On The Broken Road',
             bossId: 'lich',
-            focus: 'Supply, medicine, market recovery, and old evacuation records.'
+            focus: 'Missing deliveries, medicine authorization, and old evacuation records; the market remains closed until Chapter 3 restores the road.'
         },
         {
             chapter: 3,

@@ -131,7 +131,9 @@ export function getTownRuntimeStage() {
 
 export function getTownOverviewPresentation() {
     const stage = getTownRuntimeStage();
-    const assetId = TownOverviewByStage[stage];
+    const assetId = GameManager.getFlag?.('story.ch7.town_return') === 'hollow'
+        ? 'town-overview-hollow-victory'
+        : TownOverviewByStage[stage];
     const crossroads = getResolvedTownPlace('crossroads');
 
     return {

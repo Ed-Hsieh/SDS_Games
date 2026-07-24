@@ -38,15 +38,151 @@ export const StoryRun = Object.freeze({
     SECOND: 2
 });
 
-const CHAPTER_ONE_SCENE_BACKGROUNDS = Object.freeze({
+export const STORY_SCENE_BACKGROUNDS = Object.freeze({
     ch1_s01_road_collapse: 'src/assets/images/art/scenes/world/landmarks/south-road-broken.webp',
     ch1_s02_wake_under_bitter_bottles: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp',
     ch1_s03_broken_crossroads: 'src/assets/images/art/scenes/town/locations/crossroads-broken.webp',
     ch1_s04_elder_to_scholar: 'src/assets/images/art/scenes/town/locations/handbook.webp',
     ch1_s05_south_gate_introduction: 'src/assets/images/art/scenes/town/locations/gate-broken.webp',
     ch1_s08_cold_forge_smoke: 'src/assets/images/art/scenes/town/locations/forge-cold.webp',
-    ch1_s11_roads_breathe_again: 'src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp'
+    ch1_s11_roads_breathe_again: 'src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp',
+    ch2_s01_empty_crates: 'src/assets/images/art/scenes/town/locations/market-sparse.webp',
+    ch2_s02_name_under_basket: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp',
+    ch2_s03_ledger_that_would_not_close: 'src/assets/images/art/scenes/town/locations/handbook.webp',
+    ch2_s04_mist_and_tomb_route: 'src/assets/images/art/scenes/world/landmarks/mist_tablet_hill.webp',
+    ch2_s05_moon_moss_trace: 'src/assets/images/art/scenes/world/landmarks/moon_moss_slope.webp',
+    ch2_s06_keeper_of_names: 'src/assets/images/art/scenes/world/landmarks/opened_ancient_tomb.webp',
+    ch2_s07_names_return_to_town: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
+    ch2_s08_shadow_at_the_checkpoint: 'src/assets/images/art/scenes/world/landmarks/cut_roadsign.webp',
+    ch3_s01_dead_checkpoint: 'src/assets/images/art/scenes/world/landmarks/obsidian_keep_gate.webp',
+    ch3_s02_shadows_count_names: 'src/assets/images/art/scenes/town/locations/forge.webp',
+    ch3_s03_lamp_oil_in_fog: 'src/assets/images/art/scenes/town/locations/gate-working.webp',
+    ch3_s04_showcase_glass: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp',
+    ch3_s05_blank_creditor_trace: 'src/assets/images/art/scenes/town/locations/alley.webp',
+    ch3_s06_drowned_voice: 'src/assets/images/art/scenes/world/landmarks/sunken_altar_reef.webp',
+    ch3_s07_old_command_post: 'src/assets/images/art/scenes/world/landmarks/black_iron_storehouse.webp',
+    ch3_s08_shadow_commander: 'src/assets/images/art/scenes/world/landmarks/black_iron_storehouse.webp',
+    ch3_s09_temptation_and_orders: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
+    ch4_s01_road_moves_underfoot: 'src/assets/images/art/scenes/world/landmarks/stone-route-moving-wall.webp',
+    ch4_s02_caravan_rear_missing: 'src/assets/images/art/scenes/town/locations/market.webp',
+    ch4_s03_thorn_value_rule: 'src/assets/images/art/scenes/world/landmarks/thorn_glasshouse_ruin.webp',
+    ch4_s04_gray_ridge_evacuates: 'src/assets/images/art/scenes/world/landmarks/gray-ridge-causeway.webp',
+    ch4_s05_body_locks: 'src/assets/images/art/scenes/world/landmarks/gray-ridge-rear-marker.webp',
+    ch4_s06_flag_returns: 'src/assets/images/art/scenes/world/landmarks/gray-ridge-center-span-aftermath.webp',
+    ch4_s07_titan_rises: 'src/assets/images/art/scenes/world/landmarks/titan-vein-ruins-awakened.webp',
+    ch4_s08_returned_objects: 'src/assets/images/art/scenes/town/locations/forge.webp',
+    ch4_s09_four_elements_one_report: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
+    ch5_s01_four_fronts_converge: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
+    ch5_s02_forge_contracts: 'src/assets/images/art/scenes/town/locations/forge.webp',
+    ch5_s03_elemental_convergence: 'src/assets/images/art/scenes/world/landmarks/four-front-convergence.webp',
+    ch5_s04_elemental_lord: 'src/assets/images/art/entities/monsters/elemental_lord.webp',
+    ch5_s05_fourfold_shrapnel: 'src/assets/images/art/scenes/world/landmarks/four-front-emergency-return.webp',
+    ch5_s06_mia_operation: 'src/assets/images/art/scenes/town/locations/mia-workroom-operation.webp',
+    ch5_s07_after_the_ratchet: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp',
+    ch5_s08_expedition_list: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp',
+    ch5_s09_whistle_cache: 'src/assets/images/art/scenes/world/landmarks/old-waystation-cache.webp',
+    ch5_s10_before_dawn: 'src/assets/images/art/scenes/town/locations/gate-working.webp',
+    ch5_s11_town_loses_its_voice: 'src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp',
+    ch7_s01_narrow_human_road: 'src/assets/images/art/scenes/world/maps/overworld_fall_site.webp',
+    ch7_s02_ruined_flower_field: 'src/assets/images/art/scenes/world/landmarks/ruined-flower-field.webp',
+    ch7_s03_echo_memory: 'src/assets/images/art/scenes/world/landmarks/ruined-flower-field.webp',
+    ch7_s04_three_anchor_check: 'src/assets/images/art/scenes/world/landmarks/final-mountain-camp.webp',
+    ch7_s05_fall_site_audience: 'src/assets/images/art/entities/monsters/demon_lord_asariel.webp',
+    ch7_s06_combat_body_falls: 'src/assets/images/art/entities/monsters/demon_lord_asariel.webp',
+    ch7_s07_last_core: 'src/assets/images/art/entities/monsters/demon_lord_asariel.webp',
+    ch7_s08_return_to_town: 'src/assets/images/art/scenes/backgrounds/town-overview-recovery.webp',
+    ch7_s09_first_or_second_epilogue: 'src/assets/images/art/scenes/backgrounds/town-overview-recovery.webp'
 });
+
+const STORY_BEAT_BACKGROUNDS = Object.freeze({
+    ch4_s06_flag_returns: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({
+                from: 8,
+                to: 9,
+                image: 'src/assets/images/art/scenes/story/cg/frey-last-standard.webp'
+            })
+        ])
+    }),
+    ch4_s08_returned_objects: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({ from: 1, to: 6, image: 'src/assets/images/art/scenes/town/locations/forge-grief.webp' }),
+            Object.freeze({ from: 7, to: 18, image: 'src/assets/images/art/scenes/town/locations/gate-after-frey.webp' }),
+            Object.freeze({ from: 19, to: 26, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' })
+        ])
+    }),
+    ch5_s07_after_the_ratchet: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({ from: 1, to: 2, image: 'src/assets/images/art/scenes/town/locations/mia-workroom-after-loss.webp' }),
+            Object.freeze({ from: 3, to: 9, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' })
+        ])
+    }),
+    ch5_s11_town_loses_its_voice: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({ from: 1, to: 1, image: 'src/assets/images/art/scenes/town/locations/mia-workroom-after-loss.webp' }),
+            Object.freeze({ from: 2, to: 2, image: 'src/assets/images/art/scenes/town/locations/gate-after-frey.webp' }),
+            Object.freeze({ from: 3, to: 6, image: 'src/assets/images/art/scenes/town/locations/crossroads-first-run-loss.webp' })
+        ]),
+        any: Object.freeze([
+            Object.freeze({ from: 7, to: 11, image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp' })
+        ])
+    }),
+    ch7_s08_return_to_town: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({
+                from: 1,
+                to: 8,
+                image: 'src/assets/images/art/scenes/backgrounds/town-overview-hollow-victory.webp'
+            })
+        ]),
+        second_run: Object.freeze([
+            Object.freeze({
+                from: 9,
+                to: 27,
+                image: 'src/assets/images/art/scenes/backgrounds/town-overview-recovery.webp'
+            })
+        ])
+    }),
+    ch7_s09_first_or_second_epilogue: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({
+                from: 1,
+                to: 3,
+                image: 'src/assets/images/art/scenes/backgrounds/town-overview-hollow-victory.webp'
+            }),
+            Object.freeze({
+                from: 4,
+                to: 7,
+                image: 'src/assets/images/art/scenes/story/cg/demon-survives-ending.webp'
+            })
+        ]),
+        second_run: Object.freeze([
+            Object.freeze({
+                from: 8,
+                to: 11,
+                image: 'src/assets/images/art/scenes/world/landmarks/ruined-flower-field.webp'
+            }),
+            Object.freeze({
+                from: 12,
+                to: 14,
+                image: 'src/assets/images/art/scenes/world/maps/overworld_fall_site.webp'
+            })
+        ])
+    })
+});
+
+function resolveStoryBackground(sceneId, beatOrder = null, runNumber = StoryRun.FIRST) {
+    if (Number.isFinite(beatOrder)) {
+        const runKey = runNumber === StoryRun.SECOND ? 'second_run' : 'first_run';
+        const ranges = [
+            ...(STORY_BEAT_BACKGROUNDS[sceneId]?.[runKey] || []),
+            ...(STORY_BEAT_BACKGROUNDS[sceneId]?.any || [])
+        ];
+        const match = ranges.find(range => beatOrder >= range.from && beatOrder <= range.to);
+        if (match) return match.image;
+    }
+    return STORY_SCENE_BACKGROUNDS[sceneId] || null;
+}
 
 class StorySceneManager {
     constructor() {
@@ -200,11 +336,16 @@ class StorySceneManager {
 
     resolveBeat(beat, scene) {
         const actor = this.resolveActor(beat.actorId);
+        const actors = (beat.actorIds || [])
+            .map(actorId => this.resolveActor(actorId))
+            .filter(Boolean);
         const expression = beat.expression || 'neutral';
-        const backgroundImage = CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || null;
+        const backgroundImage = resolveStoryBackground(scene.id, beat.order, this.getRunNumber());
         return {
             ...beat,
             actorId: actor?.id || null,
+            actorIds: actors.map(entry => entry.id),
+            actors,
             speaker: actor?.name || '',
             role: actor?.role || '',
             portrait: actor?.portrait || null,
@@ -231,7 +372,9 @@ class StorySceneManager {
         const beats = sourceBeats
             .filter(beat => this.matchesBeatCondition(beat.condition))
             .map(beat => this.resolveBeat(beat, scene));
-        const participants = [...new Set(beats.map(beat => beat.actorId).filter(Boolean))]
+        const participants = [...new Set(beats.flatMap(beat => (
+            beat.actorIds?.length ? beat.actorIds : [beat.actorId]
+        )).filter(Boolean))]
             .map(actorId => this.resolveActor(actorId));
         const lead = participants[0] || {
             id: 'narration',
@@ -252,14 +395,18 @@ class StorySceneManager {
             npc: lead,
             participants,
             lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
+            timeline: beats.filter(beat => (
+                ['narration', 'speaker'].includes(beat.beat)
+                || (beat.stageAction && beat.actorIds?.length)
+            )),
             effectMessages: [],
             narrativeTitle: scene.title || objectiveHint?.title || `第 ${scene.chapter} 章事件`,
             narrativeSummary: objectiveHint?.text || '繼續處理目前事件。',
             tone: scene.stageClass,
             route: null,
             routeLabel: null,
-            background: CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || scene.background,
-            backgroundImage: CHAPTER_ONE_SCENE_BACKGROUNDS[scene.id] || null,
+            background: resolveStoryBackground(scene.id, null, this.getRunNumber()) || scene.background,
+            backgroundImage: resolveStoryBackground(scene.id, null, this.getRunNumber()),
             worldState: scene.worldState,
             viewpoint: scene.viewpoint,
             knowledgeBoundary: scene.knowledgeBoundary
@@ -285,7 +432,9 @@ class StorySceneManager {
                 background: checkpoint.background || beat.background || scene.background,
                 backgroundImage: checkpoint.backgroundImage || null
             }));
-        const participants = [...new Set(beats.map(beat => beat.actorId).filter(Boolean))]
+        const participants = [...new Set(beats.flatMap(beat => (
+            beat.actorIds?.length ? beat.actorIds : [beat.actorId]
+        )).filter(Boolean))]
             .map(actorId => this.resolveActor(actorId));
 
         return {
@@ -296,6 +445,10 @@ class StorySceneManager {
             npc: participants[0] || { id: 'narration', name: '故事', role: '敘事' },
             participants,
             lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
+            timeline: beats.filter(beat => (
+                ['narration', 'speaker'].includes(beat.beat)
+                || (beat.stageAction && beat.actorIds?.length)
+            )),
             effectMessages: [],
             narrativeTitle: checkpoint.title || scene.title || objectiveHint?.title || `第 ${scene.chapter} 章事件`,
             narrativeSummary: checkpoint.title || objectiveHint?.text || '繼續處理目前事件。',

@@ -1,6 +1,6 @@
 # Agent Session Log
 
-Last updated: 2026-07-20
+Last updated: 2026-07-24
 
 ## Current Direction
 
@@ -96,6 +96,18 @@ core logic.
 
 ## Current Runtime Status
 
+- [done] [P0] [story-reachability] Converge mandatory scene triggers
+  Owner file(s): `src/js/data/ChapterRegionRegistry.js`, `src/js/data/TownPlaces.js`, `src/js/data/StoryObjectiveHints.js`, `src/js/managers/StoryGuidanceManager.js`, `src/js/scenes/AdventureScene.js`
+  Source of truth: `src/js/data/StorySceneRegistry.js`, `docs/CHAPTER_QUEST_FRAMEWORK.md`
+  Validation: `scripts/StoryReachabilityCheck.mjs`, `scripts/StructureConsistencyCheck.mjs`, `scripts/DataConsistencyCheck.mjs`
+  Notes: All 66 mandatory scenes now have exactly one canonical trigger: 37 map triggers and 29 town triggers. Objective hints contain display copy only; Chapter 2 no longer depends on the hidden merchant, Chapter 5 has a map, shared landmarks resolve the next eligible scene, Chapter 7 owns explicit return/continuation triggers, and Chapter 6-7 current-run flags reset correctly.
+
+- [in_progress] [P0] [story-transition-playthrough] Validate canonical triggers in the browser
+  Owner file(s): `src/js/scenes/AdventureScene.js`, `src/js/scenes/LobbyScene.js`, `src/js/managers/NavigationIntentManager.js`
+  Source of truth: `src/js/data/ChapterRegionRegistry.js`, `src/js/data/TownPlaces.js`
+  Validation: manual desktop Chapter 1-7 progression without DEV force-starts
+  Notes: Static reachability passes. The next session must verify real clicks, shared-landmark ordering, Chapter 7 walk/wolf-smoke return, defeat-return exclusion, and automatic epilogue continuation. Town-arrival intent is persisted until its scene successfully opens, so reload or a busy dialogue layer cannot consume it prematurely.
+
 - [in_progress] [P0] [opening-playthrough] Validate the complete new-game opening without skips
   Owner file(s): guild tutorial, prologue combat, lobby, adventure, dialogue, and settlement runtime modules
   Source of truth: `src/js/data/GuildTutorial.js`, `src/js/data/StorySceneRegistry.js`, `src/js/data/ChapterOneProgression.js`
@@ -174,7 +186,8 @@ Current validation snapshot:
 - `ItemFlowCheck.mjs`: pass with the known no-source warnings for `spirit_essence`, `dark_crystal`, and `ancient_artifact`.
 - `TownRuntimeCheck.mjs`: pass.
 - `FirstRunLootCheck.mjs`: pass.
-- `StoryRuntimeCheck.mjs`: blocked by the six optional quests being active before review.
+- `StoryReachabilityCheck.mjs`: pass; 66 scenes, 37 map triggers, 29 town triggers, and seven chapter maps.
+- `StoryRuntimeCheck.mjs`: the mandatory-scene checks pass; the command remains non-passing only because six optional quests are active before review.
 - `SideStoryFlowCheck.mjs`: blocked by the same optional-quest review gate.
 
 ## Next Good Step
@@ -199,46 +212,47 @@ Current validation snapshot:
 
 ## Next Resume Task
 
-Continue with one uninterrupted fresh-save opening and Chapter 1 playthrough.
+Run the canonical story path in the browser and repair only concrete transition
+failures. Do not add route fields back to objective hints or introduce a second
+trigger resolver.
 
 Target result:
 
-- Confirm the guild tutorial cannot be bypassed or deadlocked.
-- Confirm every taught action is performed by the player rather than described
-  only in text.
-- Confirm the prologue combat sequence teaches both hands, breakage, potion use,
-  flee feedback, and the scripted defeat exactly once.
-- Confirm Mia's potion claim, Chapter 1 map progression, Rotroot continuation,
-  optional dungeon route, staged town reports, and Forest Guardian continuation.
-- Win one battle with a full backpack and one blueprint drop to validate reward
-  decisions and blueprint imagery.
-- Review the six optional quests before treating their runtime contract as
-  accepted.
+- Complete Chapters 1-7 without DEV scene starts or manual flag injection.
+- Confirm every `!` leads to the same target named by the current objective.
+- Confirm shared landmarks play all eligible bound scenes in registry order.
+- Confirm Chapter 2 begins from the market's empty crates without requiring the
+  merchant to be visible.
+- Confirm Chapter 5 opens its registered map and all four required landmarks.
+- Confirm Chapter 7 starts its town-return scene only after walking back or
+  using wolf smoke, never after defeat.
+- Confirm Chapter 7 epilogue follows its return scene automatically.
+- Preserve the single routing contract if a defect is found: map routing belongs
+  to `ChapterRegionRegistry`, town routing belongs to `TownPlaces`, and
+  `StoryObjectiveHints` remains copy-only.
 
 Suggested implementation files:
 
-- `src/js/data/GuildTutorial.js`
-- `src/js/scenes/GuildTutorialScene.js`
-- `src/js/managers/CombatFlowController.js`
-- `src/js/data/ChapterOneProgression.js`
-- `src/js/managers/ChapterOneProgressionManager.js`
+- `src/js/data/ChapterRegionRegistry.js`
+- `src/js/data/TownPlaces.js`
+- `src/js/managers/StoryGuidanceManager.js`
+- `src/js/managers/NavigationIntentManager.js`
 - `src/js/scenes/AdventureScene.js`
 - `src/js/scenes/LobbyScene.js`
-- `src/js/data/Quests.js`
-- `src/js/data/QuestStories.js`
+- `scripts/StoryReachabilityCheck.mjs`
 
 Validation:
 
-- Manual desktop fresh-save playthrough
-- `scripts/ChapterOneGameplayCheck.mjs`
-- `scripts/CombatTutorialCheck.mjs`
+- `scripts/StoryReachabilityCheck.mjs`
 - `scripts/StoryRuntimeCheck.mjs`
-- `scripts/SideStoryFlowCheck.mjs`
-- `scripts/ItemFlowCheck.mjs`
+- Chapter 1-7 gameplay checks
+- Manual desktop Chapter 1-7 no-force progression, including reload during a
+  pending town-arrival scene
 
 Out of scope:
 
 - Final numeric combat balance
+- Six optional quests awaiting review
 - Additional second-run Bosses or routes
 - Tower and formal light/Void content
 - Casino prize implementation
@@ -254,6 +268,7 @@ $node = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependenci
 & $node scripts\MonsterEcologyCheck.mjs
 & $node scripts\AssetCoverageCheck.mjs
 & $node scripts\StructureConsistencyCheck.mjs
+& $node scripts\StoryReachabilityCheck.mjs
 & $node scripts\ChapterOneGameplayCheck.mjs
 & $node scripts\CombatTutorialCheck.mjs
 & $node scripts\ItemFlowCheck.mjs

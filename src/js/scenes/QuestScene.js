@@ -3,7 +3,12 @@
  * 任務冊場景 - 顯示任務列表、接取/放棄/完成任務
  */
 import { questManager } from '../managers/QuestManager.js';
-import { QuestStatus, QuestType, ObjectiveType } from '../data/Quests.js';
+import {
+    GuildTutorialCommissionId,
+    ObjectiveType,
+    QuestStatus,
+    QuestType
+} from '../data/Quests.js';
 import { escapeHtml, getItemVisualHtml } from '../utils/ItemDisplay.js';
 import { attachItemTooltip } from '../utils/ItemTooltip.js';
 import { getMaterial } from '../data/Materials.js';
@@ -15,7 +20,6 @@ import { storyJournalManager } from '../managers/StoryJournalManager.js';
 import audioManager from '../utils/AudioManager.js';
 import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
 import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
-import { GuildTutorialCommissionId } from '../data/Quests.js';
 
 const HANDBOOK_TABS = {
     commissions: {

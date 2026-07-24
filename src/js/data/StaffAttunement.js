@@ -37,7 +37,7 @@ export const StaffAttunementElements = Object.freeze({
         effectValue: 8,
         materialId: 'ember_stone',
         unlockChapter: 4,
-        sourceLabel: '第四章泰坦核心餘熱'
+        sourceLabel: '第四章古代地脈遺跡'
     })
 });
 

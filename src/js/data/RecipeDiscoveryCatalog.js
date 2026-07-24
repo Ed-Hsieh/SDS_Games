@@ -121,7 +121,7 @@ export const RecipeDiscoveryDatabase = {
 
     "forge_titan_gauntlet": {
         "source": "遠古泰坦擊破",
-        "clue": "泰坦之心與護腕殘構共同解鎖巨神護手工藝。",
+        "clue": "觀察泰坦外殼的承力方式後，鐵匠能以原初石、秘銀礦與大地精華重建巨神護手。",
         "interactionId": "boss_clear_ancient_titan"
     },
 
