@@ -66,7 +66,7 @@ export const MaterialDatabase = {
         rarity: ItemRarity.COMMON,
         price: 15,
         description: '基礎鍛造材料。',
-        craftUse: ['iron_sword', 'iron_armor', 'enhancement_material']
+        craftUse: ['leather_armor', 'iron_sword', 'iron_armor', 'enhancement_material']
     },
     
     // ==================== 森林材料 ====================

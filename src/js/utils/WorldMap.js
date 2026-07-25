@@ -3,6 +3,7 @@ import { chapterOneProgressionManager } from '../managers/ChapterOneProgressionM
 import {
     OverworldMapConfig,
     getOverworldHabitatAt,
+    getOverworldRouteSegmentsAt,
     getOverworldTileAt,
     isPointInsideRect
 } from '../data/OverworldMapRegistry.js';
@@ -64,6 +65,7 @@ export default class WorldMap {
         this.discoveredLandmarks = new Set();
         this.travelStep = 0;
         this.stepsSinceEncounter = 0;
+        this.debugChapterOverride = 0;
 
         this.restoreState();
         this.revealAroundPlayer(DEFAULT_REVEAL_RADIUS, { save: false });
@@ -137,7 +139,18 @@ export default class WorldMap {
     }
 
     isCellTraversable(x, y) {
-        return this.isInsideWorld(x, y) && !this.getBlockingGateAt(x, y);
+        const tile = getOverworldTileAt(x, y);
+        return this.isInsideWorld(x, y)
+            && Number(tile?.chapter || 1) <= this.getUnlockedChapter()
+            && !this.getBlockingGateAt(x, y);
+    }
+
+    getUnlockedChapter() {
+        return Math.max(
+            1,
+            Math.min(7, Number(GameManager.getFlag('story.chapter')) || 1),
+            Math.min(7, Number(this.debugChapterOverride) || 0)
+        );
     }
 
     isCellBlocked(x, y) {
@@ -203,14 +216,22 @@ export default class WorldMap {
             y: this.playerPos.y + stepY
         };
         if (!this.isCellTraversable(target.x, target.y)) {
+            const targetTile = getOverworldTileAt(target.x, target.y);
             return {
                 type: 'blocked',
                 gate: this.getBlockingGateAt(target.x, target.y),
+                chapterLocked: Number(targetTile?.chapter || 1) > this.getUnlockedChapter(),
+                requiredChapter: targetTile?.chapter || null,
                 target
             };
         }
 
         const previousHabitat = this.getCurrentHabitat();
+        const previousTile = this.getCurrentTile();
+        const previousSegmentIds = new Set(
+            getOverworldRouteSegmentsAt(this.playerPos.x, this.playerPos.y, previousTile?.chapter)
+                .map(route => route.id)
+        );
         this.playerPos = target;
         this.playerFacing = { x: stepX, y: stepY };
         this.travelStep += 1;
@@ -221,11 +242,20 @@ export default class WorldMap {
 
         const habitat = this.getCurrentHabitat();
         const tile = this.getCurrentTile();
+        const segmentIds = getOverworldRouteSegmentsAt(
+            this.playerPos.x,
+            this.playerPos.y,
+            tile?.chapter
+        ).map(route => route.id);
         return {
             type: 'moved',
             habitat,
             tile,
             enteredHabitat: previousHabitat?.id !== habitat?.id,
+            enteredChapter: previousTile?.chapter !== tile?.chapter,
+            segmentIds,
+            enteredSegmentIds: segmentIds.filter(id => !previousSegmentIds.has(id)),
+            arrivedInteractionIds: this.getInteractionsAtPlayer().map(entry => entry.id),
             interaction: this.getNearbyInteraction()
         };
     }
@@ -260,15 +290,24 @@ export default class WorldMap {
         return this.config.routeGates.filter(gate => !this.isGateOpen(gate));
     }
 
-    getNearbyInteraction() {
-        const candidates = [
+    getAvailableInteractions() {
+        return [
             ...(this.getTownReturn() ? [this.getTownReturn()] : []),
             ...this.getVisibleRouteGates(),
             ...this.getActiveLandmarks()
-        ]
+        ];
+    }
+
+    getInteractionsAtPlayer() {
+        return this.getAvailableInteractions()
+            .filter(entry => entry.x === this.playerPos.x && entry.y === this.playerPos.y);
+    }
+
+    getNearbyInteraction() {
+        return this.getAvailableInteractions()
             .filter(entry => manhattan(this.playerPos, entry) <= (entry.interactionRadius || 1))
-            .sort((a, b) => manhattan(this.playerPos, a) - manhattan(this.playerPos, b));
-        return candidates[0] || null;
+            .sort((a, b) => manhattan(this.playerPos, a) - manhattan(this.playerPos, b))
+            [0] || null;
     }
 
     discoverLandmark(entry) {
@@ -344,10 +383,17 @@ export default class WorldMap {
         this.saveState();
     }
 
-    teleportTo(x, y) {
+    teleportTo(x, y, options = {}) {
         const targetX = Math.round(Number(x));
         const targetY = Math.round(Number(y));
-        if (!this.isCellTraversable(targetX, targetY)) return false;
+        const chapterAccessible = options.ignoreChapterLock
+            || Number(getOverworldTileAt(targetX, targetY)?.chapter || 1) <= this.getUnlockedChapter();
+        if (!this.isInsideWorld(targetX, targetY)
+            || !chapterAccessible
+            || this.getBlockingGateAt(targetX, targetY)) return false;
+        if (options.ignoreChapterLock) {
+            this.debugChapterOverride = Number(getOverworldTileAt(targetX, targetY)?.chapter) || 0;
+        }
         this.playerPos = { x: targetX, y: targetY };
         this.revealAroundPlayer(DEFAULT_REVEAL_RADIUS, { save: false });
         this.updateCamera();

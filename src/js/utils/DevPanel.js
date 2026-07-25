@@ -1,12 +1,10 @@
 /**
  * DevPanel.js
  * 全域開發測試面板（Ctrl+Alt+K 開關，或網址加 ?dev=1）。
- * 涵蓋：角色等級、道具、任務進度、BOSS 線索、地點、章節/城鎮狀態、副本、裝備效果、存檔。
+ * 直接操作正式的劇情、戰鬥、道具、城鎮與存檔系統，供快速驗證使用。
  */
 
 import GameManager from '../managers/GameManager.js';
-import { questManager } from '../managers/QuestManager.js';
-import { QuestDatabase } from '../data/Quests.js';
 import { RewardItemDatabase } from '../data/RewardItems.js';
 import { MaterialDatabase } from '../data/Materials.js';
 import { EquipmentDatabase, SetDatabase } from '../data/Equipment.js';
@@ -20,8 +18,19 @@ import {
     getTownRuntimeSummary,
     TownVisibility
 } from '../managers/TownStateResolver.js';
-import { ChapterRegionOrder, ChapterRegionRegistry, getChapterRegion } from '../data/ChapterRegionRegistry.js';
-import { storyGuidanceManager } from '../managers/StoryGuidanceManager.js';
+import {
+    StorySceneOrder,
+    StorySceneOrderByChapter,
+    getStoryScene
+} from '../data/StorySceneRegistry.js';
+import { isOptionalStoryScene } from '../data/ChapterRegionRegistry.js';
+import { storySceneManager } from '../managers/StorySceneManager.js';
+import {
+    PROLOGUE_TUTORIAL_RESOLVED_FLAG,
+    getCurrentRunStoryFlagKeys,
+    getStoryEncounterVictoryFlag
+} from '../data/StoryStateContract.js';
+import { GuildTutorialFlag } from '../data/GuildTutorial.js';
 import { resolveItemById, resolveItemRecord } from './ItemResolver.js';
 import { escapeHtml, formatAffixStats } from './ItemDisplay.js';
 import { showGlobalToast } from './UIFeedback.js';
@@ -37,7 +46,6 @@ import { getEquipmentEffectTotals } from '../managers/EquipmentEffectResolver.js
 import storyDialogueController from '../managers/StoryDialogueController.js';
 import { getStoryActor } from '../data/StoryActors.js';
 
-const DUNGEON_IDS = ['cave', 'snow', 'ruins', 'jungle', 'hell'];
 const DEV_PANEL_STORAGE_KEY = 'sds.devPanel.state';
 
 const ITEM_SOURCE_LABELS = {
@@ -229,19 +237,15 @@ class DevPanel {
         this.app = app;
         this.root = null;
         this.body = null;
-        this.tab = 'character';
+        this.tab = 'story';
         this.open = false;
         this.validationResult = null;
         this.state = this.loadPanelState();
         this.tabs = [
+            ['story', '流程'],
             ['character', '角色'],
             ['items', '道具'],
-            ['quests', '任務'],
-            ['chapter1', '第一章'],
-            ['boss', 'BOSS線'],
-            ['world', '地點'],
             ['town', '章節/城鎮'],
-            ['dungeon', '副本'],
             ['effects', '裝備效果'],
             ['dialogue', '對話'],
             ['validation', '驗證'],
@@ -310,14 +314,10 @@ class DevPanel {
             button.classList.toggle('is-active', button.dataset.devTab === this.tab);
         }
         const renderers = {
+            story: () => this.renderStory(),
             character: () => this.renderCharacter(),
             items: () => this.renderItems(),
-            quests: () => this.renderQuests(),
-            chapter1: () => this.renderChapterOne(),
-            boss: () => this.renderBoss(),
-            world: () => this.renderWorld(),
             town: () => this.renderTown(),
-            dungeon: () => this.renderDungeon(),
             effects: () => this.renderEffects(),
             dialogue: () => this.renderDialogue(),
             validation: () => this.renderValidation(),
@@ -363,6 +363,65 @@ class DevPanel {
         if (field === 'itemCategory') {
             this.render();
         }
+    }
+
+    renderStory() {
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        const selectedSceneId = this.state.storySceneId
+            && getStoryScene(this.state.storySceneId)
+            ? this.state.storySceneId
+            : nextSceneId || StorySceneOrder[0];
+        const selectedScene = getStoryScene(selectedSceneId);
+        const sceneOptions = Object.entries(StorySceneOrderByChapter).map(([chapter, sceneIds]) => `
+            <optgroup label="第 ${chapter} 章">
+                ${sceneIds.map(sceneId => {
+                    const scene = getStoryScene(sceneId);
+                    const optional = isOptionalStoryScene(sceneId) ? '（支線）' : '';
+                    return `<option value="${escapeHtml(sceneId)}"${sceneId === selectedSceneId ? ' selected' : ''}>${escapeHtml(scene?.title || sceneId)}${optional}</option>`;
+                }).join('')}
+            </optgroup>
+        `).join('');
+        const chapterRows = Object.entries(StorySceneOrderByChapter).map(([chapter, sceneIds]) => {
+            const mandatory = sceneIds.filter(sceneId => !isOptionalStoryScene(sceneId));
+            const completed = mandatory.filter(sceneId => storySceneManager.isSceneComplete(sceneId)).length;
+            const firstPending = mandatory.find(sceneId => !storySceneManager.isSceneComplete(sceneId)) || mandatory.at(-1);
+            return `
+                <div class="dev-row">
+                    <small style="flex:1">第 ${chapter} 章｜${completed}/${mandatory.length}</small>
+                    <button class="dev-act" type="button" data-dev="stage-story" data-scene-id="${escapeHtml(firstPending)}">定位</button>
+                    <button class="dev-act" type="button" data-dev="play-story" data-scene-id="${escapeHtml(firstPending)}">播放</button>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="dev-card">
+                <h4>正式主流程</h4>
+                <small>下一場：${nextSceneId ? escapeHtml(`${nextSceneId}｜${getStoryScene(nextSceneId)?.title || ''}`) : '第一輪主線已完成'}</small>
+                <select id="dev-story-scene" data-dev-field="storySceneId" style="min-width:100%;max-width:100%;">${sceneOptions}</select>
+                <small class="dev-muted">${escapeHtml(selectedScene?.stageClass || '')}｜${escapeHtml(selectedScene?.background || '')}</small>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="stage-story">把進度定位到此場景</button>
+                    <button class="dev-act" type="button" data-dev="play-story">定位並直接播放</button>
+                    <button class="dev-act" type="button" data-dev="reset-story">重設第一輪劇情</button>
+                </div>
+            </div>
+            <div class="dev-card">
+                <h4>章節快速定位</h4>
+                ${chapterRows}
+            </div>
+            <div class="dev-card">
+                <h4>常用畫面</h4>
+                <div class="dev-row">
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="guild">工會教學</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="lobby">城鎮大廳</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="adventure">冒險地圖</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="quest">任務／線索</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="encyclopedia">百科</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="forge">鍛造</button>
+                </div>
+            </div>
+        `;
     }
 
     renderCharacter() {
@@ -433,110 +492,6 @@ class DevPanel {
         `;
     }
 
-    renderQuests() {
-        const groups = [
-            ['懸賞', QuestDatabase.bounty],
-            ['委託', QuestDatabase.commission],
-            ['隱藏', QuestDatabase.hidden || []]
-        ];
-        return groups.map(([label, quests]) => `
-            <div class="dev-card">
-                <h4>${label}</h4>
-                ${quests.map(quest => {
-                    const status = questManager.getQuestState(quest.id)?.status || 'locked';
-                    return `
-                        <div class="dev-row">
-                            <small style="flex:1">${escapeHtml(quest.name)} <span class="dev-status">[${status}]</span></small>
-                            <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="${quest.id}">解鎖</button>
-                            <button class="dev-act" type="button" data-dev="quest-accept" data-quest-id="${quest.id}">接取</button>
-                            <button class="dev-act" type="button" data-dev="quest-fill" data-quest-id="${quest.id}">補滿</button>
-                            <button class="dev-act" type="button" data-dev="quest-finish" data-quest-id="${quest.id}">回報</button>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `).join('');
-    }
-
-    renderChapterOne() {
-        const region = getChapterRegion(1);
-        const directive = storyGuidanceManager.getCurrent();
-        const questRows = directive
-            ? `<div class="dev-row"><small style="flex:1">${escapeHtml(directive.sceneId)}｜${escapeHtml(directive.title)}｜${escapeHtml(directive.text)}</small></div>`
-            : '<small class="dev-muted">主線已沒有下一個場景</small>';
-
-        const routeCards = (() => {
-            const nodes = (region?.locationNodes || []).filter(node => node.kind !== 'entry');
-            const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
-            const visited = nodes.filter(node => discoveredIds.has(node.id));
-            const landmarkRows = nodes.map(node => {
-                const isVisited = visited.some(entry => entry.id === node.id);
-                return `
-                    <div class="dev-row">
-                        <small style="flex:1">${node.icon || ''} ${escapeHtml(node.name || node.id)}${isVisited ? '｜已記錄' : ''}</small>
-                    </div>
-                `;
-            }).join('');
-
-            return `
-                <div class="dev-card">
-                    <h4>${escapeHtml(region?.title || '第一章區域')} <small class="dev-muted">${visited.length}/${nodes.length}</small></h4>
-                    ${landmarkRows}
-                </div>
-            `;
-        })();
-
-        return `
-            <div class="dev-card">
-                <h4>第一章主線狀態</h4>
-                ${questRows}
-            </div>
-            ${routeCards}
-        `;
-    }
-
-    renderBoss() {
-        const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
-        return ChapterRegionOrder.map(regionId => {
-            const region = ChapterRegionRegistry[regionId];
-            const bossNodes = (region?.locationNodes || []).filter(node => node.bossId);
-            if (!bossNodes.length) return '';
-            const rows = bossNodes.map(node => {
-                const monster = MonsterDatabase[node.bossId] || {};
-                const sceneId = node.sceneIds?.[0] || '';
-                const visited = discoveredIds.has(node.id);
-                const complete = Boolean(sceneId && GameManager.getFlag(`story.scene.${sceneId}.complete`));
-                return `
-                    <div class="dev-row">
-                        <small style="flex:1">${escapeHtml(monster.name || node.bossId)}｜${escapeHtml(node.name)}${node.optional ? '｜可選' : '｜主線'}${visited ? '｜<span class="dev-status">已發現</span>' : ''}${complete ? '｜<span class="dev-status">已完成</span>' : ''}</small>
-                    </div>
-                `;
-            }).join('');
-            return `<div class="dev-card"><h4>${escapeHtml(region.title)} Boss 地點</h4>${rows}</div>`;
-        }).join('');
-    }
-
-    renderWorld() {
-        const discoveredIds = new Set(GameManager.getOverworldMapProgress()?.discoveredLandmarks || []);
-        return ChapterRegionOrder.map(regionId => {
-            const region = ChapterRegionRegistry[regionId];
-            const rows = (region?.locationNodes || []).map(node => {
-                const visited = discoveredIds.has(node.id);
-                return `
-                    <div class="dev-row">
-                        <small style="flex:1">${escapeHtml(node.name)}｜${escapeHtml(node.kind)}${visited ? '｜<span class="dev-status">已造訪</span>' : ''}</small>
-                    </div>
-                `;
-            }).join('');
-            return `
-                <div class="dev-card">
-                    <h4>第 ${region.chapter} 章｜${escapeHtml(region.title)}</h4>
-                    ${rows}
-                </div>
-            `;
-        }).join('');
-    }
-
     renderTown() {
         const chapter = Math.max(1, Number(GameManager.getFlag('story.chapter')) || 1);
         const townSummary = getTownRuntimeSummary();
@@ -590,18 +545,6 @@ class DevPanel {
                 </div>
             `).join('')}
         `;
-    }
-
-    renderDungeon() {
-        return DUNGEON_IDS.map(dungeonId => `
-            <div class="dev-card">
-                <h4>${dungeonId}</h4>
-                <div class="dev-row">
-                    <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="dungeon_${dungeonId}_001">解鎖任務I</button>
-                    <button class="dev-act" type="button" data-dev="quest-unlock" data-quest-id="dungeon_${dungeonId}_002">解鎖任務II</button>
-                </div>
-            </div>
-        `).join('');
     }
 
     renderEffects() {
@@ -729,6 +672,7 @@ class DevPanel {
                 <div class="dev-row">
                     <select id="dev-validation-monster" data-dev-field="combatMonsterId">${monsterOptions}</select>
                     <button class="dev-act" type="button" data-dev="run-current-combat-validation">用目前裝備模擬</button>
+                    <button class="dev-act" type="button" data-dev="start-real-combat">進入正式戰鬥與結算</button>
                 </div>
                 <div class="dev-row">
                     <select id="dev-validation-weapon" data-dev-field="combatWeaponId" style="min-width:230px;max-width:100%;">
@@ -830,6 +774,118 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
         `;
     }
 
+    getSelectedStorySceneId(actionData = {}) {
+        return actionData.sceneId
+            || this.body.querySelector('#dev-story-scene')?.value
+            || this.state.storySceneId
+            || storySceneManager.getNextAvailableSceneId()
+            || StorySceneOrder[0];
+    }
+
+    resetStoryForValidation() {
+        const runFlags = getCurrentRunStoryFlagKeys(GameManager.getFlagsByPrefix());
+        storySceneManager.resetProgress();
+        GameManager.updateFlags({
+            'story.run': 1,
+            'story.chapter': 1,
+            'story.activeSceneId': null,
+            'story.activeScenePhase': null,
+            'story.lastSceneId': null,
+            [GuildTutorialFlag.COMPLETE]: true,
+            [PROLOGUE_TUTORIAL_RESOLVED_FLAG]: true
+        }, {
+            remove: runFlags,
+            reason: 'dev-story-reset'
+        });
+    }
+
+    stageStoryScene(sceneId) {
+        const scene = getStoryScene(sceneId);
+        if (!scene) return { success: false, reason: 'missing_scene' };
+
+        this.resetStoryForValidation();
+        const availableOrder = storySceneManager.getAvailableSceneOrder();
+        const targetIndex = availableOrder.indexOf(sceneId);
+        if (targetIndex < 0) return { success: false, reason: 'scene_not_in_first_run' };
+
+        for (const priorSceneId of availableOrder.slice(0, targetIndex)) {
+            if (isOptionalStoryScene(priorSceneId)) continue;
+            const encounter = storySceneManager.getEncounterContract(priorSceneId);
+            if (encounter?.id) {
+                GameManager.setFlag(getStoryEncounterVictoryFlag(encounter.id), true, {
+                    notify: false,
+                    reason: 'dev-story-stage'
+                });
+            }
+            storySceneManager.finalizeScene(priorSceneId);
+        }
+
+        GameManager.setFlag('story.chapter', scene.chapter, { reason: 'dev-story-stage' });
+        if (sceneId === StorySceneOrder[0]) {
+            GameManager.setFlag(PROLOGUE_TUTORIAL_RESOLVED_FLAG, false, {
+                reason: 'dev-story-stage-opening'
+            });
+        }
+        this.savePanelState({ storySceneId: sceneId });
+        return { success: true, scene };
+    }
+
+    getStorySceneRoute(scene) {
+        return scene?.stageClass === 'town_scene' ? 'lobby' : 'adventure';
+    }
+
+    async waitForScene(route, timeout = 5000, previousController = null) {
+        const startedAt = Date.now();
+        while (Date.now() - startedAt < timeout) {
+            if (this.app?.currentSceneName === route
+                && this.app?.currentScene
+                && this.app.currentScene !== previousController) {
+                return this.app.currentScene;
+            }
+            await new Promise(resolve => window.setTimeout(resolve, 50));
+        }
+        return null;
+    }
+
+    async playStoryScene(sceneId) {
+        const staged = this.stageStoryScene(sceneId);
+        if (!staged.success) {
+            this.refresh(`無法定位場景：${staged.reason}`);
+            return;
+        }
+
+        const route = this.getStorySceneRoute(staged.scene);
+        const previousController = this.app?.currentScene || null;
+        this.toggle(false);
+        this.app?.navigateTo?.(route);
+        const sceneController = await this.waitForScene(route, 5000, previousController);
+        if (!sceneController) {
+            showGlobalToast('測試面板', '場景載入逾時', 'error');
+            return;
+        }
+
+        const outcome = route === 'lobby'
+            ? sceneController.openStoryScene?.(sceneId, { force: true })
+            : sceneController.playDevStoryScene?.(sceneId)
+                ?? sceneController.startMapStoryScene?.(sceneId, { force: true });
+        if (!outcome?.success) {
+            showGlobalToast('測試面板', `場景無法播放：${outcome?.reason || '未知原因'}`, 'error');
+        }
+    }
+
+    startRealCombat() {
+        const monsterId = this.readCombatValidationState().monsterId;
+        if (!MonsterDatabase[monsterId]) {
+            this.refresh(`找不到怪物：${monsterId}`);
+            return;
+        }
+        this.savePanelState({ combatMonsterId: monsterId });
+        this.toggle(false);
+        this.app?.navigateTo?.('adventure', {
+            state: { devEncounterMonsterId: monsterId }
+        });
+    }
+
     // ==================== 行為 ====================
 
     handleClick(event) {
@@ -847,6 +903,27 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
 
         const actions = {
             close: () => this.toggle(false),
+            'navigate-scene': () => {
+                this.toggle(false);
+                this.app?.navigateTo?.(data.route);
+            },
+            'reset-story': () => {
+                this.resetStoryForValidation();
+                this.refresh('第一輪劇情已重設，工會與前導教學保持完成');
+            },
+            'stage-story': () => {
+                const sceneId = this.getSelectedStorySceneId(data);
+                const result = this.stageStoryScene(sceneId);
+                if (!result.success) {
+                    this.refresh(`定位失敗：${result.reason}`);
+                    return;
+                }
+                const route = this.getStorySceneRoute(result.scene);
+                this.toggle(false);
+                this.app?.navigateTo?.(route);
+                showGlobalToast('測試面板', `已定位：${result.scene.title}`, 'info');
+            },
+            'play-story': () => this.playStoryScene(this.getSelectedStorySceneId(data)),
             'set-level': () => {
                 const char = GameManager.getCharacter();
                 const level = Math.max(1, Number(this.body.querySelector('#dev-level')?.value) || char.level);
@@ -877,24 +954,12 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             'add-item-warehouse': () => this.addItem(true),
             'run-current-combat-validation': () => this.runCombatValidation('current'),
             'run-combat-validation': () => this.runCombatValidation('configured'),
+            'start-real-combat': () => this.startRealCombat(),
             'open-vfx-lab': () => window.open('combat-vfx-lab.html', '_blank', 'noopener,noreferrer'),
             'dialogue-preview': () => this.previewDialogue(data.mode),
             'grant-set': () => {
                 this.grantEquipmentSet(data.setId);
                 this.refresh(`已給予並裝備套裝 ${data.setId}`);
-            },
-            'quest-unlock': () => {
-                questManager.unlockQuest(data.questId);
-                this.refresh(`已解鎖 ${data.questId}`);
-            },
-            'quest-accept': () => {
-                const result = questManager.acceptQuest(data.questId);
-                this.refresh(result.success ? `已接取 ${data.questId}` : `接取失敗：${result.message}`);
-            },
-            'quest-fill': () => this.fillQuest(data.questId),
-            'quest-finish': () => {
-                const result = questManager.completeQuest(data.questId);
-                this.refresh(result.success ? `已回報 ${data.questId}` : `回報失敗：${result.message}`);
             },
             'town-reset-initial': () => {
                 for (const flag of DEV_TOWN_VISIBILITY_FLAGS) {
@@ -1116,13 +1181,6 @@ node scripts/MonsterBalanceCheck_v4.js</pre>
             ? GameManager.addToWarehouse(item, quantity)
             : GameManager.addToInventory(item, quantity);
         this.refresh(success ? `已加入 ${item.name} x${quantity}` : '加入失敗（背包已滿？）');
-    }
-
-    fillQuest(questId) {
-        const result = questManager.completeQuestObjectives(questId);
-        this.refresh(result.success
-            ? `已補滿 ${result.quest.name} 的目標`
-            : result.message);
     }
 
     importSave() {

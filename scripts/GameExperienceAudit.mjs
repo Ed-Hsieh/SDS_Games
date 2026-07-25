@@ -1,7 +1,12 @@
 import { ChapterRegionOrder, ChapterRegionRegistry } from '../src/js/data/ChapterRegionRegistry.js';
 import { CharacterProfileDatabase } from '../src/js/data/CharacterProfiles.js';
 import { OptionalSideStoryRegistry, OptionalSideStoryStatus } from '../src/js/data/OptionalSideStoryRegistry.js';
-import { QuestDatabase } from '../src/js/data/Quests.js';
+import {
+    GuildTutorialCommissionId,
+    QuestDatabase,
+    QuestRuntimeStatus
+} from '../src/js/data/Quests.js';
+import { QuestStoryDatabase } from '../src/js/data/QuestStories.js';
 import { MainlineCharacterContracts } from '../src/js/data/StoryActors.js';
 import { StorySceneOrder, StorySceneRegistry } from '../src/js/data/StorySceneRegistry.js';
 import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
@@ -155,8 +160,21 @@ function auditMapFoundation() {
 
 function auditSideStoryGate() {
     const activeOptional = [...(QuestDatabase.commission || []), ...(QuestDatabase.hidden || [])];
-    if (activeOptional.length > 0) {
-        addIssue('支線在地圖擁有者定案前已進入執行層', { questIds: activeOptional.map(quest => quest.id) });
+    const unapprovedOptional = activeOptional.filter(
+        quest => quest.runtimeStatus !== QuestRuntimeStatus.APPROVED
+    );
+    if (unapprovedOptional.length > 0) {
+        addIssue('尚未核准的支線已進入執行層', {
+            questIds: unapprovedOptional.map(quest => quest.id)
+        });
+    }
+
+    for (const quest of activeOptional) {
+        if (quest.id === GuildTutorialCommissionId) continue;
+        const story = QuestStoryDatabase[quest.id];
+        if (!story || !hasText(story.route) || !story.requestFrom?.npcId || !story.reportTo?.npcId) {
+            addIssue('執行中的支線缺少已定案的場景或角色擁有者', { questId: quest.id });
+        }
     }
     for (const story of OptionalSideStoryRegistry) {
         if (story.status !== OptionalSideStoryStatus.APPROVED) addIssue('支線核准狀態不一致', { sideStoryId: story.id });

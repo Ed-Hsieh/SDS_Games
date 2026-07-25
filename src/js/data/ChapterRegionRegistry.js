@@ -34,7 +34,6 @@ function segment(id, from, to, path, options = {}) {
         path,
         width: options.width || 2,
         terrain: options.terrain || 'road',
-        fatiguePerCell: options.fatiguePerCell ?? 1,
         encounterTableId: options.encounterTableId || null,
         optional: Boolean(options.optional),
         prerequisites: options.prerequisites || []
@@ -170,10 +169,10 @@ export const ChapterRegionRegistry = Object.freeze({
             location('north_checkpoint_marker', '北向廢棄關卡', RegionLocationKind.STORY_TRANSITION, 45, 25, { imageId: 'cut_roadsign', sceneIds: ['ch2_s08_shadow_at_the_checkpoint'] })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch2_s04_mist_and_tomb_route', 'regional_canvas', 'mist_tablet_hill', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch2_s04_mist_and_tomb_route', 'regional_canvas', 'opened_tomb_road', RegionSceneTrigger.SEGMENT_ENTER),
             binding('ch2_s05_moon_moss_trace', 'location_scene', 'moon_moss_slope', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch2_s06_keeper_of_names', 'location_scene', 'opened_ancient_tomb', RegionSceneTrigger.BOSS_CONVERGENCE),
-            binding('ch2_s08_shadow_at_the_checkpoint', 'regional_canvas', 'north_checkpoint_marker', RegionSceneTrigger.LOCATION_ENTER)
+            binding('ch2_s08_shadow_at_the_checkpoint', 'regional_canvas', 'north_checkpoint_exit', RegionSceneTrigger.RETURN_ROUTE)
         ]),
         bossConvergence: Object.freeze({ bossId: 'lich', locationId: 'opened_ancient_tomb', sceneId: 'ch2_s06_keeper_of_names' }),
         returnState: Object.freeze({ townEntryPlaceId: 'market', afterSceneId: 'ch2_s08_shadow_at_the_checkpoint' })
@@ -212,7 +211,7 @@ export const ChapterRegionRegistry = Object.freeze({
         ]),
         sceneBindings: Object.freeze([
             binding('ch3_s01_dead_checkpoint', 'location_scene', 'dead_checkpoint', RegionSceneTrigger.REGION_ENTRY),
-            binding('ch3_s03_lamp_oil_in_fog', 'regional_canvas', 'night_watch_line', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch3_s03_lamp_oil_in_fog', 'regional_canvas', 'checkpoint_line', RegionSceneTrigger.SEGMENT_ENTER),
             binding('ch3_s06_drowned_voice', 'location_scene', 'sunken_altar_reef', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch3_s07_old_command_post', 'location_scene', 'old_command_post', RegionSceneTrigger.LOCATION_INSPECT),
             binding('ch3_s08_shadow_commander', 'location_scene', 'shadow_command_yard', RegionSceneTrigger.BOSS_CONVERGENCE)
@@ -255,9 +254,9 @@ export const ChapterRegionRegistry = Object.freeze({
             location('titan_vein_ruins', '地脈遺跡', RegionLocationKind.BOSS_ARENA, 43, 14, { imageId: 'titan-vein-ruins-awakened', sceneIds: ['ch4_s07_titan_rises'], bossId: 'ancient_titan' })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch4_s01_road_moves_underfoot', 'regional_canvas', 'stone_route_entry', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch4_s01_road_moves_underfoot', 'regional_canvas', 'moving_stone_road', RegionSceneTrigger.REGION_ENTRY),
             binding('ch4_s03_thorn_value_rule', 'location_scene', 'thorn_glasshouse_ruin', RegionSceneTrigger.LOCATION_ENTER, { prerequisites: ['story.ch4.town_aftermath_recorded'] }),
-            binding('ch4_s04_gray_ridge_evacuates', 'regional_canvas', 'gray_ridge_entry', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch4_s04_gray_ridge_evacuates', 'regional_canvas', 'gray_ridge_causeway', RegionSceneTrigger.SEGMENT_ENTER),
             binding('ch4_s05_body_locks', 'location_scene', 'rear_marker', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch4_s06_flag_returns', 'location_scene', 'center_span_marker', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch4_s07_titan_rises', 'location_scene', 'titan_vein_ruins', RegionSceneTrigger.BOSS_CONVERGENCE)
@@ -301,9 +300,9 @@ export const ChapterRegionRegistry = Object.freeze({
             location('old_waystation_cache', '舊驛站藏庫', RegionLocationKind.LANDMARK, 37, 7, { imageId: 'old-waystation-cache', sceneIds: ['ch5_s09_whistle_cache'] })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch5_s03_elemental_convergence', 'regional_canvas', 'four_front_nexus', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch5_s03_elemental_convergence', 'regional_canvas', 'convergence_road', RegionSceneTrigger.SEGMENT_ENTER),
             binding('ch5_s04_elemental_lord', 'location_scene', 'elemental_core', RegionSceneTrigger.BOSS_CONVERGENCE),
-            binding('ch5_s05_fourfold_shrapnel', 'regional_canvas', 'emergency_return_marker', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch5_s05_fourfold_shrapnel', 'regional_canvas', 'emergency_return', RegionSceneTrigger.RETURN_ROUTE),
             binding('ch5_s09_whistle_cache', 'location_scene', 'old_waystation_cache', RegionSceneTrigger.LOCATION_INSPECT)
         ]),
         bossConvergence: Object.freeze({ bossId: 'elemental_lord', locationId: 'elemental_core', sceneId: 'ch5_s04_elemental_lord' }),
@@ -344,11 +343,11 @@ export const ChapterRegionRegistry = Object.freeze({
             location('old_route_mouth', '舊路回音口', RegionLocationKind.LANDMARK, 16, 24, { sceneIds: ['ch6_s09_the_old_note_answers'] })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch6_s01_northern_drake_watch', 'regional_canvas', 'northern_drake_watch', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch6_s01_northern_drake_watch', 'regional_canvas', 'elder_pursuit', RegionSceneTrigger.REGION_ENTRY),
             binding('ch6_s02_scar_aftermath', 'location_scene', 'seal_warning_line', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch6_s03_stop_before_the_line', 'location_scene', 'seal_warning_line', RegionSceneTrigger.LOCATION_INSPECT),
             binding('ch6_s04_dragon_convergence', 'location_scene', 'elder_dragon_line', RegionSceneTrigger.BOSS_CONVERGENCE),
-            binding('ch6_s05_after_the_broad_road', 'regional_canvas', 'broad_road_collapse', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch6_s05_after_the_broad_road', 'regional_canvas', 'blind_collapse_return', RegionSceneTrigger.RETURN_ROUTE),
             binding('ch6_s09_the_old_note_answers', 'location_scene', 'old_route_mouth', RegionSceneTrigger.LOCATION_INSPECT)
         ]),
         bossConvergence: Object.freeze({ bossId: 'elder_dragon', locationId: 'elder_dragon_line', sceneId: 'ch6_s04_dragon_convergence', secondRunResolution: 'evidence_bound_non_attack' }),
@@ -387,7 +386,7 @@ export const ChapterRegionRegistry = Object.freeze({
             location('demon_fall_site', '魔王墜落地', RegionLocationKind.BOSS_ARENA, 44, 14, { sceneIds: ['ch7_s05_fall_site_audience', 'ch7_s06_combat_body_falls', 'ch7_s07_last_core'], bossId: 'demon_lord_asariel' })
         ]),
         sceneBindings: Object.freeze([
-            binding('ch7_s01_narrow_human_road', 'regional_canvas', 'old_mountain_road', RegionSceneTrigger.LOCATION_ENTER),
+            binding('ch7_s01_narrow_human_road', 'regional_canvas', 'echo_blind_turns', RegionSceneTrigger.REGION_ENTRY),
             binding('ch7_s02_ruined_flower_field', 'location_scene', 'ruined_flower_field', RegionSceneTrigger.LOCATION_ENTER),
             binding('ch7_s03_echo_memory', 'memory_or_ending', 'ruined_flower_field', RegionSceneTrigger.LOCATION_INSPECT, { runCondition: 2 }),
             binding('ch7_s04_three_anchor_check', 'location_scene', 'final_mountain_camp', RegionSceneTrigger.LOCATION_INSPECT),

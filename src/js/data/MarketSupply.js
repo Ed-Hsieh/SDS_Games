@@ -40,7 +40,7 @@ export const MarketVendors = Object.freeze([
                 itemId: 'health_potion_s',
                 price: 25,
                 stock: '基礎藥品',
-                note: '第二章公開供應線建立後維持販售，不因米婭的當輪命運中斷。'
+                note: '配方已交給公開藥品攤。只要貨路仍在，這裡就會維持基礎供應。'
             })
         ])
     })

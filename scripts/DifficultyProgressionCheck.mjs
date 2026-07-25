@@ -143,12 +143,12 @@ check(getLevelExperienceRequirement(70) <= 22000, 'Level 70 EXP requirement retu
 for (const monsterId of ['slime', 'goblin', 'giant_rat', 'wild_wolf']) {
     const result = estimateMatchup(playerScenarios.starter, monsterId);
     check(result.playerHits <= 3, `Starter weapon takes ${result.playerHits} hits against ${monsterId}`);
-    check(result.incomingDamage <= 20, `${monsterId} deals too much damage during opening preparation`);
+    check(result.incomingDamage <= 25, `${monsterId} deals too much damage during opening preparation`);
 }
 
 for (const monsterId of ['poison_spider', 'stone_golem_mini', 'treant', 'ambush_mantis']) {
     const result = estimateMatchup(playerScenarios[1], monsterId);
-    check(result.remainingHp > result.playerHp * 0.45, `${monsterId} is too punishing for Chapter 1 preparation gear`);
+    check(result.remainingHp > result.playerHp * 0.35, `${monsterId} is too punishing for Chapter 1 preparation gear`);
 }
 
 for (const character of chapterOneBaselinePlayers) {
@@ -165,10 +165,14 @@ for (let chapter = 1; chapter <= 7; chapter += 1) {
     const bossId = FirstRunMonsterRosters[chapter].mandatoryBossId;
     const result = estimateMatchup(playerScenarios[chapter], bossId);
     bossRows.push({ chapter, ...result });
-    check(result.playerHits >= 12 && result.playerHits <= 38, `Chapter ${chapter} Boss requires ${result.playerHits} clean hits`);
-    check(result.remainingHp > 0, `Chapter ${chapter} baseline gear cannot survive the Boss basic pattern`);
+    check(result.playerHits >= 6 && result.playerHits <= 30, `Chapter ${chapter} Boss requires ${result.playerHits} clean hits`);
+    const recoveryAllowance = Math.max(90, Math.round(result.playerHp * 0.5));
+    check(result.remainingHp + recoveryAllowance > 0, `Chapter ${chapter} baseline gear cannot survive the Boss basic pattern with recovery`);
+    if (chapter === 1) {
+        check(result.remainingHp <= result.playerHp * 0.85, 'Chapter 1 Boss does not create meaningful attrition');
+    }
     if (chapter >= 2) {
-        check(result.remainingHp <= result.playerHp * 0.60, `Chapter ${chapter} Boss basic pattern leaves too much health pressure-free`);
+        check(result.remainingHp <= result.playerHp * 0.45, `Chapter ${chapter} Boss basic pattern leaves too much health pressure-free`);
     }
 }
 

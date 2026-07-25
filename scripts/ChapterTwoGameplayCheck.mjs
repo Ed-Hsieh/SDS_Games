@@ -21,6 +21,7 @@ const { StoryActorRegistry, getStoryExpressionLayer } = await import('../src/js/
 const { TownDialogueDatabase } = await import('../src/js/data/NPCDialogues.js');
 const { ChapterRegionRegistry } = await import('../src/js/data/ChapterRegionRegistry.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
+const { getTownSceneBinding } = await import('../src/js/data/TownPlaces.js');
 const { getStoryEncounterContract } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStorySceneEffects } = await import('../src/js/data/StoryStateContract.js');
 const { STORY_SCENE_BACKGROUNDS, storySceneManager } = await import('../src/js/managers/StorySceneManager.js');
@@ -61,7 +62,9 @@ for (const sceneId of chapterTwoSceneIds) {
     const hiddenDirections = scene.beats.filter(beat => ['enter', 'exit'].includes(beat.beat));
     const expectedHiddenDirections = sceneId === 'ch2_s06_keeper_of_names'
         ? ['exit', 'enter']
-        : [];
+        : sceneId === 'ch2_s03_ledger_that_would_not_close'
+            ? ['enter', 'exit', 'enter', 'exit', 'enter', 'exit']
+            : [];
     check(
         JSON.stringify(hiddenDirections.map(beat => beat.beat)) === JSON.stringify(expectedHiddenDirections),
         `${sceneId} contains unexpected hidden stage directions`
@@ -102,15 +105,15 @@ check(
 );
 
 const expectedTownObjectives = Object.freeze({
-    ch2_s01_empty_crates: ['market', 'merchant'],
+    ch2_s01_empty_crates: ['market', null],
     ch2_s02_name_under_basket: ['mia_workroom', 'herbalist'],
     ch2_s03_ledger_that_would_not_close: ['handbook', 'town_scholar'],
     ch2_s07_names_return_to_town: ['handbook', 'town_scholar']
 });
 for (const [sceneId, [placeId, actorId]] of Object.entries(expectedTownObjectives)) {
-    const hint = getStoryObjectiveHint(sceneId);
-    check(hint?.placeId === placeId, `${sceneId} points to ${hint?.placeId || 'no place'} instead of ${placeId}`);
-    check(hint?.actorId === actorId, `${sceneId} points to ${hint?.actorId || 'no actor'} instead of ${actorId}`);
+    const binding = getTownSceneBinding(sceneId);
+    check(binding?.placeId === placeId, `${sceneId} points to ${binding?.placeId || 'no place'} instead of ${placeId}`);
+    check(binding?.actorId === actorId, `${sceneId} points to ${binding?.actorId || 'no actor'} instead of ${actorId || 'no actor'}`);
 }
 
 const region = ChapterRegionRegistry.chapter_02_broken_evacuations;

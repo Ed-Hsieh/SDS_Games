@@ -44,7 +44,7 @@ export const StoryDiscoveryRegistry = Object.freeze({
         id: 'ch1_first_index', chapter: 1, order: 40, sceneId: 'ch1_s04_elder_to_scholar',
         title: '第一份索引保留未知', kind: 'clue', icon: '?', rarity: 'uncommon',
         sourceLabel: '檔案室',
-        observation: '村長拒絕把任務寫成清除怪物。伊萊要求先確認三個固定地點，分開記錄來源與推論。',
+        observation: '村長拒絕把委託寫成清除怪物。伊萊要求先確認三個固定地點，分開記錄來源與推論。',
         inference: '旅人手札從這裡開始只記錄主角真正知道的事。'
     }),
     ch1_gate_rule: discovery({
@@ -52,7 +52,7 @@ export const StoryDiscoveryRegistry = Object.freeze({
         title: '旗在前，燈在後', kind: 'relationship', icon: '>',
         sourceLabel: '南門殘階',
         observation: '芙蕾記錄離城者，塔維維持回程燈。南門需要的是可讀的來回路線，不是更多英雄口號。',
-        inference: '疲勞、回程標記與失聯名單從此成為同一個問題。'
+        inference: '分段調查、回程標記與失聯名單從此成為同一個問題。'
     }),
     ch1_farmland_tracks: discovery({
         id: 'ch1_farmland_tracks', chapter: 1, order: 60, locationId: 'south_gate_farmland',
@@ -108,8 +108,8 @@ export const StoryDiscoveryRegistry = Object.freeze({
     ch1_roads_readable: discovery({
         id: 'ch1_roads_readable', chapter: 1, order: 130, sceneId: 'ch1_s11_roads_breathe_again',
         title: '道路重新可讀，不代表安全', kind: 'conclusion', icon: '✓', rarity: 'uncommon',
-        sourceLabel: '第一章結案',
-        observation: '城鎮能重新判讀附近道路，冷爐與手札恢復第一階段功能，市集仍缺少真正的供應線。',
+        sourceLabel: '南路調查結案',
+        observation: '城鎮能重新判讀附近道路，冷爐重新生火，手札也開始收錄實地紀錄；市集仍缺少真正的供應線。',
         inference: '下一個問題不是再清除一批怪物，而是找回沒有抵達的貨物與名字。'
     }),
     ch2_empty_crates: discovery({

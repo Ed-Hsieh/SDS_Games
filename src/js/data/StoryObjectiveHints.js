@@ -20,12 +20,12 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         text: '前往村鎮十字路口，向村長說明南路的情況。',
     },
     ch1_s04_elder_to_scholar: {
-        title: '查清三條失聯路線',
-        text: '前往書記小屋，向伊萊查問失聯人員最後使用的道路。',
+        title: '找出紀錄重疊的位置',
+        text: '前往書記小屋，向伊萊核對三名巡路人最後留下的路線紀錄。',
     },
     ch1_s05_south_gate_introduction: {
-        title: '從南門重新出發',
-        text: '前往南門登記，再沿三名巡路人員走過的路線出發。',
+        title: '先查第一段路',
+        text: '前往南門登記。芙蕾與塔維會依最後目擊，替你確認第一段安全調查路線。',
     },
     ch1_s06_three_landmarks: {
         title: ({
@@ -64,7 +64,7 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
     },
     ch1_s08_cold_forge_smoke: {
         title: '把證據帶回冷爐',
-        text: '返回鐵匠鋪，請鐵匠檢查銀線、甲殼與受損裝備。',
+        text: '返回鐵匠鋪。伊萊與村長會在冷爐前核對道路證據，鐵匠則需要你留下的銀線修復風箱。',
     },
     ch1_s09_rotroot_approach: {
         title: '沿仍在搏動的黑根深入',
@@ -77,19 +77,19 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
             }
             const trial = ChapterOneRotrootTrials.find(entry => entry.id === chapterOneRotrootTrialId);
             if (trial) return `${trial.title}：${trial.text}`;
-            return '兩段腐根實戰已完成，沿仍在向北搏動的根脈判讀森林匯流點。';
+            return '兩段腐根實戰已完成。沿根脈前進，記下裂縫後的第二道震動；你可以直接深入根心，也可以先回城請伊萊追查舊礦道。';
         }
     },
     ch1_s10_forest_guardian: {
-        title: '進入古樹根心',
-        text: '前往古樹根心，面對封鎖道路的森林守衛。'
+        title: '確認守護者在保護什麼',
+        text: '前往古樹根心。先觀察守護者會阻止哪些動作，再決定如何取得根心證據。'
     },
     ch1_s11_roads_breathe_again: {
         title: ({ chapterOneClosingReportStage = null } = {}) => (
             chapterOneClosingReportStage?.title || '第一章道路結案'
         ),
         text: ({ chapterOneClosingReportStage = null } = {}) => (
-            chapterOneClosingReportStage?.text || '第一章道路結果已完成分段回報。'
+            chapterOneClosingReportStage?.text || '道路調查結果已分別交給需要處理的人。'
         )
     },
     ch2_s01_empty_crates: {
@@ -305,7 +305,7 @@ const STORY_OBJECTIVE_HINTS = Object.freeze({
         text: '穿過南門回到廣場。留下的人正在等這場戰鬥的消息。',
     },
     ch7_s09_first_or_second_epilogue: {
-        title: '回聲盡頭',
+        title: '回聲盡頭，花仍會開',
         text: '看完這一趟留下的結果。',
     }
 });
@@ -343,9 +343,9 @@ function getFallbackHint(scene) {
         return { title, text: '前往地圖上的首領標記，完成戰鬥前的準備。' };
     }
     if (binding?.targetId) {
-        return { title, text: '前往地圖上的任務標記，調查該處並推進事件。' };
+        return { title, text: '前往手札標出的地點，確認那裡留下了什麼。' };
     }
-    return { title, text: '沿目前開放的道路探索，尋找下一個劇情地點。' };
+    return { title, text: '沿目前能通行的道路探索，留意尚未記錄的地點。' };
 }
 
 export function getStoryObjectiveHint(sceneId, context = {}) {

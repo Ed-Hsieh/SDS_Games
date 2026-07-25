@@ -26,7 +26,7 @@ export const StandaloneRecipeDatabase = {
         "icon": "🥋",
         "type": "equipment",
         "rarity": "common",
-        "materials": [{"id":"beast_hide","quantity":2},{"id":"iron_shard","quantity":2}],
+        "materials": [{"id":"beast_hide","quantity":2},{"id":"iron_ore","quantity":2}],
         "cost": 25,
         "successRate": 100,
         "result": {"id":"crafted_leather_armor","name":"皮甲","icon":"🥋","type":"equipment","rarity":"common","stats":{"attack":0,"defense":8,"critChance":0,"critDamage":0},"specialEffects":[],"desc":"由獸皮製成的輕便護甲。","level":1,"requiredLevel":1},

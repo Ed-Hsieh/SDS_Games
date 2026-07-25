@@ -7,6 +7,7 @@ export const GuildTutorialFlag = Object.freeze({
     OFFHAND_EQUIPPED: 'story.prologue.guildOffhandEquipped',
     ARMOR_CONFLICT_SEEN: 'story.prologue.guildArmorConflictSeen',
     BATTLE_OFFHAND_READY: 'story.prologue.guildBattleOffhandReady',
+    OVERWORLD_MOVEMENT_LEARNED: 'story.prologue.overworldMovementLearned',
     FIRST_LOOT_DECISION_COMPLETE: 'tutorial.firstLootDecisionComplete',
     FIRST_QUEST_REPORT_GUIDANCE_SEEN: 'tutorial.firstQuestReportGuidanceSeen'
 });

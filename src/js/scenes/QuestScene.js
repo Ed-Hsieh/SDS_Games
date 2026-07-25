@@ -59,7 +59,7 @@ const HANDBOOK_TABS = {
         panelTitle: '留下的變化',
         countLabel: '段記憶',
         emptyIcon: '🏘️',
-        emptyText: '城鎮還沒有留下明顯變化。完成主線或支線後，居民與場所的改變會收在這裡。',
+        emptyText: '城鎮還沒有留下明顯變化。完成委託或重要事件後，居民與場所的改變會收在這裡。',
         ledger: records => `${records.length} 段城鎮記憶`
     }
 };
@@ -856,7 +856,7 @@ export default class QuestScene {
             case 'world':
                 return '這是親眼確認過的見聞，之後遇到相關委託或首領線時會派上用場。';
             case 'relationship':
-                return '這頁只記下你真正接觸過的人；更多背景要靠對話、主線與支線慢慢補齊。';
+                return '這頁只記下你真正接觸過的人；更多背景要靠對話與親身經歷慢慢補齊。';
             case 'town':
                 return '這頁只記下一幕城裡的日常；回城時可以再路過看看。';
             default:
@@ -989,13 +989,13 @@ export default class QuestScene {
         const progressText = safeProgressInfo.required > 0
             ? `${safeProgressInfo.current}/${safeProgressInfo.required}`
             : '0/0';
-        const chapterText = questStory.arc || '';
+        const chapterText = questStory.source || '';
         summary.style.setProperty('--quest-progress', `${safeProgressInfo.percent}%`);
 
         summary.innerHTML = `
             ${chapterText ? `
-                <div class="quest-note-meta" aria-label="委託篇章">
-                    <span><b>篇章</b>${escapeHtml(chapterText)}</span>
+                <div class="quest-note-meta" aria-label="委託來源">
+                    <span><b>來源</b>${escapeHtml(chapterText)}</span>
                 </div>
             ` : ''}
             <section class="quest-note-current" aria-label="目前紀錄">

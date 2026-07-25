@@ -44,7 +44,7 @@ const expectedTitles = Object.freeze([
     '倒下的身體',
     '最後的核心',
     '回到城鎮',
-    '回聲盡頭'
+    '回聲盡頭，花仍會開'
 ]);
 
 check(

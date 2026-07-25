@@ -96,24 +96,28 @@ const custom = {
         id: 'test_thunder_blade',
         name: '測試雷刃',
         type: 'weapon',
+        weaponForm: 'sword',
         specialEffects: [{ type: 'thunder', value: 100 }]
     },
     iceBlade: {
         id: 'test_ice_blade',
         name: '測試冰刃',
         type: 'weapon',
+        weaponForm: 'sword',
         specialEffects: [{ type: 'ice', value: 25 }]
     },
     poisonBlade: {
         id: 'test_poison_blade',
         name: '測試毒刃',
         type: 'weapon',
+        weaponForm: 'sword',
         specialEffects: [{ type: 'poison', value: 5 }]
     },
     voidBlade: {
         id: 'test_void_blade',
         name: '測試虛空刃',
         type: 'weapon',
+        weaponForm: 'sword',
         specialEffects: [{ type: 'void', value: 25 }]
     }
 };

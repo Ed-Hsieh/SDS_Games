@@ -76,7 +76,7 @@ export const StoryExpressionCoverage = Object.freeze({
 });
 
 export const StoryActorRegistry = Object.freeze({
-    player: { id: 'player', name: '玩家', role: '怪物獵人' },
+    player: { id: 'player', name: '我', role: '怪物獵人' },
     village_elder: { id: 'village_elder', name: '村長', role: '城鎮領導者', portrait: portrait('village_elder'), standing: standing('village_elder'), standingFacing: 'center', nameStatus: 'unresolved_personal_name' },
     town_scholar: { id: 'town_scholar', name: '伊萊', role: '城鎮書記', portrait: portrait('town_scholar'), standing: standing('town_scholar'), standingFacing: 'right' },
     herbalist: {
@@ -133,6 +133,35 @@ export const StoryActorRegistry = Object.freeze({
         standingFacing: 'center'
     },
     thorn_witch: { id: 'thorn_witch', name: '荊棘女巫', role: '荊棘交易者' }
+});
+
+/**
+ * The protagonist has a fixed dramatic movement without a fixed portrait or
+ * biography. This remains separate from NPC profile contracts.
+ */
+export const ProtagonistArcContract = Object.freeze({
+    introductionSceneId: 'ch1_s02_wake_under_bitter_bottles',
+    chapterDecisionSceneIds: Object.freeze({
+        1: 'ch1_s11_roads_breathe_again',
+        2: 'ch2_s03_ledger_that_would_not_close',
+        3: 'ch3_s09_temptation_and_orders',
+        4: 'ch4_s06_flag_returns',
+        5: 'ch5_s08_expedition_list',
+        6: 'ch6_s03_stop_before_the_line',
+        7: 'ch7_s08_return_to_town'
+    }),
+    decisiveSceneIds: [
+        'ch3_s02_shadows_count_names',
+        'ch4_s06_flag_returns',
+        'ch5_s08_expedition_list',
+        'ch6_s03_stop_before_the_line'
+    ],
+    endpointSceneIds: {
+        first_run: 'ch7_s08_return_to_town',
+        second_run: 'ch7_s08_return_to_town'
+    },
+    firstRunFalseBelief: 'Accurate evidence and personal strength can keep other people outside the cost.',
+    secondRunEndpoint: 'Returns to people without using injury, equipment, a report, or a reward as an excuse.'
 });
 
 /**

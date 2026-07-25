@@ -28,7 +28,10 @@ const {
 const { MonsterDatabase } = await import('../src/js/data/Monsters.js');
 const { FirstRunMonsterFixedLevels } = await import('../src/js/data/MonsterEcology.js');
 const { OverworldHabitats, OverworldLandmarks, OverworldMapConfig } = await import('../src/js/data/OverworldMapRegistry.js');
-const { ChapterRegionRegistry } = await import('../src/js/data/ChapterRegionRegistry.js');
+const {
+    ChapterRegionRegistry,
+    getSceneRegionBinding
+} = await import('../src/js/data/ChapterRegionRegistry.js');
 const { RecipeSeriesDatabase, SeriesRecipeDatabase } = await import('../src/js/data/RecipeSeries.js');
 const { RecipeDatabase } = await import('../src/js/data/Recipes.js');
 const { FirstRunBandAllocationPlan } = await import('../src/js/data/FirstRunLootBalance.js');
@@ -123,10 +126,17 @@ const devPanelSource = fs.readFileSync(new URL('../src/js/utils/DevPanel.js', im
 const goblinDropIds = new Set((MonsterDatabase.goblin?.drops || []).map(drop => drop.itemId));
 const mantisDropIds = new Set((MonsterDatabase.ambush_mantis?.drops || []).map(drop => drop.itemId));
 const poisonDaggerMaterialIds = new Set((RecipeDatabase.poison_dagger?.materials || []).map(material => material.id));
+const leatherArmorMaterialIds = new Set((RecipeDatabase.leather_armor?.materials || []).map(material => material.id));
 check(goblinDropIds.has('iron_ore'), 'Chapter 1 goblins no longer provide their low-rate iron ore source');
 check(
     mantisDropIds.has('iron_ore') && !mantisDropIds.has('rare_metal'),
     'Ambush Mantis must provide iron ore instead of premature rare metal'
+);
+check(
+    leatherArmorMaterialIds.has('beast_hide')
+        && leatherArmorMaterialIds.has('iron_ore')
+        && !leatherArmorMaterialIds.has('iron_shard'),
+    'Chapter 1 leather armor again depends on iron shards without an early source'
 );
 check(
     poisonDaggerMaterialIds.has('wolf_fang') && !poisonDaggerMaterialIds.has('spider_queen_fang'),
@@ -148,6 +158,7 @@ check(
 check(
     GuildTutorialFlag.COMPLETE === 'story.prologue.guildTutorialComplete'
         && GuildTutorialFlag.EVENT_MARK_SEEN === 'story.prologue.guildEventMarkSeen'
+        && GuildTutorialFlag.OVERWORLD_MOVEMENT_LEARNED === 'story.prologue.overworldMovementLearned'
         && guildSource.includes('GuildTutorialFlag.COMMISSION_BOARD_READ')
         && guildSource.includes('isCommissionAccepted()')
         && guildSource.includes('GuildTutorialFlag.ARMOR_CONFLICT_SEEN')
@@ -168,6 +179,24 @@ check(
         && !guildSource.includes('requestAnimationFrame')
         && !guildSource.includes("['w', 'a', 's', 'd']"),
     'Guild onboarding flags or equipment lesson are incomplete'
+);
+check(
+    guildSource.includes('scopeElement: this.room')
+        && guildSource.includes('this.getDialogueOptions()'),
+    'Guild dialogue is no longer scoped to the guild scene'
+);
+check(
+    adventureSource.includes('isMovementTutorialPending()')
+        && adventureSource.includes("'WASD'")
+        && adventureSource.includes('GuildTutorialFlag.OVERWORLD_MOVEMENT_LEARNED')
+        && adventureSource.includes("reason: 'prologue-overworld-first-move'"),
+    'Guild departure does not hand off to the existing map hint for movement training'
+);
+check(
+    worldMapSource.includes('arrivedInteractionIds: this.getInteractionsAtPlayer()')
+        && adventureSource.includes("(result.arrivedInteractionIds || []).includes(binding.targetId)")
+        && !adventureSource.includes("result.interaction?.id === binding.targetId"),
+    'Location-enter scenes can still trigger from an adjacent interaction radius'
 );
 check(
     !guildDataSource.includes('GuildTutorialCommissionId')
@@ -421,10 +450,16 @@ const firstReportHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
     chapterOneFirstReportComplete: false,
     chapterOneHomeRecoveryKnown: false
 });
+const firstReportTrigger = storyGuidanceManager.resolveSceneTrigger('ch1_s06_three_landmarks', {
+    chapterOneInvestigations: { south_gate_farmland: { evidence: true } },
+    chapterOneFirstReportPending: false,
+    chapterOneFirstReportComplete: false,
+    chapterOneHomeRecoveryKnown: false
+});
 check(
-    firstReportHint?.targetId === 'south_gate_entry'
-        && firstReportHint?.placeId === null
-        && firstReportHint?.actorId === null,
+    firstReportTrigger?.targetId === 'south_gate_entry'
+        && firstReportTrigger?.placeId === null
+        && firstReportTrigger?.actorId === null,
     'First farmland evidence does not guide the player back through South Gate before Mia'
 );
 const pendingReportHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
@@ -433,9 +468,15 @@ const pendingReportHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
     chapterOneFirstReportComplete: false,
     chapterOneHomeRecoveryKnown: false
 });
+const pendingReportTrigger = storyGuidanceManager.resolveSceneTrigger('ch1_s06_three_landmarks', {
+    chapterOneInvestigations: { south_gate_farmland: { evidence: true } },
+    chapterOneFirstReportPending: true,
+    chapterOneFirstReportComplete: false,
+    chapterOneHomeRecoveryKnown: false
+});
 check(
-    pendingReportHint?.placeId === 'gate'
-        && pendingReportHint?.actorId === 'standard_bearer_frey'
+    pendingReportTrigger?.placeId === 'gate'
+        && pendingReportTrigger?.actorId === 'standard_bearer_frey'
         && guidanceSource.includes("npcId === 'standard_bearer_frey'")
         && guidanceSource.includes("createTownNpcAction('chapter-one-first-report'"),
     'Returned farmland evidence is not linked to Frey and the South Gate report checkpoint'
@@ -445,9 +486,14 @@ const miaRecoveryHint = getStoryObjectiveHint('ch1_s06_three_landmarks', {
     chapterOneFirstReportComplete: true,
     chapterOneHomeRecoveryKnown: false
 });
+const miaRecoveryTrigger = storyGuidanceManager.resolveSceneTrigger('ch1_s06_three_landmarks', {
+    chapterOneInvestigations: { south_gate_farmland: { evidence: true } },
+    chapterOneFirstReportComplete: true,
+    chapterOneHomeRecoveryKnown: false
+});
 check(
-    miaRecoveryHint?.placeId === 'mia_workroom'
-        && miaRecoveryHint?.actorId === 'herbalist'
+    miaRecoveryTrigger?.placeId === 'mia_workroom'
+        && miaRecoveryTrigger?.actorId === 'herbalist'
         && lobbySource.includes('playChapterOneMiaRecovery')
         && guidanceSource.includes("createTownNpcAction('chapter-one-home-recovery'")
         && guidanceSource.indexOf("createTownNpcAction('chapter-one-home-recovery'")
@@ -465,8 +511,11 @@ for (const stage of ChapterOneClosingReportStages) {
         chapterOneClosingReportStage: stage
     });
     const checkpoint = closingScene?.checkpoints?.[stage.checkpointId];
+    const trigger = storyGuidanceManager.resolveSceneTrigger('ch1_s11_roads_breathe_again', {
+        chapterOneClosingReportStage: stage
+    });
     check(
-        hint?.placeId === stage.placeId && hint?.actorId === stage.actorId,
+        trigger?.placeId === stage.placeId && trigger?.actorId === stage.actorId,
         `Chapter 1 closing stage ${stage.id} is not linked to its town actor and place`
     );
     check(
@@ -677,8 +726,9 @@ check(
     'A pending route encounter cannot reconnect to its landmark after the story handoff'
 );
 const silverSnareHint = getStoryObjectiveHint('ch1_s07_silver_snare');
+const silverSnareBinding = getSceneRegionBinding('ch1_s07_silver_snare');
 check(
-    silverSnareHint?.targetId === 'silver_snare_pass'
+    silverSnareBinding?.targetId === 'silver_snare_pass'
         && silverSnareHint?.text.includes('東北'),
     'Silver Snare has no executable map target or direction'
 );
@@ -726,14 +776,23 @@ const boardwalkAfterRecoveryHint = getStoryObjectiveHint('ch1_s06_three_landmark
     chapterOneFirstReportComplete: true,
     chapterOneHomeRecoveryKnown: true
 });
+const boardwalkTrigger = storyGuidanceManager.resolveSceneTrigger('ch1_s06_three_landmarks', {
+    chapterOneInvestigations: {
+        south_gate_farmland: { victory: true, evidence: true },
+        hunter_boardwalk: { victory: false, evidence: false },
+        old_campfire_site: { victory: false, evidence: false }
+    },
+    chapterOneFirstReportComplete: true,
+    chapterOneHomeRecoveryKnown: false
+});
 const gearHint = getStoryObjectiveHint('ch1_s09_rotroot_approach', {
     chapterOneGearReady: false,
     chapterOneGearEquipped: false
 });
 check(openingHint?.text.includes('東側') && openingHint.text.includes('未知地標'), 'Chapter 1 objective does not give executable first-landmark navigation');
 check(
-    boardwalkHint?.placeId === 'mia_workroom'
-        && boardwalkHint?.actorId === 'herbalist'
+    boardwalkTrigger?.placeId === 'mia_workroom'
+        && boardwalkTrigger?.actorId === 'herbalist'
         && boardwalkHint?.text.includes('不取決於目前生命值或藥水數量'),
     'The first field report does not lead into Mia\'s narrative injury inspection'
 );

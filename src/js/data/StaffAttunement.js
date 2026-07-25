@@ -10,7 +10,7 @@ export const StaffAttunementElements = Object.freeze({
         effectValue: 8,
         materialId: 'poison_gland',
         unlockChapter: 1,
-        sourceLabel: '第一章毒蜘蛛'
+        sourceLabel: '南路毒蜘蛛'
     }),
     ice: Object.freeze({
         id: 'ice',
@@ -19,7 +19,7 @@ export const StaffAttunementElements = Object.freeze({
         effectValue: 8,
         materialId: 'frost_crystal',
         unlockChapter: 2,
-        sourceLabel: '第二章守名者墓室'
+        sourceLabel: '守名者墓室'
     }),
     thunder: Object.freeze({
         id: 'thunder',
@@ -28,7 +28,7 @@ export const StaffAttunementElements = Object.freeze({
         effectValue: 8,
         materialId: 'storm_crystal',
         unlockChapter: 3,
-        sourceLabel: '第三章溺聲海岸'
+        sourceLabel: '溺聲海岸'
     }),
     fire: Object.freeze({
         id: 'fire',
@@ -37,7 +37,7 @@ export const StaffAttunementElements = Object.freeze({
         effectValue: 8,
         materialId: 'ember_stone',
         unlockChapter: 4,
-        sourceLabel: '第四章古代地脈遺跡'
+        sourceLabel: '古代地脈遺跡'
     })
 });
 

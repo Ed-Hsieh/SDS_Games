@@ -214,7 +214,7 @@ export const TownPlaceDatabase = [
                 shortLabel: '記憶',
                 icon: '*',
                 imageId: 'notice_board',
-                description: '第一輪結束後，無法跨周目攜帶的物件會退去，只留下成就記憶。',
+                description: '那些無法裝進背包的經歷，仍會在下一次翻閱時留下痕跡。',
                 position: { x: 22, y: 43 },
                 when: { flag: 'story.secondRunUnlocked' }
             }
@@ -307,7 +307,7 @@ export const TownPlaceDatabase = [
                 shortLabel: '出發',
                 icon: '>',
                 imageId: 'road_sign',
-                description: '進入目前章節的手工區域地圖。',
+                description: '穿過南門，沿已經確認的道路繼續調查。',
                 position: { x: 80, y: 69 },
                 when: sceneComplete('ch1_s05_south_gate_introduction')
             }
@@ -397,7 +397,7 @@ export const TownPlaceDatabase = [
                 shortLabel: '鍛造',
                 icon: '+',
                 imageId: 'ore_vein',
-                description: '爐火恢復後，裝備修復與章節內已授權的製作才會開放。',
+                description: '爐火恢復後，鐵匠才能修理裝備，並製作已經取得圖紙的器物。',
                 position: { x: 72, y: 64 },
                 when: sceneComplete('ch1_s08_cold_forge_smoke')
             }
@@ -528,7 +528,7 @@ export const TownPlaceDatabase = [
                 shortLabel: '賭場',
                 icon: '$',
                 imageId: 'random_event_spark',
-                description: '公開票券桌與展示櫃共用同一個入口；私人抵押只屬維斯珀主線。',
+                description: '公開票券桌與展示櫃共用同一個入口；更深處的私人桌只接受維斯珀親自邀請。',
                 position: { x: 64, y: 70 },
                 when: sceneComplete('ch3_s04_showcase_glass')
             }

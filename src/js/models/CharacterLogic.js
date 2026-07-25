@@ -275,7 +275,7 @@ export function useItem(character, item) {
 }
 
 export function calculateMaxHp(character) {
-    return 100 + ((character.level || 1) * 20);
+    return 100 + ((character.level || 1) * 10);
 }
 
 export function calculateMaxExp(character) {

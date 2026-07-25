@@ -216,6 +216,14 @@
     opacity: 1;
 }
 
+.map-location-hint.is-movement-tutorial {
+    border-color: rgba(240, 221, 165, 0.82);
+    box-shadow:
+        0 18px 42px rgba(0, 0, 0, 0.44),
+        0 0 24px rgba(216, 185, 104, 0.24);
+    animation: adventure-tutorial-breathe 1.35s ease-in-out infinite;
+}
+
 .map-location-key {
     display: grid;
     width: 34px;
@@ -229,6 +237,12 @@
     font-weight: 800;
 }
 
+.map-location-key.is-wide {
+    min-width: 34px;
+    width: auto;
+    padding: 0 8px;
+}
+
 .map-location-hint strong {
     display: block;
     font-size: 15px;
@@ -238,6 +252,11 @@
     margin: 3px 0 0;
     color: var(--adventure-muted);
     font-size: 12px;
+}
+
+@keyframes adventure-tutorial-breathe {
+    0%, 100% { filter: brightness(0.94); }
+    50% { filter: brightness(1.12); }
 }
 
 .map-test-panel {

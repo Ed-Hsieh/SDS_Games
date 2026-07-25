@@ -107,7 +107,6 @@ function getCombatEffectAssetId(effect = {}) {
         life_steal: 'lifesteal',
         counter: 'counter',
         double_strike: 'double_strike',
-        fatigueweakness: 'fatigue_weakness',
         void: 'void'
     };
     return map[raw] || raw;

@@ -27,6 +27,8 @@ const {
     validateStoryEncounterContract
 } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
+const { getTownSceneBinding } = await import('../src/js/data/TownPlaces.js');
+const { getSceneRegionBinding } = await import('../src/js/data/ChapterRegionRegistry.js');
 const {
     getCurrentRunStoryFlagKeys,
     getStorySceneEffects
@@ -109,9 +111,9 @@ check(
 const hintExpectations = Object.freeze({
     ch5_s01_four_fronts_converge: { placeId: 'handbook', actorId: 'town_scholar' },
     ch5_s02_forge_contracts: { placeId: 'forge', actorId: 'blacksmith' },
-    ch5_s03_elemental_convergence: { targetId: 'four_front_nexus' },
+    ch5_s03_elemental_convergence: { targetId: 'convergence_road' },
     ch5_s04_elemental_lord: { targetId: 'elemental_core' },
-    ch5_s05_fourfold_shrapnel: { targetId: 'emergency_return_marker' },
+    ch5_s05_fourfold_shrapnel: { targetId: 'emergency_return' },
     ch5_s06_mia_operation: { placeId: 'mia_workroom', actorId: 'herbalist' },
     ch5_s07_after_the_ratchet: { placeId: 'handbook', actorId: 'town_scholar' },
     ch5_s08_expedition_list: { placeId: 'handbook', actorId: 'town_scholar' },
@@ -120,9 +122,11 @@ const hintExpectations = Object.freeze({
     ch5_s11_town_loses_its_voice: { placeId: 'casino', actorId: 'casino_dealer' }
 });
 for (const [sceneId, expected] of Object.entries(hintExpectations)) {
-    const hint = getStoryObjectiveHint(sceneId);
+    const binding = expected.placeId
+        ? getTownSceneBinding(sceneId)
+        : getSceneRegionBinding(sceneId);
     for (const [key, value] of Object.entries(expected)) {
-        check(hint?.[key] === value, `${sceneId} has the wrong ${key}`);
+        check(binding?.[key] === value, `${sceneId} has the wrong ${key}`);
     }
 }
 

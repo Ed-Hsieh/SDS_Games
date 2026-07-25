@@ -187,6 +187,14 @@
     transform: translateX(-50%) translateY(var(--story-actor-offset-y, 0%)) scaleX(-1) scale(var(--story-actor-scale, 1));
 }
 
+/* The blacksmith's broad 2:3 standing canvas clips when dialogue is scoped to
+   a town-place panel. Fit that actor by height there without changing full-scene staging. */
+#story-dialogue-root[data-scope="element"] .story-dialogue-actor[data-actor-id="blacksmith"] img {
+    top: 0;
+    width: auto;
+    height: 96%;
+}
+
 .story-dialogue-box {
     --story-dialogue-line-height: 37px;
     position: absolute;

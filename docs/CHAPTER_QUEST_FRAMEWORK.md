@@ -16,11 +16,12 @@ story, source structure, and systems should land without owning final values.
 - `src/js/data/StorySceneRegistry.js` owns the 66 mandatory scenes.
 - `src/js/data/ChapterRegionRegistry.js` owns seven handcrafted regional maps,
   authored routes, fixed locations, and Boss convergence.
-- `src/js/data/Quests.js` owns only optional quest runtime contracts. It is
-  intentionally empty until an optional story has approved dialogue, ownership,
-  interactions, rewards, and flags. Mandatory chapter progression is read
+- `src/js/data/Quests.js` owns only tutorial and optional quest runtime
+  contracts. It currently contains the approved guild tutorial commission and
+  six Chapter 1 optional commissions. Mandatory chapter progression is read
   directly from `StorySceneRegistry.js` and must not be duplicated as quest
-  records.
+  records. Future optional stories enter only after dialogue, ownership,
+  interactions, rewards, flags, and validation are approved.
 - `src/js/data/RewardItems.js` owns shared special reward records that are still
   used by active systems. Reward definitions no longer live inside the quest
   database.
@@ -250,7 +251,7 @@ Every chapter region must define these fields before runtime implementation:
 | `chapter`, `levelBand` | Fixed chapter and Lv10 band ownership. |
 | `worldBounds`, `cameraBounds` | Stable desktop canvas dimensions and camera limits. |
 | `entryNodes`, `exitNodes` | Authored arrival, return, and chapter-transition points. |
-| `routeSegments` | Fixed traversable corridors with distance, fatigue, encounter table, weather/time state, and prerequisite flags. |
+| `routeSegments` | Fixed traversable corridors with distance, encounter table, weather/time state, and prerequisite flags. |
 | `locationNodes` | Fixed landmarks, camps, dungeon doors, side routes, Boss arenas, and story-only transition points. |
 | `sceneBindings` | Scene id, trigger type, run condition, prerequisite, background id, participants, and resulting flags. |
 | `fogMask` | Current-run discovery state; second run starts undiscovered unless a specific achievement changes interpretation, never physical map possession. |
@@ -368,7 +369,7 @@ forced playback do not count as proof of reachability.
   number of random markers generated.
 - Encounter rolls occur only while traversing a segment and draw from that
   chapter/biome table. Story encounters and Bosses are fixed triggers.
-- Cleared hazards may reduce encounter pressure or fatigue only when a quest,
+- Cleared hazards may reduce encounter or return-route pressure only when a quest,
   town repair, camp, or route action caused that change.
 - Retreat returns the player along a valid known segment or to an authored camp;
   it does not teleport to a generic zone menu unless the story explicitly does.
@@ -423,7 +424,7 @@ Chapter 1 should land before later chapter rewrites.
   access are clearly available as public town functions.
 - First objective: investigate three nearby route landmarks and record whether
   the roads still show footprints, smoke, or monster traces.
-- First pressure: fatigue, fog, weak equipment, and the need to survive with
+- First pressure: fog, weak equipment, staged return routes, and the need to survive with
   limited resources.
 - First combat clue: `ambush_mantis` can teach that monsters are evidence, not
   only loot containers.
@@ -529,7 +530,7 @@ Placement rule:
 | Chapter | Working Side Story | Length | Core NPCs | Story Role | Gameplay / Reward Role | Resource Gate |
 | ---: | --- | --- | --- | --- | --- | --- |
 | 1 | 巡線靴底 / Patrol Soles | Short | `village_elder`, `standard_bearer_frey` | Grounds the south gate as a real patrol route rather than a menu exit. | South gate safety text, first route hint, modest supplies. | No new NPC; can use existing south gate assets. |
-| 1 | 苦瓶與甜膠 / Bitter Bottles | Short | Mia | Shows Mia naming wounds, poison, fatigue, and the difference between treating a person and stocking a stall. | Authorizes one basic medicine recipe for the market; no apothecary or transaction UI opens in her workroom. | Uses existing slime/early material sources; no assistant NPC. |
+| 1 | 苦瓶與甜膠 / Bitter Bottles | Short | Mia | Shows Mia naming wounds, poison, exhaustion, and the difference between treating a person and stocking a stall. | Authorizes one basic medicine recipe for the market; no apothecary or transaction UI opens in her workroom. | Uses existing slime/early material sources; no assistant NPC. |
 | 1 | 冷爐回煙 / Cold Forge Smoke | Medium | `blacksmith` | Makes equipment pressure human before the first boss. | Basic repair, starter forge, first simple recipe. | No new blacksmith trauma; avoid new apprentice asset here. |
 | 2 | 藥籃底的名字 / Name Under The Herb Basket | Medium | Mia, `town_scholar` | Connects Mia's father to the expedition and shows the difference between a family memory and an incomplete civic record. Shared herb sorting and her reaction to passing footsteps deepen the relationship without a confession. | Relationship record, expedition name entry, and one researched market prescription. | No missing gatherer, notebook item, or new NPC is required. |
 | 2 | 未結的名冊 / Ledger That Would Not Close | Medium | `town_scholar`, `village_elder` | Shows ordinary paperwork breaking after the old expedition and evacuation failures. | Handbook records, old route hints, `lich` route context. | No conspiracy or stolen-record plot unless approved later. |
@@ -604,7 +605,7 @@ Current chapter cadence is derived from `OptionalSideStoryChapterPlacement`:
 | Chapter | Newly discoverable stories | Total story stages | Pacing function |
 | ---: | ---: | ---: | --- |
 | 1 | 5 | 5 | Five personal shorts introduce work habits after each character's mandatory entrance. |
-| 2 | 13 | 13 | The repaired road and market create the first broad relationship layer; prerequisites and direct interaction prevent simultaneous presentation. |
+| 2 | 13 | 13 | The repaired local road, empty market, and named supply losses create the first broad relationship layer; prerequisites and direct interaction prevent simultaneous presentation. |
 | 3 | 14 | 22 | Peak town-life chapter: personal long stories, casino observation, and three ensemble scenes become discoverable across separate town returns. |
 | 4 | 6 | 18 | Few new starts; existing Frey/Tavi, forge, Ailo, casino, market, and black-market lines reach their decisive middle stages. |
 | 5 | 0 | 12 | No new side story begins. Existing long stories either close before fixed tragedies or continue through their consequences. |
@@ -657,8 +658,8 @@ audit; `docs/ART_STYLE_GUIDE.md` owns the human-readable exact gap list.
 | Chapter | Town Direction |
 | ---: | --- |
 | 1 | Town is visibly damaged through shared water, reserved beds, tied doors, and empty return spaces. Mia's private workroom appears only through rescue/relationship scenes. South Gate records, the handbook, and the relit basic forge recover; household repairs visibly precede weapon demand. The market remains closed. |
-| 2 | The rebuilt market owns transactions and finite medicine stock; Mia authorizes and checks prescription batches. Route safety, named losses, and the information board begin to matter. Waiting residents visibly receive stock. No apothecary facility exists. |
-| 3 | Gate lamps, market stock, forge work, records, and Mia's care form one limited honest network. Casino temptation, black market contact, and shadow precursor crafting open as faster alternatives; no separate rumor-service NPC is required. |
+| 2 | The market remains closed. Mia authorizes a medicine formula, but empty bottles, waiting residents, recovered crates, and named carrier losses show that authorization is not stock. No merchant, transaction, or apothecary facility opens. |
+| 3 | The first returned caravan brings the merchant and finite public stock back. Gate lamps, market stock, forge work, records, and Mia's care form one limited honest network. Casino temptation, black market contact, and shadow precursor crafting open as faster alternatives; no separate rumor-service NPC is required. |
 | 4 | Town services become preparation choices for elemental threats. |
 | 5 | Advanced forge contracts and dungeon preparation become central. |
 | 6 | Forbidden trading and casino consequences can start echoing into future story. |

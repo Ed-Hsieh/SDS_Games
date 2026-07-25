@@ -524,6 +524,45 @@ The exchange releases background through conflict. It does not begin with a
 complete explanation of what happened, why it was hidden, and how both people
 feel about it.
 
+### Living Character Test
+
+Before drafting a mainline conversation, write down five private facts that do
+not appear as labels in the finished dialogue:
+
+1. What does each participant need from the other person before leaving?
+2. What can each participant not admit directly in this moment?
+3. What immediate object, injury, duty, or interruption keeps the conversation
+   inside the physical scene?
+4. What does each participant misunderstand about the other person's intent?
+5. Which action, refusal, concession, or silence changes by the end?
+
+These facts shape the exchange; characters do not recite them. A character is
+not a delivery device for the chapter theme, a future death, a rescue condition,
+or a quotable line.
+
+Apply the following tests to every important exchange:
+
+- **Reply dependency:** each line must react to the preceding words, action, or
+  silence. If the lines can be reordered without changing the scene, the
+  characters are probably giving separate speeches.
+- **Out-of-context test:** if a line sounds like a complete maxim when removed
+  from the scene, replace it with the concrete person, object, mistake, or task
+  the speaker is actually addressing. Deliberately rehearsed villains may use a
+  small number of established rhetorical lines; ordinary people should not.
+- **Unsaid remainder:** at least one emotionally important fact should remain
+  visible through behavior rather than be named and resolved in the same
+  exchange.
+- **Agency test:** the NPC must make a choice that belongs to their values,
+  including a refusal, concealment, request, change of plan, or acceptance of
+  help. Their role cannot be limited to informing, rewarding, dying, or being
+  rescued by the protagonist.
+- **Human continuity:** before a fixed loss or rescue, the mainline must show the
+  character doing ordinary work, maintaining a relationship not limited to the
+  protagonist, and making the decision that leads into the event.
+
+Do not use emotional silence as decorative ambiguity. A pause matters only when
+the audience can see what the person does instead of speaking.
+
 ### Dialogue Exchange And Choice Contract
 
 A conversation is a social action, not a shortcut between two flags. When a
@@ -721,6 +760,10 @@ Before accepting new narrative copy, check:
   level bands, boss convergence, and reward/source planning.
 - Use `docs/TOWN_REBUILD_CONVERGENCE.md` for town-state recovery, NPC return,
   facility gates, and town service wiring.
-- Use runtime data such as `QuestStories.js`, `NPCDialogues.js`,
-  `WorldStories.js`, and quest databases as the source of truth for implemented
-  story behavior.
+- Use `StorySceneRegistry.js` and `StorySceneManager.js` for implemented
+  mandatory story behavior; use `Quests.js`, `QuestStories.js`, and
+  `NPCDialogues.js` only for their approved optional-quest and town-entry
+  responsibilities.
+- Use `ChapterRegionRegistry.js`, `TownPlaces.js`, and `TownStateResolver.js`
+  for map and town bindings. Do not recreate the removed `WorldStories.js` or
+  legacy route-plan architecture.

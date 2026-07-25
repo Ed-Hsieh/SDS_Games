@@ -72,7 +72,9 @@ check(
 check(
     combatFlowSource.includes("audioManager.play('weapon-break'")
         && audioSource.includes("'weapon-break': this.sfxWeaponBreak")
-        && combatFlowSource.includes("event.weapon?.effect !== 'unarmed'"),
+        && combatFlowSource.includes("event.type === 'player:attack-resolved'")
+        && combatFlowSource.includes("event.weapon?.effect !== 'unarmed'")
+        && !combatFlowSource.includes("event.type === 'player:hit'\\n            && event.weapon?.effect !== 'unarmed'"),
     'Weapon destruction has no dedicated break sound'
 );
 check(
@@ -110,12 +112,23 @@ check(session.getSnapshot().phase === CombatSessionPhase.RUNNING, 'Enemy-only pa
 session.playerAttack('main', 'hit');
 session.tick(performance.now() + 1100);
 check(events.some(event => event.type === 'player:hit'), 'Player could not attack while monster flow was paused');
+check(
+    events.filter(event => event.type === 'player:attack-resolved').length === 1,
+    'One accepted attack did not produce exactly one durability-resolution event'
+);
 check(!events.some(event => event.type === 'monster:telegraph'), 'Monster started an attack during the tutorial lock');
 for (let hit = 0; hit < 80; hit += 1) {
     session.resolvePlayerHit({ slot: 'main', hitType: 'crit', weapon: session.loadout.main });
 }
 check(session.getSnapshot().monster.hp === 200, 'Prologue monster health did not stop at its 40% floor');
 check(session.getSnapshot().phase === CombatSessionPhase.RUNNING, 'Health-locked tutorial monster was defeated early');
+
+const missResolutionCount = events.filter(event => event.type === 'player:attack-resolved').length;
+session.resolvePlayerHit({ slot: 'main', hitType: 'miss', weapon: session.loadout.main });
+check(
+    events.filter(event => event.type === 'player:attack-resolved').length === missResolutionCount + 1,
+    'A missed attack bypassed the shared durability-resolution event'
+);
 
 check(session.usePotion(), 'Potion could not be used while monster flow was paused');
 check(events.some(event => event.type === 'player:potion'), 'Potion event was not emitted');
@@ -124,11 +137,13 @@ const replacement = session.replaceWeapon('main', { id: 'reserve_blade', name: '
 check(replacement?.id === 'reserve_blade', 'Main-hand replacement was not installed');
 check(session.getSnapshot().loadout.offhand.enabled, 'Replacing the main hand disabled the surviving offhand');
 check(session.getSnapshot().cooldowns.main > 0, 'Replacement weapon received a free immediate attack');
-check(
-    combatFlowSource.includes('promoteOffhandWeaponToMain({ breakCurrentMain: true })')
-        && gameManagerSource.includes('promoteOffhandWeaponToMain({ breakCurrentMain = false } = {})')
-        && combatFlowSource.includes("this.findAutomaticReplacement('weapon')"),
-    'Automatic replacement and offhand promotion are not connected'
+    check(
+        combatFlowSource.includes("GameManager.breakEquippedWeapon('weapon')")
+            && gameManagerSource.includes("breakEquippedWeapon(slotType = 'weapon')")
+            && combatFlowSource.includes('GameManager.promoteOffhandWeaponToMain()')
+            && !combatFlowSource.includes('findAutomaticReplacement')
+            && gameManagerSource.includes('promoteOffhandWeaponToMain()'),
+        'Tutorial and normal weapon destruction do not share offhand promotion'
 );
 
 check(session.forceMonsterAttack('prologue_stag_charge'), 'Scripted charge could not be forced');
@@ -140,9 +155,39 @@ const tutorial = Object.create(CombatFlowController.prototype);
 tutorial.tutorialState = { stage: 'attack', complete: false };
 tutorial.setTutorialPrompt = () => {};
 let forcedChargeCount = 0;
-tutorial.encounter = { loadout: { main: { name: '公會制式獵刀' } } };
+    tutorial.encounter = {
+        loadout: { main: { name: '公會制式獵刀' }, offhand: null },
+        monster: { defense: 0 },
+        visual: { attacks: [] },
+        context: { prologueTutorial: true }
+    };
 tutorial.combatRoot = { querySelector: () => ({ classList: { add: () => {}, remove: () => {} } }) };
+const { default: GameManager } = await import('../src/js/managers/GameManager.js');
+const tutorialMain = {
+    id: 'tutorial_main',
+    name: '測試主武器',
+    type: 'weapon',
+    weaponForm: 'sword',
+    attack: 8,
+    attackSpeed: 1,
+    durability: 1,
+    maxDurability: 1
+};
+const tutorialOffhand = {
+    id: 'tutorial_offhand',
+    name: '測試副武器',
+    type: 'weapon',
+    weaponForm: 'sword',
+    attack: 6,
+    attackSpeed: 1,
+    durability: 8,
+    maxDurability: 8
+};
+GameManager.state.character.equipment.weapon = tutorialMain;
+GameManager.state.character.equipment.armor = tutorialOffhand;
 tutorial.lab = {
+    replaceCombatEquipment: () => true,
+    setFeed: () => {},
     forceMonsterAttack: id => {
         if (id === 'prologue_stag_charge') forcedChargeCount += 1;
         return true;
@@ -164,10 +209,11 @@ check(tutorial.handleTutorialWeaponAttempt('offhand') === false, 'Offhand input 
 tutorial.updateTutorial({ type: 'player:hit', slot: 'offhand' });
 check(tutorial.tutorialState.stage === 'break', 'Offhand hit did not advance to the durability lesson');
 check(tutorial.handleTutorialWeaponAttempt('main') === false, 'Main-hand input was blocked during the durability lesson');
-tutorial.updateTutorial({ type: 'player:hit', slot: 'main' });
-check(tutorial.tutorialState.stage === 'replace_offhand', 'Durability lesson did not advance to the offhand replacement lesson');
-check(tutorial.handleTutorialWeaponAttempt('main'), 'Weapon input was not locked after the durability lesson');
-tutorial.tutorialState.stage = 'potion';
+tutorial.updateTutorial({ type: 'player:hit', slot: 'main', weapon: { name: tutorialMain.name, effect: 'sword' } });
+    check(tutorial.tutorialState.stage === 'replace_offhand', 'Durability lesson did not advance to offhand replacement');
+    check(GameManager.state.character.equipment.weapon === tutorialOffhand, 'Surviving offhand was not promoted to main');
+    check(GameManager.state.character.equipment.armor === null, 'Promoted offhand remained in the secondary slot');
+    tutorial.tutorialState.stage = 'potion';
 check(tutorial.handleTutorialPotionAttempt() === false, 'Potion was blocked during the potion lesson');
 tutorial.updateTutorial({ type: 'player:potion' });
 check(tutorial.tutorialState.stage === 'flee', 'Potion did not advance to the flee lesson');
@@ -175,15 +221,6 @@ check(tutorial.handleTutorialFleeAttempt(), 'Tutorial flee attempt was not handl
 check(tutorial.tutorialState.stage === 'complete', 'Flee attempt did not complete the tutorial');
 check(forcedChargeCount === 1, 'Tutorial completion did not queue exactly one scripted charge');
 
-const { default: GameManager } = await import('../src/js/managers/GameManager.js');
-const tutorialMain = { id: 'tutorial_main', name: '測試主武器', type: 'weapon', durability: 1 };
-const tutorialOffhand = { id: 'tutorial_offhand', name: '測試副武器', type: 'weapon', durability: 8 };
-GameManager.state.character.equipment.weapon = tutorialMain;
-GameManager.state.character.equipment.armor = tutorialOffhand;
-const promotion = GameManager.promoteOffhandWeaponToMain({ breakCurrentMain: true });
-check(promotion?.broken === tutorialMain, 'Broken main weapon was not returned by the promotion operation');
-check(GameManager.state.character.equipment.weapon === tutorialOffhand, 'Offhand weapon did not move into the main slot');
-check(GameManager.state.character.equipment.armor === null, 'Secondary slot was not cleared after promotion');
 check(tutorialMain.durability === 0, 'Broken tutorial weapon did not reach zero durability');
 
 session.destroy();

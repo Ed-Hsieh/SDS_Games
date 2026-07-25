@@ -44,7 +44,7 @@ const CASINO_VENUES = [
     {
         game: 'showcase',
         title: '老闆展示櫃',
-        label: '長支線伏筆',
+        label: '維斯珀的注意',
         image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp',
         focus: '58% 46%',
         copy: '玻璃後的展品比獎池更昂貴，也更容易讓老闆記住你。'
@@ -425,17 +425,17 @@ export default class CasinoScene {
         const item = entry?.item || entry || {};
         const examinedText = `${routeState.examinedCount || 0}/${routeState.total || 0} 件展品已查看`;
         const hookText = routeState.questHookReady
-            ? '賭場老闆已注意到你的視線，後續長支線可從這裡接入。'
+            ? '維斯珀已注意到你的視線。展示櫃旁的侍者開始記錄你停留的時間。'
             : '多查看幾件展品，才會讓賭場老闆確定你不是普通客人。';
         const choiceText = routeState.finalChoiceUnlocked
-            ? '選取流程預留完成，等待長支線正式接上。'
-            : '長支線完成前，展示櫃只供查看。';
+            ? '維斯珀的允諾已記進總帳。你可以從展示櫃中取走一件展品。'
+            : '維斯珀還沒有交出鑰匙。現在只能隔著玻璃查看展品。';
 
         if (this.dom.btnShowcaseChoice) {
             this.dom.btnShowcaseChoice.disabled = true;
             this.dom.btnShowcaseChoice.textContent = routeState.finalChoiceUnlocked
                 ? '展品選取待後續實作'
-                : '長支線完成後開放選取';
+                : '展示櫃尚未開鎖';
         }
 
         this.dom.showcasePreview.innerHTML = `
@@ -453,8 +453,8 @@ export default class CasinoScene {
             </div>
             <div class="casino-showcase-owner-line">${escapeHtml(entry?.ownerLine || '')}</div>
             <div class="casino-showcase-future">
-                <span>後續支線用途</span>
-                <p>${escapeHtml(entry?.routeBeat || '')}</p>
+                <span>展示櫃規則</span>
+                ${entry?.routeBeat ? `<p>${escapeHtml(entry.routeBeat)}</p>` : ''}
                 <em>${escapeHtml(choiceText)}</em>
             </div>
         `;
@@ -516,7 +516,7 @@ export default class CasinoScene {
                 icon: reward.icon,
                 rarity: reward.rarity,
                 type: reward.kind === 'gold' ? 'currency' : 'key',
-                description: reward.locked ? '章節尚未開放。' : '賭場獎池中的可能獎品。'
+                description: reward.locked ? '這件展品尚未列入本期獎池。' : '賭場獎池中的可能獎品。'
             };
             const amountText = reward.amount
                 ? this.formatRange(reward.amount)
@@ -555,11 +555,11 @@ export default class CasinoScene {
                 icon: reward.icon,
                 rarity: reward.rarity,
                 type: reward.kind === 'gold' ? 'currency' : 'key',
-                description: reward.locked ? '章節尚未開放。' : '賭場獎池中的可能獎品。'
+                description: reward.locked ? '這件展品尚未列入本期獎池。' : '賭場獎池中的可能獎品。'
             };
             attachItemTooltip(element, item, {
                 quantity: reward.quantity ? this.formatRange(reward.quantity) : undefined,
-                hint: reward.locked ? '章節尚未開放' : `${pool.name} 可能獎品 / ${reward.oddsPercent || '0%'}`
+                hint: reward.locked ? '尚未列入本期獎池' : `${pool.name} 可能獎品 / ${reward.oddsPercent || '0%'}`
             });
         });
     }

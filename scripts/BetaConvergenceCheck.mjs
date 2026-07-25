@@ -10,7 +10,11 @@ import {
     PassiveCombatEffectSlotCount,
     PassiveCombatEffectUnlockSources
 } from '../src/js/data/PassiveCombatEffects.js';
-import { QuestDatabase } from '../src/js/data/Quests.js';
+import {
+    QuestDatabase,
+    QuestRuntimeStatus
+} from '../src/js/data/Quests.js';
+import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { MainlineCharacterContracts } from '../src/js/data/StoryActors.js';
 import { OptionalSideStoryRegistry, OptionalSideStoryStatus } from '../src/js/data/OptionalSideStoryRegistry.js';
 import { StorySceneOrder } from '../src/js/data/StorySceneRegistry.js';
@@ -173,10 +177,20 @@ function auditStoryContent() {
         });
     }
 
+    if (MonsterDatabase.demon_lord_asariel?.name !== '魔王赫爾薩恩') {
+        addIssue('story-content', 'The final Boss legacy id is exposing an obsolete display name.', {
+            monsterId: 'demon_lord_asariel',
+            displayName: MonsterDatabase.demon_lord_asariel?.name
+        });
+    }
+
     const activeOptionalQuests = flattenQuestGroups()
-        .filter(quest => ['commission', 'hidden'].includes(quest._group));
+        .filter(quest => (
+            ['commission', 'hidden'].includes(quest._group)
+            && quest.runtimeStatus !== QuestRuntimeStatus.APPROVED
+        ));
     if (activeOptionalQuests.length > 0) {
-        addIssue('story-content', 'Optional quests became playable before map ownership and rewards were approved.', {
+        addIssue('story-content', 'Optional quests became playable before their runtime contracts were approved.', {
             questIds: activeOptionalQuests.map(quest => quest.id)
         });
     }
@@ -378,6 +392,9 @@ function auditFrameworkDocs() {
         'Adventure Map Rebuild Contract',
         'Scene Binding For The 66-Scene Screenplay',
         'Early-Game Lived Recovery Contract',
+        'approved guild tutorial commission and',
+        'The market remains closed',
+        'first returned caravan brings the merchant',
         'stable black',
         "Shadow begins around Lv24-30 and is the base campaign's dark affinity ceiling",
         "Glimmer is the base campaign's bright affinity ceiling",
@@ -386,17 +403,17 @@ function auditFrameworkDocs() {
     ]);
     assertDocContains('framework-docs', 'docs/MAIN_STORY_BIBLE.md', [
         'Design the main story like a long film or serialized drama',
-        'Current Narrative Reset',
-        'Working Canon V0',
+        'Authority And Review State',
+        'Archived Working Canon V0 (Summary Only)',
         'Accepted Omniscient Causal Timeline V1',
-        'Master Screenplay Review Proposal V1',
+        'Accepted Screenplay Foundation V1',
         'Two-Run Persistence Contract',
         'achievement-only',
         'Proposed First-Run Fate Order',
         'Proposed Boss Story Identities',
         'Second-Run External Boss And DLC Extension',
         'Seven-Chapter Contract Proposal',
-        'Omniscient Scene Timeline Review V2',
+        'Accepted Omniscient Scene Timeline V2',
         'Chapter 1 Scene Order',
         'Chapter 7 Scene Order',
         'Chapter 1 Detailed Screenplay V1',
@@ -408,7 +425,7 @@ function auditFrameworkDocs() {
         'rear_marker_unmeasured',
         'rear_marker_ready',
         '前標我看著。塔維，帶量尺去後標',
-        '主角不能替代任何一端的標記',
+        '我不能替代任何一端的標記',
         '左線指揮凱德倫 / Kaedren',
         '魔王赫爾薩恩 / Helsarn',
         'mountain-village dye-mender',
@@ -418,18 +435,28 @@ function auditFrameworkDocs() {
         'Character Placement And Side-Story Matrix V1',
         'Accepted Runtime Viewpoint Contract V1',
         'Chapters 1-3 Pacing And Lived-Town Review V1',
-        'character_limited:village_elder',
-        '二十年前，是我叫他們跟上',
-        '別在我生氣的時候說對的話',
+        'character_limited:standard_bearer_frey',
+        'ch6_s04_dragon_convergence',
+        'ch4_s06_flag_returns',
         'Scope Deferred To The Next Round',
         'Second-Run True-Kill Mainline',
         'First-Run Ending Staging',
         'Second-Run Ending Staging',
-        'Seven Chapter Story Spine V0',
+        'Seven Chapter Story Spine (Accepted Summary)',
+        'Integrated Mainline And Character Flow (Accepted Summary)',
         'central mystery and final truth',
         'Master Character Register V2',
         'Character Entry And Exit Rules',
         'Story-To-System Adaptation'
+    ]);
+    assertDocExcludes('framework-docs', 'docs/MAIN_STORY_BIBLE.md', [
+        'Dealer identity is still unresolved',
+        'Enters when Chapter 2 market route becomes usable',
+        '`WorldStories.js` and route plans'
+    ]);
+    assertDocExcludes('framework-docs', 'docs/CHAPTER_QUEST_FRAMEWORK.md', [
+        'It is intentionally empty',
+        'The rebuilt market owns transactions and finite medicine stock'
     ]);
     assertDocContains('framework-docs', 'docs/characters/VILLAGE_ELDER_PROFILE.md', [
         'Runtime Mapping',
@@ -631,7 +658,11 @@ function auditMasterScreenplay() {
 
         const beatOrders = [...scene.matchAll(/^\|\s*(\d+)\s*\|/gm)]
             .map(match => Number(match[1]));
-        if (!beatOrders.length || beatOrders.some((order, beatIndex) => order !== beatIndex + 1)) {
+        const beatOrderBroken = beatOrders.some((order, beatIndex) => {
+            if (beatIndex === 0 || order === 1) return order !== 1;
+            return order !== beatOrders[beatIndex - 1] + 1;
+        });
+        if (!beatOrders.length || beatOrderBroken) {
             addIssue('master-screenplay', 'Detailed scene beat order must be consecutive from 1.', {
                 sceneId: id,
                 beatOrders

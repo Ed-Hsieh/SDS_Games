@@ -5,6 +5,7 @@ import {
 } from '../src/js/data/StorySceneRegistry.js';
 import {
     MainlineCharacterContracts,
+    ProtagonistArcContract,
     StoryActorRegistry,
     StoryExpressionIds
 } from '../src/js/data/StoryActors.js';
@@ -44,7 +45,8 @@ import { TownNPCDatabase } from '../src/js/data/NPCDialogues.js';
 import {
     GuildTutorialCommissionId,
     QuestCompletionMode,
-    QuestDatabase
+    QuestDatabase,
+    QuestRuntimeStatus
 } from '../src/js/data/Quests.js';
 import { MonsterDatabase } from '../src/js/data/Monsters.js';
 import { getTownRuntimeSummary } from '../src/js/managers/TownStateResolver.js';
@@ -207,6 +209,42 @@ function validateMainlineCharacterContracts() {
     }
 }
 
+function validateProtagonistArcContract() {
+    const requiredSceneIds = [
+        ProtagonistArcContract.introductionSceneId,
+        ...(ProtagonistArcContract.decisiveSceneIds || []),
+        ProtagonistArcContract.endpointSceneIds?.first_run,
+        ProtagonistArcContract.endpointSceneIds?.second_run
+    ].filter(Boolean);
+
+    for (const sceneId of requiredSceneIds) {
+        if (!StorySceneRegistry[sceneId]) {
+            error('protagonist-contract', `Protagonist arc references missing scene ${sceneId}`);
+        }
+    }
+
+    for (const [chapter, sceneId] of Object.entries(ProtagonistArcContract.chapterDecisionSceneIds || {})) {
+        const scene = StorySceneRegistry[sceneId];
+        if (!scene || scene.chapter !== Number(chapter)) {
+            error('protagonist-contract', `Chapter ${chapter} decision references invalid scene ${sceneId}`);
+        } else if (!scene.beats.some(beat => beat.actorId === 'player')) {
+            error('protagonist-contract', `Chapter ${chapter} decision scene lacks protagonist speech`);
+        }
+    }
+
+    const endpoint = StorySceneRegistry[ProtagonistArcContract.endpointSceneIds?.first_run];
+    if (!endpoint?.beats?.some(beat => beat.actorId === 'player' && beat.condition === 'first_run')) {
+        error('protagonist-contract', 'First-run endpoint lacks a protagonist decision');
+    }
+    if (!endpoint?.beats?.some(beat => beat.actorId === 'player' && beat.condition === 'second_run')) {
+        error('protagonist-contract', 'Second-run endpoint lacks a protagonist decision');
+    }
+
+    if (!ProtagonistArcContract.firstRunFalseBelief || !ProtagonistArcContract.secondRunEndpoint) {
+        error('protagonist-contract', 'Protagonist arc lacks its false belief or visible second-run endpoint');
+    }
+}
+
 function validateOptionalSideStories() {
     if (OptionalSideStoryRegistry.length !== SideStoryRequiredCharacterIds.length * 3) {
         error('optional-side-story', `Expected short, medium, and long stories for every core character, got ${OptionalSideStoryRegistry.length}`);
@@ -344,6 +382,13 @@ function validateOverworldPrototype() {
         map.setGateOpen(gate.id, true);
         if (!map.isCellTraversable(gate.x, gate.y)) {
             error('overworld-prototype', 'Resolved route gate does not open its passage');
+        }
+        if (map.isCellTraversable(48, 16)) {
+            error('overworld-prototype', 'Chapter 2 can be entered before its story chapter is active');
+        }
+        GameManager.state.flags['story.chapter'] = 2;
+        if (!map.isCellTraversable(48, 16)) {
+            error('overworld-prototype', 'Chapter 2 remains blocked after its story chapter is active');
         }
     }
 
@@ -616,11 +661,14 @@ function validateQuests() {
 
     const unapprovedOptionalQuests = Object.values(QuestDatabase)
         .flat()
-        .filter(quest => quest.id !== GuildTutorialCommissionId);
+        .filter(quest => (
+            quest.id !== GuildTutorialCommissionId
+            && quest.runtimeStatus !== QuestRuntimeStatus.APPROVED
+        ));
     if (unapprovedOptionalQuests.length > 0) {
         error(
             'optional-quests',
-            `${unapprovedOptionalQuests.length} optional quest(s) remain active before review: ${unapprovedOptionalQuests.map(quest => quest.id).join(', ')}`
+            `${unapprovedOptionalQuests.length} optional quest(s) are active without runtime approval: ${unapprovedOptionalQuests.map(quest => quest.id).join(', ')}`
         );
     }
 }
@@ -722,6 +770,7 @@ function validateStoryObjectiveHints() {
 
 validateScenes();
 validateMainlineCharacterContracts();
+validateProtagonistArcContract();
 validateRelationshipJournal();
 validateOptionalSideStories();
 validateRegions();

@@ -156,8 +156,16 @@ function hydrateCharacter(characterData) {
     });
 
     Object.assign(character, data);
-    // Growth curves are runtime authority. Never preserve a stale cached EXP
-    // requirement from an older save schema.
+    // Growth curves are runtime authority. Never preserve stale cached values
+    // from an older save schema.
+    const savedHpRatio = Math.max(0, Math.min(
+        1,
+        (Number(character.hp) || 0) / Math.max(1, Number(character.maxHp) || 1)
+    ));
+    character.maxHp = character.calculateMaxHp();
+    character.hp = savedHpRatio > 0
+        ? Math.max(1, Math.round(character.maxHp * savedHpRatio))
+        : 0;
     character.maxExp = character.calculateMaxExp();
 
     character.equipment = {

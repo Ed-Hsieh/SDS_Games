@@ -28,9 +28,11 @@ import { ObjectiveType, QuestStatus } from '../data/Quests.js';
 import {
     getRegionSceneBindingsForTarget,
     getSceneRegionBinding,
-    isOptionalStoryScene
+    isOptionalStoryScene,
+    RegionSceneTrigger
 } from '../data/ChapterRegionRegistry.js';
 import { navigationIntentManager } from '../managers/NavigationIntentManager.js';
+import { GuildTutorialFlag } from '../data/GuildTutorial.js';
 
 const MOVE_REPEAT_MS = 80;
 
@@ -75,6 +77,7 @@ export default class AdventureScene {
     }
 
     async init() {
+        const navigationState = this.app?.consumeNavigationState?.('adventure') || null;
         this.cacheDom();
         if (!this.canvas || !this.context) {
             throw new Error('Adventure map canvas is missing');
@@ -157,7 +160,21 @@ export default class AdventureScene {
         await this.loadMapAssets();
         this.updateLocationUi({ forceToast: true });
         this.requestRender();
-        this.resumeResolvedPrologueIfNeeded();
+        if (this.isMovementTutorialPending()) {
+            this.showMovementTutorial();
+            this.canvas?.focus();
+        }
+        if (this.devMode && navigationState?.devEncounterMonsterId) {
+            window.setTimeout(() => {
+                this.beginBossEncounter({
+                    id: `dev-${navigationState.devEncounterMonsterId}`,
+                    name: 'DEV 戰鬥驗證',
+                    bossId: navigationState.devEncounterMonsterId
+                });
+            }, 80);
+        } else if (!this.resumeResolvedPrologueIfNeeded()) {
+            this.tryStartCurrentRegionStory();
+        }
     }
 
     cacheDom() {
@@ -316,6 +333,19 @@ export default class AdventureScene {
         }
         if (this.modalOpen || this.panels?.isOpen()) return;
 
+        const directions = {
+            w: [0, -1],
+            s: [0, 1],
+            a: [-1, 0],
+            d: [1, 0]
+        };
+        const direction = directions[event.key] || directions[event.key.toLowerCase()];
+        if (this.isMovementTutorialPending() && !direction) {
+            event.preventDefault();
+            this.showMovementTutorial();
+            return;
+        }
+
         if (event.key.toLowerCase() === 'q') {
             event.preventDefault();
             this.panels?.toggleDrawer('quest');
@@ -333,13 +363,6 @@ export default class AdventureScene {
             return;
         }
 
-        const directions = {
-            w: [0, -1],
-            s: [0, 1],
-            a: [-1, 0],
-            d: [1, 0]
-        };
-        const direction = directions[event.key] || directions[event.key.toLowerCase()];
         if (!direction) return;
 
         const now = performance.now();
@@ -366,6 +389,14 @@ export default class AdventureScene {
             }
         }
         const result = this.worldMap.movePlayer(dx, dy);
+        if (result.type === 'blocked' && result.chapterLocked) {
+            this.showInteractionHint(
+                { name: `第 ${result.requiredChapter} 章區域` },
+                '目前的道路與事件尚未推進到這個區域。'
+            );
+            this.requestRender();
+            return;
+        }
         if (result.type === 'blocked' && result.gate) {
             this.showInteractionHint(result.gate, '前方道路中斷，靠近後調查。');
             this.requestRender();
@@ -373,15 +404,54 @@ export default class AdventureScene {
         }
         if (result.type !== 'moved') return;
 
+        if (this.isMovementTutorialPending()) {
+            GameManager.setFlag(GuildTutorialFlag.OVERWORLD_MOVEMENT_LEARNED, true, {
+                reason: 'prologue-overworld-first-move'
+            });
+        }
         if (result.enteredHabitat) this.showRegionToast(result.habitat);
         this.updateLocationUi();
         this.renderPlayerStats();
         this.requestRender();
 
+        if (this.tryStartMovementStory(result)) return;
         if (!result.interaction && !this.isPrologueInvestigationPending()) {
             const encounter = this.worldMap.rollEncounter();
             if (encounter) this.beginEncounter(encounter);
         }
+    }
+
+    tryStartCurrentRegionStory() {
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        const binding = getSceneRegionBinding(nextSceneId);
+        const chapter = Number(this.worldMap?.getCurrentTile()?.chapter) || null;
+        if (!binding
+            || binding.chapter !== chapter
+            || binding.trigger !== RegionSceneTrigger.REGION_ENTRY) return false;
+        return this.startMapStoryScene(nextSceneId);
+    }
+
+    tryStartMovementStory(result) {
+        const nextSceneId = storySceneManager.getNextAvailableSceneId();
+        const binding = getSceneRegionBinding(nextSceneId);
+        if (!binding || binding.chapter !== Number(result?.tile?.chapter)) return false;
+
+        let shouldStart = false;
+        if (binding.trigger === RegionSceneTrigger.REGION_ENTRY) {
+            shouldStart = Boolean(result.enteredChapter);
+        } else if (binding.trigger === RegionSceneTrigger.SEGMENT_ENTER
+            || binding.trigger === RegionSceneTrigger.RETURN_ROUTE) {
+            shouldStart = (result.segmentIds || []).includes(binding.targetId);
+        } else if (binding.trigger === RegionSceneTrigger.LOCATION_ENTER) {
+            shouldStart = (result.arrivedInteractionIds || []).includes(binding.targetId);
+        }
+        if (!shouldStart) return false;
+        const storyEntry = (result.arrivedInteractionIds || []).includes(binding.targetId)
+            ? result.interaction
+            : null;
+        return this.startMapStoryScene(nextSceneId, {
+            entry: storyEntry
+        });
     }
 
     interact() {
@@ -569,9 +639,30 @@ export default class AdventureScene {
         return true;
     }
 
+    playDevStoryScene(sceneId) {
+        if (!this.devMode || sceneId !== 'ch1_s01_road_collapse') {
+            return this.startMapStoryScene(sceneId, { force: true });
+        }
+        const opening = storySceneManager.startScene(sceneId, { force: true });
+        if (!opening?.success) return opening;
+        const started = this.showStoryPresentation({
+            ...opening,
+            lines: opening.lines.filter(line => line.presentationPhase === 'pre_battle')
+        }, { completionAction: 'prologue_combat' });
+        return started ? opening : { success: false, reason: 'empty_presentation' };
+    }
+
     showStoryPresentation(outcome, options = {}) {
         const lines = (outcome.lines || []).filter(line => line?.text);
         if (!lines.length) return false;
+        const presentationPhases = new Set(
+            lines.map(line => line.presentationPhase).filter(Boolean)
+        );
+        const timeline = (outcome.timeline || lines).filter(entry => (
+            presentationPhases.size === 0
+            || !entry.presentationPhase
+            || presentationPhases.has(entry.presentationPhase)
+        ));
         const story = {
             sceneId: outcome.sceneId,
             scene: outcome.scene,
@@ -582,7 +673,7 @@ export default class AdventureScene {
             completionAction: options.completionAction || 'complete_scene'
         };
         const image = story.entry?.id ? this.images.get(`landmark:${story.entry.id}`) : null;
-        storyDialogueController.play({ ...outcome, lines }, {
+        storyDialogueController.play({ ...outcome, lines, timeline }, {
             closable: false,
             backgroundImage: image?.src || outcome.backgroundImage || ''
         }).then(result => {
@@ -665,11 +756,32 @@ export default class AdventureScene {
         window.setTimeout(() => this.app?.navigateTo?.('lobby'), 80);
     }
 
-    showInteractionHint(entry, overrideText = '') {
+    isMovementTutorialPending() {
+        return this.isPrologueInvestigationPending()
+            && GameManager.getFlag(GuildTutorialFlag.COMPLETE)
+            && !GameManager.getFlag(GuildTutorialFlag.OVERWORLD_MOVEMENT_LEARNED);
+    }
+
+    showMovementTutorial() {
+        this.showInteractionHint(
+            { name: '沿南路前進' },
+            '使用 W、A、S、D 移動。先沿著仍看得清的路往前走。',
+            'WASD'
+        );
+    }
+
+    showInteractionHint(entry, overrideText = '', keyLabel = 'F') {
         if (!this.locationHint) return;
+        this.locationHint.classList.toggle('is-movement-tutorial', keyLabel !== 'F');
+        const key = this.locationHint.querySelector('.map-location-key');
+        if (key) {
+            key.textContent = keyLabel;
+            key.classList.toggle('is-wide', keyLabel.length > 1);
+        }
         this.locationHintTitle.textContent = this.worldMap.isLandmarkDiscovered(entry)
             ? entry.name
             : '未知地點';
+        if (keyLabel !== 'F') this.locationHintTitle.textContent = entry?.name || '移動';
         const defaultText = entry?.kind === 'town_return'
             ? '按 F 返回城鎮。'
             : '按 F 調查。';
@@ -678,7 +790,7 @@ export default class AdventureScene {
     }
 
     hideInteractionHint() {
-        this.locationHint?.classList.remove('is-visible');
+        this.locationHint?.classList.remove('is-visible', 'is-movement-tutorial');
     }
 
     updateLocationUi(options = {}) {
@@ -689,7 +801,8 @@ export default class AdventureScene {
         if (this.habitatName) this.habitatName.textContent = habitat?.name || '區域邊界';
 
         const interaction = this.worldMap.getNearbyInteraction();
-        if (interaction) this.showInteractionHint(interaction);
+        if (this.isMovementTutorialPending()) this.showMovementTutorial();
+        else if (interaction) this.showInteractionHint(interaction);
         else this.hideInteractionHint();
 
         if (options.forceToast) this.showRegionToast(habitat);
@@ -939,20 +1052,28 @@ export default class AdventureScene {
                 break;
             case 'goto-chapter-two':
                 if (!this.worldMap.isGateOpen(gate)) this.worldMap.setGateOpen(gate.id, true);
-                this.worldMap.teleportTo(53, 16);
+                this.worldMap.teleportTo(53, 16, { ignoreChapterLock: true });
                 this.setDevStatus('已移動到第二區起點');
                 break;
             case 'goto-chapter-three':
-                this.worldMap.teleportTo(99, 18);
+                this.worldMap.teleportTo(99, 18, { ignoreChapterLock: true });
                 this.setDevStatus('已移動到第三區起點');
                 break;
             case 'goto-chapter-four':
-                this.worldMap.teleportTo(147, 18);
+                this.worldMap.teleportTo(147, 18, { ignoreChapterLock: true });
                 this.setDevStatus('已移動到第四區起點');
                 break;
+            case 'goto-chapter-five':
+                this.worldMap.teleportTo(195, 18, { ignoreChapterLock: true });
+                this.setDevStatus('已移動到第五區起點');
+                break;
             case 'goto-chapter-six':
-                this.worldMap.teleportTo(243, 18);
+                this.worldMap.teleportTo(243, 18, { ignoreChapterLock: true });
                 this.setDevStatus('已移動到第六區起點');
+                break;
+            case 'goto-chapter-seven':
+                this.worldMap.teleportTo(291, 18, { ignoreChapterLock: true });
+                this.setDevStatus('已移動到第七區起點');
                 break;
             case 'repair-gate':
                 this.worldMap.discoverLandmark(gate);

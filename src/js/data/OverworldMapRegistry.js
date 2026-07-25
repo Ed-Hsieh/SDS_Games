@@ -3,7 +3,11 @@ import {
     getGeneratedTownPlaceImage,
     getGeneratedWorldMapImage
 } from './AssetManifest.js';
-import { getChapterLocation, getChapterRegion } from './ChapterRegionRegistry.js';
+import {
+    ChapterRegionRegistry,
+    getChapterLocation,
+    getChapterRegion
+} from './ChapterRegionRegistry.js';
 
 export const OVERWORLD_ID = 'frontier_overworld_v2';
 export const WORLD_CELL_SIZE = 32;
@@ -35,6 +39,24 @@ function createOverworldTile(chapter) {
 }
 
 export const OverworldMapTiles = Object.freeze(READY_OVERWORLD_CHAPTERS.map(createOverworldTile));
+
+function createOverworldRouteSegments() {
+    return Object.values(ChapterRegionRegistry).flatMap(region => {
+        const tile = OverworldMapTiles.find(entry => entry.chapter === region.chapter);
+        if (!tile) return [];
+        return region.routeSegments.map(route => Object.freeze({
+            ...route,
+            chapter: region.chapter,
+            regionId: region.regionId,
+            path: Object.freeze(route.path.map(([x, y]) => Object.freeze({
+                x: tile.x + x,
+                y: tile.y + y
+            })))
+        }));
+    });
+}
+
+export const OverworldRouteSegments = Object.freeze(createOverworldRouteSegments());
 
 export const OverworldHabitats = Object.freeze([
     Object.freeze({
@@ -294,7 +316,7 @@ const ChapterOneLandmarkPresentation = Object.freeze({
     },
     silver_snare_pass: {
         storyFlag: 'story.ch1.silver_snare_active',
-        firstText: '銀絲在林間收緊，伏獵者只會在劇情啟動後現身。'
+        firstText: '銀絲已被重新拉緊，幾處繩結正對著回城方向。躲在林下的東西還沒有露面，卻像在等人照原路折返。'
     },
     rotroot_ravine: {
         storyFlag: 'story.ch1.rotroot_active',
@@ -308,7 +330,7 @@ const ChapterOneLandmarkPresentation = Object.freeze({
     },
     old_wolf_den: {
         storyFlag: 'story.ch1.forest_guardian_active',
-        firstText: '森林守護者的聚合點只在主線收束時出現。'
+        firstText: '巨大的爪痕在根心外圍重疊，發黑汁液仍沿著樹皮往下滴。製造這些痕跡的東西就在更深處。'
     }
 });
 
@@ -323,7 +345,7 @@ const ChapterTwoLandmarkPresentation = Object.freeze({
     },
     opened_ancient_tomb: {
         storyFlag: 'story.ch2.lich_active',
-        firstText: '古墓入口只有在第二章主線收束時顯露真正的守墓者。'
+        firstText: '墓門後傳來甲片拖過石面的聲音。散落名牌都朝向同一條墓道，像仍有人在裡面逐一點名。'
     },
     north_checkpoint_marker: {
         storyFlag: 'boss.lich.defeated',
@@ -407,7 +429,7 @@ const ChapterSixLandmarkPresentation = Object.freeze({
         repeatText: '北境龍哨仍能辨認封痕方向，沿途沒有新的撤回標記。'
     },
     dragon_heat_crag: {
-        firstText: '裂脊下方冒著熱氣，幼龍留下的抓痕停在岩縫前。這條支路不通往封痕主線。',
+        firstText: '裂脊下方冒著熱氣，幼龍留下的抓痕停在岩縫前。石縫一路向下收窄，沒有通往封痕高處的出口。',
         repeatText: '熱氣仍從岩縫升起，龍類活動的痕跡沒有越過裂脊。'
     },
     seal_warning_line: {
@@ -505,7 +527,7 @@ export const OverworldRouteGates = Object.freeze([
         repairedImageId: 'rotroot_bridge_repaired',
         repairedImage: getGeneratedLandmarkImage('rotroot_bridge_repaired'),
         blockedText: '腐根壓垮了舊橋。裂谷另一側可以看見撤離隊留下的木樁，但目前沒有任何安全通路。',
-        repeatText: '橋仍然斷著。主線處理森林壓力並完成修復前，這裡無法通行。',
+        repeatText: '橋仍然斷著。腐根纏住兩側橋樁，現有木料無法固定；得先讓根脈停止拉扯。',
         resolvedText: '腐根被清除後，城鎮重新架起橋面。這裡不再是地標，只是一段可以通過的道路。'
     })
 ]);
@@ -628,6 +650,31 @@ export function getOverworldTileAt(x, y) {
 
 export function getOverworldHabitatAt(x, y) {
     return OverworldHabitats.find(habitat => contains(habitat.rect, x, y)) || null;
+}
+
+function distanceToRouteLeg(point, start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    if (!dx && !dy) return Math.hypot(point.x - start.x, point.y - start.y);
+    const progress = Math.max(0, Math.min(
+        1,
+        ((point.x - start.x) * dx + (point.y - start.y) * dy) / (dx * dx + dy * dy)
+    ));
+    return Math.hypot(
+        point.x - (start.x + progress * dx),
+        point.y - (start.y + progress * dy)
+    );
+}
+
+export function getOverworldRouteSegmentsAt(x, y, chapter = null) {
+    const point = { x: Number(x), y: Number(y) };
+    return OverworldRouteSegments.filter(route => {
+        if (chapter && route.chapter !== Number(chapter)) return false;
+        const radius = Math.max(1, Number(route.width) / 2 || 1);
+        return route.path.slice(1).some((end, index) => (
+            distanceToRouteLeg(point, route.path[index], end) <= radius
+        ));
+    });
 }
 
 export function isPointInsideRect(rect, x, y) {

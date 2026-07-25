@@ -7,7 +7,11 @@ import {
     StorySceneOrder,
     StorySceneRegistry
 } from '../src/js/data/StorySceneRegistry.js';
-import { QuestDatabase } from '../src/js/data/Quests.js';
+import {
+    GuildTutorialCommissionId,
+    QuestDatabase,
+    QuestRuntimeStatus
+} from '../src/js/data/Quests.js';
 
 const problems = [];
 const push = (section, message) => problems.push({ section, message });
@@ -72,8 +76,17 @@ for (const [actorId, contract] of Object.entries(MainlineCharacterContracts)) {
     }
 }
 
-if (Object.values(QuestDatabase).some(group => !Array.isArray(group) || group.length > 0)) {
-    push('side-story-gate', 'Optional quests became playable before their complete runtime contracts were approved');
+for (const group of Object.values(QuestDatabase)) {
+    if (!Array.isArray(group)) {
+        push('side-story-gate', 'Optional quest database contains a non-list group');
+        continue;
+    }
+    for (const quest of group) {
+        if (quest.id !== GuildTutorialCommissionId
+            && quest.runtimeStatus !== QuestRuntimeStatus.APPROVED) {
+            push('side-story-gate', `${quest.id} became playable before its runtime contract was approved`);
+        }
+    }
 }
 
 if (problems.length > 0) {

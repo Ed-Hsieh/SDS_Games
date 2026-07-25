@@ -105,8 +105,8 @@ core logic.
 - [in_progress] [P0] [story-transition-playthrough] Validate canonical triggers in the browser
   Owner file(s): `src/js/scenes/AdventureScene.js`, `src/js/scenes/LobbyScene.js`, `src/js/managers/NavigationIntentManager.js`
   Source of truth: `src/js/data/ChapterRegionRegistry.js`, `src/js/data/TownPlaces.js`
-  Validation: manual desktop Chapter 1-7 progression without DEV force-starts
-  Notes: Static reachability passes. The next session must verify real clicks, shared-landmark ordering, Chapter 7 walk/wolf-smoke return, defeat-return exclusion, and automatic epilogue continuation. Town-arrival intent is persisted until its scene successfully opens, so reload or a busy dialogue layer cannot consume it prematurely.
+  Validation: `scripts/CampaignFlowCheck.mjs`, browser lobby/adventure smoke test, and manual desktop Chapter 1-7 progression without DEV force-starts
+  Notes: The isolated first-run simulation completes 60 mandatory scenes and nine story encounters, and movement can reach every route target. Manual review still needs real clicks, shared-landmark ordering, Chapter 7 walk/wolf-smoke return, defeat-return exclusion, and automatic epilogue continuation.
 
 - [in_progress] [P0] [opening-playthrough] Validate the complete new-game opening without skips
   Owner file(s): guild tutorial, prologue combat, lobby, adventure, dialogue, and settlement runtime modules
@@ -118,7 +118,7 @@ core logic.
   Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`, `src/js/data/NPCDialogues.js`, `src/js/data/WorldInteractions.js`
   Source of truth: `docs/MAIN_STORY_BIBLE.md`, `docs/NARRATIVE_WRITING_GUIDE.md`
   Validation: scene-by-scene user review and `scripts/ChapterOneGameplayCheck.mjs`
-  Notes: Runtime records exist, but optional quests remain pending user playtest approval and must not be treated as locked content.
+  Notes: Six Chapter 1 commissions are runtime-approved and pass structural checks. They remain editable until the user finishes the playtest and must not be treated as text-locked content.
 
 - [in_progress] [P0] [dialogue-integration] Validate choices, multi-actor emphasis, and expression continuity
   Owner file(s): `src/js/components/StoryDialogueView.js`, `src/js/managers/StoryDialogueController.js`, `src/js/scenes/LobbyScene.js`
@@ -132,11 +132,11 @@ core logic.
   Validation: manual win with free capacity, full backpack, discarded item, and blueprint drop
   Notes: The new decision UI is implemented, but all capacity branches still need browser playtesting.
 
-- [in_progress] [P1] [optional-quest-contract] Resolve the optional-quest review gate
+- [done] [P1] [optional-quest-contract] Resolve the optional-quest review gate
   Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`
   Source of truth: approved character side-story direction
   Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/SideStoryFlowCheck.mjs`
-  Notes: Six optional quests are currently active before formal user review, so these two checks intentionally remain non-passing until the quest set is reviewed or returned to a deferred state.
+  Notes: Runtime quests now carry an explicit approved/pending status. The six accepted Chapter 1 commissions are approved for playtesting; future unfinished quests remain blocked by validation.
 
 - [planned] [P1] [chapter-2-playthrough] Revalidate Chapter 2 after the opening flow is accepted
   Owner file(s): Chapter 2 story, town, map, combat, and quest runtime modules
@@ -176,7 +176,8 @@ core logic.
 
 Current validation snapshot:
 
-- `BetaConvergenceCheck.mjs`: blocked only by the six optional quests being active before review.
+- `BetaConvergenceCheck.mjs`: pass.
+- `CampaignFlowCheck.mjs`: pass; 60 mandatory first-run scenes, nine story encounters, and all movement-route targets.
 - `DataConsistencyCheck.mjs`: pass.
 - `MonsterEcologyCheck.mjs`: pass.
 - `AssetCoverageCheck.mjs`: pass for missing mappings and physical files; existing dimension warnings remain.
@@ -187,8 +188,8 @@ Current validation snapshot:
 - `TownRuntimeCheck.mjs`: pass.
 - `FirstRunLootCheck.mjs`: pass.
 - `StoryReachabilityCheck.mjs`: pass; 66 scenes, 37 map triggers, 29 town triggers, and seven chapter maps.
-- `StoryRuntimeCheck.mjs`: the mandatory-scene checks pass; the command remains non-passing only because six optional quests are active before review.
-- `SideStoryFlowCheck.mjs`: blocked by the same optional-quest review gate.
+- `StoryRuntimeCheck.mjs`: pass.
+- `SideStoryFlowCheck.mjs`: pass.
 
 ## Next Good Step
 
@@ -198,11 +199,11 @@ Current validation snapshot:
   Validation: fresh save from guild entry through Chapter 1 completion
   Notes: Record only concrete blockers such as a dead end, missing choice, inaccessible location, incorrect flag, broken reward decision, or duplicated tutorial.
 
-- [planned] [P0] [quest-review] Approve or revise the six active optional quests
+- [in_progress] [P0] [quest-review] Playtest and revise the six active optional quests
   Owner file(s): `src/js/data/Quests.js`, `src/js/data/QuestStories.js`, `src/js/data/NPCDialogues.js`
   Source of truth: approved side-story character intentions
   Validation: `scripts/StoryRuntimeCheck.mjs`, `scripts/SideStoryFlowCheck.mjs`
-  Notes: Once reviewed, either keep them as playable records or return unfinished entries to deferred data; do not bypass the checks.
+  Notes: Their runtime contracts are approved and validated. The remaining gate is the user's scene-by-scene playtest, not an empty-database requirement.
 
 - [planned] [P1] [presentation-review] Lock Chapter 1 dialogue and reward presentation
   Owner file(s): dialogue, scene, and settlement modules
@@ -212,13 +213,14 @@ Current validation snapshot:
 
 ## Next Resume Task
 
-Run the canonical story path in the browser and repair only concrete transition
-failures. Do not add route fields back to objective hints or introduce a second
-trigger resolver.
+Continue the canonical story-path playtest and repair only concrete interaction
+or presentation failures. Do not add route fields back to objective hints,
+introduce a second trigger resolver, or reopen already passing data contracts.
 
 Target result:
 
-- Complete Chapters 1-7 without DEV scene starts or manual flag injection.
+- Complete the remaining manual Chapters 1-7 path without DEV scene starts or
+  manual flag injection; the isolated sequential simulation already passes.
 - Confirm every `!` leads to the same target named by the current objective.
 - Confirm shared landmarks play all eligible bound scenes in registry order.
 - Confirm Chapter 2 begins from the market's empty crates without requiring the
@@ -245,6 +247,8 @@ Validation:
 
 - `scripts/StoryReachabilityCheck.mjs`
 - `scripts/StoryRuntimeCheck.mjs`
+- `scripts/CampaignFlowCheck.mjs`
+- `scripts/SideStoryFlowCheck.mjs`
 - Chapter 1-7 gameplay checks
 - Manual desktop Chapter 1-7 no-force progression, including reload during a
   pending town-arrival scene
@@ -252,7 +256,7 @@ Validation:
 Out of scope:
 
 - Final numeric combat balance
-- Six optional quests awaiting review
+- New optional quests beyond the six runtime-approved Chapter 1 commissions
 - Additional second-run Bosses or routes
 - Tower and formal light/Void content
 - Casino prize implementation
@@ -276,9 +280,5 @@ $node = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dependenci
 & $node scripts\FirstRunLootCheck.mjs
 & $node scripts\StoryRuntimeCheck.mjs
 & $node scripts\SideStoryFlowCheck.mjs
+& $node scripts\CampaignFlowCheck.mjs
 ```
-
-Expected exception:
-
-- `StoryRuntimeCheck.mjs` and `SideStoryFlowCheck.mjs` remain non-passing until
-  the six active optional quests complete user review or return to deferred data.

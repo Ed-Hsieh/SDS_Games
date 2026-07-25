@@ -26,6 +26,7 @@ const {
     validateStoryEncounterContract
 } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
+const { getTownSceneBinding } = await import('../src/js/data/TownPlaces.js');
 const { getStorySceneEffects } = await import('../src/js/data/StoryStateContract.js');
 const { StoryActorRegistry } = await import('../src/js/data/StoryActors.js');
 const {
@@ -145,7 +146,7 @@ for (const locationId of region?.locationNodes?.map(node => node.id) || []) {
 }
 
 const encounterExpectations = Object.freeze({
-    ch3_s01_dead_checkpoint: ['shadow_soldier', 3, 4],
+    ch3_s01_dead_checkpoint: ['shadow_soldier', 4, 5],
     ch3_s06_drowned_voice: ['drowned_oracle', 4, 5],
     ch3_s08_shadow_commander: ['shadow_commander', 4, 5]
 });
@@ -169,14 +170,14 @@ check(
 
 const hintExpectations = Object.freeze({
     ch3_s02_shadows_count_names: ['forge', 'blacksmith'],
-    ch3_s04_showcase_glass: ['casino', 'casino_dealer'],
-    ch3_s05_blank_creditor_trace: ['alley', 'black_market'],
+    ch3_s04_showcase_glass: ['casino', null],
+    ch3_s05_blank_creditor_trace: ['alley', null],
     ch3_s09_temptation_and_orders: ['crossroads', 'village_elder']
 });
 for (const [sceneId, [placeId, actorId]] of Object.entries(hintExpectations)) {
-    const hint = getStoryObjectiveHint(sceneId);
-    check(hint?.placeId === placeId, `${sceneId} points to the wrong town place`);
-    check(hint?.actorId === actorId, `${sceneId} points to the wrong actor`);
+    const binding = getTownSceneBinding(sceneId);
+    check(binding?.placeId === placeId, `${sceneId} points to the wrong town place`);
+    check(binding?.actorId === actorId, `${sceneId} points to the wrong actor`);
 }
 
 check(

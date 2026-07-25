@@ -24,7 +24,7 @@ export const StoryRebuildFoundation = Object.freeze({
     decision: 'Current quest outline, route clues, and patchwork story content are scaffolding, not canon. Keep usable systems and world pillars, then rebuild the story cleanly.',
     retainedWorldPillars: [
         'A damaged frontier town that starts sparse and recovers through player action.',
-        'Route-driven exploration with landmarks, watchposts, fog, fatigue pressure, and boss convergence.',
+        'Route-driven exploration with landmarks, watchposts, fog, return-route pressure, and boss convergence.',
         'Equipment pressure: early survival depends on repair, crafting, drops, and durability.',
         'Monster ecology: drops and equipment should come from believable bodies, regions, or factions.',
         'Clue-led bosses: bosses are story convergence points, not only combat stat gates.',
@@ -36,7 +36,7 @@ export const StoryRebuildFoundation = Object.freeze({
         'Dialogue runtime, including multi-speaker presentation.',
         'Town state resolver and visible NPC/place gates.',
         'Traveler handbook shells: commissions, boss traces, world notes, relationships, and town memory.',
-        'Adventure map, fog, fatigue, route nodes, and watchpost mechanics.',
+        'Adventure map, fog, route nodes, return checkpoints, and watchpost mechanics.',
         'Equipment, recipe, drop, encyclopedia, and validation infrastructure.',
         'Asset manifest and generated art folder structure.'
     ],
@@ -64,7 +64,7 @@ export const StoryRebuildFoundation = Object.freeze({
 
 export const StoryRebuildNarrativeTarget = Object.freeze({
     centralMystery: 'The damaged town sits near the safest remaining approach to the mountain-side disaster zone. Its roads, watchposts, old camps, and records preserve traces of the old sealed perimeter.',
-    finalTruth: 'Demon Lord Asariel is the final pressure, but the disaster was made possible by broken routes, hidden bargains, fear, and abandoned records. The player must rebuild combat strength and information strength together.',
+    finalTruth: 'Demon King Helsarn is the final pressure, but the disaster was made possible by broken routes, hidden bargains, fear, and abandoned records. The player must rebuild combat strength and information strength together.',
     acceptedCausalTimeline: Object.freeze({
         demonKingMountainIntent: 'The Demon King sought the mountain convergence because controlling it would let his power recover and spread through the region.',
         ancientConflict: 'The dragon clan fought to preserve its territory rather than save humanity. Both sides were severely wounded, and the Demon King fell near the mountain village without dying.',

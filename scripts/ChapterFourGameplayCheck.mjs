@@ -39,6 +39,8 @@ const {
     validateStoryEncounterContract
 } = await import('../src/js/data/StoryEncounterContracts.js');
 const { getStoryObjectiveHint } = await import('../src/js/data/StoryObjectiveHints.js');
+const { getTownSceneBinding } = await import('../src/js/data/TownPlaces.js');
+const { getSceneRegionBinding } = await import('../src/js/data/ChapterRegionRegistry.js');
 const {
     getCurrentRunStoryFlagKeys,
     getStorySceneEffects
@@ -167,7 +169,7 @@ check(thornLandmark?.prerequisites?.includes(thornPrerequisite), 'Thorn landmark
 
 const encounterExpectations = Object.freeze({
     ch4_s03_thorn_value_rule: ['thorn_witch', 6, 7],
-    ch4_s07_titan_rises: ['ancient_titan', 5, 6]
+    ch4_s07_titan_rises: ['ancient_titan', 6, 7]
 });
 for (const [sceneId, [monsterId, combatIndex, postIndex]] of Object.entries(encounterExpectations)) {
     const scene = getStoryScene(sceneId);
@@ -180,10 +182,10 @@ for (const [sceneId, [monsterId, combatIndex, postIndex]] of Object.entries(enco
 }
 
 const hintExpectations = Object.freeze({
-    ch4_s01_road_moves_underfoot: { targetId: 'stone_route_entry' },
+    ch4_s01_road_moves_underfoot: { targetId: 'moving_stone_road' },
     ch4_s02_caravan_rear_missing: { placeId: 'market', actorId: 'merchant' },
     ch4_s03_thorn_value_rule: { targetId: 'thorn_glasshouse_ruin' },
-    ch4_s04_gray_ridge_evacuates: { targetId: 'gray_ridge_entry' },
+    ch4_s04_gray_ridge_evacuates: { targetId: 'gray_ridge_causeway' },
     ch4_s05_body_locks: { targetId: 'rear_marker' },
     ch4_s06_flag_returns: { targetId: 'center_span_marker' },
     ch4_s07_titan_rises: { targetId: 'titan_vein_ruins' },
@@ -191,9 +193,11 @@ const hintExpectations = Object.freeze({
     ch4_s09_four_elements_one_report: { placeId: 'handbook', actorId: 'town_scholar' }
 });
 for (const [sceneId, expected] of Object.entries(hintExpectations)) {
-    const hint = getStoryObjectiveHint(sceneId);
+    const binding = expected.placeId
+        ? getTownSceneBinding(sceneId)
+        : getSceneRegionBinding(sceneId);
     for (const [key, value] of Object.entries(expected)) {
-        check(hint?.[key] === value, `${sceneId} has the wrong ${key}`);
+        check(binding?.[key] === value, `${sceneId} has the wrong ${key}`);
     }
 }
 
@@ -228,7 +232,7 @@ check(
 const thornEssence = MonsterDatabase.thorn_witch?.drops?.find(drop => drop.itemId === 'forest_essence');
 const titanHammer = MonsterDatabase.ancient_titan?.equipmentDrops?.find(drop => drop.equipmentId === 'titan_hammer');
 check(thornEssence?.chance === 1, 'Thorn Witch does not guarantee ordinary Forest Essence');
-check(titanHammer?.chance === 1, 'Ancient Titan does not guarantee titan_hammer');
+check(titanHammer?.chance === 0.2, 'Ancient Titan titan_hammer chance is outside the Boss equipment rule');
 check(
     !JSON.stringify(MonsterDatabase.ancient_titan || {}).includes('titan_heart'),
     'Ancient Titan still drops titan_heart'

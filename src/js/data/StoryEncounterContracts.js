@@ -35,8 +35,8 @@ export const StoryEncounterContracts = Object.freeze({
         monsterId: 'forest_guardian',
         regionId: 'chapter_01_south_gate',
         locationId: 'old_wolf_den',
-        combatStartBeatIndex: 3,
-        postBattleBeatIndex: 4
+        combatStartBeatIndex: 4,
+        postBattleBeatIndex: 5
     }),
     ch2_s06_keeper_of_names: contract({
         id: 'mainline_ch2_lich',
@@ -62,8 +62,8 @@ export const StoryEncounterContracts = Object.freeze({
         monsterId: 'ancient_titan',
         regionId: 'chapter_04_gray_ridge',
         locationId: 'titan_vein_ruins',
-        combatStartBeatIndex: 5,
-        postBattleBeatIndex: 6
+        combatStartBeatIndex: 6,
+        postBattleBeatIndex: 7
     }),
     ch5_s04_elemental_lord: contract({
         id: 'mainline_ch5_elemental_lord',
@@ -111,8 +111,8 @@ export const StoryRouteEncounterContracts = Object.freeze({
         monsterId: 'shadow_soldier',
         regionId: 'chapter_03_shadow_watch',
         locationId: 'dead_checkpoint',
-        combatStartBeatIndex: 3,
-        postBattleBeatIndex: 4
+        combatStartBeatIndex: 4,
+        postBattleBeatIndex: 5
     }),
     ch3_s06_drowned_voice: contract({
         id: 'route_ch3_drowned_oracle',

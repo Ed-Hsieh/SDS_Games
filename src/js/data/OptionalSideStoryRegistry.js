@@ -346,7 +346,7 @@ export const OptionalSideStoryRegistry = Object.freeze([
             backgroundOwnerIds: ['mia_workroom', 'market']
         },
         mainlineBoundary: '第一輪不得打開窗或移動母親留下的舊陳設；不提供任何手術解法。',
-        rewardBinding: { kind: SideStoryRewardKind.UNIQUE_CONSUMABLE, id: 'returning_season_tea', role: '由市集販售的疲勞恢復飲品，配方來自米婭研究。' },
+        rewardBinding: { kind: SideStoryRewardKind.UNIQUE_CONSUMABLE, id: 'returning_season_tea', role: '由市集販售的戰後恢復飲品，配方來自米婭研究。' },
         resourceNeeds: { newItemIds: ['returning_season_tea'], newIconIds: ['returning_season_tea'] }
     }),
     story({
@@ -485,7 +485,7 @@ export const OptionalSideStoryRegistry = Object.freeze([
             backgroundOwnerIds: ['dead_checkpoint', 'gate']
         },
         mainlineBoundary: '只談人類可觀察的道路失效；不產出灰脊雙標、風擋、遠標尺寸或任何第一輪免死條件。',
-        rewardBinding: { kind: SideStoryRewardKind.UNIQUE_ACCESSORY, id: 'old_flag_knot', role: '以練習繩製成的方向、撤離與疲勞管理飾品，不拆取共用巡線旗。' },
+        rewardBinding: { kind: SideStoryRewardKind.UNIQUE_ACCESSORY, id: 'old_flag_knot', role: '以練習繩製成的方向與撤離管理飾品，不拆取共用巡線旗。' },
         resourceNeeds: { newItemIds: ['old_flag_knot'], newIconIds: ['old_flag_knot'] }
     }),
 
@@ -546,7 +546,7 @@ export const OptionalSideStoryRegistry = Object.freeze([
             backgroundOwnerIds: ['gate', 'night_watch_line']
         },
         mainlineBoundary: '不讓他提前說出灰脊核心恐懼，也不建立風擋尺寸。',
-        rewardBinding: { kind: SideStoryRewardKind.TRAVEL_FUNCTION, id: 'rear_light_camp_bonus', role: '已點亮營地的疲勞恢復功能得到非數值性的強化入口，數值後定。' },
+        rewardBinding: { kind: SideStoryRewardKind.TRAVEL_FUNCTION, id: 'rear_light_camp_bonus', role: '已點亮營地新增穩定返程標記；不提供數值效果。' },
         resourceNeeds: { newSystemHooks: ['rear_light_camp_bonus'] }
     }),
     story({
@@ -1315,7 +1315,7 @@ export const OptionalEnsembleStoryRegistry = Object.freeze([
             backgroundOwnerIds: ['crossroads']
         },
         mainlineBoundary: '不觸及遠征證據或米婭手術。',
-        rewardBinding: { kind: SideStoryRewardKind.ORDINARY_SUPPLIES, id: 'shared_meal', role: '一次既有疲勞恢復補給。' },
+        rewardBinding: { kind: SideStoryRewardKind.ORDINARY_SUPPLIES, id: 'shared_meal', role: '一次既有普通補給。' },
         resourceNeeds: {}
     }),
     story({

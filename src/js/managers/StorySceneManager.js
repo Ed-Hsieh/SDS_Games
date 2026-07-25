@@ -83,6 +83,15 @@ export const STORY_SCENE_BACKGROUNDS = Object.freeze({
     ch5_s09_whistle_cache: 'src/assets/images/art/scenes/world/landmarks/old-waystation-cache.webp',
     ch5_s10_before_dawn: 'src/assets/images/art/scenes/town/locations/gate-working.webp',
     ch5_s11_town_loses_its_voice: 'src/assets/images/art/scenes/town/locations/crossroads-recovery-1.webp',
+    ch6_s01_northern_drake_watch: 'src/assets/images/art/scenes/world/maps/overworld_dragon_scar.webp',
+    ch6_s02_scar_aftermath: 'src/assets/images/art/scenes/world/landmarks/abyssal_seal_break.webp',
+    ch6_s03_stop_before_the_line: 'src/assets/images/art/entities/monsters/elder_dragon.webp',
+    ch6_s04_dragon_convergence: 'src/assets/images/art/entities/monsters/elder_dragon.webp',
+    ch6_s05_after_the_broad_road: 'src/assets/images/art/scenes/world/landmarks/dragon_heat_crag.webp',
+    ch6_s06_settlement_throw: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp',
+    ch6_s07_house_changes_seats: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp',
+    ch6_s08_brush_past_or_invitation: 'src/assets/images/art/scenes/town/locations/gate-working.webp',
+    ch6_s09_the_old_note_answers: 'src/assets/images/art/scenes/world/landmarks/old-waystation-cache.webp',
     ch7_s01_narrow_human_road: 'src/assets/images/art/scenes/world/maps/overworld_fall_site.webp',
     ch7_s02_ruined_flower_field: 'src/assets/images/art/scenes/world/landmarks/ruined-flower-field.webp',
     ch7_s03_echo_memory: 'src/assets/images/art/scenes/world/landmarks/ruined-flower-field.webp',
@@ -95,10 +104,44 @@ export const STORY_SCENE_BACKGROUNDS = Object.freeze({
 });
 
 const STORY_BEAT_BACKGROUNDS = Object.freeze({
+    ch2_s03_ledger_that_would_not_close: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 10, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' }),
+            Object.freeze({ from: 11, to: 14, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' }),
+            Object.freeze({ from: 15, to: 19, image: 'src/assets/images/art/scenes/town/locations/forge.webp' })
+        ])
+    }),
+    ch2_s07_names_return_to_town: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 14, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' }),
+            Object.freeze({ from: 15, to: 21, image: 'src/assets/images/art/scenes/town/locations/market-sparse.webp' })
+        ])
+    }),
+    ch3_s02_shadows_count_names: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 11, image: 'src/assets/images/art/scenes/town/locations/forge.webp' }),
+            Object.freeze({ from: 12, to: 20, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' })
+        ])
+    }),
+    ch3_s09_temptation_and_orders: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 7, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' }),
+            Object.freeze({ from: 8, to: 16, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' }),
+            Object.freeze({ from: 17, to: 23, image: 'src/assets/images/art/scenes/town/locations/gate-working.webp' }),
+            Object.freeze({ from: 24, to: 28, image: 'src/assets/images/art/scenes/town/locations/market.webp' }),
+            Object.freeze({ from: 29, to: 35, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' })
+        ])
+    }),
+    ch4_s02_caravan_rear_missing: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 5, image: 'src/assets/images/art/scenes/town/locations/market.webp' }),
+            Object.freeze({ from: 6, to: 12, image: 'src/assets/images/art/scenes/town/locations/forge.webp' })
+        ])
+    }),
     ch4_s06_flag_returns: Object.freeze({
         first_run: Object.freeze([
             Object.freeze({
-                from: 8,
+                from: 7,
                 to: 9,
                 image: 'src/assets/images/art/scenes/story/cg/frey-last-standard.webp'
             })
@@ -106,15 +149,57 @@ const STORY_BEAT_BACKGROUNDS = Object.freeze({
     }),
     ch4_s08_returned_objects: Object.freeze({
         first_run: Object.freeze([
-            Object.freeze({ from: 1, to: 6, image: 'src/assets/images/art/scenes/town/locations/forge-grief.webp' }),
-            Object.freeze({ from: 7, to: 18, image: 'src/assets/images/art/scenes/town/locations/gate-after-frey.webp' }),
-            Object.freeze({ from: 19, to: 26, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' })
+            Object.freeze({ from: 1, to: 7, image: 'src/assets/images/art/scenes/town/locations/forge-grief.webp' }),
+            Object.freeze({ from: 8, to: 10, image: 'src/assets/images/art/scenes/town/locations/gate-after-frey.webp' })
+        ]),
+        second_run: Object.freeze([
+            Object.freeze({ from: 1, to: 21, image: 'src/assets/images/art/scenes/town/locations/forge.webp' })
+        ]),
+        any: Object.freeze([
+            Object.freeze({ from: 22, to: 29, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' })
+        ])
+    }),
+    ch4_s09_four_elements_one_report: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 14, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' }),
+            Object.freeze({ from: 15, to: 18, image: 'src/assets/images/art/scenes/world/landmarks/stone-route-moving-wall.webp' }),
+            Object.freeze({ from: 19, to: 26, image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp' })
+        ])
+    }),
+    ch5_s03_elemental_convergence: Object.freeze({
+        second_run: Object.freeze([
+            Object.freeze({ from: 5, to: 10, image: 'src/assets/images/art/scenes/town/locations/forge.webp' })
+        ])
+    }),
+    ch5_s05_fourfold_shrapnel: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 5, to: 10, image: 'src/assets/images/art/scenes/town/locations/mia-workroom-operation.webp' })
         ])
     }),
     ch5_s07_after_the_ratchet: Object.freeze({
         first_run: Object.freeze([
             Object.freeze({ from: 1, to: 2, image: 'src/assets/images/art/scenes/town/locations/mia-workroom-after-loss.webp' }),
             Object.freeze({ from: 3, to: 9, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' })
+        ])
+    }),
+    ch5_s10_before_dawn: Object.freeze({
+        first_run: Object.freeze([
+            Object.freeze({ from: 1, to: 4, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' })
+        ]),
+        second_run: Object.freeze([
+            Object.freeze({ from: 6, to: 15, image: 'src/assets/images/art/scenes/town/locations/gate-working.webp' })
+        ])
+    }),
+    ch6_s06_settlement_throw: Object.freeze({
+        any: Object.freeze([
+            Object.freeze({ from: 1, to: 1, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' }),
+            Object.freeze({ from: 2, to: 15, image: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp' })
+        ])
+    }),
+    ch6_s07_house_changes_seats: Object.freeze({
+        second_run: Object.freeze([
+            Object.freeze({ from: 6, to: 16, image: 'src/assets/images/art/scenes/backgrounds/casino-game-table.webp' }),
+            Object.freeze({ from: 17, to: 20, image: 'src/assets/images/art/scenes/backgrounds/casino-prize-wall.webp' })
         ])
     }),
     ch5_s11_town_loses_its_voice: Object.freeze({
@@ -129,18 +214,19 @@ const STORY_BEAT_BACKGROUNDS = Object.freeze({
     }),
     ch7_s08_return_to_town: Object.freeze({
         first_run: Object.freeze([
-            Object.freeze({
-                from: 1,
-                to: 8,
-                image: 'src/assets/images/art/scenes/backgrounds/town-overview-hollow-victory.webp'
-            })
+            Object.freeze({ from: 1, to: 4, image: 'src/assets/images/art/scenes/town/locations/gate-after-frey.webp' }),
+            Object.freeze({ from: 5, to: 5, image: 'src/assets/images/art/scenes/town/locations/mia-workroom-after-loss.webp' }),
+            Object.freeze({ from: 6, to: 6, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' }),
+            Object.freeze({ from: 7, to: 10, image: 'src/assets/images/art/scenes/town/locations/forge-grief.webp' }),
+            Object.freeze({ from: 11, to: 11, image: 'src/assets/images/art/scenes/town/locations/casino.webp' }),
+            Object.freeze({ from: 12, to: 16, image: 'src/assets/images/art/scenes/town/locations/civic-room-depleted.webp' })
         ]),
         second_run: Object.freeze([
-            Object.freeze({
-                from: 9,
-                to: 27,
-                image: 'src/assets/images/art/scenes/backgrounds/town-overview-recovery.webp'
-            })
+            Object.freeze({ from: 17, to: 21, image: 'src/assets/images/art/scenes/town/locations/gate-working.webp' }),
+            Object.freeze({ from: 22, to: 28, image: 'src/assets/images/art/scenes/town/locations/mia_workroom.webp' }),
+            Object.freeze({ from: 29, to: 33, image: 'src/assets/images/art/scenes/town/locations/civic-room-working.webp' }),
+            Object.freeze({ from: 34, to: 37, image: 'src/assets/images/art/scenes/town/locations/forge.webp' }),
+            Object.freeze({ from: 38, to: 41, image: 'src/assets/images/art/scenes/town/locations/casino.webp' })
         ])
     }),
     ch7_s09_first_or_second_epilogue: Object.freeze({
@@ -351,7 +437,8 @@ class StorySceneManager {
             portrait: actor?.portrait || null,
             standing: actor?.standing || null,
             standingFacing: actor?.standingFacing || 'center',
-            isNarration: beat.beat === 'narration',
+            isNarration: ['narration', 'cutaway'].includes(beat.beat),
+            visualMode: beat.visualMode || (beat.beat === 'cutaway' ? 'cutaway' : null),
             expression: beat.expression,
             expressionLayer: actor ? getStoryExpressionLayer(actor.id, expression) : null,
             background: beat.background || scene.background,
@@ -394,9 +481,9 @@ class StorySceneManager {
             } : null,
             npc: lead,
             participants,
-            lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
+            lines: beats.filter(beat => ['narration', 'speaker', 'cutaway'].includes(beat.beat)),
             timeline: beats.filter(beat => (
-                ['narration', 'speaker'].includes(beat.beat)
+                ['narration', 'speaker', 'cutaway'].includes(beat.beat)
                 || (beat.stageAction && beat.actorIds?.length)
             )),
             effectMessages: [],
@@ -444,9 +531,9 @@ class StorySceneManager {
             checkpointId,
             npc: participants[0] || { id: 'narration', name: '故事', role: '敘事' },
             participants,
-            lines: beats.filter(beat => ['narration', 'speaker'].includes(beat.beat)),
+            lines: beats.filter(beat => ['narration', 'speaker', 'cutaway'].includes(beat.beat)),
             timeline: beats.filter(beat => (
-                ['narration', 'speaker'].includes(beat.beat)
+                ['narration', 'speaker', 'cutaway'].includes(beat.beat)
                 || (beat.stageAction && beat.actorIds?.length)
             )),
             effectMessages: [],

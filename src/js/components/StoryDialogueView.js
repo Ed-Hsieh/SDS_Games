@@ -114,6 +114,7 @@ export default class StoryDialogueView {
     show({ closable = false, autoPlay = false, scopeElement = null } = {}) {
         this.actorPresentationState.clear();
         this.castRenderKey = '';
+        this.cast.innerHTML = '';
         this.setScope(scopeElement);
         this.root.hidden = false;
         this.closeButton.hidden = !closable;

@@ -115,8 +115,8 @@ export class CharacterManager {
     constructor() {
         // ===== 純資料屬性 =====
         this.level = 1;
-        this._hp = 120;      // 100 + (1 * 20) = 120
-        this._maxHp = 120;
+        this._hp = 110;      // 100 + (1 * 10) = 110
+        this._maxHp = 110;
         this._exp = 0;
         this._maxExp = CharacterLogic.calculateMaxExp(this);
         this.gold = 100;

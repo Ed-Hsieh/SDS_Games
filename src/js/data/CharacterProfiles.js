@@ -32,7 +32,15 @@ export const CharacterProfileDatabase = {
         stages: [
             { id: 'burden', label: '一個人扛住城鎮', mood: '平靜得過度用力' },
             { id: 'ledger_revision', label: '與伊萊核對名冊', fromFlag: sceneFlag('ch2_s07_names_return_to_town'), mood: '仍把疲憊留在工作裡' },
-            { id: 'scar_choice', label: '封痕前的選擇', fromFlag: sceneFlag('ch5_s10_before_dawn'), mood: '第一輪獨行，第二輪肯停下' }
+            {
+                id: 'scar_choice',
+                label: '封痕前的選擇',
+                fromFlag: sceneFlag('ch5_s10_before_dawn'),
+                moodByRun: {
+                    first_run: '把乾糧與碎片藏進外套，沒有請任何人同行',
+                    second_run: '在南門前停下，把去留交回共同決定'
+                }
+            }
         ],
         reportClosings: [
             '把不知道的部分也寫下。下一個人不該再替我們猜一次。',
@@ -63,7 +71,15 @@ export const CharacterProfileDatabase = {
         },
         stages: [
             { id: 'cataloguer', label: '相信整理能保護人', mood: '急著把世界排好' },
-            { id: 'context_failure', label: '二格摘要留下傷口', fromFlag: sceneFlag('ch5_s07_after_the_ratchet'), mood: '第一輪崩塌，第二輪重開來源' },
+            {
+                id: 'context_failure',
+                label: '二格摘要留下傷口',
+                fromFlag: sceneFlag('ch5_s07_after_the_ratchet'),
+                moodByRun: {
+                    first_run: '終於看見被摘要省略的代價',
+                    second_run: '重開原頁，讓未知留在紀錄裡'
+                }
+            },
             { id: 'honest_archive', label: '讓紀錄保留麻煩', fromFlag: sceneFlag('ch7_s08_return_to_town'), mood: '不再讓一個人替所有人負責' }
         ],
         reportClosings: [
@@ -96,7 +112,15 @@ export const CharacterProfileDatabase = {
         stages: [
             { id: 'opening_care', label: '把時間留給病人', mood: '溫柔而不肯休息' },
             { id: 'mutual_honesty', label: '要求彼此說出傷口', fromFlag: sceneFlag('ch3_s02_shadows_count_names'), mood: '關係不再只有單向照護' },
-            { id: 'operation', label: '四象裂片手術', fromFlag: sceneFlag('ch5_s06_mia_operation'), mood: '第一輪停止，第二輪繼續活下去' }
+            {
+                id: 'operation',
+                label: '四象裂片手術',
+                fromFlag: sceneFlag('ch5_s06_mia_operation'),
+                moodByRun: {
+                    first_run: '救回病人，工作間的水杯卻再也沒被拿起',
+                    second_run: '放下工具後接受別人遞來的水'
+                }
+            }
         ],
         reportClosings: [
             '先喝水。事情可以晚一點說，你的身體不會。',
@@ -127,7 +151,15 @@ export const CharacterProfileDatabase = {
         },
         stages: [
             { id: 'front_marker', label: '把所有方向扛在身上', mood: '可靠得不留空位' },
-            { id: 'gray_ridge', label: '灰脊兩個標記', fromFlag: sceneFlag('ch4_s06_flag_returns'), mood: '第一輪殞落，第二輪學會交付' }
+            {
+                id: 'gray_ridge',
+                label: '灰脊兩個標記',
+                fromFlag: sceneFlag('ch4_s06_flag_returns'),
+                moodByRun: {
+                    first_run: '拔起前旗，替失去的後標補上最後位置',
+                    second_run: '守住前旗，把後方交給仍在害怕的同伴'
+                }
+            }
         ],
         reportClosings: ['先看路，再看我。只要旗還在位置上，就別往回擠。']
     },
@@ -242,7 +274,15 @@ export const CharacterProfileDatabase = {
         },
         stages: [
             { id: 'temptation', label: '把想要之物放上桌', mood: '禮貌地計算傷口' },
-            { id: 'escape', label: '主人席空下', fromFlag: sceneFlag('ch6_s07_house_changes_seats'), mood: '第一輪逃跑，二周目被收取' }
+            {
+                id: 'escape',
+                label: '主人席空下',
+                fromFlag: sceneFlag('ch6_s07_house_changes_seats'),
+                moodByRun: {
+                    first_run: '丟下主人席與總帳，從自己的後門逃走',
+                    second_run: '坐進客方位置，被親筆條款封住退路'
+                }
+            }
         ],
         reportClosings: [
             '輸的人，總是比較會談公平。',

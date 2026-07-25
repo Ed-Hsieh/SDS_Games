@@ -231,19 +231,19 @@ export default class CombatFlowController {
         }
         this.syncCombatEquipment(slot, { fullCooldown: false });
         this.closeEquipmentPicker();
-        if (this.tutorialState?.stage === 'replace_offhand' && slot === 'secondary') {
-            const secondary = GameManager.getCharacter()?.equipment?.armor;
-            if (getEquipmentKind(secondary) === 'weapon') {
-                this.combatRoot?.querySelector('[data-combat-change-slot="secondary"]')?.classList.remove('is-tutorial-target');
-                this.tutorialState.stage = 'potion';
-                this.setTutorialPrompt('副手已補上。主手損毀時，原本的副手會自動接替。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
-            }
-        } else if (this.tutorialState?.stage === 'prepare_offhand' && slot === 'secondary') {
+        if (this.tutorialState?.stage === 'prepare_offhand' && slot === 'secondary') {
             const secondary = GameManager.getCharacter()?.equipment?.armor;
             if (getEquipmentKind(secondary) === 'weapon') {
                 this.combatRoot?.querySelector('[data-combat-change-slot="secondary"]')?.classList.remove('is-tutorial-target');
                 this.tutorialState.stage = 'attack';
                 this.setTutorialPrompt('副手已就位。在青綠色命中區或金黃色暴擊區出手。', '滑鼠左鍵 · 命中或暴擊');
+            }
+        } else if (this.tutorialState?.stage === 'replace_offhand' && slot === 'secondary') {
+            const secondary = GameManager.getCharacter()?.equipment?.armor;
+            if (getEquipmentKind(secondary) === 'weapon') {
+                this.combatRoot?.querySelector('[data-combat-change-slot="secondary"]')?.classList.remove('is-tutorial-target');
+                this.tutorialState.stage = 'potion';
+                this.setTutorialPrompt('副手已補上。主手損毀時，原本的副手會自動接替。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
             }
         }
     }
@@ -272,34 +272,21 @@ export default class CombatFlowController {
         this.lab?.setFeed(options.message || `${changedSlot === 'main' ? '主武器' : '副裝備'}已更換`);
     }
 
-    findAutomaticReplacement(kind) {
-        return (GameManager.getInventory() || []).find(stack => (
-            isUsableEquipment(stack?.item) && getEquipmentKind(stack.item) === kind
-        )) || null;
-    }
-
     handleBrokenEquipment(slot, destroyedItem) {
         const normalizedSlot = slot === 'offhand' ? 'offhand' : slot === 'armor' ? 'armor' : 'main';
         if (normalizedSlot === 'main') {
-            if (GameManager.promoteOffhandWeaponToMain()) {
-                this.syncCombatEquipment('both', { automatic: true, fullCooldown: true, message: `${destroyedItem.name}損毀，副武器已移至主手` });
-                return true;
-            }
-            const replacement = this.findAutomaticReplacement('weapon');
-            if (replacement && GameManager.equipItemToSlot(replacement.instanceId, 'weapon')) {
-                this.syncCombatEquipment('main', { automatic: true, fullCooldown: true, message: `${destroyedItem.name}損毀，已遞補${replacement.item.name}` });
+            const promotedWeapon = GameManager.promoteOffhandWeaponToMain();
+            if (promotedWeapon) {
+                this.syncCombatEquipment('both', {
+                    fullCooldown: true,
+                    message: `${destroyedItem?.name || '主武器'}損毀，副手 ${promotedWeapon.name} 已切換為主手`
+                });
                 return true;
             }
             this.lab?.handleWeaponBroken('main', destroyedItem);
             return false;
         }
 
-        const replacementKind = normalizedSlot === 'armor' ? 'armor' : 'weapon';
-        const replacement = this.findAutomaticReplacement(replacementKind);
-        if (replacement && GameManager.equipItemToSlot(replacement.instanceId, 'armor')) {
-            this.syncCombatEquipment('secondary', { automatic: true, fullCooldown: true, message: `${destroyedItem.name}損毀，已遞補${replacement.item.name}` });
-            return true;
-        }
         this.lab?.replaceCombatEquipment('offhand', null, null, { fullCooldown: true });
         this.lab?.setFeed(`${destroyedItem.name}損毀，副裝備欄已空缺`);
         return false;
@@ -313,7 +300,7 @@ export default class CombatFlowController {
             });
             this.activePotion = findHealingPotion();
         } else if (
-            event.type === 'player:hit'
+            event.type === 'player:attack-resolved'
             && event.weapon?.effect !== 'unarmed'
             && !this.encounter.context?.prologueTutorial
         ) {
@@ -399,18 +386,27 @@ export default class CombatFlowController {
         }
 
         if (this.tutorialState.stage === 'break' && event.type === 'player:hit' && event.slot !== 'offhand') {
-            this.tutorialState.stage = 'replace_offhand';
             audioManager.play('weapon-break', { throttleKey: 'prologue-weapon-break', throttleMs: 250 });
-            const promotion = GameManager.promoteOffhandWeaponToMain({ breakCurrentMain: true });
-            if (promotion) {
-                this.syncCombatEquipment('both', {
-                    automatic: true,
-                    fullCooldown: true,
-                    message: `${promotion.broken.name}損毀，${promotion.promoted.name}已從副手移至主手`
-                });
+            const broken = GameManager.breakEquippedWeapon('weapon');
+            const promoted = this.handleBrokenEquipment('main', broken || { name: event.weapon?.name || '主武器' });
+            this.tutorialState.stage = promoted ? 'replace_offhand' : 'unarmed';
+            if (promoted) {
+                this.combatRoot?.querySelector('[data-combat-change-slot="secondary"]')?.classList.add('is-tutorial-target');
+                this.setTutorialPrompt('主武器損毀後，副手武器已自動切換到主手。替空出的副手位置換上裝備。', '更換 · 裝備副手');
+            } else {
+                this.setTutorialPrompt('沒有副手武器可以接替，只能暫時以拳頭攻擊。', '滑鼠左鍵 · 徒手攻擊');
             }
-            this.combatRoot?.querySelector('[data-combat-change-slot="secondary"]')?.classList.add('is-tutorial-target');
-            this.setTutorialPrompt('主手損毀，副手已自動移到主手。點擊右側「更換」，補上一把副武器。', '右側更換 · 裝備副武器');
+            return;
+        }
+
+        if (
+            this.tutorialState.stage === 'unarmed'
+            && event.type === 'player:hit'
+            && event.slot !== 'offhand'
+            && event.weapon?.effect === 'unarmed'
+        ) {
+            this.tutorialState.stage = 'potion';
+            this.setTutorialPrompt('失去武器仍可徒手反擊。現在喝下應急藥劑。', '空白鍵 · 使用藥水');
             return;
         }
 
@@ -443,7 +439,8 @@ export default class CombatFlowController {
                 attack: ['先打出一次命中或暴擊。', '滑鼠左鍵 · 命中或暴擊'],
                 offhand: ['主手命中後，趁兩圈內用副手追擊。', '滑鼠右鍵 · 副手追擊'],
                 break: ['再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊'],
-                replace_offhand: ['副手已接替主手。現在替右側補上一把副武器。', '右側更換 · 裝備副武器'],
+                replace_offhand: ['副手武器已切換成主手。先替空出的副手位置換上裝備。', '更換 · 裝備副手'],
+                unarmed: ['主手已損毀。使用拳頭完成一次攻擊。', '滑鼠左鍵 · 徒手攻擊'],
                 potion: ['先喝下應急藥劑。', '空白鍵 · 使用藥水']
             };
             const [message, control] = prompts[this.tutorialState.stage] || prompts.attack;
@@ -470,7 +467,9 @@ export default class CombatFlowController {
         } else if (this.tutorialState.stage === 'break') {
             this.setTutorialPrompt('再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊');
         } else if (this.tutorialState.stage === 'replace_offhand') {
-            this.setTutorialPrompt('副手已接替主手。現在替右側補上一把副武器。', '右側更換 · 裝備副武器');
+            this.setTutorialPrompt('副手武器已切換成主手。先替空出的副手位置換上裝備。', '更換 · 裝備副手');
+        } else if (this.tutorialState.stage === 'unarmed') {
+            this.setTutorialPrompt('主手已損毀。使用拳頭完成一次攻擊。', '滑鼠左鍵 · 徒手攻擊');
         } else if (this.tutorialState.stage === 'flee') {
             this.setTutorialPrompt('補給已經用過。現在嘗試撤離。', 'F · 嘗試撤離');
         }
@@ -482,7 +481,8 @@ export default class CombatFlowController {
         const stage = this.tutorialState.stage;
         const isExpected = (stage === 'attack' && slot === 'main')
             || (stage === 'offhand' && (slot === 'main' || slot === 'offhand'))
-            || (stage === 'break' && slot === 'main');
+            || (stage === 'break' && slot === 'main')
+            || (stage === 'unarmed' && slot === 'main');
         if (isExpected) return false;
         if (stage === 'prepare_offhand') {
             this.setTutorialPrompt('先在右側更換欄裝備一把副手武器。', '更換 · 裝備副手武器');
@@ -491,7 +491,9 @@ export default class CombatFlowController {
         } else if (stage === 'break') {
             this.setTutorialPrompt('再使用一次主手，觀察武器耐久。', '滑鼠左鍵 · 主手攻擊');
         } else if (stage === 'replace_offhand') {
-            this.setTutorialPrompt('副手已接替主手。現在替右側補上一把副武器。', '右側更換 · 裝備副武器');
+            this.setTutorialPrompt('副手武器已切換成主手。先替空出的副手位置換上裝備。', '更換 · 裝備副手');
+        } else if (stage === 'unarmed') {
+            this.setTutorialPrompt('主手已損毀。使用拳頭完成一次攻擊。', '滑鼠左鍵 · 徒手攻擊');
         }
         if (this.tutorialState.stage === 'potion') {
             this.setTutorialPrompt('攻擊已經完成。現在喝下應急藥劑。', '空白鍵 · 使用藥水');

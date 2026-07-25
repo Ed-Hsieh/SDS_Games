@@ -4,7 +4,8 @@ import {
 } from '../src/js/data/StorySceneRegistry.js';
 import {
     ChapterRegionRegistry,
-    getSceneRegionBinding
+    getSceneRegionBinding,
+    RegionSceneTrigger
 } from '../src/js/data/ChapterRegionRegistry.js';
 import {
     TownPlaceDatabase,
@@ -27,6 +28,10 @@ const regionBindings = Object.values(ChapterRegionRegistry)
         regionId: region.regionId
     })));
 const landmarkIds = new Set(OverworldLandmarks.map(entry => entry.id));
+const routeSegmentIds = new Set(
+    Object.values(ChapterRegionRegistry)
+        .flatMap(region => region.routeSegments.map(entry => entry.id))
+);
 const townPlaceIds = new Set(TownPlaceDatabase.map(entry => entry.id));
 
 for (const sceneId of StorySceneOrder) {
@@ -40,7 +45,16 @@ for (const sceneId of StorySceneOrder) {
 
     if (regionBinding) {
         const isChapterOneSurvey = sceneId === 'ch1_s06_three_landmarks';
-        if (!isChapterOneSurvey && !landmarkIds.has(regionBinding.targetId)) {
+        const usesRouteTarget = [
+            RegionSceneTrigger.SEGMENT_ENTER,
+            RegionSceneTrigger.RETURN_ROUTE
+        ].includes(regionBinding.trigger);
+        const targetExists = regionBinding.trigger === RegionSceneTrigger.REGION_ENTRY
+            ? routeSegmentIds.has(regionBinding.targetId) || landmarkIds.has(regionBinding.targetId)
+            : usesRouteTarget
+                ? routeSegmentIds.has(regionBinding.targetId)
+                : landmarkIds.has(regionBinding.targetId);
+        if (!isChapterOneSurvey && !targetExists) {
             error(`${sceneId} targets non-interactive map id ${regionBinding.targetId}`);
         }
         if (regionBinding.stageClass !== StorySceneRegistry[sceneId]?.stageClass) {

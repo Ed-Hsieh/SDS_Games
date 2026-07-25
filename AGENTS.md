@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-18
+Last updated: 2026-07-24
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -73,7 +73,7 @@ agent sessions should read this file before editing content or asset systems.
   second run he reopens the current-run source pages, rejects the generalization,
   and records a pressure-free test with its scope and unknowns intact.
 - The adventure-map review contract retains Canvas movement/camera/fog,
-  fatigue/travel encounters, full-image landmarks, and the travel handbook. It
+  travel encounters, full-image landmarks, and the travel handbook. It
   replaces random/ring geography with seven handcrafted chapter canvases. Unknown
   places use a black `?` square until contact and then transition to one full-image
   scene without duplicate location cards.
@@ -213,10 +213,10 @@ Current measured gaps:
   fifteen field/location backgrounds, two mandatory CGs, and two story-object
   icons. Exact ids and scene ownership are in `docs/ART_STYLE_GUIDE.md`.
 - Asset coverage has zero missing physical files for existing mappings.
-- Asset coverage currently has 44 missing mappings: six crafted results, five
-  Boss craft blueprints, and 33 paused casino-special items. It has zero missing
-  physical files for existing mappings.
-- Thirty-three unique images have 37 specification warnings. Four dungeon Boss
+- Asset coverage has zero missing mappings and zero missing physical files.
+  Five paused casino-special items remain explicitly deferred rather than
+  borrowing unrelated images.
+- Thirty-four unique images have 38 specification warnings. Four dungeon Boss
   images are only 512 pixels.
 - All required first-run monster ids now have image mappings. Do not borrow
   unrelated monster images for future additions or reserved second-run content.
@@ -226,7 +226,7 @@ Current measured gaps:
 
 ## Current Review Gate
 
-As of 2026-07-18, the current review gate is the Chapter 1-2 vertical slice plus
+As of 2026-07-24, the current review gate is the Chapter 1-2 vertical slice plus
 the remaining non-casino catalog review:
 
 - Mainline scenes must make nine core characters complete; side stories only
@@ -234,21 +234,30 @@ the remaining non-casino catalog review:
   and visible first/second-run endpoints.
 - All 66 scenes compile into `StorySceneRegistry.js`; achievement-only run reset
   is implemented through `StoryStateContract.js` and `StorySceneManager.js`.
-- Seven handcrafted maps and all 36 map-stage scene bindings live in
+- Seven handcrafted maps and all 37 map-stage scene bindings live in
   `ChapterRegionRegistry.js`. Random/ring geography is removed from `WorldMap`.
+  Chapter entry, route-segment entry, return routes, location entry, inspection,
+  and Boss convergence now have distinct runtime triggers.
 - Eight active town places, public market ownership, and scene-driven visibility
   live in `TownPlaces.js` and `TownStateResolver.js`.
 - The old fifteen-part main quest chain is removed. Mandatory progression reads
-  the 66-scene registry directly; `Quests.js` is an empty optional-quest runtime
-  contract and `RewardItems.js` owns shared special reward records. Old
+  the 66-scene registry directly; `Quests.js` owns the guild tutorial and six
+  runtime-approved Chapter 1 commissions while `RewardItems.js` owns shared
+  special reward records. Old
   town-plan, quest-spine, route-plan, cross-arc, and side-taxonomy compatibility
   files are removed.
-- Seven optional character stories are registered but remain deferred, skip-safe,
-  and reward-free until their map or town owner is finalized.
+- Thirty-three optional character-story plans remain approved-pending-production
+  and skip-safe. The six Chapter 1 runtime commissions are their current playable
+  review slice and remain editable until the user finishes playtesting them.
 - Chapter 1 contains 11 scenes and Chapter 2 contains 8. Their town entry points,
   map bindings, two route Bosses, two mainline Bosses, combat handoff, post-battle
   continuation, and chapter flags exist, but they still require one complete
   no-skip browser playthrough.
+- `CampaignFlowCheck.mjs` now completes all 60 mandatory first-run scenes and
+  nine story encounters sequentially without force-starting scenes. It also
+  confirms that movement geometry can reach every segment and return-route
+  trigger. This automated pass does not replace the remaining manual no-skip
+  review.
 - The new game tutorial defeat and Mia wake-up transition are connected.
 - Lobby backpack, warehouse, item actions, and character preparation now share
   the adventure UI language. The encyclopedia no longer exposes a duplicate

@@ -42,6 +42,12 @@ function getUnlockedCharacterStages(profile = {}) {
     return (profile.stages || []).filter(stage => !stage.fromFlag || isFlagSet(stage.fromFlag));
 }
 
+function getStageMood(stage, runNumber = 1) {
+    if (!stage) return '';
+    const runKey = runNumber >= 2 ? 'second_run' : 'first_run';
+    return stage.moodByRun?.[runKey] || stage.mood || '';
+}
+
 class StoryJournalManager {
     constructor() {
         this.discoveryIds = [];
@@ -138,7 +144,7 @@ class StoryJournalManager {
             icon: String(directive.chapter),
             title: directive.title,
             typeLabel: `第 ${directive.chapter} 章`,
-            statusText: '目前主線',
+            statusText: '目前追查',
             statusTone: 'active',
             summaryMode: 'compact',
             summaryLabel: region?.title || `第 ${directive.chapter} 章`,
@@ -173,7 +179,7 @@ class StoryJournalManager {
                     icon: monster.icon || '!',
                     image: monster.image || null,
                     title: monster.name || node.name,
-                    typeLabel: node.optional ? '額外強敵' : '主線強敵',
+                    typeLabel: node.optional ? '額外強敵' : '關鍵強敵',
                     hideSummaryMeta: true,
                     summaryLabel: '遭遇區域',
                     summaryHint: region.title,
@@ -227,6 +233,7 @@ class StoryJournalManager {
     }
 
     getRelationshipRecords() {
+        const runNumber = this.getRunNumber();
         return getAllCharacterProfiles()
             .flatMap(profile => {
                 const contract = MainlineCharacterContracts[profile.id];
@@ -235,7 +242,10 @@ class StoryJournalManager {
                 const stages = getUnlockedCharacterStages(profile);
                 const currentStage = stages.at(-1) || null;
                 const eventStages = stages.filter(stage => stage.fromFlag);
-                const stageLines = stages.map(stage => [stage.label, stage.mood].filter(Boolean).join('：'));
+                const stageLines = stages.map(stage => [
+                    stage.label,
+                    getStageMood(stage, runNumber)
+                ].filter(Boolean).join('：'));
                 return [{
                     key: `relationship:${profile.id}`,
                     kind: 'relationship',
@@ -248,7 +258,7 @@ class StoryJournalManager {
                     statusText: currentStage?.label || '已相識',
                     statusTone: eventStages.length > 0 ? 'active' : 'available',
                     listMeta: [profile.title, currentStage?.label].filter(Boolean),
-                    current: currentStage?.mood || profile.external || profile.title,
+                    current: getStageMood(currentStage, runNumber) || profile.external || profile.title,
                     sections: [
                         {
                             title: '留下的印象',

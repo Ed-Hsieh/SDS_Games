@@ -5,8 +5,11 @@ import { MonsterDatabase, MonsterType } from '../src/js/data/Monsters.js';
 import { EquipmentDatabase } from '../src/js/data/Equipment.js';
 import { RecipeDatabase } from '../src/js/data/Recipes.js';
 import { BossRecipeUnlocksByMonsterId } from '../src/js/data/RecipeDiscoveries.js';
-import { generateDropsFromSources } from '../src/js/managers/DropManager.js';
-import { DropSourceType } from '../src/js/models/Enums.js';
+import {
+    generateDropsFromSources,
+    MATERIAL_DROP_CHANCE_BY_RARITY
+} from '../src/js/managers/DropManager.js';
+import { DropSourceType, ItemRarity } from '../src/js/models/Enums.js';
 import { FirstRunBandAllocationPlan } from '../src/js/data/FirstRunLootBalance.js';
 import {
     BossRewardContract,
@@ -32,6 +35,16 @@ const migratedEquipmentRateChapters = new Set(EquipmentDropRateContract.migrated
 
 if (BlueprintDropRate !== EquipmentDropRateContract.standardByRarity) {
     issues.push('blueprint drop rates must use the canonical equipment rarity rate table');
+}
+for (const [rarity, chance] of [
+    [ItemRarity.COMMON, 0.40],
+    [ItemRarity.UNCOMMON, 0.30],
+    [ItemRarity.RARE, 0.20],
+    [ItemRarity.EPIC, 0.10]
+]) {
+    if (MATERIAL_DROP_CHANCE_BY_RARITY[rarity] !== chance) {
+        issues.push(`${rarity} material drop chance must be ${chance}`);
+    }
 }
 
 const authoredMonsterMaterialRoll = generateDropsFromSources([{

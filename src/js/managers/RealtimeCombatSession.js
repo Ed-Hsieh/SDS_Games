@@ -581,6 +581,20 @@ export default class RealtimeCombatSession {
         return { ...unarmed };
     }
 
+    emitPlayerAttackResolved(pending, result = {}) {
+        const { slot, weapon, hitType = 'hit' } = pending;
+        this.emit('player:attack-resolved', {
+            slot,
+            hitType,
+            critical: hitType === 'crit',
+            weapon: { ...weapon },
+            damage: Math.max(0, Number(result.damage) || 0),
+            missed: Boolean(result.missed),
+            evaded: Boolean(result.evaded),
+            intercepted: Boolean(result.intercepted)
+        });
+    }
+
     resolvePlayerHit(pending) {
         if (this.phase !== CombatSessionPhase.RUNNING) return;
         const { slot, weapon, hitType = 'hit' } = pending;
@@ -600,6 +614,7 @@ export default class RealtimeCombatSession {
                 damage: 0,
                 evaded
             });
+            this.emitPlayerAttackResolved(pending, { missed: true, evaded });
             return;
         }
 
@@ -620,6 +635,7 @@ export default class RealtimeCombatSession {
                 this.monster.statuses.splice(summonIndex, 1);
                 this.emit('monster:summon-defeated', { status: { ...summon } });
             }
+            this.emitPlayerAttackResolved(pending, { intercepted: true });
             return;
         }
 
@@ -647,6 +663,7 @@ export default class RealtimeCombatSession {
         }
         if (weapon.triggerBuff) this.addBuff(weapon.triggerBuff);
         this.resolveWeaponProfileTrigger(slot, weapon, hitType, damageDealt);
+        this.emitPlayerAttackResolved(pending, { damage: damageDealt });
 
         if (this.monster.hp <= 0) {
             this.finish(CombatSessionPhase.VICTORY, 'monster_defeated');

@@ -241,6 +241,15 @@ export default class GuildTutorialScene {
         GameManager.setFlag(flag, true, { reason: `guild-tutorial:${flag}` });
     }
 
+    getDialogueOptions(overrides = {}) {
+        return {
+            closable: true,
+            backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall'),
+            scopeElement: this.room,
+            ...overrides
+        };
+    }
+
     async interact(pointId) {
         const step = this.getStep();
         if (pointId === 'clerk') {
@@ -268,7 +277,7 @@ export default class GuildTutorialScene {
                         title: '暫時離開', summary: '先不查看這份委託'
                     }
                 ]
-            }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+            }, this.getDialogueOptions());
 
             if (greeting.status !== 'selected' || greeting.choiceId !== 'missing-town') return;
             const result = await storyDialogueController.play({
@@ -281,7 +290,7 @@ export default class GuildTutorialScene {
                     { text: '如果路上已經不是偵查能處理的程度？', speaker: '玩家' },
                     { text: '撤退。這份委託不要求你拿命換答案。', speaker: '公會櫃台人員' }
                 ]
-            }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+            }, this.getDialogueOptions());
             if (result.status !== 'complete' || knownRecord) return;
 
             let accepted = false;
@@ -290,6 +299,7 @@ export default class GuildTutorialScene {
                     title: '你要怎麼回覆？',
                     name: '公會櫃台人員',
                     backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall'),
+                    scopeElement: this.room,
                     choices: [
                         {
                             id: 'accept', kind: 'accept', kindLabel: '接受',
@@ -315,7 +325,7 @@ export default class GuildTutorialScene {
                             { text: '最後有人看見他們的地方呢？', speaker: '玩家' },
                             { text: '南路最後一個公會回報點。再往後，沒有回報。能找到人最好；只找到東西，也別移動現場，先記下位置。', speaker: '公會櫃台人員' }
                         ]
-                    }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+                    }, this.getDialogueOptions());
                     if (inquiry.status !== 'complete') return;
                     continue;
                 }
@@ -325,7 +335,7 @@ export default class GuildTutorialScene {
                         { text: '希望報酬值得我走這一趟。這單我接了；有狀況我會撤離。', speaker: '玩家' },
                         { text: '報酬按高階偵查計算。先到委託板登記名字，完成後再去領外勤配備。', speaker: '公會櫃台人員' }
                     ]
-                }, { closable: true, backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall') });
+                }, this.getDialogueOptions());
                 if (acceptance.status !== 'complete') return;
                 accepted = true;
             }
@@ -365,10 +375,10 @@ export default class GuildTutorialScene {
     }
 
     playNotice(text) {
-        return storyDialogueController.play({ lines: [{ text, isNarration: true }] }, {
-            closable: true,
-            backgroundImage: getGeneratedGuildSceneImage('adventurers-guild-hall')
-        });
+        return storyDialogueController.play(
+            { lines: [{ text, isNarration: true }] },
+            this.getDialogueOptions()
+        );
     }
 
     openSharedRoute(route) {

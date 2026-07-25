@@ -26,6 +26,11 @@ export const QuestCompletionMode = Object.freeze({
     AUTO_ARCHIVE: 'auto_archive'
 });
 
+export const QuestRuntimeStatus = Object.freeze({
+    PENDING: 'pending',
+    APPROVED: 'approved'
+});
+
 export const GuildTutorialCommissionId = 'guild_lost_town_investigation';
 
 export const ObjectiveType = Object.freeze({
@@ -50,6 +55,7 @@ const sceneFlag = sceneId => `story.scene.${sceneId}.complete`;
 const GuildTutorialCommission = Object.freeze([
     commission({
         id: GuildTutorialCommissionId,
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '南境失聯調查',
         icon: '函',
         npc: 'guild_clerk',
@@ -64,6 +70,7 @@ const GuildTutorialCommission = Object.freeze([
 function commission(data) {
     return Object.freeze({
         type: QuestType.COMMISSION,
+        runtimeStatus: QuestRuntimeStatus.PENDING,
         repeatable: false,
         completionMode: QuestCompletionMode.REPORT,
         rewards: Object.freeze({ gold: 0, exp: 0, items: Object.freeze([]), materials: Object.freeze([]) }),
@@ -85,6 +92,7 @@ function commission(data) {
 const ChapterOneCommissions = Object.freeze([
     commission({
         id: 'map_corners_never_lie',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '地圖總是不平',
         icon: '圖',
         npc: 'village_elder',
@@ -96,6 +104,7 @@ const ChapterOneCommissions = Object.freeze([
     }),
     commission({
         id: 'one_blank_too_many',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '空格不是答案',
         icon: '錄',
         npc: 'town_scholar',
@@ -107,6 +116,7 @@ const ChapterOneCommissions = Object.freeze([
     }),
     commission({
         id: 'patrol_soles',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '巡線靴底',
         icon: '靴',
         npc: 'standard_bearer_frey',
@@ -121,6 +131,7 @@ const ChapterOneCommissions = Object.freeze([
     }),
     commission({
         id: 'lamp_glass_for_every_door',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '每扇門都嫌燈歪',
         icon: '燈',
         npc: 'lamplighter_tavi',
@@ -132,6 +143,7 @@ const ChapterOneCommissions = Object.freeze([
     }),
     commission({
         id: 'pot_lid_is_not_a_shield',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '鍋蓋不是盾',
         icon: '鍛',
         npc: 'blacksmith',
@@ -143,6 +155,7 @@ const ChapterOneCommissions = Object.freeze([
     }),
     commission({
         id: 'vein_beneath_the_roots',
+        runtimeStatus: QuestRuntimeStatus.APPROVED,
         name: '根下的斷脈',
         icon: '窟',
         npc: 'town_scholar',

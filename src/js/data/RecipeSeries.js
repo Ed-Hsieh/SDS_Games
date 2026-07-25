@@ -36,7 +36,7 @@ export const RecipeSeriesDatabase = Object.freeze({
         materialTheme: ['bone_fragment', 'iron_ore'],
         description: '用骨片與粗鐵拼成的系列武器，性能平實，適合撐過中段裝備空窗。',
         discovery: {
-            source: '第二章鍛造階段',
+            source: '白骨群落紀錄',
             clue: '整理骷髏群落的骨片後，鐵匠能穩定製作五種白骨武器。'
         }
     },
@@ -50,7 +50,7 @@ export const RecipeSeriesDatabase = Object.freeze({
         levelBand: [21, 30],
         materialTheme: ['iron_ore', 'expedition_steel_fragment'],
         description: '依照遠征軍制式規格重建的五種武器，可靠、容易維修，不追求特殊能力。',
-        discovery: { source: '第三章鍛造階段', clue: '回收制式武器殘件後，鐵匠能重建遠征軍的完整五型規格。' }
+        discovery: { source: '遠征軍制式殘件', clue: '回收制式武器殘件後，鐵匠能重建遠征軍的完整五型規格。' }
     },
     runic_series: {
         id: 'runic_series',
@@ -61,8 +61,8 @@ export const RecipeSeriesDatabase = Object.freeze({
         unlockSceneId: 'ch4_s02_caravan_rear_missing',
         levelBand: [31, 40],
         materialTheme: ['mithril_ore', 'rune_stone', 'earth_essence'],
-        description: '利用淺層符文穩定結構的五種武器，效果克制但能承受第四章戰鬥。',
-        discovery: { source: '第四章鍛造階段', clue: '符文石與地脈紀錄讓鐵匠完成五型刻紋武器。' }
+        description: '利用淺層符文穩定結構的五種武器，效果克制，適合在地脈震動中維持完整。',
+        discovery: { source: '地脈遺跡刻紋', clue: '符文石與地脈紀錄讓鐵匠完成五型刻紋武器。' }
     },
     fourfold_series: {
         id: 'fourfold_series',
@@ -73,8 +73,8 @@ export const RecipeSeriesDatabase = Object.freeze({
         unlockSceneId: 'ch5_s02_forge_contracts',
         levelBand: [41, 50],
         materialTheme: ['high_ore', 'fire_essence', 'ice_essence', 'thunder_essence', 'poison_gland'],
-        description: '以低濃度元素素材製作的完整五型武器，提供第五章穩定而不超格的元素過渡。',
-        discovery: { source: '第五章鍛造階段', clue: '四種元素的安全處理紀錄使鐵匠能完成五型四象武器。' }
+        description: '以低濃度元素素材製作的完整五型武器，在四種元素交會時仍能維持穩定。',
+        discovery: { source: '四象處理紀錄', clue: '四種元素的安全處理紀錄使鐵匠能完成五型四象武器。' }
     },
     sealstone_series: {
         id: 'sealstone_series',
@@ -86,7 +86,7 @@ export const RecipeSeriesDatabase = Object.freeze({
         levelBand: [51, 60],
         materialTheme: ['drake_scale', 'stone_fragment', 'rune_stone'],
         description: '結合封石與低階龍鱗的五種武器，用來承受龍域壓力而非取代龍族珍品。',
-        discovery: { source: '第六章鍛造階段', clue: '封印遺構的受力紀錄讓鐵匠補齊五型封脈武器。' }
+        discovery: { source: '封印遺構受力紀錄', clue: '封印遺構的受力紀錄讓鐵匠補齊五型封脈武器。' }
     },
     helliron_series: {
         id: 'helliron_series',
@@ -97,8 +97,8 @@ export const RecipeSeriesDatabase = Object.freeze({
         unlockSceneId: 'ch6_s09_the_old_note_answers',
         levelBand: [61, 70],
         materialTheme: ['demonic_steel', 'demon_horn', 'soul_fragment'],
-        description: '以獄鐵製成的末章五型武器，確保所有流派能進入終局，但仍低於特殊與魔王裝備。',
-        discovery: { source: '第七章鍛造階段', clue: '掌握獄鐵退火後，鐵匠能為五種流派提供最後一套保底武器。' }
+        description: '以獄鐵製成的五型武器，讓不同戰法都能承受墜落地的高壓與熱蝕。',
+        discovery: { source: '獄鐵退火紀錄', clue: '掌握獄鐵退火後，鐵匠能為五種武器形式完成同一套獄鐵工藝。' }
     }
 });
 
@@ -198,7 +198,7 @@ const SeriesWeaponSpecs = Object.freeze({
         sharedMaterials: Object.freeze([{ id: 'high_ore', quantity: 2 }]),
         formMaterials: Object.freeze({ sword: Object.freeze([{ id: 'fire_essence', quantity: 1 }]), dagger: Object.freeze([{ id: 'ice_essence', quantity: 1 }]), heavy: Object.freeze([{ id: 'thunder_essence', quantity: 1 }]), lance: Object.freeze([{ id: 'poison_gland', quantity: 1 }]), focus: Object.freeze([{ id: 'fire_essence', quantity: 1 }, { id: 'ice_essence', quantity: 1 }]) }),
         names: Object.freeze({ sword: '餘燼淬劍', dagger: '霜晶短刃', heavy: '引雷戰槌', lance: '毒藤長槍', focus: '四象導杖' }),
-        descriptions: Object.freeze({ sword: '以低濃度火質淬鍊的保底劍型。', dagger: '用寒質穩定薄刃的保底匕首。', heavy: '只保留微量導雷紋路的重槌。', lance: '將低濃度毒質封在槍脊的長槍。', focus: '以兩枚對置導片維持四象工藝的中性法術框架。' })
+        descriptions: Object.freeze({ sword: '以低濃度火質淬鍊的穩定劍型。', dagger: '用寒質穩定薄刃的輕巧匕首。', heavy: '只保留微量導雷紋路的重槌。', lance: '將低濃度毒質封在槍脊的長槍。', focus: '以兩枚對置導片維持四象工藝的中性法術框架。' })
     }),
     sealstone_series: Object.freeze({
         level: 55, baseAttack: 59, cost: 1360,
@@ -210,7 +210,7 @@ const SeriesWeaponSpecs = Object.freeze({
         level: 65, baseAttack: 70, cost: 1850,
         sharedMaterials: Object.freeze([{ id: 'demonic_steel', quantity: 3 }, { id: 'demon_horn', quantity: 1 }, { id: 'soul_fragment', quantity: 1 }]),
         names: Object.freeze({ sword: '獄鐵長劍', dagger: '獄鐵短刃', heavy: '獄鐵戰槌', lance: '獄鐵長槍', focus: '獄鐵法杖' }),
-        descriptions: Object.freeze({ sword: '能承受墜落地壓力的末章保底長劍。', dagger: '保持窄身與速度的獄鐵短刃。', heavy: '以厚重獄鐵鍛成的終局保底戰槌。', lance: '不依賴特殊掉落也能製作的獄鐵長槍。', focus: '以魂質隔層保護持有者的獄鐵法杖。' })
+        descriptions: Object.freeze({ sword: '能承受墜落地壓力的獄鐵長劍。', dagger: '保持窄身與速度的獄鐵短刃。', heavy: '以厚重獄鐵鍛成的耐壓戰槌。', lance: '沿槍脊分散熱蝕與衝擊的獄鐵長槍。', focus: '以魂質隔層保護持有者的獄鐵法杖。' })
     })
 });
 

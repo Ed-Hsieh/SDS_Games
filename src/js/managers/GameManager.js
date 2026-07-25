@@ -1230,19 +1230,32 @@ class GameManager {
         return this.equipItemToSlot(instanceId, null, fromWarehouse);
     }
 
-    promoteOffhandWeaponToMain({ breakCurrentMain = false } = {}) {
+    breakEquippedWeapon(slotType = 'weapon') {
         const equipment = this.state.character?.equipment;
         if (!equipment) return null;
-        if (!equipment.armor || normalizeItemType(equipment.armor.type) !== 'weapon') return null;
+        const normalizedSlot = slotType || 'weapon';
+        const weapon = equipment[normalizedSlot];
+        if (!weapon || normalizeItemType(weapon.type) !== 'weapon') return null;
 
-        const broken = breakCurrentMain ? equipment.weapon : null;
-        if (equipment.weapon && !breakCurrentMain) return null;
-        if (broken) broken.durability = 0;
-        equipment.weapon = equipment.armor;
+        weapon.durability = 0;
+        const broken = { ...weapon };
+        equipment[normalizedSlot] = null;
+        this.markSaveDirty(`break-weapon:${normalizedSlot}`);
+        this.notify('equipment');
+        return broken;
+    }
+
+    promoteOffhandWeaponToMain() {
+        const equipment = this.state.character?.equipment;
+        if (!equipment || equipment.weapon) return null;
+        const offhand = equipment.armor;
+        if (!offhand || normalizeItemType(offhand.type) !== 'weapon') return null;
+
+        equipment.weapon = offhand;
         equipment.armor = null;
         this.markSaveDirty('promote-offhand-weapon');
         this.notify('equipment');
-        return { broken, promoted: equipment.weapon };
+        return offhand;
     }
 
     removeTutorialItemGroup(groupId, options = {}) {
@@ -1351,16 +1364,13 @@ class GameManager {
         }
         
         weapon.durability = Math.max(0, weapon.durability - 1);
-        this.markSaveDirty('weapon-durability');
         
-        // 耐久度歸零，裝備消失
+        // 耐久度歸零，交給唯一的損毀入口清除裝備。
         if (weapon.durability <= 0) {
-            const destroyedWeapon = { ...weapon };
-            this.state.character.equipment[normalizedSlot] = null;
-            this.notify('equipment');
-            return destroyedWeapon;
+            return this.breakEquippedWeapon(normalizedSlot);
         }
 
+        this.markSaveDirty('weapon-durability');
         this.notify('equipment');
         return null;
     }

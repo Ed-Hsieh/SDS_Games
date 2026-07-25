@@ -1245,7 +1245,7 @@ export default class ForgeScene {
         const result = staffAttunementManager.attune(item, this.selectedAttunementElement);
         const reasonText = {
             ineligible: '這把法杖無法進行元素調律。',
-            chapter_locked: '目前章節尚未理解這種元素。',
+            chapter_locked: '目前還沒有能承載這種元素的工藝。',
             materials: '調律素材不足。',
             gold: '金幣不足。',
             already_active: '這把法杖目前已是所選元素。'

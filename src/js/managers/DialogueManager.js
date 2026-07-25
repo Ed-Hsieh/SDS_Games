@@ -327,12 +327,12 @@ class DialogueManager {
 
     getDialogueChoiceKindLabel(kind = 'conversation') {
         return {
-            report: '回報任務',
-            'side-request': '接下支線',
-            'side-progress': '推進支線',
+            report: '回報',
+            'side-request': '受託',
+            'side-progress': '繼續處理',
             'town-request': '城鎮委託',
             'town-event': '了解此事',
-            function: '開啟功能',
+            function: '前往',
             conversation: '交談'
         }[kind] || '交談';
     }
@@ -390,13 +390,13 @@ class DialogueManager {
         if (firstLine) return firstLine;
 
         return {
-            report: '回報已完成的事項，並更新城鎮狀態。',
-            request: '這段對話會打開新的任務或目標。',
-            discovery: '這段對話會留下新的城鎮變化、線索或旗標。',
-            guidance: '這段對話會指向可用功能或下一步。',
-            destination: '前往相關功能。',
-            status: '普通交談。'
-        }[type] || '普通交談。';
+            report: '把已經查清的事告訴對方。',
+            request: '先聽聽對方需要什麼。',
+            discovery: '這件事可能改變城裡目前的狀況。',
+            guidance: '確認可以前往的地方。',
+            destination: '前往對方指出的地方。',
+            status: '聽聽對方現在想說什麼。'
+        }[type] || '聽聽對方現在想說什麼。';
     }
 
     getDialogueTopicIcon(dialogue = {}, type = 'status') {
@@ -627,7 +627,7 @@ class DialogueManager {
             return {
                 ...presentation,
                 actorId: 'player',
-                speaker: '玩家',
+                speaker: '我',
                 avatar: '你',
                 portrait: line.portrait || line.image || '',
                 role: '冒險者',
