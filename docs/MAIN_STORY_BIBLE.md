@@ -1,6 +1,6 @@
 # Main Story Bible
 
-Last updated: 2026-07-24
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -2453,7 +2453,7 @@ optional character story that supplies the missing viewpoint.
 | 13 | any | narration | - | - | 他把三處位置圈在手札上，停了一下，又把最外側那條模糊的線擦掉。 |
 | 14 | any | speaker | `town_scholar` | `neutral` | 這張圖是舊的。芙蕾和塔維看過最後一個人出門，先讓他們決定從哪一段開始。每查完一段就帶紀錄回來，別把三張舊線當成一條新路。 |
 | 15 | any | speaker | `player` | `neutral` | 我先去南門。 |
-| 16 | any | exit | - | - | 開啟旅途手札與三個黑色 `?` 地標；控制權回到公務室出口。 |
+| 16 | any | exit | - | - | 開啟旅途手札與南門探索；玩家依田埂、圍籬、足跡與遺留物辨認方向，不顯示任務地標。控制權回到公務室出口。 |
 
 ### `ch1_s05_south_gate_introduction`
 
@@ -2493,7 +2493,7 @@ optional character story that supplies the missing viewpoint.
 
 - `title`: 三處失聯地點
 - `stageClass`: `regional_canvas`
-- `background`: handcrafted Chapter 1 canvas with three fixed discovery nodes
+- `background`: layered South Gate exploration area with visible terrain, evidence props, and authored danger zones
 - `worldState`: Chapter 1 route survey; fog density rises with travel time
 - `viewpoint`: `protagonist_limited`
 - `participants`: none
@@ -2510,7 +2510,7 @@ optional character story that supplies the missing viewpoint.
 | 2 | any | narration | - | - | 三名巡路人都沒有找到。我只能把看見的東西逐項記下，等回去再和舊紀錄核對。 |
 | 3 | second_run | narration | - | - | 三頁紀錄都沒有三名巡路人員的下落。我把它們照原樣收好，準備帶回去核對。 |
 | 4 | any | narration | - | - | 起身時，棧道方向傳來木板斷裂的聲音。來路上的銀線已經換了位置。 |
-| 5 | any | exit | - | - | Return to the regional canvas and activate the fixed silver-snare route. |
+| 5 | any | exit | - | - | Return to the South Gate exploration area and arm the silver-snare danger state on the route the player has just used. |
 
 #### Checkpoint `south_gate_farmland`: 靴印離開田埂
 
@@ -2538,7 +2538,7 @@ optional character story that supplies the missing viewpoint.
 | 2 | any | speaker | `player` | `neutral` | 路上沒有再麻，只是握武器久了會抖。 |
 | 3 | any | narration | - | - | 米婭摸過我的指尖，又按了按舊傷周圍。她等了一會兒，才鬆開手。 |
 | 4 | any | speaker | `herbalist` | `neutral` | 傷口沒有腫，手也還有力。可以繼續走；麻痺若再出現，直接回來。 |
-| 5 | any | exit | - | - | 傷勢檢查完成；下一個地標恢復可追蹤狀態。 |
+| 5 | any | exit | - | - | 傷勢檢查完成；下一段環境調查與可互動證據恢復作用。 |
 
 #### Checkpoint `hunter_boardwalk`: 被拆下的銀線
 

@@ -395,7 +395,10 @@ function auditFrameworkDocs() {
         'approved guild tutorial commission and',
         'The market remains closed',
         'first returned caravan brings the merchant',
-        'stable black',
+        'South Gate Vertical Slice',
+        'ExplorationMapPackage',
+        'The map never displays monster bodies',
+        'old DOM map',
         "Shadow begins around Lv24-30 and is the base campaign's dark affinity ceiling",
         "Glimmer is the base campaign's bright affinity ceiling",
         'Full Void and light creature groups',
@@ -553,10 +556,10 @@ function auditFrameworkDocs() {
         'src/assets/images/art/scenes/town/locations/casino.webp'
     ]);
     assertDocContains('framework-docs', 'docs/AGENT_SESSION_LOG.md', [
-        'The sole delivery priority is a complete first run.',
-        'Optional second-run external Bosses remain base-game content',
-        'story.secondRunUnlocked',
-        'persistent-flag audit',
+        'The sole delivery priority remains the desktop first run.',
+        'The immediate review gate is the South Gate Canvas vertical slice',
+        'HuntDemoScene.js',
+        'formal-adventure-migration',
         'Next Resume Task'
     ]);
     assertDocContains('framework-docs', 'docs/IMAGE_GENERATION_PROMPTS.md', [
@@ -569,12 +572,11 @@ function auditFrameworkDocs() {
         'Casino Scenes And Showcase Items'
     ]);
     assertDocContains('framework-docs', 'docs/OBSOLETE_CLEANUP_PLAN.md', [
-        'Story And Quest Cleanup',
-        'High-Confidence Cleanup',
-        'Medium-Confidence Cleanup',
-        'ProgressionLevels.js',
-        'Removed on 2026-07-07',
-        'Do Not Remove Just Yet'
+        'Active Cleanup',
+        'Removed Guardrails',
+        'HuntDemoRegions.js',
+        'CHAPTER_1_CAUSAL_REBUILD_DRAFT.md',
+        'Do Not Remove'
     ]);
     assertDocContains('framework-docs', 'docs/AGENT_UPDATE_PROTOCOL.md', [
         'Manual Documentation Trigger',

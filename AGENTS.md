@@ -1,6 +1,6 @@
 # SDS_Games Agent Handoff
 
-Last updated: 2026-07-24
+Last updated: 2026-07-27
 
 This repository is being rebuilt as a desktop-focused 2D RPG. Future Codex or
 agent sessions should read this file before editing content or asset systems.
@@ -72,11 +72,19 @@ agent sessions should read this file before editing content or asset systems.
   settled before Mia dies. He is neither reckless nor the sole culprit. In the
   second run he reopens the current-run source pages, rejects the generalization,
   and records a pressure-free test with its scope and unknowns intact.
-- The adventure-map review contract retains Canvas movement/camera/fog,
-  travel encounters, full-image landmarks, and the travel handbook. It
-  replaces random/ring geography with seven handcrafted chapter canvases. Unknown
-  places use a black `?` square until contact and then transition to one full-image
-  scene without duplicate location cards.
+- The only active exploration prototype is `#hunt-demo`. It uses one Canvas 2D
+  core and a layered South Gate map package with visible-terrain collision,
+  height/material masks, foreground occlusion, metadata-driven eight-direction
+  animation, reusable props, and environmental danger zones that hand off to the
+  existing full-screen combat.
+- Only South Gate is implemented. Forest, Rotroot, mine, Chapters 2-7, and
+  formal `AdventureScene` migration are deferred until the South Gate slice is
+  accepted. The prototype is memory-only and must not alter formal story or save
+  flags.
+- Do not restore the old DOM map, room or four-region prototypes, visible route
+  polygons, black `?` landmarks, fog, fatigue, visible map monsters, or map-local
+  combat. Once accepted, migrate the Canvas core into formal exploration and
+  remove the prototype entry instead of keeping two exploration systems.
 - Public transactions and medicine stock belong to the rebuilt market. Vesper's
   casino route is linear: first-run escape and Loaded Dice evidence, second-run
   host/guest reversal, contract collection, and one immediate showcase prize.
@@ -208,10 +216,11 @@ Current measured gaps:
   coverage. Only the Chapter 1 set is fully registered in `StoryActors.js`.
   Static Boss dialogue reuses approved full Boss art and is excluded from those
   counts.
-- The remaining first-run narrative-art ledger contains 59 images: 27 expression
-  layers, five Chapter 3-7 overworld canvases, eight town state backgrounds,
-  fifteen field/location backgrounds, two mandatory CGs, and two story-object
-  icons. Exact ids and scene ownership are in `docs/ART_STYLE_GUIDE.md`.
+- The remaining narrative-art ledger continues to track expression layers, town
+  states, field/location backgrounds, mandatory CGs, and story-object icons.
+  Exploration map packages are excluded from that old count: only the South Gate
+  package is current, and later regions must be recounted after its acceptance.
+  Exact accepted ids and scene ownership remain in `docs/ART_STYLE_GUIDE.md`.
 - Asset coverage has zero missing physical files for existing mappings.
 - Asset coverage has zero missing mappings and zero missing physical files.
   Five paused casino-special items remain explicitly deferred rather than
@@ -226,18 +235,19 @@ Current measured gaps:
 
 ## Current Review Gate
 
-As of 2026-07-24, the current review gate is the Chapter 1-2 vertical slice plus
-the remaining non-casino catalog review:
+As of 2026-07-27, the immediate review gate is the South Gate Canvas vertical
+slice. The accepted story and catalog foundations remain available but are not
+the active implementation scope:
 
 - Mainline scenes must make nine core characters complete; side stories only
   deepen them. `MainlineCharacterContracts` locks introductions, decisive scenes,
   and visible first/second-run endpoints.
 - All 66 scenes compile into `StorySceneRegistry.js`; achievement-only run reset
   is implemented through `StoryStateContract.js` and `StorySceneManager.js`.
-- Seven handcrafted maps and all 37 map-stage scene bindings live in
-  `ChapterRegionRegistry.js`. Random/ring geography is removed from `WorldMap`.
-  Chapter entry, route-segment entry, return routes, location entry, inspection,
-  and Boss convergence now have distinct runtime triggers.
+- `ChapterRegionRegistry.js` still owns the 37 formal map-stage scene bindings
+  while the new exploration presentation is reviewed. Those bindings are the
+  migration source, not authority for the old visual map. `HuntDemoScene.js` and
+  `SouthGateMapPackage.js` own the sole active exploration prototype.
 - Eight active town places, public market ownership, and scene-driven visibility
   live in `TownPlaces.js` and `TownStateResolver.js`.
 - The old fifteen-part main quest chain is removed. Mandatory progression reads

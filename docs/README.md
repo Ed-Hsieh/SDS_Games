@@ -1,6 +1,6 @@
 # SDS Games Development Docs
 
-Last updated: 2026-07-20
+Last updated: 2026-07-27
 
 This folder is now the compact handoff layer for the desktop RPG rebuild. Runtime
 data files remain the source of truth for shipped behavior; these documents keep
@@ -11,9 +11,8 @@ the design direction readable for future Codex sessions.
 - `TOWN_REBUILD_CONVERGENCE.md` - broken-town rebuild scope, phases, feature gates,
   and current wiring status.
 - `CHAPTER_QUEST_FRAMEWORK.md` - chapter titles, level bands, quest placement,
-  reward direction, seven handcrafted regional canvases, and the 66-scene
-  location-binding contract from Lv1 to Lv70, plus the optional second-run
-  external Boss boundary.
+  reward direction, the single Canvas exploration contract, current South Gate
+  vertical slice, and the 66-scene location-binding boundary from Lv1 to Lv70.
 - `MAIN_STORY_BIBLE.md` - production-facing story source for accepted character
   canon, mainline suspense, the complete 66-scene review screenplay, character
   entry/exit, first/second-run dialogue and staging, and story-to-system
@@ -34,8 +33,8 @@ the design direction readable for future Codex sessions.
   the project.
 - `IMAGE_GENERATION_PROMPTS.md` - authoritative prompt templates for every
   generated asset category.
-- `OBSOLETE_CLEANUP_PLAN.md` - cleanup sequence for old art-v2, sheet/crop,
-  temporary progression, and compatibility leftovers.
+- `OBSOLETE_CLEANUP_PLAN.md` - only currently active cleanup and explicit
+  guardrails against restoring removed map or compatibility systems.
 - `AGENT_SESSION_LOG.md` - latest checkpoint for continuing development.
 - `AGENT_UPDATE_PROTOCOL.md` - required formatting and update rules for future
   agent documentation changes.
@@ -51,6 +50,25 @@ the design direction readable for future Codex sessions.
 - Approved first-run story and catalog image work follows the concrete ledger in
   `ART_STYLE_GUIDE.md`. Second-run external story art, tower art, DLC light/Void
   art, casino prize art, and unapproved catalog expansion remain paused.
+
+## Current Exploration Foundation
+
+- `src/js/scenes/HuntDemoScene.js`
+- `src/js/data/SouthGateMapPackage.js`
+- `src/js/managers/HuntDemoCombatAdapter.js`
+- `src/assets/images/art/prototype/hunt-demo/south-gate/`
+
+`#hunt-demo` is the sole exploration prototype. It uses Canvas 2D, a layered
+South Gate map package, eight-direction metadata-driven character animation,
+visible-terrain collision, reusable interaction props, and environmental danger
+zones that hand off to the existing full-screen combat. Its state is memory-only.
+The removed DOM map, old four-region prototype, black `?` landmarks, fog,
+fatigue, visible map monsters, and duplicate map combat logic are not valid
+fallbacks.
+
+Only South Gate is implemented. Forest, Rotroot, mine, and Chapters 2-7 remain
+deferred until the user accepts movement, collision, interaction, combat return,
+and visual integration in this slice.
 
 ## Runtime Story Foundation
 
@@ -74,9 +92,10 @@ of the same landmark, and the obsolete fixed salvage and elite landmarks are
 removed. See `AGENT_SESSION_LOG.md` for the exact validation gate and unfinished
 work.
 
-The old town plan, quest spine, first-chapter route plan, random geography, and
-fifteen-part main quest chain are removed rather than retained as compatibility
-layers. Main-chapter rewards and numeric stock remain deliberately unassigned.
+The old town plan, quest spine, first-chapter route plan, random geography,
+fifteen-part main quest chain, DOM hunt map, and old room/open-world DEMO assets
+are removed rather than retained as compatibility layers. Main-chapter rewards
+and numeric stock remain deliberately unassigned.
 Optional character stories carry approved reward identities and resource needs.
 Their direction passed user review on 2026-07-19, but they stay outside playable
 quest groups until formal dialogue, required assets, discovery interactions,

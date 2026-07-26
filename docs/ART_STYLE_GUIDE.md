@@ -1,6 +1,6 @@
 # Art Style Guide
 
-Last updated: 2026-07-18
+Last updated: 2026-07-27
 
 First-run story image work is active. Generate only assets listed in the
 first-run ledger below, in small review batches. Second-run external stories,
@@ -167,12 +167,12 @@ Current first-run narrative-art result:
 | Category | Ready baseline | Missing | Notes |
 | --- | ---: | ---: | --- |
 | Human actor-expression combinations | 45 physical files | 8 | 53 unique first-run combinations after static Boss exclusions; newly generated Chapter 4-5 layers still require review and registration |
-| Chapter overworld canvases | 5 | 2 | Chapters 1-2, 4-5, and 7 exist; Chapters 3 and 6 are absent |
+| Exploration map packages | 1 vertical slice | Chapters 2-7 deferred | South Gate currently owns the only accepted layered Canvas package; legacy chapter canvases are not forward requirements |
 | Town overview/state backgrounds | existing partial set plus 13 generated review assets | 1 | Approved overview direction is fixed; generated state files still need visual review |
 | Field/location backgrounds | existing Chapter 1-2 landmark set plus 10 generated review assets | 5 | Consolidated reusable scenes, not one image per screenplay scene |
 | Mandatory first-run CGs | 2 | 0 | Frey's last stand and the surviving Demon King reveal exist pending review |
 | Mandatory physical story-object icons | 2 | 1 | Loaded Dice and Echo Whistle exist; the seal-scar shard is absent |
-| **Remaining first-run narrative images** |  | **17** | 8 + 2 + 1 + 5 + 0 + 1 |
+| **Remaining first-run narrative images** |  | **map count deferred** | Recount after the South Gate exploration direction is accepted; do not combine legacy canvas counts with the new package format |
 
 ### Optional Side-Story Derived Art Ledger
 
@@ -182,8 +182,8 @@ Audit date: 2026-07-18. Source:
 
 The 33 personal stories and six ensemble shorts create no new actor, monster,
 map location, side-story-exclusive background, or mandatory CG. They reuse the
-accepted cast, eight town places, seven chapter maps, and existing scene-owner
-vocabulary. Their current presentation footprint is:
+accepted cast, eight town places, rebuilt chapter-owned exploration regions, and
+existing scene-owner vocabulary. Their current presentation footprint is:
 
 - 58 unique actor-expression combinations are requested by the approved
   four-beat performance plans; 33 physical expression files are absent.
@@ -288,18 +288,27 @@ Immediate Chapter 2 batch: `herbalist/grieving`,
 `town_scholar/soft`, `village_elder/grieving`, and
 `village_elder/pleased`.
 
-### Missing Chapter Canvases
+### Exploration Map Art Contract
 
-Use 48 x 32 cell desktop canvases compatible with `ChapterRegionRegistry.js`.
-Do not paint visible route lines into the terrain.
+Do not generate another finished chapter illustration and then guess its
+collision. Each exploration area begins with an approved playable layout and is
+delivered as one aligned package:
 
-| Proposed asset id | Chapter | Required region |
-| --- | ---: | --- |
-| `overworld_shadow_watch` | 3 | `chapter_03_shadow_watch` |
-| `overworld_gray_ridge` | 4 | `chapter_04_gray_ridge` (generated and bound; approved locations only, no painted route lines or visible Titan) |
-| `overworld_four_fronts` | 5 | `chapter_05_four_fronts` (generated; pending visual review and binding) |
-| `overworld_dragon_scar` | 6 | `chapter_06_dragon_scar` |
-| `overworld_fall_site` | 7 | `chapter_07_fall_site` (generated and bound; high mountain approach, ruined settlement, and central fall-site wound) |
+- `base.webp`: terrain without foreground occluders.
+- `foreground.webp`: transparent occluder pieces aligned to the base.
+- `walk-mask.png`: walkable and blocked terrain.
+- `height-mask.png`: height and sorting information.
+- `material-mask.png`: mud, grass, stone, wood, and blocked material ownership.
+- Transparent interactive props with foot anchors and explicit visual states.
+- Map JSON/data containing spawn, exits, occluders, props, danger zones, return
+  positions, and current-run state rules.
+
+The South Gate 4096 x 2304 package is the only current reference. Its runtime
+assets live under
+`src/assets/images/art/prototype/hunt-demo/south-gate/`. Do not use the removed
+48 x 32 canvas requirement, the deleted open-world DEMO art, or any visible
+route-line map as a generation reference. Chapters 2-7 and the remaining Chapter
+1 regions stay deferred until this vertical slice is accepted.
 
 ### Town Background Ledger
 

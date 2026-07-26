@@ -1,6 +1,6 @@
 # Chapter Quest Framework
 
-Last updated: 2026-07-24
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -14,8 +14,13 @@ story, source structure, and systems should land without owning final values.
 ## Runtime Spine Files
 
 - `src/js/data/StorySceneRegistry.js` owns the 66 mandatory scenes.
-- `src/js/data/ChapterRegionRegistry.js` owns seven handcrafted regional maps,
-  authored routes, fixed locations, and Boss convergence.
+- `src/js/data/ChapterRegionRegistry.js` still owns the current formal
+  first-run scene bindings and Boss convergence while the exploration runtime
+  is being replaced.
+- `src/js/data/SouthGateMapPackage.js` owns the accepted South Gate Canvas
+  vertical slice. `HuntDemoScene.js` is the only active exploration prototype;
+  it replaces the removed DOM-map prototype rather than adding a second map
+  system.
 - `src/js/data/Quests.js` owns only tutorial and optional quest runtime
   contracts. It currently contains the approved guild tutorial commission and
   six Chapter 1 optional commissions. Mandatory chapter progression is read
@@ -212,91 +217,81 @@ monster art.
 
 ## Adventure Map Rebuild Contract
 
-The adventure map is rebuilt as a desktop-first travel system. It is not a
-random board with story labels placed on top. Each chapter owns a handcrafted
-regional canvas whose roads, landmarks, scene triggers, dungeon entrances, and
-Boss convergence have authored positions and causality.
+The accepted direction is one desktop Canvas 2D exploration core. The South Gate
+vertical slice is the only implemented map package. It must be accepted before
+the forest, Rotroot region, mine, or Chapters 2-7 are rebuilt. The old DOM map,
+visible route polygons, room-by-room prototype, black `?` landmarks, fog layer,
+fatigue layer, and compatibility map adapters are not part of the forward
+design.
 
-### Retained Mechanisms
+### Current Exploration Rules
 
-- Canvas player movement, camera follow and clamping, and fog of war.
-- Fatigue accumulated from actual travel distance and chapter route conditions.
-- Travel encounters selected from the current segment's authored encounter table.
-- Landmark full-image presentation and scene backgrounds.
-- The travel handbook as the durable record of places, clues, route conditions,
-  and revisitable discoveries inside the current run.
+- The world is a continuous authored area with a fixed camera following the
+  player near the lower center of the screen.
+- The map is built from a layout first, then rendered as `base`, `foreground`,
+  `walk-mask`, `height-mask`, and `material-mask` assets in one coordinate space.
+- Most visibly open ground is walkable. Walls, fences, water, cliffs, dense
+  vegetation, and structural objects provide every collision boundary.
+- The player uses an eight-direction atlas with metadata-defined idle, walk, and
+  roll frames. Runtime never guesses atlas rows or mirrors weapon hands.
+- Movement runs at fixed 60 Hz. A circular collider uses substeps and surface
+  sliding so diagonal movement and rolling do not cross walls.
+- Props, the player, and foreground pieces sort by foot position plus height
+  layer. Ground material controls contact feedback such as mud footprints and
+  pressed grass.
+- The map never displays monster bodies. Readable environmental danger zones
+  call the existing full-screen rhythm combat and return the result to the same
+  exploration state.
+- Quests describe purpose and visible environmental features, not coordinates,
+  arrows, or exposed data ids. Progress changes only after an interaction or
+  performed story beat.
+- The map supports reusable `decal`, `object`, and `structural` interactions.
+  Chests, evidence, supplies, gathering points, rest points, gates, and
+  shortcuts visibly retain their state.
+- Rest restores health and resets ordinary danger zones. It does not refill
+  Mia's three emergency potions. Story evidence, opened containers, shortcuts,
+  and defeated special enemies persist for the current exploration.
+- DEV calibration is opt-in and must be invisible outside DEV mode. No colored
+  mask, polygon, anchor, or data id may appear in the normal game view.
+- Desktop is the only supported layout. No mobile control layer is required.
 
-These mechanisms may be rewritten internally, but their player-facing purpose is
-retained. No mobile control layer is required.
+### South Gate Vertical Slice
 
-### Removed Core
+`src/js/data/SouthGateMapPackage.js` and `src/js/scenes/HuntDemoScene.js` currently
+own one 4096 x 2304 South Gate area containing the gate threshold, farmland,
+fence split, one longer detour, one secret, one rest point, three meaningful
+interactions, one formal-combat danger zone, and a locked forest boundary.
 
-- Random, ring, or generic zone placement for roads, landmarks, and Bosses.
-- Player-facing `low / medium / high / death` route categories.
-- One generic landmark pool shared across chapters without story ownership.
-- A road-sign card that opens another duplicate card at the top of the screen.
-- Undiscovered locations that reveal their image or identity before contact.
-- Random Boss placement, chance-based main-story convergence, and story scenes
-  triggered only because the avatar touched an arbitrary generated marker.
-- Compatibility fallbacks to the old route graph after the new region database
-  becomes active.
+The prototype uses memory-only state and must not write formal quest or save
+flags. Once accepted, the same Canvas core replaces the corresponding
+`AdventureScene` exploration ownership; it must not survive as a parallel game
+mode.
 
-### Region Data Contract
+### Exploration Data Contract
 
-Every chapter region must define these fields before runtime implementation:
-
-| Field | Requirement |
+| Interface | Requirement |
 | --- | --- |
-| `regionId` | Stable chapter-owned id; one active regional canvas at a time. |
-| `chapter`, `levelBand` | Fixed chapter and Lv10 band ownership. |
-| `worldBounds`, `cameraBounds` | Stable desktop canvas dimensions and camera limits. |
-| `entryNodes`, `exitNodes` | Authored arrival, return, and chapter-transition points. |
-| `routeSegments` | Fixed traversable corridors with distance, encounter table, weather/time state, and prerequisite flags. |
-| `locationNodes` | Fixed landmarks, camps, dungeon doors, side routes, Boss arenas, and story-only transition points. |
-| `sceneBindings` | Scene id, trigger type, run condition, prerequisite, background id, participants, and resulting flags. |
-| `fogMask` | Current-run discovery state; second run starts undiscovered unless a specific achievement changes interpretation, never physical map possession. |
-| `bossConvergence` | One authored chapter payoff with explicit unlock conditions; never random. |
-| `returnState` | Town entry, handbook update, route-state change, and NPC/town consequences after leaving the region. |
+| `ExplorationMapPackage` | World size, base and foreground assets, three masks, spawn, exits, occluders, props, danger zones, and camera contract. |
+| `ExplorationSpriteAtlas` | Atlas image, JSON metadata, eight directions, frame rectangles, foot pivot, duration, and loop state. |
+| `ExplorationEntity` | World position, collision radius, foot anchor, height layer, material state, and interaction reference. |
+| Interaction prop | Render mode, visual state, foot anchor, interaction radius, requirements, performed result, and formal reward reference. |
+| Danger zone | Visible environmental polygon, formal encounter source, reset rule, retreat rule, and before/after return positions. |
+| Story binding | Existing scene id, prerequisites, performed scene, resulting flags, and visible world consequence; no duplicate story copy inside map data. |
 
-Route topology is fixed. Randomness is allowed only inside an authored travel
-segment's encounter selection and must not move geography, story evidence, or
-Bosses.
+### Removed Exploration Directions
 
-### Seven Regional Canvases
-
-Working region names describe function, not final art filenames. They reuse
-accepted geography from the master screenplay and may be renamed only while the
-scene location registry is being locked.
-
-| Chapter | Regional Canvas | Required Route Structure | Fixed Convergence |
-| ---: | --- | --- | --- |
-| 1 | South Gate woodland and broken approach | Town gate entry, three nearby evidence landmarks, Ambush Mantis side pressure, forest reaction route, safe return. | `forest_guardian` |
-| 2 | Broken evacuation road and opened tomb country | Market supply approach, herb-basket/family record handoff in town, mist tablet hill, opened ancient tomb, optional Blood Moon migration branch. | `lich` |
-| 3 | Abandoned checkpoints and shadow patrol line | Recovered route signs, lamplight branch, old human formations, shadow-material side access, casino/black-market town return hooks. | `shadow_commander` |
-| 4 | Gray Ridge, stone routes, and ash crossing | Flag-and-lamp route, evacuation fork, stone pressure landmarks, ash freight branch, fixed causeway crisis. | `ancient_titan` |
-| 5 | Four elemental fronts and convergence core | Four readable front approaches, countergear return loop, convergence core, Echo Whistle cache exposed after the pressure shift. | `elemental_lord` |
-| 6 | Dragon-held seal-scar perimeter | Elder aftermath or living handoff, warning line, non-hostile stop point, first-run battle arena and second-run dialogue stage sharing one place; both runs then reach an unreadable outside blind collapse before returning to town. | `elder_dragon` battle or evidence-bound non-attack |
-| 7 | Old mountain road, ruined flower field, and fall site | Echo-guided blind turns, Ailo trace/accompaniment states, memory location, final camp, fall-site arena. | Demon King's combat body; second-run core phase |
-
-Town interiors, casino floors, Mia's workroom, forge, market, and civic room
-are scene locations but not regional-canvas nodes. They connect through explicit
-town transitions instead of being scattered onto the adventure map.
-
-### Landmark And Road-Sign Presentation
-
-- Before first contact, a discoverable location appears only as a stable black
-  square marker with a centered `?`. It exposes no name, thumbnail, or reward.
-- Contact changes the node to `discovered`, records it in the current-run
-  handbook, and replaces `?` with its approved thumbnail or location mark.
-- Entering a discovered location transitions from the canvas to one full-image
-  scene presentation. The title, narration, actions, and participants belong to
-  that scene layer; a duplicate location card must not appear above it.
-- A road sign is directional evidence, not a generic content card. Inspection can
-  reveal route names, damage, erased destinations, or chapter clues and then
-  update the handbook or nearby route segment.
-- Revisited locations use their current `worldState` image and available actions.
-  They do not replay first-contact narration unless a scene binding explicitly
-  requires it.
+- DOM elements as map terrain, collision, player, or world objects.
+- Colored route polygons, debug labels, and invisible collision drawn over an
+  unrelated finished illustration.
+- Separate rooms presented as a substitute for one explorable area.
+- Monsters patrolling visibly on the map or applying map-level damage.
+- A second attack, drop, skill, or monster-stat implementation inside the map.
+- Fixed black `?` squares, duplicate location cards, and automatic story
+  completion on room entry.
+- Fatigue, route-danger labels, random geography, ring layouts, and generic
+  chapter-shared landmark pools.
+- Generating Chapters 2-7 maps before the South Gate movement, collision,
+  interaction, transition, and visual integration are accepted.
 
 ### Scene Binding For The 66-Scene Screenplay
 
