@@ -1,0 +1,10 @@
+Plewr, "3D Rigged Character Model"
+https://plewr.itch.io/3d-rigged-character
+
+Downloaded file: characterRIGGED.glb
+License declared by the author: CC0 (Free)
+Retrieved: 2026-07-26
+
+The model is used only as a development-time rig and base mesh for the
+pre-rendered South Gate exploration sprite atlas. Blender and the source model
+are not part of the game runtime.
