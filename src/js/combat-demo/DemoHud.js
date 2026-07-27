@@ -1,9 +1,9 @@
 import { ChapterOneEvidenceIds } from './ChapterOneDemoRoute.js';
 
 const EVIDENCE_LABELS = Object.freeze({
-    south_gate_farmland: '南門農田',
-    hunter_boardwalk: '獵人棧道',
-    old_campfire_site: '舊營火遺址'
+    south_gate_farmland: '\u5357\u9580\u8fb2\u7530',
+    hunter_boardwalk: '\u7375\u4eba\u68e7\u9053',
+    old_campfire_site: '\u820a\u71df\u706b\u907a\u5740'
 });
 
 export default class DemoHud {
@@ -78,7 +78,11 @@ export default class DemoHud {
             this.nodes.playerStamina,
             player.stamina / player.maxStamina
         );
-        this.writeText('potions', this.nodes.potions, `應急藥劑 ${player.potions}`);
+        this.writeText(
+            'potions',
+            this.nodes.potions,
+            `\u61c9\u6025\u85e5\u5291 ${player.potions}`
+        );
         const statusKey = (player.statuses || [])
             .map(status => `${status.id}:${Math.ceil(status.remaining)}`)
             .join('|');
@@ -86,7 +90,7 @@ export default class DemoHud {
             this.cache.set('player-statuses', statusKey);
             this.nodes.playerStatuses.innerHTML = (player.statuses || [])
                 .map(status => (
-                    `<span title="${status.name}">${status.icon || '◆'} ${status.name}`
+                    `<span title="${status.name}">\u25c6 ${status.name}`
                     + ` ${Math.ceil(status.remaining)}s</span>`
                 ))
                 .join('');
@@ -97,32 +101,41 @@ export default class DemoHud {
         this.nodes.enemyHud.hidden = !enemy;
         if (!enemy) return;
         this.writeText('enemy-name', this.nodes.enemyName, enemy.data.name);
-        this.writeTransform('enemy-health', this.nodes.enemyHealth, enemy.health / enemy.maxHealth);
+        this.writeTransform(
+            'enemy-health',
+            this.nodes.enemyHealth,
+            enemy.health / enemy.maxHealth
+        );
         const actionName = enemy.state === 'windup'
-            ? enemy.action?.name || '準備攻擊'
+            ? enemy.action?.name || '\u6e96\u5099\u653b\u64ca'
             : enemy.state === 'vanish'
-                ? '藏匿'
+                ? '\u85cf\u533f'
                 : '';
         this.writeText('enemy-intent', this.nodes.enemyIntent, actionName);
     }
 
     updateEvidence(session) {
-        const key = ChapterOneEvidenceIds.map(id => session.hasEvidence(id) ? '1' : '0').join('');
+        const key = ChapterOneEvidenceIds
+            .map(id => session.hasEvidence(id) ? '1' : '0')
+            .join('');
         if (this.cache.get('evidence') === key) return;
         this.cache.set('evidence', key);
         this.nodes.evidence.innerHTML = ChapterOneEvidenceIds.map(id => (
             `<span class="${session.hasEvidence(id) ? 'is-complete' : ''}">`
-            + `${session.hasEvidence(id) ? '✓' : '○'} ${EVIDENCE_LABELS[id]}</span>`
+            + `${session.hasEvidence(id) ? '\u2713' : '\u25cb'} ${EVIDENCE_LABELS[id]}</span>`
         )).join('');
     }
 
     updateInventory(session) {
-        const key = JSON.stringify(session.inventory.map(entry => [entry.item.id, entry.quantity]));
+        const key = JSON.stringify(
+            session.inventory.map(entry => [entry.item.id, entry.quantity])
+        );
         if (this.cache.get('inventory') === key) return;
         this.cache.set('inventory', key);
         this.nodes.inventoryCount.textContent = `${session.usedSlots} / ${session.capacity}`;
         this.nodes.inventory.innerHTML = session.inventory.map(entry => (
-            `<article title="${entry.item.name}">${entry.quantity > 1 ? `×${entry.quantity}` : '1'}</article>`
+            `<article title="${entry.item.name}">`
+            + `${entry.quantity > 1 ? `\u00d7${entry.quantity}` : '1'}</article>`
         )).join('');
     }
 
@@ -159,7 +172,9 @@ export default class DemoHud {
 
     showLoot(drop) {
         this.nodes.lootName.textContent = drop.item.name;
-        this.nodes.lootDetail.textContent = `${drop.quantity} 個 · ${drop.item.description || drop.item.desc || '可帶回城鎮使用的物品'}`;
+        this.nodes.lootDetail.textContent = `${drop.quantity} \u500b \u00b7 `
+            + `${drop.item.description || drop.item.desc
+                || '\u53ef\u5e36\u56de\u57ce\u93ae\u4f7f\u7528\u7684\u7269\u54c1'}`;
         this.nodes.lootCard.hidden = false;
     }
 
@@ -178,7 +193,8 @@ export default class DemoHud {
     setLockState(locked, fallback = false) {
         this.nodes.lockHint.hidden = locked;
         if (fallback) {
-            this.nodes.lockHint.textContent = '內建瀏覽器使用畫面邊緣持續轉向';
+            this.nodes.lockHint.textContent =
+                '\u6ed1\u9f20\u6307\u5411\u653b\u64ca\u65b9\u5411\uff1b\u756b\u9762\u908a\u7de3\u53ef\u65cb\u8f49\u93e1\u982d';
         }
     }
 
@@ -190,7 +206,7 @@ export default class DemoHud {
             `${stats.frameMs.toFixed(1)} ms`,
             `${stats.calls} calls`,
             `${stats.triangles} tris`
-        ].join(' · ');
+        ].join(' \u00b7 ');
     }
 
     isModalOpen() {

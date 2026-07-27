@@ -10,6 +10,12 @@ import {
     getDemoStoryBeats,
     rollDemoDrops
 } from '../src/js/combat-demo/DemoDataAdapter.js';
+import DemoCombatController from '../src/js/combat-demo/DemoCombatController.js';
+import {
+    DemoWeaponForms,
+    DemoWeaponActionProfiles,
+    intersectsDemoHitbox
+} from '../src/js/combat-demo/DemoWeaponActions.js';
 
 const problems = [];
 const expectedRooms = [
@@ -113,6 +119,81 @@ if (!ChapterOneEvidenceIds.every(id => session.hasEvidence(id))) {
     problems.push('death reset incorrectly removed collected evidence');
 }
 
+if (DemoWeaponForms.length !== 5) {
+    problems.push('the player action set must contain exactly five weapon forms');
+}
+for (const form of DemoWeaponForms) {
+    const profile = DemoWeaponActionProfiles[form];
+    if (!profile?.item?.id) {
+        problems.push(`${form}: missing formal equipment record`);
+        continue;
+    }
+    if (profile.item.weaponForm !== form) {
+        problems.push(`${form}: formal equipment uses ${profile.item.weaponForm || 'no form'}`);
+    }
+    const attacks = [...profile.lightCombo, profile.heavy];
+    if (!profile.lightCombo.length || !profile.heavy) {
+        problems.push(`${form}: incomplete light or heavy action set`);
+    }
+    for (const attack of attacks) {
+        if (!(attack.duration > 0)
+            || !(attack.activeStart >= 0)
+            || !(attack.activeEnd > attack.activeStart)
+            || !(attack.activeEnd < 1)) {
+            problems.push(`${form}/${attack.id}: invalid attack timing`);
+        }
+        if (!['arc', 'thrust', 'projectile', 'impact'].includes(attack.hitbox?.kind)) {
+            problems.push(`${form}/${attack.id}: invalid hitbox kind`);
+        }
+        if (!(attack.hitbox?.reach > 0)) {
+            problems.push(`${form}/${attack.id}: missing hitbox reach`);
+        }
+    }
+
+    const controller = new DemoCombatController();
+    if (!controller.setWeaponForm(form) || controller.weaponForm !== form) {
+        problems.push(`${form}: controller cannot select the weapon form`);
+    }
+    if (!controller.tryLightAttack() || controller.getCurrentAttack()?.id !== profile.lightCombo[0].id) {
+        problems.push(`${form}: controller does not begin the formal light action`);
+    }
+}
+
+const hitboxCases = [
+    {
+        label: 'arc',
+        hitbox: { kind: 'arc', reach: 2.5, inner: 0.2, halfAngle: 0.75 },
+        hit: { distance: 1.8, forward: 1.8, lateral: 0, radius: 0.4 },
+        miss: { distance: 1.8, forward: -1.8, lateral: 0, radius: 0.4 }
+    },
+    {
+        label: 'thrust',
+        hitbox: { kind: 'thrust', reach: 3.5, start: 0.4, width: 0.35 },
+        hit: { distance: 2, forward: 2, lateral: 0.2, radius: 0.35 },
+        miss: { distance: 2, forward: 2, lateral: 1.4, radius: 0.35 }
+    },
+    {
+        label: 'projectile',
+        hitbox: { kind: 'projectile', reach: 6, start: 0.5, width: 0.7 },
+        hit: { distance: 4, forward: 4, lateral: 0.4, radius: 0.35 },
+        miss: { distance: 6.8, forward: 6.8, lateral: 0, radius: 0.35 }
+    },
+    {
+        label: 'impact',
+        hitbox: { kind: 'impact', reach: 2.5, radius: 1 },
+        hit: { distance: 2.5, forward: 2.5, lateral: 0.5, radius: 0.4 },
+        miss: { distance: 2.5, forward: 2.5, lateral: 2, radius: 0.4 }
+    }
+];
+for (const test of hitboxCases) {
+    if (!intersectsDemoHitbox(test.hitbox, test.hit)) {
+        problems.push(`${test.label}: expected hit was rejected`);
+    }
+    if (intersectsDemoHitbox(test.hitbox, test.miss)) {
+        problems.push(`${test.label}: expected miss was accepted`);
+    }
+}
+
 const sceneSource = readFileSync(
     new URL('../src/js/scenes/ThreeCombatDemoScene.js', import.meta.url),
     'utf8'
@@ -145,6 +226,29 @@ if (!adapterSource.includes('buildMonsterCombatActions(')) {
 if (!worldSource.includes('session.hasEvidence(room.interaction.id)')) {
     problems.push('collected evidence markers can respawn after a room reload');
 }
+for (const token of [
+    'applyWeaponPose(',
+    'Bone.011',
+    'Bone.013',
+    'facePointerDirection(',
+    'aimRaycaster.ray.intersectPlane(',
+    'playerModelBaseY',
+    'beginPoseBlend(',
+    'finishPoseBlend(',
+    'kineticChannel(',
+    'applyHitReaction(',
+    'playerHitReaction',
+    'updateHitboxPreview(',
+    'hitStopRemaining',
+    'Digit${index + 1}'
+]) {
+    if (!sceneSource.includes(token)) {
+        problems.push(`player action presentation is missing: ${token}`);
+    }
+}
+if (!worldSource.includes('wood, false')) {
+    problems.push('boardwalk floor planks are still registered as blocking colliders');
+}
 
 if (problems.length) {
     console.error(`Chapter 1 3D demo check failed (${problems.length})`);
@@ -156,3 +260,4 @@ console.log('Chapter 1 3D demo check passed');
 console.log(`Rooms: ${expectedRooms.length}`);
 console.log(`Evidence: ${ChapterOneEvidenceIds.length}`);
 console.log(`Formal monsters: ${expectedMonsters.join(', ')}`);
+console.log(`Weapon forms: ${DemoWeaponForms.join(', ')}`);

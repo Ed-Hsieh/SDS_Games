@@ -134,11 +134,11 @@ export default class DemoWorldBuilder {
         const accent = material(theme.accent, 0.75);
         const box = new THREE.BoxGeometry(1, 1, 1);
 
-        const place = (x, z, sx, sy, sz, mat = stone) => {
+        const place = (x, z, sx, sy, sz, mat = stone, solid = true) => {
             const object = mesh(box.clone(), mat.clone(), x, sy / 2, z, this.root);
             object.scale.set(sx, sy, sz);
             object.castShadow = sy > 1.4;
-            this.colliders.push({ x, z, w: sx, d: sz });
+            if (solid) this.colliders.push({ x, z, w: sx, d: sz });
             return object;
         };
         const kit = (name, x, z, rotation = 0, scale = 1) => (
@@ -154,7 +154,8 @@ export default class DemoWorldBuilder {
             kit('RockCluster', 5.8, -6.2, 0.4, 1.15);
             kit('WallStraight', -5.8, 6.6, 0, 0.85);
         } else if (themeId === 'boardwalk') {
-            for (let x = -6; x <= 6; x += 2) place(x, 0, 1.75, 0.35, 3.2, wood);
+            // The planks are walkable floor dressing, not seven overlapping walls.
+            for (let x = -6; x <= 6; x += 2) place(x, 0, 1.75, 0.06, 3.2, wood, false);
             place(0, -4.8, 7.5, 1.1, 0.35, wood);
             kit('BrokenArch', 5.9, 5.4, -0.35, 0.88);
             kit('RockCluster', -5.8, -5.2, 0.8, 1.25);

@@ -5,6 +5,7 @@ export default class DemoInputController {
         this.actions = new Set();
         this.pointerLocked = false;
         this.pointerX = 0.5;
+        this.pointerY = 0.5;
         this.yawDelta = 0;
         this.edgeTurn = 0;
         this.enabled = true;
@@ -26,26 +27,24 @@ export default class DemoInputController {
             this.pointerX = rect.width > 0
                 ? Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width))
                 : 0.5;
+            this.pointerY = rect.height > 0
+                ? Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))
+                : 0.5;
             if (this.pointerLocked) {
                 this.yawDelta += (Number(event.movementX) || 0) * 0.0026;
-                return;
-            }
-            if (event.target === this.canvas) {
-                this.yawDelta += (Number(event.movementX) || 0) * 0.0015;
             }
         };
         const pointerDown = event => {
             if (!this.enabled || event.target !== this.canvas) return;
             this.canvas.focus({ preventScroll: true });
+            const rect = this.canvas.getBoundingClientRect();
+            this.pointerX = rect.width > 0
+                ? Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width))
+                : 0.5;
+            this.pointerY = rect.height > 0
+                ? Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height))
+                : 0.5;
             if (event.button === 0) {
-                if (!this.pointerLocked) {
-                    try {
-                        const request = this.canvas.requestPointerLock?.();
-                        request?.catch?.(() => this.onLockChange(false, true));
-                    } catch {
-                        this.onLockChange(false, true);
-                    }
-                }
                 this.actions.add('MouseLeft');
             }
             if (event.button === 2) {
@@ -61,6 +60,10 @@ export default class DemoInputController {
         };
         const lockChange = () => {
             this.pointerLocked = document.pointerLockElement === this.canvas;
+            if (this.pointerLocked) {
+                this.pointerX = 0.5;
+                this.pointerY = 0.5;
+            }
             this.onLockChange(this.pointerLocked, false);
         };
         const contextMenu = event => event.preventDefault();
@@ -72,6 +75,7 @@ export default class DemoInputController {
         document.addEventListener('pointerlockchange', lockChange);
         this.canvas.addEventListener('pointerdown', pointerDown);
         this.canvas.addEventListener('contextmenu', contextMenu);
+        if (document.pointerLockElement === this.canvas) document.exitPointerLock?.();
 
         this.disposers.push(
             () => window.removeEventListener('keydown', keyDown),
@@ -112,6 +116,14 @@ export default class DemoInputController {
 
     get moveZ() {
         return (this.keys.has('KeyW') ? 1 : 0) - (this.keys.has('KeyS') ? 1 : 0);
+    }
+
+    get pointerNdcX() {
+        return this.pointerX * 2 - 1;
+    }
+
+    get pointerNdcY() {
+        return 1 - this.pointerY * 2;
     }
 
     destroy() {

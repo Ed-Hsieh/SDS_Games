@@ -1,32 +1,52 @@
 <main class="combat-demo" data-combat-demo>
-    <div class="combat-demo-stage" data-combat-stage aria-label="第一章 3D 冒險測試"></div>
+    <div class="combat-demo-stage" data-combat-stage
+        aria-label="&#31532;&#19968;&#31456; 3D &#20882;&#38570;&#28204;&#35430;"></div>
 
     <header class="combat-demo-title">
-        <span data-room-kicker>第一章驗證區域</span>
-        <strong data-room-name>南門外營火</strong>
+        <span data-room-kicker>&#31532;&#19968;&#31456;&#39511;&#35657;&#21312;&#22495;</span>
+        <strong data-room-name>&#21335;&#38272;&#22806;&#29151;&#28779;</strong>
     </header>
 
-    <section class="combat-demo-player-hud" aria-label="玩家狀態">
+    <section class="combat-demo-player-hud" aria-label="&#29609;&#23478;&#29376;&#24907;">
         <div class="combat-demo-player-line">
-            <strong>旅人</strong>
-            <span data-potion-count>應急藥劑 3</span>
+            <strong>&#26053;&#20154;</strong>
+            <span data-potion-count>&#25033;&#24613;&#34277;&#21137; 3</span>
         </div>
         <div class="combat-demo-meter is-health"><i data-player-health></i></div>
         <div class="combat-demo-meter is-stamina"><i data-player-stamina></i></div>
         <div class="combat-demo-statuses" data-player-statuses></div>
     </section>
 
-    <section class="combat-demo-enemy-hud" data-enemy-hud hidden aria-label="怪物狀態">
+    <section class="combat-demo-enemy-hud" data-enemy-hud hidden
+        aria-label="&#24618;&#29289;&#29376;&#24907;">
         <strong data-enemy-name></strong>
         <div class="combat-demo-meter is-enemy"><i data-enemy-health></i></div>
         <span data-enemy-intent></span>
     </section>
 
     <aside class="combat-demo-objective">
-        <span>調查進度</span>
-        <strong data-objective-title>確認南門外三處地標</strong>
+        <span>&#35519;&#26597;&#36914;&#24230;</span>
+        <strong data-objective-title>&#30906;&#35469;&#21335;&#38272;&#22806;&#19977;&#34389;&#22320;&#27161;</strong>
         <div class="combat-demo-evidence" data-evidence-list></div>
     </aside>
+
+    <section class="combat-demo-weapons" aria-label="&#27494;&#22120;&#21205;&#20316;&#28204;&#35430;">
+        <button type="button" data-weapon-form="sword" aria-pressed="true">
+            <kbd>1</kbd><span>&#38263;&#21133;</span>
+        </button>
+        <button type="button" data-weapon-form="dagger" aria-pressed="false">
+            <kbd>2</kbd><span>&#21269;&#39318;</span>
+        </button>
+        <button type="button" data-weapon-form="heavy" aria-pressed="false">
+            <kbd>3</kbd><span>&#37325;&#27494;&#22120;</span>
+        </button>
+        <button type="button" data-weapon-form="lance" aria-pressed="false">
+            <kbd>4</kbd><span>&#38263;&#27385;</span>
+        </button>
+        <button type="button" data-weapon-form="focus" aria-pressed="false">
+            <kbd>5</kbd><span>&#27861;&#26454;</span>
+        </button>
+    </section>
 
     <div class="combat-demo-interaction" data-interaction hidden>
         <kbd>F</kbd>
@@ -34,59 +54,61 @@
     </div>
 
     <p class="combat-demo-message" data-combat-message hidden></p>
-    <p class="combat-demo-pointer-lock-hint" data-pointer-lock-hint>點擊場景後可控制鏡頭；無法鎖定時移到畫面邊緣轉向</p>
+    <p class="combat-demo-pointer-lock-hint" data-pointer-lock-hint>
+        &#28369;&#40736;&#25351;&#21521;&#25915;&#25802;&#26041;&#21521;&#65307;&#31227;&#21040;&#30059;&#38754;&#37002;&#32227;&#21487;&#26059;&#36681;&#37857;&#38957;
+    </p>
 
     <section class="combat-demo-inventory">
         <header>
-            <strong>暫存行囊</strong>
+            <strong>&#26283;&#23384;&#34892;&#22218;</strong>
             <span data-inventory-count>0 / 10</span>
         </header>
         <div data-inventory-list></div>
     </section>
 
     <section class="combat-demo-card" data-story-card hidden>
-        <span data-story-kicker>調查紀錄</span>
+        <span data-story-kicker>&#35519;&#26597;&#32000;&#37636;</span>
         <h2 data-story-title></h2>
         <div data-story-copy></div>
-        <button type="button" data-story-close>收起紀錄</button>
+        <button type="button" data-story-close>&#25910;&#36215;&#32000;&#37636;</button>
     </section>
 
     <section class="combat-demo-card is-loot" data-loot-card hidden>
-        <span>地面戰利品</span>
+        <span>&#22320;&#38754;&#25136;&#21033;&#21697;</span>
         <h2 data-loot-name></h2>
         <p data-loot-detail></p>
         <div>
-            <button type="button" data-loot-take>放入行囊</button>
-            <button type="button" data-loot-leave>留在原地</button>
+            <button type="button" data-loot-take>&#25918;&#20837;&#34892;&#22218;</button>
+            <button type="button" data-loot-leave>&#30041;&#22312;&#21407;&#22320;</button>
         </div>
     </section>
 
     <section class="combat-demo-card is-complete" data-complete-card hidden>
-        <span>第一章 3D 垂直切片</span>
-        <h2 data-complete-title>銀線伏擊已排除</h2>
+        <span>&#31532;&#19968;&#31456; 3D &#22402;&#30452;&#20999;&#29255;</span>
+        <h2 data-complete-title>&#37504;&#32218;&#20239;&#25802;&#24050;&#25490;&#38500;</h2>
         <div data-complete-copy></div>
-        <button type="button" data-complete-exit>返回城鎮</button>
+        <button type="button" data-complete-exit>&#36820;&#22238;&#22478;&#37806;</button>
     </section>
 
-    <div class="combat-demo-controls" aria-label="操作說明">
-        <span><kbd>WASD</kbd> 移動</span>
-        <span><kbd>LMB</kbd> 三段輕擊</span>
-        <span><kbd>RMB</kbd> 蓄力重擊</span>
-        <span><kbd>SPACE</kbd> 翻滾</span>
-        <span><kbd>Q</kbd> 鎖定</span>
-        <span><kbd>R</kbd> 喝藥</span>
-        <span><kbd>F</kbd> 互動</span>
+    <div class="combat-demo-controls" aria-label="&#25805;&#20316;&#35498;&#26126;">
+        <span><kbd>WASD</kbd> &#31227;&#21205;</span>
+        <span><kbd>LMB</kbd> &#36629;&#25802;</span>
+        <span><kbd>RMB</kbd> &#33988;&#21147;&#37325;&#25802;</span>
+        <span><kbd>SPACE</kbd> &#32763;&#28414;</span>
+        <span><kbd>Q</kbd> &#37782;&#23450;</span>
+        <span><kbd>R</kbd> &#21917;&#34277;</span>
+        <span><kbd>F</kbd> &#20114;&#21205;</span>
     </div>
 
-    <nav class="combat-demo-actions" aria-label="測試操作">
-        <button type="button" data-demo-reset>重置切片</button>
-        <button type="button" data-demo-exit>離開</button>
+    <nav class="combat-demo-actions" aria-label="&#28204;&#35430;&#25805;&#20316;">
+        <button type="button" data-demo-reset>&#37325;&#32622;&#20999;&#29255;</button>
+        <button type="button" data-demo-exit>&#38626;&#38283;</button>
     </nav>
 
     <output class="combat-demo-performance" data-performance hidden></output>
 
     <div class="combat-demo-loading" data-demo-loading>
-        <strong>正在建立南門外區域</strong>
-        <span>載入玩家模型、房間模組與正式戰鬥資料</span>
+        <strong>&#27491;&#22312;&#24314;&#31435;&#21335;&#38272;&#22806;&#21312;&#22495;</strong>
+        <span>&#36617;&#20837;&#29609;&#23478;&#27169;&#22411;&#12289;&#25151;&#38291;&#27169;&#32068;&#33287;&#27491;&#24335;&#25136;&#39717;&#36039;&#26009;</span>
     </div>
 </main>

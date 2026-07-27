@@ -1,7 +1,11 @@
 import { EquipmentDatabase } from '../data/Equipment.js';
 import { StandaloneRecipeDatabase } from '../data/RecipeCatalog.js';
+import {
+    DemoWeaponForms,
+    getAttackWindow,
+    getDemoWeaponProfile
+} from './DemoWeaponActions.js';
 
-const PLAYER_WEAPON = EquipmentDatabase.slime_sword;
 const PLAYER_ARMOR = StandaloneRecipeDatabase.leather_armor?.result;
 
 const PLAYER_RULES = Object.freeze({
@@ -12,24 +16,18 @@ const PLAYER_RULES = Object.freeze({
     dodgeDuration: 0.46,
     dodgeInvulnerability: 0.3,
     dodgeCost: 25,
-    lightCost: 16,
-    heavyCost: 34,
     staminaRecovery: 27,
     potionHeal: 42,
     maxPotions: 3
 });
-
-const LIGHT_COMBO = Object.freeze([
-    { duration: 0.56, activeStart: 0.2, activeEnd: 0.38, multiplier: 1 },
-    { duration: 0.6, activeStart: 0.22, activeEnd: 0.42, multiplier: 1.15 },
-    { duration: 0.72, activeStart: 0.3, activeEnd: 0.52, multiplier: 1.4 }
-]);
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 export default class DemoCombatController {
     constructor(hooks = {}) {
         this.hooks = hooks;
+        this.weaponForm = 'sword';
+        this.weaponProfile = getDemoWeaponProfile(this.weaponForm);
         this.resetPlayer();
         this.clearEnemy();
     }
@@ -49,6 +47,7 @@ export default class DemoCombatController {
             comboQueued: false,
             hitConnected: false,
             charge: 0,
+            weaponForm: this.weaponForm,
             statuses: []
         };
         this.emitPlayer();
@@ -79,31 +78,61 @@ export default class DemoCombatController {
     }
 
     get playerAttack() {
-        return Number(PLAYER_WEAPON?.stats?.attack) || 6;
+        return Number(this.weaponProfile.item?.stats?.attack)
+            || Number(EquipmentDatabase.slime_sword?.stats?.attack)
+            || 6;
     }
 
     get playerDefense() {
         return Number(PLAYER_ARMOR?.stats?.defense) || 8;
     }
 
+    setWeaponForm(form) {
+        if (!DemoWeaponForms.includes(form) || this.player.state !== 'free') return false;
+        this.weaponForm = form;
+        this.weaponProfile = getDemoWeaponProfile(form);
+        this.player.weaponForm = form;
+        this.player.comboIndex = 0;
+        this.player.comboQueued = false;
+        this.hooks.onWeaponChanged?.(this.weaponProfile);
+        this.emitPlayer();
+        return true;
+    }
+
+    getCurrentAttack() {
+        if (this.player.state === 'attack') {
+            return getAttackWindow(this.weaponProfile, 'light', this.player.comboIndex);
+        }
+        if (this.player.state === 'heavy') return getAttackWindow(this.weaponProfile, 'heavy');
+        return null;
+    }
+
     tryLightAttack() {
         if (this.player.health <= 0) return false;
         if (this.player.state === 'attack') {
-            if (this.player.comboIndex < LIGHT_COMBO.length - 1) this.player.comboQueued = true;
+            if (this.player.comboIndex < this.weaponProfile.lightCombo.length - 1) {
+                this.player.comboQueued = true;
+            }
             return true;
         }
-        if (this.player.state !== 'free' || this.player.stamina < PLAYER_RULES.lightCost) return false;
-        this.player.stamina -= PLAYER_RULES.lightCost;
+        if (this.player.state !== 'free'
+            || this.player.stamina < this.weaponProfile.lightCost) return false;
+        this.player.stamina -= this.weaponProfile.lightCost;
         this.player.state = 'attack';
         this.player.timer = 0;
         this.player.hitConnected = false;
-        this.hooks.onAttackStart?.('light', this.player.comboIndex);
+        this.hooks.onAttackStart?.(
+            'light',
+            this.player.comboIndex,
+            getAttackWindow(this.weaponProfile, 'light', this.player.comboIndex),
+            this.weaponProfile
+        );
         return true;
     }
 
     beginHeavyCharge() {
         if (this.player.state !== 'free'
-            || this.player.stamina < PLAYER_RULES.heavyCost
+            || this.player.stamina < this.weaponProfile.heavyCost
             || this.player.health <= 0) return false;
         this.player.state = 'heavy-charge';
         this.player.timer = 0;
@@ -113,11 +142,16 @@ export default class DemoCombatController {
 
     releaseHeavy() {
         if (this.player.state !== 'heavy-charge') return false;
-        this.player.stamina -= PLAYER_RULES.heavyCost;
+        this.player.stamina -= this.weaponProfile.heavyCost;
         this.player.state = 'heavy';
         this.player.timer = 0;
         this.player.hitConnected = false;
-        this.hooks.onAttackStart?.('heavy', 0);
+        this.hooks.onAttackStart?.(
+            'heavy',
+            0,
+            getAttackWindow(this.weaponProfile, 'heavy'),
+            this.weaponProfile
+        );
         return true;
     }
 
@@ -166,6 +200,7 @@ export default class DemoCombatController {
         if (effectsChanged) player.statuses = [...this.playerEffects.values()];
         if (player.health <= 0 && player.state !== 'dead') {
             player.state = 'dead';
+            player.timer = 0;
             this.hooks.onPlayerDefeated?.();
         }
         if (player.state === 'free') {
@@ -176,22 +211,32 @@ export default class DemoCombatController {
         }
 
         if (player.state === 'attack') {
-            const attack = LIGHT_COMBO[player.comboIndex];
+            const attack = getAttackWindow(this.weaponProfile, 'light', player.comboIndex);
             const progress = player.timer / attack.duration;
             if (!player.hitConnected
                 && progress >= attack.activeStart
                 && progress <= attack.activeEnd
-                && distanceToEnemy <= 2.25) {
+                && this.resolvePlayerHit(attack, distanceToEnemy, progress)) {
                 player.hitConnected = true;
-                this.damageEnemy(Math.max(1, Math.round(this.playerAttack * attack.multiplier)));
+                this.damageEnemy(
+                    Math.max(1, Math.round(this.playerAttack * attack.multiplier)),
+                    false,
+                    attack
+                );
             }
             if (progress >= 1) {
-                if (player.comboQueued && player.comboIndex < LIGHT_COMBO.length - 1) {
+                if (player.comboQueued
+                    && player.comboIndex < this.weaponProfile.lightCombo.length - 1) {
                     player.comboIndex += 1;
                     player.comboQueued = false;
                     player.hitConnected = false;
                     player.timer = 0;
-                    this.hooks.onAttackStart?.('light', player.comboIndex);
+                    this.hooks.onAttackStart?.(
+                        'light',
+                        player.comboIndex,
+                        getAttackWindow(this.weaponProfile, 'light', player.comboIndex),
+                        this.weaponProfile
+                    );
                 } else {
                     player.state = 'free';
                     player.comboIndex = 0;
@@ -202,11 +247,19 @@ export default class DemoCombatController {
         } else if (player.state === 'heavy-charge') {
             player.charge = clamp(player.timer / 1.15, 0, 1);
         } else if (player.state === 'heavy') {
-            const progress = player.timer / 0.86;
-            if (!player.hitConnected && progress >= 0.32 && progress <= 0.58 && distanceToEnemy <= 2.65) {
+            const attack = getAttackWindow(this.weaponProfile, 'heavy');
+            const progress = player.timer / attack.duration;
+            if (!player.hitConnected
+                && progress >= attack.activeStart
+                && progress <= attack.activeEnd
+                && this.resolvePlayerHit(attack, distanceToEnemy, progress)) {
                 player.hitConnected = true;
-                const multiplier = 1.75 + player.charge * 0.85;
-                this.damageEnemy(Math.max(1, Math.round(this.playerAttack * multiplier)), true);
+                const multiplier = attack.multiplier + player.charge * 0.7;
+                this.damageEnemy(
+                    Math.max(1, Math.round(this.playerAttack * multiplier)),
+                    true,
+                    attack
+                );
             }
             if (progress >= 1) {
                 player.state = 'free';
@@ -223,6 +276,12 @@ export default class DemoCombatController {
             this.hooks.onHeal?.(PLAYER_RULES.potionHeal);
         }
         this.emitPlayer();
+    }
+
+    resolvePlayerHit(attack, distanceToEnemy, progress) {
+        const result = this.hooks.resolvePlayerHit?.(attack, progress);
+        if (typeof result === 'boolean') return result;
+        return distanceToEnemy <= Number(attack.hitbox?.reach || 2.25);
     }
 
     updateEnemy(delta, distanceToPlayer) {
@@ -307,7 +366,7 @@ export default class DemoCombatController {
         enemy.timer = 0;
     }
 
-    damageEnemy(rawDamage, heavy = false) {
+    damageEnemy(rawDamage, heavy = false, attack = null) {
         const enemy = this.enemy;
         if (!enemy || enemy.health <= 0) return;
         const evasion = [...enemy.effects.values()]
@@ -319,7 +378,7 @@ export default class DemoCombatController {
         const defense = Number(enemy.data.defense) || 0;
         const damage = Math.max(1, Math.round(rawDamage - defense));
         enemy.health = Math.max(0, enemy.health - damage);
-        this.hooks.onEnemyHit?.(damage, heavy);
+        this.hooks.onEnemyHit?.(damage, heavy, attack);
         if (enemy.health <= 0) {
             enemy.state = 'dead';
             this.hooks.onEnemyDefeated?.(enemy.data);
@@ -355,6 +414,7 @@ export default class DemoCombatController {
         this.hooks.onPlayerHit?.(damage, { ...action, critical });
         if (this.player.health <= 0) {
             this.player.state = 'dead';
+            this.player.timer = 0;
             this.hooks.onPlayerDefeated?.();
         }
         this.emitPlayer();
@@ -363,7 +423,7 @@ export default class DemoCombatController {
     getMoveSpeed() {
         if (this.player.state === 'dodge') return PLAYER_RULES.dodgeSpeed;
         if (['attack', 'heavy', 'heavy-charge', 'drink', 'dead'].includes(this.player.state)) return 0;
-        return PLAYER_RULES.moveSpeed;
+        return PLAYER_RULES.moveSpeed * this.weaponProfile.moveScale;
     }
 
     emitPlayer() {

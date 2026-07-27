@@ -27,6 +27,7 @@
 .combat-demo-message,
 .combat-demo-pointer-lock-hint,
 .combat-demo-inventory,
+.combat-demo-weapons,
 .combat-demo-card,
 .combat-demo-controls,
 .combat-demo-actions,
@@ -243,6 +244,54 @@
     font-size: 10px;
 }
 
+.combat-demo-weapons {
+    left: 50%;
+    bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(5, 96px);
+    gap: 6px;
+    transform: translateX(-50%);
+}
+
+.combat-demo-weapons button {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    align-items: center;
+    min-height: 42px;
+    padding: 5px 8px 5px 5px;
+    border: 1px solid rgba(111, 127, 119, 0.72);
+    color: #bfc7c2;
+    background: rgba(8, 12, 11, 0.88);
+    cursor: pointer;
+}
+
+.combat-demo-weapons button:hover,
+.combat-demo-weapons button:focus-visible {
+    border-color: #d9bc74;
+    color: #fff;
+    outline: 0;
+}
+
+.combat-demo-weapons button.is-active {
+    border-color: #d9bc74;
+    color: #fff1c7;
+    background: rgba(48, 39, 20, 0.92);
+    box-shadow: inset 0 -2px #d9bc74;
+}
+
+.combat-demo-weapons button span {
+    overflow: hidden;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.combat-demo-weapons kbd {
+    min-width: 24px;
+    height: 24px;
+    padding: 0;
+}
+
 .combat-demo-card {
     top: 50%;
     left: 50%;
@@ -304,7 +353,7 @@
     left: 24px;
     bottom: 20px;
     display: flex;
-    max-width: calc(100vw - 360px);
+    max-width: 360px;
     flex-wrap: wrap;
     gap: 8px 14px;
     color: #c8cec9;
