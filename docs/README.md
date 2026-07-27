@@ -17,8 +17,8 @@ the design direction readable for future Codex sessions.
   canon, mainline suspense, the complete 66-scene review screenplay, character
   entry/exit, first/second-run dialogue and staging, and story-to-system
   adaptation. Its 66 scenes now compile into the reviewable runtime registry.
-- `characters/*.md` - source dossiers used to audit unresolved character details
-  and the decisions that built the master register. Accepted changes must be
+- `characters/*.md` - source dossiers preserving character rationale, boundaries,
+  voice calibration, and deferred production details. Accepted canon is
   synchronized into `MAIN_STORY_BIBLE.md`; downstream chapter writing should not
   reconstruct canon by comparing every dossier.
 - `NARRATIVE_WRITING_GUIDE.md` - prose rules, NPC voice, dialogue staging,

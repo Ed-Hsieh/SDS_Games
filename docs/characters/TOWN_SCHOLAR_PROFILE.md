@@ -1,6 +1,6 @@
 # Town Scholar Character Profile
 
-Last updated: 2026-07-16
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -429,13 +429,16 @@ is to no longer being able to continue.
 - Second-run evidence triggers should change his lookup path without requiring
   freeform questions.
 
-## Open Questions
+## Resolved Decisions
 
-- Does the expedition list contain any later NPC family connections beyond
-  Mia's father?
-- Final clothing, habitual hand movement, and layered-expression details remain
-  for the dialogue-art pass. No personal relic or additional archive crisis is
-  required for his completed base-campaign arc.
+- The expedition list does not add further core-NPC family revelations beyond
+  Mia's father. Other names remain ordinary missing residents and militia.
+- He survives the true ending and continues handling current town correspondence
+  and records. He does not become a historian, oracle, or keeper of a sacred
+  archive.
+- He receives no personal relic and no additional archive crisis.
+- Final clothing, habitual hand movement, and layered-expression details belong
+  to the dialogue-art pass and do not block character canon.
 
 ## Do Not Do
 

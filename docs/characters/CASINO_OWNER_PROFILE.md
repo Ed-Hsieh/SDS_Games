@@ -1,6 +1,6 @@
 # Casino Owner Character Profile
 
-Last updated: 2026-07-11
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -483,11 +483,15 @@ Use these existing framework beats:
 The accepted Vesper route changes the tone from "possibly gray casino owner" to
 "pure villain owner who must be punished in the second run."
 
-## Open Implementation Questions
+## Deferred Implementation Decisions
 
-- Which display-case items are eligible for the final choice?
-- What exact visual language represents the unnamed contract collection without
-  exposing the full Void creature/affinity setting?
+- The eligible display-case prize roster remains `deferred` until the casino
+  economy and prize data are formally rebuilt.
+- The exact contract-collection visual remains `deferred`. It must collect
+  Vesper through the contract without naming or depicting a formal Void
+  creature, affinity, combat route, or DLC revelation.
+- These deferred production choices do not reopen Vesper's personality, guilt,
+  punishment, or two-run route.
 
 ## Do Not Do
 

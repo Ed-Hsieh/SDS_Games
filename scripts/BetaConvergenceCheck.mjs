@@ -405,9 +405,8 @@ function auditFrameworkDocs() {
         'tower rewrite are paused'
     ]);
     assertDocContains('framework-docs', 'docs/MAIN_STORY_BIBLE.md', [
-        'Design the main story like a long film or serialized drama',
         'Authority And Review State',
-        'Archived Working Canon V0 (Summary Only)',
+        'Accepted Emotional Structure V1',
         'Accepted Omniscient Causal Timeline V1',
         'Accepted Screenplay Foundation V1',
         'Two-Run Persistence Contract',
@@ -447,7 +446,7 @@ function auditFrameworkDocs() {
         'Second-Run Ending Staging',
         'Seven Chapter Story Spine (Accepted Summary)',
         'Integrated Mainline And Character Flow (Accepted Summary)',
-        'central mystery and final truth',
+        'Writing And Planning Ownership',
         'Master Character Register V2',
         'Character Entry And Exit Rules',
         'Story-To-System Adaptation'
@@ -595,7 +594,7 @@ function auditMasterScreenplay() {
     const timelineStart = text.indexOf('#### Chapter 1 Scene Order');
     const timelineEnd = text.indexOf('### Character Placement And Side-Story Matrix');
     const detailStart = text.indexOf('## Chapter 1 Detailed Screenplay V1');
-    const detailEnd = text.indexOf('## Story Ambition');
+    const detailEnd = text.indexOf('## Writing And Planning Ownership');
 
     if ([timelineStart, timelineEnd, detailStart, detailEnd].some(index => index < 0)) {
         addIssue('master-screenplay', 'Required timeline or detailed-screenplay boundary is missing.');

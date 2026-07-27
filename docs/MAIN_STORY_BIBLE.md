@@ -131,62 +131,6 @@ Mainline, second-run external story, and DLC boundary:
   post-reveal world but cannot retroactively become a missing requirement for
   the base true ending.
 
-## Archived Working Canon V0 (Summary Only)
-
-This section preserves the early rebuild summary. It is not a competing source
-of canon. Use the accepted causal timeline, master character register, and
-detailed screenplay when wording below is incomplete or outdated.
-
-Note: the route-seal and broken-town material below remains useful scaffolding,
-but any literal plot detail must be rechecked against `Accepted Emotional
-Structure V1` before runtime rewrite.
-
-Central mystery:
-
-- The town did not merely survive an attack. It sits near the safest remaining
-  approach to the mountain-side disaster zone, and its roads, watchposts, old
-  camps, and records preserve traces of the old sealed perimeter.
-- Roads, watchposts, old camps, boss traces, and dungeon routes are pieces of the
-  same mystery. Exploration should make the player feel they are rebuilding the
-  map of an approach that people no longer understand.
-- The deeper question is not "which monster did this?" but "who closed the old
-  mountain route, why did humans damage the sealed perimeter twenty years ago,
-  and what did they wake by mistake?"
-
-Final truth:
-
-- The final pressure is `demon_lord_asariel`, but the route to the ending should
-  reveal that brute force alone did not open the disaster. Fear, shortcuts,
-  hidden bargains, and abandoned records weakened the town long before the final
-  enemy appeared.
-- The player wins by rebuilding combat strength and information strength at the
-  same time: routes, town services, NPC trust, boss traces, equipment pressure,
-  and dungeon preparation converge.
-- `aurora_archon` and full light/Void creature groups are optional second-run
-  external content, not mandatory mainline convergence requirements. DLC may
-  continue their world after the first base-game reveal.
-
-Story promise:
-
-- Chapter 1 asks the player to prove which roads still breathe.
-- Chapter 2 follows missing deliveries, medicine needs, and civic records, but
-  does not restore the market before a complete trade road exists.
-- Chapter 3 shows that shadow is not a random element; it remembers soldiers,
-  debt, and old orders. Ending that command reopens the first complete road and
-  lets the stranded caravan return.
-- Chapter 4 begins with the returned caravan, then breaks its rear half apart
-  under earthquakes caused by an awakened Titan moving through ancient
-  leyline-regulation ruins.
-- Chapter 5 follows the damage left after that movement and proves that the four
-  elemental fronts are losing balance because the Demon King is still draining
-  the mountain veins.
-- Chapter 6 brings the dragon clan into focus. First run turns into war because
-  the player lacks a usable alternate route; second run earns non-attack because
-  current evidence and behavior show the player will leave the sealed line
-  untouched.
-- Chapter 7 closes the mountain-route mystery and tests whether the rebuilt town is
-  strong enough to stand behind the player.
-
 ### Accepted First-Run Protagonist Premise
 
 - Each governed region must send scheduled land ledgers, tax remittance, and
@@ -1436,29 +1380,6 @@ the reviewable runtime foundation. Final prose polish, the full normal/hidden
 achievement catalogue, external-region implementation, post-reveal DLC design,
 rewards, and art remain subject to later review and map-function allocation.
 
-### Runtime Foundation Status - 2026-07-11
-
-- `StorySceneRegistry.js` contains all 66 scenes and the closed nine expressions.
-- `StoryActors.js` records nine core mainline character contracts: introduction,
-  decisive scenes, and visible first/second-run endpoints.
-- `StoryStateContract.js` and `StorySceneManager.js` implement achievement-only
-  cross-run memory and clear current-run fates before the second run.
-- `ChapterRegionRegistry.js` binds every map-stage scene exactly once across seven
-  handcrafted regions.
-- `Quests.js` contains no mandatory chapter wrappers. The seven-chapter mainline
-  is derived directly from the 66-scene registry. It currently owns the approved
-  guild tutorial commission and six Chapter 1 optional runtime commissions;
-  future optional stories enter only after their existing production gates pass.
-- `OptionalSideStoryRegistry.js` keeps 33 skip-safe personal stories (short,
-  medium, and long for every recurring town character with an accepted runtime
-  profile) plus six ensemble shorts. Their
-  chapter placement, reward identity, and derived-resource needs passed user
-  review on 2026-07-19. They remain non-playable until formal dialogue, assets,
-  discovery interactions, runtime records, and end-to-end validation are done.
-- Runtime implementation does not make every line immutable. User story review
-  may still revise a scene; the generated registry must then be recompiled and
-  validated rather than patched through an alternate story path.
-
 ## Master Character Register V2
 
 This register is Stage 1 of the master screenplay build. It collects accepted
@@ -1521,8 +1442,8 @@ the situation assign one shared voice to the entire cast.
 
 ### Village Elder
 
-- Status: `in_progress`; accepted core and fate, with name and some external
-  details still unresolved.
+- Status: `accepted`; core, fate, public identity, and knowledge boundary are
+  locked for the base campaign.
 - Public function: opening civic anchor and first trusted burden. He makes the
   damaged town feel led but not controlled.
 - Core fear: sending another young person to die because the town needed help;
@@ -1541,9 +1462,9 @@ the situation assign one shared voice to the entire cast.
   stop; he needs the protagonist's ability while wanting to protect the
   protagonist from being used.
 - External expression: elderly, restrained, plain, and slightly gentlemanly by
-  habit. He uses silence and unfinished sentences. Exact name, clothing, repeated
-  gestures, and body-language anchors are not yet canonically locked beyond the
-  current portrait.
+  habit. He uses silence and unfinished sentences. He remains publicly identified
+  as the village elder; final clothing and gesture refinements belong to art
+  production rather than unresolved story canon.
 - Speech and humor: short practical instruction, concrete road or civic detail,
   rare weary humor, no destiny speech or polished exposition.
 - Performance contract: restraint is not emotional absence. He places feeling
@@ -1569,14 +1490,14 @@ the situation assign one shared voice to the entire cast.
 - Entrusted flame: civic survival without turning people into sacrifices.
 - Story-system link: opening town state, route restrictions, elder-scholar
   evidence, dragon non-war proof chain, and town reactions.
-- Unresolved: accepted name, clothing/gesture anchors, and final knowledge
-  boundary regarding the Demon King. Departure, aftermath, shard evidence, and
-  second-run prevention are now specified in Chapters 5-6.
+- Knowledge boundary: before the late story, he knows the western route destroyed
+  his militia and that another careless advance will kill more people. He does
+  not know the complete nest, seal, dragon, or mountain-vein structure.
 
 ### Town Scholar 伊萊
 
-- Status: `in_progress`; accepted identity and arc, with appearance and final fate
-  still partly open.
+- Status: `accepted`; identity, arc, true-ending fate, and evidence boundary are
+  locked for the base campaign.
 - Public function: village clerk, records keeper, and investigation partner. He
   handles letters, taxes, repair notices, route records, delivery receipts,
   funeral documents, and missing-person lists.
@@ -1592,9 +1513,9 @@ the situation assign one shared voice to the entire cast.
 - Inner contradiction: he must offer routes from incomplete records, yet fears
   the act of handing anyone the paper that sends them out.
 - External expression: elderly, approachable, kind, a little fussy, surrounded by
-  damp paper, ink, string, ledgers, and improvised bookmarks. Exact clothing and
-  stable habitual gestures remain to be fixed; the old runtime version portraying
-  him as a young nervous academic is rejected.
+  damp paper, ink, string, ledgers, and improvised bookmarks. Final clothing and
+  stable habitual gestures belong to the dialogue-art pass; the old runtime
+  version portraying him as a young nervous academic is rejected.
 - Speech and humor: warm, patient, slightly talkative, with dry complaints about
   paper, ink, damp corners, and handwriting. He explains the basis of a clue and
   never speaks as an oracle.
@@ -1635,8 +1556,10 @@ the situation assign one shared voice to the entire cast.
 - Story-system link: traveler handbook, route evidence, encyclopedia framing,
   expedition list, Mia's shard-analysis chain, and dragon-proof
   interpretation.
-- Unresolved: final visual details, final fate after the true ending, and an
-  approved personal relic if the finished screenplay proves one is needed.
+- True-ending state: he survives and continues handling current town
+  correspondence and records. The expedition list adds no further core-NPC
+  family revelation beyond Mia's father. He receives no personal relic or
+  additional archive crisis.
 
 ### Mia / 米婭
 
@@ -1717,7 +1640,8 @@ the situation assign one shared voice to the entire cast.
 ### Standard Bearer 芙蕾
 
 - Status: `accepted`; Chapter 3-4 route, two-run fate, emotional progression,
-  and elder payoff are approved. Full visual specification remains deferred.
+  elder payoff, and reward boundary are approved. Full visual specification
+  remains deferred.
 - Public function: young South Gate patrol flag bearer in a makeshift village
   defense, not an elite soldier.
 - Core fear: losing the return direction and discovering that people were left
@@ -1764,14 +1688,16 @@ the situation assign one shared voice to the entire cast.
 - Entrusted flame: direction.
 - Story-system link: South Gate state, route safety, fog readability, patrol flag,
   watchposts, morale, and 塔維 rescue condition.
-- Unresolved: full visual design, exact flag/clasp damage after the first run,
-  later gate dialogue, and whether a shared relic is eventually approved.
+- Resolved route state: the recovered first-run flag retains torn edges, smoke
+  staining, and route wear; its clasp is bent but usable. No shared inventory
+  relic is created. Frey and Tavi alive at South Gate are the complete second-run
+  reward, and no later explanatory gate line is required without an immediate
+  scene reason.
 
 ### Lamplighter 塔維
 
-- Status: `accepted`; Chapter 3 rehearsal, Chapter 4 failure/rescue, and core
-  admission are approved. Visual design and final ordinary town duty remain
-  unresolved.
+- Status: `accepted`; Chapter 3 rehearsal, Chapter 4 failure/rescue, core
+  admission, and true-ending duty are approved. Visual design remains deferred.
 - Public function: ordinary patrol lamplighter and route-safety support, not a
   heroic fighter or mystical light bearer.
 - Core fear: immediate mortal danger, the old mist, and the moment his body may
@@ -1818,13 +1744,15 @@ the situation assign one shared voice to the entire cast.
   step back.
 - Story-system link: night routes, fog, watchposts, ordinary lamplight, route
   safety, and the mandatory condition for 芙蕾's rescue.
-- Unresolved: full visual design, final ordinary South Gate duty, any later
-  route-safety system unlock beyond the rescue, and shared relic decision.
+- True-ending state: Tavi continues ordinary night patrol, lamp trimming, and
+  South Gate visibility checks. His route adds no second large travel system and
+  no shared inventory relic beyond the accepted rescue presentation.
 
 ### Blacksmith
 
-- Status: `in_progress`; accepted function and emotional arc, with name, complete
-  visual identity, and service timing unresolved.
+- Status: `accepted`; function, emotional arc, public identity, service boundary,
+  and dialogue-state logic are locked. Complete visual production remains
+  deferred.
 - Public function: face of equipment repair, durability, crafting, and the fact
   that preparation is a survival habit rather than a menu.
 - Core fear: people returning only as abandoned equipment, or not returning at
@@ -1840,9 +1768,10 @@ the situation assign one shared voice to the entire cast.
   jokes.
 - External expression: blunt, loud when the town is alive, irritable, physically
   work-focused, and defined by hammer rhythm, damaged fittings, metal condition,
-  and hands that repair what can still be repaired. Accepted name, gendered visual
-  description, clothing, and stable gestures require confirmation against the
-  approved portrait; old apprentice-centered biography is rejected.
+  and hands that repair what can still be repaired. He remains identified by his
+  profession until a scene creates a natural need for a personal name. Final
+  clothing and stable gestures belong to art production; old apprentice-centered
+  biography is rejected.
 - Speech and humor: insults equipment, gives exact practical advice, and reveals
   care accidentally. As losses accumulate, jokes shorten and eventually fail.
 - Performance contract: he observes a gait, wound, chipped edge, loose clasp, or
@@ -1873,14 +1802,16 @@ the situation assign one shared voice to the entire cast.
   be repaired.
 - Story-system link: forge repair, crafting, enhancement, durability, surgery
   tool modification, boss-return reactions, and town-state dialogue variants.
-- Unresolved: accepted name and appearance, forge unlock stages, loss-order
-  triggers, and whether rescues restore specific jokes or a general warm-town
-  state.
+- Service and dialogue boundary: basic repair opens with Chapter 1 cold-forge
+  recovery. Crafting, enhancement, and advanced work open only when chapter
+  events and materials establish their need. Dialogue uses fixed death, rescue,
+  boss-return, and town-state flags; rescues restore scene-specific jokes and
+  working rhythms rather than an abstract warmth statistic.
 
 ### Street Beggar 艾洛 / Ailo
 
-- Status: `in_progress`; accepted identity and route, with first-run timing and
-  visual details for young 艾洛 and 妮露 unresolved.
+- Status: `accepted`; identity, route, first-run timing, second-run correction,
+  and flower anchor are locked. Young-couple art remains deferred production.
 - Public function: strange street beggar whose broken speech initially feels like
   uncomfortable local color, then becomes the human key to the lost mountain
   road.
@@ -1922,15 +1853,16 @@ the situation assign one shared voice to the entire cast.
 - Story-system link: Echo Whistle inventory event, old mountain route, run-memory
   recognition, memory-scene presentation, achievement
   `回聲盡頭，花仍會開`, and unsigned flower letter.
-- Unresolved: exact young-couple facial anatomy and final CG composition. Whistle
-  placement, brush-past UI, old-cliff death cause, second-run correction, and the
-  white-petaled/pale-green-centered flower anchor are now specified.
+- Production boundary: exact young-couple facial anatomy, letter presentation,
+  and final CG composition remain deferred. The Echo Whistle enters through
+  `ch5_s09_whistle_cache`; route causality and the white-petaled,
+  pale-green-centered flower anchor are already specified.
 
 ### Casino Owner 維斯珀 / Vesper
 
-- Status: `in_progress`; accepted villain core, origin, two-run fate, male
-  portrait, and final three-die wager logic; reward roster and collection visual
-  production remain unresolved.
+- Status: `accepted`; villain core, origin, two-run fate, male portrait, and final
+  three-die wager logic are locked. Reward and collection presentation remain
+  deferred implementation work.
 - Public function: elegant casino host who presents temptation, visible prizes,
   odds, and consent as proof of fairness.
 - Core fear: loss of control, loss of ownership, and being treated as collateral
@@ -1978,10 +1910,10 @@ the situation assign one shared voice to the entire cast.
   Dice, Blank Collateral Contract, dealer witness, black-market clue, final
   wager, unnamed contract collection, optional external recontextualization,
   and one chosen showcase grand prize.
-- Unresolved: eligible showcase prize roster, exact contract-collection visuals,
-  and implementation timing. Dealer rescue, achievement-memory recognition,
-  fixed dice game, Vesper's reason to accept, and Lorne's restitution boundary
-  are now specified.
+- Deferred implementation: eligible showcase prizes, exact contract-collection
+  visuals, and implementation timing remain paused until the casino rebuild.
+  The visual may not name or depict a formal Void creature or affinity. These
+  choices do not reopen Vesper's character or route.
 
 ### Essential Supporting Characters
 
@@ -4540,88 +4472,15 @@ endings now form one completed review draft awaiting user approval.
 | 13 | second_run | narration | - | - | 清晨的市集先響起搬箱聲。鐵匠在巷口催人把漏鍋拿走，米婭推開窗，讓藥草的氣味散進街上。 |
 | 14 | second_run | exit | - | - | Close the base campaign true ending and return control to the completed-campaign title state. |
 
-## Story Ambition
+## Writing And Planning Ownership
 
-Design the main story like a long film or serialized drama, not a simple quest
-chain.
+This file owns accepted causality, character canon, chapter structure, and the
+detailed screenplay. It does not duplicate the prose and dialogue rules in
+`NARRATIVE_WRITING_GUIDE.md` or the level, Boss, reward, and placement contracts
+in `CHAPTER_QUEST_FRAMEWORK.md`.
 
-The mainline must:
-
-- Begin with memorable characters, a wounded town, and a clear survival pressure.
-- Establish a central mystery early.
-- Let each chapter solve an immediate crisis while opening a deeper question.
-- Keep suspense alive until the final chapter.
-- Make bosses feel like story convergence points, not only combat gates.
-- Let side stories enrich people, history, rumors, relationships, and future
-  payoffs.
-- Bring early clues back later so the ending feels earned rather than sudden.
-
-## Screenwriting Rules
-
-- Start from characters, secrets, relationships, and conflict before writing
-  task lists.
-- Every major NPC should have a desire, fear, wound, useful secret, and pressure
-  point.
-- Dialogue should carry personality, conflict, or withheld information. Do not
-  use dialogue only to explain mechanics.
-- A chapter can answer one question, but it should usually introduce another.
-- Twists should reframe earlier information instead of appearing from nowhere.
-- Do not reveal the full truth too early. Give the player enough to act, not
-  enough to close the mystery.
-- Avoid fake mystery. If a secret is teased, it needs either a later payoff or a
-  clearly local resolution.
-
-## Mainline Design Order
-
-Use this order before changing the runtime screenplay:
-
-1. Define the central mystery and final truth.
-2. Define the major cast and each character's arc.
-3. Define seven chapter promises: question, pressure, reveal, twist, and boss
-   convergence.
-4. Define character entry, temporary absence, return, betrayal, death, recovery,
-   or role change where relevant.
-5. Define which side stories support each chapter's emotional or factual gaps.
-6. Define required locations, scenes, portraits, monsters, items, and system
-   changes.
-7. Only then translate the plan into quests, dialogue, town flags, landmarks,
-   boss routes, encyclopedia unlocks, and traveler-handbook records.
-
-## Chapter Suspense Template
-
-Every chapter should eventually have:
-
-```markdown
-## Chapter N - Working Title
-
-Level band:
-
-Opening question:
-
-Immediate survival pressure:
-
-Core NPCs:
-
-New or returning NPCs:
-
-NPC exits or absences:
-
-Main landmarks:
-
-Side-story support:
-
-Boss convergence:
-
-What the player learns:
-
-What remains unanswered:
-
-End-of-chapter twist or pressure shift:
-
-Town-state change:
-
-Asset needs:
-```
+Revise the accepted story here before recompiling runtime data. Do not preserve
+superseded wording as a second canon path.
 
 ## Character Entry And Exit Rules
 

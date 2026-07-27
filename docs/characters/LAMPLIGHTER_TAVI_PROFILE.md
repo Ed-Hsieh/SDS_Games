@@ -1,6 +1,6 @@
 # Lamplighter Tavi Character Profile
 
-Last updated: 2026-07-17
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -380,11 +380,17 @@ him act at that same threshold without making him fearless.
 - If gameplay uses watchposts or light mechanics, Tavi's emotional route can
   provide the narrative reason those systems matter.
 
-## Open Questions
+## Resolved Decisions
 
-- Beyond Frey's survival, which later route-safety change is visible without
-  overstating Tavi's competence?
-- What ordinary South Gate duty does Tavi hold in the true ending?
+- In the true ending, Tavi continues ordinary night patrol, lamp trimming, and
+  visibility checks around South Gate.
+- His growth is shown by acting at the Gray Ridge threshold and helping Frey
+  survive, not by becoming fearless or receiving command authority.
+- His route does not unlock a second large travel system beyond the accepted
+  rescue and ordinary route-safety presentation.
+- He and Frey receive no shared inventory relic. Their continued work at South
+  Gate is the route's visible reward.
+- Full visual design remains an art-production task, not unresolved story canon.
 
 ## Do Not Do
 

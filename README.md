@@ -1,16 +1,12 @@
 # SDS_Games
 
-Desktop-focused 2D RPG rebuild.
+Desktop fantasy RPG under active rebuild.
 
-Start here when continuing development:
+Start with:
 
-- `AGENTS.md`
-- `docs/README.md`
-- `docs/TOWN_REBUILD_CONVERGENCE.md`
-- `docs/CHAPTER_QUEST_FRAMEWORK.md`
-- `docs/CASINO_ROUTE_FRAMEWORK.md`
-- `docs/ART_STYLE_GUIDE.md`
-- `docs/IMAGE_GENERATION_PROMPTS.md`
+- `AGENTS.md` for repository rules and the current review gate.
+- `docs/README.md` for authoritative document ownership.
+- `docs/AGENT_SESSION_LOG.md` for the current resume point.
 
-Current focus: town rebuild, chapter/quest framework, and casino route framework.
-Combat, tower, and image generation are paused until the user resumes them.
+Runtime JS and data are the source of truth for implemented behavior. Do not
+infer current scope from older planning notes.

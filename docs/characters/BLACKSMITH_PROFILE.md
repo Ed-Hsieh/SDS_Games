@@ -1,6 +1,6 @@
 # Blacksmith Character Profile
 
-Last updated: 2026-07-17
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -417,13 +417,20 @@ care.
 - He should not require a personal relationship meter to function as village
   temperature.
 
-## Open Questions
+## Resolved Decisions
 
-- Which boss-return scenes should have blacksmith variant dialogue?
-- Does saving multiple NPCs in the second run restore specific jokes, or simply
-  use a general "warmer village" state?
-- At what chapter should the blacksmith fully unlock forge, repair, enhancement,
-  and advanced crafting in the new story pacing?
+- He remains identified by his profession in the base campaign. A personal name
+  is not required before a story scene creates a natural need for one.
+- Basic repair opens with the Chapter 1 cold-forge recovery. Crafting,
+  enhancement, and advanced work unlock only when their chapter events and
+  materials establish a concrete need; no separate catch-all forge level is
+  invented.
+- Dialogue variants use fixed death, rescue, boss-return, and town-state flags.
+  They do not use a hidden relationship meter or abstract warmth statistic.
+- Second-run rescues restore the specific jokes and working rhythms tied to the
+  people who survived. A generic "warmer village" line is not a substitute.
+- Final appearance remains an art-production task, not unresolved character
+  canon.
 
 ## Do Not Do
 

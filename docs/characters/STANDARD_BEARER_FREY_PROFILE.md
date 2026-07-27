@@ -1,6 +1,6 @@
 # Standard Bearer Frey Character Profile
 
-Last updated: 2026-07-16
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -434,14 +434,17 @@ Avoid:
   not a random combat encounter.
 - Second-run rescue should require Tavi's route, not only a combat victory.
 
-## Open Questions
+## Resolved Decisions
 
-- What exact damage state does the recovered flag and clasp retain after the
-  first run?
-- Does the second-run shared flag/lamp route produce a story relic, or is the
-  living pair at South Gate the complete reward?
-- Which later Chapter 5-7 gate line, if any, is still needed after the accepted
-  elder/Frey Chapter 4 aftermath already resolves the core lesson?
+- The recovered first-run flag keeps torn edges, smoke staining, and route wear.
+  Its clasp is bent but remains recognizable and usable.
+- The flag and lamp route does not create an inventory relic, equipment reward,
+  or inherited second-run object.
+- Frey and Tavi standing alive at South Gate is the complete second-run reward.
+- The accepted Chapter 4 elder/Frey aftermath resolves the core lesson. Chapters
+  5-7 do not need an extra explanatory gate line unless a future scene has an
+  immediate practical reason for her to speak.
+- Full visual design remains an art-production task, not unresolved story canon.
 
 ## Do Not Do
 

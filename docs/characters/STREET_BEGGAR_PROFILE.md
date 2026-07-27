@@ -1,6 +1,6 @@
 # Street Beggar Character Profile
 
-Last updated: 2026-07-09
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -464,15 +464,18 @@ Avoid:
 - Asset work is deferred. Do not generate young Ailo, Neelu, or memory-scene art
   until the user resumes image generation.
 
-## Open Implementation Questions
+## Resolved And Deferred Production Details
 
-- Which exact chapter or mountain approach first gives the Echo Whistle?
-- Which fixed event or battle grants the Echo Whistle before Ailo steals it?
-- What is the exact UI text when the silent brush-past interaction happens?
-- What does the unsigned flower letter look like in the mailbox or reward UI?
-- What exact flower visually represents the memory?
-- How does the second-run special tool label Ailo's intention without over-
-  explaining him?
+- The Echo Whistle enters the mainline through `ch5_s09_whistle_cache`.
+- The first-run brush-past, theft, old-road opening, upper-cliff outcome, and
+  second-run correction follow the accepted Chapter 6-7 screenplay.
+- The memory flower is white-petaled with a pale-green center. It is a visual
+  continuity anchor, not a material reward.
+- The unsigned letter, brush-past prompt, and second-run interaction labels must
+  stay brief and avoid explaining Ailo's intention before the scene earns it.
+- Exact UI copy, young Ailo and Neelu facial anatomy, letter presentation, and
+  final memory-scene composition are deferred production details. They do not
+  reopen his route causality.
 
 ## Do Not Do
 

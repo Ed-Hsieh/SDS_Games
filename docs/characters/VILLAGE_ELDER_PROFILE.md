@@ -1,6 +1,6 @@
 # Village Elder Character Profile
 
-Last updated: 2026-07-16
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -397,10 +397,16 @@ Avoid:
 - If town state changes after main quests, he should react in a lived way rather
   than with reward-summary text.
 
-## Remaining Open Question
+## Resolved Decisions
 
-- How much does he know about the Demon King's sleeping nest before the late
-  story?
+- He remains publicly identified as the village elder. A personal name is not
+  required for the base campaign.
+- Before the late story, he knows that the western route destroyed his militia
+  and that returning there carelessly will kill more people. He does not know
+  the complete nest, seal, dragon, or mountain-vein structure.
+- His restraint comes from witnessed danger, not secret cosmic knowledge.
+- Final clothing and habitual gestures may refine the existing visual asset,
+  but they are production details rather than unresolved character canon.
 
 ## Do Not Do
 

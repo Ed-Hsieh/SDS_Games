@@ -108,9 +108,10 @@ production-facing source for accepted character facts. Use
 constraints.
 
 The character dossiers remain source and audit records. Read the relevant dossier
-when the master register marks a field unresolved, when changing that character,
-or when checking how an accepted decision was reached. Any accepted dossier
-change must be synchronized back into the master register.
+when changing that character, checking deferred production details, or reviewing
+how an accepted decision was reached. Accepted base-campaign character canon is
+synchronized into the master register; do not reopen resolved decisions merely
+because an older dossier once listed them as questions.
 
 Authoritative documents by topic:
 
