@@ -1,0 +1,6 @@
+Plewr, "3D Rigged Character Model"
+https://plewr.itch.io/3d-rigged-character
+
+Runtime file: player.glb
+License declared by the author: CC0 (Free)
+Retrieved: 2026-07-26

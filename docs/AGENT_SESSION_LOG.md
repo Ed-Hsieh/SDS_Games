@@ -4,112 +4,158 @@ Last updated: 2026-07-27
 
 ## Current Direction
 
-The sole delivery priority remains the desktop first run.
-The immediate review gate is the South Gate Canvas vertical slice at `#hunt-demo`.
+The sole active exploration/combat prototype is the desktop Three.js vertical
+slice at `#combat-demo`.
 
-There is one exploration direction:
+The current review boundary is Chapter 1 from South Gate camp through the three
+landmarks to the silver-snare `ambush_mantis` route Boss. The slice is
+memory-only and must continue reading formal monster, skill, item, drop, and
+story data without writing formal save state.
 
-- Canvas 2D renders the world, player, props, masks, shadows, and foregrounds.
-- A layered map package owns visible terrain, collision, materials, height,
-  occlusion, spawn points, interactions, danger zones, and exits.
-- The map never displays monster bodies or calculates combat damage.
-- Environmental danger zones hand off to the existing full-screen combat core.
-- The prototype is memory-only and does not change formal story or save flags.
-
-Only South Gate is in scope. Forest, Rotroot, mine, Chapters 2-7, formal
-`AdventureScene` migration, second-run content, tower work, final balance,
-casino expansion, audio, and mobile UI remain paused until this slice is
-accepted.
+The previous Canvas `#hunt-demo` and its South Gate package have been removed.
+They must not return as a fallback or parallel exploration mode. Formal
+`AdventureScene` migration, later Chapter 1 regions, Chapters 2-7, production
+3D asset work, second-run content, tower work, final balance, audio, and mobile
+UI remain outside the current gate.
 
 ## Completed In Recent Passes
 
-- [done] [P0] [canvas-core] Replace the DOM exploration prototype
-  Owner file(s): `src/js/scenes/HuntDemoScene.js`, `src/views/hunt-demo.html`, `src/style/hunt-demo.css`
-  Source of truth: `src/js/data/SouthGateMapPackage.js`
-  Validation: `scripts/HuntDemoCheck.mjs`
-  Notes: Rendering, camera, movement, interaction, and calibration now share one Canvas 2D core; no second map renderer remains in the prototype.
+- [done] [P0] [prototype-core] Replace the Canvas test with one Three.js scene
+  Owner file(s): `src/js/scenes/ThreeCombatDemoScene.js`, `src/views/combat-demo.html`, `src/style/combat-demo.css`
+  Source of truth: current `#combat-demo` runtime
+  Validation: `scripts/ChapterOne3DDemoCheck.mjs`, manual browser load
+  Notes: The prototype owns rendering, third-person camera, room loading, player and enemy presentation, interactions, loot, and town return in one runtime.
 
-- [done] [P0] [south-gate-package] Build the layered South Gate map
-  Owner file(s): `src/assets/images/art/prototype/hunt-demo/south-gate/`
-  Source of truth: `src/js/data/SouthGateMapPackage.js`
-  Validation: `scripts/HuntDemoCheck.mjs`, manual desktop review
-  Notes: The package includes base and foreground art, walk, height, and material masks, visible collision, exits, props, a rest point, a secret, and environmental danger zones.
+- [done] [P0] [chapter-one-route] Build the five-room Chapter 1 vertical slice
+  Owner file(s): `src/js/combat-demo/ChapterOneDemoRoute.js`, `src/js/combat-demo/ChapterDemoSession.js`
+  Source of truth: `ChapterOneDemoRooms` and the memory-only session contract
+  Validation: `scripts/ChapterOne3DDemoCheck.mjs`
+  Notes: South Gate camp, farmland, hunter boardwalk, old campfire, and silver-snare pass are connected; three evidence records gate the Boss route.
 
-- [done] [P0] [traveler-animation] Replace the old guessed sprite slicing
-  Owner file(s): South Gate traveler atlas and metadata
-  Source of truth: `ExplorationSpriteAtlas` data in the South Gate package
-  Validation: atlas metadata checks and manual eight-direction movement review
-  Notes: Idle, walk, and roll use explicit frame rectangles, pivots, durations, and loop rules. The prototype no longer mirrors directions or guesses frames by percentage.
+- [done] [P0] [direct-combat] Add direct third-person combat controls
+  Owner file(s): `src/js/combat-demo/DemoInputController.js`, `src/js/combat-demo/DemoCombatController.js`
+  Source of truth: formal monster data through `DemoDataAdapter.js`
+  Validation: `scripts/ChapterOne3DDemoCheck.mjs`, `scripts/MonsterCombatCheck.mjs`
+  Notes: The slice includes light combo, heavy charge, dodge invulnerability, stamina, lock-on, potions, enemy windups, death, and checkpoint reset.
 
-- [done] [P0] [combat-handoff] Keep one combat core
-  Owner file(s): `src/js/managers/HuntDemoCombatAdapter.js`
-  Source of truth: the existing full-screen combat session and VFX runtime
-  Validation: `scripts/HuntDemoCheck.mjs`
-  Notes: Danger zones only create encounter handoff data. The map has no weapon, damage, monster-AI, or drop tables.
+- [done] [P0] [formal-data-bridge] Keep monster, action, item, drop, and story ownership canonical
+  Owner file(s): `src/js/combat-demo/DemoDataAdapter.js`
+  Source of truth: formal monster databases, `MonsterCombatProfiles.js`, item resolution, drop calculation, and `StorySceneRegistry.js`
+  Validation: `scripts/ChapterOne3DDemoCheck.mjs`, `scripts/MonsterCombatCheck.mjs`
+  Notes: Prototype route data stores ids and spatial requirements; it does not copy formal stats, skills, rewards, or prose.
 
-- [done] [P1] [prototype-cleanup] Remove superseded exploration prototypes
-  Owner file(s): `src/js/scenes/HuntDemoScene.js`, South Gate prototype assets
-  Source of truth: this log and `docs/CHAPTER_QUEST_FRAMEWORK.md`
-  Validation: reference scan and `scripts/HuntDemoCheck.mjs`
-  Notes: The old DOM map, room prototype, four-region prototype, visible route polygons, old player sprites, and obsolete prop packages were removed instead of retained as fallbacks.
+- [done] [P1] [memory-boundary] Isolate prototype progress from the formal save
+  Owner file(s): `src/js/combat-demo/ChapterDemoSession.js`
+  Source of truth: in-memory `ChapterDemoSession`
+  Validation: `scripts/ChapterOne3DDemoCheck.mjs`
+  Notes: Room, checkpoint, evidence, shortcut, defeated enemies, potions, and demo backpack state are discarded when the prototype session ends.
 
-- [done] [P1] [documentation-cleanup] Converge exploration documentation
-  Owner file(s): `AGENTS.md`, `docs/README.md`, `docs/CHAPTER_QUEST_FRAMEWORK.md`, `docs/ART_STYLE_GUIDE.md`, `docs/OBSOLETE_CLEANUP_PLAN.md`
-  Source of truth: current runtime plus the user-approved South Gate plan
-  Validation: `scripts/BetaConvergenceCheck.mjs`
-  Notes: The temporary Chapter 1 causal draft and obsolete map contracts were removed; accepted narrative causality remains in the story bible and chapter framework.
+- [done] [P1] [camera-facing] Correct third-person character orientation
+  Owner file(s): `src/js/scenes/ThreeCombatDemoScene.js`
+  Source of truth: the scene's single `playerFacing` contract
+  Validation: syntax check, `scripts/ChapterOne3DDemoCheck.mjs`, manual browser inspection
+  Notes: Idle camera turns, movement, attack/dodge alignment, lock-on facing, and the GLB model's 180-degree visual forward offset now share one orientation path.
+
+- [done] [P1] [prototype-cleanup] Remove the superseded Canvas vertical slice
+  Owner file(s): removed hunt-demo scene, view, CSS, map package, adapter, scripts, and assets
+  Source of truth: `docs/OBSOLETE_CLEANUP_PLAN.md`
+  Validation: reference scan and `scripts/ChapterOne3DDemoCheck.mjs`
+  Notes: No Canvas exploration fallback should be restored beside the 3D prototype.
 
 ## Current Runtime Status
 
-- [in_progress] [P0] [south-gate-acceptance] Validate the complete South Gate slice
-  Owner file(s): `src/js/scenes/HuntDemoScene.js`, `src/js/data/SouthGateMapPackage.js`, `src/style/hunt-demo.css`
-  Source of truth: the current `#hunt-demo` runtime
-  Validation: manual desktop playtest at 1440x900, 1920x1080, and 2560x1440
-  Notes: Validate animation order, foot anchoring, visible-terrain collision, wall sliding, foreground occlusion, prop interaction, danger-zone battle return, rest/reset behavior, and map exit.
+- [in_progress] [P0] [three-d-acceptance] Validate the complete Chapter 1 3D slice
+  Owner file(s): `src/js/scenes/ThreeCombatDemoScene.js`, `src/js/combat-demo/`, `src/style/combat-demo.css`
+  Source of truth: current `#combat-demo` runtime
+  Validation: one uninterrupted desktop playthrough at 1920x1080 plus DEV performance review
+  Notes: Camera and model-facing corrections pass focused checks, but the whole five-room route still needs a no-skip manual acceptance pass.
 
-- [done] [P0] [dev-calibration-boundary] Keep calibration out of the player view
-  Owner file(s): `src/js/scenes/HuntDemoScene.js`
-  Source of truth: DEV-only calibration controls
-  Validation: compare DEV off and DEV on
-  Notes: Masks, collision shapes, pivots, and ids are hidden by default and may appear only when calibration is explicitly enabled.
+- [in_progress] [P1] [performance] Keep 1080p play near the 16.7 ms frame target
+  Owner file(s): `src/js/scenes/ThreeCombatDemoScene.js`, `src/js/combat-demo/DemoHud.js`, `src/js/combat-demo/DemoWorldBuilder.js`
+  Source of truth: DEV FPS, frame-time, draw-call, and triangle counters
+  Validation: sustained room and combat measurements without screenshot or background-tab throttling
+  Notes: Renderer DPR and shadow costs are capped and HUD updates are state-driven; each populated combat room still needs sustained measurement.
 
-- [paused] [P0] [formal-adventure-migration] Replace formal exploration only after acceptance
-  Owner file(s): future `AdventureScene.js` and chapter-region integration
-  Source of truth: accepted South Gate behavior
-  Validation: formal Chapter 1 no-skip playthrough after migration
-  Notes: Do not keep `#hunt-demo` as a permanent parallel game mode. Once accepted, port the core into formal exploration and remove the prototype entry.
+- [planned] [P1] [production-models] Replace temporary enemy geometry
+  Owner file(s): future GLBs under `src/assets/models/combat-demo/`
+  Source of truth: `wild_wolf`, `poison_spider`, and `ambush_mantis` formal monster identities
+  Validation: animation, hitbox, silhouette, draw-call, and disposal review
+  Notes: Player and environment kit GLBs exist; the three route monsters do not yet have approved Blender models or animation sets.
 
-- [deferred] [P1] [later-region-production] Build Forest, Rotroot, mine, and Chapters 2-7
-  Owner file(s): future map packages and assets
-  Source of truth: `docs/CHAPTER_QUEST_FRAMEWORK.md`, `docs/MAIN_STORY_BIBLE.md`
-  Validation: each region must pass the South Gate movement, collision, interaction, and combat-return contract
-  Notes: Do not generate or wire later map packages before South Gate acceptance.
+- [planned] [P1] [combat-feel] Review hit feedback and enemy readability
+  Owner file(s): `src/js/combat-demo/DemoCombatController.js`, `src/js/scenes/ThreeCombatDemoScene.js`
+  Source of truth: formal monster actions plus the accepted direct-combat control contract
+  Validation: manual light/heavy/dodge/lock-on/potion/Boss playtest
+  Notes: Tune presentation only after identifying concrete feel problems; do not introduce a second balance table.
+
+- [paused] [P0] [formal-adventure-migration] Replace formal exploration after acceptance
+  Owner file(s): future formal exploration integration
+  Source of truth: accepted `#combat-demo` behavior and formal story bindings
+  Validation: formal Chapter 1 no-skip playthrough with save-state comparison
+  Notes: The prototype must not remain as a permanent parallel mode after migration.
+
+- [deferred] [P2] [later-region-production] Build later Chapter 1 areas and Chapters 2-7
+  Owner file(s): future 3D route, model, animation, and environment modules
+  Source of truth: `docs/MAIN_STORY_BIBLE.md`, `docs/CHAPTER_QUEST_FRAMEWORK.md`
+  Validation: each region must pass the accepted Chapter 1 camera, movement, combat, data, reset, and story-return contracts
+  Notes: Do not expand before the first vertical slice is accepted.
 
 ## Next Good Step
 
-Run a focused South Gate acceptance pass. Record only concrete failures in
-animation, terrain alignment, collision, occlusion, interaction, danger-zone
-handoff, return position, or camera behavior. Fix those in the existing Canvas
-core and map package rather than adding another renderer or compatibility path.
+Run one uninterrupted Chapter 1 3D acceptance pass. Start at South Gate camp,
+collect all three evidence records, use the campfire and shortcut, defeat the
+silver-snare Boss, collect its record, and return to town. Record concrete
+failures in camera control, movement, collision, attack timing, enemy behavior,
+loot interaction, checkpoint reset, route gating, or story handoff.
 
 ## Next Resume Task
 
-- Continue the South Gate Canvas acceptance pass at `#hunt-demo`.
-- Inspect all eight movement directions, walk and roll frame order, and foot
-  stability.
-- Walk every visible terrain boundary and verify that collision follows the art.
-- Pass behind every foreground object and verify stable sorting.
-- Trigger every interaction and danger zone, then verify victory, retreat, rest,
-  reset, and exit return positions.
-- Keep formal quests, save data, later regions, audio, and numeric balance out of
-  this pass.
+Continue the `#combat-demo` acceptance pass.
+
+Target result:
+
+- Character and camera remain aligned through idle turning, movement, attacks,
+  directionless dodge, and lock-on.
+- Every room transition and evidence requirement works without DEV shortcuts.
+- Death restores the latest checkpoint state correctly.
+- Loot remains in the world when the demo backpack is full.
+- The Boss route opens only after all three landmarks.
+- Boss completion returns to the existing town story boundary without changing
+  formal save data.
+- Sustained 1080p combat remains close to the 16.7 ms target.
+
+Suggested implementation files:
+
+- `src/js/scenes/ThreeCombatDemoScene.js`
+- `src/js/combat-demo/ChapterOneDemoRoute.js`
+- `src/js/combat-demo/ChapterDemoSession.js`
+- `src/js/combat-demo/DemoCombatController.js`
+- `src/js/combat-demo/DemoInputController.js`
+- `src/js/combat-demo/DemoWorldBuilder.js`
+- `src/js/combat-demo/DemoHud.js`
+
+Validation:
+
+- `scripts/ChapterOne3DDemoCheck.mjs`
+- `scripts/MonsterCombatCheck.mjs`
+- `scripts/DataConsistencyCheck.mjs`
+- Manual no-skip desktop playthrough at `#combat-demo`
+
+Out of scope:
+
+- Formal save migration
+- Later Chapter 1 regions and Chapters 2-7
+- Final numeric balance
+- Second-run external Boss content
+- Tower and casino expansion
+- Audio and mobile UI
 
 ## Verification Commands
 
 ```powershell
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/HuntDemoCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/BetaConvergenceCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/AssetCoverageCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/DataConsistencyCheck.mjs
-& 'C:\Users\user\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/MonsterEcologyCheck.mjs
+& 'D:\Users\s494326\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' --check src/js/scenes/ThreeCombatDemoScene.js
+& 'D:\Users\s494326\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/ChapterOne3DDemoCheck.mjs
+& 'D:\Users\s494326\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/MonsterCombatCheck.mjs
+& 'D:\Users\s494326\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/DataConsistencyCheck.mjs
+& 'D:\Users\s494326\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin\node.exe' scripts/MonsterEcologyCheck.mjs
 ```

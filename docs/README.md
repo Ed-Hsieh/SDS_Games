@@ -11,8 +11,8 @@ the design direction readable for future Codex sessions.
 - `TOWN_REBUILD_CONVERGENCE.md` - broken-town rebuild scope, phases, feature gates,
   and current wiring status.
 - `CHAPTER_QUEST_FRAMEWORK.md` - chapter titles, level bands, quest placement,
-  reward direction, the single Canvas exploration contract, current South Gate
-  vertical slice, and the 66-scene location-binding boundary from Lv1 to Lv70.
+  reward direction, the current Chapter 1 third-person 3D vertical slice, and
+  the 66-scene location-binding boundary from Lv1 to Lv70.
 - `MAIN_STORY_BIBLE.md` - production-facing story source for accepted character
   canon, mainline suspense, the complete 66-scene review screenplay, character
   entry/exit, first/second-run dialogue and staging, and story-to-system
@@ -53,22 +53,29 @@ the design direction readable for future Codex sessions.
 
 ## Current Exploration Foundation
 
-- `src/js/scenes/HuntDemoScene.js`
-- `src/js/data/SouthGateMapPackage.js`
-- `src/js/managers/HuntDemoCombatAdapter.js`
-- `src/assets/images/art/prototype/hunt-demo/south-gate/`
+- `src/js/scenes/ThreeCombatDemoScene.js`
+- `src/js/combat-demo/`
+- `src/views/combat-demo.html`
+- `src/style/combat-demo.css`
+- `src/assets/models/combat-demo/`
 
-`#hunt-demo` is the sole exploration prototype. It uses Canvas 2D, a layered
-South Gate map package, eight-direction metadata-driven character animation,
-visible-terrain collision, reusable interaction props, and environmental danger
-zones that hand off to the existing full-screen combat. Its state is memory-only.
-The removed DOM map, old four-region prototype, black `?` landmarks, fog,
-fatigue, visible map monsters, and duplicate map combat logic are not valid
+`#combat-demo` is the sole active exploration/combat prototype. It uses Three.js
+for a desktop third-person Chapter 1 vertical slice with direct movement,
+camera-relative facing, lock-on combat, light and heavy attacks, dodge, stamina,
+potions, room collision, evidence, loot, checkpoints, a shortcut, and a route
+Boss. `ChapterDemoSession` keeps all prototype progress in memory and does not
+write formal save data.
+
+Five rooms currently cover South Gate camp, farmland, hunter boardwalk, old
+campfire, and the silver-snare Boss route. Player and environment kit GLBs exist;
+the three route monsters still use temporary geometry. Forest, Rotroot, mine,
+production models and terrain, formal story migration, and Chapters 2-7 remain
+deferred until this slice's camera, movement, combat, collision, interaction,
+reset, and town-return flow is accepted.
+
+The removed Canvas `#hunt-demo`, its layered South Gate package, old DOM map,
+four-region prototype, and duplicate map/combat adapters are not valid
 fallbacks.
-
-Only South Gate is implemented. Forest, Rotroot, mine, and Chapters 2-7 remain
-deferred until the user accepts movement, collision, interaction, combat return,
-and visual integration in this slice.
 
 ## Runtime Story Foundation
 

@@ -72,19 +72,17 @@ agent sessions should read this file before editing content or asset systems.
   settled before Mia dies. He is neither reckless nor the sole culprit. In the
   second run he reopens the current-run source pages, rejects the generalization,
   and records a pressure-free test with its scope and unknowns intact.
-- The only active exploration prototype is `#hunt-demo`. It uses one Canvas 2D
-  core and a layered South Gate map package with visible-terrain collision,
-  height/material masks, foreground occlusion, metadata-driven eight-direction
-  animation, reusable props, and environmental danger zones that hand off to the
-  existing full-screen combat.
-- Only South Gate is implemented. Forest, Rotroot, mine, Chapters 2-7, and
-  formal `AdventureScene` migration are deferred until the South Gate slice is
-  accepted. The prototype is memory-only and must not alter formal story or save
-  flags.
-- Do not restore the old DOM map, room or four-region prototypes, visible route
-  polygons, black `?` landmarks, fog, fatigue, visible map monsters, or map-local
-  combat. Once accepted, migrate the Canvas core into formal exploration and
-  remove the prototype entry instead of keeping two exploration systems.
+- The only active exploration/combat prototype is `#combat-demo`. It is a
+  desktop Three.js third-person vertical slice for Chapter 1 with direct
+  movement, camera control, lock-on, light/heavy attacks, dodge, stamina,
+  potions, enemies, evidence, loot, checkpoints, shortcuts, and one route Boss.
+- The previous `#hunt-demo` Canvas package has been removed. Do not restore its
+  renderer, map package, masks, sprites, combat adapter, or assets as a fallback.
+  The 3D prototype is memory-only and must not alter formal story or save flags.
+- Only the Chapter 1 route from South Gate camp through the three landmarks to
+  `ambush_mantis` is implemented in 3D. Later Chapter 1 areas, Chapters 2-7,
+  formal `AdventureScene` migration, production terrain, and final character or
+  monster models remain deferred until this vertical slice is accepted.
 - Public transactions and medicine stock belong to the rebuilt market. Vesper's
   casino route is linear: first-run escape and Loaded Dice evidence, second-run
   host/guest reversal, contract collection, and one immediate showcase prize.
@@ -235,9 +233,9 @@ Current measured gaps:
 
 ## Current Review Gate
 
-As of 2026-07-27, the immediate review gate is the South Gate Canvas vertical
-slice. The accepted story and catalog foundations remain available but are not
-the active implementation scope:
+As of 2026-07-27, the immediate review gate is the Chapter 1 Three.js vertical
+slice at `#combat-demo`. The accepted story and catalog foundations remain
+available but are not the active implementation scope:
 
 - Mainline scenes must make nine core characters complete; side stories only
   deepen them. `MainlineCharacterContracts` locks introductions, decisive scenes,
@@ -246,8 +244,18 @@ the active implementation scope:
   is implemented through `StoryStateContract.js` and `StorySceneManager.js`.
 - `ChapterRegionRegistry.js` still owns the 37 formal map-stage scene bindings
   while the new exploration presentation is reviewed. Those bindings are the
-  migration source, not authority for the old visual map. `HuntDemoScene.js` and
-  `SouthGateMapPackage.js` own the sole active exploration prototype.
+  migration source, not authority for a second visual map.
+- `ThreeCombatDemoScene.js` plus `src/js/combat-demo/` own the sole active
+  prototype. Five memory-only rooms cover South Gate camp, farmland, hunter
+  boardwalk, old campfire, and the silver-snare Boss route. Three evidence
+  records gate the Boss path; death returns to the latest campfire.
+- Player and environment kit GLBs exist. Wild wolf, poison spider, and
+  `ambush_mantis` still use temporary geometry and require reviewed Blender
+  models before production migration.
+- Third-person orientation now uses one world-facing contract. Camera-relative
+  movement, idle camera turning, attack/dodge alignment, lock-on facing, and the
+  GLB model's 180-degree visual forward offset are handled in the same scene
+  controller.
 - Eight active town places, public market ownership, and scene-driven visibility
   live in `TownPlaces.js` and `TownStateResolver.js`.
 - The old fifteen-part main quest chain is removed. Mandatory progression reads
@@ -309,10 +317,10 @@ story path as a workaround.
 
 Data normalization may continue where it removes collisions or obsolete records,
 but do not assign final rewards, drop rates, equipment values, or stock balance
-before the map-function review. The immediate catalog resume task is to review
-the six crafted-result and five Boss-blueprint mapping gaps before generating or
-removing them. The 33 casino-special mappings and tower equipment remain
-excluded.
+before the 3D vertical-slice review. The immediate prototype review is movement,
+camera, combat feel, collision, enemy behavior, evidence/loot interaction,
+checkpoint reset, Boss completion, and clean return to town. The 33
+casino-special mappings and tower equipment remain excluded.
 Chapter 1-2 still needs a no-skip playthrough, final text/expression review,
 background binding, and audio. Second-run external Boss expansion, second-run
 gameplay, final combat balance, tower rewrite, post-reveal DLC, and mobile UI

@@ -416,6 +416,7 @@ class DevPanel {
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="guild">工會教學</button>
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="lobby">城鎮大廳</button>
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="adventure">冒險地圖</button>
+                    <button class="dev-act" type="button" data-dev="navigate-scene" data-route="combat-demo">3D 戰鬥 DEMO</button>
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="quest">任務／線索</button>
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="encyclopedia">百科</button>
                     <button class="dev-act" type="button" data-dev="navigate-scene" data-route="forge">鍛造</button>

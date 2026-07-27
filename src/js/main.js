@@ -23,7 +23,7 @@ import { GuildTutorialFlag } from './data/GuildTutorial.js';
 import { PROLOGUE_TUTORIAL_RESOLVED_FLAG } from './data/StoryStateContract.js';
 import { isDevModeEnabled } from './utils/DevMode.js';
 
-const APP_ASSET_VERSION = 'hunt-canvas-south-20260726b';
+const APP_ASSET_VERSION = 'chapter-one-3d-slice-20260727b';
 
 class App {
     constructor() {
@@ -40,7 +40,7 @@ class App {
             'lobby': LobbyScene,
             'shop': ShopScene,
             'adventure': null,
-            'hunt-demo': null,
+            'combat-demo': null,
             'casino': CasinoScene,
             'forge': ForgeScene,
             'quest': QuestScene,
@@ -170,10 +170,10 @@ class App {
                 const module = await import('./scenes/AdventureScene.js');
                 SceneClass = module.default;
                 this.routes.adventure = SceneClass;
-            } else if (sceneName === 'hunt-demo') {
-                const module = await import(`./scenes/HuntDemoScene.js?v=${APP_ASSET_VERSION}`);
+            } else if (sceneName === 'combat-demo') {
+                const module = await import(`./scenes/ThreeCombatDemoScene.js?v=${APP_ASSET_VERSION}`);
                 SceneClass = module.default;
-                this.routes['hunt-demo'] = SceneClass;
+                this.routes['combat-demo'] = SceneClass;
             }
             if (SceneClass) {
                 this.currentScene = new SceneClass(this.appContainer, this);

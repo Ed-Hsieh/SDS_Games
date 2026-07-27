@@ -439,7 +439,7 @@ class AudioManager {
             quest: 'study',
             encyclopedia: 'study',
             adventure: 'adventure',
-            'hunt-demo': 'adventure',
+            'combat-demo': 'adventure',
             tower: 'tower',
             casino: 'casino'
         }[sceneName] || 'town';

@@ -395,9 +395,9 @@ function auditFrameworkDocs() {
         'approved guild tutorial commission and',
         'The market remains closed',
         'first returned caravan brings the merchant',
-        'South Gate Vertical Slice',
-        'ExplorationMapPackage',
-        'The map never displays monster bodies',
+        'Chapter 1 Three-Dimensional Vertical Slice',
+        '`ChapterDemoSession`',
+        'The camera follows behind the protagonist.',
         'old DOM map',
         "Shadow begins around Lv24-30 and is the base campaign's dark affinity ceiling",
         "Glimmer is the base campaign's bright affinity ceiling",
@@ -556,9 +556,9 @@ function auditFrameworkDocs() {
         'src/assets/images/art/scenes/town/locations/casino.webp'
     ]);
     assertDocContains('framework-docs', 'docs/AGENT_SESSION_LOG.md', [
-        'The sole delivery priority remains the desktop first run.',
-        'The immediate review gate is the South Gate Canvas vertical slice',
-        'HuntDemoScene.js',
+        'The sole active exploration/combat prototype',
+        'Chapter 1 from South Gate camp',
+        'ThreeCombatDemoScene.js',
         'formal-adventure-migration',
         'Next Resume Task'
     ]);
@@ -574,7 +574,7 @@ function auditFrameworkDocs() {
     assertDocContains('framework-docs', 'docs/OBSOLETE_CLEANUP_PLAN.md', [
         'Active Cleanup',
         'Removed Guardrails',
-        'HuntDemoRegions.js',
+        'ChapterOne3DDemoCheck.mjs',
         'CHAPTER_1_CAUSAL_REBUILD_DRAFT.md',
         'Do Not Remove'
     ]);

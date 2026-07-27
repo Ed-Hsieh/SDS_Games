@@ -17,10 +17,9 @@ story, source structure, and systems should land without owning final values.
 - `src/js/data/ChapterRegionRegistry.js` still owns the current formal
   first-run scene bindings and Boss convergence while the exploration runtime
   is being replaced.
-- `src/js/data/SouthGateMapPackage.js` owns the accepted South Gate Canvas
-  vertical slice. `HuntDemoScene.js` is the only active exploration prototype;
-  it replaces the removed DOM-map prototype rather than adding a second map
-  system.
+- `src/js/scenes/ThreeCombatDemoScene.js` and `src/js/combat-demo/` own the
+  active memory-only Chapter 1 Three.js vertical slice. They replace the removed
+  Canvas hunt demo rather than adding a second exploration system.
 - `src/js/data/Quests.js` owns only tutorial and optional quest runtime
   contracts. It currently contains the approved guild tutorial commission and
   six Chapter 1 optional commissions. Mandatory chapter progression is read
@@ -217,81 +216,94 @@ monster art.
 
 ## Adventure Map Rebuild Contract
 
-The accepted direction is one desktop Canvas 2D exploration core. The South Gate
-vertical slice is the only implemented map package. It must be accepted before
-the forest, Rotroot region, mine, or Chapters 2-7 are rebuilt. The old DOM map,
-visible route polygons, room-by-room prototype, black `?` landmarks, fog layer,
-fatigue layer, and compatibility map adapters are not part of the forward
-design.
+The accepted prototype direction is one desktop third-person 3D exploration and
+combat core. The Chapter 1 slice at `#combat-demo` is the only active prototype.
+It must be accepted before later Chapter 1 regions, Chapters 2-7, or formal
+`AdventureScene` migration begin. The removed Canvas hunt demo, old DOM map,
+visible route polygons, black `?` landmarks, fog layer, fatigue layer, and
+compatibility map adapters are not part of the forward design.
 
-### Current Exploration Rules
+### Current Exploration And Combat Rules
 
-- The world is a continuous authored area with a fixed camera following the
-  player near the lower center of the screen.
-- The map is built from a layout first, then rendered as `base`, `foreground`,
-  `walk-mask`, `height-mask`, and `material-mask` assets in one coordinate space.
-- Most visibly open ground is walkable. Walls, fences, water, cliffs, dense
-  vegetation, and structural objects provide every collision boundary.
-- The player uses an eight-direction atlas with metadata-defined idle, walk, and
-  roll frames. Runtime never guesses atlas rows or mirrors weapon hands.
-- Movement runs at fixed 60 Hz. A circular collider uses substeps and surface
-  sliding so diagonal movement and rolling do not cross walls.
-- Props, the player, and foreground pieces sort by foot position plus height
-  layer. Ground material controls contact feedback such as mud footprints and
-  pressed grass.
-- The map never displays monster bodies. Readable environmental danger zones
-  call the existing full-screen rhythm combat and return the result to the same
-  exploration state.
-- Quests describe purpose and visible environmental features, not coordinates,
-  arrows, or exposed data ids. Progress changes only after an interaction or
-  performed story beat.
-- The map supports reusable `decal`, `object`, and `structural` interactions.
-  Chests, evidence, supplies, gathering points, rest points, gates, and
-  shortcuts visibly retain their state.
-- Rest restores health and resets ordinary danger zones. It does not refill
-  Mia's three emergency potions. Story evidence, opened containers, shortcuts,
-  and defeated special enemies persist for the current exploration.
-- DEV calibration is opt-in and must be invisible outside DEV mode. No colored
-  mask, polygon, anchor, or data id may appear in the normal game view.
-- Desktop is the only supported layout. No mobile control layer is required.
+- Three.js owns rendering, camera, model placement, collision presentation,
+  enemy bodies, combat feedback, loot, and room transitions.
+- The camera follows behind the protagonist. Movement is camera-relative; idle
+  facing follows camera rotation, attacks and directionless dodges align before
+  execution, and lock-on facing remains enemy-relative.
+- Desktop controls are `WASD` movement, mouse camera, `LMB` light combo, held
+  `RMB` heavy attack, `Space` dodge, `Q` lock-on, `R` potion, and `F`
+  interaction.
+- Normal browsers use Pointer Lock. The in-app browser uses pointer movement and
+  edge turning so camera rotation does not stop at the viewport boundary.
+- Combat uses a fixed update step and includes stamina, dodge invulnerability,
+  light/heavy timing, enemy windups, healing, damage feedback, death, and
+  checkpoint reset. Blocking and parrying are outside the current slice.
+- Formal monster records, `MonsterCombatProfiles`, item resolution, and drop
+  calculation remain the data owners. The prototype may adapt them but may not
+  copy names, stats, skills, drops, or story text into a second database.
+- Evidence and loot require explicit interaction. A full temporary backpack
+  leaves world loot in place rather than redirecting it to formal storage.
+- Rest restores the demo player and potions, sets the current checkpoint, and
+  resets ordinary enemies and the Boss. Evidence, collected demo loot, and the
+  opened shortcut persist inside the current `ChapterDemoSession`.
+- All prototype state is memory-only. Entering or leaving `#combat-demo` must not
+  change formal save, quest, achievement, inventory, or story flags.
+- DEV performance monitoring may expose FPS, frame time, draw calls, and
+  triangles. It must not create a second gameplay rule set.
+- Desktop is the only supported layout. No mobile controls or responsive combat
+  redesign are required.
 
-### South Gate Vertical Slice
+### Chapter 1 Three-Dimensional Vertical Slice
 
-`src/js/data/SouthGateMapPackage.js` and `src/js/scenes/HuntDemoScene.js` currently
-own one 4096 x 2304 South Gate area containing the gate threshold, farmland,
-fence split, one longer detour, one secret, one rest point, three meaningful
-interactions, one formal-combat danger zone, and a locked forest boundary.
+`src/js/scenes/ThreeCombatDemoScene.js` and `src/js/combat-demo/` own five
+prototype rooms:
 
-The prototype uses memory-only state and must not write formal quest or save
-flags. Once accepted, the same Canvas core replaces the corresponding
-`AdventureScene` exploration ownership; it must not survive as a parallel game
-mode.
+1. South Gate camp and starting checkpoint.
+2. South Gate farmland with `wild_wolf` and the first route record.
+3. Hunter boardwalk with `poison_spider` and the second evidence item.
+4. Old campfire with the third record, a checkpoint, and a return shortcut.
+5. Silver-snare pass with the `ambush_mantis` route Boss.
+
+All three landmarks must be investigated before the Boss route opens. Defeating
+the Boss and recovering its record opens the town return, which bridges to the
+existing Chapter 1 story boundary. The slice stops before Rotroot gorge and the
+Forest Guardian.
+
+Player and environment kit GLBs exist under
+`src/assets/models/combat-demo/`. The current player uses a fixed visual
+forward-axis correction so model orientation agrees with movement and camera
+logic. Wild wolf, poison spider, and `ambush_mantis` still use temporary
+procedural geometry; their production Blender models and animations remain
+unimplemented.
 
 ### Exploration Data Contract
 
 | Interface | Requirement |
 | --- | --- |
-| `ExplorationMapPackage` | World size, base and foreground assets, three masks, spawn, exits, occluders, props, danger zones, and camera contract. |
-| `ExplorationSpriteAtlas` | Atlas image, JSON metadata, eight directions, frame rectangles, foot pivot, duration, and loop state. |
-| `ExplorationEntity` | World position, collision radius, foot anchor, height layer, material state, and interaction reference. |
-| Interaction prop | Render mode, visual state, foot anchor, interaction radius, requirements, performed result, and formal reward reference. |
-| Danger zone | Visible environmental polygon, formal encounter source, reset rule, retreat rule, and before/after return positions. |
-| Story binding | Existing scene id, prerequisites, performed scene, resulting flags, and visible world consequence; no duplicate story copy inside map data. |
+| `ChapterDemoSession` | Memory-only room, checkpoint, evidence, shortcut, defeated-enemy, potion, and temporary-backpack state. |
+| `ChapterOneDemoRoute` | Room ids, spatial spawn/exit data, formal monster ids, interaction ids, and progression requirements without copied stats or prose. |
+| `DemoDataAdapter` | Read-only bridge to formal monster, combat-profile, story, item, and drop owners. |
+| `DemoInputController` | Pointer Lock and in-app fallback camera input plus one shared desktop action map. |
+| `DemoCombatController` | Prototype combat state machine using adapted formal monster actions and player-side test rules. |
+| `DemoWorldBuilder` | Room geometry, collision, exits, interaction objects, loot objects, and disposable Three.js resources. |
+| `DemoHud` | State-change-driven HUD, modal story/item presentation, interaction prompts, and DEV performance display. |
+| Story binding | Existing scene ids and text only; the demo records validation flags rather than writing formal story state. |
 
 ### Removed Exploration Directions
 
+- The Canvas `#hunt-demo`, South Gate map package, masks, sprite atlas, props,
+  and full-screen combat handoff adapter.
 - DOM elements as map terrain, collision, player, or world objects.
 - Colored route polygons, debug labels, and invisible collision drawn over an
   unrelated finished illustration.
-- Separate rooms presented as a substitute for one explorable area.
-- Monsters patrolling visibly on the map or applying map-level damage.
-- A second attack, drop, skill, or monster-stat implementation inside the map.
 - Fixed black `?` squares, duplicate location cards, and automatic story
   completion on room entry.
+- A second monster, skill, drop, item, or story database inside the 3D runtime.
 - Fatigue, route-danger labels, random geography, ring layouts, and generic
   chapter-shared landmark pools.
-- Generating Chapters 2-7 maps before the South Gate movement, collision,
-  interaction, transition, and visual integration are accepted.
+- Building later regions before camera, movement, combat feel, collision,
+  evidence/loot interaction, checkpoint reset, Boss completion, and town return
+  are accepted in the Chapter 1 slice.
 
 ### Scene Binding For The 66-Scene Screenplay
 
